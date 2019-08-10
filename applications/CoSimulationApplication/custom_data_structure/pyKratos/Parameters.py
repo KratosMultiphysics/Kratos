@@ -180,6 +180,10 @@ class Parameters(object):
     def GetString(self):
         return self.__Get(self.IsString, "string")
 
+    def GetStringArray(self):
+        self.__CheckIfArray("GetStringArray")
+        return [self[i].GetString() for i in range(self.size())]
+
 
     def __Get(self, cmp_fct, exp_type_str):
         if not cmp_fct():

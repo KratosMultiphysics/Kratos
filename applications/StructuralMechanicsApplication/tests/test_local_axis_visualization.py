@@ -68,8 +68,8 @@ def CheckResults(ref_file_name, out_file_name):
     # check the results
     settings_check_process = KratosMultiphysics.Parameters("""
     {
-        "reference_file_name"   : \"""" + ref_file_name + """\",
-        "output_file_name"      : \"""" + out_file_name + """\",
+        "reference_file_name"   : \"""" + ref_file_name.replace("\\", "\\\\") + """\",
+        "output_file_name"      : \"""" + out_file_name.replace("\\", "\\\\") + """\",
         "comparison_type"       : "post_res_file"
     }
     """)

@@ -19,7 +19,7 @@
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["EQUIVALENT_NODAL_STRESS"],
                 "estimate_interpolation_error"     : false,
-                "interpolation_error"              : 0.001, 
+                "interpolation_error"              : 1.0e-6, 
                 "mesh_dependent_constant"          : 0.28125
             },
             "enforce_current"                  : false,
@@ -34,7 +34,7 @@
             },
             "initial_remeshing"                : false,
             "fix_contour_model_parts"          : [],
-			"fix_elements_model_parts"         : ["Body_Part-auto-1"],
+			"fix_elements_model_parts"         : [],
             "minimal_size"                     : 0.015,
             "maximal_size"                     : 0.5,
             "force_min"                        : false,

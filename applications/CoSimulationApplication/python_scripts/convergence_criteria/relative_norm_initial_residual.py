@@ -28,7 +28,7 @@ class RelativeNormInitialResidualConvergenceCriteria(CoSimulationConvergenceCrit
     def InitializeSolutionStep(self):
         self.initial_iteration = True
 
-    def InitializeCouplingIteration(self):
+    def InitializeNonLinearIteration(self):
         # Saving the previous data (at beginning of iteration) for the computation of the residual
         self.prev_data = self.interface_data.GetData()
 
@@ -53,13 +53,13 @@ class RelativeNormInitialResidualConvergenceCriteria(CoSimulationConvergenceCrit
                 info_msg += colors.green("ACHIEVED")
             else:
                 info_msg += colors.red("NOT ACHIEVED")
-            cs_tools.cs_print_info(self._Name(), info_msg)
+            cs_tools.cs_print_info(self._ClassName(), info_msg)
         if self.echo_level > 2:
             info_msg  = colors.bold("abs_norm") + " = " + str(abs_norm) + " | "
             info_msg += colors.bold("abs_tol")  + " = " + str(self.abs_tolerance) + " || "
             info_msg += colors.bold("rel_norm") + " = " + str(rel_norm) + " | "
             info_msg += colors.bold("rel_tol")  + " = " + str(self.rel_tolerance)
-            cs_tools.cs_print_info(self._Name(), info_msg)
+            cs_tools.cs_print_info(self._ClassName(), info_msg)
 
         return is_converged
 
