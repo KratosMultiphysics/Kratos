@@ -850,7 +850,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ConstitutiveLawUtilities<3>;
 template class ConstitutiveLawUtilities<6>;
+template class ConstitutiveLawUtilities<3>;
 
 } // namespace Kratos
