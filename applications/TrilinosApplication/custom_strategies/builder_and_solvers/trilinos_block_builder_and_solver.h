@@ -151,7 +151,6 @@ public:
 
     /**
 	 * @brief Function to perform the build the system matrix and the residual vector
-	 * of dofs or as the number of unrestrained ones
 	 * @param pScheme The integration scheme considered
 	 * @param rModelPart The model part of the problem to solve
 	 * @param rA The LHS matrix
@@ -189,7 +188,7 @@ public:
 
             //detect if the element is active or not. If the user did not make any choice the element
             //is active by default
-            bool element_is_active = true;
+            const bool element_is_active = true;
             if ((it)->IsDefined(ACTIVE))
                 element_is_active = (it)->Is(ACTIVE);
 
@@ -217,7 +216,7 @@ public:
 
             //detect if the element is active or not. If the user did not make any choice the element
             //is active by default
-            bool condition_is_active = true;
+            const bool condition_is_active = true;
             if ((it)->IsDefined(ACTIVE))
                 condition_is_active = (it)->Is(ACTIVE);
 
@@ -619,21 +618,21 @@ public:
 	 * @brief Resizes the system matrix and the vector according to the number of dos in the current rModelPart.
      *          This function also decides on the sparsity pattern and the graph of the trilinos csr matrix
 	 * @param pScheme The integration scheme considered
-	 * @param rA The LHS matrix
-	 * @param rDx The Unknowns vector
-	 * @param rb The RHS vector
+	 * @param rpA The LHS matrix
+	 * @param rpDx The Unknowns vector
+	 * @param rpd The RHS vector
 	 * @param rModelPart The model part of the problem to solve
 	 */
     void ResizeAndInitializeVectors(
         typename TSchemeType::Pointer pScheme,
-        TSystemMatrixPointerType &rA,
-        TSystemVectorPointerType &rDx,
-        TSystemVectorPointerType &rb,
+        TSystemMatrixPointerType &rpA,
+        TSystemVectorPointerType &rpDx,
+        TSystemVectorPointerType &rpb,
         ModelPart &rModelPart) override
     {
         KRATOS_TRY
         //resizing the system vectors and matrix
-        if (rA == NULL || TSparseSpace::Size1(*rA) == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
+        if (rpA == NULL || TSparseSpace::Size1(*rpA) == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
             int temp_size = number_of_local_dofs;
@@ -700,17 +699,17 @@ public:
             KRATOS_ERROR_IF(ierr != 0) << "In " << __FILE__ << ":" << __LINE__ << ": Epetra failure in Graph.GlobalAssemble, Error code: " << ierr << std::endl;
             //generate a new matrix pointer according to this graph
             TSystemMatrixPointerType p_new_A = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
-            rA.swap(p_new_A);
+            rpA.swap(p_new_A);
             //generate new vector pointers according to the given map
-            if (rb == NULL || TSparseSpace::Size(*rb) != BaseType::mEquationSystemSize)
+            if (rpb == NULL || TSparseSpace::Size(*rpb) != BaseType::mEquationSystemSize)
             {
                 TSystemVectorPointerType p_new_b = TSystemVectorPointerType(new TSystemVectorType(my_map));
-                rb.swap(p_new_b);
+                rpb.swap(p_new_b);
             }
-            if (rDx == NULL || TSparseSpace::Size(*rDx) != BaseType::mEquationSystemSize)
+            if (rpDx == NULL || TSparseSpace::Size(*rpDx) != BaseType::mEquationSystemSize)
             {
                 TSystemVectorPointerType p_new_Dx = TSystemVectorPointerType(new TSystemVectorType(my_map));
-                rDx.swap(p_new_Dx);
+                rpDx.swap(p_new_Dx);
             }
             if (BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
             {
@@ -721,12 +720,12 @@ public:
         }
         else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag)
         {
-            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rDx->Map()));
+            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         }
         else
         {
-            if (TSparseSpace::Size1(*rA) == 0 || TSparseSpace::Size1(*rA) != BaseType::mEquationSystemSize || TSparseSpace::Size2(*rA) != BaseType::mEquationSystemSize)
+            if (TSparseSpace::Size1(*rpA) == 0 || TSparseSpace::Size1(*rpA) != BaseType::mEquationSystemSize || TSparseSpace::Size2(*rpA) != BaseType::mEquationSystemSize)
             {
                 KRATOS_ERROR << "It should not come here resizing is not allowed this way!!!!!!!! ... ";
             }
