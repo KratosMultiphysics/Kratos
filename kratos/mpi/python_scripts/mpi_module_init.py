@@ -1,6 +1,14 @@
 from __future__ import absolute_import
 import sys
 
+import KratosMultiphysics as KM
+
+if hasattr(KM, 'KratosGlobals'):
+    # if "KratosGlobals" does not exist it means that this is the initialization
+    # of MPI that is explicitly called from the init of Kratos
+    if not KM.KratosGlobals.Kernel.IsDistributedRun():
+        raise ImportError("MPI can only be imported in a distributed run!")
+
 if sys.platform.startswith('linux'):
     # Note: from Python 3.3 onwards, dll load flags are available from module os
     # from Python 3.6 onwards, module DLFCN no longer exists
