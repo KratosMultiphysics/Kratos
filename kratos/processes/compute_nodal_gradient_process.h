@@ -84,17 +84,17 @@ public:
     /// Default constructor. (double)
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
-        Variable<double>& rOriginVariable,
-        Variable<array_1d<double,3> >& rGradientVariable,
-        Variable<double>& rAreaVariable = NODAL_AREA
+        const Variable<double>& rOriginVariable,
+        const Variable<array_1d<double,3> >& rGradientVariable,
+        const Variable<double>& rAreaVariable = NODAL_AREA
         );
 
     /// Default constructor. (component)
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
-        ComponentType& rOriginVariable,
-        Variable<array_1d<double,3> >& rGradientVariable,
-        Variable<double>& rAreaVariable = NODAL_AREA
+        const ComponentType& rOriginVariable,
+        const Variable<array_1d<double,3> >& rGradientVariable,
+        const Variable<double>& rAreaVariable = NODAL_AREA
         );
 
     /// Destructor.
@@ -209,11 +209,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                                      /// The main model part
-    std::vector<Variable<double>*> mrOriginVariableDoubleList;   /// The scalar variable list to compute
-    std::vector<ComponentType*> mrOriginVariableComponentsList;  /// The scalar variable list to compute (components)
-    Variable<array_1d<double,3> >& mrGradientVariable;           /// The resultant gradient variable
-    Variable<double>& mrAreaVariable;                            /// The auxiliar area variable
+    ModelPart& mrModelPart;                                           /// The main model part
+    std::vector<const Variable<double>*> mpOriginVariableDoubleList;  /// The scalar variable list to compute
+    std::vector<const ComponentType*> mpOriginVariableComponentsList; /// The scalar variable list to compute (components)
+    const Variable<array_1d<double,3>>* mpGradientVariable;           /// The resultant gradient variable
+    const Variable<double>* mpAreaVariable;                           /// The auxiliar area variable
 
     ///@}
     ///@name Private Operators
