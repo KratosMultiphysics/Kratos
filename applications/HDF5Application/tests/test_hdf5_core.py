@@ -1,7 +1,9 @@
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.HDF5Application import core
-from KratosMultiphysics.HDF5Application.core import controllers, operations, file_io
+from KratosMultiphysics.HDF5Application.core import controllers
+from KratosMultiphysics.HDF5Application.core import operations
+from KratosMultiphysics.HDF5Application.core import file_io
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 from unittest.mock import patch, MagicMock
@@ -133,7 +135,7 @@ class TestFileIO(KratosUnittest.TestCase):
 
     def test_FilenameGetter_NonTerminalIdentifier(self):
         settings = self._FilenameGetterSettings(
-            file_name='<identifier>-<time>.h5', time_format='0.2f')
+            file_name='<model_part_name>-<time>.h5', time_format='0.2f')
         obj = file_io._FilenameGetter(settings)
         self.assertEqual(obj.Get(_SurrogateModelPart()), 'model_part-1.23.h5')
 
@@ -229,7 +231,7 @@ class TestOperations(KratosUnittest.TestCase):
     def test_Prefix_NonTerminalIdentifier(self):
         model_part = _SurrogateModelPart()
         prefix = operations.model_part._Prefix(
-            '/<identifier>-<time>', model_part)
+            '/<model_part_name>-<time>', model_part)
         self.assertEqual(prefix, '/model_part-1.23456789')
 
     def test_VariableIO_Settings(self):
@@ -246,7 +248,7 @@ class TestOperations(KratosUnittest.TestCase):
     def test_VariableIO_GetSettingsWithNonTerminalPrefix(self):
         input_settings = KratosMultiphysics.Parameters('''
             {
-                "prefix": "/ModelData/<identifier>/<time>",
+                "prefix": "/ModelData/<model_part_name>/<time>",
                 "time_format": "0.2f"
             }
             ''')
@@ -274,7 +276,7 @@ class TestOperations(KratosUnittest.TestCase):
         settings = KratosMultiphysics.Parameters('''
             {
                 "operation_type": "model_part_output",
-                "prefix": "/ModelData/<identifier>/<time>",
+                "prefix": "/ModelData/<model_part_name>/<time>",
                 "time_format": "0.2f"
             }
             ''')
@@ -611,6 +613,120 @@ class TestFactory(KratosUnittest.TestCase):
         model_part_io.WriteModelPart.assert_called_once_with(model_part)
         patcher1.stop()
         patcher2.stop()
+
+
+class TestParametersWrapper(KratosUnittest.TestCase):
+
+    def setUp(self):
+        self.set_params = KratosMultiphysics.Parameters()
+        self.get_params = KratosMultiphysics.Parameters(
+            '''
+            {
+            "string_value" : "abc",
+            "int_value": 1,
+            "double_value": 1.5,
+            "bool_value": true,
+            "parameters" : {
+                "double_value": 3.1
+            },
+            "array_of_double_values": [1.1, 2.2, 3.3],
+            "array_of_parameters": [{
+                "int_value": 2
+            },{
+                "double_value": 2.7
+            }]
+            }
+            '''
+        )
+
+    def test_get_string(self):
+        settings = core.ParametersWrapper(self.get_params)
+        self.assertEqual(settings['string_value'], 'abc')
+
+    def test_get_int(self):
+        settings = core.ParametersWrapper(self.get_params)
+        self.assertEqual(settings['int_value'], 1)
+
+    def test_get_double(self):
+        settings = core.ParametersWrapper(self.get_params)
+        self.assertAlmostEqual(settings['double_value'], 1.5)
+
+    def test_get_bool(self):
+        settings = core.ParametersWrapper(self.get_params)
+        self.assertEqual(settings['bool_value'], True)
+
+    def test_get_parameters(self):
+        settings = core.ParametersWrapper(self.get_params)
+        self.assertAlmostEqual(settings['parameters']['double_value'], 3.1)
+
+    def test_get_array_of_values(self):
+        settings = core.ParametersWrapper(self.get_params)
+        self.assertAlmostEqual(settings['array_of_double_values'][0], 1.1)
+        self.assertAlmostEqual(settings['array_of_double_values'][1], 2.2)
+        self.assertAlmostEqual(settings['array_of_double_values'][2], 3.3)
+
+    def test_get_array_of_parameters(self):
+        settings = core.ParametersWrapper(self.get_params)
+        self.assertEqual(settings['array_of_parameters'][0]['int_value'], 2)
+        self.assertEqual(settings['array_of_parameters'][1]['double_value'], 2.7)
+
+    def test_set_string(self):
+        settings = core.ParametersWrapper(self.set_params)
+        settings['string_value'] = 'abc'
+        self.assertEqual(settings['string_value'], 'abc')
+
+    def test_set_int(self):
+        settings = core.ParametersWrapper(self.set_params)
+        settings['int_value'] = 1
+        self.assertEqual(settings['int_value'], 1)
+
+    def test_set_double(self):
+        settings = core.ParametersWrapper(self.set_params)
+        settings['double_value'] = 1.5
+        self.assertEqual(settings['double_value'], 1.5)
+
+    def test_set_bool(self):
+        settings = core.ParametersWrapper(self.set_params)
+        settings['bool_value'] = True
+        self.assertEqual(settings['bool_value'], True)
+
+    def test_set_parameters(self):
+        settings = core.ParametersWrapper(self.set_params)
+        settings['parameters'] = KratosMultiphysics.Parameters(
+            '''
+            {
+            "bool_value": false
+            }
+            '''
+        )
+        self.assertAlmostEqual(settings['parameters']['bool_value'], False)
+
+    def test_set_array_of_values(self):
+        settings = core.ParametersWrapper(self.set_params)
+        settings['array_of_bool_values'] = [True, False]
+        self.assertAlmostEqual(settings['array_of_bool_values'][0], True)
+        self.assertAlmostEqual(settings['array_of_bool_values'][1], False)
+
+    def test_set_array_of_parameters(self):
+        settings = core.ParametersWrapper(self.set_params)
+        settings['array_of_parameters'] = [
+            self.get_params['array_of_parameters'][0],
+            self.get_params['array_of_parameters'][1]
+        ]
+        self.assertEqual(settings['array_of_parameters'][0]['int_value'], 2)
+        self.assertEqual(settings['array_of_parameters'][1]['double_value'], 2.7)
+
+    def test_array_keys(self):
+        settings = ParametersWrapper(self.get_params)
+        count = 0
+        for k in settings['array_of_double_values']:
+            self.assertEqual(k, count)
+        count += 1
+
+    def test_nonarray_keys(self):
+        settings = ParametersWrapper(self.get_params)
+        for k in settings['parameters']:
+            self.assertEqual(k, 'double_value')
 
 
 if __name__ == "__main__":
