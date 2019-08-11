@@ -20,22 +20,22 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "utilities/timer.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "utilities/timer.h"
 
 /* Trilinos includes */
-#include "Epetra_MpiComm.h"
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
+#include "EpetraExt_MultiVectorOut.h"
+#include "EpetraExt_RowMatrixOut.h"
 #include "Epetra_FECrsGraph.h"
 #include "Epetra_FECrsMatrix.h"
+#include "Epetra_Import.h"
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_IntVector.h"
+#include "Epetra_Map.h"
+#include "Epetra_MpiComm.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
-#include "EpetraExt_RowMatrixOut.h"
-#include "EpetraExt_MultiVectorOut.h"
-#include "Epetra_Import.h"
+#include "Epetra_Vector.h"
 
 #define START_TIMER(label, rank) \
     if (mrComm.MyPID() == rank)  \
@@ -44,8 +44,7 @@
     if (mrComm.MyPID() == rank) \
         Timer::Stop(label);
 
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
@@ -69,13 +68,14 @@ namespace Kratos
 /**
  * @class TrilinosBlockBuilderAndSolver
  * @ingroup TrilinosApplication
- * @brief Current class provides an implementation for trilinos builder and solving operations.
+ * @brief Current class provides an implementation for trilinos builder and
+ * solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
  * Degrees of freedom are reordered putting the restrained degrees of freedom at
  * the end of the system ordered in reverse order with respect to the DofSet.
- * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
- * this information.
- * Calculation of the reactions involves a cost very similar to the calculation of the total residual
+ * Imposition of the dirichlet conditions is naturally dealt with as the
+ * residual already contains this information. Calculation of the reactions
+ * involves a cost very similar to the calculation of the total residual
  * @author Riccardo Rossi
  */
 template <class TSparseSpace,
@@ -83,8 +83,7 @@ template <class TSparseSpace,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
 class TrilinosBlockBuilderAndSolver
-    : public BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
-{
+    : public BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> {
 public:
     ///@name Type Definitions
     ///@{
@@ -118,28 +117,40 @@ public:
     /// DoF types definition
     typedef Node<3> NodeType;
     typedef typename NodeType::DofType DofType;
-    typedef typename DofType::Pointer DofPointerType;
+    typedef DofType::Pointer DofPointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /**
-	 * @brief Default constructor.
-	 */
-    TrilinosBlockBuilderAndSolver(
-        EpetraCommunicatorType &rComm,
-        int GuessRowSize,
-        typename TLinearSolver::Pointer pNewLinearSystemSolver) : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver),
-                                                                  mrComm(rComm),
-                                                                  mGuessRowSize(GuessRowSize)
+     * @brief Default constructor.
+     */
+    TrilinosBlockBuilderAndSolver(EpetraCommunicatorType& rComm,
+                                  int GuessRowSize,
+                                  typename TLinearSolver::Pointer pNewLinearSystemSolver)
+        : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver),
+          mrComm(rComm),
+          mGuessRowSize(GuessRowSize)
     {
     }
 
     /**
-	 * @brief Default destructor.
-	 */
-    virtual ~TrilinosBlockBuilderAndSolver() {}
+     * @brief Default destructor.
+     */
+    virtual ~TrilinosBlockBuilderAndSolver()
+    {
+    }
+
+    /**
+     * Copy constructor (deleted)
+     */
+    TrilinosBlockBuilderAndSolver(const TrilinosBlockBuilderAndSolver& rOther) = delete;
+
+    /**
+     * Assignment operator
+     */
+    TrilinosBlockBuilderAndSolver& operator=(const TrilinosBlockBuilderAndSolver& rOther) = delete;
 
     ///@}
     ///@name Operators
@@ -150,40 +161,17 @@ public:
     ///@{
 
     /**
-	 * @brief Function to perform the build the system matrix and the residual vector
-	 * of dofs or as the number of unrestrained ones
-	 * @param pScheme The integration scheme considered
-	 * @param rModelPart The model part of the problem to solve
-	 * @param rA The LHS matrix
-	 * @param rb The RHS vector
-	 */
-    void Build(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rb) override
-    {
-        BuildGeneral(pScheme, rModelPart, rA, rb, true, true);
-    }
-
-
-
-    /**
-	 * @brief General function to perform the build of the RHS or LHS as requested.
-	 * @param pScheme The integration scheme considered
-	 * @param rModelPart The model part of the problem to solve
-	 * @param rA The LHS matrix
-	 * @param rb The RHS vector
-     * @param BuildLHS bool to say if to build LHS
-     * @param BuildRHS bool to say if to build RHS
-	 */
-    void BuildGeneral(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rb,
-        const bool BuildLHS = true,
-        const bool BuildRHS = true)
+     * @brief Function to perform the build the system matrix and the residual
+     * vector
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
+     */
+    void Build(typename TSchemeType::Pointer pScheme,
+               ModelPart& rModelPart,
+               TSystemMatrixType& rA,
+               TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -198,33 +186,32 @@ public:
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-        //vector containing the localization in the system of the different terms
+        // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
-        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
+        ModelPart::ConditionsContainerType::iterator cond_begin =
+            rModelPart.ConditionsBegin();
 
         // assemble all elements
-        for (int k = 0; k < nelements; k++)
-        {
+        for (int k = 0; k < nelements; k++) {
             ModelPart::ElementsContainerType::iterator it = el_begin + k;
 
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
+            // detect if the element is active or not. If the user did not make
+            // any choice the element is active by default
             bool element_is_active = true;
             if ((it)->IsDefined(ACTIVE))
                 element_is_active = (it)->Is(ACTIVE);
 
-            if (element_is_active)
-            {
-                //calculate elemental contribution
-                pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
+            if (element_is_active) {
+                // calculate elemental contribution
+                pScheme->CalculateSystemContributions(
+                    *(it.base()), LHS_Contribution, RHS_Contribution,
+                    equation_ids_vector, r_current_process_info);
 
-                //assemble the elemental contribution
-                if (BuildLHS)
-                    TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-                if (BuildRHS)
-                    TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                // assemble the elemental contribution
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
 
                 // clean local elemental memory
                 pScheme->CleanMemory(*(it.base()));
@@ -235,96 +222,129 @@ public:
         RHS_Contribution.resize(0, false);
 
         // assemble all conditions
-        for (int k = 0; k < nconditions; k++)
-        {
+        for (int k = 0; k < nconditions; k++) {
             ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
+            // detect if the element is active or not. If the user did not make
+            // any choice the element is active by default
             bool condition_is_active = true;
             if ((it)->IsDefined(ACTIVE))
                 condition_is_active = (it)->Is(ACTIVE);
 
-            if (condition_is_active)
-            {
-                //calculate elemental contribution
-                pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, equation_ids_vector, r_current_process_info);
+            if (condition_is_active) {
+                // calculate elemental contribution
+                pScheme->Condition_CalculateSystemContributions(
+                    *(it.base()), LHS_Contribution, RHS_Contribution,
+                    equation_ids_vector, r_current_process_info);
 
-                //assemble the condition contribution
-                if (BuildLHS)
-                    TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
-                if (BuildRHS)
-                    TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+                // assemble the condition contribution
+                TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+                TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
 
                 // clean local elemental memory
                 pScheme->CleanMemory(*(it.base()));
             }
         }
 
-        //finalizing the assembly
-        if (BuildLHS)
-            rA.GlobalAssemble();
-        if (BuildRHS)
-            rb.GlobalAssemble();
+        // finalizing the assembly
+        rA.GlobalAssemble();
+        rb.GlobalAssemble();
 
         KRATOS_CATCH("")
     }
 
     /**
-	 * @brief Function to perform the building of the LHS
-	 * @details Depending on the implementation choosen the size of the matrix could
-	 * be equal to the total number of Dofs or to the number of unrestrained dofs
-	 * @param pScheme The integration scheme considered
-	 * @param rModelPart The model part of the problem to solve
-	 * @param rA The LHS matrix
-	 */
-    void BuildLHS(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA) override
+     * @brief Function to perform the building of the LHS
+     * @details Depending on the implementation choosen the size of the matrix
+     * could be equal to the total number of Dofs or to the number of
+     * unrestrained dofs
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     */
+    void BuildLHS(typename TSchemeType::Pointer pScheme,
+                  ModelPart& rModelPart,
+                  TSystemMatrixType& rA) override
     {
         KRATOS_TRY
 
-        int dummy_num = 2;
-        int temp_size = dummy_num;
-        int *temp = new int[temp_size];
-        for (int i = 0; i != dummy_num; i++)
-            temp[i] = dummy_num;
-        Epetra_Map my_map(-1, dummy_num, temp, 0, mrComm);
-        TSystemVectorPointerType p_temp_vec = TSystemVectorPointerType(new TSystemVectorType(my_map));
-        BuildGeneral(pScheme, rModelPart, rA, *p_temp_vec, true, false);
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        // Resetting to zero the vector of reactions
+        TSparseSpace::SetToZero(*BaseType::mpReactionsVector); // TODO: Check if required
 
+        // Contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        // vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType equation_ids_vector;
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        ModelPart::ConditionsContainerType::iterator cond_begin =
+            rModelPart.ConditionsBegin();
+
+        // assemble all elements
+        for (int k = 0; k < nelements; k++) {
+            ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            pScheme->Calculate_LHS_Contribution(*(it.base()), LHS_Contribution,
+                                                equation_ids_vector, r_current_process_info);
+
+            // assemble the elemental contribution
+            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+
+            // clean local elemental memory
+            pScheme->CleanMemory(*(it.base()));
+        }
+
+        LHS_Contribution.resize(0, 0, false);
+
+        // assemble all conditions
+        for (int k = 0; k < nconditions; k++) {
+            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            // calculate elemental contribution
+            pScheme->Condition_Calculate_LHS_Contribution(
+                *(it.base()), LHS_Contribution, equation_ids_vector, r_current_process_info);
+
+            // assemble the elemental contribution
+            TSparseSpace::AssembleLHS(rA, LHS_Contribution, equation_ids_vector);
+        }
+
+        // finalizing the assembly
+        rA.GlobalAssemble();
         KRATOS_CATCH("")
     }
 
     /**
-	 * @brief Build a rectangular matrix of size n*N where "n" is the number of unrestrained degrees of freedom
-	 * and "N" is the total number of degrees of freedom involved.
-	 * @details This matrix is obtained by building the total matrix without the lines corresponding to the fixed
-	 * degrees of freedom (but keeping the columns!!)
-	 * @param pScheme The integration scheme considered
-	 * @param rModelPart The model part of the problem to solve
-	 * @param A The LHS matrix
-	 */
-    void BuildLHS_CompleteOnFreeRows(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &r_model_part,
-        TSystemMatrixType &A) override
+     * @brief Build a rectangular matrix of size n*N where "n" is the number of
+     * unrestrained degrees of freedom and "N" is the total number of degrees of
+     * freedom involved.
+     * @details This matrix is obtained by building the total matrix without the
+     * lines corresponding to the fixed degrees of freedom (but keeping the
+     * columns!!)
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param A The LHS matrix
+     */
+    void BuildLHS_CompleteOnFreeRows(typename TSchemeType::Pointer pScheme,
+                                     ModelPart& rModelPart,
+                                     TSystemMatrixType& A) override
     {
-        KRATOS_ERROR << "Method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver" << std::endl;
+        KRATOS_ERROR << "Method BuildLHS_CompleteOnFreeRows not implemented in "
+                        "Trilinos Builder And Solver"
+                     << std::endl;
     }
 
     /**
-	 * @brief This is a call to the linear system solver
-	 * @param A The LHS matrix
-	 * @param Dx The Unknowns vector
-	 * @param b The RHS vector
-	 */
-    void SystemSolveWithPhysics(
-        TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
-        TSystemVectorType &rb,
-        ModelPart &rModelPart)
+     * @brief This is a call to the linear system solver
+     * @param A The LHS matrix
+     * @param Dx The Unknowns vector
+     * @param b The RHS vector
+     */
+    void SystemSolveWithPhysics(TSystemMatrixType& rA,
+                                TSystemVectorType& rDx,
+                                TSystemVectorType& rb,
+                                ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -334,40 +354,42 @@ public:
         else
             norm_b = 0.00;
 
-        if (norm_b != 0.00)
-        {
+        if (norm_b != 0.00) {
             if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
-                BaseType::mpLinearSystemSolver->ProvideAdditionalData(rA, rDx, rb, BaseType::mDofSet, rModelPart);
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(
+                    rA, rDx, rb, BaseType::mDofSet, rModelPart);
 
             BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
         }
-        else
-        {
+        else {
             TSparseSpace::SetToZero(rDx);
-            KRATOS_WARNING_IF("TrilinosResidualBasedBlockBuilderAndSolver", mrComm.MyPID() == 0) << "ATTENTION! setting the RHS to zero!" << std::endl;
+            KRATOS_WARNING_IF("TrilinosResidualBasedBlockBuilderAndSolver", mrComm.MyPID() == 0)
+                << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
-        //prints informations about the current time
-        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", ((BaseType::GetEchoLevel() > 1) && (mrComm.MyPID() == 0))) << *(BaseType::mpLinearSystemSolver) << std::endl;
+        // prints informations about the current time
+        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver",
+                       ((BaseType::GetEchoLevel() > 1) && (mrComm.MyPID() == 0)))
+            << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
     }
 
     /**
-	 * @brief Function to perform the building and solving phase at the same time.
-	 * @details It is ideally the fastest and safer function to use when it is possible to solve just after building
-	 * @param pScheme The integration scheme considered
-	 * @param rModelPart The model part of the problem to solve
-	 * @param rA The LHS matrix
-	 * @param rDx The Unknowns vector
-	 * @param rb The RHS vector
-	 */
-    void BuildAndSolve(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
-        TSystemVectorType &rb) override
+     * @brief Function to perform the building and solving phase at the same time.
+     * @details It is ideally the fastest and safer function to use when it is
+     * possible to solve just after building
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
+    void BuildAndSolve(typename TSchemeType::Pointer pScheme,
+                       ModelPart& rModelPart,
+                       TSystemMatrixType& rA,
+                       TSystemVectorType& rDx,
+                       TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
@@ -379,13 +401,12 @@ public:
         if (BaseType::GetEchoLevel() > 0)
             STOP_TIMER("Build", 0)
 
-        //apply dirichlet conditions
+        // apply dirichlet conditions
         ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
         KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nBefore the solution of the system"
-            << "\nSystem Matrix = " << rA
-            << "\nunknowns vector = " << rDx
+            << "\nSystem Matrix = " << rA << "\nunknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
 
         if (BaseType::GetEchoLevel() > 0)
@@ -398,125 +419,159 @@ public:
 
         KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() == 3)
             << "\nAfter the solution of the system"
-            << "\nSystem Matrix = " << rA
-            << "\nUnknowns vector = " << rDx
+            << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx
             << "\nRHS vector = " << rb << std::endl;
         KRATOS_CATCH("")
     }
 
     /**
-	 * @brief Corresponds to the previous, but the System's matrix is considered already built and only the RHS is built again
-	 * @param pScheme The integration scheme considered
-	 * @param rModelPart The model part of the problem to solve
-	 * @param rA The LHS matrix
-	 * @param rDx The Unknowns vector
-	 * @param rb The RHS vector
-	 */
-    void BuildRHSAndSolve(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
-        TSystemVectorType &rb) override
+     * @brief Corresponds to the previous, but the System's matrix is considered
+     * already built and only the RHS is built again
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
+    void BuildRHSAndSolve(typename TSchemeType::Pointer pScheme,
+                          ModelPart& rModelPart,
+                          TSystemMatrixType& rA,
+                          TSystemVectorType& rDx,
+                          TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
-        BuildGeneral(pScheme, rModelPart, rA, rb, false, true);
+        BuildRHS(pScheme, rModelPart, rb);
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         KRATOS_CATCH("")
     }
 
     /**
-	 * @brief Function to perform the build of the RHS.
-	 * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
-	 * @param pScheme The integration scheme considered
-	 * @param rModelPart The model part of the problem to solve
-	 */
-    void BuildRHS(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemVectorType &rb) override
+     * @brief Function to perform the build of the RHS.
+     * @details The vector could be sized as the total number of dofs or as the
+     * number of unrestrained ones
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void BuildRHS(typename TSchemeType::Pointer pScheme,
+                  ModelPart& rModelPart,
+                  TSystemVectorType& rb) override
     {
         KRATOS_TRY
-        int dummy_num = 2;
-        int temp_size = dummy_num;
-        int *temp = new int[temp_size];
-        for (int i = 0; i != dummy_num; i++)
-            temp[i] = dummy_num;
-        Epetra_Map my_map(-1, dummy_num, temp, 0, mrComm);
-        Epetra_FECrsGraph Agraph(Copy, my_map, dummy_num);
-        TSystemMatrixPointerType p_temp_mat = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
 
-        BuildGeneral(pScheme, rModelPart, *p_temp_mat, rb, false, true);
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        // Resetting to zero the vector of reactions
+        TSparseSpace::SetToZero(*BaseType::mpReactionsVector); // TODO: Check if required
+
+        // Contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        // vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType equation_ids_vector;
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        ModelPart::ConditionsContainerType::iterator cond_begin =
+            rModelPart.ConditionsBegin();
+
+        // assemble all elements
+        for (int k = 0; k < nelements; k++) {
+            ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            // calculate elemental Right Hand Side Contribution
+            pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution,
+                                                equation_ids_vector, r_current_process_info);
+
+            // assemble the elemental contribution
+            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+        }
+
+        RHS_Contribution.resize(0, false);
+
+        // assemble all conditions
+        for (int k = 0; k < nconditions; k++) {
+            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            // calculate elemental contribution
+            pScheme->Condition_Calculate_RHS_Contribution(
+                *(it.base()), RHS_Contribution, equation_ids_vector, r_current_process_info);
+
+            // assemble the elemental contribution
+            TSparseSpace::AssembleRHS(rb, RHS_Contribution, equation_ids_vector);
+        }
+
+        // finalizing the assembly
+        rb.GlobalAssemble();
 
         KRATOS_CATCH("")
     }
 
     /**
-	 * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
-	 * and condition its Dofs.
-	 * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the
-	 * way the matrix and RHS are built
-	 * @param pScheme The integration scheme considered
-	 * @param rModelPart The model part of the problem to solve
-	 */
-    void SetUpDofSet(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart) override
+     * @brief Builds the list of the DofSets involved in the problem by "asking"
+     * to each element and condition its Dofs.
+     * @details The list of dofs is stores inside the BuilderAndSolver as it is
+     * closely connected to the way the matrix and RHS are built
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void SetUpDofSet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
         typedef Element::DofsVectorType DofsVectorType;
-        //Gets the array of elements from the modeler
-        ElementsArrayType &r_elements_array = rModelPart.GetCommunicator().LocalMesh().Elements();
+        // Gets the array of elements from the modeler
+        ElementsArrayType& r_elements_array =
+            rModelPart.GetCommunicator().LocalMesh().Elements();
         const IndexType number_of_elements = static_cast<int>(r_elements_array.size());
         DofsVectorType dof_list;
-        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         DofsArrayType temp_dofs_array;
-        IndexType guess_num_dofs = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * 3;
+        IndexType guess_num_dofs =
+            rModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * 3;
         temp_dofs_array.reserve(guess_num_dofs);
         BaseType::mDofSet = DofsArrayType();
 
         // Taking dofs of elements
-        for (IndexType i = 0; i < number_of_elements; ++i)
-        {
+        for (IndexType i = 0; i < number_of_elements; ++i) {
             auto it_elem = r_elements_array.begin() + i;
             pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i = dof_list.begin(); i != dof_list.end(); ++i)
+            for (typename DofsVectorType::iterator i = dof_list.begin();
+                 i != dof_list.end(); ++i)
                 temp_dofs_array.push_back(i->get());
         }
 
         // Taking dofs of conditions
-        ConditionsArrayType &r_conditions_array = rModelPart.Conditions();
-        const IndexType number_of_conditions = static_cast<int>(r_conditions_array.size());
-        for (IndexType i = 0; i < number_of_conditions; ++i)
-        {
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+        const IndexType number_of_conditions =
+            static_cast<int>(r_conditions_array.size());
+        for (IndexType i = 0; i < number_of_conditions; ++i) {
             auto it_cond = r_conditions_array.begin() + i;
             pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i = dof_list.begin(); i != dof_list.end(); ++i)
+            for (typename DofsVectorType::iterator i = dof_list.begin();
+                 i != dof_list.end(); ++i)
                 temp_dofs_array.push_back(i->get());
         }
 
         temp_dofs_array.Unique();
         BaseType::mDofSet = temp_dofs_array;
 
-        //throws an exception if there are no Degrees of freedom involved in the analysis
+        // throws an exception if there are no Degrees of freedom involved in
+        // the analysis
         if (BaseType::mDofSet.size() == 0)
             KRATOS_ERROR << "No degrees of freedom!";
 
 #ifdef KRATOS_DEBUG
-        // If reactions are to be calculated, we check if all the dofs have reactions defined
-        // This is to be done only in debug mode
-        if (BaseType::GetCalculateReactionsFlag())
-        {
-            for (auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-            {
-                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " << std::endl
-                                                                 << "Node : " << dof_iterator->Id() << std::endl
-                                                                 << "Dof : " << (*dof_iterator) << std::endl
-                                                                 << "Not possible to calculate reactions." << std::endl;
+        // If reactions are to be calculated, we check if all the dofs have
+        // reactions defined This is to be done only in debug mode
+        if (BaseType::GetCalculateReactionsFlag()) {
+            for (auto dof_iterator = BaseType::mDofSet.begin();
+                 dof_iterator != BaseType::mDofSet.end(); ++dof_iterator) {
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction())
+                    << "Reaction variable not set for the following : " << std::endl
+                    << "Node : " << dof_iterator->Id() << std::endl
+                    << "Dof : " << (*dof_iterator) << std::endl
+                    << "Not possible to calculate reactions." << std::endl;
             }
         }
 #endif
@@ -530,26 +585,25 @@ public:
      *          Sets equation id for degrees of freedom
      * @param rModelPart The model part of the problem to solve
      */
-    void SetUpSystem(
-        ModelPart &rModelPart) override
+    void SetUpSystem(ModelPart& rModelPart) override
     {
-
         int free_size = 0;
-        auto &r_comm = rModelPart.GetCommunicator();
-        const auto &r_data_comm = r_comm.GetDataCommunicator();
+        auto& r_comm = rModelPart.GetCommunicator();
+        const auto& r_data_comm = r_comm.GetDataCommunicator();
         int current_rank = r_comm.MyPID();
 
         // Calculating number of fixed and free dofs
-        for (const auto &dof : BaseType::mDofSet)
+        for (const auto& dof : BaseType::mDofSet)
             if (dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
                 free_size++;
 
         // Calculating the total size and required offset
-        //int fixed_offset;
+        // int fixed_offset;
         int free_offset;
         int global_size;
 
-        // The correspounding offset by the sum of the sizes in thread with inferior current_rank
+        // The correspounding offset by the sum of the sizes in thread with
+        // inferior current_rank
         free_offset = r_data_comm.ScanSum(free_size);
 
         // The total size by the sum of all size in all threads
@@ -559,18 +613,20 @@ public:
         free_offset -= free_size;
 
         // Now setting the equation id with .
-        for (auto &dof : BaseType::mDofSet)
+        for (auto& dof : BaseType::mDofSet)
             if (dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
                 dof.SetEquationId(free_offset++);
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
-        KRATOS_INFO_IF_ALL_RANKS("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 0) << std::endl
-                                                                                                << current_rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize << std::endl
-                                                                                                << current_rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl
-                                                                                                << current_rank << " : free_offset = " << free_offset << std::endl;
+        KRATOS_INFO_IF_ALL_RANKS("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() > 0)
+            << std::endl
+            << current_rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize
+            << std::endl
+            << current_rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl
+            << current_rank << " : free_offset = " << free_offset << std::endl;
 
-        //by Riccardo ... it may be wrong!
+        // by Riccardo ... it may be wrong!
         mFirstMyId = free_offset - mLocalSystemSize;
         mLastMyId = mFirstMyId + mLocalSystemSize;
 
@@ -578,119 +634,136 @@ public:
     }
 
     /**
-	 * @brief Resizes the system matrix and the vector according to the number of dos in the current rModelPart.
-     *          This function also decides on the sparsity pattern and the graph of the trilinos csr matrix
-	 * @param pScheme The integration scheme considered
-	 * @param rA The LHS matrix
-	 * @param rDx The Unknowns vector
-	 * @param rb The RHS vector
-	 * @param rModelPart The model part of the problem to solve
-	 */
-    void ResizeAndInitializeVectors(
-        typename TSchemeType::Pointer pScheme,
-        TSystemMatrixPointerType &rA,
-        TSystemVectorPointerType &rDx,
-        TSystemVectorPointerType &rb,
-        ModelPart &rModelPart) override
+     * @brief Resizes the system matrix and the vector according to the number
+     * of dos in the current rModelPart. This function also decides on the
+     * sparsity pattern and the graph of the trilinos csr matrix
+     * @param pScheme The integration scheme considered
+     * @param rpA The LHS matrix
+     * @param rpDx The Unknowns vector
+     * @param rpd The RHS vector
+     * @param rModelPart The model part of the problem to solve
+     */
+    void ResizeAndInitializeVectors(typename TSchemeType::Pointer pScheme,
+                                    TSystemMatrixPointerType& rpA,
+                                    TSystemVectorPointerType& rpDx,
+                                    TSystemVectorPointerType& rpb,
+                                    ModelPart& rModelPart) override
     {
         KRATOS_TRY
-        //resizing the system vectors and matrix
-        if (rA == NULL || TSparseSpace::Size1(*rA) == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
+        // resizing the system vectors and matrix
+        if (rpA == NULL || TSparseSpace::Size1(*rpA) == 0 ||
+            BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
         {
             IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
             int temp_size = number_of_local_dofs;
             if (temp_size < 1000)
                 temp_size = 1000;
-            int *temp = new int[temp_size];
-            auto &r_elements_array = rModelPart.Elements();
-            const IndexType number_of_elements = static_cast<IndexType>(r_elements_array.size());
-            auto &r_conditions_array = rModelPart.Conditions();
-            const IndexType number_of_conditions = static_cast<IndexType>(r_conditions_array.size());
-            //generate map - use the "temp" array here
+            int* temp = new int[temp_size];
+            auto& r_elements_array = rModelPart.Elements();
+            const IndexType number_of_elements =
+                static_cast<IndexType>(r_elements_array.size());
+            auto& r_conditions_array = rModelPart.Conditions();
+            const IndexType number_of_conditions =
+                static_cast<IndexType>(r_conditions_array.size());
+            // generate map - use the "temp" array here
             for (IndexType i = 0; i != number_of_local_dofs; i++)
                 temp[i] = mFirstMyId + i;
             Epetra_Map my_map(-1, number_of_local_dofs, temp, 0, mrComm);
-            //create and fill the graph of the matrix --> the temp array is reused here with a different meaning
+            // create and fill the graph of the matrix --> the temp array is
+            // reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mGuessRowSize);
             Element::EquationIdVectorType equation_ids_vector;
-            ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // assemble all elements
-            for (IndexType i = 0; i < number_of_elements; ++i)
-            {
+            for (IndexType i = 0; i < number_of_elements; ++i) {
                 auto it_elem = r_elements_array.begin() + i;
-                pScheme->EquationId(*(it_elem.base()), equation_ids_vector, r_current_process_info);
+                pScheme->EquationId(*(it_elem.base()), equation_ids_vector,
+                                    r_current_process_info);
 
-                //filling the list of active global indices (non fixed)
+                // filling the list of active global indices (non fixed)
                 IndexType num_active_indices = 0;
-                for (IndexType i = 0; i < equation_ids_vector.size(); i++)
-                {
+                for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
                     temp[num_active_indices] = equation_ids_vector[i];
                     num_active_indices += 1;
                 }
 
-                if (num_active_indices != 0)
-                {
-                    int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp, num_active_indices, temp);
-                    KRATOS_ERROR_IF(ierr < 0) << "In " << __FILE__ << ":" << __LINE__ << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                if (num_active_indices != 0) {
+                    int ierr = Agraph.InsertGlobalIndices(
+                        num_active_indices, temp, num_active_indices, temp);
+                    KRATOS_ERROR_IF(ierr < 0)
+                        << "In " << __FILE__ << ":"
+                        << __LINE__ << ": Epetra failure in Graph.InsertGlobalIndices. Error code: "
+                        << ierr << std::endl;
                 }
             }
 
             // assemble all conditions
-            for (IndexType i = 0; i < number_of_conditions; ++i)
-            {
+            for (IndexType i = 0; i < number_of_conditions; ++i) {
                 auto it_cond = r_conditions_array.begin() + i;
-                pScheme->Condition_EquationId(*(it_cond.base()), equation_ids_vector, r_current_process_info);
+                pScheme->Condition_EquationId(
+                    *(it_cond.base()), equation_ids_vector, r_current_process_info);
 
-                //filling the list of active global indices (non fixed)
+                // filling the list of active global indices (non fixed)
                 IndexType num_active_indices = 0;
-                for (IndexType i = 0; i < equation_ids_vector.size(); i++)
-                {
+                for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
                     temp[num_active_indices] = equation_ids_vector[i];
                     num_active_indices += 1;
                 }
 
-                if (num_active_indices != 0)
-                {
-                    int ierr = Agraph.InsertGlobalIndices(num_active_indices, temp, num_active_indices, temp);
-                    KRATOS_ERROR_IF(ierr < 0) << "In " << __FILE__ << ":" << __LINE__ << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+                if (num_active_indices != 0) {
+                    int ierr = Agraph.InsertGlobalIndices(
+                        num_active_indices, temp, num_active_indices, temp);
+                    KRATOS_ERROR_IF(ierr < 0)
+                        << "In " << __FILE__ << ":"
+                        << __LINE__ << ": Epetra failure in Graph.InsertGlobalIndices. Error code: "
+                        << ierr << std::endl;
                 }
             }
 
-            //finalizing graph construction
+            // finalizing graph construction
             int ierr = Agraph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr != 0) << "In " << __FILE__ << ":" << __LINE__ << ": Epetra failure in Graph.GlobalAssemble, Error code: " << ierr << std::endl;
-            //generate a new matrix pointer according to this graph
-            TSystemMatrixPointerType p_new_A = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
-            rA.swap(p_new_A);
-            //generate new vector pointers according to the given map
-            if (rb == NULL || TSparseSpace::Size(*rb) != BaseType::mEquationSystemSize)
-            {
-                TSystemVectorPointerType p_new_b = TSystemVectorPointerType(new TSystemVectorType(my_map));
-                rb.swap(p_new_b);
+            KRATOS_ERROR_IF(ierr != 0)
+                << "In " << __FILE__ << ":" << __LINE__
+                << ": Epetra failure in Graph.GlobalAssemble, Error code: " << ierr
+                << std::endl;
+            // generate a new matrix pointer according to this graph
+            TSystemMatrixPointerType p_new_A =
+                TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
+            rpA.swap(p_new_A);
+            // generate new vector pointers according to the given map
+            if (rpb == NULL || TSparseSpace::Size(*rpb) != BaseType::mEquationSystemSize) {
+                TSystemVectorPointerType p_new_b =
+                    TSystemVectorPointerType(new TSystemVectorType(my_map));
+                rpb.swap(p_new_b);
             }
-            if (rDx == NULL || TSparseSpace::Size(*rDx) != BaseType::mEquationSystemSize)
-            {
-                TSystemVectorPointerType p_new_Dx = TSystemVectorPointerType(new TSystemVectorType(my_map));
-                rDx.swap(p_new_Dx);
+            if (rpDx == NULL || TSparseSpace::Size(*rpDx) != BaseType::mEquationSystemSize) {
+                TSystemVectorPointerType p_new_Dx =
+                    TSystemVectorPointerType(new TSystemVectorType(my_map));
+                rpDx.swap(p_new_Dx);
             }
-            if (BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
+            if (BaseType::mpReactionsVector ==
+                NULL) // if the pointer is not initialized initialize it to an
+                      // empty matrix
             {
-                TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(my_map));
+                TSystemVectorPointerType pNewReactionsVector =
+                    TSystemVectorPointerType(new TSystemVectorType(my_map));
                 BaseType::mpReactionsVector.swap(pNewReactionsVector);
             }
             delete[] temp;
         }
-        else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag)
-        {
-            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rDx->Map()));
+        else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag) {
+            TSystemVectorPointerType pNewReactionsVector =
+                TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         }
-        else
-        {
-            if (TSparseSpace::Size1(*rA) == 0 || TSparseSpace::Size1(*rA) != BaseType::mEquationSystemSize || TSparseSpace::Size2(*rA) != BaseType::mEquationSystemSize)
-            {
-                KRATOS_ERROR << "It should not come here resizing is not allowed this way!!!!!!!! ... ";
+        else {
+            if (TSparseSpace::Size1(*rpA) == 0 ||
+                TSparseSpace::Size1(*rpA) != BaseType::mEquationSystemSize ||
+                TSparseSpace::Size2(*rpA) != BaseType::mEquationSystemSize) {
+                KRATOS_ERROR
+                    << "It should not come here resizing is not allowed this "
+                       "way!!!!!!!! ... ";
             }
         }
 
@@ -699,11 +772,10 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void InitializeSolutionStep(
-        ModelPart &r_model_part,
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b) override
+    void InitializeSolutionStep(ModelPart& rModelPart,
+                                TSystemMatrixType& A,
+                                TSystemVectorType& Dx,
+                                TSystemVectorType& b) override
     {
         KRATOS_TRY
         KRATOS_CATCH("")
@@ -711,76 +783,76 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void FinalizeSolutionStep(
-        ModelPart &r_model_part,
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b) override
+    void FinalizeSolutionStep(ModelPart& rModelPart,
+                              TSystemMatrixType& A,
+                              TSystemVectorType& Dx,
+                              TSystemVectorType& b) override
     {
     }
 
     //**************************************************************************
     //**************************************************************************
-    void CalculateReactions(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
-        TSystemVectorType &rb) override
+    void CalculateReactions(typename TSchemeType::Pointer pScheme,
+                            ModelPart& rModelPart,
+                            TSystemMatrixType& rA,
+                            TSystemVectorType& rDx,
+                            TSystemVectorType& rb) override
     {
-
         TSparseSpace::SetToZero(rb);
 
-        //refresh RHS to have the correct reactions
+        // refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, rb);
 
-        //initialize the Epetra importer
-        // TODO: this part of the code has been pasted until a better solution is found
+        // initialize the Epetra importer
+        // TODO: this part of the code has been pasted until a better solution
+        // is found
         int system_size = TSparseSpace::Size(rb);
         int number_of_dofs = BaseType::mDofSet.size();
         std::vector<int> index_array(number_of_dofs);
 
-        //filling the array with the global ids
+        // filling the array with the global ids
         int counter = 0;
         int id = 0;
-        for (const auto &dof : BaseType::mDofSet)
-        {
+        for (const auto& dof : BaseType::mDofSet) {
             id = dof.EquationId();
-            if (id < system_size)
-            {
+            if (id < system_size) {
                 index_array[counter] = id;
                 counter += 1;
             }
         }
 
         std::sort(index_array.begin(), index_array.end());
-        std::vector<int>::iterator NewEnd = std::unique(index_array.begin(), index_array.end());
+        std::vector<int>::iterator NewEnd =
+            std::unique(index_array.begin(), index_array.end());
         index_array.resize(NewEnd - index_array.begin());
 
         int check_size = -1;
         int tot_update_dofs = index_array.size();
         rb.Comm().SumAll(&tot_update_dofs, &check_size, 1);
-        if ((check_size < system_size) && (rb.Comm().MyPID() == 0))
-        {
-            KRATOS_ERROR << "Dof count is not correct. There are less dofs than expected.\n"
-                         << "Expected number of active dofs = " << system_size << " dofs found = " << check_size;
+        if ((check_size < system_size) && (rb.Comm().MyPID() == 0)) {
+            KRATOS_ERROR << "Dof count is not correct. There are less dofs "
+                            "than expected.\n"
+                         << "Expected number of active dofs = " << system_size
+                         << " dofs found = " << check_size;
         }
 
-        //defining a map as needed
-        Epetra_Map dof_update_map(-1, index_array.size(), &(*(index_array.begin())), 0, rb.Comm());
+        // defining a map as needed
+        Epetra_Map dof_update_map(-1, index_array.size(),
+                                  &(*(index_array.begin())), 0, rb.Comm());
 
-        //defining the importer class
-        Kratos::shared_ptr<Epetra_Import> pDofImporter = Kratos::make_shared<Epetra_Import>(dof_update_map, rb.Map());
+        // defining the importer class
+        Kratos::shared_ptr<Epetra_Import> pDofImporter =
+            Kratos::make_shared<Epetra_Import>(dof_update_map, rb.Map());
 
-        //defining a temporary vector to gather all of the values needed
+        // defining a temporary vector to gather all of the values needed
         Epetra_Vector temp_RHS(pDofImporter->TargetMap());
 
-        //importing in the new temp_RHS vector the values
+        // importing in the new temp_RHS vector the values
         int ierr = temp_RHS.Import(rb, *pDofImporter, Insert);
         if (ierr != 0)
             KRATOS_ERROR << "Epetra failure found - error code: " << ierr;
 
-        double *temp_RHS_values; //DO NOT make delete of this one!!
+        double* temp_RHS_values; // DO NOT make delete of this one!!
         temp_RHS.ExtractView(&temp_RHS_values);
 
         rb.Comm().Barrier();
@@ -788,11 +860,12 @@ public:
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // store the RHS values in the reaction variable
-        //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        // NOTE: dofs are assumed to be numbered consecutively in the
+        // BlockBuilderAndSolver
 #pragma omp parallel for firstprivate(ndofs)
-        for (int k = 0; k < ndofs; k++)
-        {
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
+        for (int k = 0; k < ndofs; k++) {
+            typename DofsArrayType::iterator dof_iterator =
+                BaseType::mDofSet.begin() + k;
 
             const int i = (dof_iterator)->EquationId();
             // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
@@ -801,24 +874,32 @@ public:
         }
     }
 
-    //**************************************************************************
-    //**************************************************************************
-    void ApplyDirichletConditions(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
-        TSystemVectorType &rb) override
+    /**
+     * @brief Applies the dirichlet conditions. This operation may be very heavy
+     * or completely unexpensive depending on the implementation choosen and on
+     * how the System Matrix is built.
+     * @details For explanation of how it works for a particular implementation
+     * the user should refer to the particular Builder And Solver choosen
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param A The LHS matrix
+     * @param Dx The Unknowns vector
+     * @param b The RHS vector
+     */
+    void ApplyDirichletConditions(typename TSchemeType::Pointer pScheme,
+                                  ModelPart& rModelPart,
+                                  TSystemMatrixType& rA,
+                                  TSystemVectorType& rDx,
+                                  TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
-        //loop over all dofs to find the fixed ones
+        // loop over all dofs to find the fixed ones
         std::vector<int> global_ids(BaseType::mDofSet.size());
         std::vector<int> is_dirichlet(BaseType::mDofSet.size());
 
         IndexType i = 0;
-        for (const auto &dof : BaseType::mDofSet)
-        {
+        for (const auto& dof : BaseType::mDofSet) {
             const int global_id = dof.EquationId();
             global_ids[i] = global_id;
 
@@ -830,46 +911,44 @@ public:
             i++;
         }
 
-        //here we construct and fill a vector "fixed local" which cont
+        // here we construct and fill a vector "fixed local" which cont
         Epetra_Map localmap(-1, global_ids.size(), global_ids.data(), 0, rA.Comm());
         Epetra_IntVector fixed_local(Copy, localmap, is_dirichlet.data());
 
         Epetra_Import dirichlet_importer(rA.ColMap(), fixed_local.Map());
 
-        //defining a temporary vector to gather all of the values needed
+        // defining a temporary vector to gather all of the values needed
         Epetra_IntVector fixed(rA.ColMap());
 
-        //importing in the new temp vector the values
+        // importing in the new temp vector the values
         int ierr = fixed.Import(fixed_local, dirichlet_importer, Insert);
         if (ierr != 0)
             KRATOS_ERROR << "Epetra failure found";
 
-        for (int i = 0; i < rA.NumMyRows(); i++)
-        {
+        for (int i = 0; i < rA.NumMyRows(); i++) {
             int numEntries; // number of non-zero entries
-            double *vals;   // row non-zero values
-            int *cols;      // column indices of row non-zero values
+            double* vals;   // row non-zero values
+            int* cols;      // column indices of row non-zero values
             rA.ExtractMyRowView(i, numEntries, vals, cols);
 
             int row_gid = rA.RowMap().GID(i);
             int row_lid = localmap.LID(row_gid);
 
-            if (fixed_local[row_lid] == 0) //not a dirichlet row
+            if (fixed_local[row_lid] == 0) // not a dirichlet row
             {
-                for (int j = 0; j < numEntries; j++)
-                {
+                for (int j = 0; j < numEntries; j++) {
                     if (fixed[cols[j]] == true)
                         vals[j] = 0.0;
                 }
             }
-            else //this IS a dirichlet row
+            else // this IS a dirichlet row
             {
-                //set to zero the rhs
-                rb[0][i] = 0.0; //note that the index of i is expected to be coherent with the rows of A
+                // set to zero the rhs
+                rb[0][i] = 0.0; // note that the index of i is expected to be
+                                // coherent with the rows of A
 
-                //set to zero the whole row
-                for (int j = 0; j < numEntries; j++)
-                {
+                // set to zero the whole row
+                for (int j = 0; j < numEntries; j++) {
                     int col_gid = rA.ColMap().GID(cols[j]);
                     if (col_gid != row_gid)
                         vals[j] = 0.0;
@@ -900,7 +979,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    EpetraCommunicatorType &mrComm;
+    EpetraCommunicatorType& mrComm;
     int mGuessRowSize;
     IndexType mLocalSystemSize;
     int mFirstMyId;
@@ -1180,10 +1259,9 @@ private:
 
     //**************************************************************************
     //**************************************************************************
-    void AssembleLHS_CompleteOnFreeRows(
-        TSystemMatrixType &rA,
-        LocalSystemMatrixType &rLHS_Contribution,
-        Element::EquationIdVectorType &rEquationId)
+    void AssembleLHS_CompleteOnFreeRows(TSystemMatrixType& rA,
+                                        LocalSystemMatrixType& rLHS_Contribution,
+                                        Element::EquationIdVectorType& rEquationId)
     {
         KRATOS_ERROR << "This method is not implemented for Trilinos";
     }
@@ -1207,7 +1285,6 @@ private:
 
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 
