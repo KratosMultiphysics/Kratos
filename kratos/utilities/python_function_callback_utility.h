@@ -119,9 +119,12 @@ public:
         }
 
         // Check if it depends on space
-        if (rFunctionBody.find(std::string("x"))==std::string::npos &&
-            rFunctionBody.find(std::string("y")) ==std::string::npos &&
-            rFunctionBody.find(std::string("z")) ==std::string::npos) {
+        if (rFunctionBody.find(std::string("x")) == std::string::npos &&
+            rFunctionBody.find(std::string("y")) == std::string::npos &&
+            rFunctionBody.find(std::string("z")) == std::string::npos &&
+            rFunctionBody.find(std::string("X")) == std::string::npos &&
+            rFunctionBody.find(std::string("Y")) == std::string::npos &&
+            rFunctionBody.find(std::string("Z")) == std::string::npos) {
             mDependsOnSpace = false;
         }
     }
@@ -154,12 +157,18 @@ public:
      * @param y The y coordinate
      * @param z The z coordinate
      * @param t The time variable
+     * @param X The initial x coordinate
+     * @param Y The initial y coordinate
+     * @param Z The initial z coordinate
      */
     double RotateAndCallFunction(
         const double x,
         const double y,
         const double z,
-        const double t
+        const double t,
+        const double X = 0.0,
+        const double Y = 0.0,
+        const double Z = 0.0
         )
     {
         array_1d<double,3> xglobal;
@@ -167,7 +176,12 @@ public:
         xglobal[1] = y;
         xglobal[2] = z;
         array_1d<double,3> xlocal = prod(mRotationMatrix, (xglobal - mCenterCoordinates) );
-        return CallFunction(xlocal[0],xlocal[1],xlocal[2],t);
+        array_1d<double,3> xglobal_initial;
+        xglobal_initial[0] = X;
+        xglobal_initial[1] = Y;
+        xglobal_initial[2] = Z;
+        array_1d<double,3> xlocal_initial = prod(mRotationMatrix, (xglobal_initial - mCenterCoordinates) );
+        return CallFunction(xlocal[0],xlocal[1],xlocal[2],xlocal_initial[0],xlocal_initial[1],xlocal_initial[2],t);
     }
 
     /**
@@ -176,17 +190,26 @@ public:
      * @param y The y coordinate
      * @param z The z coordinate
      * @param t The time variable
+     * @param X The initial x coordinate
+     * @param Y The initial y coordinate
+     * @param Z The initial z coordinate
      */
     double CallFunction(
         const double x,
         const double y,
         const double z,
-        const double t
+        const double t,
+        const double X = 0.0,
+        const double Y = 0.0,
+        const double Z = 0.0
         )
     {
         mMainNameSpace["x"] = x;
         mMainNameSpace["y"] = y;
         mMainNameSpace["z"] = z;
+        mMainNameSpace["X"] = X;
+        mMainNameSpace["Y"] = Y;
+        mMainNameSpace["Z"] = Z;
         mMainNameSpace["t"] = t;
 
         return pybind11::eval(mFunctionBody, mMainNameSpace).cast<double>();
@@ -273,14 +296,14 @@ public:
             //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
             for (IndexType k = 0; k< mrNodes.size(); k++) {
                 auto it_node = it_node_begin + k;
-                const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t);
+                const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
                 it_node->FastGetSolutionStepValue(rVariable) = value;
             }
         } else {
             //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
             for (IndexType k = 0; k< mrNodes.size(); k++) {
                 auto it_node = it_node_begin + k;
-                const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t);
+                const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
                 it_node->FastGetSolutionStepValue(rVariable) = value;
             }
         }
@@ -302,13 +325,13 @@ public:
         if(!mpFunction->UseLocalSystem()) {
             for (IndexType k = 0; k< mrNodes.size(); k++) {
                 auto it_node = it_node_begin + k;
-                const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t);
+                const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
                 values[k] = value;
             }
         } else {
             for (IndexType k = 0; k< mrNodes.size(); k++) {
                 auto it_node = it_node_begin + k;
-                const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t);
+                const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
                 values[k] = value;
             }
         }
