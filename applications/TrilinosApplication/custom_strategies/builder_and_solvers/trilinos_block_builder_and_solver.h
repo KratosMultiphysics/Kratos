@@ -361,13 +361,13 @@ public:
         }
         else {
             TSparseSpace::SetToZero(rDx);
-            KRATOS_WARNING_ALL_RANKS("TrilinosResidualBasedBlockBuilderAndSolver")
+            KRATOS_WARNING_ALL_RANKS(
+                "TrilinosResidualBasedBlockBuilderAndSolver")
                 << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
         // prints informations about the current time
-        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver",
-                       (BaseType::GetEchoLevel() > 1) )
+        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 1))
             << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -666,7 +666,7 @@ public:
             // generate map - use the "temp" array here
             for (IndexType i = 0; i != number_of_local_dofs; i++)
                 temp[i] = mFirstMyId + i;
-            Epetra_Map my_map(-1, number_of_local_dofs, temp, 0, mrComm);
+            Epetra_Map my_map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
             // create and fill the graph of the matrix --> the temp array is
             // reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mGuessRowSize);
@@ -688,8 +688,10 @@ public:
 
                 if (num_active_indices != 0) {
                     int ierr = Agraph.InsertGlobalIndices(
-                        num_active_indices, temp, num_active_indices, temp);
-                    KRATOS_ERROR_IF(ierr < 0)<< ": Epetra failure in Graph.InsertGlobalIndices. Error code: "
+                        num_active_indices, temp.data(), num_active_indices, temp.data());
+                    KRATOS_ERROR_IF(ierr < 0)
+                        << ": Epetra failure in Graph.InsertGlobalIndices. "
+                           "Error code: "
                         << ierr << std::endl;
                 }
             }
@@ -711,17 +713,16 @@ public:
                     int ierr = Agraph.InsertGlobalIndices(
                         num_active_indices, temp, num_active_indices, temp);
                     KRATOS_ERROR_IF(ierr < 0)
-                        << "In " << __FILE__ << ":"
-                        << __LINE__ << ": Epetra failure in Graph.InsertGlobalIndices. Error code: "
+                        << ": Epetra failure in Graph.InsertGlobalIndices. "
+                           "Error code: "
                         << ierr << std::endl;
                 }
             }
 
             // finalizing graph construction
             int ierr = Agraph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr != 0)
-                << "In " << __FILE__ << ":" << __LINE__
-                << ": Epetra failure in Graph.GlobalAssemble, Error code: " << ierr
+            KRATOS_ERROR_IF(ierr < 0)
+                << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
                 << std::endl;
             // generate a new matrix pointer according to this graph
             TSystemMatrixPointerType p_new_A =
@@ -738,9 +739,8 @@ public:
                     TSystemVectorPointerType(new TSystemVectorType(my_map));
                 rpDx.swap(p_new_Dx);
             }
-            if (BaseType::mpReactionsVector ==
-                nullptr) // if the pointer is not initialized initialize it to an
-                      // empty matrix
+            if (BaseType::mpReactionsVector == nullptr) // if the pointer is not initialized initialize it to an
+                                                        // empty matrix
             {
                 TSystemVectorPointerType pNewReactionsVector =
                     TSystemVectorPointerType(new TSystemVectorType(my_map));
@@ -804,9 +804,10 @@ public:
         int check_size = -1;
         int tot_update_dofs = index_array.size();
         rb.Comm().SumAll(&tot_update_dofs, &check_size, 1);
-        KRATOS_ERROR_IF(check_size < system_size) << "Dof count is not correct. There are less dofs than expected.\n"
-                         << "Expected number of active dofs = " << system_size
-                         << " dofs found = " << check_size;
+        KRATOS_ERROR_IF(check_size < system_size)
+            << "Dof count is not correct. There are less dofs than expected.\n"
+            << "Expected number of active dofs = " << system_size
+            << " dofs found = " << check_size;
 
         // defining a map as needed
         Epetra_Map dof_update_map(-1, index_array.size(),
