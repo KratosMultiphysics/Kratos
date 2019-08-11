@@ -74,3 +74,9 @@ class ReplacePropertiesProcess(KratosMultiphysics.Process):
                 material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
                 material_settings["Parameters"]["materials_filename"].SetString(self.materials_filename)
                 KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+
+                # Reinitilize elements and conditions
+                for elem in self.model_part.Elements:
+                    elem.Initialize()
+                for cond in self.model_part.Conditions:
+                    cond.Initialize()
