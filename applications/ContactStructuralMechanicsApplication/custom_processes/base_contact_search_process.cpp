@@ -980,6 +980,24 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
         return CheckResult::Fail;
     }
 
+    // Avoid conditions oriented in the same direction
+    const auto& r_geometry_1 = pGeometricalObject1->GetGeometry();
+    const auto& r_geometry_2 = pGeometricalObject2->GetGeometry();
+
+    // Declare auxiliar coordinates
+    GeometryType::CoordinatesArrayType aux_coords;
+
+    // Tolerance
+    const double tolerance = 1.0e-16 + mThisParameters["normal_orientation_threshold"].GetDouble();
+
+    // Getting normals
+    r_geometry_1.PointLocalCoordinates(aux_coords, r_geometry_1.Center());
+    const array_1d<double, 3> normal_1 = r_geometry_1.UnitNormal(aux_coords);
+    r_geometry_2.PointLocalCoordinates(aux_coords, r_geometry_2.Center());
+    const array_1d<double, 3> normal_2 = r_geometry_2.UnitNormal(aux_coords);
+    if (norm_2(normal_1 - normal_2) < tolerance)
+        return CheckResult::Fail;
+
     // To avoid to repeat twice the same condition
     if (pIndexesPairs->find(index_2) != pIndexesPairs->end()) {
         return CheckResult::AlreadyInTheMap;
@@ -1791,6 +1809,7 @@ Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaul
         "static_check_movement"                : false,
         "predefined_master_slave"              : true,
         "id_name"                              : "",
+        "normal_orientation_threshold"         : 0.0,
         "consider_gap_threshold"               : false,
         "predict_correct_lagrange_multiplier"  : false,
         "pure_slip"                            : false,
