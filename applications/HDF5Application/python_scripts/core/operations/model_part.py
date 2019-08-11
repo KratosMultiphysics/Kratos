@@ -7,14 +7,14 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 from .. import utils as _utils
 from importlib import import_module
 
-def _Prefix(pattern, identifier, time_format=''):
-    if hasattr(identifier, 'ProcessInfo'):
-        time = identifier.ProcessInfo[KratosMultiphysics.TIME]
+def _Prefix(pattern, model_part, time_format=''):
+    if hasattr(model_part, 'ProcessInfo'):
+        time = model_part.ProcessInfo[KratosMultiphysics.TIME]
         prefix = format(time, time_format).join(pattern.split('<time>'))
     else:
         prefix = pattern
-    if hasattr(identifier, 'Name'):
-        prefix = prefix.replace('<identifier>', identifier.Name)
+    if hasattr(model_part, 'Name'):
+        prefix = prefix.replace('<model_part_name>', model_part.Name)
     return prefix
 
 
