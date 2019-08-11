@@ -58,7 +58,7 @@ namespace Kratos
  *        #TODO: check python version
  *        self.compiled_function = compile(function_string, '', 'eval', optimize=2)
  *
- *    def f(self,x,y,z,t):
+ *    def f(self,x,y,z,t,X,Y,Z):
  *        return  eval(self.compiled_function)
  *
  * The object is then insantiated as
