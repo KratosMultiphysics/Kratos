@@ -138,12 +138,10 @@ public:
     /**
      * @brief Default destructor.
      */
-    virtual ~TrilinosBlockBuilderAndSolver()
-    {
-    }
+    ~TrilinosBlockBuilderAndSolver() override = default;
 
     /**
-     * Copy constructor (deleted)
+     * Copy constructor
      */
     TrilinosBlockBuilderAndSolver(const TrilinosBlockBuilderAndSolver& rOther) = delete;
 
@@ -363,13 +361,13 @@ public:
         }
         else {
             TSparseSpace::SetToZero(rDx);
-            KRATOS_WARNING_IF("TrilinosResidualBasedBlockBuilderAndSolver", mrComm.MyPID() == 0)
+            KRATOS_WARNING_ALL_RANKS("TrilinosResidualBasedBlockBuilderAndSolver")
                 << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
         // prints informations about the current time
         KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver",
-                       ((BaseType::GetEchoLevel() > 1) && (mrComm.MyPID() == 0)))
+                       (BaseType::GetEchoLevel() > 1) )
             << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -593,8 +591,8 @@ public:
         int current_rank = r_comm.MyPID();
 
         // Calculating number of fixed and free dofs
-        for (const auto& dof : BaseType::mDofSet)
-            if (dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
+        for (const auto& r_dof : BaseType::mDofSet)
+            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
                 free_size++;
 
         // Calculating the total size and required offset
@@ -613,9 +611,9 @@ public:
         free_offset -= free_size;
 
         // Now setting the equation id with .
-        for (auto& dof : BaseType::mDofSet)
-            if (dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
-                dof.SetEquationId(free_offset++);
+        for (auto& r_dof : BaseType::mDofSet)
+            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
+                r_dof.SetEquationId(free_offset++);
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
@@ -651,7 +649,7 @@ public:
     {
         KRATOS_TRY
         // resizing the system vectors and matrix
-        if (rpA == NULL || TSparseSpace::Size1(*rpA) == 0 ||
+        if (rpA == nullptr || TSparseSpace::Size1(*rpA) == 0 ||
             BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
         {
             IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
@@ -691,9 +689,7 @@ public:
                 if (num_active_indices != 0) {
                     int ierr = Agraph.InsertGlobalIndices(
                         num_active_indices, temp, num_active_indices, temp);
-                    KRATOS_ERROR_IF(ierr < 0)
-                        << "In " << __FILE__ << ":"
-                        << __LINE__ << ": Epetra failure in Graph.InsertGlobalIndices. Error code: "
+                    KRATOS_ERROR_IF(ierr < 0)<< ": Epetra failure in Graph.InsertGlobalIndices. Error code: "
                         << ierr << std::endl;
                 }
             }
@@ -732,18 +728,18 @@ public:
                 TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
             rpA.swap(p_new_A);
             // generate new vector pointers according to the given map
-            if (rpb == NULL || TSparseSpace::Size(*rpb) != BaseType::mEquationSystemSize) {
+            if (rpb == nullptr || TSparseSpace::Size(*rpb) != BaseType::mEquationSystemSize) {
                 TSystemVectorPointerType p_new_b =
                     TSystemVectorPointerType(new TSystemVectorType(my_map));
                 rpb.swap(p_new_b);
             }
-            if (rpDx == NULL || TSparseSpace::Size(*rpDx) != BaseType::mEquationSystemSize) {
+            if (rpDx == nullptr || TSparseSpace::Size(*rpDx) != BaseType::mEquationSystemSize) {
                 TSystemVectorPointerType p_new_Dx =
                     TSystemVectorPointerType(new TSystemVectorType(my_map));
                 rpDx.swap(p_new_Dx);
             }
             if (BaseType::mpReactionsVector ==
-                NULL) // if the pointer is not initialized initialize it to an
+                nullptr) // if the pointer is not initialized initialize it to an
                       // empty matrix
             {
                 TSystemVectorPointerType pNewReactionsVector =
@@ -772,26 +768,6 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void InitializeSolutionStep(ModelPart& rModelPart,
-                                TSystemMatrixType& A,
-                                TSystemVectorType& Dx,
-                                TSystemVectorType& b) override
-    {
-        KRATOS_TRY
-        KRATOS_CATCH("")
-    }
-
-    //**************************************************************************
-    //**************************************************************************
-    void FinalizeSolutionStep(ModelPart& rModelPart,
-                              TSystemMatrixType& A,
-                              TSystemVectorType& Dx,
-                              TSystemVectorType& b) override
-    {
-    }
-
-    //**************************************************************************
-    //**************************************************************************
     void CalculateReactions(typename TSchemeType::Pointer pScheme,
                             ModelPart& rModelPart,
                             TSystemMatrixType& rA,
@@ -816,8 +792,7 @@ public:
         for (const auto& dof : BaseType::mDofSet) {
             id = dof.EquationId();
             if (id < system_size) {
-                index_array[counter] = id;
-                counter += 1;
+                index_array[counter++] = id;
             }
         }
 
@@ -829,12 +804,9 @@ public:
         int check_size = -1;
         int tot_update_dofs = index_array.size();
         rb.Comm().SumAll(&tot_update_dofs, &check_size, 1);
-        if ((check_size < system_size) && (rb.Comm().MyPID() == 0)) {
-            KRATOS_ERROR << "Dof count is not correct. There are less dofs "
-                            "than expected.\n"
+        KRATOS_ERROR_IF(check_size < system_size) << "Dof count is not correct. There are less dofs than expected.\n"
                          << "Expected number of active dofs = " << system_size
                          << " dofs found = " << check_size;
-        }
 
         // defining a map as needed
         Epetra_Map dof_update_map(-1, index_array.size(),
@@ -901,14 +873,8 @@ public:
         IndexType i = 0;
         for (const auto& dof : BaseType::mDofSet) {
             const int global_id = dof.EquationId();
-            global_ids[i] = global_id;
-
-            if (dof.IsFixed())
-                is_dirichlet[i] = 1;
-            else
-                is_dirichlet[i] = 0;
-
-            i++;
+            global_ids[i++] = global_id;
+            is_dirichlet[i] = dof.IsFixed();
         }
 
         // here we construct and fill a vector "fixed local" which cont
