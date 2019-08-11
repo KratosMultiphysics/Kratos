@@ -65,7 +65,8 @@ class ReplacePropertiesProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
 
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        process_info = self.model_part.ProcessInfo
+        current_time = process_info[KratosMultiphysics.TIME]
 
         # We activate/deactivate conditions dependeding of interval
         if self.interval.IsInInterval(current_time):
@@ -77,6 +78,6 @@ class ReplacePropertiesProcess(KratosMultiphysics.Process):
 
                 # Reinitilize elements and conditions
                 for elem in self.model_part.Elements:
-                    elem.Initialize()
+                    elem.Initialize(process_info)
                 for cond in self.model_part.Conditions:
-                    cond.Initialize()
+                    cond.Initialize(process_info)
