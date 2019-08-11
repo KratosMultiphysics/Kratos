@@ -954,8 +954,8 @@ protected:
     int mLastMyId;
 
     // For Constraints
-    TSystemMatrixType mT;              /// This is matrix containing the global relation for the constraints
-    TSystemVectorType mConstantVector; /// This is vector containing the rigid movement of the constraint
+    TSystemMatrixPointerType mpT;              /// This is matrix containing the global relation for the constraints
+    TSystemVectorPointerType mpConstantVector; /// This is vector containing the rigid movement of the constraint
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
@@ -969,100 +969,63 @@ protected:
 
     virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
-        // if (rModelPart.MasterSlaveConstraints().size() > 0) {
-        //     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        KRATOS_TRY
+        // resizing the system vectors and matrix
+            IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
+            int temp_size = number_of_local_dofs;
+            if (temp_size < 1000)
+                temp_size = 1000;
+            std::vector<int> temp(temp_size, 0);
+            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+            const IndexType number_of_constraints =
+                static_cast<IndexType>(r_constraints_array.size());
 
-        //     // Vector containing the localization in the system of the different terms
-        //     DofsVectorType slave_dof_list, master_dof_list;
+            // generate map - use the "temp" array here
+            for (IndexType i = 0; i != number_of_local_dofs; i++)
+                temp.push_back(mFirstMyId + i);
+            Epetra_Map my_map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
+            // create and fill the graph of the matrix --> the temp array is
+            // reused here with a different meaning
+            Epetra_FECrsGraph t_graph(Copy, my_map, mGuessRowSize);
+            Element::EquationIdVectorType slave_equation_ids_vector;
+            Element::EquationIdVectorType master_equation_ids_vector;
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        //     // Constraint initial iterator
-        //     const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
-        //     std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
+            // assemble all elements
+            for (IndexType i = 0; i < number_of_elements; ++i) {
+                auto it_constraint = r_constraints_array.begin() + i;
+                it_constraint->EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector
+                                    r_current_process_info);
 
-        //     std::vector<LockObject> lock_array(indices.size());
+                // filling the list of active global indices (non fixed)
+                IndexType num_active_indices = 0;
+                for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
+                    temp[num_active_indices] = equation_ids_vector[i];
+                    num_active_indices += 1;
+                }
 
-        //     #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
-        //     {
-        //         Element::EquationIdVectorType slave_ids(3);
-        //         Element::EquationIdVectorType master_ids(3);
-        //         std::unordered_map<IndexType, std::unordered_set<IndexType>> temp_indices;
+                if (num_active_indices != 0) {
+                    int ierr = t_graph.InsertGlobalIndices(
+                        num_active_indices, temp.data(), num_active_indices, temp.data());
+                    KRATOS_ERROR_IF(ierr < 0)
+                        << ": Epetra failure in Graph.InsertGlobalIndices. "
+                           "Error code: "
+                        << ierr << std::endl;
+                }
+                std::fill(temp.begin(), temp.end(), 0);
+            }
 
-        //         #pragma omp for schedule(guided, 512) nowait
-        //         for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
-        //             auto it_const = it_const_begin + i_const;
+            // finalizing graph construction
+            int ierr = t_graph.GlobalAssemble();
+            KRATOS_ERROR_IF(ierr < 0)
+                << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
+                << std::endl;
+            // generate a new matrix pointer according to this graph
+            TSystemMatrixPointerType p_new_T =
+                TSystemMatrixPointerType(new TSystemMatrixType(Copy, t_graph));
+            mpT.swap(p_new_T);
 
-        //             // Detect if the constraint is active or not. If the user did not make any choice the constraint
-        //             // It is active by default
-        //             bool constraint_is_active = true;
-        //             if( it_const->IsDefined(ACTIVE) ) {
-        //                 constraint_is_active = it_const->Is(ACTIVE);
-        //             }
-
-        //             if(constraint_is_active) {
-        //                 it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
-
-        //                 // Slave DoFs
-        //                 for (auto &id_i : slave_ids) {
-        //                     temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
-        //                 }
-        //             }
-        //         }
-
-        //         // Merging all the temporal indexes
-        //         for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-        //             lock_array[i].SetLock();
-        //             indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-        //             lock_array[i].UnSetLock();
-        //         }
-        //     }
-
-        //     mSlaveIds.clear();
-        //     mMasterIds.clear();
-        //     for (int i = 0; i < static_cast<int>(indices.size()); ++i) {
-        //         if (indices[i].size() == 0) // Master dof!
-        //             mMasterIds.push_back(i);
-        //         else // Slave dof
-        //             mSlaveIds.push_back(i);
-        //         indices[i].insert(i); // Ensure that the diagonal is there in T
-        //     }
-
-        //     // Count the row sizes
-        //     std::size_t nnz = 0;
-        //     for (IndexType i = 0; i < indices.size(); ++i)
-        //         nnz += indices[i].size();
-
-        //     mT = TSystemMatrixType(indices.size(), indices.size(), nnz);
-        //     mConstantVector.resize(indices.size(), false);
-
-        //     double *Tvalues = mT.value_data().begin();
-        //     IndexType *Trow_indices = mT.index1_data().begin();
-        //     IndexType *Tcol_indices = mT.index2_data().begin();
-
-        //     // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
-        //     Trow_indices[0] = 0;
-        //     for (int i = 0; i < static_cast<int>(mT.size1()); i++)
-        //         Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
-
-        //     #pragma omp parallel for
-        //     for (int i = 0; i < static_cast<int>(mT.size1()); ++i) {
-        //         const IndexType row_begin = Trow_indices[i];
-        //         const IndexType row_end = Trow_indices[i + 1];
-        //         IndexType k = row_begin;
-        //         for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
-        //             Tcol_indices[k] = *it;
-        //             Tvalues[k] = 0.0;
-        //             k++;
-        //         }
-
-        //         indices[i].clear(); //deallocating the memory
-
-        //         std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
-        //     }
-
-        //     mT.set_filled(indices.size() + 1, nnz);
-
-        //     Timer::Stop("ConstraintsRelationMatrixStructure");
-        // }
+        KRATOS_CATCH("")
     }
 
     virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
