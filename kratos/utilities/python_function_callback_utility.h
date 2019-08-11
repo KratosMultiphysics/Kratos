@@ -190,7 +190,7 @@ public:
         xglobal_initial[1] = Y;
         xglobal_initial[2] = Z;
         array_1d<double,3> xlocal_initial = prod(mRotationMatrix, (xglobal_initial - mCenterCoordinates) );
-        return CallFunction(xlocal[0],xlocal[1],xlocal[2],xlocal_initial[0],xlocal_initial[1],xlocal_initial[2],t);
+        return CallFunction(xlocal[0],xlocal[1],xlocal[2], t,xlocal_initial[0],xlocal_initial[1],xlocal_initial[2]);
     }
 
     /**
