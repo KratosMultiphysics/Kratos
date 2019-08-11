@@ -134,7 +134,7 @@ public:
     ///@{
 
     /**
-     * @brief This method defines if it depends on space
+     * @brief This method returns if it depends on space
      * @return True if it uses the local system, false otherwise
      */
     bool UseLocalSystem()
@@ -143,12 +143,21 @@ public:
     }
 
     /**
-     * @brief This method defines if it depends on space
+     * @brief This method returns if it depends on space
      * @return True if it depends on space, false otherwise
      */
     bool DependsOnSpace()
     {
         return mDependsOnSpace;
+    }
+
+    /**
+     * @brief This method returns the function body
+     * @return The function body
+     */
+    std::string FunctionBody()
+    {
+        return mFunctionBody;
     }
 
     /**
