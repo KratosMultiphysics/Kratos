@@ -32,6 +32,7 @@ class ReplacePropertiesProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                        : "This process replaces the properties in a given instant",
+            "model_part_name"             : "",
             "materials_filename"          : "",
             "interval"                    : [0.0, 1e30]
         }
@@ -47,8 +48,9 @@ class ReplacePropertiesProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        # The model
+        # The model and model part
         self.model = Model
+        self.model_part = self.model[settings["model_part_name"].GetString()]
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
