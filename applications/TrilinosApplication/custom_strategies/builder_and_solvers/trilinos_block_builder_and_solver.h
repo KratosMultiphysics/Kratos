@@ -656,7 +656,7 @@ public:
             int temp_size = number_of_local_dofs;
             if (temp_size < 1000)
                 temp_size = 1000;
-            int* temp = new int[temp_size];
+            std::vector<int> temp(temp_size, 0);
             auto& r_elements_array = rModelPart.Elements();
             const IndexType number_of_elements =
                 static_cast<IndexType>(r_elements_array.size());
@@ -694,6 +694,7 @@ public:
                            "Error code: "
                         << ierr << std::endl;
                 }
+                std::fill(temp.begin(), temp.end(), 0);
             }
 
             // assemble all conditions
@@ -711,12 +712,13 @@ public:
 
                 if (num_active_indices != 0) {
                     int ierr = Agraph.InsertGlobalIndices(
-                        num_active_indices, temp, num_active_indices, temp);
+                        num_active_indices, temp.data(), num_active_indices, temp.data());
                     KRATOS_ERROR_IF(ierr < 0)
                         << ": Epetra failure in Graph.InsertGlobalIndices. "
                            "Error code: "
                         << ierr << std::endl;
                 }
+                std::fill(temp.begin(), temp.end(), 0);
             }
 
             // finalizing graph construction
@@ -746,7 +748,6 @@ public:
                     TSystemVectorPointerType(new TSystemVectorType(my_map));
                 BaseType::mpReactionsVector.swap(pNewReactionsVector);
             }
-            delete[] temp;
         }
         else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag) {
             TSystemVectorPointerType pNewReactionsVector =
