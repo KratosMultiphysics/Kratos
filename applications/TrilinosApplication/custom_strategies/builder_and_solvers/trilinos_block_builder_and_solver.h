@@ -925,14 +925,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    //**************************************************************************
-    //**************************************************************************
-    void ApplyPointLoads(typename TSchemeType::Pointer pScheme,
-                         ModelPart& rModelPart,
-                         TSystemVectorType& rb) override
-    {
-    }
-
     ///@}
     ///@name Access
     ///@{
