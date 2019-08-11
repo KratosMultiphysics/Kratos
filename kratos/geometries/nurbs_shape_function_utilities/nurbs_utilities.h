@@ -36,8 +36,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef typename BaseType::IndexType IndexType;
-    typedef typename BaseType::SizeType SizeType;
+    typedef typename std::size_t IndexType;
+    typedef typename std::size_t SizeType;
 
     ///@}
     ///@name Static Operations
