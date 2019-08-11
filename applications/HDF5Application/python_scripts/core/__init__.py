@@ -2,11 +2,17 @@
 
 license: HDF5Application/license.txt
 '''
+
+
+__all__ = ["Factory"]
+
+
 import KratosMultiphysics
 from . import processes, controllers, operations, file_io, utils
+from .utils import ParametersWrapper
 
 
-def _CreateControllerWithFileIO(settings, model):
+def CreateControllerWithFileIO(settings, model):
     default_setter = utils.DefaultSetter(settings)
     default_setter.AddString(
         'model_part_name', 'PLEASE_SPECIFY_MODEL_PART_NAME')
@@ -21,14 +27,14 @@ def _CreateControllerWithFileIO(settings, model):
     return controllers.Create(model_part, file_io.Create(settings['io_settings']), settings['controller_settings'])
 
 
-def _AssignOperationsToController(operations_settings, controller):
+def AssignOperationsToController(operations_settings, controller):
     if not operations_settings.IsArray():
         raise ValueError('Expected settings as an array')
     for settings in operations_settings:
         controller.Add(operations.Create(settings))
 
 
-def _AssignControllerToProcess(settings, controller, process):
+def AssignControllerToProcess(settings, controller, process):
     process_step = settings['process_step'].GetString()
     if process_step == 'initialize':
         process.AddInitialize(controller)
@@ -55,10 +61,10 @@ def Factory(settings, model):
         raise ValueError('Expected settings as an array')
     if settings.size() == 0:
         settings.Append(KratosMultiphysics.Parameters())
-    process = processes.OrderedAggregationProcess()
+    process = processes.ControllerProcess()
     for current_settings in settings:
-        controller = _CreateControllerWithFileIO(current_settings, model)
-        _AssignOperationsToController(
+        controller = CreateControllerWithFileIO(current_settings, model)
+        AssignOperationsToController(
             current_settings['list_of_operations'], controller)
-        _AssignControllerToProcess(current_settings, controller, process)
+        AssignControllerToProcess(current_settings, controller, process)
     return process

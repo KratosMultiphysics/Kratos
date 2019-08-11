@@ -13,6 +13,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.StructuralMechanicsApplication import check_and_prepare_model_process_structural
 from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+from KratosMultiphysics import auxiliary_solver_utilities
 
 class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
@@ -151,10 +152,7 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         # Add variables that the user defined in the ProjectParameters
-        for i in range(self.settings["auxiliary_variables_list"].size()):
-            variable_name = self.settings["auxiliary_variables_list"][i].GetString()
-            variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
-            self.main_model_part.AddNodalSolutionStepVariable(variable)
+        auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
@@ -171,27 +169,7 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
 
         # Add dofs that the user defined in the ProjectParameters
-        if (self.settings["auxiliary_dofs_list"].size() != self.settings["auxiliary_reaction_list"].size()):
-                raise Exception("DoFs list and reaction list should be the same long")
-        for i in range(self.settings["auxiliary_dofs_list"].size()):
-            dof_variable_name = self.settings["auxiliary_dofs_list"][i].GetString()
-            reaction_variable_name = self.settings["auxiliary_reaction_list"][i].GetString()
-            if (KratosMultiphysics.KratosGlobals.HasDoubleVariable(dof_variable_name)): # Double variable
-                dof_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name)
-                reaction_variable = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name)
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable, reaction_variable,self.main_model_part)
-            elif (KratosMultiphysics.KratosGlobals.HasArrayVariable(dof_variable_name)): # Components variable
-                dof_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_X")
-                reaction_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_X")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_x, reaction_variable_x, self.main_model_part)
-                dof_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Y")
-                reaction_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Y")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_y, reaction_variable_y, self.main_model_part)
-                dof_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(dof_variable_name + "_Z")
-                reaction_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Z")
-                KratosMultiphysics.VariableUtils().AddDof(dof_variable_z, reaction_variable_z, self.main_model_part)
-            else:
-                KratosMultiphysics.Logger.PrintWarning("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
+        auxiliary_solver_utilities.AddDofs(self.main_model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):

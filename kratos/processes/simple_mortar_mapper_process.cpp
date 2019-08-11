@@ -159,6 +159,19 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
 {
     KRATOS_TRY;
 
+    ExecuteInitializeSolutionStep();
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
+void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: ExecuteInitializeSolutionStep()
+{
+    KRATOS_TRY;
+
     // We reset the database if needed
     const bool update_interface = mThisParameters["update_interface"].GetBool();
     if (update_interface) {
@@ -841,12 +854,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         for(int i = 0; i < num_conditions; ++i) {
             auto it_cond = it_cond_begin + i;
 
-            if (it_cond->Has( INDEX_MAP )) {
-                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_cond.base()), integration_utility);
-            } else {
+            if (it_cond->Has( INDEX_SET )) {
                 IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
                 ClearIndexes<IndexSet>(p_indexes_pairs, (*it_cond.base()), integration_utility);
+            } else {
+                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
+                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_cond.base()), integration_utility);
             }
         }
     } else {
@@ -860,12 +873,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         for(int i = 0; i < num_elements; ++i) {
             auto it_elem = it_elem_begin + i;
 
-            if (it_elem->Has( INDEX_MAP )) {
-                IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_elem.base()), integration_utility);
-            } else {
+            if (it_elem->Has( INDEX_SET )) {
                 IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
                 ClearIndexes<IndexSet>(p_indexes_pairs, (*it_elem.base()), integration_utility);
+            } else {
+                IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
+                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_elem.base()), integration_utility);
             }
         }
     }
@@ -892,12 +905,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             for(int i = 0; i < num_conditions; ++i) {
                 auto it_cond = it_cond_begin + i;
 
-                if (it_cond->Has( INDEX_MAP )) {
-                    IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
-                } else {
+                if (it_cond->Has( INDEX_SET )) {
                     IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
                     PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                } else {
+                    IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
+                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
                 }
             }
         } else {
@@ -911,12 +924,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             for(int i = 0; i < num_elements; ++i) {
                 auto it_elem = it_elem_begin + i;
 
-                if (it_elem->Has( INDEX_MAP )) {
-                    IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
-                } else {
+                if (it_elem->Has( INDEX_SET )) {
                     IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
                     PerformMortarOperations<IndexSet>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                } else {
+                    IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
+                    PerformMortarOperations<IndexMap>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
                 }
             }
         }
@@ -1044,12 +1057,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         for(int i = 0; i < num_conditions; ++i) {
             auto it_cond = it_cond_begin + i;
 
-            if (it_cond->Has( INDEX_MAP )) {
-                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_cond.base()), integration_utility);
-            } else {
+            if (it_cond->Has( INDEX_SET )) {
                 IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
                 ClearIndexes<IndexSet>(p_indexes_pairs, (*it_cond.base()), integration_utility);
+            } else {
+                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
+                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_cond.base()), integration_utility);
             }
         }
     } else {
@@ -1063,12 +1076,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         for(int i = 0; i < num_elements; ++i) {
             auto it_elem = it_elem_begin + i;
 
-            if (it_elem->Has( INDEX_MAP )) {
-                IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_elem.base()), integration_utility);
-            } else {
+            if (it_elem->Has( INDEX_SET )) {
                 IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
                 ClearIndexes<IndexSet>(p_indexes_pairs, (*it_elem.base()), integration_utility);
+            } else {
+                IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
+                ClearIndexes<IndexMap>(p_indexes_pairs, (*it_elem.base()), integration_utility);
             }
         }
     }
@@ -1096,12 +1109,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
             for(int i = 0; i < num_conditions; ++i) {
                 auto it_cond = it_cond_begin + i;
-                if (it_cond->Has( INDEX_MAP )) {
-                    IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
-                    PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
-                } else {
+                if (it_cond->Has( INDEX_SET )) {
                     IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
                     PerformMortarOperations<IndexSet, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                } else {
+                    IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
+                    PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_cond.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
                 }
             }
         } else {
@@ -1114,12 +1127,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
             for(int i = 0; i < num_elements; ++i) {
                 auto it_elem = it_elem_begin + i;
-                if (it_elem->Has( INDEX_MAP )) {
-                    IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                    PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
-                } else {
+                if (it_elem->Has( INDEX_SET )) {
                     IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
                     PerformMortarOperations<IndexSet, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
+                } else {
+                    IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
+                    PerformMortarOperations<IndexMap, true>(A, b, inverse_conectivity_database, p_indexes_pairs, (*it_elem.base()), integration_utility, this_kinematic_variables, this_mortar_operators, iteration);
                 }
             }
         }
@@ -1209,8 +1222,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
         // Create an inverted database
         for(int i = 0; i < num_conditions; ++i) {
             auto it_cond = it_cond_begin + i;
-            if (it_cond->Has( INDEX_MAP )) {
-                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
+            if (it_cond->Has( INDEX_SET )) {
+                IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
@@ -1222,7 +1235,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                     }
                 }
             } else {
-                IndexSet::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_SET ); // These are the master conditions
+                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue( INDEX_MAP ); // These are the master conditions
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
@@ -1232,7 +1245,6 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                         auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
                         (p_elem_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
                     }
-
                 }
             }
         }
@@ -1245,19 +1257,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
         // Create an inverted database
         for(int i = 0; i < num_elements; ++i) {
             auto it_elem = it_elem_begin + i;
-            if (it_elem->Has( INDEX_MAP )) {
-                IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
-                for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
-                    const IndexType master_id = p_indexes_pairs->GetId(it_pair);
-                    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
-                    } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
-                    }
-                }
-            } else {
+            if (it_elem->Has( INDEX_SET )) {
                 IndexSet::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_SET ); // These are the master elements
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
@@ -1269,6 +1269,18 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                         (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
                     }
 
+                }
+            } else {
+                IndexMap::Pointer p_indexes_pairs = it_elem->GetValue( INDEX_MAP ); // These are the master elements
+                for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
+                    const IndexType master_id = p_indexes_pairs->GetId(it_pair);
+                    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
+                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                    } else {
+                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
+                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                    }
                 }
             }
         }
