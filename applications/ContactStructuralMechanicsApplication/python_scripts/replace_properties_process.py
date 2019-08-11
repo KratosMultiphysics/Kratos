@@ -34,6 +34,7 @@ class ReplacePropertiesProcess(KratosMultiphysics.Process):
             "help"                        : "This process replaces the properties in a given instant",
             "model_part_name"             : "",
             "materials_filename"          : "",
+            "reinitialize_entities"       : false.
             "interval"                    : [0.0, 1e30]
         }
         """)
@@ -55,6 +56,9 @@ class ReplacePropertiesProcess(KratosMultiphysics.Process):
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
+        # If we reinitialize entities
+        self.reinitialize_entities = settings["reinitialize_entities"].GetBool()
+        
         # Materials filename
         self.materials_filename = settings["materials_filename"].GetString()
 
@@ -77,7 +81,8 @@ class ReplacePropertiesProcess(KratosMultiphysics.Process):
                 KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
 
                 # Reinitilize elements and conditions
-                for elem in self.model_part.Elements:
-                    elem.Initialize(process_info)
-                for cond in self.model_part.Conditions:
-                    cond.Initialize(process_info)
+                if self.reinitialize_entities:
+                    for elem in self.model_part.Elements:
+                        elem.Initialize(process_info)
+                    for cond in self.model_part.Conditions:
+                        cond.Initialize(process_info)
