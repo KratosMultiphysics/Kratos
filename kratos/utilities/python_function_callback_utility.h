@@ -92,7 +92,7 @@ public:
     PythonGenericFunctionUtility(
         const std::string& rFunctionBody,
         Parameters LocalSystem = Parameters{}
-        ) : mrFunctionBody(rFunctionBody)
+        ) : mFunctionBody(rFunctionBody)
     {
         // Compile the function starting from the string function body
         try {
@@ -189,7 +189,7 @@ public:
         mMainNameSpace["z"] = z;
         mMainNameSpace["t"] = t;
 
-        return pybind11::eval(mrFunctionBody, mMainNameSpace).cast<double>();
+        return pybind11::eval(mFunctionBody, mMainNameSpace).cast<double>();
     }
 
     ///@}
@@ -201,7 +201,7 @@ private:
 
     pybind11::object mMainModule;       /// The main python module
     pybind11::object mMainNameSpace;    /// The main python namespace (the variables considered on the python function)
-    const std::string& mrFunctionBody;  /// The function body
+    const std::string mFunctionBody;    /// The function body
     pybind11::object mByteCode;         /// Some byte code
 
     bool mDependsOnSpace = true;                 /// If it depends on space
