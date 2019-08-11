@@ -47,16 +47,6 @@ void ConstitutiveLawUtilities<3>::CalculateI1Invariant(
         rI1 += rStressVector[i];
 }
 
-
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(
-    const BoundedVectorType& rStressVector,
-    double& rI1
-    )
-{
-
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 
