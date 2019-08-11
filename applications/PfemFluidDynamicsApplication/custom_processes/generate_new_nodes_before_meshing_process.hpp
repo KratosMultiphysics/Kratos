@@ -707,11 +707,14 @@ private:
  	Node<3>::Pointer SlaveNode2 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][1]);
  	InterpolateFromTwoNodes(pnode,SlaveNode1,SlaveNode2,VariablesList);
 	if(SlaveNode1->Is(RIGID) || SlaveNode1->Is(SOLID)){
-	  TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode2);
+		TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode2);
 	}
-	if(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)){
-	  TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode1);
+	else{ //it assigns the material properties of the second node (not rigid) to the master node. It avoids smoothing of material parameters
+		TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode1);
 	}
+	// if(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)){
+	//   TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode1);
+	// }
       }
 
 
@@ -868,17 +871,33 @@ private:
     double bulkModulus=SlaveNode->FastGetSolutionStepValue(BULK_MODULUS);
     double density=SlaveNode->FastGetSolutionStepValue(DENSITY);
     double viscosity=SlaveNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+
     double yieldShear=SlaveNode->FastGetSolutionStepValue(YIELD_SHEAR);
     double flowIndex=SlaveNode->FastGetSolutionStepValue(FLOW_INDEX);
     double adaptiveExponent=SlaveNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+
+    double staticFrictionCoefficient=SlaveNode->FastGetSolutionStepValue(STATIC_FRICTION);
+    double dynamicFrictionCoefficient=SlaveNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
+    double inertialNumberZero=SlaveNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
+    double grainDiameter=SlaveNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
+    double grainDensity=SlaveNode->FastGetSolutionStepValue(GRAIN_DENSITY);
+    double regularizationCoefficient=SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
 
 
     MasterNode->FastGetSolutionStepValue(BULK_MODULUS)=bulkModulus;
     MasterNode->FastGetSolutionStepValue(DENSITY)=density;
     MasterNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY)=viscosity;
+
     MasterNode->FastGetSolutionStepValue(YIELD_SHEAR)=yieldShear;
     MasterNode->FastGetSolutionStepValue(FLOW_INDEX)=flowIndex;
     MasterNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=adaptiveExponent;
+
+    MasterNode->FastGetSolutionStepValue(STATIC_FRICTION)=staticFrictionCoefficient;
+    MasterNode->FastGetSolutionStepValue(DYNAMIC_FRICTION)=dynamicFrictionCoefficient;
+    MasterNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO)=inertialNumberZero;
+    MasterNode->FastGetSolutionStepValue(GRAIN_DIAMETER)=grainDiameter;
+    MasterNode->FastGetSolutionStepValue(GRAIN_DENSITY)=grainDensity;
+    MasterNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT)=regularizationCoefficient;
 
     KRATOS_CATCH( "" )
 

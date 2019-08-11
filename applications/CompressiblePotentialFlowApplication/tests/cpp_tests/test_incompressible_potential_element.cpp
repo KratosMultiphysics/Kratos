@@ -194,7 +194,6 @@ namespace Kratos {
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
 
-      pElement->Set(TO_SPLIT);
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,

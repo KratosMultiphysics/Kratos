@@ -1277,15 +1277,6 @@ public:
         TSystemVectorType& b) override
     {}
 
-    //**************************************************************************
-    //**************************************************************************
-    void ApplyPointLoads(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemVectorType& b) override
-    {}
-
-
     /*@} */
     /**@name Operations */
     /*@{ */

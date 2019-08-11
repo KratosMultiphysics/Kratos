@@ -273,6 +273,11 @@ void CopyModelPartNodalVarToNonHistoricalVarWithDestination(
     rVariableUtils.CopyModelPartNodalVarToNonHistoricalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
 }
 
+void PrintTimingInformation(Timer& rTimer)
+{
+    rTimer.PrintTimingInformation();
+}
+
 void AddUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -404,6 +409,18 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::ConditionsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::MasterSlaveConstraintContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 4>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 4>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 4>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 4>, ModelPart::MasterSlaveConstraintContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 6>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 6>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 6>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 6>, ModelPart::MasterSlaveConstraintContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::MasterSlaveConstraintContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
@@ -653,11 +670,17 @@ void AddUtilitiesToPython(pybind11::module &m)
     py::class_<Timer >(m,"Timer")
         .def(py::init<>())
         .def_property("PrintOnScreen", &Timer::GetPrintOnScreen, &Timer::SetPrintOnScreen)
+        .def_property("PrintIntervalInformation", &Timer::GetPrintIntervalInformation, &Timer::SetPrintIntervalInformation)
         .def_static("Start", &Timer::Start)
         .def_static("Stop", &Timer::Stop)
-    //     .staticmethod("Start")
-    //     .staticmethod("Stop")
-        //      .def("PrintTimingInformation",Timer::PrintTimingInformation)
+        .def_static("GetTime", &Timer::GetTime)
+        .def_static("SetOuputFile", &Timer::SetOuputFile)
+        .def_static("CloseOuputFile", &Timer::CloseOuputFile)
+        .def_static("GetPrintOnScreen", &Timer::GetPrintOnScreen)
+        .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
+        .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
+        .def_static("SetPrintIntervalInformation", &Timer::SetPrintIntervalInformation)
+        .def_static("PrintTimingInformation", PrintTimingInformation)
         .def("__str__", PrintObject<Timer>)
         ;
 
@@ -911,44 +934,54 @@ void AddUtilitiesToPython(pybind11::module &m)
         ;
 
     // TimeDiscretization
-    py::class_<TimeDiscretization::BDF1>(m, "BDF1")
-        .def(py::init<>())
-        .def("ComputeBDFCoefficients", (std::array<double, 2> (TimeDiscretization::BDF1::*)(double) const) &TimeDiscretization::BDF1::ComputeBDFCoefficients)
-        .def("ComputeBDFCoefficients", (std::array<double, 2> (TimeDiscretization::BDF1::*)(const ProcessInfo&) const) &TimeDiscretization::BDF1::ComputeBDFCoefficients)
+    auto mod_time_discretization = m.def_submodule("TimeDiscretization");
+
+    py::class_<TimeDiscretization::BDF>(mod_time_discretization, "BDF")
+        .def(py::init<const unsigned int>())
+        .def("GetTimeOrder", (const unsigned int (TimeDiscretization::BDF::*)() const) & TimeDiscretization::BDF::GetTimeOrder)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(double) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(double, double) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(const ProcessInfo &) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
+        .def("ComputeAndSaveBDFCoefficients", (void (TimeDiscretization::BDF::*)(ProcessInfo &) const) & TimeDiscretization::BDF::ComputeAndSaveBDFCoefficients)
         ;
-    py::class_<TimeDiscretization::BDF2>(m, "BDF2")
+    py::class_<TimeDiscretization::BDF1>(mod_time_discretization, "BDF1")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", (std::array<double, 3> (TimeDiscretization::BDF2::*)(double, double) const) &TimeDiscretization::BDF2::ComputeBDFCoefficients)
-        .def("ComputeBDFCoefficients", (std::array<double, 3> (TimeDiscretization::BDF2::*)(const ProcessInfo&) const) &TimeDiscretization::BDF2::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF1::*)(double) const) &TimeDiscretization::BDF1::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF1::*)(const ProcessInfo&) const) &TimeDiscretization::BDF1::ComputeBDFCoefficients)
         ;
-    py::class_<TimeDiscretization::BDF3>(m, "BDF3")
+    py::class_<TimeDiscretization::BDF2>(mod_time_discretization, "BDF2")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", (std::array<double, 4> (TimeDiscretization::BDF3::*)(double) const) &TimeDiscretization::BDF3::ComputeBDFCoefficients)
-        .def("ComputeBDFCoefficients", (std::array<double, 4> (TimeDiscretization::BDF3::*)(const ProcessInfo&) const) &TimeDiscretization::BDF3::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF2::*)(double, double) const) &TimeDiscretization::BDF2::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF2::*)(const ProcessInfo&) const) &TimeDiscretization::BDF2::ComputeBDFCoefficients)
         ;
-    py::class_<TimeDiscretization::BDF4>(m, "BDF4")
+    py::class_<TimeDiscretization::BDF3>(mod_time_discretization, "BDF3")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", (std::array<double, 5> (TimeDiscretization::BDF4::*)(double) const) &TimeDiscretization::BDF4::ComputeBDFCoefficients)
-        .def("ComputeBDFCoefficients", (std::array<double, 5> (TimeDiscretization::BDF4::*)(const ProcessInfo&) const) &TimeDiscretization::BDF4::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF3::*)(double) const) &TimeDiscretization::BDF3::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF3::*)(const ProcessInfo&) const) &TimeDiscretization::BDF3::ComputeBDFCoefficients)
         ;
-    py::class_<TimeDiscretization::BDF5>(m, "BDF5")
+    py::class_<TimeDiscretization::BDF4>(mod_time_discretization, "BDF4")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", (std::array<double, 6> (TimeDiscretization::BDF5::*)(double) const) &TimeDiscretization::BDF5::ComputeBDFCoefficients)
-        .def("ComputeBDFCoefficients", (std::array<double, 6> (TimeDiscretization::BDF5::*)(const ProcessInfo&) const) &TimeDiscretization::BDF5::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF4::*)(double) const) &TimeDiscretization::BDF4::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF4::*)(const ProcessInfo&) const) &TimeDiscretization::BDF4::ComputeBDFCoefficients)
         ;
-    py::class_<TimeDiscretization::BDF6>(m, "BDF6")
+    py::class_<TimeDiscretization::BDF5>(mod_time_discretization, "BDF5")
         .def(py::init<>())
-        .def("ComputeBDFCoefficients", (std::array<double, 7> (TimeDiscretization::BDF6::*)(double) const) &TimeDiscretization::BDF6::ComputeBDFCoefficients)
-        .def("ComputeBDFCoefficients", (std::array<double, 7> (TimeDiscretization::BDF6::*)(const ProcessInfo&) const) &TimeDiscretization::BDF6::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF5::*)(double) const) &TimeDiscretization::BDF5::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF5::*)(const ProcessInfo&) const) &TimeDiscretization::BDF5::ComputeBDFCoefficients)
+        ;
+    py::class_<TimeDiscretization::BDF6>(mod_time_discretization, "BDF6")
+        .def(py::init<>())
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF6::*)(double) const) &TimeDiscretization::BDF6::ComputeBDFCoefficients)
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF6::*)(const ProcessInfo&) const) &TimeDiscretization::BDF6::ComputeBDFCoefficients)
         ;
 
-    py::class_<TimeDiscretization::Newmark>(m, "Newmark")
+    py::class_<TimeDiscretization::Newmark>(mod_time_discretization, "Newmark")
         .def(py::init<>())
         .def(py::init<const double, const double>())
         .def("GetBeta", &TimeDiscretization::Newmark::GetBeta)
         .def("GetGamma", &TimeDiscretization::Newmark::GetGamma)
         ;
-    py::class_<TimeDiscretization::Bossak>(m, "Bossak")
+    py::class_<TimeDiscretization::Bossak>(mod_time_discretization, "Bossak")
         .def(py::init<>())
         .def(py::init<const double>())
         .def(py::init<const double, const double, const double>())
@@ -956,7 +989,7 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("GetGamma", &TimeDiscretization::Bossak::GetGamma)
         .def("GetAlphaM", &TimeDiscretization::Bossak::GetAlphaM)
         ;
-    py::class_<TimeDiscretization::GeneralizedAlpha>(m, "GeneralizedAlpha")
+    py::class_<TimeDiscretization::GeneralizedAlpha>(mod_time_discretization, "GeneralizedAlpha")
         .def(py::init<>())
         .def(py::init<const double, const double>())
         .def(py::init<const double, const double, const double, const double>())
@@ -966,6 +999,7 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("GetAlphaF", &TimeDiscretization::GeneralizedAlpha::GetAlphaF)
         ;
 
+    std::size_t (*GetMinimumBufferSizeBDF)(const TimeDiscretization::BDF&) = &TimeDiscretization::GetMinimumBufferSize;
     std::size_t (*GetMinimumBufferSizeBDF1)(const TimeDiscretization::BDF1&) = &TimeDiscretization::GetMinimumBufferSize;
     std::size_t (*GetMinimumBufferSizeBDF2)(const TimeDiscretization::BDF2&) = &TimeDiscretization::GetMinimumBufferSize;
     std::size_t (*GetMinimumBufferSizeBDF3)(const TimeDiscretization::BDF3&) = &TimeDiscretization::GetMinimumBufferSize;
@@ -976,15 +1010,16 @@ void AddUtilitiesToPython(pybind11::module &m)
     std::size_t (*GetMinimumBufferSizeBossak)(const TimeDiscretization::Bossak&) = &TimeDiscretization::GetMinimumBufferSize;
     std::size_t (*GetMinimumBufferSizeGeneralizedAlpha)(const TimeDiscretization::GeneralizedAlpha&) = &TimeDiscretization::GetMinimumBufferSize;
 
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF1 );
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF2 );
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF3 );
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF4 );
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF5 );
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF6 );
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeNewmark );
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBossak );
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeGeneralizedAlpha );
+    mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF );
+    mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF1 );
+    mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF2 );
+    mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF3 );
+    mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF4 );
+    mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF5 );
+    mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF6 );
+    mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeNewmark );
+    mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBossak );
+    mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeGeneralizedAlpha );
 }
 
 } // namespace Python.

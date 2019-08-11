@@ -501,50 +501,46 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 num_nodes_elements = len(elem.GetNodes())
                 break
 
-        if domain_size == 2:
-            if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
-                if (num_nodes_elements == 3):
+        num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
+
+        element_name = self.settings["element_replace_settings"]["element_name"].GetString()
+
+        if domain_size not in (2,3):
+            raise Exception("DOMAIN_SIZE not set")
+
+        if element_name == "EulerianConvDiff":
+            if domain_size == 2:
+                if num_nodes_elements == 3:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D")
                 else:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D4N")
-            elif (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
-                self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement2D3N")
-        elif domain_size == 3:
-            if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
-                if (num_nodes_elements == 4):
+            else:
+                if num_nodes_elements == 4:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
                 else:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
-            elif (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
-                if (num_nodes_elements == 4):
-                    self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D4N")
-                elif (num_nodes_elements == 8):
-                    self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D8N")
-                else:
-                    self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D27N")
-        else:
-            raise Exception("DOMAIN_SIZE not set")
+        elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement"):
+            name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
+            self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 
         ## Conditions
-        num_nodes_conditions = 0
-        if (len(self.main_model_part.Conditions) > 0):
-            for cond in self.main_model_part.Conditions:
-                num_nodes_conditions = len(cond.GetNodes())
-                break
+        num_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().SumAll(len(self.main_model_part.Conditions))
 
-        if domain_size == 2:
-            if (self.settings["element_replace_settings"]["condition_name"].GetString() == "FluxCondition"):
-                self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition2D2N")
-            elif (self.settings["element_replace_settings"]["condition_name"].GetString() == "ThermalFace"):
-                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace2D2N")
-        elif domain_size == 3:
-            aux_str = "3D" + str(num_nodes_conditions) + "N"
-            if (self.settings["element_replace_settings"]["condition_name"].GetString() == "FluxCondition"):
-                self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition" + aux_str)
-            elif (self.settings["element_replace_settings"]["condition_name"].GetString() == "ThermalFace"):
-                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace" + aux_str)
+        if num_conditions > 0:
+            num_nodes_conditions = 0
+            if (len(self.main_model_part.Conditions) > 0):
+                for cond in self.main_model_part.Conditions:
+                    num_nodes_conditions = len(cond.GetNodes())
+                    break
+
+            num_nodes_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
+
+            condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
+            if condition_name in ("FluxCondition","ThermalFace","Condition"):
+                name_string = "{0}{1}D{2}N".format(condition_name,domain_size, num_nodes_conditions)
+                self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
         else:
-            raise Exception("DOMAIN_SIZE not set")
+            self.settings["element_replace_settings"]["condition_name"].SetString("")
 
         return self.settings["element_replace_settings"]
 

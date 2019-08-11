@@ -15,6 +15,8 @@ except ImportError:
     numpy_available = False
 
 have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "ExternalSolversApplication")
+have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication")
+have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication")
 
 using_pykratos = UsingPyKratos()
 
@@ -54,6 +56,19 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self.__ManipulateSettings()
             # self.__AddVtkOutputToCFD() # uncomment to get output
             self.__DumpUpdatedCFDSettings()
+            self._runTest()
+
+    def test_MPM_FEM_beam_penalty(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if using_pykratos:
+            self.skipTest("This test cannot be run with pyKratos!")
+        if not have_mpm_fem_dependencies:
+            self.skipTest("MPM-FEM dependencies are not available!")
+
+        self.name = "penalty_beam"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("mpm_fem_beam", "cosim_mpm_fem_beam")
             self._runTest()
 
     def __ManipulateSettings(self):
@@ -98,6 +113,7 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
     @classmethod
     def tearDownClass(cls):
+        super(TestSmallCoSimulationCases,cls).tearDownClass()
         kratos_utils.DeleteFileIfExisting(GetFilePath("fsi_mok/ProjectParametersCFD.json"))
 
 
@@ -117,6 +133,28 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("fsi_wall", "cosim_wall_weak_coupling_fsi")
             self._runTest()
 
+    def test_DEMFEMCableNet(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if using_pykratos:
+            self.skipTest("This test cannot be run with pyKratos!")
+        if not have_dem_fem_dependencies:
+            self.skipTest("DEM FEM dependencies are not available!")
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("dem_fem_cable_net","cosim_dem_fem_cable_net")
+            self._runTest()
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestCoSimulationCases,cls).tearDownClass()
+
+        # delete superfluous dem files
+        kratos_utils.DeleteFileIfExisting(GetFilePath("dem_fem_cable_net/cableNet.post.lst"))
+        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Graphs"))
+        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_MPI_results"))
+        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Post_Files"))
+        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Results_and_Data"))
 
 if __name__ == '__main__':
     KratosUnittest.main()

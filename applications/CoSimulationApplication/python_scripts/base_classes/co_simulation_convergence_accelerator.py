@@ -12,7 +12,7 @@ class CoSimulationConvergenceAccelerator(object):
     Relaxes the solution to increase the speed of convergence in a (strongly) coupled simulation
 
     Note that the interface matches the convergence accelerators in the FSIapplication such that they can be used interchangeable
-    ("FSIapplication/custom_utilitiesconvergence_accelerator.hpp")
+    ("FSIapplication/custom_utilities/convergence_accelerator.hpp")
     """
     def __init__(self, settings, solver_wrapper):
         self.settings = settings
