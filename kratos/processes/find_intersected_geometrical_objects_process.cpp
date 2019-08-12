@@ -167,8 +167,6 @@ void FindIntersectedGeometricalObjectsProcess::Clear()
     mIntersectedObjects.clear();
     OctreePointerType aux_ptr = Kratos::make_unique<OctreeType>();
     mpOctree.swap(aux_ptr);
-    // delete mpOctree;
-    // mpOctree = new OctreeType();
 }
 
 /***********************************************************************************/
