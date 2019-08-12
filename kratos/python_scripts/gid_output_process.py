@@ -12,9 +12,9 @@ def Factory(settings, Model):
     output_name = settings["Parameters"]["output_name"].GetString()
     postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
 
-    if model_part.GetCommunicator().TotalProcesses() > 1:
-        from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI
-        return GiDOutputProcessMPI(model_part, output_name, postprocess_parameters)
+    if model_part.IsDistributed():
+        from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess
+        return DistributedGiDOutputProcess(model_part, output_name, postprocess_parameters)
     else:
         return GiDOutputProcess(model_part, output_name, postprocess_parameters)
 
@@ -141,7 +141,8 @@ class GiDOutputProcess(KM.Process):
 
         # Generate the cuts and store them in self.cut_model_part
         if self.skin_output or self.num_planes > 0:
-            self.cut_model_part = ModelPart("CutPart")
+            model = self.model_part.GetModel()
+            self.cut_model_part = model.CreateModelPart("CutPart")
             self.cut_manager = self._CreateCuttingUtility()
             self._initialize_cut_output(plane_output_configuration)
 

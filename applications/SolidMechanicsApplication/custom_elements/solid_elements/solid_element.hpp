@@ -64,7 +64,7 @@ public:
     typedef GeometryData::SizeType SizeType;
 
     /// Counted pointer of SolidElement
-    KRATOS_CLASS_POINTER_DEFINITION( SolidElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SolidElement );
 
 protected:
 

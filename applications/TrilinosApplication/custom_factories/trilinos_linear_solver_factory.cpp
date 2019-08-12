@@ -20,6 +20,7 @@
 #include "external_includes/aztec_solver.h"
 #include "external_includes/amesos_solver.h"
 #include "external_includes/ml_solver.h"
+#include "external_includes/anasazi_solver.h"
 
 #include "external_includes/amgcl_mpi_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
@@ -52,6 +53,14 @@ void RegisterTrilinosLinearSolvers()
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("klu",           AmesosSolverFactory);
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("super_lu_dist", AmesosSolverFactory);
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("mumps",         AmesosSolverFactory);
+
+    typedef AnasaziSolver<TrilinosSparseSpaceType,
+        TrilinosLocalSpaceType> AnasaziSolverType;
+    static auto AnasaziSolverFactory = TrilinosLinearSolverFactory<
+        TrilinosSparseSpaceType,
+        TrilinosLocalSpaceType,
+        AnasaziSolverType>();
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("anasazi", AnasaziSolverFactory);
 
     typedef MultiLevelSolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > MLSolverType;

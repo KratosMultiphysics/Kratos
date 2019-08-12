@@ -24,14 +24,14 @@ class Algorithm(object):
         self.dem_solution = dem_main_script_ready_for_coupling_with_fem.Solution(self.model)
         self.dem_solution.coupling_algorithm = weakref.proxy(self)
 
-        import structural_mechanics_analysis
+        from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
         structural_parameters_file_name = "ProjectParameters.json"
 
         with open(structural_parameters_file_name,'r') as parameter_file:
             parameters = Kratos.Parameters(parameter_file.read())
 
         # Create structural solver, main_model_part and added variables
-        self.structural_solution = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.model, parameters)
+        self.structural_solution = StructuralMechanicsAnalysis(self.model, parameters)
 
         self.AddDEMVariablesToStructural()
 
@@ -49,6 +49,9 @@ class Algorithm(object):
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.SHEAR_STRESS)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.NON_DIMENSIONAL_VOLUME_WEAR)
         self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.IMPACT_WEAR)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.TARGET_STRESS)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.REACTION_STRESS)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.LOADING_VELOCITY)
 
     def Run(self):
         self.Initialize()
@@ -63,6 +66,28 @@ class Algorithm(object):
         self._TransferStructuresSkinToDem()
         self.dem_solution.solver.Initialize()
 
+        self.sandwich_simulation = False
+        # Test types (4 different options):
+        # Test number 0: no test simulation
+        # Test number 1: CTW16 specimen
+        # Test number 2: CTW10 specimen
+        # Test number 3: Blind test specimen
+        self.test_number = 0
+
+        if not self.sandwich_simulation and self.test_number:
+            import control_module_fem_dem_utility
+            self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
+            self.control_module_fem_dem_utility.ExecuteInitialize()
+
+        # Create Postprocess tool for SP
+        import sand_production_post_process_tool
+        self.sp_post_process_tool = sand_production_post_process_tool.SandProductionPostProcessTool(self.structural_solution._GetSolver().GetComputingModelPart(),
+                                                                                                    self.dem_solution.spheres_model_part,
+                                                                                                    self.test_number)
+
+        from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
+        self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part, self.test_number)
+
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
         self.gid_output = dem_structures_coupling_gid_output.DemStructuresCouplingGiDOutput(
@@ -76,19 +101,22 @@ class Algorithm(object):
                             self.dem_solution.spheres_model_part,
                             self.dem_solution.cluster_model_part,
                             self.dem_solution.rigid_face_model_part,
+                            self.dem_solution.contact_model_part,
                             mixed_mp
                             )
 
-        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD"]
+        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD","REACTION","TARGET_STRESS","REACTION_STRESS","LOADING_VELOCITY"]
         dem_nodal_results = ["IS_STICKY", "DEM_STRESS_TENSOR"]
         clusters_nodal_results = []
-        rigid_faces_nodal_results = ["DEM_NODAL_AREA"]
+        rigid_faces_nodal_results = []
+        contact_model_part_results = ["CONTACT_FAILURE"]
         mixed_nodal_results = ["DISPLACEMENT", "VELOCITY"]
-        gauss_points_results = []
+        gauss_points_results = ["CAUCHY_STRESS_TENSOR"]
         self.gid_output.initialize_dem_fem_results(structures_nodal_results,
                                                    dem_nodal_results,
                                                    clusters_nodal_results,
                                                    rigid_faces_nodal_results,
+                                                   contact_model_part_results,
                                                    mixed_nodal_results,
                                                    gauss_points_results)
 
@@ -122,14 +150,14 @@ class Algorithm(object):
             if prop.Id > max_prop_id:
                 max_prop_id = prop.Id
         props = Kratos.Properties(max_prop_id + 1)
-        props[Dem.FRICTION] = 0.5773502691896257
+        props[Dem.FRICTION] = -0.5773502691896257
         props[Dem.WALL_COHESION] = 0.0
         props[Dem.COMPUTE_WEAR] = False
         props[Dem.SEVERITY_OF_WEAR] = 0.001
         props[Dem.IMPACT_WEAR_SEVERITY] = 0.001
         props[Dem.BRINELL_HARDNESS] = 200.0
-        props[Kratos.YOUNG_MODULUS] = 1e20
-        props[Kratos.POISSON_RATIO] = 0.25
+        props[Kratos.YOUNG_MODULUS] = 7e9
+        props[Kratos.POISSON_RATIO] = 0.16
         dem_walls_mp.AddProperties(props)
         DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(self.skin_mp, dem_walls_mp, props)
 
@@ -143,15 +171,19 @@ class Algorithm(object):
 
         while self.structural_solution.time < self.structural_solution.end_time:
 
-            portion_of_the_force_which_is_new = 0.01
+            portion_of_the_force_which_is_new = 0.4
             DemFem.DemStructuresCouplingUtilities().SmoothLoadTrasferredToFem(self.dem_solution.rigid_face_model_part, portion_of_the_force_which_is_new)
 
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
+
             self.structural_solution.InitializeSolutionStep()
+            if not self.sandwich_simulation and self.test_number:
+                self.control_module_fem_dem_utility.ExecuteInitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
             self.structural_solution._GetSolver().SolveSolutionStep()
             self.structural_solution.FinalizeSolutionStep()
             self.structural_solution.OutputSolutionStep()
+
             time_final_DEM_substepping = self.structural_solution.time
 
             self.Dt_DEM = self.dem_solution.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
@@ -159,6 +191,16 @@ class Algorithm(object):
             DemFem.InterpolateStructuralSolutionForDEM().SaveStructuralSolution(self.structural_mp)
 
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
+
+
+            if self.test_number == 1 or self.test_number == 2:
+                self.outer_walls_model_part = self.model["Structure.SurfacePressure3D_lateral_pressure"]
+                DemFem.DemStructuresCouplingUtilities().ComputeSandProductionWithDepthFirstSearch(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+                DemFem.DemStructuresCouplingUtilities().ComputeSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part, self.structural_solution.time)
+            elif self.test_number == 3:
+                self.outer_walls_model_part_1 = self.model["Structure.SurfacePressure3D_sigmaXpos"]
+                self.outer_walls_model_part_2 = self.model["Structure.SurfacePressure3D_sigmaYpos"]
+                DemFem.DemStructuresCouplingUtilities().ComputeTriaxialSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.outer_walls_model_part_2, self.structural_solution.time)
 
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
                 self.dem_solution.InitializeTimeStep()
@@ -173,6 +215,27 @@ class Algorithm(object):
                 DemFem.InterpolateStructuralSolutionForDEM().InterpolateStructuralSolution(self.structural_mp, self.Dt_structural, self.structural_solution.time, self.dem_solution.solver.dt, self.dem_solution.time)
 
                 self.dem_solution.SolverSolve()
+
+                DemFem.DemStructuresCouplingUtilities().MarkBrokenSpheres(self.dem_solution.spheres_model_part)
+
+                center = Kratos.Array3()
+                center[0] = 0.0
+                center[1] = 0.0
+                center[2] = 0.0
+                axis = Kratos.Array3()
+                axis[0] = 0.0
+                axis[1] = 0.0
+                axis[2] = 1.0
+
+                radius = 0
+                if self.test_number == 1:
+                    radius = 0.0036195; #95% of the real hole. CTW16 specimen
+                elif self.test_number == 2:
+                    radius = 0.012065; #95% of the real hole. CTW10 specimen
+                elif self.test_number == 3:
+                    radius = 0.036195; #95% of the real hole. Blind Test
+
+                self.dem_solution.creator_destructor.MarkParticlesForErasingGivenCylinder(self.dem_solution.spheres_model_part, center, axis, radius)
 
                 self.dem_solution.AfterSolveOperations()
 
@@ -212,9 +275,19 @@ class Algorithm(object):
                     self.dem_solution.demio.PrintMultifileLists(self.dem_solution.time, self.dem_solution.post_path)
                     self.dem_solution.time_old_print = self.dem_solution.time
 
+                    if self.test_number:
+                        self.stress_failure_check_utility.ExecuteFinalizeSolutionStep()
+
                 self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
 
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
+            # TODO: Should control_module_fem_dem_utility.ExecuteFinalizeSolutionStep be done before or after RestoreStructuralSolution ?
+            if not self.sandwich_simulation and self.test_number:
+                self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
+
+            # Write SP data
+            if self.test_number:
+                self.sp_post_process_tool.WriteData()
 
     def ReadDemModelParts(self,
                                     starting_node_Id=0,

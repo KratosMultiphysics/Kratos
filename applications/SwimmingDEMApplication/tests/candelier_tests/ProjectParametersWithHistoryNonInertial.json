@@ -53,7 +53,6 @@
 "output_interval" : 0.5,
 
 "properties": [{
-    "model_part_name": "settling_particles",
     "properties_id": 1,
     "hydrodynamic_law_parameters": {
         "name": "HydrodynamicInteractionLaw",

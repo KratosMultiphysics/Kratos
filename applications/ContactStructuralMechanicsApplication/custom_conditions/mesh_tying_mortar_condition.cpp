@@ -29,7 +29,7 @@ Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMas
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -41,7 +41,7 @@ Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMas
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -54,7 +54,7 @@ Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMas
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pMasterGeom) const
 {
-    return Kratos::make_shared< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, pGeom, pProperties, pMasterGeom);
+    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, pGeom, pProperties, pMasterGeom);
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -86,7 +86,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
     }
 
     // We define the integration method
-    mIntegrationOrder = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+    const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
 
     // The slave geometry
     GeometryType& r_slave_geometry = this->GetGeometry();
@@ -108,7 +108,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
     mrThisMortarConditionMatrices.Initialize();
 
     // We call the exact integration utility
-    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder);
+    IntegrationUtility integration_utility = IntegrationUtility (integration_order);
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;

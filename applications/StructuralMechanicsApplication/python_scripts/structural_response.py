@@ -216,8 +216,6 @@ class MassResponseFunction(ResponseFunctionBase):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
 
     def Initialize(self):
-        import read_materials_process
-
         if self.model_part_needs_to_be_imported:
             # import model part
             model_part_io = KratosMultiphysics.ModelPartIO(self.response_settings["model_import_settings"]["input_filename"].GetString())

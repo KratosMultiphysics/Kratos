@@ -17,27 +17,20 @@
 ///@brief Basic set of tools to solve the shallow water equations.
 /// The Shallow Water Application implements a basic set of tools to
 /// solve shallow water problems. This applications contains a basic FEM
-/// implementation of common thechniques using both explicit pfem2 and
+/// implementation of common techniques using both explicit pfem2 and
 /// eulerian shemes.
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
 
 // Shallow water includes
-#include "shallow_water_application_variables.h"
 #include "custom_elements/shallow_element.h"
 #include "custom_elements/primitive_var_element.hpp"
 #include "custom_elements/conserved_var_element.hpp"
@@ -71,7 +64,7 @@ namespace Kratos
     /// Short class definition.
     /** Detail class definition.
     */
-    class KratosShallowWaterApplication : public KratosApplication
+    class KRATOS_API(SHALLOW_WATER_APPLICATION) KratosShallowWaterApplication : public KratosApplication
     {
     public:
         ///@name Type Definitions

@@ -69,8 +69,8 @@ public:
   typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
   typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -263,7 +263,6 @@ private:
 	if( i_node->IsNot(TO_ERASE) ){
 
 			/////////////////////////////////////////// here for BOUNDING BOX ///////////////////////////////////////////
-	   // TODO data for bounding box will come from the interface
 		 bool boundingBox=mrRemesh.UseBoundingBox;
 		 if(boundingBox==true && i_node->IsNot(RIGID)){
 			 const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
@@ -838,8 +837,8 @@ private:
 	      {
 		       if(eElement[i].Is(FREE_SURFACE) && eElement[i].IsNot(RIGID)){
 
-		         WeakPointerVector<Element > & neighb_elems = eElement[i].GetValue(NEIGHBOUR_ELEMENTS);
-		         WeakPointerVector<Node < 3 >> & neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
+		         GlobalPointersVector<Element > & neighb_elems = eElement[i].GetValue(NEIGHBOUR_ELEMENTS);
+		         GlobalPointersVector<Node < 3 >> & neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
 
              if(neighb_elems.size()<2){
 		          	eElement[i].Set(TO_ERASE);
@@ -938,8 +937,8 @@ private:
 	{
 	  if(eElement[i].Is(FREE_SURFACE) && eElement[i].IsNot(RIGID)){
 
-	    WeakPointerVector<Element > & neighb_elems = eElement[i].GetValue(NEIGHBOUR_ELEMENTS);
-	    WeakPointerVector<Node < 3 >> & neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
+	    GlobalPointersVector<Element > & neighb_elems = eElement[i].GetValue(NEIGHBOUR_ELEMENTS);
+	    GlobalPointersVector<Node < 3 >> & neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
 
 	    if(neighb_elems.size()<2){
 	      eElement[i].Set(TO_ERASE);

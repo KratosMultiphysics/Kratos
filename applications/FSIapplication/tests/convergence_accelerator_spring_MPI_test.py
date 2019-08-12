@@ -13,8 +13,8 @@ except ImportError:
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import math
-import convergence_accelerator_factory
+import os, glob
+from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/AcceleratorSpringTests/" + fileName
@@ -82,8 +82,6 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
         mpi.world.barrier()
 
-        KratosMetis.SetMPICommunicatorProcess(model_part).Execute()
-
         model_part_io = KratosMultiphysics.ModelPartIO( filename )
         model_part_io.ReadModelPart(model_part)
         model_part.SetBufferSize(2)
@@ -144,7 +142,6 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
             gid_io.FinalizeResults()
 
         # clean temporary files
-        import os,glob
         if mpi.rank == 0:
             for f in glob.glob(GetFilePath('*.time')):
                 os.remove(f)

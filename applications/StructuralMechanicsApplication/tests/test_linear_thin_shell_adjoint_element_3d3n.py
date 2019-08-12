@@ -210,7 +210,8 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(9,18)
-        self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = True
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
@@ -237,7 +238,8 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(1,18)
-        self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = True
+        self.model_part.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = h
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.THICKNESS, PseudoLoadMatrix, self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 

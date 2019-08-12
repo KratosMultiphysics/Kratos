@@ -163,7 +163,7 @@ public:
 
 		for(NodesContainerType::iterator node_i=rExtractedModelPart.NodesBegin(); node_i!=rExtractedModelPart.NodesEnd(); node_i++)
 		{
-			WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
+			GlobalPointersVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
 			if(ng_elem.size()==0)
 				node_i->Set(TO_ERASE,true);
 		}
@@ -330,7 +330,7 @@ public:
 		(FindConditionsNeighboursProcess(rExtractedSurfaceModelPart,domain_size, 10)).Execute();
 		for(ModelPart::NodesContainerType::iterator node_i =  rExtractedSurfaceModelPart.NodesBegin(); node_i !=rExtractedSurfaceModelPart.NodesEnd(); node_i++)
 		{
-			WeakPointerVector<Condition >& ng_cond = node_i->GetValue(NEIGHBOUR_CONDITIONS);
+			GlobalPointersVector<Condition >& ng_cond = node_i->GetValue(NEIGHBOUR_CONDITIONS);
 			if(ng_cond.size()==0)
 				node_i->Set(TO_ERASE,true);
 		}

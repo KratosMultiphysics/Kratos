@@ -19,6 +19,7 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
                  balls_model_part,
                  clusters_model_part,
                  rigid_faces_model_part,
+                 contact_model_part,
                  mixed_model_part
                  ):
         gid_output.GiDOutput.__init__(self,
@@ -37,12 +38,14 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
         self.balls_model_part = balls_model_part
         self.clusters_model_part = clusters_model_part
         self.rigid_faces_model_part = rigid_faces_model_part
+        self.contact_model_part = contact_model_part
         self.mixed_model_part = mixed_model_part
 
         self.structures_nodal_results = []
         self.dem_nodal_results = []
         self.clusters_nodal_results = []
         self.rigid_faces_nodal_results = []
+        self.contact_gauss_points_results = []
         self.mixed_nodal_results = []
         self.structures_gauss_points_results = []
 
@@ -51,12 +54,14 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
                                     dem_nodal_results,
                                     clusters_nodal_results,
                                     rigid_faces_nodal_results,
+                                    contact_gauss_points_results,
                                     mixed_nodal_results,
                                     structures_gauss_points_results):
         self.structures_nodal_results = structures_nodal_results
         self.dem_nodal_results = dem_nodal_results
         self.clusters_nodal_results = clusters_nodal_results
         self.rigid_faces_nodal_results = rigid_faces_nodal_results
+        self.contact_gauss_points_results = contact_gauss_points_results
         self.mixed_nodal_results = mixed_nodal_results
         self.structures_gauss_points_results = structures_gauss_points_results
 
@@ -67,6 +72,7 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
             self.io.WriteSphereMesh(self.balls_model_part.GetMesh())
             self.io.WriteMesh(self.clusters_model_part.GetMesh())
             self.io.WriteMesh(self.rigid_faces_model_part.GetMesh())
+            self.io.WriteMesh(self.contact_model_part.GetMesh())
             self.io.WriteMesh(self.mixed_model_part.GetMesh())
             self.io.FinalizeMesh()
             self.io.InitializeResults(mesh_name, self.mixed_model_part.GetMesh())
@@ -130,6 +136,7 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
             # here order is important!
             PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.balls_model_part)
             PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.rigid_faces_model_part)
+            PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.contact_model_part)
             PostUtilities().AddModelPartToModelPart(self.mixed_model_part, self.structures_model_part)
 
         self.write_dem_fem_results(time)
@@ -149,6 +156,7 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
             self.io.WriteSphereMesh(self.balls_model_part.GetMesh())
             self.io.WriteMesh(self.mixed_model_part.GetMesh())
             self.io.WriteMesh(self.rigid_faces_model_part.GetMesh())
+            self.io.WriteMesh(self.contact_model_part.GetMesh())
             self.io.FinalizeMesh()
             self.io.InitializeResults(label, self.mixed_model_part.GetMesh())
 
@@ -167,6 +175,10 @@ class DemStructuresCouplingGiDOutput(gid_output.GiDOutput):
         for var in self.rigid_faces_nodal_results:
             kratos_variable = globals()[var]
             self._write_nodal_results(label, self.rigid_faces_model_part, kratos_variable)
+
+        for var in self.contact_gauss_points_results:
+            kratos_variable = globals()[var]
+            self._write_gp_results(label, self.contact_model_part, kratos_variable)
 
         for var in self.mixed_nodal_results:
             kratos_variable = globals()[var]

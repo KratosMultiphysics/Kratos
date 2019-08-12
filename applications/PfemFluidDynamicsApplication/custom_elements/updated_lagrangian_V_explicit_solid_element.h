@@ -15,7 +15,7 @@
 
 // External includes
 
-#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.h" 
+#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.h"
 
 namespace Kratos
 {
@@ -46,19 +46,19 @@ namespace Kratos
   /**
    */
   /* class UpdatedLagrangianVExplicitSolidElement : public Element */
-  template< unsigned int TDim > 
+  template< unsigned int TDim >
     /* class UpdatedLagrangianVExplicitSolidElement : public TwoStepUpdatedLagrangianVPExplicitElement<TDim> */
     class UpdatedLagrangianVExplicitSolidElement : public TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>
     {
-  
+
     public:
       ///@name Type Definitions
       ///@{
 
       /// Pointer definition of UpdatedLagrangianVExplicitSolidElement
-      KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangianVExplicitSolidElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianVExplicitSolidElement);
 
-      ///base type: 
+      ///base type:
       typedef TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim> BaseType;
 
       /// Node type (default is: Node<3>)
@@ -101,7 +101,7 @@ namespace Kratos
 
       typedef typename BaseType::ElementalVariables ElementalVariables;
 
- 
+
       ///@}
       ///@name Life Cycle
       ///@{
@@ -292,14 +292,14 @@ namespace Kratos
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
-   
-      
+
+
       /* bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
       /* 				const ProcessInfo& rCurrentProcessInfo, */
       /* 				const ShapeFunctionDerivativesType& rDN_DX, */
       /* 				unsigned int g); */
 
-	
+
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g) override;

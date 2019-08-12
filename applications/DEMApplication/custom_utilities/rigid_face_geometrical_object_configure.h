@@ -65,14 +65,26 @@ public:
 	 typedef SpatialSearch                                                       SearchType;
 
     typedef SearchType::PointType                                               PointType;
-    typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ContainerType;
-    typedef PointerVectorSet<GeometricalObject, IndexedObject>                  ElementsContainerType;
+    
+    //typedef PointerVectorSet<GeometricalObject, IndexedObject>                  ElementsContainerType;
+    typedef PointerVectorSet<GeometricalObject, 
+                            IndexedObject,
+                            std::less<typename IndexedObject::result_type>,
+                            std::equal_to<typename IndexedObject::result_type>,
+                            typename GeometricalObject::Pointer,
+                            std::vector< typename GeometricalObject::Pointer >                         
+                            > ElementsContainerType;
+
+    //typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ContainerType;
+    typedef typename ElementsContainerType::ContainerType ContainerType;
+
 
     typedef SearchType::ElementType                                             ElementType;
     typedef ContainerType::value_type                                           PointerType;
     typedef ContainerType::iterator                                             IteratorType;
 
-    typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ResultContainerType;
+    //typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ResultContainerType;
+    typedef ContainerType   ResultContainerType;
 
 
     typedef ResultContainerType::iterator                           ResultIteratorType;

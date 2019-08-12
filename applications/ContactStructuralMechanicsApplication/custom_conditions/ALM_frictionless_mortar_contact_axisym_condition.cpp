@@ -31,7 +31,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondi
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -43,7 +43,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondi
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_shared< AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
 }
 
 /************************************* DESTRUCTOR **********************************/

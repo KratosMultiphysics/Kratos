@@ -1,5 +1,8 @@
 '''HDF5 controllers.
 
+This module contains the controllers which control the frequency of HDF5 IO
+operations.
+
 license: HDF5Application/license.txt
 '''
 import KratosMultiphysics

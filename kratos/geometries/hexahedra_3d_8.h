@@ -503,18 +503,13 @@ public:
         return 12;
     }
 
-    SizeType FacesNumber() const override
-    {
-        return 6;
-    }
-
     /** This method gives you all edges of this geometry.
 
     @return GeometriesArrayType containes this geometry edges.
     @see EdgesNumber()
     @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -557,7 +552,31 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces( void ) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 6;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;

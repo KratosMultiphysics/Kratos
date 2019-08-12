@@ -588,7 +588,7 @@ class VolumeShapingProcess : public Process
     rVariables.VisitedNodesIds.resize(MaxNodeId+1);
     std::fill( rVariables.VisitedNodesIds.begin(), rVariables.VisitedNodesIds.end(), 0 );
 
-    std::vector<WeakPointerVector<Element> > Neighbours(rModelPart.NumberOfNodes()+1);
+    std::vector<GlobalPointersVector<Element> > Neighbours(rModelPart.NumberOfNodes()+1);
     unsigned int id = 1;
     for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(); i_elem!=rModelPart.ElementsEnd(); ++i_elem)
     {
@@ -634,8 +634,8 @@ class VolumeShapingProcess : public Process
 
         if( i_node->Is(VISITED) ){
           unsigned int id = rVariables.VisitedNodesIds[i_node->Id()];
-          WeakPointerVector<Element>& rE = Neighbours[id];
-          for(WeakPointerVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ++ie)
+          GlobalPointersVector<Element>& rE = Neighbours[id];
+          for(GlobalPointersVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ++ie)
           {
             GeometryType& rGeometry = ie->GetGeometry();
 
@@ -675,8 +675,8 @@ class VolumeShapingProcess : public Process
 
         if( i_node->Is(VISITED) ){
           unsigned int id = rVariables.VisitedNodesIds[i_node->Id()];
-          WeakPointerVector<Element>& rE = Neighbours[id];
-          for(WeakPointerVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ++ie)
+          GlobalPointersVector<Element>& rE = Neighbours[id];
+          for(GlobalPointersVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ++ie)
           {
             GeometryType& rGeometry = ie->GetGeometry();
 

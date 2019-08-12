@@ -338,27 +338,29 @@ class MorSecondOrderIRKAStrategy
 
             identity_matrix<double> id_m (reduced_system_size);
 
-            subrange(r_L1, reduced_system_size, 2*reduced_system_size-1, reduced_system_size, 2*reduced_system_size-1) = id_m;
+            subrange(r_L1, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_m;
 
 
-            subrange(r_L2, 0, reduced_system_size-1, 0, reduced_system_size-1) = r_D_reduced;
-            subrange(r_L2, 0, reduced_system_size-1, reduced_system_size, 2*reduced_system_size-1) = r_K_reduced;            
+            subrange(r_L2, 0, reduced_system_size, 0, reduced_system_size) = r_D_reduced;
+            subrange(r_L2, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_K_reduced;            
 
             // for(size_t i = 0; i < reduced_system_size; ++i){
             //     r_L2(reduced_system_size+i,i) = -1;
             // }
 
-            subrange(r_L2, reduced_system_size, 2*reduced_system_size-1, 0, reduced_system_size-1) = -1.0*id_m;
+            subrange(r_L2, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*id_m;
 
             //r_L1(reduced_system_size,reduced_system_size) = 1;
 
             //r_L = 
 
+            //KRATOS_WATCH(subrange(r_L1, reduced_system_size-2, reduced_system_size+2, reduced_system_size-2, reduced_system_size+2));
+            //KRATOS_WATCH(subrange(r_L2, reduced_system_size-2, reduced_system_size+2, reduced_system_size-2, reduced_system_size+2));
 
  
             p_builder_and_solver_feast->GetLinearSystemSolver()->Solve(
-                r_L1,
                 r_L2,
+                r_L1,
                 //r_K_reduced,
                 //r_M_reduced,
                 Eigenvalues,

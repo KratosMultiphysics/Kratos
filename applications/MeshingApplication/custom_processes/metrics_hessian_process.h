@@ -14,7 +14,7 @@
 #define KRATOS_HESSIAN_METRICS_PROCESS
 
 // Project includes
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -215,20 +215,13 @@ private:
     ///@{
 
     ModelPart& mThisModelPart;                                  /// The model part to compute
+
     std::vector<Variable<double>*> mrOriginVariableDoubleList;  /// The scalar variable list to compute
     std::vector<ComponentType*> mrOriginVariableComponentsList; /// The scalar variable list to compute (components)
+    Variable<double>* mpRatioReferenceVariable = &DISTANCE;     /// Variable used to compute the anisotropic ratio
 
-    // TODO: Replace for Parameters
-    std::string mRatioReferenceVariable = "DISTANCE";          /// Variable used to compute the anisotropic ratio
-    double mMinSize;                                           /// The minimal size of the elements
-    double mMaxSize;                                           /// The maximal size of the elements
-    bool mEnforceCurrent;                                      /// With this we choose if we inforce the current nodal size (NODAL_H)
-    bool mEstimateInterpError;                                 /// If the error of interpolation will be estimated
-    double mInterpError;                                       /// The error of interpolation allowed
-    double mMeshConstant;                                      /// The mesh constant to remesh (depends of the element type)
-    double mAnisotropicRatio;                                  /// The minimal anisotropic ratio (0 < ratio < 1)
-    double mBoundLayer;                                        /// The boundary layer limit distance
-    Interpolation mInterpolation;                              /// The interpolation type
+    Parameters mThisParameters;                                 /// Here configurations are stored
+    Interpolation mInterpolation;                               /// The interpolation type
 
     ///@}
     ///@name Private Operators
@@ -243,17 +236,27 @@ private:
      * @details Note that when using the Hessian, more than one Metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param Hessian The hessian tensor condensed already computed
      * @param AnisotropicRatio The anisotropic ratio
-     * @param ElementMinSize The min size of element
-     * @param ElementMaxSize The maximal size of the elements
+     * @param ElementMinSize The min size of element. This way we can impose as minimum as the previous size if we desire
+     * @param ElementMaxSize The maximal size of the elements. This way we can impose as maximum as the previous size if we desire
      * @param NodalH The size of the local node
+     * @param EstimateInterpolationError If the error of interpolation will be estimated
+     * @param InterpolationError The error of interpolation allowed
+     * @param MeshDependentConstant The mesh constant to remesh (depends of the element type)
+     * @param AnisotropyRemeshing If we consider anisotropic remeshing
+     * @param EnforceAnisotropyRelativeVariable If we enforce a certain anisotropy relative toa  variable
      */
     template<SizeType TDim>
     array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
         const Vector& rHessian,
         const double AnisotropicRatio,
-        const double ElementMinSize, // This way we can impose as minimum as the previous size if we desire
-        const double ElementMaxSize, // This way we can impose as maximum as the previous size if we desire
-        const double NodalH
+        const double ElementMinSize,
+        const double ElementMaxSize,
+        const double NodalH,
+        const bool EstimateInterpolationError,
+        const double InterpolationError,
+        const double MeshDependentConstant,
+        const bool AnisotropyRemeshing,
+        const bool EnforceAnisotropyRelativeVariable
         );
 
     /**

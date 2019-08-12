@@ -58,7 +58,7 @@ public:
     ///@{
 
     /// Counted pointer of ConvDiff3D
-    KRATOS_CLASS_POINTER_DEFINITION(ConvDiff3D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConvDiff3D);
 
     ///@}
     ///@name Life Cycle

@@ -9,7 +9,7 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/nonewtonian_2fluid_2d.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"

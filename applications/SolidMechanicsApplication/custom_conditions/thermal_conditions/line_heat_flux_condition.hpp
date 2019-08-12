@@ -52,7 +52,7 @@ public:
     ///@{
 
     /// Counted pointer of LineHeatFluxCondition
-    KRATOS_CLASS_POINTER_DEFINITION( LineHeatFluxCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineHeatFluxCondition );
 
     ///@}
     ///@name Life Cycle

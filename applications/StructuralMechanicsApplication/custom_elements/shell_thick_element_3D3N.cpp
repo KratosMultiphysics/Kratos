@@ -130,7 +130,7 @@ Element::Pointer ShellThickElement3D3N::Create(IndexType NewId,
         PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
-    return Kratos::make_shared< ShellThickElement3D3N >(NewId, newGeom,
+    return Kratos::make_intrusive< ShellThickElement3D3N >(NewId, newGeom,
             pProperties, mpCoordinateTransformation->Create(newGeom));
 }
 
@@ -138,7 +138,7 @@ Element::Pointer ShellThickElement3D3N::Create(IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared< ShellThickElement3D3N >(NewId, pGeom,
+    return Kratos::make_intrusive< ShellThickElement3D3N >(NewId, pGeom,
             pProperties, mpCoordinateTransformation->Create(pGeom));
 }
 

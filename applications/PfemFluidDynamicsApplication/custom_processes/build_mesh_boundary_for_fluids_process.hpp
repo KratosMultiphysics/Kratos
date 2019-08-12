@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_processes/build_model_part_boundary_process.hpp"
+#include <boost/timer.hpp>
 
 ///VARIABLES used:
 //Data:     MASTER_ELEMENTS(set), MASTER_NODES(set)
@@ -40,8 +41,8 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
   typedef  ModelPart::ConditionsContainerType ConditionsContainerType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name  Enum's
   ///@{

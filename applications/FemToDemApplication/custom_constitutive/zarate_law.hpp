@@ -59,7 +59,7 @@ class ZarateLaw : public LinearElasticPlaneStrain2DLaw
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElasticPlaneStrain2DLaw)
 	}
 
-	virtual void load(Serializer &rSerializer)
+	virtual void load(Serializer &rSerializer) override
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElasticPlaneStrain2DLaw)
 	}

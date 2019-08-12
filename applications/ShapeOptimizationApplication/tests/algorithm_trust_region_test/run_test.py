@@ -114,18 +114,20 @@ with open(optimization_log_filename, 'r') as csvfile:
     is_itr_1_test_norm_smaller_1 = float(all_lines[1][14].strip()) < 1
     is_itr_2_test_norm_smaller_1 = float(all_lines[2][14].strip()) < 1
     is_itr_3_test_norm_smaller_1 = float(all_lines[3][14].strip()) < 1
+    is_itr_4_test_norm_smaller_1 = float(all_lines[4][14].strip()) < 1
 
     # Check against specifications
-    TestCase().assertAlmostEqual(resulting_improvement, -14.081350, 2)
-    TestCase().assertAlmostEqual(resulting_c1, 10.748288, 4)
-    TestCase().assertAlmostEqual(resulting_len_C1, 0.503423, 4)
-    TestCase().assertAlmostEqual(resulting_adj_len_C1, 0.503423, 4)
-    TestCase().assertAlmostEqual(resulting_c2, 0.130898, 4)
-    TestCase().assertAlmostEqual(resulting_len_C2, 0.361798, 4)
-    TestCase().assertAlmostEqual(resulting_adj_len_C2, 0.361798, 4)
+    TestCase().assertAlmostEqual(resulting_improvement, -23.862030, 2)
+    TestCase().assertAlmostEqual(resulting_c1, 1.10790E+01, 4)
+    TestCase().assertAlmostEqual(resulting_len_C1, -0.157919, 4)
+    TestCase().assertAlmostEqual(resulting_adj_len_C1, -0.157919, 4)
+    TestCase().assertAlmostEqual(resulting_c2, 7.66774E-03, 4)
+    TestCase().assertAlmostEqual(resulting_len_C2, 0.087566, 4)
+    TestCase().assertAlmostEqual(resulting_adj_len_C2, 0.087566, 4)
     TestCase().assertFalse(is_itr_1_test_norm_smaller_1)
     TestCase().assertFalse(is_itr_2_test_norm_smaller_1)
     TestCase().assertTrue(is_itr_3_test_norm_smaller_1)
+    TestCase().assertTrue(is_itr_4_test_norm_smaller_1)
 
 os.chdir(original_directory)
 

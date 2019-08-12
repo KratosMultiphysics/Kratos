@@ -39,7 +39,7 @@ StructuralMeshMovingElement::Create(IndexType NewId,
                                     PropertiesType::Pointer pProperties) const {
   const GeometryType &rgeom = this->GetGeometry();
 
-  return Kratos::make_shared<StructuralMeshMovingElement>(
+  return Kratos::make_intrusive<StructuralMeshMovingElement>(
       NewId, rgeom.Create(rThisNodes), pProperties);
 }
 
@@ -49,7 +49,7 @@ Element::Pointer
 StructuralMeshMovingElement::Create(IndexType NewId,
                                     GeometryType::Pointer pGeom,
                                     PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<StructuralMeshMovingElement>(NewId, pGeom,
+  return Kratos::make_intrusive<StructuralMeshMovingElement>(NewId, pGeom,
                                                           pProperties);
 }
 

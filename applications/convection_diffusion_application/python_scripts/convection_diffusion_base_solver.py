@@ -43,8 +43,63 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass = True
         super(ConvectionDiffusionBaseSolver, self).__init__(model, custom_settings)
 
+        # Adding warnings
+        default_settings = self.GetDefaultSettings()
+        if not custom_settings.Has("convection_diffusion_variables"):
+            KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: CONVECTION DIFFUSION  VARIABLES NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"])
+        else:
+            if not custom_settings["convection_diffusion_variables"].Has("density_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: DENSITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["density_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("diffusion_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: DIFUSSION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["diffusion_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("unknown_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: UNKNOWN VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["unknown_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("volume_source_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: VOLUME SOURCE VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["volume_source_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("surface_source_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: SURFACE SOURCE VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["surface_source_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("projection_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: PROJECTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["projection_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("convection_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: CONVECTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["convection_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("mesh_velocity_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: MESH VELOCITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["mesh_velocity_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("transfer_coefficient_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: TRANSFER COEFFICIENT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["transfer_coefficient_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("velocity_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: VELOCITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["velocity_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("specific_heat_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: SPECIFIC HEAT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["specific_heat_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("reaction_variable"):
+                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: REACTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["reaction_variable"].GetString())
+
+        model_part_name = self.settings["model_part_name"].GetString()
+
+        # Set default buffer size
+        self.min_buffer_size = 1
+
+        if model_part_name == "":
+            raise Exception('Please specify a model_part name!')
+
+        # This will be changed once the Model is fully supported!
+        if self.model.HasModelPart(model_part_name):
+            self.main_model_part = self.model[model_part_name]
+            self.solver_imports_model_part = False
+        else:
+            self.main_model_part = self.model.CreateModelPart(model_part_name) # Model.CreateodelPart()
+            domain_size = self.settings["domain_size"].GetInt()
+            if domain_size < 0:
+                raise Exception('Please specify a "domain_size" >= 0!')
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+            self.solver_imports_model_part = True
+
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "ThermalModelPart",
@@ -108,60 +163,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "buffer_size" : -1
         }
         """)
-
-        # Adding warnings
-        if not custom_settings.Has("convection_diffusion_variables"):
-            KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: CONVECTION DIFFUSION  VARIABLES NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"])
-        else:
-            if not custom_settings["convection_diffusion_variables"].Has("density_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: DENSITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["density_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("diffusion_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: DIFUSSION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["diffusion_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("unknown_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: UNKNOWN VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["unknown_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("volume_source_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: VOLUME SOURCE VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["volume_source_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("surface_source_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: SURFACE SOURCE VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["surface_source_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("projection_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: PROJECTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["projection_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("convection_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: CONVECTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["convection_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("mesh_velocity_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: MESH VELOCITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["mesh_velocity_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("transfer_coefficient_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: TRANSFER COEFFICIENT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["transfer_coefficient_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("velocity_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: VELOCITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["velocity_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("specific_heat_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: SPECIFIC HEAT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["specific_heat_variable"].GetString())
-            if not custom_settings["convection_diffusion_variables"].Has("reaction_variable"):
-                KratosMultiphysics.Logger.PrintWarning("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: REACTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["reaction_variable"].GetString())
-
-        # Overwrite the default settings with user-provided parameters.
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-        model_part_name = self.settings["model_part_name"].GetString()
-
-        # Set default buffer size
-        self.min_buffer_size = 1
-
-        if model_part_name == "":
-            raise Exception('Please specify a model_part name!')
-
-        # This will be changed once the Model is fully supported!
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model[model_part_name]
-            self.solver_imports_model_part = False
-        else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name) # Model.CreateodelPart()
-            domain_size = self.settings["domain_size"].GetInt()
-            if domain_size < 0:
-                raise Exception('Please specify a "domain_size" >= 0!')
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-            self.solver_imports_model_part = True
-
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
+        default_settings.AddMissingParameters(super(ConvectionDiffusionBaseSolver,cls).GetDefaultSettings())
+        return default_settings
 
     def AddVariables(self, target_model_part=None):
 
@@ -498,50 +501,46 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 num_nodes_elements = len(elem.GetNodes())
                 break
 
-        if domain_size == 2:
-            if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
-                if (num_nodes_elements == 3):
+        num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
+
+        element_name = self.settings["element_replace_settings"]["element_name"].GetString()
+
+        if domain_size not in (2,3):
+            raise Exception("DOMAIN_SIZE not set")
+
+        if element_name == "EulerianConvDiff":
+            if domain_size == 2:
+                if num_nodes_elements == 3:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D")
                 else:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D4N")
-            elif (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
-                self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement2D3N")
-        elif domain_size == 3:
-            if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
-                if (num_nodes_elements == 4):
+            else:
+                if num_nodes_elements == 4:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
                 else:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
-            elif (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
-                if (num_nodes_elements == 4):
-                    self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D4N")
-                elif (num_nodes_elements == 8):
-                    self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D8N")
-                else:
-                    self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D27N")
-        else:
-            raise Exception("DOMAIN_SIZE not set")
+        elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement"):
+            name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
+            self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 
         ## Conditions
-        num_nodes_conditions = 0
-        if (len(self.main_model_part.Conditions) > 0):
-            for cond in self.main_model_part.Conditions:
-                num_nodes_conditions = len(cond.GetNodes())
-                break
+        num_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().SumAll(len(self.main_model_part.Conditions))
 
-        if domain_size == 2:
-            if (self.settings["element_replace_settings"]["condition_name"].GetString() == "FluxCondition"):
-                self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition2D2N")
-            elif (self.settings["element_replace_settings"]["condition_name"].GetString() == "ThermalFace"):
-                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace2D2N")
-        elif domain_size == 3:
-            aux_str = "3D" + str(num_nodes_conditions) + "N"
-            if (self.settings["element_replace_settings"]["condition_name"].GetString() == "FluxCondition"):
-                self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition" + aux_str)
-            elif (self.settings["element_replace_settings"]["condition_name"].GetString() == "ThermalFace"):
-                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace" + aux_str)
+        if num_conditions > 0:
+            num_nodes_conditions = 0
+            if (len(self.main_model_part.Conditions) > 0):
+                for cond in self.main_model_part.Conditions:
+                    num_nodes_conditions = len(cond.GetNodes())
+                    break
+
+            num_nodes_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
+
+            condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
+            if condition_name in ("FluxCondition","ThermalFace","Condition"):
+                name_string = "{0}{1}D{2}N".format(condition_name,domain_size, num_nodes_conditions)
+                self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
         else:
-            raise Exception("DOMAIN_SIZE not set")
+            self.settings["element_replace_settings"]["condition_name"].SetString("")
 
         return self.settings["element_replace_settings"]
 

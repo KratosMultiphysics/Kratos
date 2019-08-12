@@ -243,6 +243,15 @@ public:
     ///@name Access
     ///@{
 
+    static const Flags AllDefined()
+    {
+        return Flags(~0,0);
+    }
+
+    static const Flags AllTrue()
+    {
+        return Flags(~0,~0);
+    }
 
     ///@}
     ///@name Inquiry
@@ -418,6 +427,13 @@ private:
     ///@name Private Inquiry
     ///@{
 
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
+
+    Flags(BlockType DefinedFlags, BlockType SetFlags):
+        mIsDefined(DefinedFlags), mFlags(SetFlags)
+    {}
 
     ///@}
     ///@name Un accessible methods
