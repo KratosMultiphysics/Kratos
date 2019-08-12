@@ -98,8 +98,6 @@ WeakSlidingElement3D3N::msLocalSize>
 WeakSlidingElement3D3N::CreateElementStiffnessMatrix(
     ProcessInfo& rCurrentProcessInfo)
 {
-
-    KRATOS_TRY
     BoundedMatrix<double, msLocalSize, msLocalSize> local_stiffness_matrix =
         ZeroMatrix(msLocalSize, msLocalSize);
 
@@ -208,7 +206,6 @@ WeakSlidingElement3D3N::CreateElementStiffnessMatrix(
     local_stiffness_matrix(8,8) = 0.5*alpha*((Xa - Xb + ua - ub)*(2*Xa - 2*Xb + 2*ua - 2*ub) + (-2*Ya + 2*Yb - 2*va + 2*vb)*(-Ya + Yb - va + vb))/(std::pow(-Xa + Xb - ua + ub, 2) + std::pow(-Ya + Yb - va + vb, 2) + std::pow(-Za + Zb - wa + wb, 2));
 
     return local_stiffness_matrix;
-    KRATOS_CATCH("")
 }
 
 

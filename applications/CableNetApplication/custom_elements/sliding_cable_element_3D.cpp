@@ -369,8 +369,6 @@ Vector SlidingCableElement3D::GetInternalForces()
       double el_i_0 = e_l[i];
       double el_i_1 = e_l[i+1];
 
-      double next_n = 0.0;
-
       double deviation_force_i =
       std::sqrt((deviation_forces[node_i*dimension]*deviation_forces[node_i*dimension])+
       (deviation_forces[(node_i*dimension)+1]*deviation_forces[(node_i*dimension)+1])+
@@ -381,6 +379,7 @@ Vector SlidingCableElement3D::GetInternalForces()
       if ((el_i_0>=0) && (el_i_1>=0)) internal_normal_resulting_forces[i+1] = internal_normal_resulting_forces[i];
       else
       {
+        double next_n = 0.0;
         if (el_i_1<el_i_0) next_n = internal_normal_resulting_forces[i] - friction_force;
         else next_n = internal_normal_resulting_forces[i] + friction_force;
 
@@ -577,8 +576,6 @@ void SlidingCableElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
 
     const double total_mass = A * L * rho;
 
-    double nodal_mass = 0.0;
-
     for (int i = 0; i < points_number; ++i) {
 
         double weight_fraction = 0.0;
@@ -586,7 +583,7 @@ void SlidingCableElement3D::CalculateLumpedMassVector(VectorType &rMassVector)
         else if (i==points_number-1) weight_fraction = l_array[i-1]/l;
         else weight_fraction = (l_array[i]+l_array[i-1])/l;
 
-        nodal_mass = total_mass * weight_fraction * 0.5;
+        double nodal_mass = total_mass * weight_fraction * 0.5;
 
         for (int j = 0; j < dimension; ++j) {
             int index = i * dimension + j;
@@ -773,7 +770,6 @@ bool SlidingCableElement3D::HasSelfWeight() const
 
 
 Vector SlidingCableElement3D::CalculateBodyForces() {
-    KRATOS_TRY;
 
     const int points_number = GetGeometry().PointsNumber();
     const int dimension = 3;
@@ -808,7 +804,6 @@ Vector SlidingCableElement3D::CalculateBodyForces() {
     }
 
     return body_forces_global;
-    KRATOS_CATCH("")
 }
 
 

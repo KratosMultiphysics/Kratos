@@ -670,7 +670,6 @@ bool RingElement3D::HasSelfWeight() const
 }
 
 Vector RingElement3D::CalculateBodyForces() {
-    KRATOS_TRY;
 
     const int points_number = GetGeometry().PointsNumber();
     const int dimension = 3;
@@ -707,7 +706,6 @@ Vector RingElement3D::CalculateBodyForces() {
     }
 
     return body_forces_global;
-    KRATOS_CATCH("")
 }
 
 void RingElement3D::save(Serializer &rSerializer) const {

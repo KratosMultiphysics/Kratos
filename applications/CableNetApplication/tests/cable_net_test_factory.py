@@ -5,22 +5,13 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 
-import KratosMultiphysics.CableNetApplication
-import KratosMultiphysics.StructuralMechanicsApplication
-import KratosMultiphysics.DEMApplication
-
 from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
+
+import KratosMultiphysics.CableNetApplication
 import cable_net_test_case
 import os
-
-try:
-    import numpy
-    numpy_available = True
-except ImportError:
-    numpy_available = False
-
 
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication")
 
@@ -50,8 +41,6 @@ class TestCableNetCoSimulationCases(cable_net_test_case.CableNetTestCase):
 
 
     def test_DEMFEMCableNet_SlidingEdges(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_dem_fem_dependencies:
             self.skipTest("DEM FEM dependencies are not available!")
 
@@ -60,8 +49,6 @@ class TestCableNetCoSimulationCases(cable_net_test_case.CableNetTestCase):
             self._runTest()
 
     def test_DEMFEMCableNet_RingElements(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_dem_fem_dependencies:
             self.skipTest("DEM FEM dependencies are not available!")
 
@@ -106,17 +93,11 @@ class TestCableNetFEMCases(cable_net_test_case.CableNetTestCase):
 
 
         def test_SlidingNodes(self):
-            if not numpy_available:
-                self.skipTest("Numpy not available")
-
             with KratosUnittest.WorkFolderScope(".", __file__):
                 self._createTest("sliding_element")
                 self._runTest()
 
         def test_RingElement(self):
-            if not numpy_available:
-                self.skipTest("Numpy not available")
-
             with KratosUnittest.WorkFolderScope(".", __file__):
                 self._createTest("ring_element")
                 self._runTest()
