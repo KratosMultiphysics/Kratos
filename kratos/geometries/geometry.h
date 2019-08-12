@@ -1008,6 +1008,14 @@ public:
     }
 
     /**
+    * @return the number of geometry parts that this geometry contains.
+    */
+    virtual SizeType NumberOfGeometryParts() const
+    {
+        return 0;
+    }
+
+    /**
     * @return the geometry data of a certain geometry class.
     */
     GeometryData const& GetGeometryData() const

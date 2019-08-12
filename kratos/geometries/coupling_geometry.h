@@ -238,11 +238,9 @@ public:
     }
 
     /**
-    * ONLY for coupling_geometry. Not necessary in base class.
-    * Allows to enhance the coupling geometry, with another geometry.
-    * @param Index of the geometry part. 0->Master; 1->Slave
+    * @return the number of geometry parts that this geometry contains.
     */
-    SizeType NumberOfGeometryParts() const
+    SizeType NumberOfGeometryParts() const override
     {
         return mpGeometries.size();
     }
