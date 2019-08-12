@@ -16,11 +16,11 @@
 // External includes
 
 // Project includes
-#include "utilities/transformation_utilities.h"
+#include "utilities/geometrical_transformation_utilities.h"
 
 namespace Kratos
 {
-namespace TransformationUtilities
+namespace GeometricalTransformationUtilities
 {
 
 void CalculateTranslationMatrix(
@@ -95,5 +95,5 @@ void CalculateRotationMatrix(
     rMatrix(3,3) = 1.0;
 }
 
-} // namespace TransformationUtilities
+} // namespace GeometricalTransformationUtilities
 } // namespace Kratos

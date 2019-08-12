@@ -11,8 +11,8 @@
 //     Re-factor:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_TRANSFORMATION_UTILITIES)
-#define KRATOS_TRANSFORMATION_UTILITIES
+#if !defined(KRATOS_GEOMETRICAL_TRANSFORMATION_UTILITIES)
+#define KRATOS_GEOMETRICAL_TRANSFORMATION_UTILITIES
 
 // System includes
 
@@ -43,13 +43,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @namespace TransformationUtilities
+ * @namespace GeometricalTransformationUtilities
  * @ingroup KratosCore
  * @brief This namespace includes several utilities necessaries for transformation (translation and rotation)
  * @author Aditya Ghantasala
  * @author Vicente Mataix Ferrandiz
  */
-namespace TransformationUtilities
+namespace GeometricalTransformationUtilities
 {
     typedef std::size_t IndexType;
     typedef Matrix MatrixType;
@@ -82,6 +82,6 @@ namespace TransformationUtilities
         const DenseVector<double>& rCenterOfRotation
         );
 
-}; // namespace TransformationUtilities
+}; // namespace GeometricalTransformationUtilities
 }  // namespace Kratos
-#endif /* KRATOS_TRANSFORMATION_UTILITIES defined */
+#endif /* KRATOS_GEOMETRICAL_TRANSFORMATION_UTILITIES defined */

@@ -18,7 +18,7 @@
 #include "utilities/openmp_utils.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
-#include "utilities/transformation_utilities.h"
+#include "utilities/geometrical_transformation_utilities.h"
 
 namespace Kratos
 {
@@ -265,12 +265,12 @@ void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVar
 void ApplyPeriodicConditionProcess::CalculateTransformationMatrix()
 {
     if (mTransformationType == ApplyPeriodicConditionProcess::TransformationType::TRANSLATION){
-        TransformationUtilities::CalculateTranslationMatrix(-1*mDistance, mTransformationMatrix, mDirOfTranslation);
-        TransformationUtilities::CalculateTranslationMatrix(0.0, mTransformationMatrixVariable, mDirOfTranslation);
+        GeometricalTransformationUtilities::CalculateTranslationMatrix(-1*mDistance, mTransformationMatrix, mDirOfTranslation);
+        GeometricalTransformationUtilities::CalculateTranslationMatrix(0.0, mTransformationMatrixVariable, mDirOfTranslation);
     }
     else if (mTransformationType == ApplyPeriodicConditionProcess::TransformationType::ROTATION){
-        TransformationUtilities::CalculateRotationMatrix(-1*mAngleOfRotation, mTransformationMatrix, mAxisOfRotationVector, mCenterOfRotation);
-        TransformationUtilities::CalculateRotationMatrix(mAngleOfRotation, mTransformationMatrixVariable, mAxisOfRotationVector, mCenterOfRotation);
+        GeometricalTransformationUtilities::CalculateRotationMatrix(-1*mAngleOfRotation, mTransformationMatrix, mAxisOfRotationVector, mCenterOfRotation);
+        GeometricalTransformationUtilities::CalculateRotationMatrix(mAngleOfRotation, mTransformationMatrixVariable, mAxisOfRotationVector, mCenterOfRotation);
     }
 }
 
