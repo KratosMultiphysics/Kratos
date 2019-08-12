@@ -106,8 +106,11 @@ public:
         const IndexType ControlPointIndex) const
     {
         IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
-            NumberOfShapeFunctionRows(), NumberOfNonzeroControlPoints(),
-            DerivativeRow, ControlPointIndex);
+            NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
+            ControlPointIndex, DerivativeRow);
+
+        if (index > mValues.size())
+            return 0.0;
 
         return mValues[index];
     }
@@ -150,7 +153,6 @@ public:
         mFirstNonzeroControlPoint = Span - PolynomialDegree() + 1;
 
         // compute B-Spline shape
-
         Ndu(0, 0) = 1.0;
 
         for (IndexType j = 0; j < PolynomialDegree(); j++) {
@@ -274,8 +276,8 @@ private:
     double& ShapeFunctionValue(const IndexType DerivativeRow, const IndexType ControlPointIndex)
     {
         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
-            NumberOfShapeFunctionRows(), NumberOfNonzeroControlPoints(),
-           DerivativeRow, ControlPointIndex);
+            NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
+            ControlPointIndex, DerivativeRow);
 
         return mValues[index];
     }
@@ -283,7 +285,7 @@ private:
     double& Ndu(const IndexType IndexI, const IndexType IndexJ)
     {
         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
-            NumberOfShapeFunctionRows(), NumberOfNonzeroControlPoints(), IndexI, IndexJ);
+            NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(), IndexJ, IndexI);
 
         return mNdu[index];
     }

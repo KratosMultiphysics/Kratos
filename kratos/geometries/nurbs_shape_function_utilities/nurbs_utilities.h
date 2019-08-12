@@ -16,7 +16,6 @@
 #define  KRATOS_NURBS_UTILITY_H_INCLUDED
 
 // System includes
-#include <algorithm>
 
 // External includes
 
@@ -112,20 +111,20 @@ public:
 
     /* Computes the vector index from the matrix indicies*/
     static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
-        const SizeType Rows, const SizeType Columns,
-        const IndexType Row, const IndexType Column) noexcept
+        const SizeType NumberPerRow, const SizeType NumberPerColumn,
+        const IndexType RowIndex, const IndexType ColumnIndex) noexcept
     {
-        return Row * Columns + Column;
+        return ColumnIndex * NumberPerRow + RowIndex;
     }
 
     /* Computes the matrix indices from the vector index*/
     static inline std::pair<IndexType, IndexType> GetMatrixIndicesFromVectorIndex(
-        const SizeType Rows,
-        const SizeType Columns,
+        const SizeType NumberPerRow,
+        const SizeType NumberPerColumn,
         const IndexType Index) noexcept
     {
-        const IndexType row = Index / Columns;
-        const IndexType col = Index % Columns;
+        const IndexType row = Index % NumberPerRow;
+        const IndexType col = Index / NumberPerRow;
 
         return std::make_pair(row, col);
     }

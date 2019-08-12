@@ -176,9 +176,7 @@ public:
         return Interval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
     }
 
-    /* Provides all knot span intervals of the curve.
-    @return vector of knot span intervals.
-    */    std::vector<Interval> KnotSpanIntervals() const
+    std::vector<Interval> KnotSpanIntervals() const
     {
         const IndexType first_span = mPolynomialDegree - 1;
         const IndexType last_span = NumberOfKnots() - mPolynomialDegree - 1;
@@ -221,19 +219,19 @@ public:
             shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
         }
 
+        //fill up the vector with zeros
         std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
 
         for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
             IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
             derivatives[order] = (*this)[index_0] * shape_function_container(order, 0);
-            for (IndexType i = 1; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-                IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + i;
+            for (IndexType u = 1; u < shape_function_container.NumberOfNonzeroControlPoints(); u++) {
+                IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + u;
 
-                derivatives[order] += (*this)[index] * shape_function_container(order, i);
+                derivatives[order] += (*this)[index] * shape_function_container(order, u);
             }
         }
 
-        //fill up the vector with zeros
         for (IndexType order = shape_function_container.NumberOfShapeFunctionRows(); order <= DerivativeOrder; order++) {
             IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
             derivatives[order] = (*this)[index_0] * 0.0;
@@ -319,6 +317,51 @@ public:
         }
 
         return rResult;
+    }
+
+    //GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>
+        void ShapeFunctionDerivatives(
+        GeometryData::IntegrationMethod ThisIntegrationMethod,
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const int DerivativeOrder) const
+    {
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 0);
+
+        int number_of_integration_points = rIntegrationPoints.size();
+
+        Matrix shape_functions_values = ZeroMatrix(number_of_integration_points, shape_function_container.NumberOfNonzeroControlPoints());
+        DenseVector<DenseVector<Matrix>> shape_function_derivatives_integration_points(number_of_integration_points);
+
+        for (IndexType ip_itr = 0; ip_itr < number_of_integration_points; ++ip_itr)
+        {
+            if (IsRational()) {
+                shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rIntegrationPoints[ip_itr][0]);
+            }
+            else {
+                shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rIntegrationPoints[ip_itr][0]);
+            }
+
+            for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+                shape_functions_values(ip_itr, i) = shape_function_container(ip_itr, i);
+            }
+
+            DenseVector<Matrix> shape_function_derivatives_array(DerivativeOrder);
+            for (IndexType derivative_order_itr = 1; derivative_order_itr < DerivativeOrder; ++derivative_order_itr)
+            {
+                Matrix shape_function_derivatives_values = ZeroMatrix(1, shape_function_container.NumberOfNonzeroControlPoints());
+                for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+                    shape_function_derivatives_values(0, i) = shape_function_container(derivative_order_itr, i);
+                }
+                shape_function_derivatives_array[derivative_order_itr] = shape_function_derivatives_values;
+            }
+            shape_function_derivatives_integration_points[ip_itr] = shape_function_derivatives_array;
+        }
+
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
+            ThisIntegrationMethod,
+            rIntegrationPoints,
+            shape_functions_values,
+            shape_function_derivatives_integration_points);
     }
 
     ///@}
