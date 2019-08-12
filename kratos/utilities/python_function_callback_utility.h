@@ -99,7 +99,6 @@ public:
             mMainModule = pybind11::module::import("__main__");
             mMainNameSpace = mMainModule.attr("__dict__");
             pybind11::exec("from math import *", mMainNameSpace);
-//             mByteCode = pybind11::object( pybind11::handle<>( (PyObject*) Py_CompileString(rFunctionBody.c_str(), "pyscript", Py_eval_input) ) );
         } catch(pybind11::error_already_set const&) {
             PyErr_Print();
         }
@@ -234,7 +233,6 @@ private:
     pybind11::object mMainModule;       /// The main python module
     pybind11::object mMainNameSpace;    /// The main python namespace (the variables considered on the python function)
     const std::string mFunctionBody;    /// The function body
-    pybind11::object mByteCode;         /// Some byte code
 
     bool mDependsOnSpace = true;                 /// If it depends on space
     bool mUseLocalSystem = false;                /// If we use a local system
