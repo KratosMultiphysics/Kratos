@@ -154,7 +154,7 @@ ModelPart& FindIntersectedGeometricalObjectsProcess::GetModelPart2()
 /***********************************************************************************/
 /***********************************************************************************/
 
-FindIntersectedGeometricalObjectsProcess::OctreeType* FindIntersectedGeometricalObjectsProcess::GetOctreePointer()
+FindIntersectedGeometricalObjectsProcess::OctreePointerType& FindIntersectedGeometricalObjectsProcess::GetOctreePointer()
 {
     return mpOctree;
 }
@@ -165,8 +165,10 @@ FindIntersectedGeometricalObjectsProcess::OctreeType* FindIntersectedGeometrical
 void FindIntersectedGeometricalObjectsProcess::Clear()
 {
     mIntersectedObjects.clear();
-    delete mpOctree;
-    mpOctree = new OctreeType();
+    OctreePointerType aux_ptr = Kratos::make_unique<OctreeType>();
+    mpOctree.swap(aux_ptr);
+    // delete mpOctree;
+    // mpOctree = new OctreeType();
 }
 
 /***********************************************************************************/
