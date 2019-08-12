@@ -156,7 +156,7 @@ public:
     }
 
     /**
-     * Assignment operator for geometries with different point type.
+     * @brief Assignment operator for geometries with different point type.
      *
      * @note This operator don't copy the points and this
      * geometry shares points with given source geometry. It's
@@ -207,8 +207,8 @@ public:
     }
 
     /**
-    * ONLY for coupling_geometry. Not necessary in base class.
-    * Allows to exchange certain geometries.
+    * @brief ONLY for coupling_geometry. Not necessary in base class.
+    * @details Allows to exchange certain geometries.
     * @param Index of the geometry part. 0->Master; 1->Slave
      */
     void SetGeometryPart(IndexType Index, GeometryPointer pGeometry)
@@ -221,8 +221,8 @@ public:
     }
 
     /**
-    * ONLY for coupling_geometry. Not necessary in base class.
-    * Allows to enhance the coupling geometry, with another geometry.
+    * @brief ONLY for coupling_geometry. Not necessary in base class.
+    * @details Allows to enhance the coupling geometry, with another geometry.
     * @param Index of the geometry part. 0->Master; 1->Slave
      */
     IndexType AddGeometryPart(GeometryPointer pGeometry)
@@ -239,8 +239,9 @@ public:
     }
 
     /**
-    * @return the number of geometry parts that this geometry contains.
-    */
+     * @brief The number of geometry part
+     * @return The number of geometry parts that this geometry contains.
+     */
     SizeType NumberOfGeometryParts() const override
     {
         return mpGeometries.size();
@@ -248,15 +249,19 @@ public:
 
     ///@}
 
-    /** Returns the domain size of the master geometry.
-    */
+    /**
+     * @brief Returns the domain size of the master geometry.
+     * @return The domaon size of the master geometry
+     */
     double DomainSize() const override
     {
         return mpGeometries[0]->DomainSize();
     }
 
-    /** Returns the center of the master geometry.
-    */
+    /**
+     * @brief Returns the center of the master geometry.
+     * @return The center of the master geometry
+     */
     Point Center() const override
     {
         return mpGeometries[0]->Center();
@@ -266,16 +271,19 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
     std::string Info() const override
     {
         return "Coupling geometry that holds a master and a set of slave geometries.";
     }
 
+    /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "Coupling geometry that holds a master and a set of slave geometries.";
     }
 
+    /// Print object's data.
     void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
