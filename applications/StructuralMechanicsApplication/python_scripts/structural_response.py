@@ -472,6 +472,11 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self.I22 = None
         self.I33 = None
 
+        self.cross_sections = None
+
+    def SetCrossSections(self, cross_sections):
+        self.cross_sections = cross_sections
+
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.adjoint_analysis.Initialize() # Here the kratos response is created. what to here in adjoint solver?
@@ -493,8 +498,10 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self.I22 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I22]
         self.I33 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I33]
 
-        # Or compte adjoint subproblems within CalculateGradient
+        # compute adjoint subproblems within CalculateGradient
         self._RunSolutionLoopAdjointSubProblems()
+        # compute sensitivities w.r.t. specific variables which are not known by kratos elements
+        self.__ComputeSpecificCrossSectionSensitivities()
 
     def CalculateValue(self):
         startTime = timer.time()
@@ -627,6 +634,8 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
                     sensitivity -= MZ / self.I33**2 * self.stress_position_y
                 elem.SetValue(sen_var, sensitivity)
 
+                # MFusseder TODO add explicit sensitivity contribution for variable "SECTION_HEIGTH"
+
         # response superposition for conditional design variables
         for var, sen_var in zip(condition_variables, condition_sensitivity_variables):
             if var.Name() == 'POINT_LOAD':
@@ -660,3 +669,13 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
             return root_mp
         else:
             raise RuntimeError('Given model part ' + model_part_name + ' is not available!')
+
+    # --------------------------------------------------------------------------
+    def __ComputeSpecificCrossSectionSensitivities(self):
+        if self.cross_sections is None:
+            pass
+        else:
+            for sec_i in self.cross_sections:
+                sec_i.ComputeSpecificCrossSectionSensitivities(self.adjoint_model_part_fx)
+                sec_i.ComputeSpecificCrossSectionSensitivities(self.adjoint_model_part_my)
+                sec_i.ComputeSpecificCrossSectionSensitivities(self.adjoint_model_part_mz)
