@@ -76,8 +76,8 @@ void ComputeHessianSolMetricProcess::Execute()
     }
 
     // Checking NODAL_H
-    for (const auto& i_node : r_nodes_array)
-        KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
+    for (const auto& r_node : r_nodes_array)
+        KRATOS_ERROR_IF_NOT(r_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
 
     // Getting dimension
     const std::size_t dimension = mThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -515,7 +515,7 @@ void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParamete
     // Ratio reference variable
     const std::string& r_variable_name = considered_parameters["enforced_anisotropy_parameters"]["reference_variable_name"].GetString();
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_variable_name)) << "Variable " << r_variable_name << " is not a double variable" << std::endl;
-    mpRatioReferenceVariable = const_cast<Variable<double>*>(&KratosComponents<Variable<double>>::Get(r_variable_name));
+    mpRatioReferenceVariable =&KratosComponents<Variable<double>>::Get(r_variable_name);
 }
 
 };// namespace Kratos.
