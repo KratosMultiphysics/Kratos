@@ -6,7 +6,7 @@ import KratosMultiphysics.RomApplication as romapp
 
 from KratosMultiphysics.assign_scalar_variable_process import AssignScalarVariableProcess
 from KratosMultiphysics.ConvectionDiffusionApplication.apply_thermal_face_process import ApplyThermalFaceProcess
-from convection_diffusion_analysis import ConvectionDiffusionAnalysis
+from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 
 import h5py
 import json
@@ -43,9 +43,9 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
             for node in computing_model_part.Nodes:
                 aux = KratosMultiphysics.Matrix(1, rom_dofs) # 1, since its a scalar quantity (a vector is imported to each node)
                 Counter=str(1.0*node.Id)
-                for i in range(rom_dofs):                
+                for i in range(rom_dofs):
                     aux[0, i] = data[Counter][i]
-                """ROM_BASIS"""    
+                """ROM_BASIS"""
                 node.SetValue(romapp.ROM_BASIS, aux )
                 """AUX_ID"""
                 node.SetValue(romapp.AUX_ID, counter)
@@ -59,7 +59,7 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
 
 
 
-    def ModifyInitialProperties(self):    
+    def ModifyInitialProperties(self):
         # ################################################################
         # #                      HEAT FLUX PROPERTY                      #
         ################################################################  
@@ -76,7 +76,7 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
             """
             )
         heatFluxSettings1.AddEmptyValue("value").SetDouble(HeatFlux1)
-        self.processes.append(AssignScalarVariableProcess(self.model, heatFluxSettings1))       
+        self.processes.append(AssignScalarVariableProcess(self.model, heatFluxSettings1))
 
         
         HeatFlux2 = 700.0
@@ -90,11 +90,11 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
             """
             )
         heatFluxSettings2.AddEmptyValue("value").SetDouble(HeatFlux2)
-        self.processes.append(AssignScalarVariableProcess(self.model, heatFluxSettings2))                  
+        self.processes.append(AssignScalarVariableProcess(self.model, heatFluxSettings2))
 
         ################################################################
         #                     TEMPERATURE PROPERTY                     #
-        ################################################################  
+        ################################################################
         #time = 1.0
         ImposedTemperature = 90
         TemperatureSettings = KratosMultiphysics.Parameters("""
@@ -105,15 +105,15 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
                 "interval"                    : [0.0,"End"]
             }
             """
-            )            
+            )
         TemperatureSettings.AddEmptyValue("value").SetDouble(ImposedTemperature)
         self.processes.append(AssignScalarVariableProcess(self.model, TemperatureSettings))
-        ################################################################ 
+        ################################################################
 
-        
+
         # ################################################################
         # #                      RADIATION PROPERTY                      #
-        # ################################################################  
+        # ################################################################
 
         RadiationSettings = KratosMultiphysics.Parameters("""
             {
@@ -125,14 +125,14 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
             }
             """
             )
-        
+
         AmbientTemperature = 12.0
-        RadiationSettings.AddEmptyValue("ambient_temperature").SetDouble(AmbientTemperature)   
+        RadiationSettings.AddEmptyValue("ambient_temperature").SetDouble(AmbientTemperature)
         self.processes.append(ApplyThermalFaceProcess(self.model, RadiationSettings))
-        ################################################################ 
+        ################################################################
         for process in self.processes:
-            process.ExecuteBeforeSolutionLoop()  
-        ################################################################             
+            process.ExecuteBeforeSolutionLoop()
+        ################################################################
 
     def EvaluateQuantityOfInterest(self):
        ##############################################################################################
@@ -157,14 +157,14 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
             if now - self.last_flush > self.flush_frequency:
                 sys.stdout.flush()
                 self.last_flush = now
-                
-        ##############################################################################################                
+
+        ##############################################################################################
 
 if __name__ == "__main__":
 
     with open("ProjectParametersROM.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        
+
     model = KratosMultiphysics.Model()
     simulation = ConvectionDiffusionAnalysisWithFlush(model,parameters)
     simulation.Run()
@@ -175,13 +175,13 @@ if __name__ == "__main__":
     print("Area list saved in hdf5 format")
 
     with h5py.File('./AREA.h5','w') as hdf:
-        hdf.create_dataset('Area',data=QoI2)     
-    print( "------------------------------------------" )   
+        hdf.create_dataset('Area',data=QoI2)
+    print( "------------------------------------------" )
 
     QoI = simulation.EvaluateQuantityOfInterest()
-    print(QoI)    
+    print(QoI)
     print( "------------------------------------------" )
     print("Temperature list saved in hdf5 format")
 
     with h5py.File('./FINE.h5','w') as hdf:
-        hdf.create_dataset('Temperature',data=QoI)    
+        hdf.create_dataset('Temperature',data=QoI)

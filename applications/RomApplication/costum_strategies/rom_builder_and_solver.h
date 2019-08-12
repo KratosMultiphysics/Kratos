@@ -154,13 +154,10 @@ public:
         // We set the other member variables
         mpLinearSystemSolver = pNewLinearSystemSolver;
 
-        for(auto it=ThisParameters["nodal_unknowns"].begin(); it!=ThisParameters["nodal_unknowns"].end(); it++)
-        {
-            mNodalVariablesNames.push_back(it->GetString());
-        }
+        mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
 
-        mnodal_dofs = mNodalVariablesNames.size();
-        mrom_dofs = ThisParameters["number_of_rom_dofs"].GetInt();
+        mNodalDofs = mNodalVariablesNames.size();
+        mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
     }
 
 
@@ -369,14 +366,14 @@ public:
 
     Vector ProjectToReducedBasis(const TSystemVectorType& rX, ModelPart::NodesContainerType& rNodes)
     {
-        Vector rom_unknowns = ZeroVector(mrom_dofs);
+        Vector rom_unknowns = ZeroVector(mRomDofs);
         for(auto& node : rNodes)
         {
             unsigned int node_aux_id = node.GetValue(AUX_ID);
             const Matrix& nodal_rom_basis = node.GetValue(ROM_BASIS);
-				for (int i = 0; i < mrom_dofs; ++i) {
-					for (int j = 0; j < mnodal_dofs; ++j) {
-						rom_unknowns[i] += nodal_rom_basis(j, i)*rX(node_aux_id*mnodal_dofs + j);
+				for (int i = 0; i < mRomDofs; ++i) {
+					for (int j = 0; j < mNodalDofs; ++j) {
+						rom_unknowns[i] += nodal_rom_basis(j, i)*rX(node_aux_id*mNodalDofs + j);
 					}
 				}
         }
@@ -394,7 +391,7 @@ public:
             Vector tmp = prod(nodal_rom_basis, rRomUnkowns );
 			for (unsigned int i = 0; i < tmp.size(); ++i) 
 			{
-			rX[node_aux_id*mnodal_dofs + i] = tmp[i];
+			rX[node_aux_id*mNodalDofs + i] = tmp[i];
 			}
         }
     }
@@ -422,8 +419,8 @@ public:
 	{
 		
         //define a dense matrix to hold the reduced problem
-        Matrix Arom = ZeroMatrix(mrom_dofs,mrom_dofs);
-        Vector brom = ZeroVector(mrom_dofs);
+        Matrix Arom = ZeroMatrix(mRomDofs,mRomDofs);
+        Vector brom = ZeroVector(mRomDofs);
         TSystemVectorType x(Dx.size());
 
         //find the rom basis
@@ -481,17 +478,17 @@ public:
                     //assemble the elemental contribution - here is where the ROM acts
                     //compute the elemental reduction matrix T
                     const auto& geom = it->GetGeometry();
-                    Matrix Telemental(geom.size()*mnodal_dofs, mrom_dofs);
+                    Matrix Telemental(geom.size()*mNodalDofs, mRomDofs);
 					
                     for(unsigned int i=0; i<geom.size(); ++i)
                     {
                         const Matrix& rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
                         for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k)
                         {
-							if (dofs[i*mnodal_dofs + k]->IsFixed())
-								row(Telemental, i*mnodal_dofs + k) = ZeroVector(Telemental.size2());
+							if (dofs[i*mNodalDofs + k]->IsFixed())
+								row(Telemental, i*mNodalDofs + k) = ZeroVector(Telemental.size2());
 							else
-								row(Telemental, i*mnodal_dofs+k) = row(rom_nodal_basis,k);
+								row(Telemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
 						}
 
                     }
@@ -527,17 +524,17 @@ public:
                     //assemble the elemental contribution - here is where the ROM acts
                     //compute the elemental reduction matrix T
                     const auto& geom = it->GetGeometry();
-                    Matrix Telemental(geom.size()*mnodal_dofs, mrom_dofs);
+                    Matrix Telemental(geom.size()*mNodalDofs, mRomDofs);
 
                     for(unsigned int i=0; i<geom.size(); ++i)
                     {
                         const Matrix& rom_nodal_basis = geom[i].GetValue(ROM_BASIS);
                         for(unsigned int k=0; k<rom_nodal_basis.size1(); ++k)
                         {
-							if (dofs[i*mnodal_dofs + k]->IsFixed())
-								row(Telemental, i*mnodal_dofs + k) = ZeroVector(Telemental.size2());
+							if (dofs[i*mNodalDofs + k]->IsFixed())
+								row(Telemental, i*mNodalDofs + k) = ZeroVector(Telemental.size2());
 							else
-								row(Telemental, i*mnodal_dofs+k) = row(rom_nodal_basis,k);
+								row(Telemental, i*mNodalDofs+k) = row(rom_nodal_basis,k);
                         }
                     }
                     Matrix aux = prod(LHS_Contribution, Telemental);
@@ -734,8 +731,8 @@ protected:
     TSystemVectorPointerType mpReactionsVector;
 
     std::vector< std::string > mNodalVariablesNames;
-    int mnodal_dofs;
-    int mrom_dofs;
+    int mNodalDofs;
+    int mRomDofs;
 
 
 

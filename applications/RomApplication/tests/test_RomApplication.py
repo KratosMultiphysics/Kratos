@@ -1,6 +1,5 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.RomApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -34,7 +33,7 @@ def AssembleTestSuites():
     # - testSmallExample
     # - testNightlyFirstExample
     # - testNightlySecondExample
-    nightSuite = suites['nightly']
+    # nightSuite = suites['nightly']
     # nightSuite.addTests(KratosRomGeneralTests)
 
     # Create a test suit that contains all the tests from every testCase

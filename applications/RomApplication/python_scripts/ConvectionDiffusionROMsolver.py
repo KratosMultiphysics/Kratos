@@ -5,7 +5,6 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
-from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 
 # Import base class file
 from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_base_solver
@@ -50,11 +49,11 @@ class ROMSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
         }
         """)
         default_settings.AddMissingParameters(super(ROMSolver,cls).GetDefaultSettings())
-        return default_settings    
+        return default_settings
 
-    def AddVariables(self):         
+    def AddVariables(self):
         super(ROMSolver, self).AddVariables() #Adding nodal area variable
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA) 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
 
     def _create_solution_scheme(self):
@@ -70,9 +69,3 @@ class ROMSolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
         rom_parameters=self.settings["rom_settings"]
         builder_and_solver = romapp.ROMBuilderAndSolver(linear_solver, rom_parameters)
         return builder_and_solver
-
-
-    # def _create_convergence_criterion(self):
-    #     #import convergence_criteria_factory 
-    #     convergence_criterion = convergence_criteria_factory.convergence_criterion(self.settings)
-    #     return convergence_criterion.mechanical_convergence_criterion
