@@ -8,7 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Tobias Teschemacher
-//  contributors:    Pooyan Dadvand
+//  Contributors:    Pooyan Dadvand
 //                   Philipp Bucher
 //
 
