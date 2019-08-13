@@ -68,6 +68,30 @@ MPMParticleLagrangeDirichletCondition::~MPMParticleLagrangeDirichletCondition()
 //************************************************************************************
 //************************************************************************************
 
+void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    MPMParticleBaseDirichletCondition::InitializeSolutionStep( rCurrentProcessInfo );
+
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & lagrange_multiplier  = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            lagrange_multiplier[j] = 0;
+        }
+
+        r_geometry[i].SetValue(VECTOR_LAGRANGE_MULTIPLIER,lagrange_multiplier);
+    }
+
+
+
+}
+
 void MPMParticleLagrangeDirichletCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo,
@@ -364,10 +388,13 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const array_1d<double, 3 > & lagrange_multiplier = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
         unsigned int index = i * dimension;
+        const unsigned int lagrange_index = number_of_nodes * dimension;
         for(unsigned int k = 0; k < dimension; ++k)
         {
             rValues[index + k] = Displacement[k];
+            rValues[lagrange_index + k] = lagrange_multiplier[k];
         }
     }
 }

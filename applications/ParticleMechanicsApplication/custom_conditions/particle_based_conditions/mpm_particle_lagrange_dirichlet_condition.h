@@ -83,6 +83,13 @@ public:
     ///@name Operators
     ///@{
 
+        /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+
     ///@}
     ///@name Operations
     ///@{
