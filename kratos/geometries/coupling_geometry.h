@@ -294,7 +294,6 @@ public:
     }
 
     ///@}
-protected:
 
 private:
     ///@name Private Member Variables
