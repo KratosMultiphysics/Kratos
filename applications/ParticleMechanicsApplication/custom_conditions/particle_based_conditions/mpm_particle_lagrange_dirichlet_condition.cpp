@@ -110,7 +110,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     // Prepare variables
     GeneralVariables Variables;
-    const double augmention_factor = this->GetValue(SCALAR_LAGRANGE_MULTIPLIER);
+    const double augmentation_factor = this->GetValue(SCALAR_LAGRANGE_MULTIPLIER);
 
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
@@ -232,7 +232,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 int MPMParticleLagrangeDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
-
+    const unsigned int number_of_nodes = GetGeometry().size();
     // Verify that the dofs exist
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
         const NodeType &rnode = this->GetGeometry()[i];
@@ -265,11 +265,12 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            unsigned int index = i * 2;
+            unsigned int index = i * dimension;
             rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y).EquationId();
 
-            index = i * 2 + number_of_nodes * dimension;
+
+            index = i * dimension + number_of_nodes * dimension;
             rResult[index    ] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
             rResult[index + 1] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
         }
@@ -278,12 +279,12 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     {
         for (unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            unsigned int index = i * 3;
+            unsigned int index = i * dimension;
             rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z).EquationId();
 
-            index = i * 3 + number_of_nodes * dimension;
+            index = i * dimension + number_of_nodes * dimension;
             rResult[index    ] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
             rResult[index + 1] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
             rResult[index + 2] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
