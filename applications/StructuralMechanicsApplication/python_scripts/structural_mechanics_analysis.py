@@ -57,6 +57,9 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         # performing some checks if the submodelparts used for the processes and
         # the material-assignments are being added to the ComputingModelPart
         solver_settings = self.project_parameters["solver_settings"]
+        if solver_settings["problem_domain_sub_model_part_list"].size() == 0 and solver_settings["processes_sub_model_part_list"].size() == 0:
+            return # no computing model part used, hence checks are not necessary
+
         main_model_part_name = solver_settings["model_part_name"].GetString()
 
         # Checking if the material-submodelparts are added to the ComputingModelPart
