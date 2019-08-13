@@ -121,18 +121,7 @@ public:
     /**
      * Destructor. Does nothing!!!
      */
-    ~CouplingGeometry() override {}
-
-
-    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
-    {
-        return GeometryData::Kratos_generic_family;
-    }
-
-    GeometryData::KratosGeometryType GetGeometryType() const override
-    {
-        return GeometryData::Kratos_generic_type;
-    }
+    ~CouplingGeometry() override = default;
 
     ///@}
     ///@name Operators
@@ -181,8 +170,7 @@ public:
     typename BaseType::Pointer Create(
         PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer(
-            new CouplingGeometry( ThisPoints) );
+        return Kratos::make_shared<CouplingGeometry>(ThisPoints);
     }
 
     ///@}
@@ -199,8 +187,8 @@ public:
      */
     GeometryType& GetGeometryPart(IndexType Index) const override
     {
-        KRATOS_DEBUG_ERROR_IF(mpGeometries.size() < Index) << "Index out of range: "
-            << Index << " composite contains only of: "
+        KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index "
+            << Index << " out of range. Composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
         return *mpGeometries[Index];
@@ -213,7 +201,7 @@ public:
      */
     void SetGeometryPart(IndexType Index, GeometryPointer pGeometry)
     {
-        KRATOS_DEBUG_ERROR_IF(mpGeometries.size() < Index) << "Index out of range: "
+        KRATOS_DEBUG_ERROR_IF(mpGeometries.size() <= Index) << "Index out of range: "
             << Index << " composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
@@ -257,6 +245,8 @@ public:
      */
     double DomainSize() const override
     {
+        KRATOS_DEBUG_ERROR_IF(mpGeometries.size() == 0) << "No master assigned. Geometry vector of size 0." << std::endl;
+
         return mpGeometries[0]->DomainSize();
     }
 
@@ -266,6 +256,8 @@ public:
      */
     Point Center() const override
     {
+        KRATOS_DEBUG_ERROR_IF(mpGeometries.size() == 0) << "No master assigned. Geometry vector of size 0." << std::endl;
+
         return mpGeometries[0]->Center();
     }
 
@@ -294,8 +286,6 @@ public:
     }
 
     ///@}
-protected:
-
 private:
     ///@name Private Member Variables
     ///@{
