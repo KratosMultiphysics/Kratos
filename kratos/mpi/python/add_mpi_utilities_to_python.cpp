@@ -23,28 +23,58 @@
 namespace Kratos {
 namespace Python {
 
+// Master slave constraints
+
+void AddConstraint1(MpiConstraintsUtility& rConstraintsUtility,
+                    std::string ConstraintName,
+                    const ModelPart::IndexType Id,
+                    const ModelPart::IndexType MasterNodeId,
+                    ModelPart::DoubleVariableType& rMasterVariable,
+                    const ModelPart::IndexType SlaveNodeId,
+                    ModelPart::DoubleVariableType& rSlaveVariable,
+                    double Weight,
+                    double Constant)
+{
+    rConstraintsUtility.AddConstraint(
+        ConstraintName, Id, MasterNodeId, rMasterVariable, SlaveNodeId,
+        rSlaveVariable, Weight, Constant);
+}
+
+void AddConstraint2(MpiConstraintsUtility& rConstraintsUtility,
+                    std::string ConstraintName,
+                    const ModelPart::IndexType Id,
+                    const ModelPart::IndexType MasterNodeId,
+                    ModelPart::VariableComponentType& rMasterVariable,
+                    const ModelPart::IndexType SlaveNodeId,
+                    ModelPart::VariableComponentType& rSlaveVariable,
+                    double Weight,
+                    double Constant)
+{
+    rConstraintsUtility.AddConstraint(
+        ConstraintName, Id, MasterNodeId, rMasterVariable, SlaveNodeId,
+        rSlaveVariable, Weight, Constant);
+}
+
 void AddMPIUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<ModelPartCommunicatorUtilities>(m,"ModelPartCommunicatorUtilities")
-    .def_static("SetMPICommunicator",&ModelPartCommunicatorUtilities::SetMPICommunicator)
-    ;
+    py::class_<ModelPartCommunicatorUtilities>(m,
+                                               "ModelPartCommunicatorUtilities")
+        .def_static("SetMPICommunicator", &ModelPartCommunicatorUtilities::SetMPICommunicator);
 
-    py::class_<ParallelFillCommunicator >(m,"ParallelFillCommunicator")
-    .def(py::init<ModelPart& >() )
-    .def("Execute", &ParallelFillCommunicator::Execute )
-    .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
-    ;
+    py::class_<ParallelFillCommunicator>(m, "ParallelFillCommunicator")
+        .def(py::init<ModelPart&>())
+        .def("Execute", &ParallelFillCommunicator::Execute)
+        .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo);
 
-    py::class_<MpiConstraintsUtility >(m,"MpiConstraintsUtility")
-    .def(py::init<ModelPart& >() )
-    .def("AddConstraint", &MpiConstraintsUtility::AddConstraint<ModelPart::DoubleVariableType> )
-    .def("AddConstraint", &MpiConstraintsUtility::AddConstraint<ModelPart::VariableComponentType> )
-    .def("SynchronizeAndCreateConstraints", &MpiConstraintsUtility::SynchronizeAndCreateConstraints )
-    ;    
+    py::class_<MpiConstraintsUtility>(m, "MpiConstraintsUtility")
+        .def(py::init<ModelPart&>())
+        .def("AddConstraint", AddConstraint1)
+        .def("AddConstraint", AddConstraint2)
+        .def("SynchronizeAndCreateConstraints",
+             &MpiConstraintsUtility::SynchronizeAndCreateConstraints);
 }
 
 } // namespace Python
 } // namespace Kratos
-
