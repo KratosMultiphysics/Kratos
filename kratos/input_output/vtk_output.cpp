@@ -473,7 +473,7 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
         if (!extrapolate_gauss_points) {
             for (IndexType entry = 0; entry < gauss_point_variables.size(); ++entry) {
                 const std::string& r_condition_result_name = gauss_point_variables[entry].GetString();
-                WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
+                WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Elements(),rFileStream);
             }
         }
     }
