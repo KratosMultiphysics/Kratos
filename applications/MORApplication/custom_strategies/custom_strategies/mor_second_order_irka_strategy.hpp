@@ -64,12 +64,13 @@ namespace Kratos
  */
 template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
-          class TLinearSolver//, //= LinearSolver<TSparseSpace,TDenseSpace>
+          class TLinearSolver, //= LinearSolver<TSparseSpace,TDenseSpace>
           //class TLinearSolver  // feast? TODO: check if this is necessary
+          class TTrilLinearSolver
           >
 class MorSecondOrderIRKAStrategy
     // : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
-    : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
+    : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver, TTrilLinearSolver >
 {
   public:
     ///@name Type Definitions
@@ -127,7 +128,7 @@ class MorSecondOrderIRKAStrategy
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
-        typename TLinearSolver::Pointer pNewLinearEigSolver,
+        typename TTrilLinearSolver::Pointer pNewLinearEigSolver,
         vector< double > samplingPoints,
         bool MoveMeshFlag = false)
         : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)
@@ -359,8 +360,8 @@ class MorSecondOrderIRKAStrategy
 
  
             p_builder_and_solver_feast->GetLinearSystemSolver()->Solve(
-                r_L2,
                 r_L1,
+                r_L2,
                 //r_K_reduced,
                 //r_M_reduced,
                 Eigenvalues,

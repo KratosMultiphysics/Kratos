@@ -19,6 +19,11 @@
 #include <pybind11/pybind11.h>
 #include "boost/numeric/ublas/vector.hpp"
 
+// Trilinos includes
+//#include "/usr/include/trilinos/Epetra_FEVector.h"
+#include "Epetra_FEVector.h"
+#include "trilinos_space.h"
+//#include "/home/matthias/Kratos/applications/TrilinosApplication/trilinos_space.h"
 
 // Project includes
 #include "includes/define_python.h"
@@ -55,6 +60,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef TUblasSparseSpace<complex> ComplexSpaceType;
     typedef TUblasDenseSpace<complex> ComplexLocalSpaceType;
 
+    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef LinearSolverType::Pointer LinearSolverPointer;
@@ -64,6 +71,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
+    typedef LinearSolver<TrilinosSparseSpaceType, LocalSpaceType > TrilinosLinearSolverType;
+    typedef TrilinosLinearSolverType::Pointer TrilinosLinearSolverPointer;
+
+
     // Custom strategy types
     typedef LinearMorMatrixOutputStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LinearMorMatrixOutputStrategyType;
     typedef FrequencyResponseAnalysisStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > FrequencyResponseAnalysisStrategyType;
@@ -71,7 +82,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef MorOfflineSecondOrderStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorOfflineSecondOrderStrategyType;
 
     typedef MorSecondOrderKrylovStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderKrylovStrategyType;
-    typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderIRKAStrategyType;
+    typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, TrilinosLinearSolverType > MorSecondOrderIRKAStrategyType;
+    //typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MorSecondOrderIRKAStrategyType;
     //typedef MorSecondOrderIRKAStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType, LinearSolverType > MorSecondOrderIRKAStrategyType;
 
     // Custom builder and solver types
@@ -99,7 +111,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorSecondOrderIRKAStrategyType, typename MorSecondOrderIRKAStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorSecondOrderIRKAStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, LinearSolverPointer, vector<double>, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, TrilinosLinearSolverPointer, vector<double>, bool >())
         ;
     
     py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponseAnalysisStrategy")
