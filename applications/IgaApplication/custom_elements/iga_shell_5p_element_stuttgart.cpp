@@ -16,6 +16,8 @@
 #include "utilities/math_utils.h"
 
 // External includes
+#include <iostream>     // MLout
+#include <fstream>      // MLout
 
 // Project includes
 #include "custom_elements/iga_shell_5p_element_stuttgart.h"
@@ -40,8 +42,6 @@ namespace Kratos
         CalculateMetric(mInitialMetric);
         
         mZeta = 0.0;
-
-        // KRATOS_WATCH(mInitialMetric.Q)
 
         KRATOS_CATCH("")
     }
@@ -83,19 +83,8 @@ namespace Kratos
             rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
         }
 
-        // shear difference vector
-        array_1d<double, 3> w = ZeroVector(3);
-        // derivatives of the shear difference vector
-        array_1d<double, 3> Dw_D1 = ZeroVector(3);
-        array_1d<double, 3> Dw_D2 = ZeroVector(3);
-        // components w_alpha of the shear difference vector which calculates as (w_alpha(1) * a1 + w_alpha(2) * a2)
-        array_1d<double, 2> w_alpha = ZeroVector(2);
-        // derivatives of the components w_alpha
-        Matrix Dw_alpha_Dbeta = ZeroMatrix(2, 2);
-
         MetricVariables actual_metric(3, 5);
         CalculateMetric(actual_metric);
-        CalculateShearDifferenceVector(w, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, actual_metric);
         double dV = 0.0;
         array_1d<double, 3> G1, G2, G1xG2;
         double thickness = GetProperties().GetValue(THICKNESS);
@@ -103,7 +92,9 @@ namespace Kratos
         for (unsigned int Gauss_index = 0; Gauss_index < mGaussQuadratureThickness.num_GP_thickness; Gauss_index++)
         {
             mZeta = mGaussQuadratureThickness.zeta(Gauss_index);
-            
+
+            if(Id()==5 && mcount==1)
+                KRATOS_WATCH("second iteration, fifth element")            
             // Differential Volume
             G1 = ZeroVector(3);
             G2 = ZeroVector(3);
@@ -128,7 +119,7 @@ namespace Kratos
             {
                 Matrix IKg = ZeroMatrix(mat_size, mat_size);
                 kgeom_linearisiert(IKg, constitutive_variables.S, actual_metric);
-                
+
                 // adding linear contributions to the stiffness matrix
                 noalias(rLeftHandSideMatrix) += integration_weight * prod(trans(B), Matrix(prod(constitutive_variables.D, B)));
 
@@ -142,13 +133,26 @@ namespace Kratos
                 // operation performed: rRightHandSideVector -= Weight*IntForce
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), constitutive_variables.S);
             }
+
+            // output file B // MLout
+            // if(Id()==5 && mcount==1 && Gauss_index==0){
+            //     KRATOS_WATCH(constitutive_variables.S)
+            //     std::ofstream myfile1;
+            //     myfile1.open("B-5pSt.csv");
+            //     for (unsigned int i = 0; i<5; i++){
+            //         for (unsigned int j=0; j<mat_size;j++){
+            //             myfile1 << B(i,j) << ",";
+            //         }
+            //         myfile1 << "\n";
+            //     }
+            //     myfile1.close();
+            // }
         }
 
         // if (Id() == 1){
         //     KRATOS_WATCH(rLeftHandSideMatrix)
         //     KRATOS_WATCH(rRightHandSideVector)
         // }
-
         KRATOS_CATCH("");
     }
 
@@ -330,9 +334,6 @@ namespace Kratos
         rMetric.TransCovToCart(3, 3) = mG_11;
         rMetric.TransCovToCart(4, 3) = mG_01;
         rMetric.TransCovToCart(4, 4) = mG_00;
-
-        if(Id() == 4)
-            KRATOS_WATCH(rMetric.Q)
     }
 
     void IgaShell5pElementStuttgart::CalculateShearDifferenceVector(
@@ -386,6 +387,8 @@ namespace Kratos
         array_1d<double, 3>&      rG1,
         array_1d<double, 3>&      rG2)
     {
+        double thickness = GetProperties().GetValue(THICKNESS);
+        
         array_1d<double, 3> DA3_D1 = ZeroVector(3);
         array_1d<double, 3> DA3_D2 = ZeroVector(3);
         array_1d<double, 3> DA1_D1xA2 = ZeroVector(3);
@@ -403,8 +406,8 @@ namespace Kratos
             / (mInitialMetric.dA * mInitialMetric.dA);
 
         // covariant base vectors of the shell body in the reference configuration
-        rG1 = mInitialMetric.a1 + mZeta * DA3_D1;
-        rG2 = mInitialMetric.a2 + mZeta * DA3_D2;
+        rG1 = mInitialMetric.a1 + thickness / 2.0 * mZeta * DA3_D1;
+        rG2 = mInitialMetric.a2 + thickness / 2.0 * mZeta * DA3_D2;
         // G3 = A3
     }
 
@@ -466,8 +469,8 @@ namespace Kratos
         }
 
         /* Kovariante Basisvektoren */
-        rg1 = rActualMetric.a1 + mZeta*(Da3_KL_D1 + rDw_D1);
-        rg2 = rActualMetric.a2 + mZeta*(Da3_KL_D2 + rDw_D2);
+        rg1 = rActualMetric.a1 + thickness / 2.0 * mZeta*(Da3_KL_D1 + rDw_D1);
+        rg2 = rActualMetric.a2 + thickness / 2.0 * mZeta*(Da3_KL_D2 + rDw_D2);
         rg3 = rActualMetric.a3_KL + rw;     // g3 = a3
 
         KRATOS_CATCH("")
@@ -524,6 +527,8 @@ namespace Kratos
         const ConstitutiveLaw::StressMeasure ThisStressMeasure)
     {
         KRATOS_TRY
+        if(Id()==5 && mcount==1)
+            KRATOS_WATCH("second iteration, fifth element")
 
         rThisConstitutiveVariables.E = rStrainVector;
   
@@ -559,8 +564,7 @@ namespace Kratos
         rThisConstitutiveVariables.E = prod(mInitialMetric.Q, rThisConstitutiveVariables.E);
 
         //Local Cartesian Stresses
-        rThisConstitutiveVariables.S = prod(
-            trans(rThisConstitutiveVariables.D), rThisConstitutiveVariables.E);
+        rThisConstitutiveVariables.S = prod(trans(rThisConstitutiveVariables.D), rThisConstitutiveVariables.E);
 
         KRATOS_CATCH("")
     }
@@ -592,9 +596,9 @@ namespace Kratos
     {
         double thickness = GetProperties().GetValue(THICKNESS);
                 
-        rStrainVectorRM[0] = thickness/2.0*mZeta *inner_prod(rDw_D1, rg1);     // MLt
-        rStrainVectorRM[1] = thickness/2.0*mZeta *inner_prod(rDw_D2, rg2);     // MLt
-        rStrainVectorRM[2] = thickness/2.0*mZeta * 0.5 *(inner_prod(rDw_D1, rg2) + inner_prod(rDw_D2, rg1));     // MLt
+        rStrainVectorRM[0] = thickness/2.0*mZeta *inner_prod(rDw_D1, rg1);
+        rStrainVectorRM[1] = thickness/2.0*mZeta *inner_prod(rDw_D2, rg2);
+        rStrainVectorRM[2] = thickness/2.0*mZeta * 0.5 *(inner_prod(rDw_D1, rg2) + inner_prod(rDw_D2, rg1));
         rStrainVectorRM[3] = 0.5 *inner_prod(rw, rg2);
         rStrainVectorRM[4] = 0.5 *inner_prod(rw, rg1);
     }
@@ -631,250 +635,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void IgaShell5pElementStuttgart::CalculateB(
-        Matrix& rB,
-        const MetricVariables& rMetric)
-    {
-        const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-        const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
-        const double thickness = GetProperties().GetValue(THICKNESS);
-
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int mat_size_KL = number_of_nodes * 3;
-        const unsigned int mat_size = number_of_nodes * 5;
-
-        // membrane part
-        for (unsigned int r = 0; r < mat_size; r++)
-        {
-            // local node number kr and dof direction dirr
-            int kr = r / 5;
-            int dirr = r % 5;
-
-            Vector dE_curvilinear = ZeroVector(3);
-            // "if" guarantees that there are zero entries corresponding to the new parameters w_1 and w_2
-            if (dirr == 0 || dirr == 1 || dirr == 2)
-            {
-                // strain corresponding to E11, E22, E12
-                dE_curvilinear[0] = DN_De(kr, 0)*rMetric.a1(dirr);
-                dE_curvilinear[1] = DN_De(kr, 1)*rMetric.a2(dirr);
-                dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*rMetric.a2(dirr) + rMetric.a1(dirr)*DN_De(kr, 1));
-            }
-            // calculated with simplified Q (ML)
-            rB(0, r) += mInitialMetric.Q(0, 0) * dE_curvilinear[0] + mInitialMetric.Q(0, 1)*dE_curvilinear[1] 
-                + mInitialMetric.Q(0, 2)*dE_curvilinear[2] ;
-            rB(1, r) += mInitialMetric.Q(1, 0) * dE_curvilinear[0] + mInitialMetric.Q(1, 1) * dE_curvilinear[1] 
-                + mInitialMetric.Q(1, 2) * dE_curvilinear[2];
-            rB(2, r) += mInitialMetric.Q(2, 0)*dE_curvilinear[0] + mInitialMetric.Q(2, 1)*dE_curvilinear[1] 
-                + mInitialMetric.Q(2, 2)*dE_curvilinear[2];
-
-            // all other entries of rB are (remain) zero
-            
-        }
-
-        // curvature part
-        Matrix dg3 = ZeroMatrix(3, 3);
-        Matrix dn = ZeroMatrix(3, 3);
-        Matrix b = ZeroMatrix(3, mat_size_KL);
-
-        double invdA = 1 / rMetric.dA;
-        double inddA3 = 1 / std::pow(rMetric.dA, 3);
-
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            unsigned int index_KL = 3 * i;
-            unsigned int index = 5 * i;
-            //first line
-            dg3(0, 0) = 0;
-            dg3(0, 1) = -DN_De(i, 0) * rMetric.a2[2] + DN_De(i, 1)*rMetric.a1[2];
-            dg3(0, 2) = DN_De(i, 0) * rMetric.a2[1] - DN_De(i, 1)*rMetric.a1[1];
-
-            //second line
-            dg3(1, 0) = DN_De(i, 0) * rMetric.a2[2] - DN_De(i, 1)*rMetric.a1[2];
-            dg3(1, 1) = 0;
-            dg3(1, 2) = -DN_De(i, 0)*rMetric.a2[0] + DN_De(i, 1)*rMetric.a1[0];
-
-            //third line
-            dg3(2, 0) = -DN_De(i, 0) * rMetric.a2[1] + DN_De(i, 1) * rMetric.a1[1];
-            dg3(2, 1) = DN_De(i, 0) * rMetric.a2[0] - DN_De(i, 1) * rMetric.a1[0];
-            dg3(2, 2) = 0;
-
-            for (unsigned int j = 0; j < 3; j++)
-            {
-                double g3dg3lg3 = (rMetric.a3_tilde[0] * dg3(j, 0) + rMetric.a3_tilde[1] * dg3(j, 1) + rMetric.a3_tilde[2] * dg3(j, 2))*inddA3;
-
-                dn(j, 0) = dg3(j, 0)*invdA - rMetric.a3_tilde[0] * g3dg3lg3;
-                dn(j, 1) = dg3(j, 1)*invdA - rMetric.a3_tilde[1] * g3dg3lg3;
-                dn(j, 2) = dg3(j, 2)*invdA - rMetric.a3_tilde[2] * g3dg3lg3;
-            }
-
-            // b refers to curvilinear and rB to local cartesian coordinate system
-            // "index" guarantees that there are zero entries corresponding to the new parameters w_1 and w_2
-            for (unsigned int j = 0; j < 3; j++)
-            {
-                for (unsigned int k = 0; k < 3; k++)
-                {
-                    b(k, index_KL + j) = - mZeta * thickness / 2.0 * (DDN_DDe(i, k) * rMetric.a3_KL[j] + rMetric.H(0, k) * dn(j, 0) 
-                    + rMetric.H(1, k) * dn(j, 1) + rMetric.H(2, k) * dn(j, 2));
-                }
-                rB(0, index + j) += mInitialMetric.Q(0, 0) * b(0, index_KL + j);
-                rB(1, index + j) += mInitialMetric.Q(1, 0) * b(0, index_KL + j) + mInitialMetric.Q(1, 1) * b(1, index_KL + j)
-                    + mInitialMetric.Q(1, 2) * b(2, index_KL + j);
-                rB(2, index + j) += mInitialMetric.Q(2, 0) * b(0, index_KL + j) + mInitialMetric.Q(2, 2) * b(2, index_KL + j);
-            }
-        }
-    }
-
-    void IgaShell5pElementStuttgart::CalculateSecondVariations(
-        SecondVariations& rSecondVariations,
-        const MetricVariables& rMetric)
-    {
-        if (Has(SHAPE_FUNCTION_LOCAL_DERIVATIVES) && Has(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES))
-        {
-            const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-            const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
-            const double thickness = GetProperties().GetValue(THICKNESS);
-
-            const int number_of_nodes = GetGeometry().size();
-            const int mat_size_KL = number_of_nodes * 3;
-            const int mat_size = number_of_nodes * 5;
-           
-            double lg3_3 = pow(rMetric.dA, 3);
-            double lg3_5 = pow(rMetric.dA, 5);
-            double inv_lg3 = 1 / rMetric.dA;
-            double inv_lg3_3 = 1 / lg3_3;
-            double inv_lg3_5 = 1 / lg3_5;
-
-            SecondVariations second_variations_KL(mat_size_KL);
-            Matrix S_dg3 = ZeroMatrix(3, mat_size_KL);
-            Vector S_g3dg3 = ZeroVector(mat_size_KL);
-            Vector S_g3dg3lg3_3 = ZeroVector(mat_size_KL);
-            Matrix S_dn = ZeroMatrix(3, mat_size_KL);
-            // first variation of strain and curvature w.r.t. dof
-            for (int r = 0; r < mat_size_KL; r++)
-            {
-                // local node number kr and dof direction dirr
-                int kr = r / 3;
-                int dirr = r % 3;
-
-                array_1d<double, 3> S_dg_1 = ZeroVector(3);
-                array_1d<double, 3> S_dg_2 = ZeroVector(3);
-                S_dg_1(dirr) = DN_De(kr, 0);
-                S_dg_2(dirr) = DN_De(kr, 1);
-
-                // curvature
-                S_dg3(0, r) = S_dg_1(1)*rMetric.a2(2) - S_dg_1(2)*rMetric.a2(1) + rMetric.a1(1)*S_dg_2(2) - rMetric.a1(2)*S_dg_2(1);
-                S_dg3(1, r) = S_dg_1(2)*rMetric.a2(0) - S_dg_1(0)*rMetric.a2(2) + rMetric.a1(2)*S_dg_2(0) - rMetric.a1(0)*S_dg_2(2);
-                S_dg3(2, r) = S_dg_1(0)*rMetric.a2(1) - S_dg_1(1)*rMetric.a2(0) + rMetric.a1(0)*S_dg_2(1) - rMetric.a1(1)*S_dg_2(0);
-
-                S_g3dg3[r] = rMetric.a3_tilde[0] * S_dg3(0, r) + rMetric.a3_tilde[1] * S_dg3(1, r) + rMetric.a3_tilde[2] * S_dg3(2, r);
-                S_g3dg3lg3_3[r] = S_g3dg3[r] * inv_lg3_3;
-
-                S_dn(0, r) = S_dg3(0, r)*inv_lg3 - rMetric.a3_tilde[0] * S_g3dg3lg3_3[r];
-                S_dn(1, r) = S_dg3(1, r)*inv_lg3 - rMetric.a3_tilde[1] * S_g3dg3lg3_3[r];
-                S_dn(2, r) = S_dg3(2, r)*inv_lg3 - rMetric.a3_tilde[2] * S_g3dg3lg3_3[r];
-            }
-
-            // second variation of strain and curvature w.r.t. dofs
-            for (int r = 0; r < mat_size_KL; r++)
-            {
-                // local node number kr and dof direction dirr
-                int kr = r / 3;
-                int dirr = r % 3;
-
-                for (int s = 0; s <= r; s++)
-                {
-                    // local node number ks and dof direction dirs
-                    int ks = s / 3;
-                    int dirs = s % 3;
-
-                    // strain
-                    array_1d<double, 3> ddE_cu = ZeroVector(3);
-                    if (dirr == dirs)
-                    {
-                        ddE_cu[0] = DN_De(kr, 0)*DN_De(ks, 0);
-                        ddE_cu[1] = DN_De(kr, 1)*DN_De(ks, 1);
-                        ddE_cu[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
-
-                        // calculated with simplified Q (ML)
-                        second_variations_KL.B11(r, s) += mInitialMetric.Q(0, 0) * ddE_cu[0];
-                        second_variations_KL.B22(r, s) += mInitialMetric.Q(1, 0) * ddE_cu[0] + mInitialMetric.Q(1, 1) * ddE_cu[1]
-                            + mInitialMetric.Q(1, 2) * ddE_cu[2];
-                        second_variations_KL.B12(r, s) += mInitialMetric.Q(2, 0) * ddE_cu[0] + mInitialMetric.Q(2, 2) * ddE_cu[2];
-                        if (r != s){
-                            second_variations_KL.B11(s, r) += second_variations_KL.B11(r, s);
-                            second_variations_KL.B22(s, r) += second_variations_KL.B22(r, s);
-                            second_variations_KL.B12(s, r) += second_variations_KL.B12(r, s);
-                        }
-                    }
-
-                    // curvature
-                    array_1d<double, 3> ddg3 = ZeroVector(3);
-                    int dirt = 4 - dirr - dirs;
-                    int ddir = dirr - dirs;
-                    if (ddir == -1)      ddg3(dirt - 1) = DN_De(kr, 0)*DN_De(ks, 1) - DN_De(ks, 0)*DN_De(kr, 1);
-                    else if (ddir == 2) ddg3(dirt - 1) = DN_De(kr, 0)*DN_De(ks, 1) - DN_De(ks, 0)*DN_De(kr, 1);
-                    else if (ddir == 1) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
-                    else if (ddir == -2) ddg3(dirt - 1) = -DN_De(kr, 0)*DN_De(ks, 1) + DN_De(ks, 0)*DN_De(kr, 1);
-
-                    double c = -(ddg3[0] * rMetric.a3_tilde[0] + ddg3[1] * rMetric.a3_tilde[1] + ddg3[2] * rMetric.a3_tilde[2]
-                        + S_dg3(0, r)*S_dg3(0, s) + S_dg3(1, r)*S_dg3(1, s) + S_dg3(2, r)*S_dg3(2, s)
-                        )*inv_lg3_3;
-
-                    double d = 3.0*S_g3dg3[r] * S_g3dg3[s] * inv_lg3_5;
-
-                    array_1d<double, 3> ddn = ZeroVector(3);
-                    ddn[0] = ddg3[0] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(0, r) - S_g3dg3lg3_3[r] * S_dg3(0, s) + (c + d)*rMetric.a3_tilde[0];
-                    ddn[1] = ddg3[1] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(1, r) - S_g3dg3lg3_3[r] * S_dg3(1, s) + (c + d)*rMetric.a3_tilde[1];
-                    ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rMetric.a3_tilde[2];
-
-                    array_1d<double, 3> ddK_cu = ZeroVector(3);
-                    ddK_cu[0] = mZeta * thickness / 2.0 * (DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)
-                        + rMetric.H(0, 0)*ddn[0] + rMetric.H(1, 0)*ddn[1] + rMetric.H(2, 0)*ddn[2]);
-                    ddK_cu[1] = mZeta * thickness / 2.0 * (DDN_DDe(kr, 1)*S_dn(dirr, s) + DDN_DDe(ks, 1)*S_dn(dirs, r)
-                        + rMetric.H(0, 1)*ddn[0] + rMetric.H(1, 1)*ddn[1] + rMetric.H(2, 1)*ddn[2]);
-                    ddK_cu[2] = mZeta * thickness / 2.0 * (DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)
-                        + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2]);
-
-                    // calculated with simplified Q (ML)
-                    second_variations_KL.B11(r, s) += mInitialMetric.Q(0, 0) * ddK_cu[0];
-                    second_variations_KL.B22(r, s) += mInitialMetric.Q(1, 0) * ddK_cu[0] + mInitialMetric.Q(1, 1) * ddK_cu[1] 
-                        + mInitialMetric.Q(1, 2) * ddK_cu[2];
-                    second_variations_KL.B12(r, s) += mInitialMetric.Q(2, 0) * ddK_cu[0] + mInitialMetric.Q(2, 2) * ddK_cu[2];
-                    if (r != s){
-                        second_variations_KL.B11(s, r) += second_variations_KL.B11(r, s);
-                        second_variations_KL.B22(s, r) += second_variations_KL.B22(r, s);
-                        second_variations_KL.B12(s, r) += second_variations_KL.B12(r, s);
-                    }
-                }
-            }
-
-            // transfer KL-second-variations to RM-second-variations
-            for (unsigned int r = 0; r < mat_size; r++) {
-                unsigned int kr = r / 5;
-                unsigned int dirr = r % 5;
-                unsigned int r_KL = kr * 3 + dirr;
-                if (dirr != 3 || dirr != 4){
-                    for (unsigned int s = 0; s < mat_size; s++){
-                        unsigned int ks = s / 5;
-                        unsigned int dirs = s % 5;
-                        unsigned int s_KL = ks * 3 + dirs;
-                        if (dirs != 3 || dirs != 4){
-                            rSecondVariations.B11(r, s) += second_variations_KL.B11(r_KL, s_KL);
-                            rSecondVariations.B22(r, s) += second_variations_KL.B22(r_KL, s_KL);
-                            rSecondVariations.B12(r, s) += second_variations_KL.B12(r_KL, s_KL);               
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     void IgaShell5pElementStuttgart::boperator_nln_linearisiert(        
         Matrix& rB,
         array_1d<double, 5>& Egl,
         const MetricVariables& rActualMetric,
         const bool& rCalculateStiffnessMatrixFlag)
     {
+        if(Id()==5 && mcount==1)
+           KRATOS_WATCH("second iteration, fifth element")
         const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
         const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
@@ -1178,6 +946,16 @@ namespace Kratos
                                             - mZeta*(s_deriv(count2, 2)*a3_KL[i] + thickness/2.0*(da1_dT2[0]*da3[0] + da1_dT2[1]*da3[1] + da1_dT2[2]*da3[2]));
                 dE_cur_help[1] = deriv(count2, 1)*a2[i] - mZeta*(s_deriv(count2, 1)*a3_KL[i] + thickness/2.0*(da2_dT2[0]*da3[0] + da2_dT2[1]*da3[1] + da2_dT2[2]*da3[2]))  ;
             }
+
+            // ML0
+            if(Id()==1 && count1==0 && mcount==1){
+                KRATOS_WATCH(dE_cur_help[0])
+            }
+            if(Id()==1 && mcount==1 && (j*5+i)==3){
+                KRATOS_WATCH(rB(3, j*5+i))
+                KRATOS_WATCH(rB(4, j*5+i))
+            }
+
             rB(0, j*5 + i) += mInitialMetric.Q(0, 0) * dE_cur_help[0] + mInitialMetric.Q(0, 1) * dE_cur_help[1] + 
                 mInitialMetric.Q(0, 2) * dE_cur_help[2] + mInitialMetric.Q(0, 3) * dE_cur_help[3] + mInitialMetric.Q(0, 4) * dE_cur_help[4];
             rB(1, j*5 + i) += mInitialMetric.Q(1, 0) * dE_cur_help[0] + mInitialMetric.Q(1, 1) * dE_cur_help[1] + 
@@ -1188,6 +966,10 @@ namespace Kratos
                 mInitialMetric.Q(3, 2) * dE_cur_help[2] + mInitialMetric.Q(3, 3) * dE_cur_help[3] + mInitialMetric.Q(3, 4) * dE_cur_help[4];
             rB(4, j*5 + i) += mInitialMetric.Q(4, 0) * dE_cur_help[0] + mInitialMetric.Q(4, 1) * dE_cur_help[1] + 
                 mInitialMetric.Q(4, 2) * dE_cur_help[2] + mInitialMetric.Q(4, 3) * dE_cur_help[3] + mInitialMetric.Q(4, 4) * dE_cur_help[4];
+            if(Id()==1 && mcount==1 && (j*5+i)==3){
+                KRATOS_WATCH(rB(3, j*5+i))
+                KRATOS_WATCH(rB(4, j*5+i))
+            }
             }
             count2 ++;
         }
@@ -1323,6 +1105,12 @@ namespace Kratos
                 a2_dr[0] = 0;
                 a2_dr[1] = 0;
                 a2_dr[2] = 0;
+
+                da1_dT1_dr = ZeroVector(3);     // MLFÄ
+                da1_dT2_dr = ZeroVector(3);     // MLFÄ
+                da2_dT1_dr = ZeroVector(3);     // MLFÄ
+                da2_dT2_dr = ZeroVector(3);     // MLFÄ
+
                 dw_1_dr = funct[count2];
                 dw_2_dr = 0.0;
                 dw_1dT1_dr = deriv(count2, 0);
@@ -1338,6 +1126,12 @@ namespace Kratos
                 a2_dr[0] = 0;
                 a2_dr[1] = 0;
                 a2_dr[2] = 0;
+
+                da1_dT1_dr = ZeroVector(3);     // MLFÄ
+                da1_dT2_dr = ZeroVector(3);     // MLFÄ
+                da2_dT1_dr = ZeroVector(3);     // MLFÄ
+                da2_dT2_dr = ZeroVector(3);     // MLFÄ
+
                 dw_1_dr = 0.0;
                 dw_2_dr = funct[count2];
                 dw_1dT1_dr = 0.0;
@@ -1355,12 +1149,20 @@ namespace Kratos
 
             array_1d<double, 5> dE_cur_help = ZeroVector(5);
 
-            dE_cur_help[0] = thickness/2.0*mZeta *(inner_prod(a1_dr, dw_dT1) + inner_prod(a1, dw_dT1_dr));     // MLt
-            dE_cur_help[2] = thickness/2.0*0.5 * mZeta*(inner_prod(a1_dr, dw_dT2) + inner_prod(a1, dw_dT2_dr) + inner_prod(a2_dr, dw_dT1) + inner_prod(a2, dw_dT1_dr));     // MLt
-            dE_cur_help[1] = thickness/2.0*mZeta*(inner_prod(a2_dr, dw_dT2) + inner_prod(a2, dw_dT2_dr));     // MLt
+            dE_cur_help[0] = mZeta *(inner_prod(a1_dr, dw_dT1) + inner_prod(a1, dw_dT1_dr));     // MLt
+            dE_cur_help[2] = 0.5 * mZeta*(inner_prod(a1_dr, dw_dT2) + inner_prod(a1, dw_dT2_dr) + inner_prod(a2_dr, dw_dT1) + inner_prod(a2, dw_dT1_dr));     // MLt
+            dE_cur_help[1] = mZeta*(inner_prod(a2_dr, dw_dT2) + inner_prod(a2, dw_dT2_dr));     // MLt
             dE_cur_help[4] = 0.5 *(inner_prod(dw_dr, a1) + inner_prod(w, a1_dr));
             dE_cur_help[3] = 0.5 *(inner_prod(dw_dr, a2) + inner_prod(w, a2_dr));
 
+            if(Id()==1 && count1==0 && mcount==1){
+                KRATOS_WATCH(dE_cur_help[0])
+
+            }
+            if(Id()==1 && mcount==1 && (j*5+i)==3){
+                KRATOS_WATCH(rB(3, j*5+i))
+                KRATOS_WATCH(rB(4, j*5+i))
+            }
             rB(0, count1) += mInitialMetric.Q(0, 0) * dE_cur_help[0] + mInitialMetric.Q(0, 1) * dE_cur_help[1] + 
                 mInitialMetric.Q(0, 2) * dE_cur_help[2] + mInitialMetric.Q(0, 3) * dE_cur_help[3] + mInitialMetric.Q(0, 4) * dE_cur_help[4];
             rB(1, count1) += mInitialMetric.Q(1, 0) * dE_cur_help[0] + mInitialMetric.Q(1, 1) * dE_cur_help[1] + 
@@ -1371,6 +1173,10 @@ namespace Kratos
                 mInitialMetric.Q(3, 2) * dE_cur_help[2] + mInitialMetric.Q(3, 3) * dE_cur_help[3] + mInitialMetric.Q(3, 4) * dE_cur_help[4];
             rB(4, count1) += mInitialMetric.Q(4, 0) * dE_cur_help[0] + mInitialMetric.Q(4, 1) * dE_cur_help[1] + 
                 mInitialMetric.Q(4, 2) * dE_cur_help[2] + mInitialMetric.Q(4, 3) * dE_cur_help[3] + mInitialMetric.Q(4, 4) * dE_cur_help[4];
+            if(Id()==1 && mcount==1 && (j*5+i)==3){
+                KRATOS_WATCH(rB(3, j*5+i))
+                KRATOS_WATCH(rB(4, j*5+i))
+            }
 
         // #if 0
         //     /* zusaetzlicher Term in den Schubverzerrungen, linear in theta^3 */
@@ -1401,6 +1207,10 @@ namespace Kratos
             v_d2[2] += deriv(k, 1) * GetGeometry()[k].GetDof(DISPLACEMENT_Z, pos + 2).GetSolutionStepValue();
         }
 
+        array_1d<double, 3> Egl_KL_test = ZeroVector(3);
+        Egl_KL_test[0] = 0.5 * (rActualMetric.a_ab[0] - mInitialMetric.a_ab[0]) + mZeta * thickness / 2.0 * (mInitialMetric.curvature[0] - rActualMetric.curvature[0]);
+        Egl_KL_test[1] = 0.5 * (rActualMetric.a_ab[1] - mInitialMetric.a_ab[1]) + mZeta * thickness / 2.0 * (mInitialMetric.curvature[1] - rActualMetric.curvature[1]);
+        Egl_KL_test[2] = 0.5 * (rActualMetric.a_ab[2] - mInitialMetric.a_ab[2]) + mZeta * thickness / 2.0 * (mInitialMetric.curvature[2] - rActualMetric.curvature[2]);
         /* Berechnung der Green-Lagrange Verzerrungen (Voigt-Notation), Anteile von KL(3p)-Schale */
         /* E11 */
         Egl[0] = A1[0]*v_d1[0]+A1[1]*v_d1[1]+A1[2]*v_d1[2] + 0.5*(v_d1[0]*v_d1[0]+v_d1[1]*v_d1[1]+v_d1[2]*v_d1[2])
@@ -1416,17 +1226,13 @@ namespace Kratos
         Egl[1] = A2[0]*v_d2[0]+A2[1]*v_d2[1]+A2[2]*v_d2[2] + 0.5*(v_d2[0]*v_d2[0]+v_d2[1]*v_d2[1]+v_d2[2]*v_d2[2])
                 + mZeta*(da3_dT2[0]*v_d2[0]+da3_dT2[1]*v_d2[1]+da3_dT2[2]*v_d2[2]+A2[0]*(da3_dT2[0]-dA3_dT2[0])+A2[1]*(da3_dT2[1]-dA3_dT2[1])+A2[2]*(da3_dT2[2]-dA3_dT2[2]));
 
-
-
-
-
         /* Zusatzanteile in Green-Lagrange Verzerrungen durch hier. 5-Parameter-Kinematik */
         /* E11 */
-        Egl[0] = Egl[0] + thickness/2.0*mZeta*0.5*(inner_prod(a1, dw_dT1) + inner_prod(a1, dw_dT1));    // MLt
+        Egl[0] = Egl[0] + mZeta*0.5*(inner_prod(a1, dw_dT1) + inner_prod(a1, dw_dT1));    // MLt
         /* 2*E12 */
-        Egl[2] = Egl[1] + thickness/2.0*0.5 * mZeta*1.0*(inner_prod(a1, dw_dT2) + inner_prod(a2, dw_dT1));    // MLt
+        Egl[2] = Egl[2] + 0.5 * mZeta*1.0*(inner_prod(a1, dw_dT2) + inner_prod(a2, dw_dT1));    // MLt
         /* E22 */
-        Egl[1] = Egl[2] + thickness/2.0*mZeta*0.5*(inner_prod(a2, dw_dT2) + inner_prod(a2, dw_dT2));    // MLt
+        Egl[1] = Egl[1] + mZeta*0.5*(inner_prod(a2, dw_dT2) + inner_prod(a2, dw_dT2));    // MLt
         /* 2*E13 */
         Egl[4] =  0.5 * inner_prod(w, a1);
         /* 2*E23 */
@@ -1576,8 +1382,8 @@ namespace Kratos
             dw1_dT1 += deriv(m, 0) * GetGeometry()[m].GetDof(ROTATION_X, pos + 3).GetSolutionStepValue();
             dw1_dT2 += deriv(m, 1) * GetGeometry()[m].GetDof(ROTATION_X, pos + 3).GetSolutionStepValue();
 
-            dw2_dT1 += deriv(m, 0) * GetGeometry()[m].GetDof(ROTATION_X, pos + 4).GetSolutionStepValue();
-            dw2_dT2 += deriv(m, 1) * GetGeometry()[m].GetDof(ROTATION_X, pos + 4).GetSolutionStepValue();
+            dw2_dT1 += deriv(m, 0) * GetGeometry()[m].GetDof(ROTATION_Y, pos + 4).GetSolutionStepValue();
+            dw2_dT2 += deriv(m, 1) * GetGeometry()[m].GetDof(ROTATION_Y, pos + 4).GetSolutionStepValue();
         }
 
         dw_dT1 = dw1_dT1 * a1 + w1 * da1_dT1 + dw2_dT1 * a2 + w2 * da2_dT1;
@@ -1649,578 +1455,594 @@ namespace Kratos
         Matrix dE13_dkl = ZeroMatrix(num_node * dof_per_node, num_node * dof_per_node); // Verzerrung E13 nach FHG abgeleitet
         Matrix dE23_dkl = ZeroMatrix(num_node * dof_per_node, num_node * dof_per_node); // Verzerrung E23 nach FHG abgeleitet
 
+        // MLout
+        std::ofstream myfile;
+        if(Id()==5 && mcount==1 && mZeta < 0)        
+            myfile.open("B13-5pSt.csv");
         for (k = 0; k < num_node; k++)
         {
             for (i = 0; i < dof_per_node; i++)
             {
-            for (l = 0; l < num_node; l++)
-            {
-                for (j = 0; j < dof_per_node; j++)
+                for (l = 0; l < num_node; l++)
                 {
-                /* Anteile aus 3p-Formulierung (nicht veraendert) */
-                if (i < 3 && j < 3)
-                {
-                if (i == 0)
-                {
-                    da1k[0] = deriv(k, 0);
-                    da1k[1] = 0;
-                    da1k[2] = 0;
-                    da2k[0] =deriv(k, 1);
-                    da2k[1] = 0;
-                    da2k[2] = 0;
-                }
-                else if (i == 1)
-                {
-                    da1k[0] = 0;
-                    da1k[1] = deriv(k, 0);
-                    da1k[2] = 0;
-                    da2k[0] = 0;
-                    da2k[1] = deriv(k, 1);
-                    da2k[2] = 0;
-                }
-                else
-                {
-                    da1k[0] = 0;
-                    da1k[1] = 0;
-                    da1k[2] = deriv(k, 0);
-                    da2k[0] = 0;
-                    da2k[1] = 0;
-                    da2k[2] = deriv(k, 1);
-                }
-
-                da1xa2k = CrossProduct(da1k, a2) + CrossProduct(a1, da2k);
-                da1xa2k_a1xa2 = (da1xa2k[0] * a1xa2[0] + da1xa2k[1] * a1xa2[1] + da1xa2k[2] * a1xa2[2]);
-                da1xa2k_a1xa2_hact = da1xa2k_a1xa2 / (hact * hact * hact);
-                da3k[0] = da1xa2k[0] / hact - a1xa2[0] * da1xa2k_a1xa2_hact;
-                da3k[1] = da1xa2k[1] / hact - a1xa2[1] * da1xa2k_a1xa2_hact;
-                da3k[2] = da1xa2k[2] / hact - a1xa2[2] * da1xa2k_a1xa2_hact;
-
-                if (j == 0)
-                {
-                    da1l[0] = deriv(l, 0);
-                    da1l[1] = 0;
-                    da1l[2] = 0;
-                    da2l[0] = deriv(l, 1);
-                    da2l[1] = 0;
-                    da2l[2] = 0;
-                }
-                else if (j == 1)
-                {
-                    da1l[0] = 0;
-                    da1l[1] = deriv(l, 0);
-                    da1l[2] = 0;
-                    da2l[0] = 0;
-                    da2l[1] = deriv(l, 1);
-                    da2l[2] = 0;
-                }
-                else
-                {
-                    da1l[0] = 0;
-                    da1l[1] = 0;
-                    da1l[2] = deriv(l, 0);
-                    da2l[0] = 0;
-                    da2l[1] = 0;
-                    da2l[2] = deriv(l, 1);
-                }
-
-                da1xa2l = CrossProduct(da1l, a2) + CrossProduct(a1, da2l);
-                da1xa2l_a1xa2 = (da1xa2l[0] * a1xa2[0] + da1xa2l[1] * a1xa2[1] + da1xa2l[2] * a1xa2[2]);
-                da1xa2l_a1xa2_hact = da1xa2l_a1xa2 / (hact * hact * hact);
-                da3l[0] = da1xa2l[0] / hact - a1xa2[0] * da1xa2l_a1xa2_hact;
-                da3l[1] = da1xa2l[1] / hact - a1xa2[1] * da1xa2l_a1xa2_hact;
-                da3l[2] = da1xa2l[2] / hact - a1xa2[2] * da1xa2l_a1xa2_hact;
-
-                if (i == 0)
-                {
-                    if (j == 0)
+                    for (j = 0; j < dof_per_node; j++)
                     {
-                    dda1xa2kl[0] = 0;
-                    dda1xa2kl[1] = 0;
-                    dda1xa2kl[2] = 0;
-                    }
-                    else if (j == 1)
-                    {
-                    dda1xa2kl[0] = 0;
-                    dda1xa2kl[1] = 0;
-                    dda1xa2kl[2] = deriv(k, 0) * deriv(l, 1) - deriv(l, 0) *deriv(k, 1);
-                    }
-                    else if (j == 2)
-                    {
-                    dda1xa2kl[0] = 0;
-                    dda1xa2kl[1] = -deriv(k, 0) * deriv(l, 1) + deriv(l, 0) *deriv(k, 1);
-                    dda1xa2kl[2] = 0;
-                    }
-                }
+                        /* Anteile aus 3p-Formulierung (nicht veraendert) */
+                        if (i < 3 && j < 3)
+                        {
+                        if (i == 0)
+                        {
+                            da1k[0] = deriv(k, 0);
+                            da1k[1] = 0;
+                            da1k[2] = 0;
+                            da2k[0] =deriv(k, 1);
+                            da2k[1] = 0;
+                            da2k[2] = 0;
+                        }
+                        else if (i == 1)
+                        {
+                            da1k[0] = 0;
+                            da1k[1] = deriv(k, 0);
+                            da1k[2] = 0;
+                            da2k[0] = 0;
+                            da2k[1] = deriv(k, 1);
+                            da2k[2] = 0;
+                        }
+                        else
+                        {
+                            da1k[0] = 0;
+                            da1k[1] = 0;
+                            da1k[2] = deriv(k, 0);
+                            da2k[0] = 0;
+                            da2k[1] = 0;
+                            da2k[2] = deriv(k, 1);
+                        }
 
-                else if (i == 1)
-                {
-                    if (j == 0)
-                    {
-                    dda1xa2kl[0] = 0;
-                    dda1xa2kl[1] = 0;
-                    dda1xa2kl[2] = -deriv(k, 0) * deriv(l, 1) + deriv(l, 0) *deriv(k, 1);
-                    }
-                    else if (j == 1)
-                    {
-                    dda1xa2kl[0] = 0;
-                    dda1xa2kl[1] = 0;
-                    dda1xa2kl[2] = 0;
-                    }
-                    else if (j == 2)
-                    {
-                    dda1xa2kl[0] = deriv(k, 0) * deriv(l, 1) - deriv(l, 0) *deriv(k, 1);
-                    dda1xa2kl[1] = 0;
-                    dda1xa2kl[2] = 0;
-                    }
-                }
+                        da1xa2k = CrossProduct(da1k, a2) + CrossProduct(a1, da2k);
+                        da1xa2k_a1xa2 = (da1xa2k[0] * a1xa2[0] + da1xa2k[1] * a1xa2[1] + da1xa2k[2] * a1xa2[2]);
+                        da1xa2k_a1xa2_hact = da1xa2k_a1xa2 / (hact * hact * hact);
+                        da3k[0] = da1xa2k[0] / hact - a1xa2[0] * da1xa2k_a1xa2_hact;
+                        da3k[1] = da1xa2k[1] / hact - a1xa2[1] * da1xa2k_a1xa2_hact;
+                        da3k[2] = da1xa2k[2] / hact - a1xa2[2] * da1xa2k_a1xa2_hact;
 
-                else
-                {
-                    if (j == 0)
-                    {
-                    dda1xa2kl[0] = 0;
-                    dda1xa2kl[1] = deriv(k, 0) * deriv(l, 1) - deriv(l, 0) *deriv(k, 1);
-                    dda1xa2kl[2] = 0;
-                    }
-                    else if (j == 1)
-                    {
-                    dda1xa2kl[0] = -deriv(k, 0) * deriv(l, 1) + deriv(l, 0) *deriv(k, 1);
-                    dda1xa2kl[1] = 0;
-                    dda1xa2kl[2] = 0;
-                    }
-                    else
-                    {
-                    dda1xa2kl[0] = 0;
-                    dda1xa2kl[1] = 0;
-                    dda1xa2kl[2] = 0;
-                    }
-                }
+                        if (j == 0)
+                        {
+                            da1l[0] = deriv(l, 0);
+                            da1l[1] = 0;
+                            da1l[2] = 0;
+                            da2l[0] = deriv(l, 1);
+                            da2l[1] = 0;
+                            da2l[2] = 0;
+                        }
+                        else if (j == 1)
+                        {
+                            da1l[0] = 0;
+                            da1l[1] = deriv(l, 0);
+                            da1l[2] = 0;
+                            da2l[0] = 0;
+                            da2l[1] = deriv(l, 1);
+                            da2l[2] = 0;
+                        }
+                        else
+                        {
+                            da1l[0] = 0;
+                            da1l[1] = 0;
+                            da1l[2] = deriv(l, 0);
+                            da2l[0] = 0;
+                            da2l[1] = 0;
+                            da2l[2] = deriv(l, 1);
+                        }
 
-                C = -(dda1xa2kl[0] * a1xa2[0] + dda1xa2kl[1] * a1xa2[1]
-                    + dda1xa2kl[2] * a1xa2[2] + da1xa2k[0] * da1xa2l[0]
-                    + da1xa2k[1] * da1xa2l[1] + da1xa2k[2] * da1xa2l[2])
-                    / (hact * hact * hact);
+                        da1xa2l = CrossProduct(da1l, a2) + CrossProduct(a1, da2l);
+                        da1xa2l_a1xa2 = (da1xa2l[0] * a1xa2[0] + da1xa2l[1] * a1xa2[1] + da1xa2l[2] * a1xa2[2]);
+                        da1xa2l_a1xa2_hact = da1xa2l_a1xa2 / (hact * hact * hact);
+                        da3l[0] = da1xa2l[0] / hact - a1xa2[0] * da1xa2l_a1xa2_hact;
+                        da3l[1] = da1xa2l[1] / hact - a1xa2[1] * da1xa2l_a1xa2_hact;
+                        da3l[2] = da1xa2l[2] / hact - a1xa2[2] * da1xa2l_a1xa2_hact;
 
-                D = 3.0 * (da1xa2k_a1xa2) * (da1xa2l_a1xa2) / (hact * hact * hact * hact * hact);
+                        if (i == 0)
+                        {
+                            if (j == 0)
+                            {
+                            dda1xa2kl[0] = 0;
+                            dda1xa2kl[1] = 0;
+                            dda1xa2kl[2] = 0;
+                            }
+                            else if (j == 1)
+                            {
+                            dda1xa2kl[0] = 0;
+                            dda1xa2kl[1] = 0;
+                            dda1xa2kl[2] = deriv(k, 0) * deriv(l, 1) - deriv(l, 0) *deriv(k, 1);
+                            }
+                            else if (j == 2)
+                            {
+                            dda1xa2kl[0] = 0;
+                            dda1xa2kl[1] = -deriv(k, 0) * deriv(l, 1) + deriv(l, 0) *deriv(k, 1);
+                            dda1xa2kl[2] = 0;
+                            }
+                        }
 
-                dda3kl[0] = dda1xa2kl[0] / hact - da1xa2l_a1xa2_hact * da1xa2k[0]
-                            - da1xa2k_a1xa2_hact * da1xa2l[0] + C * a1xa2[0] + D * a1xa2[0];
-                dda3kl[1] = dda1xa2kl[1] / hact - da1xa2l_a1xa2_hact * da1xa2k[1]
-                            - da1xa2k_a1xa2_hact * da1xa2l[1] + C * a1xa2[1] + D * a1xa2[1];
-                dda3kl[2] = dda1xa2kl[2] / hact - da1xa2l_a1xa2_hact * da1xa2k[2]
-                            - da1xa2k_a1xa2_hact * da1xa2l[2] + C * a1xa2[2] + D * a1xa2[2];
+                        else if (i == 1)
+                        {
+                            if (j == 0)
+                            {
+                            dda1xa2kl[0] = 0;
+                            dda1xa2kl[1] = 0;
+                            dda1xa2kl[2] = -deriv(k, 0) * deriv(l, 1) + deriv(l, 0) *deriv(k, 1);
+                            }
+                            else if (j == 1)
+                            {
+                            dda1xa2kl[0] = 0;
+                            dda1xa2kl[1] = 0;
+                            dda1xa2kl[2] = 0;
+                            }
+                            else if (j == 2)
+                            {
+                            dda1xa2kl[0] = deriv(k, 0) * deriv(l, 1) - deriv(l, 0) *deriv(k, 1);
+                            dda1xa2kl[1] = 0;
+                            dda1xa2kl[2] = 0;
+                            }
+                        }
 
-                /* Membrananteil */
-                if (i == j)
-                {
-                    dE11_dkl(5 * k + i, 5 * l + j) = deriv(k, 0) * deriv(l, 0);
-                    dE12_dkl(5 * k + i, 5 * l + j) = 0.5 * (deriv(k, 0) * deriv(l, 1) + deriv(l, 0) *deriv(k, 1));
-                    dE22_dkl(5 * k + i, 5 * l + j) =deriv(k, 1) * deriv(l, 1);
-                }
-                else
-                {
-                    dE11_dkl(5 * k + i, 5 * l + j) = 0;
-                    dE12_dkl(5 * k + i, 5 * l + j) = 0;
-                    dE22_dkl(5 * k + i, 5 * l + j) = 0;
-                }
+                        else
+                        {
+                            if (j == 0)
+                            {
+                            dda1xa2kl[0] = 0;
+                            dda1xa2kl[1] = deriv(k, 0) * deriv(l, 1) - deriv(l, 0) *deriv(k, 1);
+                            dda1xa2kl[2] = 0;
+                            }
+                            else if (j == 1)
+                            {
+                            dda1xa2kl[0] = -deriv(k, 0) * deriv(l, 1) + deriv(l, 0) *deriv(k, 1);
+                            dda1xa2kl[1] = 0;
+                            dda1xa2kl[2] = 0;
+                            }
+                            else
+                            {
+                            dda1xa2kl[0] = 0;
+                            dda1xa2kl[1] = 0;
+                            dda1xa2kl[2] = 0;
+                            }
+                        }
 
-                /* Kruemmungsanteil */
-                dE11_dkl(5 * k + i, 5 * l + j) = dE11_dkl(5 * k + i, 5 * l + j)
-                    - mZeta * thickness / 2.0
-                        * (s_deriv(k, 0) * da3l[i] + s_deriv(l, 0) * da3k[j]
-                            + da1_dT1[0] * dda3kl[0] + da1_dT1[1] * dda3kl[1]
-                            + da1_dT1[2] * dda3kl[2]);
-                dE12_dkl(5 * k + i, 5 * l + j) = dE12_dkl(5 * k + i, 5 * l + j)
-                    - mZeta * thickness / 2.0
-                        * (s_deriv(k, 2) * da3l[i] + s_deriv(l, 2) * da3k[j]
-                            + da1_dT2[0] * dda3kl[0] + da1_dT2[1] * dda3kl[1]
-                            + da1_dT2[2] * dda3kl[2]);
-                dE22_dkl(5 * k + i, 5 * l + j) = dE22_dkl(5 * k + i, 5 * l + j)
-                    - mZeta * thickness / 2.0
-                        * (s_deriv(k, 1) * da3l[i] + s_deriv(l, 1) * da3k[j]
-                            + da2_dT2[0] * dda3kl[0] + da2_dT2[1] * dda3kl[1]
-                            + da2_dT2[2] * dda3kl[2]);
-                }
+                        C = -(dda1xa2kl[0] * a1xa2[0] + dda1xa2kl[1] * a1xa2[1]
+                            + dda1xa2kl[2] * a1xa2[2] + da1xa2k[0] * da1xa2l[0]
+                            + da1xa2k[1] * da1xa2l[1] + da1xa2k[2] * da1xa2l[2])
+                            / (hact * hact * hact);
 
-                else
-                {
-                /* Anteile aus 5p-Formulierung  */
+                        D = 3.0 * (da1xa2k_a1xa2) * (da1xa2l_a1xa2) / (hact * hact * hact * hact * hact);
 
-                /* initialisieren */
-                dw1_dk = 0.0;
-                dw1_dT1_dk = 0.0;
-                dw1_dT2_dk = 0.0;
+                        dda3kl[0] = dda1xa2kl[0] / hact - da1xa2l_a1xa2_hact * da1xa2k[0]
+                                    - da1xa2k_a1xa2_hact * da1xa2l[0] + C * a1xa2[0] + D * a1xa2[0];
+                        dda3kl[1] = dda1xa2kl[1] / hact - da1xa2l_a1xa2_hact * da1xa2k[1]
+                                    - da1xa2k_a1xa2_hact * da1xa2l[1] + C * a1xa2[1] + D * a1xa2[1];
+                        dda3kl[2] = dda1xa2kl[2] / hact - da1xa2l_a1xa2_hact * da1xa2k[2]
+                                    - da1xa2k_a1xa2_hact * da1xa2l[2] + C * a1xa2[2] + D * a1xa2[2];
 
-                dw2_dk = 0.0;
-                dw2_dT1_dk = 0.0;
-                dw2_dT2_dk = 0.0;
+                        /* Membrananteil */
+                        if (i == j)
+                        {
+                            dE11_dkl(5 * k + i, 5 * l + j) = deriv(k, 0) * deriv(l, 0);
+                            dE12_dkl(5 * k + i, 5 * l + j) = 0.5 * (deriv(k, 0) * deriv(l, 1) + deriv(l, 0) *deriv(k, 1));
+                            dE22_dkl(5 * k + i, 5 * l + j) = deriv(k, 1) * deriv(l, 1);
+                        }
+                        else
+                        {
+                            dE11_dkl(5 * k + i, 5 * l + j) = 0;
+                            dE12_dkl(5 * k + i, 5 * l + j) = 0;
+                            dE22_dkl(5 * k + i, 5 * l + j) = 0;
+                        }
 
-                /* Ableitung nach dem ersten FHG k */
-                if (i == 0)
-                {
-                    da1k[0] = deriv(k, 0);
-                    da1k[1] = 0.0;
-                    da1k[2] = 0.0;
-                    da2k[0] =deriv(k, 1);
-                    da2k[1] = 0.0;
-                    da2k[2] = 0.0;
-                    da11k[0] = s_deriv(k, 0);
-                    da11k[1] = 0.0;
-                    da11k[2] = 0.0;
-                    da12k[0] = s_deriv(k, 2);
-                    da12k[1] = 0.0;
-                    da12k[2] = 0.0;
-                    da22k[0] = s_deriv(k, 1);
-                    da22k[1] = 0.0;
-                    da22k[2] = 0.0;
-                    da21k = da12k;
+                        if(Id()==5 && mcount==1 && k==0 && i==0 && l==1 && j==0)
+                            KRATOS_WATCH(dE11_dkl(0,5))
+                        /* Kruemmungsanteil */
+                        dE11_dkl(5 * k + i, 5 * l + j) = dE11_dkl(5 * k + i, 5 * l + j)
+                            - mZeta * thickness / 2.0
+                                * (s_deriv(k, 0) * da3l[i] + s_deriv(l, 0) * da3k[j]
+                                    + da1_dT1[0] * dda3kl[0] + da1_dT1[1] * dda3kl[1]
+                                    + da1_dT1[2] * dda3kl[2]);
+                        dE12_dkl(5 * k + i, 5 * l + j) = dE12_dkl(5 * k + i, 5 * l + j)
+                            - mZeta * thickness / 2.0
+                                * (s_deriv(k, 2) * da3l[i] + s_deriv(l, 2) * da3k[j]
+                                    + da1_dT2[0] * dda3kl[0] + da1_dT2[1] * dda3kl[1]
+                                    + da1_dT2[2] * dda3kl[2]);
+                        dE22_dkl(5 * k + i, 5 * l + j) = dE22_dkl(5 * k + i, 5 * l + j)
+                            - mZeta * thickness / 2.0
+                                * (s_deriv(k, 1) * da3l[i] + s_deriv(l, 1) * da3k[j]
+                                    + da2_dT2[0] * dda3kl[0] + da2_dT2[1] * dda3kl[1]
+                                    + da2_dT2[2] * dda3kl[2]);
+                        }   // i<3 && j<3 (3p part)
+                        if(Id()==5 && mcount==1 && k==0 && i==0 && l==1 && j==0)
+                            KRATOS_WATCH(dE11_dkl(0,5))
 
-                    dw1_dk = 0.0;
-                    dw1_dT1_dk = 0.0;
-                    dw1_dT2_dk = 0.0;
+                        // else     // MLFÄ
+                        // {        // MLFÄ
+                        /* Anteile aus 5p-Formulierung  */
 
-                    dw2_dk = 0.0;
-                    dw2_dT1_dk = 0.0;
-                    dw2_dT2_dk = 0.0;
-                }
-                else if (i == 1)
-                {
-                    da1k[0] = 0.0;
-                    da1k[1] = deriv(k, 0);
-                    da1k[2] = 0.0;
-                    da2k[0] = 0.0;
-                    da2k[1] =deriv(k, 1);
-                    da2k[2] = 0.0;
-                    da11k[0] = 0.0;
-                    da11k[1] = s_deriv(k, 0);
-                    da11k[2] = 0.0;
-                    da12k[0] = 0.0;
-                    da12k[1] = s_deriv(k, 2);
-                    da12k[2] = 0.0;
-                    da22k[0] = 0.0;
-                    da22k[1] = s_deriv(k, 1);
-                    da22k[2] = 0.0;
-                    da21k = da12k;
+                        /* initialisieren */
+                        dw1_dk = 0.0;
+                        dw1_dT1_dk = 0.0;
+                        dw1_dT2_dk = 0.0;
 
-                    dw1_dk = 0.0;
-                    dw1_dT1_dk = 0.0;
-                    dw1_dT2_dk = 0.0;
+                        dw2_dk = 0.0;
+                        dw2_dT1_dk = 0.0;
+                        dw2_dT2_dk = 0.0;
 
-                    dw2_dk = 0.0;
-                    dw2_dT1_dk = 0.0;
-                    dw2_dT2_dk = 0.0;
-                }
-                else if (i == 2)
-                {
-                    da1k[0] = 0.0;
-                    da1k[1] = 0.0;
-                    da1k[2] = deriv(k, 0);
-                    da2k[0] = 0.0;
-                    da2k[1] = 0.0;
-                    da2k[2] =deriv(k, 1);
-                    da11k[0] = 0.0;
-                    da11k[1] = 0.0;
-                    da11k[2] = s_deriv(k, 0);
-                    da12k[0] = 0.0;
-                    da12k[1] = 0.0;
-                    da12k[2] = s_deriv(k, 2);
-                    da22k[0] = 0.0;
-                    da22k[1] = 0.0;
-                    da22k[2] = s_deriv(k, 1);
-                    da21k = da12k;
+                        /* Ableitung nach dem ersten FHG k */
+                        if (i == 0)
+                        {
+                            da1k[0] = deriv(k, 0);
+                            da1k[1] = 0.0;
+                            da1k[2] = 0.0;
+                            da2k[0] =deriv(k, 1);
+                            da2k[1] = 0.0;
+                            da2k[2] = 0.0;
+                            da11k[0] = s_deriv(k, 0);
+                            da11k[1] = 0.0;
+                            da11k[2] = 0.0;
+                            da12k[0] = s_deriv(k, 2);
+                            da12k[1] = 0.0;
+                            da12k[2] = 0.0;
+                            da22k[0] = s_deriv(k, 1);
+                            da22k[1] = 0.0;
+                            da22k[2] = 0.0;
+                            da21k = da12k;
 
-                    dw1_dk = 0.0;
-                    dw1_dT1_dk = 0.0;
-                    dw1_dT2_dk = 0.0;
+                            dw1_dk = 0.0;
+                            dw1_dT1_dk = 0.0;
+                            dw1_dT2_dk = 0.0;
 
-                    dw2_dk = 0.0;
-                    dw2_dT1_dk = 0.0;
-                    dw2_dT2_dk = 0.0;
-                }
-                else if (i == 3)
-                {
-                    da1k[0] = 0.0;
-                    da1k[1] = 0.0;
-                    da1k[2] = 0.0;
-                    da2k[0] = 0.0;
-                    da2k[1] = 0.0;
-                    da2k[2] = 0.0;
-                    da11k[0] = 0.0;
-                    da11k[1] = 0.0;
-                    da11k[2] = 0.0;
-                    da12k[0] = 0.0;
-                    da12k[1] = 0.0;
-                    da12k[2] = 0.0;
-                    da22k[0] = 0.0;
-                    da22k[1] = 0.0;
-                    da22k[2] = 0.0;
-                    da21k = da12k;
+                            dw2_dk = 0.0;
+                            dw2_dT1_dk = 0.0;
+                            dw2_dT2_dk = 0.0;
+                        }
+                        else if (i == 1)
+                        {
+                            da1k[0] = 0.0;
+                            da1k[1] = deriv(k, 0);
+                            da1k[2] = 0.0;
+                            da2k[0] = 0.0;
+                            da2k[1] =deriv(k, 1);
+                            da2k[2] = 0.0;
+                            da11k[0] = 0.0;
+                            da11k[1] = s_deriv(k, 0);
+                            da11k[2] = 0.0;
+                            da12k[0] = 0.0;
+                            da12k[1] = s_deriv(k, 2);
+                            da12k[2] = 0.0;
+                            da22k[0] = 0.0;
+                            da22k[1] = s_deriv(k, 1);
+                            da22k[2] = 0.0;
+                            da21k = da12k;
 
-                    dw1_dk = funct[k];
-                    dw1_dT1_dk = deriv(k, 0);
-                    dw1_dT2_dk =deriv(k, 1);
+                            dw1_dk = 0.0;
+                            dw1_dT1_dk = 0.0;
+                            dw1_dT2_dk = 0.0;
 
-                    dw2_dk = 0.0;
-                    dw2_dT1_dk = 0.0;
-                    dw2_dT2_dk = 0.0;
-                }
-                else if (i == 4)
-                {
-                    da1k[0] = 0.0;
-                    da1k[1] = 0.0;
-                    da1k[2] = 0.0;
-                    da2k[0] = 0.0;
-                    da2k[1] = 0.0;
-                    da2k[2] = 0.0;
-                    da11k[0] = 0.0;
-                    da11k[1] = 0.0;
-                    da11k[2] = 0.0;
-                    da12k[0] = 0.0;
-                    da12k[1] = 0.0;
-                    da12k[2] = 0.0;
-                    da22k[0] = 0.0;
-                    da22k[1] = 0.0;
-                    da22k[2] = 0.0;
-                    da21k = da12k;
+                            dw2_dk = 0.0;
+                            dw2_dT1_dk = 0.0;
+                            dw2_dT2_dk = 0.0;
+                        }
+                        else if (i == 2)
+                        {
+                            da1k[0] = 0.0;
+                            da1k[1] = 0.0;
+                            da1k[2] = deriv(k, 0);
+                            da2k[0] = 0.0;
+                            da2k[1] = 0.0;
+                            da2k[2] =deriv(k, 1);
+                            da11k[0] = 0.0;
+                            da11k[1] = 0.0;
+                            da11k[2] = s_deriv(k, 0);
+                            da12k[0] = 0.0;
+                            da12k[1] = 0.0;
+                            da12k[2] = s_deriv(k, 2);
+                            da22k[0] = 0.0;
+                            da22k[1] = 0.0;
+                            da22k[2] = s_deriv(k, 1);
+                            da21k = da12k;
 
-                    dw1_dk = 0.0;
-                    dw1_dT1_dk = 0.0;
-                    dw1_dT2_dk = 0.0;
+                            dw1_dk = 0.0;
+                            dw1_dT1_dk = 0.0;
+                            dw1_dT2_dk = 0.0;
 
-                    dw2_dk = funct[k];
-                    dw2_dT1_dk = deriv(k, 0);
-                    dw2_dT2_dk =deriv(k, 1);
-                }
-                
+                            dw2_dk = 0.0;
+                            dw2_dT1_dk = 0.0;
+                            dw2_dT2_dk = 0.0;
+                        }
+                        else if (i == 3)
+                        {
+                            da1k[0] = 0.0;
+                            da1k[1] = 0.0;
+                            da1k[2] = 0.0;
+                            da2k[0] = 0.0;
+                            da2k[1] = 0.0;
+                            da2k[2] = 0.0;
+                            da11k[0] = 0.0;
+                            da11k[1] = 0.0;
+                            da11k[2] = 0.0;
+                            da12k[0] = 0.0;
+                            da12k[1] = 0.0;
+                            da12k[2] = 0.0;
+                            da22k[0] = 0.0;
+                            da22k[1] = 0.0;
+                            da22k[2] = 0.0;
+                            da21k = da12k;
 
-                dw_dk = dw1_dk*a1 + w1*da1k + dw2_dk*a2 + w2*da2k;
-                dw_dT1_dk = dw1_dT1_dk*a1 + dw1_dT1*da1k + dw1_dk*da1_dT1 + w1*da11k
-                            + dw2_dT1_dk*a2 + dw2_dT1*da2k + dw2_dk*da2_dT1 + w2*da21k;
-                dw_dT2_dk = dw1_dT2_dk*a1 + dw1_dT2*da1k + dw1_dk*da1_dT2 + w1*da12k
-                            + dw2_dT2_dk*a2 + dw2_dT2*da2k + dw2_dk*da2_dT2 + w2*da22k;
+                            dw1_dk = funct[k];
+                            dw1_dT1_dk = deriv(k, 0);
+                            dw1_dT2_dk =deriv(k, 1);
 
-                /* initialisieren */
-                dw1_dl = 0.0;
-                dw1_dT1_dl = 0.0;
-                dw1_dT2_dl = 0.0;
+                            dw2_dk = 0.0;
+                            dw2_dT1_dk = 0.0;
+                            dw2_dT2_dk = 0.0;
+                        }
+                        else if (i == 4)
+                        {
+                            da1k[0] = 0.0;
+                            da1k[1] = 0.0;
+                            da1k[2] = 0.0;
+                            da2k[0] = 0.0;
+                            da2k[1] = 0.0;
+                            da2k[2] = 0.0;
+                            da11k[0] = 0.0;
+                            da11k[1] = 0.0;
+                            da11k[2] = 0.0;
+                            da12k[0] = 0.0;
+                            da12k[1] = 0.0;
+                            da12k[2] = 0.0;
+                            da22k[0] = 0.0;
+                            da22k[1] = 0.0;
+                            da22k[2] = 0.0;
+                            da21k = da12k;
 
-                dw2_dl = 0.0;
-                dw2_dT1_dl = 0.0;
-                dw2_dT2_dl = 0.0;
+                            dw1_dk = 0.0;
+                            dw1_dT1_dk = 0.0;
+                            dw1_dT2_dk = 0.0;
 
-                /* Ableitung nach dem zweiten FHG l */
-                if (j == 0)
-                {
-                    da1l[0] = deriv(l, 0);
-                    da1l[1] = 0.0;
-                    da1l[2] = 0.0;
-                    da2l[0] = deriv(l, 1);
-                    da2l[1] = 0.0;
-                    da2l[2] = 0.0;
-                    da11l[0] = s_deriv(l, 0);
-                    da11l[1] = 0.0;
-                    da11l[2] = 0.0;
-                    da12l[0] = s_deriv(l, 2);
-                    da12l[1] = 0.0;
-                    da12l[2] = 0.0;
-                    da22l[0] = s_deriv(l, 1);
-                    da22l[1] = 0.0;
-                    da22l[2] = 0.0;
-                    da21l = da12l;
+                            dw2_dk = funct[k];
+                            dw2_dT1_dk = deriv(k, 0);
+                            dw2_dT2_dk =deriv(k, 1);
+                        }
+                        
 
-                    dw1_dl = 0.0;
-                    dw1_dT1_dl = 0.0;
-                    dw1_dT2_dl = 0.0;
+                        dw_dk = dw1_dk*a1 + w1*da1k + dw2_dk*a2 + w2*da2k;
+                        dw_dT1_dk = dw1_dT1_dk*a1 + dw1_dT1*da1k + dw1_dk*da1_dT1 + w1*da11k
+                                    + dw2_dT1_dk*a2 + dw2_dT1*da2k + dw2_dk*da2_dT1 + w2*da21k;
+                        dw_dT2_dk = dw1_dT2_dk*a1 + dw1_dT2*da1k + dw1_dk*da1_dT2 + w1*da12k
+                                    + dw2_dT2_dk*a2 + dw2_dT2*da2k + dw2_dk*da2_dT2 + w2*da22k;
 
-                    dw2_dl = 0.0;
-                    dw2_dT1_dl = 0.0;
-                    dw2_dT2_dl = 0.0;
-                }
-                else if (j == 1)
-                {
-                    da1l[0] = 0.0;
-                    da1l[1] = deriv(l, 0);
-                    da1l[2] = 0.0;
-                    da2l[0] = 0.0;
-                    da2l[1] = deriv(l, 1);
-                    da2l[2] = 0.0;
-                    da11l[0] = 0.0;
-                    da11l[1] = s_deriv(l, 0);
-                    da11l[2] = 0.0;
-                    da12l[0] = 0.0;
-                    da12l[1] = s_deriv(l, 2);
-                    da12l[2] = 0.0;
-                    da22l[0] = 0.0;
-                    da22l[1] = s_deriv(l, 1);
-                    da22l[2] = 0.0;
-                    da21l = da12l;
+                        /* initialisieren */
+                        dw1_dl = 0.0;
+                        dw1_dT1_dl = 0.0;
+                        dw1_dT2_dl = 0.0;
 
-                    dw1_dl = 0.0;
-                    dw1_dT1_dl = 0.0;
-                    dw1_dT2_dl = 0.0;
+                        dw2_dl = 0.0;
+                        dw2_dT1_dl = 0.0;
+                        dw2_dT2_dl = 0.0;
 
-                    dw2_dl = 0.0;
-                    dw2_dT1_dl = 0.0;
-                    dw2_dT2_dl = 0.0;
-                }
-                else if (j == 2)
-                {
-                    da1l[0] = 0.0;
-                    da1l[1] = 0.0;
-                    da1l[2] = deriv(l, 0);
-                    da2l[0] = 0.0;
-                    da2l[1] = 0.0;
-                    da2l[2] = deriv(l, 1);
-                    da11l[0] = 0.0;
-                    da11l[1] = 0.0;
-                    da11l[2] = s_deriv(l, 0);
-                    da12l[0] = 0.0;
-                    da12l[1] = 0.0;
-                    da12l[2] = s_deriv(l, 2);
-                    da22l[0] = 0.0;
-                    da22l[1] = 0.0;
-                    da22l[2] = s_deriv(l, 1);
-                    da21l = da12l;
+                        /* Ableitung nach dem zweiten FHG l */
+                        if (j == 0)
+                        {
+                            da1l[0] = deriv(l, 0);
+                            da1l[1] = 0.0;
+                            da1l[2] = 0.0;
+                            da2l[0] = deriv(l, 1);
+                            da2l[1] = 0.0;
+                            da2l[2] = 0.0;
+                            da11l[0] = s_deriv(l, 0);
+                            da11l[1] = 0.0;
+                            da11l[2] = 0.0;
+                            da12l[0] = s_deriv(l, 2);
+                            da12l[1] = 0.0;
+                            da12l[2] = 0.0;
+                            da22l[0] = s_deriv(l, 1);
+                            da22l[1] = 0.0;
+                            da22l[2] = 0.0;
+                            da21l = da12l;
 
-                    dw1_dl = 0.0;
-                    dw1_dT1_dl = 0.0;
-                    dw1_dT2_dl = 0.0;
+                            dw1_dl = 0.0;
+                            dw1_dT1_dl = 0.0;
+                            dw1_dT2_dl = 0.0;
 
-                    dw2_dl = 0.0;
-                    dw2_dT1_dl = 0.0;
-                    dw2_dT2_dl = 0.0;
-                }
-                else if (j == 3)
-                {
-                    da1l[0] = 0.0;
-                    da1l[1] = 0.0;
-                    da1l[2] = 0.0;
-                    da2l[0] = 0.0;
-                    da2l[1] = 0.0;
-                    da2l[2] = 0.0;
-                    da11l[0] = 0.0;
-                    da11l[1] = 0.0;
-                    da11l[2] = 0.0;
-                    da12l[0] = 0.0;
-                    da12l[1] = 0.0;
-                    da12l[2] = 0.0;
-                    da22l[0] = 0.0;
-                    da22l[1] = 0.0;
-                    da22l[2] = 0.0;
-                    da21l = da12l;
+                            dw2_dl = 0.0;
+                            dw2_dT1_dl = 0.0;
+                            dw2_dT2_dl = 0.0;
+                        }
+                        else if (j == 1)
+                        {
+                            da1l[0] = 0.0;
+                            da1l[1] = deriv(l, 0);
+                            da1l[2] = 0.0;
+                            da2l[0] = 0.0;
+                            da2l[1] = deriv(l, 1);
+                            da2l[2] = 0.0;
+                            da11l[0] = 0.0;
+                            da11l[1] = s_deriv(l, 0);
+                            da11l[2] = 0.0;
+                            da12l[0] = 0.0;
+                            da12l[1] = s_deriv(l, 2);
+                            da12l[2] = 0.0;
+                            da22l[0] = 0.0;
+                            da22l[1] = s_deriv(l, 1);
+                            da22l[2] = 0.0;
+                            da21l = da12l;
 
-                    dw1_dl = funct[l];
-                    dw1_dT1_dl = deriv(l, 0);
-                    dw1_dT2_dl = deriv(l, 1);
+                            dw1_dl = 0.0;
+                            dw1_dT1_dl = 0.0;
+                            dw1_dT2_dl = 0.0;
 
-                    dw2_dl = 0.0;
-                    dw2_dT1_dl = 0.0;
-                    dw2_dT2_dl = 0.0;
-                }
-                else if (j == 4)
-                {
-                    da1l[0] = 0.0;
-                    da1l[1] = 0.0;
-                    da1l[2] = 0.0;
-                    da2l[0] = 0.0;
-                    da2l[1] = 0.0;
-                    da2l[2] = 0.0;
-                    da11l[0] = 0.0;
-                    da11l[1] = 0.0;
-                    da11l[2] = 0.0;
-                    da12l[0] = 0.0;
-                    da12l[1] = 0.0;
-                    da12l[2] = 0.0;
-                    da22l[0] = 0.0;
-                    da22l[1] = 0.0;
-                    da22l[2] = 0.0;
-                    da21l = da12l;
+                            dw2_dl = 0.0;
+                            dw2_dT1_dl = 0.0;
+                            dw2_dT2_dl = 0.0;
+                        }
+                        else if (j == 2)
+                        {
+                            da1l[0] = 0.0;
+                            da1l[1] = 0.0;
+                            da1l[2] = deriv(l, 0);
+                            da2l[0] = 0.0;
+                            da2l[1] = 0.0;
+                            da2l[2] = deriv(l, 1);
+                            da11l[0] = 0.0;
+                            da11l[1] = 0.0;
+                            da11l[2] = s_deriv(l, 0);
+                            da12l[0] = 0.0;
+                            da12l[1] = 0.0;
+                            da12l[2] = s_deriv(l, 2);
+                            da22l[0] = 0.0;
+                            da22l[1] = 0.0;
+                            da22l[2] = s_deriv(l, 1);
+                            da21l = da12l;
 
-                    dw1_dl = 0.0;
-                    dw1_dT1_dl = 0.0;
-                    dw1_dT2_dl = 0.0;
+                            dw1_dl = 0.0;
+                            dw1_dT1_dl = 0.0;
+                            dw1_dT2_dl = 0.0;
 
-                    dw2_dl = funct[l];
-                    dw2_dT1_dl = deriv(l, 0);
-                    dw2_dT2_dl = deriv(l, 1);
-                }
+                            dw2_dl = 0.0;
+                            dw2_dT1_dl = 0.0;
+                            dw2_dT2_dl = 0.0;
+                        }
+                        else if (j == 3)
+                        {
+                            da1l[0] = 0.0;
+                            da1l[1] = 0.0;
+                            da1l[2] = 0.0;
+                            da2l[0] = 0.0;
+                            da2l[1] = 0.0;
+                            da2l[2] = 0.0;
+                            da11l[0] = 0.0;
+                            da11l[1] = 0.0;
+                            da11l[2] = 0.0;
+                            da12l[0] = 0.0;
+                            da12l[1] = 0.0;
+                            da12l[2] = 0.0;
+                            da22l[0] = 0.0;
+                            da22l[1] = 0.0;
+                            da22l[2] = 0.0;
+                            da21l = da12l;
 
-                dw_dl = dw1_dl*a1 + w1*da1l + dw2_dl*a2 + w2*da2l;
-                dw_dT1_dl = dw1_dT1_dl*a1 + dw1_dT1*da1l + dw1_dl*da1_dT1 + w1*da11l
-                            + dw2_dT1_dl*a2 + dw2_dT1*da2l + dw2_dl*da2_dT1 + w2*da21l ;
-                dw_dT2_dl = dw1_dT2_dl*a1 + dw1_dT2*da1l + dw1_dl*da1_dT2 + w1*da12l
-                            + dw2_dT2_dl*a2 + dw2_dT2*da2l + dw2_dl*da2_dT2 + w2*da22l ;
+                            dw1_dl = funct[l];
+                            dw1_dT1_dl = deriv(l, 0);
+                            dw1_dT2_dl = deriv(l, 1);
 
+                            dw2_dl = 0.0;
+                            dw2_dT1_dl = 0.0;
+                            dw2_dT2_dl = 0.0;
+                        }
+                        else if (j == 4)
+                        {
+                            da1l[0] = 0.0;
+                            da1l[1] = 0.0;
+                            da1l[2] = 0.0;
+                            da2l[0] = 0.0;
+                            da2l[1] = 0.0;
+                            da2l[2] = 0.0;
+                            da11l[0] = 0.0;
+                            da11l[1] = 0.0;
+                            da11l[2] = 0.0;
+                            da12l[0] = 0.0;
+                            da12l[1] = 0.0;
+                            da12l[2] = 0.0;
+                            da22l[0] = 0.0;
+                            da22l[1] = 0.0;
+                            da22l[2] = 0.0;
+                            da21l = da12l;
 
-                /* Ableitung nach beiden FHG kl */
-                ddw_dkl = dw1_dk*da1l + dw1_dl*da1k + dw2_dk*da2l + dw2_dl*da2k;
-                ddw_dT1_dkl = dw1_dT1_dk*da1l + dw1_dT1_dl*da1k + dw1_dk*da11l + dw1_dl*da11k
-                            + dw2_dT1_dk*da2l + dw2_dT1_dl*da2k + dw2_dk*da21l + dw2_dl*da21k;
-                ddw_dT2_dkl = dw1_dT2_dk*da1l + dw1_dT2_dl*da1k + dw1_dk*da12l + dw1_dl*da12k
-                            + dw2_dT2_dk*da2l + dw2_dT2_dl*da2k + dw2_dk*da22l + dw2_dl*da22k;
+                            dw1_dl = 0.0;
+                            dw1_dT1_dl = 0.0;
+                            dw1_dT2_dl = 0.0;
 
-                /* Anteile fuer Querschubverzerrungen (nur konstant in Dickenrichtung) */
-                dE13_dkl(5 * k + i, 5 * l + j) = dE13_dkl(5 * k + i, 5 * l + j)
-                                                + 0.5*(inner_prod(da1k, dw_dl) + inner_prod(da1l, dw_dk) + inner_prod(a1, ddw_dkl));
-                dE23_dkl(5 * k + i, 5 * l + j) = dE23_dkl(5 * k + i, 5 * l + j)
-                                                + 0.5*(inner_prod(da2k, dw_dl) + inner_prod(da2l, dw_dk) + inner_prod(a2, ddw_dkl));
+                            dw2_dl = funct[l];
+                            dw2_dT1_dl = deriv(l, 0);
+                            dw2_dT2_dl = deriv(l, 1);
+                        }
 
-
-                // #if 0
-                //         /* Anteile fuer Querschubverzerrungen (LINEARE Zusatzterme in Dickenrichtung theta^3) */
-                //             dE13_dkl(5 * k + i, 5 * l + j) = dE13_dkl(5 * k + i, 5 * l + j)
-                //                                             + 0.5*mZeta*(ddw_dT1_dkl*w + dw_dT1_dk*dw_dl + dw_dT1_dl*dw_dk + dw_dT1*ddw_dkl);
-                //             dE23_dkl(5 * k + i, 5 * l + j) = dE23_dkl(5 * k + i, 5 * l + j)
-                //                                             + 0.5*mZeta*(ddw_dT2_dkl*w + dw_dT2_dk*dw_dl + dw_dT2_dl*dw_dk + dw_dT2*ddw_dkl);
-                // #endif
-
-
-                /* Anteile fuer Inplane-Verzerrungen (nur linear in Dickenrichtung theta^3) */
-                dE11_dkl(5 * k + i, 5 * l + j) = dE11_dkl(5 * k + i, 5 * l + j)
-                                                + thickness/2.0*mZeta*0.5*(inner_prod(da1k, dw_dT1_dl) + inner_prod(da1l, dw_dT1_dk) + inner_prod(a1, ddw_dT1_dkl)
-                                                        + inner_prod(da1k, dw_dT1_dl) + inner_prod(da1l, dw_dT1_dk) + inner_prod(a1, ddw_dT1_dkl));     // MLt
-                dE12_dkl(5 * k + i, 5 * l + j) = dE12_dkl(5 * k + i, 5 * l + j)
-                                                + thickness/2.0*mZeta*0.5*(inner_prod(da1k, dw_dT2_dl) + inner_prod(da1l, dw_dT2_dk) + inner_prod(a1, ddw_dT2_dkl)
-                                                        + inner_prod(da2k, dw_dT1_dl) + inner_prod(da2l, dw_dT1_dk) + inner_prod(a2, ddw_dT1_dkl));     // MLt
-                dE22_dkl(5 * k + i, 5 * l + j) = dE22_dkl(5 * k + i, 5 * l + j)
-                                                + thickness/2.0*mZeta*0.5*(inner_prod(da2k, dw_dT2_dl) + inner_prod(da2l, dw_dT2_dk) + inner_prod(a2, ddw_dT2_dkl)
-                                                        + inner_prod(da2k, dw_dT2_dl) + inner_prod(da2l, dw_dT2_dk) + inner_prod(a2, ddw_dT2_dkl));     // MLt
-                }
-
-                double dE11_dkl_car = 0.0;
-                double dE22_dkl_car = 0.0;
-                double dE12_dkl_car = 0.0;
-                double dE23_dkl_car = 0.0;
-                double dE13_dkl_car = 0.0;
-                
-                dE11_dkl_car += mInitialMetric.Q(0, 0) * dE11_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(0, 1) * dE22_dkl(5 * k + i, 5 * l + j) + 
-                    mInitialMetric.Q(0, 2) * dE12_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(0, 3) * dE23_dkl(5 * k + i, 5 * l + j) + 
-                    mInitialMetric.Q(0, 4) * dE13_dkl(5 * k + i, 5 * l + j);
-                dE22_dkl_car += mInitialMetric.Q(1, 0) * dE11_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(1, 1) * dE22_dkl(5 * k + i, 5 * l + j) + 
-                    mInitialMetric.Q(1, 2) * dE12_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(1, 3) * dE23_dkl(5 * k + i, 5 * l + j) + 
-                    mInitialMetric.Q(1, 4) * dE13_dkl(5 * k + i, 5 * l + j);
-                dE12_dkl_car += mInitialMetric.Q(2, 0) * dE11_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(2, 1) * dE22_dkl(5 * k + i, 5 * l + j) + 
-                    mInitialMetric.Q(2, 2) * dE12_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(2, 3) * dE23_dkl(5 * k + i, 5 * l + j) + 
-                    mInitialMetric.Q(2, 4) * dE13_dkl(5 * k + i, 5 * l + j);
-                dE23_dkl_car += mInitialMetric.Q(3, 0) * dE11_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(3, 1) * dE22_dkl(5 * k + i, 5 * l + j) + 
-                    mInitialMetric.Q(3, 2) * dE12_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(3, 3) * dE23_dkl(5 * k + i, 5 * l + j) + 
-                    mInitialMetric.Q(3, 4) * dE13_dkl(5 * k + i, 5 * l + j);
-                dE13_dkl_car += mInitialMetric.Q(4, 0) * dE11_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(4, 1) * dE22_dkl(5 * k + i, 5 * l + j) + 
-                    mInitialMetric.Q(4, 2) * dE12_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(4, 3) * dE23_dkl(5 * k + i, 5 * l + j) + 
-                    mInitialMetric.Q(4, 4) * dE13_dkl(5 * k + i, 5 * l + j);                
-                
-                /* Integrand von k_g */
-                IKg(5 * k + i, 5 * l + j) =   dE11_dkl_car * S[0]
-                                            + dE22_dkl_car * S[1]
-                                            +   dE12_dkl_car * S[2]
-                                            + dE23_dkl_car * S[3]
-                                            + dE13_dkl_car * S[4];
+                        dw_dl = dw1_dl*a1 + w1*da1l + dw2_dl*a2 + w2*da2l;
+                        dw_dT1_dl = dw1_dT1_dl*a1 + dw1_dT1*da1l + dw1_dl*da1_dT1 + w1*da11l
+                                    + dw2_dT1_dl*a2 + dw2_dT1*da2l + dw2_dl*da2_dT1 + w2*da21l ;
+                        dw_dT2_dl = dw1_dT2_dl*a1 + dw1_dT2*da1l + dw1_dl*da1_dT2 + w1*da12l
+                                    + dw2_dT2_dl*a2 + dw2_dT2*da2l + dw2_dl*da2_dT2 + w2*da22l ;
 
 
-                }
-            }
-        }
-     }
+                        /* Ableitung nach beiden FHG kl */
+                        ddw_dkl = dw1_dk*da1l + dw1_dl*da1k + dw2_dk*da2l + dw2_dl*da2k;
+                        ddw_dT1_dkl = dw1_dT1_dk*da1l + dw1_dT1_dl*da1k + dw1_dk*da11l + dw1_dl*da11k
+                                    + dw2_dT1_dk*da2l + dw2_dT1_dl*da2k + dw2_dk*da21l + dw2_dl*da21k;
+                        ddw_dT2_dkl = dw1_dT2_dk*da1l + dw1_dT2_dl*da1k + dw1_dk*da12l + dw1_dl*da12k
+                                    + dw2_dT2_dk*da2l + dw2_dT2_dl*da2k + dw2_dk*da22l + dw2_dl*da22k;
+
+                        /* Anteile fuer Querschubverzerrungen (nur konstant in Dickenrichtung) */
+                        dE13_dkl(5 * k + i, 5 * l + j) = dE13_dkl(5 * k + i, 5 * l + j)
+                                                        + 0.5*(inner_prod(da1k, dw_dl) + inner_prod(da1l, dw_dk) + inner_prod(a1, ddw_dkl));
+                        dE23_dkl(5 * k + i, 5 * l + j) = dE23_dkl(5 * k + i, 5 * l + j)
+                                                        + 0.5*(inner_prod(da2k, dw_dl) + inner_prod(da2l, dw_dk) + inner_prod(a2, ddw_dkl));
+
+
+                        // #if 0
+                        //         /* Anteile fuer Querschubverzerrungen (LINEARE Zusatzterme in Dickenrichtung theta^3) */
+                        //             dE13_dkl(5 * k + i, 5 * l + j) = dE13_dkl(5 * k + i, 5 * l + j)
+                        //                                             + 0.5*mZeta*(ddw_dT1_dkl*w + dw_dT1_dk*dw_dl + dw_dT1_dl*dw_dk + dw_dT1*ddw_dkl);
+                        //             dE23_dkl(5 * k + i, 5 * l + j) = dE23_dkl(5 * k + i, 5 * l + j)
+                        //                                             + 0.5*mZeta*(ddw_dT2_dkl*w + dw_dT2_dk*dw_dl + dw_dT2_dl*dw_dk + dw_dT2*ddw_dkl);
+                        // #endif
+
+
+                        /* Anteile fuer Inplane-Verzerrungen (nur linear in Dickenrichtung theta^3) */
+                        dE11_dkl(5 * k + i, 5 * l + j) = dE11_dkl(5 * k + i, 5 * l + j)
+                                                        + mZeta*0.5*(inner_prod(da1k, dw_dT1_dl) + inner_prod(da1l, dw_dT1_dk) + inner_prod(a1, ddw_dT1_dkl)
+                                                                + inner_prod(da1k, dw_dT1_dl) + inner_prod(da1l, dw_dT1_dk) + inner_prod(a1, ddw_dT1_dkl));     // MLt
+                        dE12_dkl(5 * k + i, 5 * l + j) = dE12_dkl(5 * k + i, 5 * l + j)
+                                                        + mZeta*0.5*(inner_prod(da1k, dw_dT2_dl) + inner_prod(da1l, dw_dT2_dk) + inner_prod(a1, ddw_dT2_dkl)
+                                                                + inner_prod(da2k, dw_dT1_dl) + inner_prod(da2l, dw_dT1_dk) + inner_prod(a2, ddw_dT1_dkl));     // MLt
+                        dE22_dkl(5 * k + i, 5 * l + j) = dE22_dkl(5 * k + i, 5 * l + j)
+                                                        + mZeta*0.5*(inner_prod(da2k, dw_dT2_dl) + inner_prod(da2l, dw_dT2_dk) + inner_prod(a2, ddw_dT2_dkl)
+                                                                + inner_prod(da2k, dw_dT2_dl) + inner_prod(da2l, dw_dT2_dk) + inner_prod(a2, ddw_dT2_dkl));     // MLt
+                        // }    // MLFÄ
+
+                        double dE11_dkl_car = 0.0;
+                        double dE22_dkl_car = 0.0;
+                        double dE12_dkl_car = 0.0;
+                        double dE23_dkl_car = 0.0;
+                        double dE13_dkl_car = 0.0;
+                        
+                        dE11_dkl_car = mInitialMetric.Q(0, 0) * dE11_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(0, 1) * dE22_dkl(5 * k + i, 5 * l + j) + 
+                            mInitialMetric.Q(0, 2) * dE12_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(0, 3) * dE23_dkl(5 * k + i, 5 * l + j) + 
+                            mInitialMetric.Q(0, 4) * dE13_dkl(5 * k + i, 5 * l + j);
+                        dE22_dkl_car = mInitialMetric.Q(1, 0) * dE11_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(1, 1) * dE22_dkl(5 * k + i, 5 * l + j) + 
+                            mInitialMetric.Q(1, 2) * dE12_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(1, 3) * dE23_dkl(5 * k + i, 5 * l + j) + 
+                            mInitialMetric.Q(1, 4) * dE13_dkl(5 * k + i, 5 * l + j);
+                        dE12_dkl_car = mInitialMetric.Q(2, 0) * dE11_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(2, 1) * dE22_dkl(5 * k + i, 5 * l + j) + 
+                            mInitialMetric.Q(2, 2) * dE12_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(2, 3) * dE23_dkl(5 * k + i, 5 * l + j) + 
+                            mInitialMetric.Q(2, 4) * dE13_dkl(5 * k + i, 5 * l + j);
+                        dE23_dkl_car = mInitialMetric.Q(3, 0) * dE11_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(3, 1) * dE22_dkl(5 * k + i, 5 * l + j) + 
+                            mInitialMetric.Q(3, 2) * dE12_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(3, 3) * dE23_dkl(5 * k + i, 5 * l + j) + 
+                            mInitialMetric.Q(3, 4) * dE13_dkl(5 * k + i, 5 * l + j);
+                        dE13_dkl_car = mInitialMetric.Q(4, 0) * dE11_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(4, 1) * dE22_dkl(5 * k + i, 5 * l + j) + 
+                            mInitialMetric.Q(4, 2) * dE12_dkl(5 * k + i, 5 * l + j) + mInitialMetric.Q(4, 3) * dE23_dkl(5 * k + i, 5 * l + j) + 
+                            mInitialMetric.Q(4, 4) * dE13_dkl(5 * k + i, 5 * l + j);                
+                        
+                        /* Integrand von k_g */
+                        IKg(5 * k + i, 5 * l + j) =   dE11_dkl_car * S[0]
+                                                    + dE22_dkl_car * S[1]
+                                                    + dE12_dkl_car * S[2]
+                                                    + dE23_dkl_car * S[3]
+                                                    + dE13_dkl_car * S[4];
+                        // MLout
+                        if(Id()==5 && mcount==1 && mZeta < 0){
+                            myfile << dE13_dkl_car << ",";
+                        }
+
+                    } // loop j
+                } // loop l
+                // MLout
+                if(Id()==5 && mcount==1 && mZeta < 0)
+                    myfile << "\n";
+            } // loop i
+        } // loop k
+        // MLout
+        myfile.close();
     }
 
     void IgaShell5pElementStuttgart::Calculate(
@@ -2228,127 +2050,127 @@ namespace Kratos
         double& rValues,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-        // Set constitutive law flags:
-        Flags& ConstitutiveLawOptions = Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        // // Create constitutive law parameters:
+        // ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        // // Set constitutive law flags:
+        // Flags& ConstitutiveLawOptions = Values.GetOptions();
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
         
-        // shear difference vector
-        array_1d<double, 3> w = ZeroVector(3);
-        // derivatives of the shear difference vector
-        array_1d<double, 3> Dw_D1 = ZeroVector(3);
-        array_1d<double, 3> Dw_D2 = ZeroVector(3);
-        // components w_alpha of the shear difference vector which calculates as (w_alpha(1) * a1 + w_alpha(2) * a2)
-        array_1d<double, 2> w_alpha = ZeroVector(2);
-        // derivatives of the components w_alpha
-        Matrix Dw_alpha_Dbeta = ZeroMatrix(2, 2);
+        // // shear difference vector
+        // array_1d<double, 3> w = ZeroVector(3);
+        // // derivatives of the shear difference vector
+        // array_1d<double, 3> Dw_D1 = ZeroVector(3);
+        // array_1d<double, 3> Dw_D2 = ZeroVector(3);
+        // // components w_alpha of the shear difference vector which calculates as (w_alpha(1) * a1 + w_alpha(2) * a2)
+        // array_1d<double, 2> w_alpha = ZeroVector(2);
+        // // derivatives of the components w_alpha
+        // Matrix Dw_alpha_Dbeta = ZeroMatrix(2, 2);
 
-        std::vector<array_1d<double, 5>> stress_pk2_cart(mGaussQuadratureThickness.num_GP_thickness);
-        std::vector<array_1d<double, 5>> stress_pk2_cov(mGaussQuadratureThickness.num_GP_thickness);
-        std::vector<array_1d<double, 5>> stress_cau_cov(mGaussQuadratureThickness.num_GP_thickness);
-        std::vector<array_1d<double, 5>> stress_cau_cart(mGaussQuadratureThickness.num_GP_thickness);
+        // std::vector<array_1d<double, 5>> stress_pk2_cart(mGaussQuadratureThickness.num_GP_thickness);
+        // std::vector<array_1d<double, 5>> stress_pk2_cov(mGaussQuadratureThickness.num_GP_thickness);
+        // std::vector<array_1d<double, 5>> stress_cau_cov(mGaussQuadratureThickness.num_GP_thickness);
+        // std::vector<array_1d<double, 5>> stress_cau_cart(mGaussQuadratureThickness.num_GP_thickness);
 
-        MetricVariables actual_metric(3, 5);
-        CalculateMetric(actual_metric);
-        CalculateShearDifferenceVector(w, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, actual_metric);
+        // MetricVariables actual_metric(3, 5);
+        // CalculateMetric(actual_metric);
+        // CalculateShearDifferenceVector(w, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, actual_metric);
         
-        double thickness = GetProperties().GetValue(THICKNESS);
+        // double thickness = GetProperties().GetValue(THICKNESS);
 
-        // the Gauss-Points start from bottom to top
-        for (unsigned int Gauss_index = 0; Gauss_index < mGaussQuadratureThickness.num_GP_thickness; Gauss_index++)
-        {
-            mZeta = mGaussQuadratureThickness.zeta(Gauss_index);
+        // // the Gauss-Points start from bottom to top
+        // for (unsigned int Gauss_index = 0; Gauss_index < mGaussQuadratureThickness.num_GP_thickness; Gauss_index++)
+        // {
+        //     mZeta = mGaussQuadratureThickness.zeta(Gauss_index);
 
-            array_1d<double, 5> strain_vector;
-            ConstitutiveVariables constitutive_variables(5);
-            CalculateConstitutiveVariables(actual_metric, strain_vector, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
+        //     array_1d<double, 5> strain_vector;
+        //     ConstitutiveVariables constitutive_variables(5);
+        //     CalculateConstitutiveVariables(actual_metric, strain_vector, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
 
-            array_1d<double, 3> G1 = ZeroVector(3);
-            array_1d<double, 3> G2 = ZeroVector(3);
-            array_1d<double, 3> g1 = ZeroVector(3);
-            array_1d<double, 3> g2 = ZeroVector(3);
-            array_1d<double, 3> g3 = ZeroVector(3);
-            Matrix F = ZeroMatrix(3, 3);
-            double detF = 0.0;
-            CalculateInitialBaseVectorsGLinearized(G1, G2);
-            CalculateActualBaseVectorsgLinearized(actual_metric, w, Dw_D1, Dw_D2, g1, g2, g3);
-            CalculateDeformationGradient(G1, G2, g1, g2, g3, F, detF);
+        //     array_1d<double, 3> G1 = ZeroVector(3);
+        //     array_1d<double, 3> G2 = ZeroVector(3);
+        //     array_1d<double, 3> g1 = ZeroVector(3);
+        //     array_1d<double, 3> g2 = ZeroVector(3);
+        //     array_1d<double, 3> g3 = ZeroVector(3);
+        //     Matrix F = ZeroMatrix(3, 3);
+        //     double detF = 0.0;
+        //     CalculateInitialBaseVectorsGLinearized(G1, G2);
+        //     CalculateActualBaseVectorsgLinearized(actual_metric, w, Dw_D1, Dw_D2, g1, g2, g3);
+        //     CalculateDeformationGradient(G1, G2, g1, g2, g3, F, detF);
 
-            // stresses at GP
-            stress_pk2_cart[Gauss_index] = constitutive_variables.S;
-            stress_pk2_cov[Gauss_index] = prod(mInitialMetric.TransCartToCov, stress_pk2_cart[Gauss_index]);
-            stress_cau_cov[Gauss_index] = stress_pk2_cov[Gauss_index] / detF;
-            stress_cau_cart[Gauss_index] = prod(actual_metric.TransCovToCart, stress_cau_cov[Gauss_index]);
-        }
+        //     // stresses at GP
+        //     stress_pk2_cart[Gauss_index] = constitutive_variables.S;
+        //     stress_pk2_cov[Gauss_index] = prod(mInitialMetric.TransCartToCov, stress_pk2_cart[Gauss_index]);
+        //     stress_cau_cov[Gauss_index] = stress_pk2_cov[Gauss_index] / detF;
+        //     stress_cau_cart[Gauss_index] = prod(actual_metric.TransCovToCart, stress_cau_cov[Gauss_index]);
+        // }
     
-        // Cauchy stress at midspan
-        array_1d<double, 5> stress_cau_cart_mid;
-        for (unsigned int i = 0; i < 5; i++)
-            stress_cau_cart_mid[i] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][i] + stress_cau_cart[0][i]) / 2.0;
+        // // Cauchy stress at midspan
+        // array_1d<double, 5> stress_cau_cart_mid;
+        // for (unsigned int i = 0; i < 5; i++)
+        //     stress_cau_cart_mid[i] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][i] + stress_cau_cart[0][i]) / 2.0;
 
-        // internal forces n11, n22, n12, n23, n13
-        array_1d<double, 5> n = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] + stress_cau_cart[0]) / 2.0 * 
-            thickness;
+        // // internal forces n11, n22, n12, n23, n13
+        // array_1d<double, 5> n = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] + stress_cau_cart[0]) / 2.0 * 
+        //     thickness;
 
-        // internal moments m11, m22, m12
-        array_1d<double, 3> m;
-        m[0] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][0] - stress_cau_cart_mid[0]) * thickness * thickness / 
-            (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
-        m[1] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][1] - stress_cau_cart_mid[1]) * thickness * thickness / 
-            (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
-        m[2] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][2] - stress_cau_cart_mid[2]) * thickness * thickness / 
-            (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
+        // // internal moments m11, m22, m12
+        // array_1d<double, 3> m;
+        // m[0] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][0] - stress_cau_cart_mid[0]) * thickness * thickness / 
+        //     (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
+        // m[1] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][1] - stress_cau_cart_mid[1]) * thickness * thickness / 
+        //     (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
+        // m[2] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][2] - stress_cau_cart_mid[2]) * thickness * thickness / 
+        //     (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
         
-        // stresses at the top (positive theta_3 direction)
-        array_1d<double, 5> stress_cau_cart_top = stress_cau_cart_mid + (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] 
-            - stress_cau_cart_mid) / mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1);
-        // stresses at the bottom (negative theta_3 direction)
-        array_1d<double, 5> stress_cau_cart_bottom = stress_cau_cart_mid + (stress_cau_cart[0] - stress_cau_cart_mid) / 
-            mGaussQuadratureThickness.zeta(0);
+        // // stresses at the top (positive theta_3 direction)
+        // array_1d<double, 5> stress_cau_cart_top = stress_cau_cart_mid + (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] 
+        //     - stress_cau_cart_mid) / mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1);
+        // // stresses at the bottom (negative theta_3 direction)
+        // array_1d<double, 5> stress_cau_cart_bottom = stress_cau_cart_mid + (stress_cau_cart[0] - stress_cau_cart_mid) / 
+        //     mGaussQuadratureThickness.zeta(0);
 
-        if (rVariable == STRESS_CAUCHY_TOP_11)
-            rValues = stress_cau_cart_top[0];
-        else if (rVariable == STRESS_CAUCHY_TOP_22)
-            rValues = stress_cau_cart_top[1];
-        else if (rVariable == STRESS_CAUCHY_TOP_12)
-            rValues = stress_cau_cart_top[2];
-        else if (rVariable == STRESS_CAUCHY_TOP_23)
-            rValues = stress_cau_cart_top[3];
-        else if (rVariable == STRESS_CAUCHY_TOP_13)
-            rValues = stress_cau_cart_top[4];
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_11)
-            rValues = stress_cau_cart_bottom[0];
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_22)
-            rValues = stress_cau_cart_bottom[1];
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_12)
-            rValues = stress_cau_cart_bottom[2];
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_23)
-            rValues = stress_cau_cart_bottom[3];
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_13)
-            rValues = stress_cau_cart_bottom[4];
-        else if (rVariable == INTERNAL_FORCE_11)
-            rValues = n[0];
-        else if (rVariable == INTERNAL_FORCE_22)
-            rValues = n[1];
-        else if (rVariable == INTERNAL_FORCE_12)
-            rValues = n[2];
-        else if (rVariable == INTERNAL_MOMENT_11)
-            rValues = m[0];
-        else if (rVariable == INTERNAL_MOMENT_12)
-            rValues = m[2];
-        else if (rVariable == INTERNAL_MOMENT_22)
-            rValues = m[1];
-        else if (rVariable == SHEAR_FORCE_1)
-            rValues = n[4];     // q1=n13
-        else if (rVariable == SHEAR_FORCE_2)
-            rValues = n[3];     // q2=n23
-        else{
-            KRATOS_WATCH("No results for desired variable available in Calculate of IgaShell5pElementStuttgart.")
-            rValues = 0.0;
-        }
+        // if (rVariable == STRESS_CAUCHY_TOP_11)
+        //     rValues = stress_cau_cart_top[0];
+        // else if (rVariable == STRESS_CAUCHY_TOP_22)
+        //     rValues = stress_cau_cart_top[1];
+        // else if (rVariable == STRESS_CAUCHY_TOP_12)
+        //     rValues = stress_cau_cart_top[2];
+        // else if (rVariable == STRESS_CAUCHY_TOP_23)
+        //     rValues = stress_cau_cart_top[3];
+        // else if (rVariable == STRESS_CAUCHY_TOP_13)
+        //     rValues = stress_cau_cart_top[4];
+        // else if (rVariable == STRESS_CAUCHY_BOTTOM_11)
+        //     rValues = stress_cau_cart_bottom[0];
+        // else if (rVariable == STRESS_CAUCHY_BOTTOM_22)
+        //     rValues = stress_cau_cart_bottom[1];
+        // else if (rVariable == STRESS_CAUCHY_BOTTOM_12)
+        //     rValues = stress_cau_cart_bottom[2];
+        // else if (rVariable == STRESS_CAUCHY_BOTTOM_23)
+        //     rValues = stress_cau_cart_bottom[3];
+        // else if (rVariable == STRESS_CAUCHY_BOTTOM_13)
+        //     rValues = stress_cau_cart_bottom[4];
+        // else if (rVariable == INTERNAL_FORCE_11)
+        //     rValues = n[0];
+        // else if (rVariable == INTERNAL_FORCE_22)
+        //     rValues = n[1];
+        // else if (rVariable == INTERNAL_FORCE_12)
+        //     rValues = n[2];
+        // else if (rVariable == INTERNAL_MOMENT_11)
+        //     rValues = m[0];
+        // else if (rVariable == INTERNAL_MOMENT_12)
+        //     rValues = m[2];
+        // else if (rVariable == INTERNAL_MOMENT_22)
+        //     rValues = m[1];
+        // else if (rVariable == SHEAR_FORCE_1)
+        //     rValues = n[4];     // q1=n13
+        // else if (rVariable == SHEAR_FORCE_2)
+        //     rValues = n[3];     // q2=n23
+        // else{
+        //     KRATOS_WATCH("No results for desired variable available in Calculate of IgaShell5pElementStuttgart.")
+        //     rValues = 0.0;
+        // }
     }
 
     void IgaShell5pElementStuttgart::EquationIdVector(

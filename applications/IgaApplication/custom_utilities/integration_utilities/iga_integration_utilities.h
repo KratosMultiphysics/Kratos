@@ -98,7 +98,7 @@ namespace IgaIntegrationUtilities
 
         for (int i = 0; i < rClipper.NbSpansU(); ++i)
         {
-            for (int j = 0; j < rClipper.NbSpansU(); ++j)
+            for (int j = 0; j < rClipper.NbSpansV(); ++j)
             {
                 if (rClipper.SpanTrimType(i, j) == ANurbs::Empty)
                 {

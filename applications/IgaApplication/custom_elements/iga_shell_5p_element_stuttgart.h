@@ -439,14 +439,6 @@ private:
         const Vector& rCurvilinearStrain,
         Vector& rCartesianStrain);
 
-	void CalculateB(
-		Matrix& rB,
-		const MetricVariables& rMetric);
-    
-    void CalculateSecondVariations(
-        SecondVariations& rSecondVariations,
-        const MetricVariables& rMetric);
-
     void boperator_nln_linearisiert(        
         Matrix& rB,
         array_1d<double, 5>& Egl,
@@ -464,6 +456,8 @@ private:
         const Variable<double>& rVariable,
         double& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
+
+    unsigned int mcount=0.0;
     ///@}
 
     ///@}

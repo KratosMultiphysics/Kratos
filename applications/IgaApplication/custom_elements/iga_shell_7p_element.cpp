@@ -672,11 +672,6 @@ namespace Kratos
                         second_variations_KL.B22(r, s) += mInitialMetric.Q(1, 0) * ddE_cu[0] + mInitialMetric.Q(1, 1) * ddE_cu[1]
                             + mInitialMetric.Q(1, 2) * ddE_cu[2];
                         second_variations_KL.B12(r, s) += mInitialMetric.Q(2, 0) * ddE_cu[0] + mInitialMetric.Q(2, 2) * ddE_cu[2];
-                        if (r != s){
-                            second_variations_KL.B11(s, r) += second_variations_KL.B11(r, s);
-                            second_variations_KL.B22(s, r) += second_variations_KL.B22(r, s);
-                            second_variations_KL.B12(s, r) += second_variations_KL.B12(r, s);
-                        }
                     }
 
                     // curvature
@@ -700,11 +695,11 @@ namespace Kratos
                     ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rMetric.a3_tilde[2];
 
                     array_1d<double, 3> ddK_cu = ZeroVector(3);
-                    ddK_cu[0] = mZeta * thickness / 2.0 * (DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)
+                    ddK_cu[0] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)
                         + rMetric.H(0, 0)*ddn[0] + rMetric.H(1, 0)*ddn[1] + rMetric.H(2, 0)*ddn[2]);
-                    ddK_cu[1] = mZeta * thickness / 2.0 * (DDN_DDe(kr, 1)*S_dn(dirr, s) + DDN_DDe(ks, 1)*S_dn(dirs, r)
+                    ddK_cu[1] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 1)*S_dn(dirr, s) + DDN_DDe(ks, 1)*S_dn(dirs, r)
                         + rMetric.H(0, 1)*ddn[0] + rMetric.H(1, 1)*ddn[1] + rMetric.H(2, 1)*ddn[2]);
-                    ddK_cu[2] = mZeta * thickness / 2.0 * (DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)
+                    ddK_cu[2] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)
                         + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2]);
 
                     // calculated with simplified Q (ML)
@@ -1900,126 +1895,126 @@ namespace Kratos
         double& rValues,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-        // Set constitutive law flags:
-        Flags& ConstitutiveLawOptions = Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        // // Create constitutive law parameters:
+        // ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        // // Set constitutive law flags:
+        // Flags& ConstitutiveLawOptions = Values.GetOptions();
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
         
-        const unsigned int number_of_nodes = GetGeometry().size();        
-        const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
+        // const unsigned int number_of_nodes = GetGeometry().size();        
+        // const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
 
-        // shear difference vector
-        array_1d<double, 3> w = ZeroVector(3);
-        // derivatives of the shear difference vector
-        array_1d<double, 3> Dw_D1 = ZeroVector(3);
-        array_1d<double, 3> Dw_D2 = ZeroVector(3);
-        // components w_i of the shear difference vector which calculates as (w_i(1) * a1 + w_i(2) * a2)
-        array_1d<double, 3> w_i = ZeroVector(2);
-        // derivatives of the components w_i
-        Matrix Dw_i_Dalpha = ZeroMatrix(2, 2);
-        // 7th parameter
-        double w_bar = 0.0;
+        // // shear difference vector
+        // array_1d<double, 3> w = ZeroVector(3);
+        // // derivatives of the shear difference vector
+        // array_1d<double, 3> Dw_D1 = ZeroVector(3);
+        // array_1d<double, 3> Dw_D2 = ZeroVector(3);
+        // // components w_i of the shear difference vector which calculates as (w_i(1) * a1 + w_i(2) * a2)
+        // array_1d<double, 3> w_i = ZeroVector(2);
+        // // derivatives of the components w_i
+        // Matrix Dw_i_Dalpha = ZeroMatrix(2, 2);
+        // // 7th parameter
+        // double w_bar = 0.0;
 
-        std::vector<array_1d<double, 3>> stress_pk2_cart(mGaussQuadratureThickness.num_GP_thickness);
-        std::vector<array_1d<double, 3>> stress_pk2_cov(mGaussQuadratureThickness.num_GP_thickness);
-        std::vector<array_1d<double, 3>> stress_cau_cov(mGaussQuadratureThickness.num_GP_thickness);
-        std::vector<array_1d<double, 3>> stress_cau_cart(mGaussQuadratureThickness.num_GP_thickness);
+        // std::vector<array_1d<double, 3>> stress_pk2_cart(mGaussQuadratureThickness.num_GP_thickness);
+        // std::vector<array_1d<double, 3>> stress_pk2_cov(mGaussQuadratureThickness.num_GP_thickness);
+        // std::vector<array_1d<double, 3>> stress_cau_cov(mGaussQuadratureThickness.num_GP_thickness);
+        // std::vector<array_1d<double, 3>> stress_cau_cart(mGaussQuadratureThickness.num_GP_thickness);
 
-        MetricVariables actual_metric(3, 5);
-        CalculateMetric(actual_metric);
-        CalculateShearDifferenceVector(w, Dw_D1, Dw_D2, w_i, Dw_i_Dalpha, actual_metric);
-        const unsigned int pos = GetGeometry()[0].GetDofPosition(W_BAR);
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-            w_bar += N(i) * GetGeometry()[i].GetDof(W_BAR, pos).EquationId();
+        // MetricVariables actual_metric(3, 5);
+        // CalculateMetric(actual_metric);
+        // CalculateShearDifferenceVector(w, Dw_D1, Dw_D2, w_i, Dw_i_Dalpha, actual_metric);
+        // const unsigned int pos = GetGeometry()[0].GetDofPosition(W_BAR);
+        // for (unsigned int i = 0; i < number_of_nodes; ++i)
+        //     w_bar += N(i) * GetGeometry()[i].GetDof(W_BAR, pos).EquationId();
 
-        double thickness = GetProperties().GetValue(THICKNESS);
+        // double thickness = GetProperties().GetValue(THICKNESS);
 
-        // the Gauss-Points start from bottom to top
-        for (unsigned int Gauss_index = 0; Gauss_index < mGaussQuadratureThickness.num_GP_thickness; Gauss_index++)
-        {
-            mZeta = mGaussQuadratureThickness.zeta(Gauss_index);
+        // // the Gauss-Points start from bottom to top
+        // for (unsigned int Gauss_index = 0; Gauss_index < mGaussQuadratureThickness.num_GP_thickness; Gauss_index++)
+        // {
+        //     mZeta = mGaussQuadratureThickness.zeta(Gauss_index);
 
-            ConstitutiveVariables constitutive_variables(5);
-            CalculateConstitutiveVariables(actual_metric, w, 
-                Dw_D1, Dw_D2, w_bar, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
+        //     ConstitutiveVariables constitutive_variables(5);
+        //     CalculateConstitutiveVariables(actual_metric, w, 
+        //         Dw_D1, Dw_D2, w_bar, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
 
-            double detF = actual_metric.dA / mInitialMetric.dA; // should be checked, especially here probably different (ML)
+        //     double detF = actual_metric.dA / mInitialMetric.dA; // should be checked, especially here probably different (ML)
 
-            // stresses at GP
-            stress_pk2_cart[Gauss_index] = constitutive_variables.S;
-            stress_pk2_cov[Gauss_index] = prod(mInitialMetric.TransCartToCov, stress_pk2_cart[Gauss_index]);
-            stress_cau_cov[Gauss_index] = stress_pk2_cov[Gauss_index] / detF;
-            stress_cau_cart[Gauss_index] = prod(actual_metric.TransCovToCart, stress_cau_cov[Gauss_index]);
-        }
+        //     // stresses at GP
+        //     stress_pk2_cart[Gauss_index] = constitutive_variables.S;
+        //     stress_pk2_cov[Gauss_index] = prod(mInitialMetric.TransCartToCov, stress_pk2_cart[Gauss_index]);
+        //     stress_cau_cov[Gauss_index] = stress_pk2_cov[Gauss_index] / detF;
+        //     stress_cau_cart[Gauss_index] = prod(actual_metric.TransCovToCart, stress_cau_cov[Gauss_index]);
+        // }
 
-            // Cauchy stress at midspan
-            array_1d<double, 5> stress_cau_cart_mid;
-            for (unsigned int i = 0; i < 5; i++)
-                stress_cau_cart_mid[i] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][i] + stress_cau_cart[0][i]) / 2.0;
+        //     // Cauchy stress at midspan
+        //     array_1d<double, 5> stress_cau_cart_mid;
+        //     for (unsigned int i = 0; i < 5; i++)
+        //         stress_cau_cart_mid[i] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][i] + stress_cau_cart[0][i]) / 2.0;
 
-            // internal forces n11, n22, n12, n23, n13
-            array_1d<double, 5> n = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] + stress_cau_cart[0]) / 2.0 * 
-                thickness;
+        //     // internal forces n11, n22, n12, n23, n13
+        //     array_1d<double, 5> n = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] + stress_cau_cart[0]) / 2.0 * 
+        //         thickness;
 
-            // internal moments m11, m22, m12
-            array_1d<double, 3> m;
-            m[0] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][0] - stress_cau_cart_mid[0]) * thickness * thickness / 
-                (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
-            m[1] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][1] - stress_cau_cart_mid[1]) * thickness * thickness / 
-                (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
-            m[2] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][2] - stress_cau_cart_mid[2]) * thickness * thickness / 
-                (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
+        //     // internal moments m11, m22, m12
+        //     array_1d<double, 3> m;
+        //     m[0] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][0] - stress_cau_cart_mid[0]) * thickness * thickness / 
+        //         (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
+        //     m[1] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][1] - stress_cau_cart_mid[1]) * thickness * thickness / 
+        //         (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
+        //     m[2] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][2] - stress_cau_cart_mid[2]) * thickness * thickness / 
+        //         (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
             
-            // stresses at the top (positive theta_3 direction)
-            array_1d<double, 5> stress_cau_cart_top = stress_cau_cart_mid + (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] 
-                - stress_cau_cart_mid) / mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1);
-            // stresses at the bottom (negative theta_3 direction)
-            array_1d<double, 5> stress_cau_cart_bottom = stress_cau_cart_mid + (stress_cau_cart[0] - stress_cau_cart_mid) / 
-                mGaussQuadratureThickness.zeta(0);
+        //     // stresses at the top (positive theta_3 direction)
+        //     array_1d<double, 5> stress_cau_cart_top = stress_cau_cart_mid + (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] 
+        //         - stress_cau_cart_mid) / mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1);
+        //     // stresses at the bottom (negative theta_3 direction)
+        //     array_1d<double, 5> stress_cau_cart_bottom = stress_cau_cart_mid + (stress_cau_cart[0] - stress_cau_cart_mid) / 
+        //         mGaussQuadratureThickness.zeta(0);
 
-            if (rVariable == STRESS_CAUCHY_TOP_11)
-                rValues = stress_cau_cart_top[0];
-            else if (rVariable == STRESS_CAUCHY_TOP_22)
-                rValues = stress_cau_cart_top[1];
-            else if (rVariable == STRESS_CAUCHY_TOP_12)
-                rValues = stress_cau_cart_top[2];
-            else if (rVariable == STRESS_CAUCHY_TOP_23)
-                rValues = stress_cau_cart_top[3];
-            else if (rVariable == STRESS_CAUCHY_TOP_13)
-                rValues = stress_cau_cart_top[4];
-            else if (rVariable == STRESS_CAUCHY_BOTTOM_11)
-                rValues = stress_cau_cart_bottom[0];
-            else if (rVariable == STRESS_CAUCHY_BOTTOM_22)
-                rValues = stress_cau_cart_bottom[1];
-            else if (rVariable == STRESS_CAUCHY_BOTTOM_12)
-                rValues = stress_cau_cart_bottom[2];
-            else if (rVariable == STRESS_CAUCHY_BOTTOM_23)
-                rValues = stress_cau_cart_bottom[3];
-            else if (rVariable == STRESS_CAUCHY_BOTTOM_13)
-                rValues = stress_cau_cart_bottom[4];
-            else if (rVariable == INTERNAL_FORCE_11)
-                rValues = n[0];
-            else if (rVariable == INTERNAL_FORCE_22)
-                rValues = n[1];
-            else if (rVariable == INTERNAL_FORCE_12)
-                rValues = n[2];
-            else if (rVariable == INTERNAL_MOMENT_11)
-                rValues = m[0];
-            else if (rVariable == INTERNAL_MOMENT_12)
-                rValues = m[2];
-            else if (rVariable == INTERNAL_MOMENT_22)
-                rValues = m[1];
-            else if (rVariable == SHEAR_FORCE_1)
-                rValues = n[3];
-            else if (rVariable == SHEAR_FORCE_2)
-                rValues = n[4];
-            else{
-                KRATOS_WATCH("No results for desired variable available in Calculate of IgaShell7pElement.")
-                rValues = 0.0;
-            }
+        //     if (rVariable == STRESS_CAUCHY_TOP_11)
+        //         rValues = stress_cau_cart_top[0];
+        //     else if (rVariable == STRESS_CAUCHY_TOP_22)
+        //         rValues = stress_cau_cart_top[1];
+        //     else if (rVariable == STRESS_CAUCHY_TOP_12)
+        //         rValues = stress_cau_cart_top[2];
+        //     else if (rVariable == STRESS_CAUCHY_TOP_23)
+        //         rValues = stress_cau_cart_top[3];
+        //     else if (rVariable == STRESS_CAUCHY_TOP_13)
+        //         rValues = stress_cau_cart_top[4];
+        //     else if (rVariable == STRESS_CAUCHY_BOTTOM_11)
+        //         rValues = stress_cau_cart_bottom[0];
+        //     else if (rVariable == STRESS_CAUCHY_BOTTOM_22)
+        //         rValues = stress_cau_cart_bottom[1];
+        //     else if (rVariable == STRESS_CAUCHY_BOTTOM_12)
+        //         rValues = stress_cau_cart_bottom[2];
+        //     else if (rVariable == STRESS_CAUCHY_BOTTOM_23)
+        //         rValues = stress_cau_cart_bottom[3];
+        //     else if (rVariable == STRESS_CAUCHY_BOTTOM_13)
+        //         rValues = stress_cau_cart_bottom[4];
+        //     else if (rVariable == INTERNAL_FORCE_11)
+        //         rValues = n[0];
+        //     else if (rVariable == INTERNAL_FORCE_22)
+        //         rValues = n[1];
+        //     else if (rVariable == INTERNAL_FORCE_12)
+        //         rValues = n[2];
+        //     else if (rVariable == INTERNAL_MOMENT_11)
+        //         rValues = m[0];
+        //     else if (rVariable == INTERNAL_MOMENT_12)
+        //         rValues = m[2];
+        //     else if (rVariable == INTERNAL_MOMENT_22)
+        //         rValues = m[1];
+        //     else if (rVariable == SHEAR_FORCE_1)
+        //         rValues = n[3];
+        //     else if (rVariable == SHEAR_FORCE_2)
+        //         rValues = n[4];
+        //     else{
+        //         KRATOS_WATCH("No results for desired variable available in Calculate of IgaShell7pElement.")
+        //         rValues = 0.0;
+        //     }
     }
 
     array_1d<double, 3> IgaShell7pElement::CrossProduct(

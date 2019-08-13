@@ -377,7 +377,6 @@ private:
      * @detail A linearized metric (g_alpha = a_alpha + zeta * Da3_Dalpha) is assumed
      */
     void CalculateInitialBaseVectorsGLinearized(
-        const double& rZeta,
         array_1d<double, 3>& rG1,
         array_1d<double, 3>& rG2);
 
@@ -426,12 +425,12 @@ private:
         const ConstitutiveLaw::StressMeasure ThisStressMeasure);
 
     void CalculateStrain(
-        Vector& rStrainVector,
+        array_1d<double, 5>& rStrainVector,
         const Vector& rgab,
         const Vector& rCurvature);
 
     void CalculateStrainRM(
-        Vector& rStrainVectorRM,
+        array_1d<double, 5>& rStrainVectorRM,
         const Vector& rw,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
@@ -468,6 +467,8 @@ private:
         const Variable<double>& rVariable,
         double& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
+    
+    unsigned int mcount = 0.0;
     ///@}
 
     ///@}

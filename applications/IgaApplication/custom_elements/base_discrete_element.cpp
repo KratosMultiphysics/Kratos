@@ -496,7 +496,7 @@ namespace Kratos
     {
         array_1d<double, 3> result;
         result[0] = rVector1[1] * rVector2[2] - rVector1[2] * rVector2[1];
-        result[1] = rVector1[2] * rVector2[0] - rVector1[0] * rVector1[2];
+        result[1] = rVector1[2] * rVector2[0] - rVector1[0] * rVector2[2];
         result[2] = rVector1[0] * rVector2[1] - rVector1[1] * rVector2[0];
         return result;
     }

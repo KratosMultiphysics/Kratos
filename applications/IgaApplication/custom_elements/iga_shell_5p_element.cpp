@@ -16,6 +16,8 @@
 #include "utilities/math_utils.h"
 
 // External includes
+#include <iostream>     // MLout
+#include <fstream>      // MLout
 
 // Project includes
 #include "custom_elements/iga_shell_5p_element.h"
@@ -40,8 +42,6 @@ namespace Kratos
         CalculateMetric(mInitialMetric);
         
         mZeta = 0.0;
-
-        // KRATOS_WATCH(mInitialMetric.Q)
 
         KRATOS_CATCH("")
     }
@@ -97,19 +97,25 @@ namespace Kratos
         CalculateMetric(actual_metric);
         CalculateShearDifferenceVector(w, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, actual_metric);
         double dV = 0.0;
-        array_1d<double, 3> G1 = ZeroVector(3);
-        array_1d<double, 3> G2 = ZeroVector(3);
-        array_1d<double, 3> G1xG2 = ZeroVector(3);
+        array_1d<double, 3> G1, G2, G1xG2;
         double thickness = GetProperties().GetValue(THICKNESS);
 
         for (unsigned int Gauss_index = 0; Gauss_index < mGaussQuadratureThickness.num_GP_thickness; Gauss_index++)
         {
             mZeta = mGaussQuadratureThickness.zeta(Gauss_index);
             
+            if(Id()==5 && mcount==1 && Gauss_index ==0) {
+                KRATOS_WATCH("second iteration, fifth element")
+                KRATOS_WATCH(w_alpha)
+                KRATOS_WATCH(Dw_alpha_Dbeta)
+            }
             // Differential Volume
-            CalculateInitialBaseVectorsGLinearized(mZeta, G1, G2);
+            G1 = ZeroVector(3);
+            G2 = ZeroVector(3);
+            G1xG2 = ZeroVector(3);
+            CalculateInitialBaseVectorsGLinearized(G1, G2);
             MathUtils<double>::CrossProduct(G1xG2, G1, G2);
-            dV = inner_prod(G1xG2, mInitialMetric.a3_KL);
+            dV = inner_prod(G1xG2, mInitialMetric.a3_KL);   // mInitialMetric.a3_KL = G3
 
             Matrix B = ZeroMatrix(5, mat_size);
             SecondVariations second_variations(mat_size);
@@ -120,13 +126,9 @@ namespace Kratos
 
             // calculate B MATRICES
             CalculateB(B, actual_metric);
-            if(Id()==4)
-                KRATOS_WATCH(B)
             CalculateVariationsRM(B, second_variations, w, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, 
                 actual_metric, CalculateStiffnessMatrixFlag);
-            if(Id()==4)
-                KRATOS_WATCH(B)
-                
+            
             double integration_weight = mGaussQuadratureThickness.integration_weight_thickness(Gauss_index) * 
                 GetValue(INTEGRATION_WEIGHT) * dV * thickness / 2.0;
 
@@ -138,12 +140,16 @@ namespace Kratos
                     second_variations,
                     actual_metric);
                 
+                // if(Id()==1)
+                //     KRATOS_WATCH(rLeftHandSideMatrix)
                 // adding linear contributions to the stiffness matrix
                 CalculateAndAddKm(rLeftHandSideMatrix, B, constitutive_variables.D, integration_weight);
-
+                // if(Id()==1)
+                //     KRATOS_WATCH(rLeftHandSideMatrix)
                 // adding  non-linear contribution to stiffness matrix
-                CalculateAndAddNonlinearKm(rLeftHandSideMatrix, second_variations, constitutive_variables.S,
-                    integration_weight);
+                CalculateAndAddNonlinearKm(rLeftHandSideMatrix, second_variations, constitutive_variables.S, integration_weight);
+                // if(Id()==1)
+                //     KRATOS_WATCH(rLeftHandSideMatrix)
             }
 
             // RIGHT HAND SIDE VECTOR
@@ -152,12 +158,35 @@ namespace Kratos
                 // operation performed: rRightHandSideVector -= Weight*IntForce
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), constitutive_variables.S);
             }
+
+            // // output file of B // MLB
+            // if(Id()==5 && mcount==1 && Gauss_index==0){
+            //     KRATOS_WATCH(constitutive_variables.S)
+            //     std::ofstream myfile1;
+            //     myfile1.open("B-5p.csv");
+            //     for (unsigned int i = 0; i<5; i++){
+            //         for (unsigned int j=0; j<mat_size;j++){
+            //             myfile1 << B(i,j) << ",";
+            //         }
+            //         myfile1 << "\n";
+            //     }
+            //     myfile1.close();
+            // }
+        }   // loop GP,t
+
+        if (Id() == 1){
+            // mcount++;
+            // KRATOS_WATCH(mcount)
+            // KRATOS_WATCH(Id())
+            // KRATOS_WATCH(rLeftHandSideMatrix)
+            KRATOS_WATCH(rRightHandSideVector)
         }
 
-        // if (Id() == 1){
-        //     KRATOS_WATCH(rLeftHandSideMatrix)
-        //     KRATOS_WATCH(rRightHandSideVector)
-        // }
+        // output file of LHS and RHS // MLout
+        if (Id()==5){
+			mcount++;
+            KRATOS_WATCH(mcount)
+        }
 
         KRATOS_CATCH("");
     }
@@ -329,7 +358,7 @@ namespace Kratos
         const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
         const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int pos = GetGeometry()[0].GetDofPosition(ROTATION_X);
+        // const unsigned int pos = GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
         double w_1, w_2;
 
         for (unsigned int i = 0; i < number_of_nodes; ++i) 
@@ -337,9 +366,8 @@ namespace Kratos
             // only ROTATION_X and ROTATION_Y used preliminarily, to avoid new declarations
             // ROTATION_X = w_1 (first component of hierarchic shear difference vector)
             // ROTATION_Y = w_2 (second component of hierarchic shear difference vector) (ML)
-            w_1 = GetGeometry()[i].GetDof(ROTATION_X, pos).GetSolutionStepValue();
-            w_2 = GetGeometry()[i].GetDof(ROTATION_Y, pos + 1).GetSolutionStepValue();
-
+            w_1 = GetGeometry()[i].GetDof(ROTATION_X).GetSolutionStepValue();
+            w_2 = GetGeometry()[i].GetDof(ROTATION_Y).GetSolutionStepValue();
             rDw_alpha_Dbeta(0, 0) += DN_De(i, 0) * w_1;
             rDw_alpha_Dbeta(0, 1) += DN_De(i, 1) * w_1;
             rDw_alpha_Dbeta(1, 0) += DN_De(i, 0) * w_2;
@@ -359,15 +387,16 @@ namespace Kratos
         }
 
         rw = rw_alpha(0) * rActualMetric.a1 + rw_alpha(1) * rActualMetric.a2;
-
+        
         KRATOS_CATCH("")
     }
     
     void IgaShell5pElement::CalculateInitialBaseVectorsGLinearized(
-        const double& rZeta,
         array_1d<double, 3>&      rG1,
         array_1d<double, 3>&      rG2)
     {
+        double thickness = GetProperties().GetValue(THICKNESS);
+        
         Vector DA3_D1 = ZeroVector(3);
         Vector DA3_D2 = ZeroVector(3);
         Vector DA1_D1xA2 = ZeroVector(3);
@@ -386,8 +415,8 @@ namespace Kratos
             / (mInitialMetric.dA * mInitialMetric.dA);
 
         // covariant base vectors of the shell body in the reference configuration
-        rG1 = mInitialMetric.a1 + rZeta * DA3_D1;
-        rG2 = mInitialMetric.a2 + rZeta * DA3_D2;
+        rG1 = mInitialMetric.a1 + thickness / 2.0 * mZeta * DA3_D1;
+        rG2 = mInitialMetric.a2 + thickness / 2.0 * mZeta * DA3_D2;
         // G3 = A3
     }
 
@@ -449,8 +478,8 @@ namespace Kratos
         }
 
         /* Kovariante Basisvektoren */
-        rg1 = rActualMetric.a1 + mZeta*(Da3_KL_D1 + rDw_D1);
-        rg2 = rActualMetric.a2 + mZeta*(Da3_KL_D2 + rDw_D2);
+        rg1 = rActualMetric.a1 + thickness / 2.0 * mZeta*(Da3_KL_D1 + rDw_D1);
+        rg2 = rActualMetric.a2 + thickness / 2.0 * mZeta*(Da3_KL_D2 + rDw_D2);
         rg3 = rActualMetric.a3_KL + rw;     // g3 = a3
 
         KRATOS_CATCH("")
@@ -510,8 +539,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Vector strain_vector = ZeroVector(5);
-        Vector strain_vector_RM = ZeroVector(5);
+        array_1d<double, 5> strain_vector = ZeroVector(5);
+        array_1d<double, 5> strain_vector_RM = ZeroVector(5);
         
         // Strain computation in curvilinear space
         CalculateStrain(strain_vector, rActualMetric.a_ab, rActualMetric.curvature);
@@ -522,6 +551,8 @@ namespace Kratos
         ConstitutiveVariables constitutive_variables(6);
         TransformationCurvilinearStrainSize5ToCartesianStrainSize6(rThisConstitutiveVariables.E, constitutive_variables.E);
 
+        if(rThisConstitutiveVariables.E.size() != 5 || constitutive_variables.E.size()!= 6)
+            KRATOS_WATCH("Strain size not correct.")
         //Constitutive Matrix D
         rValues.SetStrainVector(constitutive_variables.E); //this is the input parameter
         rValues.SetStressVector(constitutive_variables.S);    //this is an ouput parameter
@@ -557,7 +588,7 @@ namespace Kratos
     }
 
     void IgaShell5pElement::CalculateStrain(
-        Vector& rStrainVector,
+        array_1d<double, 5>& rStrainVector,
         const Vector& rgab,
         const Vector& rCurvature)
     {
@@ -574,7 +605,7 @@ namespace Kratos
     }
 
     void IgaShell5pElement::CalculateStrainRM(
-        Vector& rStrainVectorRM,
+        array_1d<double, 5>& rStrainVectorRM,
         const Vector& rw,
         const Vector& rDw_D1,
         const Vector& rDw_D2,
@@ -632,7 +663,7 @@ namespace Kratos
             int kr = r / 5;
             int dirr = r % 5;
 
-            Vector dE_curvilinear = ZeroVector(3);
+            array_1d<double, 3> dE_curvilinear = ZeroVector(3);
             // "if" guarantees that there are zero entries corresponding to the new parameters w_1 and w_2
             if (dirr == 0 || dirr == 1 || dirr == 2)
             {
@@ -764,7 +795,7 @@ namespace Kratos
                 int dirr = r % 3;
 
                 for (int s = 0; s <= r; s++)
-                {
+                {               
                     // local node number ks and dof direction dirs
                     int ks = s / 3;
                     int dirs = s % 3;
@@ -782,11 +813,6 @@ namespace Kratos
                         second_variations_KL.B22(r, s) += mInitialMetric.Q(1, 0) * ddE_cu[0] + mInitialMetric.Q(1, 1) * ddE_cu[1]
                             + mInitialMetric.Q(1, 2) * ddE_cu[2];
                         second_variations_KL.B12(r, s) += mInitialMetric.Q(2, 0) * ddE_cu[0] + mInitialMetric.Q(2, 2) * ddE_cu[2];
-                        if (r != s){
-                            second_variations_KL.B11(s, r) += second_variations_KL.B11(r, s);
-                            second_variations_KL.B22(s, r) += second_variations_KL.B22(r, s);
-                            second_variations_KL.B12(s, r) += second_variations_KL.B12(r, s);
-                        }
                     }
 
                     // curvature
@@ -810,11 +836,11 @@ namespace Kratos
                     ddn[2] = ddg3[2] * inv_lg3 - S_g3dg3lg3_3[s] * S_dg3(2, r) - S_g3dg3lg3_3[r] * S_dg3(2, s) + (c + d)*rMetric.a3_KL_tilde[2];
 
                     array_1d<double, 3> ddK_cu = ZeroVector(3);
-                    ddK_cu[0] = mZeta * thickness / 2.0 * (DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)
+                    ddK_cu[0] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 0)*S_dn(dirr, s) + DDN_DDe(ks, 0)*S_dn(dirs, r)  // MLFÄ
                         + rMetric.H(0, 0)*ddn[0] + rMetric.H(1, 0)*ddn[1] + rMetric.H(2, 0)*ddn[2]);
-                    ddK_cu[1] = mZeta * thickness / 2.0 * (DDN_DDe(kr, 1)*S_dn(dirr, s) + DDN_DDe(ks, 1)*S_dn(dirs, r)
+                    ddK_cu[1] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 1)*S_dn(dirr, s) + DDN_DDe(ks, 1)*S_dn(dirs, r)  // MLFÄ
                         + rMetric.H(0, 1)*ddn[0] + rMetric.H(1, 1)*ddn[1] + rMetric.H(2, 1)*ddn[2]);
-                    ddK_cu[2] = mZeta * thickness / 2.0 * (DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)
+                    ddK_cu[2] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)  // MLFÄ
                         + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2]);
 
                     // calculated with simplified Q (ML)
@@ -822,6 +848,8 @@ namespace Kratos
                     second_variations_KL.B22(r, s) += mInitialMetric.Q(1, 0) * ddK_cu[0] + mInitialMetric.Q(1, 1) * ddK_cu[1] 
                         + mInitialMetric.Q(1, 2) * ddK_cu[2];
                     second_variations_KL.B12(r, s) += mInitialMetric.Q(2, 0) * ddK_cu[0] + mInitialMetric.Q(2, 2) * ddK_cu[2];
+                    
+                    // symmetric B matrices
                     if (r != s){
                         second_variations_KL.B11(s, r) += second_variations_KL.B11(r, s);
                         second_variations_KL.B22(s, r) += second_variations_KL.B22(r, s);
@@ -835,12 +863,12 @@ namespace Kratos
                 unsigned int kr = r / 5;
                 unsigned int dirr = r % 5;
                 unsigned int r_KL = kr * 3 + dirr;
-                if (dirr != 3 || dirr != 4){
+                if (dirr != 3 && dirr != 4){
                     for (unsigned int s = 0; s < mat_size; s++){
                         unsigned int ks = s / 5;
                         unsigned int dirs = s % 5;
                         unsigned int s_KL = ks * 3 + dirs;
-                        if (dirs != 3 || dirs != 4){
+                        if (dirs != 3 && dirs != 4){
                             rSecondVariations.B11(r, s) += second_variations_KL.B11(r_KL, s_KL);
                             rSecondVariations.B22(r, s) += second_variations_KL.B22(r_KL, s_KL);
                             rSecondVariations.B12(r, s) += second_variations_KL.B12(r_KL, s_KL);               
@@ -848,7 +876,13 @@ namespace Kratos
                     }
                 }
             }
-        }
+            if(Id()==5 && mcount==1){
+                KRATOS_WATCH(second_variations_KL.B11(0,3))
+                KRATOS_WATCH(second_variations_KL.B11(3,0))
+                KRATOS_WATCH(rSecondVariations.B11(0,5))
+                KRATOS_WATCH(rSecondVariations.B11(5,0))
+            }
+        }   // if HasShapeFunctions
     }
 
     void IgaShell5pElement::CalculateVariationsRM(        
@@ -868,819 +902,6 @@ namespace Kratos
         const double thickness = GetProperties().GetValue(THICKNESS);
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int mat_size = number_of_nodes * 5;
-        
-        // Vector testvector = ZeroVector(3); // ML
-        // Vector testvector1 = ZeroVector(3); // ML
-        // Matrix testmatrix = ZeroMatrix(mat_size, mat_size); // ML
-        // double testdouble = 0.0; // ML
-        // // ML: Anfang Oesterle kopiert
-        // Matrix bop = ZeroMatrix(5, mat_size);
-        // Matrix bopVergleich = ZeroMatrix(5, mat_size);
-        // int count1 = 0;
-        // int count2 = 0;
-        // double dw_1_dr;
-        // double dw_2_dr;
-        // double dw_1dT1_dr;
-        // double dw_2dT1_dr;
-        // double dw_1dT2_dr;
-        // double dw_2dT2_dr;
-        // array_1d<double, 3> a1_dr;
-        // array_1d<double, 3> a2_dr;
-        // array_1d<double, 3> da1_dT1_dr;
-        // array_1d<double, 3> da1_dT2_dr;
-        // array_1d<double, 3> da2_dT1_dr;
-        // array_1d<double, 3> da2_dT2_dr;
-
-        // array_1d<double, 3> dw_dr;
-        // array_1d<double, 3> dw_dT1_dr;
-        // array_1d<double, 3> dw_dT2_dr;
-        // array_1d<double, 3> Dg1_D1;
-        // array_1d<double, 3> Dg2_D2;
-        // array_1d<double, 3> Dg1_D2;
-        // for (unsigned int i = 0; i < 3; i++)
-        // {
-        //     Dg1_D1[i] = rActualMetric.H(i, 0);
-        //     Dg2_D2[i] = rActualMetric.H(i, 1);
-        //     Dg1_D2[i] = rActualMetric.H(i, 2);
-        // }
-        // for (int j = 0; j < number_of_nodes; j++)
-        // {
-        //     for (int i = 0; i < 5; i++)
-        //     {
-        //     if (i == 0)
-        //     {
-        //         a1_dr[0] = DN_De(count2, 0);
-        //         a1_dr[1] = 0.0;
-        //         a1_dr[2] = 0.0;
-        //         a2_dr[0] = DN_De(count2, 1);
-        //         a2_dr[1] = 0.0;
-        //         a2_dr[2] = 0.0;
-
-        //         da1_dT1_dr[0] = DDN_DDe(count2, 0);
-        //         da1_dT1_dr[1] = 0.0;
-        //         da1_dT1_dr[2] = 0.0;
-        //         da1_dT2_dr[0] = DDN_DDe(count2, 2);
-        //         da1_dT2_dr[1] = 0.0;
-        //         da1_dT2_dr[2] = 0.0;
-        //         da2_dT1_dr[0] = DDN_DDe(count2, 2);
-        //         da2_dT1_dr[1] = 0.0;
-        //         da2_dT1_dr[2] = 0.0;
-        //         da2_dT2_dr[0] = DDN_DDe(count2, 1);
-        //         da2_dT2_dr[1] = 0.0;
-        //         da2_dT2_dr[2] = 0.0;
-
-        //         dw_1_dr = 0.0;
-        //         dw_2_dr = 0.0;
-        //         dw_1dT1_dr = 0.0;
-        //         dw_2dT1_dr = 0.0;
-        //         dw_1dT2_dr = 0.0;
-        //         dw_2dT2_dr = 0.0;
-        //     }
-        //     else if (i == 1)
-        //     {
-        //         a1_dr[0] = 0;
-        //         a1_dr[1] = DN_De(count2, 0);
-        //         a1_dr[2] = 0;
-        //         a2_dr[0] = 0;
-        //         a2_dr[1] = DN_De(count2, 1);
-        //         a2_dr[2] = 0;
-
-        //         da1_dT1_dr[0] = 0.0;
-        //         da1_dT1_dr[1] = DDN_DDe(count2, 0);
-        //         da1_dT1_dr[2] = 0.0;
-        //         da1_dT2_dr[0] = 0.0;
-        //         da1_dT2_dr[1] = DDN_DDe(count2, 2);
-        //         da1_dT2_dr[2] = 0.0;
-        //         da2_dT1_dr[0] = 0.0;
-        //         da2_dT1_dr[1] = DDN_DDe(count2, 2);
-        //         da2_dT1_dr[2] = 0.0;
-        //         da2_dT2_dr[0] = 0.0;
-        //         da2_dT2_dr[1] = DDN_DDe(count2, 1);
-        //         da2_dT2_dr[2] = 0.0;
-
-        //         dw_1_dr = 0.0;
-        //         dw_2_dr = 0.0;
-        //         dw_1dT1_dr = 0.0;
-        //         dw_2dT1_dr = 0.0;
-        //         dw_1dT2_dr = 0.0;
-        //         dw_2dT2_dr = 0.0;
-        //     }
-        //     else if (i == 2)
-        //     {
-        //         a1_dr[0] = 0;
-        //         a1_dr[1] = 0;
-        //         a1_dr[2] = DN_De(count2, 0);
-        //         a2_dr[0] = 0;
-        //         a2_dr[1] = 0;
-        //         a2_dr[2] = DN_De(count2, 1);
-
-        //         da1_dT1_dr[0] = 0.0;
-        //         da1_dT1_dr[1] = 0.0;
-        //         da1_dT1_dr[2] = DDN_DDe(count2, 0);
-        //         da1_dT2_dr[0] = 0.0;
-        //         da1_dT2_dr[1] = 0.0;
-        //         da1_dT2_dr[2] = DDN_DDe(count2, 2);
-        //         da2_dT1_dr[0] = 0.0;
-        //         da2_dT1_dr[1] = 0.0;
-        //         da2_dT1_dr[2] = DDN_DDe(count2, 2);
-        //         da2_dT2_dr[0] = 0.0;
-        //         da2_dT2_dr[1] = 0.0;
-        //         da2_dT2_dr[2] = DDN_DDe(count2, 1);
-
-        //         dw_1_dr = 0.0;
-        //         dw_2_dr = 0.0;
-        //         dw_1dT1_dr = 0.0;
-        //         dw_2dT1_dr = 0.0;
-        //         dw_1dT2_dr = 0.0;
-        //         dw_2dT2_dr = 0.0;
-        //     }
-        //     else if (i == 3)
-        //     {
-        //         a1_dr[0] = 0;
-        //         a1_dr[1] = 0;
-        //         a1_dr[2] = 0;
-        //         a2_dr[0] = 0;
-        //         a2_dr[1] = 0;
-        //         a2_dr[2] = 0;
-        //         dw_1_dr = N(count2);
-        //         dw_2_dr = 0.0;
-        //         dw_1dT1_dr = DN_De(count2, 0);
-        //         dw_2dT1_dr = 0.0;
-        //         dw_1dT2_dr = DN_De(count2, 1);
-        //         dw_2dT2_dr = 0.0;
-        //     }
-        //     else if (i == 4)
-        //     {
-        //         a1_dr[0] = 0;
-        //         a1_dr[1] = 0;
-        //         a1_dr[2] = 0;
-        //         a2_dr[0] = 0;
-        //         a2_dr[1] = 0;
-        //         a2_dr[2] = 0;
-        //         dw_1_dr = 0.0;
-        //         dw_2_dr = N(count2);
-        //         dw_1dT1_dr = 0.0;
-        //         dw_2dT1_dr = DN_De(count2, 0);
-        //         dw_1dT2_dr = 0.0;
-        //         dw_2dT2_dr = DN_De(count2, 1);
-        //     }
-
-        //     /* Partielle Ableitung/Variation nach FHG (_dr entspricht ,r) */
-        //     dw_dr = dw_1_dr*rActualMetric.a1 + rw_alpha[0]*a1_dr + dw_2_dr*rActualMetric.a2 + rw_alpha[1]*a2_dr;
-        //     dw_dT1_dr = dw_1dT1_dr*rActualMetric.a1 + rDw_alpha_Dbeta(0, 0)*a1_dr + dw_1_dr*Dg1_D1 + rw_alpha[0]*da1_dT1_dr +
-        //                 dw_2dT1_dr*rActualMetric.a2 + rDw_alpha_Dbeta(1, 0)*a2_dr + dw_2_dr*Dg1_D2 + rw_alpha[1]*da2_dT1_dr;
-        //     dw_dT2_dr = dw_1dT2_dr*rActualMetric.a1 + rDw_alpha_Dbeta(0, 1)*a1_dr + dw_1_dr*Dg1_D2 + rw_alpha[0]*da1_dT2_dr +
-        //                 dw_2dT2_dr*rActualMetric.a2 + rDw_alpha_Dbeta(1, 1)*a2_dr + dw_2_dr*Dg2_D2 + rw_alpha[1]*da2_dT2_dr;
-
-        //     bop(0,count1) = bop(0,count1) + mZeta*thickness/2.0*(inner_prod(a1_dr, rDw_D1) + inner_prod(rActualMetric.a1, dw_dT1_dr));
-        //     bop(2,count1) = bop(2,count1) + 0.5 * mZeta*thickness/2.0*(inner_prod(a1_dr,rDw_D2) + inner_prod(rActualMetric.a1,dw_dT2_dr) + inner_prod(a2_dr,rDw_D1) + inner_prod(rActualMetric.a2,dw_dT1_dr));
-        //     bop(1,count1) = bop(1,count1) + mZeta*thickness/2.0*(inner_prod(a2_dr,rDw_D2) + inner_prod(rActualMetric.a2,dw_dT2_dr));
-        //     bop(4,count1) = bop(4,count1) + 0.5 * (inner_prod(dw_dr,rActualMetric.a1) + inner_prod(rw,a1_dr));
-        //     bop(3,count1) = bop(3,count1) + 0.5 * (inner_prod(dw_dr,rActualMetric.a2) + inner_prod(rw,a2_dr));
-
-        //     count1 ++;
-        //     }
-        //     count2 ++;
-        // }
-        // rB += prod(mInitialMetric.Q, bop);
-        // // if(Id() == 4){
-        // //     KRATOS_WATCH(mInitialMetric.Q)
-        // //     KRATOS_WATCH(bop)
-        // //     KRATOS_WATCH(rB)
-        // // }
-
-        // //second variations Oesterle
-        // Matrix dE11_dkl = ZeroMatrix(mat_size, mat_size);
-        // Matrix dE12_dkl = ZeroMatrix(mat_size, mat_size);
-        // Matrix dE22_dkl = ZeroMatrix(mat_size, mat_size);
-        // Matrix dE13_dkl = ZeroMatrix(mat_size, mat_size);
-        // Matrix dE23_dkl = ZeroMatrix(mat_size, mat_size);
-        // Matrix dE11_dklVergleich = ZeroMatrix(mat_size, mat_size);
-        // Matrix dE12_dklVergleich = ZeroMatrix(mat_size, mat_size);
-        // Matrix dE22_dklVergleich = ZeroMatrix(mat_size, mat_size);
-        // Matrix dE13_dklVergleich = ZeroMatrix(mat_size, mat_size);
-        // Matrix dE23_dklVergleich = ZeroMatrix(mat_size, mat_size);
-        // array_1d<double, 3> da1xa2k;
-        // array_1d<double, 3> da1xa2l;
-        // array_1d<double, 3> dda1xa2kl;
-        // array_1d<double, 3> da1k;
-        // array_1d<double, 3> da2k;
-        // array_1d<double, 3> da3k;
-        // array_1d<double, 3> da1l;
-        // array_1d<double, 3> da2l;
-        // array_1d<double, 3> da3l;
-        // array_1d<double, 3> da11k;
-        // array_1d<double, 3> da12k;
-        // array_1d<double, 3> da21k;
-        // array_1d<double, 3> da22k;
-        // array_1d<double, 3> da11l;
-        // array_1d<double, 3> da12l;
-        // array_1d<double, 3> da21l;
-        // array_1d<double, 3> da22l;
-        // array_1d<double, 3> dda3kl;
-
-        // array_1d<double, 3> dw_dk;
-        // array_1d<double, 3> dw_dl;
-        // array_1d<double, 3> ddw_dkl;
-        // array_1d<double, 3> dw_dT1_dk;
-        // array_1d<double, 3> dw_dT2_dk;
-        // array_1d<double, 3> dw_dT1_dl;
-        // array_1d<double, 3> dw_dT2_dl;
-        // array_1d<double, 3> ddw_dT1_dkl;
-        // array_1d<double, 3> ddw_dT2_dkl;
-        // double dw1_dk, dw2_dk, dw1_dl, dw2_dl;
-        // double dw1_dT1_dk, dw2_dT1_dk, dw1_dT2_dk, dw2_dT2_dk,
-        //         dw1_dT1_dl, dw2_dT1_dl, dw1_dT2_dl, dw2_dT2_dl;
-        // int i, j, k, l;
-        // double da1xa2k_a1xa2;
-        // double da1xa2k_a1xa2_hact;
-        // double da1xa2l_a1xa2;
-        // double da1xa2l_a1xa2_hact;
-        
-        // // array_1d<double, 3> Dg1_D1;
-        // // array_1d<double, 3> Dg2_D2;
-        // // array_1d<double, 3> Dg1_D2;
-        // // for (unsigned int i = 0; i < 3; i++)
-        // // {
-        // //     Dg1_D1[i] = mInitialMetric.H(i, 0);
-        // //     Dg2_D2[i] = mInitialMetric.H(i, 1);
-        // //     Dg1_D2[i] = mInitialMetric.H(i, 2);
-        // // }
-
-        // for (k = 0; k < number_of_nodes; k++)
-        // {
-        //     for (i = 0; i < 5; i++)
-        //     {
-        //     for (l = 0; l < number_of_nodes; l++)
-        //     {
-        //         for (j = 0; j < 5; j++)
-        //         {
-        //         /* Anteile aus 3p-Formulierung (nicht veraendert) */
-        //         if (i < 3 && j < 3)
-        //         {
-        //         if (i == 0)
-        //         {
-        //             da1k[0] = DN_De(k, 0);
-        //             da1k[1] = 0;
-        //             da1k[2] = 0;
-        //             da2k[0] = DN_De(k, 1);
-        //             da2k[1] = 0;
-        //             da2k[2] = 0;
-        //         }
-        //         else if (i == 1)
-        //         {
-        //             da1k[0] = 0;
-        //             da1k[1] = DN_De(k, 0);
-        //             da1k[2] = 0;
-        //             da2k[0] = 0;
-        //             da2k[1] = DN_De(k, 1);
-        //             da2k[2] = 0;
-        //         }
-        //         else
-        //         {
-        //             da1k[0] = 0;
-        //             da1k[1] = 0;
-        //             da1k[2] = DN_De(k, 0);
-        //             da2k[0] = 0;
-        //             da2k[1] = 0;
-        //             da2k[2] = DN_De(k, 1);
-        //         }
-
-        //         array_1d<double, 3> da1kxa2, a1xda2k;
-        //         MathUtils<double>::CrossProduct(da1kxa2, da1k, rActualMetric.a2);
-        //         MathUtils<double>::CrossProduct(a1xda2k, rActualMetric.a1, da2k);
-        //         da1xa2k = da1kxa2 + a1xda2k;
-        //         da1xa2k_a1xa2 = (da1xa2k[0] * rActualMetric.a3_KL_tilde[0] + da1xa2k[1] * rActualMetric.a3_KL_tilde[1] + da1xa2k[2] * rActualMetric.a3_KL_tilde[2]);
-        //         da1xa2k_a1xa2_hact = da1xa2k_a1xa2 / (rActualMetric.dA * rActualMetric.dA * rActualMetric.dA);
-        //         da3k[0] = da1xa2k[0] / rActualMetric.dA - rActualMetric.a3_KL_tilde[0] * da1xa2k_a1xa2_hact;
-        //         da3k[1] = da1xa2k[1] / rActualMetric.dA - rActualMetric.a3_KL_tilde[1] * da1xa2k_a1xa2_hact;
-        //         da3k[2] = da1xa2k[2] / rActualMetric.dA - rActualMetric.a3_KL_tilde[2] * da1xa2k_a1xa2_hact;
-
-        //         if (j == 0)
-        //         {
-        //             da1l[0] = DN_De(l, 0);
-        //             da1l[1] = 0;
-        //             da1l[2] = 0;
-        //             da2l[0] = DN_De(l, 1);
-        //             da2l[1] = 0;
-        //             da2l[2] = 0;
-        //         }
-        //         else if (j == 1)
-        //         {
-        //             da1l[0] = 0;
-        //             da1l[1] = DN_De(l, 0);
-        //             da1l[2] = 0;
-        //             da2l[0] = 0;
-        //             da2l[1] = DN_De(l, 1);
-        //             da2l[2] = 0;
-        //         }
-        //         else
-        //         {
-        //             da1l[0] = 0;
-        //             da1l[1] = 0;
-        //             da1l[2] = DN_De(l, 0);
-        //             da2l[0] = 0;
-        //             da2l[1] = 0;
-        //             da2l[2] = DN_De(l, 1);
-        //         }
-
-        //         array_1d<double, 3> da1lxa2, a1xda2l;
-        //         MathUtils<double>::CrossProduct(da1lxa2, da1l, rActualMetric.a2);
-        //         MathUtils<double>::CrossProduct(a1xda2l, rActualMetric.a1, da2l);
-        //         da1xa2l = da1lxa2 + a1xda2l;
-        //         da1xa2l_a1xa2 = (da1xa2l[0] * rActualMetric.a3_KL_tilde[0] + da1xa2l[1] * rActualMetric.a3_KL_tilde[1] + da1xa2l[2] * rActualMetric.a3_KL_tilde[2]);
-        //         da1xa2l_a1xa2_hact = da1xa2l_a1xa2 / (rActualMetric.dA * rActualMetric.dA * rActualMetric.dA);
-        //         da3l[0] = da1xa2l[0] / rActualMetric.dA - rActualMetric.a3_KL_tilde[0] * da1xa2l_a1xa2_hact;
-        //         da3l[1] = da1xa2l[1] / rActualMetric.dA - rActualMetric.a3_KL_tilde[1] * da1xa2l_a1xa2_hact;
-        //         da3l[2] = da1xa2l[2] / rActualMetric.dA - rActualMetric.a3_KL_tilde[2] * da1xa2l_a1xa2_hact;
-
-        //         if (i == 0)
-        //         {
-        //             if (j == 0)
-        //             {
-        //             dda1xa2kl[0] = 0;
-        //             dda1xa2kl[1] = 0;
-        //             dda1xa2kl[2] = 0;
-        //             }
-        //             else if (j == 1)
-        //             {
-        //             dda1xa2kl[0] = 0;
-        //             dda1xa2kl[1] = 0;
-        //             dda1xa2kl[2] = DN_De(k, 0) * DN_De(l, 1) - DN_De(l, 0) * DN_De(k, 1);
-        //             }
-        //             else if (j == 2)
-        //             {
-        //             dda1xa2kl[0] = 0;
-        //             dda1xa2kl[1] = -DN_De(k, 0) * DN_De(l, 1) + DN_De(l, 0) * DN_De(k, 1);
-        //             dda1xa2kl[2] = 0;
-        //             }
-        //         }
-
-        //         else if (i == 1)
-        //         {
-        //             if (j == 0)
-        //             {
-        //             dda1xa2kl[0] = 0;
-        //             dda1xa2kl[1] = 0;
-        //             dda1xa2kl[2] = -DN_De(k, 0) * DN_De(l, 1) + DN_De(l, 0) * DN_De(k, 1);
-        //             }
-        //             else if (j == 1)
-        //             {
-        //             dda1xa2kl[0] = 0;
-        //             dda1xa2kl[1] = 0;
-        //             dda1xa2kl[2] = 0;
-        //             }
-        //             else if (j == 2)
-        //             {
-        //             dda1xa2kl[0] = DN_De(k, 0) * DN_De(l, 1) - DN_De(l, 0) * DN_De(k, 1);
-        //             dda1xa2kl[1] = 0;
-        //             dda1xa2kl[2] = 0;
-        //             }
-        //         }
-
-        //         else
-        //         {
-        //             if (j == 0)
-        //             {
-        //             dda1xa2kl[0] = 0;
-        //             dda1xa2kl[1] = DN_De(k, 0) * DN_De(l, 1) - DN_De(l, 0) * DN_De(k, 1);
-        //             dda1xa2kl[2] = 0;
-        //             }
-        //             else if (j == 1)
-        //             {
-        //             dda1xa2kl[0] = -DN_De(k, 0) * DN_De(l, 1) + DN_De(l, 0) * DN_De(k, 1);
-        //             dda1xa2kl[1] = 0;
-        //             dda1xa2kl[2] = 0;
-        //             }
-        //             else
-        //             {
-        //             dda1xa2kl[0] = 0;
-        //             dda1xa2kl[1] = 0;
-        //             dda1xa2kl[2] = 0;
-        //             }
-        //         }
-
-        //         // C = -(dda1xa2kl[0] * rActualMetric.a3_KL_tilde[0] + dda1xa2kl[1] * rActualMetric.a3_KL_tilde[1]
-        //         //     + dda1xa2kl[2] * rActualMetric.a3_KL_tilde[2] + da1xa2k[0] * da1xa2l[0]
-        //         //     + da1xa2k[1] * da1xa2l[1] + da1xa2k[2] * da1xa2l[2])
-        //         //     / (rActualMetric.dA * rActualMetric.dA * rActualMetric.dA);
-
-        //         // D = 3.0 * (da1xa2k_a1xa2) * (da1xa2l_a1xa2) / (rActualMetric.dA * rActualMetric.dA * rActualMetric.dA * rActualMetric.dA * rActualMetric.dA);
-
-        //         // dda3kl[0] = dda1xa2kl[0] / rActualMetric.dA - da1xa2l_a1xa2_hact * da1xa2k[0]
-        //         //             - da1xa2k_a1xa2_hact * da1xa2l[0] + C * rActualMetric.a3_KL_tilde[0] + D * rActualMetric.a3_KL_tilde[0];
-        //         // dda3kl[1] = dda1xa2kl[1] / rActualMetric.dA - da1xa2l_a1xa2_hact * da1xa2k[1]
-        //         //             - da1xa2k_a1xa2_hact * da1xa2l[1] + C * rActualMetric.a3_KL_tilde[1] + D * rActualMetric.a3_KL_tilde[1];
-        //         // dda3kl[2] = dda1xa2kl[2] / rActualMetric.dA - da1xa2l_a1xa2_hact * da1xa2k[2]
-        //         //             - da1xa2k_a1xa2_hact * da1xa2l[2] + C * rActualMetric.a3_KL_tilde[2] + D * rActualMetric.a3_KL_tilde[2];
-
-        //         // /* Membrananteil */
-        //         // if (i == j)
-        //         // {
-        //         //     dE11_dkl[5 * k + i][5 * l + j] = DN_De(k, 0) * DN_De(l, 0);
-        //         //     dE12_dkl[5 * k + i][5 * l + j] = 0.5 * (DN_De(k, 0) * DN_De(l, 1) + DN_De(l, 0) * DN_De(k, 1));
-        //         //     dE22_dkl[5 * k + i][5 * l + j] = DN_De(k, 1) * DN_De(l, 1);
-        //         // }
-        //         // else
-        //         // {
-        //         //     dE11_dkl[5 * k + i][5 * l + j] = 0;
-        //         //     dE12_dkl[5 * k + i][5 * l + j] = 0;
-        //         //     dE22_dkl[5 * k + i][5 * l + j] = 0;
-        //         // }
-
-        //         // /* Kruemmungsanteil */
-        //         // dE11_dkl[5 * k + i][5 * l + j] = dE11_dkl[5 * k + i][5 * l + j]
-        //         //     - mZeta * thickness / 2.0
-        //         //         * (DDN_DDe(k, 0) * da3l[i] + DDN_DDe(l, 0) * da3k[j]
-        //         //             + Dg1_D1[0] * dda3kl[0] + Dg1_D1[1] * dda3kl[1]
-        //         //             + Dg1_D1[2] * dda3kl[2]);
-        //         // dE12_dkl[5 * k + i][5 * l + j] = dE12_dkl[5 * k + i][5 * l + j]
-        //         //     - mZeta * thickness / 2.0
-        //         //         * (DDN_DDe(k, 2) * da3l[i] + DDN_DDe(l, 2) * da3k[j]
-        //         //             + Dg1_D2[0] * dda3kl[0] + Dg1_D2[1] * dda3kl[1]
-        //         //             + Dg1_D2[2] * dda3kl[2]);
-        //         // dE22_dkl[5 * k + i][5 * l + j] = dE22_dkl[5 * k + i][5 * l + j]
-        //         //     - mZeta * thickness / 2.0
-        //         //         * (DDN_DDe(k, 1) * da3l[i] + DDN_DDe(l, 1) * da3k[j]
-        //         //             + Dg2_D2[0] * dda3kl[0] + Dg2_D2[1] * dda3kl[1]
-        //         //             + Dg2_D2[2] * dda3kl[2]);
-        //         }
-
-        //         else
-        //         {
-        //         /* Anteile aus 5p-Formulierung  */
-
-        //         /* initialisieren */
-        //         dw1_dk = 0.0;
-        //         dw1_dT1_dk = 0.0;
-        //         dw1_dT2_dk = 0.0;
-
-        //         dw2_dk = 0.0;
-        //         dw2_dT1_dk = 0.0;
-        //         dw2_dT2_dk = 0.0;
-
-        //         /* Ableitung nach dem ersten FHG k */
-        //         if (i == 0)
-        //         {
-        //             da1k[0] = DN_De(k, 0);
-        //             da1k[1] = 0.0;
-        //             da1k[2] = 0.0;
-        //             da2k[0] = DN_De(k, 1);
-        //             da2k[1] = 0.0;
-        //             da2k[2] = 0.0;
-        //             da11k[0] = DDN_DDe(k, 0);
-        //             da11k[1] = 0.0;
-        //             da11k[2] = 0.0;
-        //             da12k[0] = DDN_DDe(k, 2);
-        //             da12k[1] = 0.0;
-        //             da12k[2] = 0.0;
-        //             da22k[0] = DDN_DDe(k, 1);
-        //             da22k[1] = 0.0;
-        //             da22k[2] = 0.0;
-        //             da21k = da12k;
-
-        //             dw1_dk = 0.0;
-        //             dw1_dT1_dk = 0.0;
-        //             dw1_dT2_dk = 0.0;
-
-        //             dw2_dk = 0.0;
-        //             dw2_dT1_dk = 0.0;
-        //             dw2_dT2_dk = 0.0;
-        //         }
-        //         else if (i == 1)
-        //         {
-        //             da1k[0] = 0.0;
-        //             da1k[1] = DN_De(k, 0);
-        //             da1k[2] = 0.0;
-        //             da2k[0] = 0.0;
-        //             da2k[1] = DN_De(k, 1);
-        //             da2k[2] = 0.0;
-        //             da11k[0] = 0.0;
-        //             da11k[1] = DDN_DDe(k, 0);
-        //             da11k[2] = 0.0;
-        //             da12k[0] = 0.0;
-        //             da12k[1] = DDN_DDe(k, 2);
-        //             da12k[2] = 0.0;
-        //             da22k[0] = 0.0;
-        //             da22k[1] = DDN_DDe(k, 1);
-        //             da22k[2] = 0.0;
-        //             da21k = da12k;
-
-        //             dw1_dk = 0.0;
-        //             dw1_dT1_dk = 0.0;
-        //             dw1_dT2_dk = 0.0;
-
-        //             dw2_dk = 0.0;
-        //             dw2_dT1_dk = 0.0;
-        //             dw2_dT2_dk = 0.0;
-        //         }
-        //         else if (i == 2)
-        //         {
-        //             da1k[0] = 0.0;
-        //             da1k[1] = 0.0;
-        //             da1k[2] = DN_De(k, 0);
-        //             da2k[0] = 0.0;
-        //             da2k[1] = 0.0;
-        //             da2k[2] = DN_De(k, 1);
-        //             da11k[0] = 0.0;
-        //             da11k[1] = 0.0;
-        //             da11k[2] = DDN_DDe(k, 0);
-        //             da12k[0] = 0.0;
-        //             da12k[1] = 0.0;
-        //             da12k[2] = DDN_DDe(k, 2);
-        //             da22k[0] = 0.0;
-        //             da22k[1] = 0.0;
-        //             da22k[2] = DDN_DDe(k, 1);
-        //             da21k = da12k;
-
-        //             dw1_dk = 0.0;
-        //             dw1_dT1_dk = 0.0;
-        //             dw1_dT2_dk = 0.0;
-
-        //             dw2_dk = 0.0;
-        //             dw2_dT1_dk = 0.0;
-        //             dw2_dT2_dk = 0.0;
-        //         }
-        //         else if (i == 3)
-        //         {
-        //             da1k[0] = 0.0;
-        //             da1k[1] = 0.0;
-        //             da1k[2] = 0.0;
-        //             da2k[0] = 0.0;
-        //             da2k[1] = 0.0;
-        //             da2k[2] = 0.0;
-        //             da11k[0] = 0.0;
-        //             da11k[1] = 0.0;
-        //             da11k[2] = 0.0;
-        //             da12k[0] = 0.0;
-        //             da12k[1] = 0.0;
-        //             da12k[2] = 0.0;
-        //             da22k[0] = 0.0;
-        //             da22k[1] = 0.0;
-        //             da22k[2] = 0.0;
-        //             da21k = da12k;
-
-        //             dw1_dk = N(k);
-        //             dw1_dT1_dk = DN_De(k, 0);
-        //             dw1_dT2_dk = DN_De(k, 1);
-
-        //             dw2_dk = 0.0;
-        //             dw2_dT1_dk = 0.0;
-        //             dw2_dT2_dk = 0.0;
-        //         }
-        //         else if (i == 4)
-        //         {
-        //             da1k[0] = 0.0;
-        //             da1k[1] = 0.0;
-        //             da1k[2] = 0.0;
-        //             da2k[0] = 0.0;
-        //             da2k[1] = 0.0;
-        //             da2k[2] = 0.0;
-        //             da11k[0] = 0.0;
-        //             da11k[1] = 0.0;
-        //             da11k[2] = 0.0;
-        //             da12k[0] = 0.0;
-        //             da12k[1] = 0.0;
-        //             da12k[2] = 0.0;
-        //             da22k[0] = 0.0;
-        //             da22k[1] = 0.0;
-        //             da22k[2] = 0.0;
-        //             da21k = da12k;
-
-        //             dw1_dk = 0.0;
-        //             dw1_dT1_dk = 0.0;
-        //             dw1_dT2_dk = 0.0;
-
-        //             dw2_dk = N(k);
-        //             dw2_dT1_dk = DN_De(k, 0);
-        //             dw2_dT2_dk = DN_De(k, 1);
-        //         }
-                
-
-        //         dw_dk = dw1_dk*rActualMetric.a1 + rw_alpha(0)*da1k + dw2_dk*rActualMetric.a2 + rw_alpha(1)*da2k;
-        //         dw_dT1_dk = dw1_dT1_dk*rActualMetric.a1 + rDw_alpha_Dbeta(0, 0)*da1k + dw1_dk*Dg1_D1 + rw_alpha(0)*da11k
-        //                     + dw2_dT1_dk*rActualMetric.a2 + rDw_alpha_Dbeta(1, 0)*da2k + dw2_dk*Dg1_D2 + rw_alpha(1)*da21k;
-        //         dw_dT2_dk = dw1_dT2_dk*rActualMetric.a1 + rDw_alpha_Dbeta(0, 1)*da1k + dw1_dk*Dg1_D2 + rw_alpha(0)*da12k
-        //                     + dw2_dT2_dk*rActualMetric.a2 + rDw_alpha_Dbeta(1, 1)*da2k + dw2_dk*Dg2_D2 + rw_alpha(1)*da22k;
-
-        //         /* initialisieren */
-        //         dw1_dl = 0.0;
-        //         dw1_dT1_dl = 0.0;
-        //         dw1_dT2_dl = 0.0;
-
-        //         dw2_dl = 0.0;
-        //         dw2_dT1_dl = 0.0;
-        //         dw2_dT2_dl = 0.0;
-
-        //         /* Ableitung nach dem zweiten FHG l */
-        //         if (j == 0)
-        //         {
-        //             da1l[0] = DN_De(l, 0);
-        //             da1l[1] = 0.0;
-        //             da1l[2] = 0.0;
-        //             da2l[0] = DN_De(l, 1);
-        //             da2l[1] = 0.0;
-        //             da2l[2] = 0.0;
-        //             da11l[0] = DDN_DDe(l, 0);
-        //             da11l[1] = 0.0;
-        //             da11l[2] = 0.0;
-        //             da12l[0] = DDN_DDe(l, 2);
-        //             da12l[1] = 0.0;
-        //             da12l[2] = 0.0;
-        //             da22l[0] = DDN_DDe(l, 1);
-        //             da22l[1] = 0.0;
-        //             da22l[2] = 0.0;
-        //             da21l = da12l;
-
-        //             dw1_dl = 0.0;
-        //             dw1_dT1_dl = 0.0;
-        //             dw1_dT2_dl = 0.0;
-
-        //             dw2_dl = 0.0;
-        //             dw2_dT1_dl = 0.0;
-        //             dw2_dT2_dl = 0.0;
-        //         }
-        //         else if (j == 1)
-        //         {
-        //             da1l[0] = 0.0;
-        //             da1l[1] = DN_De(l, 0);
-        //             da1l[2] = 0.0;
-        //             da2l[0] = 0.0;
-        //             da2l[1] = DN_De(l, 1);
-        //             da2l[2] = 0.0;
-        //             da11l[0] = 0.0;
-        //             da11l[1] = DDN_DDe(l, 0);
-        //             da11l[2] = 0.0;
-        //             da12l[0] = 0.0;
-        //             da12l[1] = DDN_DDe(l, 2);
-        //             da12l[2] = 0.0;
-        //             da22l[0] = 0.0;
-        //             da22l[1] = DDN_DDe(l, 1);
-        //             da22l[2] = 0.0;
-        //             da21l = da12l;
-
-        //             dw1_dl = 0.0;
-        //             dw1_dT1_dl = 0.0;
-        //             dw1_dT2_dl = 0.0;
-
-        //             dw2_dl = 0.0;
-        //             dw2_dT1_dl = 0.0;
-        //             dw2_dT2_dl = 0.0;
-        //         }
-        //         else if (j == 2)
-        //         {
-        //             da1l[0] = 0.0;
-        //             da1l[1] = 0.0;
-        //             da1l[2] = DN_De(l, 0);
-        //             da2l[0] = 0.0;
-        //             da2l[1] = 0.0;
-        //             da2l[2] = DN_De(l, 1);
-        //             da11l[0] = 0.0;
-        //             da11l[1] = 0.0;
-        //             da11l[2] = DDN_DDe(l, 0);
-        //             da12l[0] = 0.0;
-        //             da12l[1] = 0.0;
-        //             da12l[2] = DDN_DDe(l, 2);
-        //             da22l[0] = 0.0;
-        //             da22l[1] = 0.0;
-        //             da22l[2] = DDN_DDe(l, 1);
-        //             da21l = da12l;
-
-        //             dw1_dl = 0.0;
-        //             dw1_dT1_dl = 0.0;
-        //             dw1_dT2_dl = 0.0;
-
-        //             dw2_dl = 0.0;
-        //             dw2_dT1_dl = 0.0;
-        //             dw2_dT2_dl = 0.0;
-        //         }
-        //         else if (j == 3)
-        //         {
-        //             da1l[0] = 0.0;
-        //             da1l[1] = 0.0;
-        //             da1l[2] = 0.0;
-        //             da2l[0] = 0.0;
-        //             da2l[1] = 0.0;
-        //             da2l[2] = 0.0;
-        //             da11l[0] = 0.0;
-        //             da11l[1] = 0.0;
-        //             da11l[2] = 0.0;
-        //             da12l[0] = 0.0;
-        //             da12l[1] = 0.0;
-        //             da12l[2] = 0.0;
-        //             da22l[0] = 0.0;
-        //             da22l[1] = 0.0;
-        //             da22l[2] = 0.0;
-        //             da21l = da12l;
-
-        //             dw1_dl = N(l);
-        //             dw1_dT1_dl = DN_De(l, 0);
-        //             dw1_dT2_dl = DN_De(l, 1);
-
-        //             dw2_dl = 0.0;
-        //             dw2_dT1_dl = 0.0;
-        //             dw2_dT2_dl = 0.0;
-        //         }
-        //         else if (j == 4)
-        //         {
-        //             da1l[0] = 0.0;
-        //             da1l[1] = 0.0;
-        //             da1l[2] = 0.0;
-        //             da2l[0] = 0.0;
-        //             da2l[1] = 0.0;
-        //             da2l[2] = 0.0;
-        //             da11l[0] = 0.0;
-        //             da11l[1] = 0.0;
-        //             da11l[2] = 0.0;
-        //             da12l[0] = 0.0;
-        //             da12l[1] = 0.0;
-        //             da12l[2] = 0.0;
-        //             da22l[0] = 0.0;
-        //             da22l[1] = 0.0;
-        //             da22l[2] = 0.0;
-        //             da21l = da12l;
-
-        //             dw1_dl = 0.0;
-        //             dw1_dT1_dl = 0.0;
-        //             dw1_dT2_dl = 0.0;
-
-        //             dw2_dl = N(l);
-        //             dw2_dT1_dl = DN_De(l, 0);
-        //             dw2_dT2_dl = DN_De(l, 1);
-        //         }
-
-        //         dw_dl = dw1_dl*rActualMetric.a1 + rw_alpha(0)*da1l + dw2_dl*rActualMetric.a2 + rw_alpha(1)*da2l;
-        //         dw_dT1_dl = dw1_dT1_dl*rActualMetric.a1 + rDw_alpha_Dbeta(0, 0)*da1l + dw1_dl*Dg1_D1 + rw_alpha(0)*da11l
-        //                     + dw2_dT1_dl*rActualMetric.a2 + rDw_alpha_Dbeta(1, 0)*da2l + dw2_dl*Dg1_D2 + rw_alpha(1)*da21l ;
-        //         dw_dT2_dl = dw1_dT2_dl*rActualMetric.a1 + rDw_alpha_Dbeta(0, 1)*da1l + dw1_dl*Dg1_D2 + rw_alpha(0)*da12l
-        //                     + dw2_dT2_dl*rActualMetric.a2 + rDw_alpha_Dbeta(1, 1)*da2l + dw2_dl*Dg2_D2 + rw_alpha(1)*da22l ;
-
-
-        //         /* Ableitung nach beiden FHG kl */
-        //         ddw_dkl = dw1_dk*da1l + dw1_dl*da1k + dw2_dk*da2l + dw2_dl*da2k;
-        //         ddw_dT1_dkl = dw1_dT1_dk*da1l + dw1_dT1_dl*da1k + dw1_dk*da11l + dw1_dl*da11k
-        //                     + dw2_dT1_dk*da2l + dw2_dT1_dl*da2k + dw2_dk*da21l + dw2_dl*da21k;
-        //         ddw_dT2_dkl = dw1_dT2_dk*da1l + dw1_dT2_dl*da1k + dw1_dk*da12l + dw1_dl*da12k
-        //                     + dw2_dT2_dk*da2l + dw2_dT2_dl*da2k + dw2_dk*da22l + dw2_dl*da22k;
-
-        //         /* Anteile fuer Querschubverzerrungen (nur konstant in Dickenrichtung) */
-        //         dE13_dkl(5 * k + i, 5 * l + j) = dE13_dkl(5 * k + i,5 * l + j)
-        //                                         + 0.5*(inner_prod(da1k, dw_dl) + inner_prod(da1l, dw_dk) + inner_prod(rActualMetric.a1, ddw_dkl));
-        //         dE23_dkl(5 * k + i, 5 * l + j) = dE23_dkl(5 * k + i,5 * l + j)
-        //                                         + 0.5*(inner_prod(da2k, dw_dl) + inner_prod(da2l, dw_dk) + inner_prod(rActualMetric.a2, ddw_dkl));
-        //         /* Anteile fuer Inplane-Verzerrungen (nur linear in Dickenrichtung theta^3) */
-        //         if (Id() == 4){
-        //             if (k==0 && i==4 && l==0 && j==1){
-        //                 KRATOS_WATCH(dE11_dkl(5 * k + i, 5 * l + j))
-        //             }
-        //         }
-        //         // dE11_dkl(5 * k + i, 5 * l + j) = dE11_dkl(5 * k + i,5 * l + j)
-        //         //                                 + mZeta*thickness/2.0*0.5*(inner_prod(da1k,dw_dT1_dl) + inner_prod(da1l,dw_dT1_dk) + inner_prod(rActualMetric.a1,ddw_dT1_dkl)
-        //         //                                         + inner_prod(da1k,dw_dT1_dl) + inner_prod(da1l,dw_dT1_dk) + inner_prod(rActualMetric.a1,ddw_dT1_dkl));
-        //         // dE11_dkl(5 * k + i, 5 * l + j) = dE11_dkl(5 * k + i,5 * l + j)
-        //         //                                 + mZeta*thickness/2.0*inner_prod(da1k,dw_dT1_dl);
-        //         dE11_dkl(5 * k + i, 5 * l + j) = dE11_dkl(5 * k + i,5 * l + j)
-        //                                         + mZeta*thickness/2.0*inner_prod(da1l,dw_dT1_dk);
-        //         // dE11_dkl(5 * k + i, 5 * l + j) = dE11_dkl(5 * k + i,5 * l + j)
-        //         //                                 + mZeta*thickness /2.0 * 0.5 * (inner_prod(rActualMetric.a1,ddw_dT1_dkl)
-        //         //                                          + inner_prod(rActualMetric.a1,ddw_dT1_dkl));
-        //         dE12_dkl(5 * k + i, 5 * l + j) = dE12_dkl(5 * k + i,5 * l + j)
-        //                                         + mZeta*thickness/2.0*0.5*(inner_prod(da1k,dw_dT2_dl) + inner_prod(da1l,dw_dT2_dk) + inner_prod(rActualMetric.a1,ddw_dT2_dkl)
-        //                                                 + inner_prod(da2k,dw_dT1_dl) + inner_prod(da2l,dw_dT1_dk) + inner_prod(rActualMetric.a2,ddw_dT1_dkl));
-        //         dE22_dkl(5 * k + i, 5 * l + j) = dE22_dkl(5 * k + i,5 * l + j)
-        //                                         + mZeta*thickness/2.0*0.5*(inner_prod(da2k,dw_dT2_dl) + inner_prod(da2l,dw_dT2_dk) + inner_prod(rActualMetric.a2,ddw_dT2_dkl)
-        //                                                 + inner_prod(da2k,dw_dT2_dl) + inner_prod(da2l,dw_dT2_dk) + inner_prod(rActualMetric.a2,ddw_dT2_dkl));
-        //         rSecondVariations.B11(5*k+i, 5*l+j) = mInitialMetric.Q(0, 0) * dE11_dkl(5*k+i, 5*l+j);
-        //         rSecondVariations.B22(5*k+i, 5*l+j) = mInitialMetric.Q(1, 0) * dE11_dkl(5*k+i, 5*l+j) + mInitialMetric.Q(1, 1) * dE22_dkl(5*k+i, 5*l+j)
-        //             + mInitialMetric.Q(1, 2) * dE12_dkl(5*k+i, 5*l+j);
-        //         rSecondVariations.B12(5*k+i, 5*l+j) = mInitialMetric.Q(2, 0) * dE11_dkl(5*k+i, 5*l+j) + mInitialMetric.Q(2, 2) * dE12_dkl(5*k+i, 5*l+j);
-        //         rSecondVariations.B23(5*k+i, 5*l+j) = mInitialMetric.Q(3, 3) * dE23_dkl(5*k+i, 5*l+j) + mInitialMetric.Q(3, 4) * dE13_dkl(5*k+i, 5*l+j);
-        //         rSecondVariations.B13(5*k+i, 5*l+j) = mInitialMetric.Q(4, 4) * dE13_dkl(5*k+i, 5*l+j);
-        //         // if (Id() == 4){
-        //         //     testdouble = dE11_dkl(5*k+i, 5*l+j);
-        //         //     if ((testdouble-dE11_dkl(5*k+i, 5*l+j)) != 0)
-        //         //         KRATOS_WATCH(testdouble-dE11_dkl(5*k+i, 5*l+j))
-        //         //     if (k==0 && i==4 && l==0 && j==1){
-        //         //         KRATOS_WATCH(da1k)
-        //         //         KRATOS_WATCH(dw_dT1_dl)
-        //         //         KRATOS_WATCH(2*inner_prod(da1k, dw_dT1_dl))
-        //         //         KRATOS_WATCH(da1l)
-        //         //         KRATOS_WATCH(dw_dT1_dk)
-        //         //         KRATOS_WATCH(inner_prod(da1l, dw_dT1_dk))
-        //         //         KRATOS_WATCH(2*inner_prod(da1l, dw_dT1_dk))
-        //         //         KRATOS_WATCH(dE11_dkl(5 * k + i, 5 * l + j))
-        //         //         KRATOS_WATCH(ddw_dT1_dkl)
-        //         //         testvector = dw_dT1_dk;
-        //         //         testvector1 = da1l;
-        //         //     }
-        //         // }
-                
-        //         }
-        //         }
-        //     }
-        //     }
-        // }
-        // // ML: Ende kopiert Oesterle
 
         // 1. First strain variation
         Matrix Dw_Dr = ZeroMatrix(3, mat_size);
@@ -1710,11 +931,20 @@ namespace Kratos
             }
             dE_cur[0] += 0.5 * (Dw_Dr(0, r) * rActualMetric.a2(0) + Dw_Dr(1, r) * rActualMetric.a2(1) + Dw_Dr(2, r) * rActualMetric.a2(2));
             dE_cur[1] += 0.5 * (Dw_Dr(0, r) * rActualMetric.a1(0) + Dw_Dr(1, r) * rActualMetric.a1(1) + Dw_Dr(2, r) * rActualMetric.a1(2));
+            
+            if(Id()==1 && mcount==1 && r==3){
+                KRATOS_WATCH(rB(3, r))
+                KRATOS_WATCH(rB(4, r))
+            }
 
             // calculated with the simplified Q (ML)
             rB(3, r) += mInitialMetric.Q(3, 3) * dE_cur[0] + mInitialMetric.Q(3, 4) * dE_cur[1];
             rB(4, r) += mInitialMetric.Q(4, 4) * dE_cur[1];
             // the other entries are (remain) zero
+            if(Id()==1 && mcount==1 && r==3){
+                KRATOS_WATCH(rB(3, r))
+                KRATOS_WATCH(rB(4, r))
+            }
         
             // 2. First curvature variation
             array_1d<double, 3> dK_cu = ZeroVector(3);
@@ -1769,16 +999,30 @@ namespace Kratos
                     int ks = s / 5;
                     int dirs = s % 5;
                     
+                    array_1d <double, 3> Dw_Ds = ZeroVector(3);
                     array_1d <double, 3> DDw_DDrs = ZeroVector(3);
                     array_1d <double, 2> ddE_cu = ZeroVector(2);
 
+                    if (dirs == 0 || dirs == 1 || dirs == 2){
+                        Dw_Ds(dirs) = rw_alpha(0) * DN_De(ks, 0) + rw_alpha(1) * DN_De(ks, 1);
+                    }
+                    else if(dirs == 3){
+                        Dw_Ds(0) = N(ks) * rActualMetric.a1(0);
+                        Dw_Ds(1) = N(ks) * rActualMetric.a1(1);
+                        Dw_Ds(2) = N(ks) * rActualMetric.a1(2);
+                    }
+                    else {
+                        Dw_Ds(0) = N(ks) * rActualMetric.a2(0);
+                        Dw_Ds(1) = N(ks) * rActualMetric.a2(1);
+                        Dw_Ds(2) = N(ks) * rActualMetric.a2(2);                
+                    }
                     if (dirr == 0 || dirr == 1 || dirr == 2){
-                        ddE_cu[0] = 0.5 * (Dw_Dr(dirr, r) * DN_De(kr, 1));
-                        ddE_cu[1] = 0.5 * (Dw_Dr(dirr, r) * DN_De(kr, 0));
+                        ddE_cu[0] = 0.5 * Dw_Ds(dirr) * DN_De(kr, 1);
+                        ddE_cu[1] = 0.5 * Dw_Ds(dirr) * DN_De(kr, 0);
                     }
                     if (dirs == 0 || dirs == 1 || dirs == 2){
-                        ddE_cu[0] += 0.5 * (Dw_Dr(dirs, r) * DN_De(ks, 1));
-                        ddE_cu[1] += 0.5 * (Dw_Dr(dirs, r) * DN_De(ks, 0));
+                        ddE_cu[0] += 0.5 * Dw_Dr(dirs, r) * DN_De(ks, 1);
+                        ddE_cu[1] += 0.5 * Dw_Dr(dirs, r) * DN_De(ks, 0);
                     }
                     if (dirr == 3 && (dirs == 0 || dirs == 1 || dirs == 2))
                         DDw_DDrs(dirs) += N(kr) * DN_De(ks, 0);
@@ -1875,8 +1119,15 @@ namespace Kratos
                         rSecondVariations.B12(s, r) += rSecondVariations.B12(r, s);
                     }
                     // all other entries are (remain) zero
+                    // if(Id()==5 && mcount==1)
+                    //     KRATOS_WATCH(rSecondVariations.B11)
                 }
             }
+        } // r-loop
+        if(Id()==5 && mcount==1){
+            KRATOS_WATCH(rSecondVariations.B11(5,0))
+            KRATOS_WATCH(rSecondVariations.B11(0,5))
+
         }
     }
 
@@ -1930,7 +1181,7 @@ namespace Kratos
             array_1d<double, 3> g3 = ZeroVector(3);
             Matrix F = ZeroMatrix(3, 3);
             double detF = 0.0;
-            CalculateInitialBaseVectorsGLinearized(mZeta, G1, G2);
+            CalculateInitialBaseVectorsGLinearized(G1, G2);
             CalculateActualBaseVectorsgLinearized(actual_metric, w, Dw_D1, Dw_D2, g1, g2, g3);
             CalculateDeformationGradient(G1, G2, g1, g2, g3, F, detF);
 
@@ -1942,66 +1193,67 @@ namespace Kratos
         }
     
         // Cauchy stress at midspan
-        array_1d<double, 5> stress_cau_cart_mid;
-        for (unsigned int i = 0; i < 5; i++)
-            stress_cau_cart_mid[i] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][i] + stress_cau_cart[0][i]) / 2.0;
+        array_1d<double, 3> stress_cau_cart_mid;
+        stress_cau_cart_mid[0] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][0] + stress_cau_cart[0][0]) / 2.0;
+        stress_cau_cart_mid[1] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][1] + stress_cau_cart[0][1]) / 2.0;
+        stress_cau_cart_mid[2] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][2] + stress_cau_cart[0][2]) / 2.0;
 
-        // internal forces n11, n22, n12, n23, n13
-        array_1d<double, 5> n = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] + stress_cau_cart[0]) / 2.0 * 
-            thickness;
-
-        // internal moments m11, m22, m12
-        array_1d<double, 3> m;
-        m[0] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][0] - stress_cau_cart_mid[0]) * thickness * thickness / 
-            (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
-        m[1] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][1] - stress_cau_cart_mid[1]) * thickness * thickness / 
-            (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
-        m[2] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][2] - stress_cau_cart_mid[2]) * thickness * thickness / 
-            (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
-        
-        // stresses at the top (positive theta_3 direction)
-        array_1d<double, 5> stress_cau_cart_top = stress_cau_cart_mid + (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] 
-            - stress_cau_cart_mid) / mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1);
-        // stresses at the bottom (negative theta_3 direction)
-        array_1d<double, 5> stress_cau_cart_bottom = stress_cau_cart_mid + (stress_cau_cart[0] - stress_cau_cart_mid) / 
+        if (rVariable == STRESS_CAUCHY_TOP_11){
+            rValues = stress_cau_cart_mid[0] + (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][0] 
+                - stress_cau_cart_mid[0]) / mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1);
+        }
+        else if (rVariable == STRESS_CAUCHY_TOP_22){
+            rValues = stress_cau_cart_mid[1] + (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][1] 
+            - stress_cau_cart_mid[1]) / mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1);
+        }
+        else if (rVariable == STRESS_CAUCHY_TOP_12){
+            rValues = stress_cau_cart_mid[2] + (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][2] 
+            - stress_cau_cart_mid[2]) / mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1);
+        }
+        else if (rVariable == STRESS_CAUCHY_BOTTOM_11){
+            rValues = stress_cau_cart_mid[0] + (stress_cau_cart[0][0] - stress_cau_cart_mid[0]) / 
             mGaussQuadratureThickness.zeta(0);
-
-        if (rVariable == STRESS_CAUCHY_TOP_11)
-            rValues = stress_cau_cart_top[0];
-        else if (rVariable == STRESS_CAUCHY_TOP_22)
-            rValues = stress_cau_cart_top[1];
-        else if (rVariable == STRESS_CAUCHY_TOP_12)
-            rValues = stress_cau_cart_top[2];
-        else if (rVariable == STRESS_CAUCHY_TOP_23)
-            rValues = stress_cau_cart_top[3];
-        else if (rVariable == STRESS_CAUCHY_TOP_13)
-            rValues = stress_cau_cart_top[4];
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_11)
-            rValues = stress_cau_cart_bottom[0];
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_22)
-            rValues = stress_cau_cart_bottom[1];
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_12)
-            rValues = stress_cau_cart_bottom[2];
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_23)
-            rValues = stress_cau_cart_bottom[3];
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_13)
-            rValues = stress_cau_cart_bottom[4];
+        }
+        else if (rVariable == STRESS_CAUCHY_BOTTOM_22){
+            rValues = stress_cau_cart_mid[1] + (stress_cau_cart[0][1] - stress_cau_cart_mid[1]) / 
+            mGaussQuadratureThickness.zeta(0);
+        }
+        else if (rVariable == STRESS_CAUCHY_BOTTOM_12){
+            rValues = stress_cau_cart_mid[2] + (stress_cau_cart[0][2] - stress_cau_cart_mid[2]) / 
+            mGaussQuadratureThickness.zeta(0);
+        }
         else if (rVariable == INTERNAL_FORCE_11)
-            rValues = n[0];
+            rValues = stress_cau_cart_mid[0] * thickness;
         else if (rVariable == INTERNAL_FORCE_22)
-            rValues = n[1];
+            rValues = stress_cau_cart_mid[1] * thickness;
         else if (rVariable == INTERNAL_FORCE_12)
-            rValues = n[2];
-        else if (rVariable == INTERNAL_MOMENT_11)
-            rValues = m[0];
-        else if (rVariable == INTERNAL_MOMENT_12)
-            rValues = m[2];
-        else if (rVariable == INTERNAL_MOMENT_22)
-            rValues = m[1];
-        else if (rVariable == SHEAR_FORCE_1)
-            rValues = n[4];     // q1=n13
-        else if (rVariable == SHEAR_FORCE_2)
-            rValues = n[3];     // q2=n23
+            rValues = stress_cau_cart_mid[2] * thickness;
+        else if (rVariable == INTERNAL_MOMENT_11){
+            rValues = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][0] - stress_cau_cart_mid[0]) 
+                * thickness * thickness / (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
+        }
+        else if (rVariable == INTERNAL_MOMENT_22){
+            rValues = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][1] - stress_cau_cart_mid[1]) * thickness * thickness / 
+            (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
+        }
+        else if (rVariable == INTERNAL_MOMENT_12){
+            rValues = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][2] - stress_cau_cart_mid[2]) * thickness * thickness / 
+            (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
+        }
+        else if (rVariable == SHEAR_FORCE_1){
+            if(mGaussQuadratureThickness.num_GP_thickness != 3){
+                KRATOS_WATCH("Calculation formula of SHEAR_FORCE_1 is implemented for 3 Gauss points in thickness direction and can not be used in this case.")
+                KRATOS_ERROR << "Calculation formula of SHEAR_FORCE_1 is implemented for 3 Gauss points in thickness direction and can not be used in this case." << std::endl;
+            }
+            rValues = 5.0/6.0 * thickness * stress_cau_cart[1][4];     // q1=5/6*t*sig_13(xi^3=0)
+        }
+        else if (rVariable == SHEAR_FORCE_2){
+            if(mGaussQuadratureThickness.num_GP_thickness != 3){
+                KRATOS_WATCH("Calculation formula of SHEAR_FORCE_2 is implemented for 3 Gauss points in thickness direction and can not be used in this case.")
+                KRATOS_ERROR << "Calculation formula of SHEAR_FORCE_2 is implemented for 3 Gauss points in thickness direction and can not be used in this case." << std::endl;
+            }
+            rValues = 5.0/6.0 * thickness * stress_cau_cart[1][3];     // q2=5/6*t*sig_23(xi^3=0)
+        }
         else{
             KRATOS_WATCH("No results for desired variable available in Calculate of IgaShell5pElement.")
             rValues = 0.0;
@@ -2020,18 +1272,18 @@ namespace Kratos
         if (rResult.size() != 5 * number_of_nodes)
             rResult.resize(5 * number_of_nodes, false);
 
-        const unsigned int pos = GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+        // const unsigned int pos = GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
         for (unsigned int i = 0; i < number_of_nodes; ++i) {
             const unsigned int index = i * 5;
-            rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos).EquationId();
-            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
-            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
+            rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
             // only ROTATION_X and ROTATION_Y used preliminarily, to avoid new declarations
             // ROTATION_X = w_1 (first component of hierarchic shear difference vector)
             // ROTATION_Y = w_2 (second component of hierarchic shear difference vector) (ML)
-            rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X, pos + 3).EquationId();
-            rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y, pos + 4).EquationId();
+            rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
+            rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
         }
 
         KRATOS_CATCH("")
