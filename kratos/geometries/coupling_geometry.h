@@ -286,6 +286,7 @@ public:
     }
 
     ///@}
+
 private:
     ///@name Private Member Variables
     ///@{
