@@ -103,12 +103,19 @@ public:
 
     explicit NurbsSurfaceGeometry(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
+        , mPolynomialDegreeU(0)
+        , mPolynomialDegreeV(0)
     {
     }
 
     /* Copy constructor.*/
     NurbsSurfaceGeometry(NurbsSurfaceGeometry const& rOther)
         : BaseType(rOther)
+        , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
+        , mPolynomialDegreeV(rOther.mPolynomialDegreeV)
+        , mKnotsU(rOther.mKnotsU)
+        , mKnotsV(rOther.mKnotsV)
+        , mWeights(rOther.mWeights)
     {
     }
 
@@ -116,21 +123,17 @@ public:
     template<class TOtherPointType> NurbsSurfaceGeometry(
         NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherPointType> const& rOther)
         : BaseType(rOther)
+        , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
+        , mPolynomialDegreeV(rOther.mPolynomialDegreeV)
+        , mKnotsU(rOther.mKnotsU)
+        , mKnotsV(rOther.mKnotsV)
+        , mWeights(rOther.mWeights)
     {
     }
 
     /* Destructor.*/
     ~NurbsSurfaceGeometry() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
-    {
-        return GeometryData::Kratos_generic_family;
-    }
-
-    GeometryData::KratosGeometryType GetGeometryType() const override
-    {
-        return GeometryData::Kratos_generic_type;
-    }
 
     ///@}
     ///@name Operators
@@ -380,52 +383,53 @@ public:
     ///@name Shape Function
     ///@{
 
-    //Vector& ShapeFunctionsValues(
-    //    Vector &rResult,
-    //    const CoordinatesArrayType& rCoordinates) const override
-    //{
-    //    NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 0);
+    Vector& ShapeFunctionsValues(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
 
-    //    if (IsRational()) {
-    //        shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
-    //    }
-    //    else {
-    //        shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
-    //    }
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rLocalCoordinates[0], rLocalCoordinates[1]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rLocalCoordinates[0], rLocalCoordinates[1]);
+        }
 
-    //    if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
-    //        rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
+        if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
 
-    //    for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //        rResult[i] = shape_function_container(0, i);
-    //    }
+        for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            rResult[i] = shape_function_container(0, i);
+        }
 
-    //    return rResult;
-    //}
+        return rResult;
+    }
 
-    //Matrix& ShapeFunctionsLocalGradients(
-    //    Matrix& rResult,
-    //    const CoordinatesArrayType& rCoordinates) const override
-    //{
-    //    NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 1);
+    Matrix& ShapeFunctionsLocalGradients(
+        Matrix& rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 1);
 
-    //    if (IsRational()) {
-    //        shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
-    //    }
-    //    else {
-    //        shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
-    //    }
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
+        }
 
-    //    if (rResult.size1() != 1
-    //        && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
-    //        rResult.resize(1, shape_function_container.NumberOfNonzeroControlPoints());
+        if (rResult.size1() != 1
+            && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(2, shape_function_container.NumberOfNonzeroControlPoints());
 
-    //    for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //        rResult(0, i) = shape_function_container(1, i);
-    //    }
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            rResult(0, i) = shape_function_container(1, i);
+            rResult(1, i) = shape_function_container(2, i);
+        }
 
-    //    return rResult;
-    //}
+        return rResult;
+    }
 
     //void ShapeFunctionDerivatives(
     //    GeometryData::IntegrationMethod ThisIntegrationMethod,

@@ -16,6 +16,11 @@
 #if !defined(KRATOS_NURBS_CURVE_SHAPE_FUNCTIONS_H_INCLUDED )
 #define  KRATOS_NURBS_CURVE_SHAPE_FUNCTIONS_H_INCLUDED
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "nurbs_utilities.h"
 
 namespace Kratos {
@@ -59,17 +64,19 @@ public:
     ///@name Operators
     ///@{
 
-    double operator()(const IndexType DerivativeRow, const IndexType ControlPoint) const
+    double operator()(const IndexType DerivativeRow, const IndexType NonzeroControlPointIndex) const
     {
-        return ShapeFunctionValue(DerivativeRow, ControlPoint);
+        return ShapeFunctionValue(DerivativeRow, NonzeroControlPointIndex);
     }
 
     ///@}
     ///@name Operations
     ///@{
 
-    /* Resizes the data containers which are needed to compute the values of the
-    shape functions. */
+    /* 
+    * @brief Resizes the data containers which are needed to compute the
+    *        values of the shape functions.
+    */
     void ResizeDataContainers(
         const SizeType PolynomialDegree,
         const SizeType DerivativeOrder)
@@ -266,6 +273,7 @@ public:
     /*
     * @brief Computation of NURBS shape function values, use this function
     *        if span of ParameterT is unknown.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A4.2
     * @param rKnots, the full knot span.
     * @param rWeights, the complete weights of the curve.
     * @param ParameterT, the parameter at which the shape functions
@@ -284,6 +292,7 @@ public:
 
     /*
     * @brief Computation of NURBS shape function values
+    * From Piegl and Tiller, The NURBS Book, Algorithm A4.2
     * @param rKnots, the full knot span.
     * @param rWeights, the complete weights of the curve.
     * @param ParameterT, the parameter at which the shape functions
@@ -326,19 +335,19 @@ private:
     *        For curves the indices for derivatives are as following:
     *        0-> N | 1-> dN/de | 2-> ddN/dde | ...
     */
-    double& ShapeFunctionValue(const IndexType DerivativeRow, const IndexType ControlPointIndex)
+    double& ShapeFunctionValue(const IndexType DerivativeRow, const IndexType NonzeroControlPointIndex)
     {
         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
-            ControlPointIndex, DerivativeRow);
+            NonzeroControlPointIndex, DerivativeRow);
 
         return mValues[index];
     }
 
-    double& Ndu(const IndexType DerivativeRow, const IndexType ControlPointIndex)
+    double& Ndu(const IndexType DerivativeRow, const IndexType NonzeroControlPointIndex)
     {
         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
-            NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(), ControlPointIndex, DerivativeRow);
+            NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(), NonzeroControlPointIndex, DerivativeRow);
 
         return mNdu[index];
     }
