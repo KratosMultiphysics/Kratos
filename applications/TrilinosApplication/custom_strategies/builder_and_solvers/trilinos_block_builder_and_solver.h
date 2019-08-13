@@ -764,6 +764,8 @@ public:
             }
         }
 
+        ConstructMasterSlaveConstraintsStructure(rModelPart);
+
         KRATOS_CATCH("")
     }
 
@@ -954,7 +956,7 @@ protected:
     int mLastMyId;
 
     // For Constraints
-    TSystemMatrixPointerType mpT;              /// This is matrix containing the global relation for the constraints
+    TSystemMatrixPointerType mpT; /// This is matrix containing the global relation for the constraints
     TSystemVectorPointerType mpConstantVector; /// This is vector containing the rigid movement of the constraint
     std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
     std::vector<IndexType> mMasterIds; /// The equation ids of the master
@@ -970,60 +972,72 @@ protected:
     virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
         KRATOS_TRY
+        typedef std::vector<int> IndexVectorType;
+        typedef std::vector<IndexVectorType> VectorOfIndexVectorsType;
         // resizing the system vectors and matrix
-            IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
-            int temp_size = number_of_local_dofs;
-            if (temp_size < 1000)
-                temp_size = 1000;
-            std::vector<int> temp(temp_size, 0);
-            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-            const IndexType number_of_constraints =
-                static_cast<IndexType>(r_constraints_array.size());
+        IndexType number_of_local_dofs = mLastMyId - mFirstMyId;
+        if (number_of_local_dofs < 1000)
+            number_of_local_dofs = 1000;
+        IndexVectorType global_indices_for_epetra_map;
+        VectorOfIndexVectorsType a;
+        global_indices_for_epetra_map.reserve(number_of_local_dofs);
+        auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+        const IndexType number_of_constraints =
+            static_cast<IndexType>(r_constraints_array.size());
 
-            // generate map - use the "temp" array here
-            for (IndexType i = 0; i != number_of_local_dofs; i++)
-                temp.push_back(mFirstMyId + i);
-            Epetra_Map my_map(-1, number_of_local_dofs, temp.data(), 0, mrComm);
-            // create and fill the graph of the matrix --> the temp array is
-            // reused here with a different meaning
-            Epetra_FECrsGraph t_graph(Copy, my_map, mGuessRowSize);
-            Element::EquationIdVectorType slave_equation_ids_vector;
-            Element::EquationIdVectorType master_equation_ids_vector;
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        // generate map - use the "global_indices_for_epetra_map" array here
+        // This map takes all the local slave equation ids. So a loop over all
+        // the ms constraints and gathering the slave equation ids (assuming
+        // that all the constraints are added where the slave exists.)
+        Element::EquationIdVectorType slave_equation_ids_vector;
+        Element::EquationIdVectorType master_equation_ids_vector;
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        // assemble all constraints
+        for (IndexType i = 0; i < number_of_constraints; ++i) {
+            auto it_constraint = r_constraints_array.begin() + i;
+            it_constraint->EquationIdVector(
+                slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
 
-            // assemble all elements
-            for (IndexType i = 0; i < number_of_elements; ++i) {
-                auto it_constraint = r_constraints_array.begin() + i;
-                it_constraint->EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector
-                                    r_current_process_info);
+            // filling the list of active global indices (non fixed)
+            for (IndexType i = 0; i < slave_equation_ids_vector.size(); i++)
+                global_indices_for_epetra_map.push_back( slave_equation_ids_vector[i] );
 
-                // filling the list of active global indices (non fixed)
-                IndexType num_active_indices = 0;
-                for (IndexType i = 0; i < equation_ids_vector.size(); i++) {
-                    temp[num_active_indices] = equation_ids_vector[i];
-                    num_active_indices += 1;
-                }
+            for (IndexType i = 0; i < master_equation_ids_vector.size(); i++)
+                global_indices_for_epetra_map.push_back( master_equation_ids_vector[i] );
+        }
 
-                if (num_active_indices != 0) {
-                    int ierr = t_graph.InsertGlobalIndices(
-                        num_active_indices, temp.data(), num_active_indices, temp.data());
-                    KRATOS_ERROR_IF(ierr < 0)
-                        << ": Epetra failure in Graph.InsertGlobalIndices. "
-                           "Error code: "
-                        << ierr << std::endl;
-                }
-                std::fill(temp.begin(), temp.end(), 0);
-            }
+        Epetra_Map t_matrix_map(-1, global_indices_for_epetra_map.size(), global_indices_for_epetra_map.data(), 0, mrComm);
+        // create and fill the graph of the matrix --> the temp array is
+        // reused here with a different meaning
+        Epetra_FECrsGraph t_graph(Copy, t_matrix_map, mGuessRowSize);
 
-            // finalizing graph construction
-            int ierr = t_graph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0)
-                << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
-                << std::endl;
-            // generate a new matrix pointer according to this graph
-            TSystemMatrixPointerType p_new_T =
-                TSystemMatrixPointerType(new TSystemMatrixType(Copy, t_graph));
-            mpT.swap(p_new_T);
+
+        for (IndexType i = 0; i < number_of_constraints; ++i) {
+            auto it_constraint = r_constraints_array.begin() + i;
+            it_constraint->EquationIdVector(
+                slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
+
+                // This is required for type conversion
+                IndexVectorType slave_ids(slave_equation_ids_vector.begin(), slave_equation_ids_vector.end());
+                IndexVectorType master_ids(master_equation_ids_vector.begin(), master_equation_ids_vector.end());
+
+                int ierr = t_graph.InsertGlobalIndices(
+                    slave_equation_ids_vector.size(), slave_ids.data(), master_equation_ids_vector.size(), master_ids.data());
+                KRATOS_ERROR_IF(ierr < 0)
+                    << ": Epetra failure in Graph.InsertGlobalIndices. "
+                       "Error code: "
+                    << ierr << std::endl;
+        }
+
+        // finalizing graph construction
+        int ierr = t_graph.GlobalAssemble();
+        KRATOS_ERROR_IF(ierr < 0)
+            << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr
+            << std::endl;
+        // generate a new matrix pointer according to this graph
+        TSystemMatrixPointerType p_new_T =
+            TSystemMatrixPointerType(new TSystemMatrixType(Copy, t_graph));
+        mpT.swap(p_new_T);
 
         KRATOS_CATCH("")
     }
@@ -1038,8 +1052,8 @@ protected:
         // // The current process info
         // const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // // Vector containing the localization in the system of the different terms
-        // DofsVectorType slave_dof_list, master_dof_list;
+        // // Vector containing the localization in the system of the different
+        // terms DofsVectorType slave_dof_list, master_dof_list;
 
         // // Contributions to the system
         // Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
@@ -1111,12 +1125,11 @@ protected:
         // KRATOS_CATCH("")
     }
 
-    virtual void ApplyConstraints(
-        typename TSchemeType::Pointer pScheme,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
-        TSystemVectorType &rb,
-        ModelPart &rModelPart)
+    virtual void ApplyConstraints(typename TSchemeType::Pointer pScheme,
+                                  TSystemMatrixType& rA,
+                                  TSystemVectorType& rDx,
+                                  TSystemVectorType& rb,
+                                  ModelPart& rModelPart)
     {
         // KRATOS_TRY
 
@@ -1134,10 +1147,10 @@ protected:
 
         //     TSystemMatrixType auxiliar_A_matrix(mT.size2(), rA.size2());
         //     SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
-        //     T_transpose_matrix.resize(0, 0, false);                                                             //free memory
+        //     T_transpose_matrix.resize(0, 0, false); //free memory
 
         //     SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
-        //     auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
+        //     auxiliar_A_matrix.resize(0, 0, false); //free memory
 
         //     double max_diag = 0.0;
         //     for(IndexType i = 0; i < rA.size1(); ++i) {
