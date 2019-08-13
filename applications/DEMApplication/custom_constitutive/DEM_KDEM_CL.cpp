@@ -9,12 +9,6 @@
 
 namespace Kratos {
 
-    void DEM_KDEM::Initialize() {
-
-        KRATOS_TRY
-        KRATOS_CATCH("")
-    }
-
     DEMContinuumConstitutiveLaw::Pointer DEM_KDEM::Clone() const {
         DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM(*this));
         return p_clone;

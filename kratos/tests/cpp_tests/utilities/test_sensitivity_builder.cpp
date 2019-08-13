@@ -34,7 +34,6 @@ class TestAdjoint : public TElement
 {
 public:
     typedef Kratos::intrusive_ptr<TestAdjoint> Pointer;
-    typedef Kratos::intrusive_weak_ptr<TestAdjoint> WeakPointer;
     typedef Kratos::unique_ptr<TestAdjoint> UniquePointer;
 
 

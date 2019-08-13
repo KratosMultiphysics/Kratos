@@ -22,14 +22,18 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "custom_utilities/convergence_accelerator.hpp"
+#include "custom_utilities/aitken_convergence_accelerator.hpp"
+#include "custom_utilities/constant_relaxation_convergence_accelerator.h"
 #include "custom_utilities/mvqn_convergence_accelerator.hpp"
 #include "custom_utilities/mvqn_recursive_convergence_accelerator.hpp"
 
 namespace Kratos {
 	namespace Testing {
 
-        /** 
+        typedef UblasSpace<double, Matrix, Vector > SpaceType;
+        typedef typename ConvergenceAccelerator<SpaceType>::UniquePointer ConvAccPointerType;
+
+        /**
 	     * Auxiliar function to set the system to be solved
 	     */
         void ComputeResidual(
@@ -58,9 +62,8 @@ namespace Kratos {
             UblasSpace<double, Matrix, Vector >::UnaliasedAdd(rRes, -1.0, aux);
         }
 
-        template<class TSpace>
         bool SolveProblem(
-            typename ConvergenceAccelerator<TSpace>::Pointer pConvAccelerator,
+            ConvAccPointerType &pConvAccelerator,
             const double Tol = 1e-9,
             const std::size_t MaxIt = 25,
             const std::size_t EndTime = 10) {
@@ -79,14 +82,16 @@ namespace Kratos {
             // Perform the iteration until convergence
             double res_norm = 0.0;
             for (std::size_t t_val = 0; t_val < EndTime; ++t_val){
-                std::cout << "\nStep " << t_val + 1 << " resolution starts..." << std::endl;
+                // std::cout << "\nStep " << t_val + 1 << " resolution starts..." << std::endl;
                 pConvAccelerator->InitializeSolutionStep();
-                for (std::size_t it = 0; it < MaxIt; ++it){
+                unsigned int it = 0;
+                while (it < MaxIt) {
+                    ++it;
                     ComputeResidual(t_val, guess, res);
-                    res_norm = TSpace::TwoNorm(res);
-                    std::cout << "\tIteration: " << it + 1 << " residual: " << res_norm << std::endl; 
+                    res_norm = SpaceType::TwoNorm(res);
+                    // std::cout << "\tIteration: " << it << " residual: " << res_norm << std::endl;
                     if (res_norm < Tol){
-                        std::cout << "Convergence achieved in " << it + 1 << " iterations." << std::endl;
+                        // std::cout << "Convergence achieved in " << it << " iterations." << std::endl;
                         break;
                     } else {
                         pConvAccelerator->InitializeNonLinearIteration();
@@ -101,24 +106,61 @@ namespace Kratos {
             return (res_norm < Tol) ? true : false;
         }
 
-	    /** 
+	    /**
+	     * Checks the constant relaxation convergence accelerator
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(ConstantRelaxationConvergenceAccelerator, FSIApplicationFastSuite)
+		{
+            // Set the convergence accelerator pointer
+            const double w = 0.05;
+            ConvAccPointerType p_constant_relaxation = Kratos::make_unique<ConstantRelaxationConvergenceAccelerator<SpaceType>>(w);
+
+            // Solve the Ax = b problem
+            const double tol = 1e-9;
+            const std::size_t max_it = 500;
+            const std::size_t end_time = 1;
+            const bool is_converged = SolveProblem(p_constant_relaxation, tol, max_it, end_time);
+
+            // Check results
+            KRATOS_CHECK(is_converged);
+	    }
+
+	    /**
+	     * Checks the Aitken relaxation convergence accelerator
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(AitkenConvergenceAccelerator, FSIApplicationFastSuite)
+		{
+            // Set the convergence accelerator pointer
+            const double w = 0.05;
+            ConvAccPointerType p_aitken_relaxation = Kratos::make_unique<AitkenConvergenceAccelerator<SpaceType>>(w);
+
+            // Solve the Ax = b problem
+            const double tol = 1e-9;
+            const std::size_t max_it = 500;
+            const std::size_t end_time = 10;
+            const bool is_converged = SolveProblem(p_aitken_relaxation, tol, max_it, end_time);
+
+            // Check results
+            KRATOS_CHECK(is_converged);
+	    }
+
+	    /**
 	     * Checks the MVQN convergence accelerator
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(MVQNConvergenceAccelerator, FSIApplicationFastSuite)
 		{
             // Set the convergence accelerator pointer
             const double w_0 = 0.825;
-            MVQNFullJacobianConvergenceAccelerator<UblasSpace<double, Matrix, Vector > >::Pointer pMVQN = 
-                Kratos::make_shared<MVQNFullJacobianConvergenceAccelerator<UblasSpace<double, Matrix, Vector > > >(w_0);
+            ConvAccPointerType p_MVQN = Kratos::make_unique<MVQNFullJacobianConvergenceAccelerator<SpaceType>>(w_0);
 
             // Solve the Ax = b problem
-            const bool is_converged = SolveProblem<UblasSpace<double, Matrix, Vector > >(pMVQN);
+            const bool is_converged = SolveProblem(p_MVQN);
 
             // Check results
             KRATOS_CHECK(is_converged);
 	    }
 
-	    /** 
+	    /**
 	     * Checks the recursive MVQN convergence accelerator
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(RecursiveMVQNConvergenceAccelerator, FSIApplicationFastSuite)
@@ -126,11 +168,10 @@ namespace Kratos {
             // Set the convergence accelerator
             const double w_0 = 0.825;
             const std::size_t buffer_size = 10;
-            MVQNRecursiveJacobianConvergenceAccelerator<UblasSpace<double, Matrix, Vector > >::Pointer pRecursiveMVQN =
-                Kratos::make_shared<MVQNRecursiveJacobianConvergenceAccelerator<UblasSpace<double, Matrix, Vector > > >(w_0, buffer_size);
+            ConvAccPointerType p_recursive_MVQN = Kratos::make_unique<MVQNRecursiveJacobianConvergenceAccelerator<SpaceType>>(w_0, buffer_size);
 
             // Solve the Ax = b problem
-            const bool is_converged = SolveProblem< UblasSpace<double, Matrix, Vector > >(pRecursiveMVQN);
+            const bool is_converged = SolveProblem(p_recursive_MVQN);
 
             // Check results
             KRATOS_CHECK(is_converged);

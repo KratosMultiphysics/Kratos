@@ -26,7 +26,6 @@ namespace Kratos {
 
         ~DEM_D_Conical_damage() {}
 
-        void Initialize(const ProcessInfo& r_process_info) override;
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 

@@ -168,7 +168,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         CompressibleElementRotationUtility<LocalSpaceType::MatrixType,LocalSpaceType::VectorType>::Pointer,
         CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double> >
         (m,"CompressibleElementRotationUtility")
-        .def(py::init<const unsigned int,const Variable<double>&>())
+        .def(py::init<const unsigned int,const Kratos::Flags&>())
         ;
 
     // Limit the maximal accelearation inside a time step to a physically possible value

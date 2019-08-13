@@ -77,7 +77,7 @@ namespace Python
 char const* greet()
 {
 	std::stringstream header;
-	header << "Hello, I am Kratos Multi-Physics " << KRATOS_VERSION <<" ;-)";
+	header << "Hello, I am Kratos Multi-Physics " << GetVersionString() <<" ;-)";
     return header.str().c_str();
 }
 

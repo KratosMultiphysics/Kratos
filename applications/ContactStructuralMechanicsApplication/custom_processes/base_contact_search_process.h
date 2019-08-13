@@ -105,17 +105,24 @@ public:
     /// Pointer definition of BaseContactSearchProcess
     KRATOS_CLASS_POINTER_DEFINITION( BaseContactSearchProcess );
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( INVERTED_SEARCH );
+    KRATOS_DEFINE_LOCAL_FLAG( CREATE_AUXILIAR_CONDITIONS );
+    KRATOS_DEFINE_LOCAL_FLAG( MULTIPLE_SEARCHS );
+    KRATOS_DEFINE_LOCAL_FLAG( PREDEFINE_MASTER_SLAVE );
+    KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
+
     ///@}
     ///@name  Enum's
     ///@{
 
-    enum class SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, OtreeWithOBB = 2, Kdop = 3};
+    enum class SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, KdtreeInRadiusWithOBB = 2, KdtreeInBoxWithOBB = 3, OctreeWithOBB = 4, Kdop = 5};
 
     enum class CheckResult {Fail = 0, AlreadyInTheMap = 1, OK = 2};
 
     enum class CheckGap {NoCheck = 0, DirectCheck = 1, MappingCheck = 2};
 
-    enum class TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2, FrictionlessPenaltyMethod = 3, FrictionalPenaltyMethod = 4};
+    enum class TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2, FrictionlessPenaltyMethod = 3, FrictionalPenaltyMethod = 4, OtherFrictionless = 5, OtherFrictional = 6};
 
     ///@}
     ///@name Life Cycle
@@ -185,12 +192,12 @@ public:
     /**
      * @brief This function clears the mortar conditions already created
      */
-    void ClearMortarConditions();
+    virtual void ClearMortarConditions();
 
     /**
      * @brief This method checks that the contact model part is unique (so the model parts contain unique contact pairs)
      */
-    void CheckContactModelParts();
+    virtual void CheckContactModelParts();
 
     /**
      * @brief This function creates a lists  points ready for the Mortar method
@@ -220,7 +227,7 @@ public:
     /**
      * @brief This resets the contact operators
      */
-    void ResetContactOperators();
+     virtual void ResetContactOperators();
 
     ///@}
     ///@name Access
@@ -269,12 +276,10 @@ protected:
     Parameters mThisParameters;        /// The configuration parameters
     CheckGap mCheckGap;                /// If the gap is checked during the search
     TypeSolution mTypeSolution;        /// The solution type
-    bool mInvertedSearch;              /// The search will be done inverting the way master and slave/master is assigned
     std::string mConditionName;        /// The name of the condition to be created
-    bool mCreateAuxiliarConditions;    /// If the auxiliar conditions are created or not
     PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart
-    bool mMultipleSearchs;             /// If we consider multiple serach or not
-    bool mPredefinedMasterSlave;       /// If the master/slave sides are predefined
+
+    Flags mOptions;                    /// Local flags
 
     ///@}
     ///@name Protected Operators
@@ -283,6 +288,12 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method cleans the model part
+     * @param rModelPart The model part of interest
+     */
+    virtual void CleanModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This method checks the pairing
@@ -316,6 +327,29 @@ protected:
      * @param ItNode The node iterator to set
      */
     virtual void SetInactiveNode(NodesArrayType::iterator ItNode);
+
+    /**
+     * @brief This method add a new pair to the computing model part
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param rConditionId The ID of the new condition to be created
+     * @param pObjectSlave The pointer to the slave condition
+     * @param rSlaveNormal The normal of the slave condition
+     * @param pObjectMaster The pointer to the master condition
+     * @param rMasterNormal The normal of the master condition
+     * @param pIndexesPairs The map of indexes considered
+     * @param pProperties The pointer to the Properties of the condition
+     * @return The new created condition
+     */
+    virtual Condition::Pointer AddPairing(
+        ModelPart& rComputingModelPart,
+        IndexType& rConditionId,
+        GeometricalObject::Pointer pObjectSlave,
+        const array_1d<double, 3>& rSlaveNormal,
+        GeometricalObject::Pointer pObjectMaster,
+        const array_1d<double, 3>& rMasterNormal,
+        IndexMap::Pointer pIndexesPairs,
+        Properties::Pointer pProperties
+        );
 
     /**
      * @brief This converts the framework string to an enum
@@ -407,6 +441,21 @@ private:
     /**
      * @brief It check the conditions if they are correctly detected
      * @param pIndexesPairs Set containing the ids to the conditions
+     * @param pGeometricalObject1 The pointer to the condition in the destination model part
+     * @param pGeometricalObject2 The pointer to the condition in the destination model part
+     * @param InvertedSearch If the search is inverted
+     * @return If OK or Fail on the check
+     */
+    inline CheckResult CheckGeometricalObject(
+        IndexMap::Pointer pIndexesPairs,
+        const GeometricalObject::Pointer pGeometricalObject1,
+        const GeometricalObject::Pointer pGeometricalObject2,
+        const bool InvertedSearch = false
+        );
+
+    /**
+     * @brief It check the conditions if they are correctly detected
+     * @param pIndexesPairs Set containing the ids to the conditions
      * @param pCond1 The pointer to the condition in the destination model part
      * @param pCond2 The pointer to the condition in the destination model part
      * @param InvertedSearch If the search is inverted
@@ -434,52 +483,26 @@ private:
      * @brief This method checks the potential pairing between two conditions/geometries (auxiliar one)
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created
-     * @param pCondSlave The pointer to the slave condition
+     * @param pObjectSlave The pointer to the slave condition
      * @param rSlaveNormal The normal of the slave condition
-     * @param pCondMaster The pointer to the master condition
-     * @param IndexesPairs The id sets of potential pairs
+     * @param pObjectMaster The pointer to the master condition
+     * @param rMasterNormal The normal of the master condition
+     * @param pIndexesPairs The id sets of potential pairs
+     * @param pProperties The pointer to the Properties of the condition
      * @param ActiveCheckFactor The value used auxiliarly to check if the node is in the potential contact zone
      * @param FrictionalProblem If the problem is frictional or not
      */
     void AddPotentialPairing(
         ModelPart& rComputingModelPart,
         IndexType& rConditionId,
-        Condition::Pointer pCondSlave,
+        GeometricalObject::Pointer pObjectSlave,
         const array_1d<double, 3>& rSlaveNormal,
-        Condition::Pointer pCondMaster,
-        IndexMap::Pointer IndexesPairs,
+        GeometricalObject::Pointer pObjectMaster,
+        const array_1d<double, 3>& rMasterNormal,
+        IndexMap::Pointer pIndexesPairs,
+        Properties::Pointer pProperties,
         const double ActiveCheckFactor,
         const bool FrictionalProblem
-        );
-
-    /**
-     * @brief This method add a new pair to the computing model part
-     * @param rComputingModelPart The modelpart  used in the assemble of the system
-     * @param rConditionId The ID of the new condition to be created
-     * @param pCondSlave The pointer to the slave condition
-     * @param pCondMaster The pointer to the master condition
-     */
-    inline void AddPairing(
-        ModelPart& rComputingModelPart,
-        IndexType& rConditionId,
-        Condition::Pointer pCondSlave,
-        Condition::Pointer pCondMaster
-        );
-
-    /**
-     * @brief This method add a new pair to the computing model part
-     * @param rComputingModelPart The modelpart  used in the assemble of the system
-     * @param rConditionId The ID of the new condition to be created
-     * @param pCondSlave The pointer to the slave condition
-     * @param pCondMaster The pointer to the master condition
-     * @param IndexesPairs The map of indexes considered
-     */
-    inline void AddPairing(
-        ModelPart& rComputingModelPart,
-        IndexType& rConditionId,
-        Condition::Pointer pCondSlave,
-        Condition::Pointer pCondMaster,
-        IndexMap::Pointer IndexesPairs
         );
 
     /**
@@ -517,6 +540,16 @@ private:
         ModelPart& rContactModelPart,
         ModelPart& rComputingModelPart,
         IndexType& rConditionId
+        );
+
+    /**
+     * @brief This method creates a debug file for normals
+     * @param rModelPart The corresponding model part
+     * @param rName The begining of the file name
+     */
+    void CreateDebugFile(
+        ModelPart& rModelPart,
+        const std::string& rName
         );
 
     /**

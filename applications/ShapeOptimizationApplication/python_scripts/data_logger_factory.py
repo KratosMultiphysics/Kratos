@@ -125,11 +125,7 @@ class DataLogger():
         self.ValueLogger.FinalizeLogging()
 
     # --------------------------------------------------------------------------
-    def GetValue( self, key, iteration ):
-        return self.ValueLogger.GetValue(key, iteration)
-
-    # --------------------------------------------------------------------------
-    def GetValueHistory( self, key ):
-        return self.ValueLogger.GetValueHistory(key)
+    def GetValues( self, key ):
+        return self.ValueLogger.GetValues(key)
 
 # ==============================================================================

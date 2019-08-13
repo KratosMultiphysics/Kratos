@@ -21,8 +21,8 @@
 #include "includes/cfd_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "custom_elements/shallow_element.h"
 #include "shallow_water_application_variables.h"
+#include "shallow_element.h"
 
 namespace Kratos
 {

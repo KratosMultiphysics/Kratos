@@ -50,7 +50,7 @@ class SearchBaseProcess(KM.Process):
             "interval"                    : [0.0,"End"],
             "integration_order"           : 2,
             "search_parameters" : {
-                "type_search"                         : "in_radius",
+                "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
                 "adapt_search"                        : false,
                 "search_factor"                       : 3.5,
@@ -60,10 +60,18 @@ class SearchBaseProcess(KM.Process):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
+                "normal_orientation_threshold"        : 0.0,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
-                "check_gap"                           : "check_mapping"
+                "check_gap"                           : "check_mapping",
+                "octree_search_parameters" : {
+                    "bounding_box_factor"             : 0.1,
+                    "debug_obb"                       : false,
+                    "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "lower_bounding_box_coefficient"  : 0.0,
+                    "higher_bounding_box_coefficient" : 1.0
+                }
             }
         }
         """)
@@ -396,7 +404,21 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         key -- The key to identify the current pair
         """
+        # Create main parameters
+        search_parameters = self._create_search_parameters(key)
 
+        # We create the search process
+        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.computing_model_part, search_parameters)
+
+    def _create_search_parameters(self, key = "0"):
+        """ This creates the parameters for the search
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        param -- The parameters where to set additional values
+        """
+
+        # Create main parameters
         search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : ""}""")
         search_parameters.AddValue("simple_search", self.settings["search_parameters"]["simple_search"])
         search_parameters.AddValue("type_search", self.settings["search_parameters"]["type_search"])
@@ -414,9 +436,19 @@ class SearchBaseProcess(KM.Process):
         search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)
         search_parameters["id_name"].SetString(key)
 
-        # We create the search process
-        self.search_utility_list[key] = CSMA.ContactSearchProcess(self.computing_model_part, search_parameters)
+        # Setting additional parameters
+        self._set_additional_parameters(search_parameters)
 
+        return search_parameters
+
+    def _set_additional_parameters(self, param):
+        """ This sets additional parameters for the search
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        param -- The parameters where to set additional values
+        """
+        pass
 
     def _get_enum_flag(self, param, label, dictionary):
         """ Parse enums settings using an auxiliary dictionary of acceptable values.
@@ -603,7 +635,7 @@ class SearchBaseProcess(KM.Process):
 
         if self.preprocess:
             id_prop = self.settings["search_property_ids"][key].GetInt()
-            if (id_prop != 0):
+            if id_prop != 0:
                 sub_search_model_part.SetProperties(self.main_model_part.GetProperties(id_prop))
             else:
                 sub_search_model_part.SetProperties(self.main_model_part.GetProperties())
@@ -612,7 +644,7 @@ class SearchBaseProcess(KM.Process):
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
 
-                if (self.computing_model_part.Is(KM.MODIFIED)):
+                if self.main_model_part.Is(KM.MODIFIED) or self.computing_model_part.Is(KM.MODIFIED):
                     KM.VariableUtils().SetFlag(KM.TO_ERASE, True, partial_model_part.Conditions)
                     partial_model_part.RemoveConditions(KM.TO_ERASE)
 

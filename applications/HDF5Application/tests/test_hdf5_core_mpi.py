@@ -37,7 +37,7 @@ class TestOperations(KratosUnittest.TestCase):
         settings = KratosMultiphysics.Parameters('''
             {
                 "operation_type": "partitioned_model_part_output",
-                "prefix": "/ModelData/<identifier>/<time>",
+                "prefix": "/ModelData/<model_part_name>/<time>",
                 "time_format": "0.2f"
             }
             ''')

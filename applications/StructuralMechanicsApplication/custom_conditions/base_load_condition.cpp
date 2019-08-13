@@ -362,6 +362,7 @@ void BaseLoadCondition::AddExplicitContribution(
 
     KRATOS_CATCH( "" )
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -369,6 +370,9 @@ void BaseLoadCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void BaseLoadCondition::load( Serializer& rSerializer )
 {

@@ -14,6 +14,7 @@
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/cfd_variables.h"
 #include "shallow_water_application_variables.h"
 #include "custom_elements/euler_cons_var_element.hpp"
 

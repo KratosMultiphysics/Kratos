@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
+from importlib import import_module
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
@@ -18,6 +19,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         if (solver_type == "Partitioned" or solver_type == "partitioned"):
             if (coupling_scheme == "DirichletNeumann" or coupling_scheme == "dirichlet_neumann"):
                 solver_module_name = "partitioned_fsi_dirichlet_neumann_solver"
+            else:
+                err_msg = 'Requested coupling_scheme: ' + coupling_scheme + ' is not available.'
+                raise Exception(err_msg)
+        elif (solver_type == "PartitionedEmbedded" or solver_type == "partitioned_embedded"):
+            if (coupling_scheme == "DirichletNeumann" or coupling_scheme == "dirichlet_neumann"):
+                solver_module_name = "partitioned_embedded_fsi_base_solver"
             else:
                 err_msg = 'Requested coupling_scheme: ' + coupling_scheme + ' is not available.'
                 raise Exception(err_msg)
@@ -39,8 +46,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         err_msg = "Parallelism is neither OpenMP nor MPI."
         raise Exception(err_msg)
 
-    solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(model, solver_settings)
+    module_full = 'KratosMultiphysics.FSIApplication.' + solver_module_name
+    solver = import_module(module_full).CreateSolver(model, solver_settings)
 
     return solver
 

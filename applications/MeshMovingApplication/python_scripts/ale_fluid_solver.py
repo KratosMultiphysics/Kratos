@@ -66,13 +66,6 @@ class AleFluidSolver(PythonSolver):
         else:
             mesh_motion_solver_settings.AddValue("domain_size", fluid_solver_settings["domain_size"])
 
-        # TODO remove this once the mesh-vel-computation is removed from the mesh-solver!
-        # We use the new utility, therefore explicitly setting it to false!
-        if mesh_motion_solver_settings.Has("calculate_mesh_velocities"):
-            mesh_motion_solver_settings["calculate_mesh_velocities"].SetBool(False)
-        else:
-            mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocities").SetBool(False)
-
         # Constructing the mesh-solver with the entire mesh
         # if no submodelparts are specified then this is used for the computation of the mesh-motion
         # otherwise it only adds the dofs and the variables (to the entire ModelPart!)
@@ -84,7 +77,7 @@ class AleFluidSolver(PythonSolver):
         self.fluid_solver.min_buffer_size = max(
             [ self.fluid_solver.GetMinimumBufferSize(),
               self.mesh_motion_solver_full_mesh.GetMinimumBufferSize(),
-              KM.GetMinimumBufferSize(self.time_int_helper) ] )
+              KM.TimeDiscretization.GetMinimumBufferSize(self.time_int_helper) ] )
 
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
 
@@ -274,21 +267,21 @@ class AleFluidSolver(PythonSolver):
         time_scheme = time_int_settings["time_scheme"].GetString()
 
         if time_scheme == "bdf1":
-            self.time_int_helper = KM.BDF1()
+            self.time_int_helper = KM.TimeDiscretization.BDF1()
         elif time_scheme == "bdf2":
-            self.time_int_helper = KM.BDF2()
+            self.time_int_helper = KM.TimeDiscretization.BDF2()
         elif time_scheme == "newmark":
-            self.time_int_helper = KM.Newmark()
+            self.time_int_helper = KM.TimeDiscretization.Newmark()
         elif time_scheme == "bossak":
             if time_int_settings.Has("alpha_m"):
                 alpha_m = time_int_settings["alpha_m"].GetDouble()
-                self.time_int_helper = KM.Bossak(alpha_m)
+                self.time_int_helper = KM.TimeDiscretization.Bossak(alpha_m)
             else:
-                self.time_int_helper = KM.Bossak()
+                self.time_int_helper = KM.TimeDiscretization.Bossak()
         elif time_scheme == "generalized_alpha":
             alpha_m = time_int_settings["alpha_m"].GetDouble()
             alpha_f = time_int_settings["alpha_f"].GetDouble()
-            self.time_int_helper = KM.GeneralizedAlpha(alpha_m, alpha_f)
+            self.time_int_helper = KM.TimeDiscretization.GeneralizedAlpha(alpha_m, alpha_f)
         else:
             err_msg =  'The requested time scheme "' + time_scheme + '" is not available!\n'
             err_msg += 'Available options are: "bdf1", "bdf2", '

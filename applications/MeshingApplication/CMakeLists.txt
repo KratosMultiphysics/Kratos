@@ -48,12 +48,14 @@ if(${INCLUDE_MMG} MATCHES ON)
 set( KRATOS_MESHING_APPLICATION_CORE_MMG ${KRATOS_MESHING_APPLICATION_CORE_MMG}
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/mmg_io.cpp
 )
 endif(${INCLUDE_MMG} MATCHES ON)
 
 set (KRATOS_MESHING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )

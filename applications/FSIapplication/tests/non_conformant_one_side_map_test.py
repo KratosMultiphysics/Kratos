@@ -16,7 +16,7 @@ except ImportError as e:
     import re
     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
 
-import NonConformant_OneSideMap
+from KratosMultiphysics.FSIApplication import NonConformant_OneSideMap
 
 class WorkFolderScope:
     def __init__(self, work_folder):

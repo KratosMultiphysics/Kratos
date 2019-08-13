@@ -209,14 +209,13 @@ private:
      * @brief Creates a new condition with a giving name
      * @param prThisProperties The pointer to the element
      * @param rGeometry The  geometry considered
-     * @param CondId The Id of the condition
+     * @param ConditionId The Id of the condition
      * @param rCondition The base condition
      */
-
     void CreateNewCondition(
         Properties::Pointer prThisProperties,
-        GeometryType& rGeometry,
-        const IndexType CondId,
+        const GeometryType& rGeometry,
+        const IndexType ConditionId,
         Condition const& rCondition
         );
 
@@ -229,11 +228,11 @@ private:
     /**
      * @brief It prints the nodes and conditions in the interface, gives an error otherwise there are not
      * @param NodesCounter Number of nodes in the interface
-     * @param CondCounter Number of conditions in the interface
+     * @param rCondCounter Number of conditions in the interface
      */
     void PrintNodesAndConditions(
         const IndexType NodesCounter,
-        const IndexType CondCounter
+        const IndexType rCondCounter
         );
 
     /**
@@ -246,36 +245,36 @@ private:
      * @brief This method creates the conditions for the edges
      * @param rInterfacePart The model part of the interface
      * @param prThisProperties The properties of the base element
-     * @param EdgeGeometry Geometry considered
+     * @param rEdgeGeometry Geometry considered
      * @param SimplestGeometry If consider or not the simplest geometry
-     * @param CondCounter The counter of conditions
-     * @param CondId The condition id
+     * @param rCondCounter The counter of conditions
+     * @param rConditionId The condition id
      */
     inline void GenerateEdgeCondition(
         ModelPart& rInterfacePart,
         Properties::Pointer prThisProperties,
-        GeometryType& EdgeGeometry,
+        const GeometryType& rEdgeGeometry,
         const bool SimplestGeometry,
-        IndexType& CondCounter,
-        IndexType& CondId
+        IndexType& rCondCounter,
+        IndexType& rConditionId
         );
 
     /**
      * @brief This method creates the conditions for the faces
      * @param rInterfacePart The model part of the interface
      * @param prThisProperties The properties of the base element
-     * @param FaceGeometry Geometry considered
+     * @param rFaceGeometry Geometry considered
      * @param SimplestGeometry If consider or not the simplest geometry
-     * @param CondCounter The counter of conditions
-     * @param CondId The condition id
+     * @param rCondCounter The counter of conditions
+     * @param rConditionId The condition id
      */
     inline void GenerateFaceCondition(
         ModelPart& rInterfacePart,
         Properties::Pointer prThisProperties,
-        GeometryType& FaceGeometry,
+        const GeometryType& rFaceGeometry,
         const bool SimplestGeometry,
-        IndexType& CondCounter,
-        IndexType& CondId
+        IndexType& rCondCounter,
+        IndexType& rConditionId
         );
 
     ///@}

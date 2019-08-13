@@ -24,12 +24,6 @@
 namespace Kratos {
 
 template<class T>
-using intrusive_ptr = std::intrusive_ptr<T>; 
-
-template<class T>
-using intrusive_weak_ptr = std::intrusive_weak_ptr<T>; 
-
-template<class T>
 using shared_ptr = std::shared_ptr<T>;
 
 template<class T>
@@ -40,13 +34,11 @@ using unique_ptr = std::unique_ptr<T>;
 
 template<typename C, typename...Args>
 intrusive_ptr<C> make_intrusive(Args &&...args) {
-    return std::make_intrusive<C>(std::forward<Args>(args)...);
-
+    return intrusive_ptr<C>(new C(std::forward<Args>(args)...));
 }
 template<typename C, typename...Args>
 shared_ptr<C> make_shared(Args &&...args) {
     return std::make_shared<C>(std::forward<Args>(args)...);
-
 }
 
 template<typename C, typename...Args>
@@ -55,25 +47,6 @@ unique_ptr<C> make_unique(Args &&...args) {
     return unique_ptr<C>(new C(std::forward<Args>(args)...));
 }
 
-template<typename C, typename...Args>
-shared_ptr<C> static_pointer_cast(Args &&...args) {
-    return std::static_pointer_cast<C>(std::forward<Args>(args)...);
-}
-
-template<typename C, typename...Args>
-shared_ptr<C> dynamic_pointer_cast(Args &&...args) {
-    return std::dynamic_pointer_cast<C>(std::forward<Args>(args)...);
-}
-
-template<typename C, typename...Args>
-shared_ptr<C> const_pointer_cast(Args &&...args) {
-    return std::const_pointer_cast<C>(std::forward<Args>(args)...);
-}
-
-// template<typename C, typename...Args>
-// shared_ptr<C> reinterpret_pointer_cast(Args &&...args) {
-//     return std::reinterpret_pointer_cast<C>(std::forward<Args>(args)...);
-// }
 } // namespace Kratos
 
 
@@ -86,8 +59,9 @@ namespace Kratos {
 template< class T > class GlobalPointer;
 }
 
-#define KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(a) typedef Kratos::intrusive_ptr<a > Pointer; \
+#define KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(a) typedef typename Kratos::intrusive_ptr<a > Pointer; \
 typedef Kratos::GlobalPointer<a > WeakPointer; \
-typedef Kratos::unique_ptr<a > UniquePointer
+typedef Kratos::unique_ptr<a > UniquePointer; \
+typename a::Pointer shared_from_this(){ return a::Pointer(this); }
 
 #endif /* KRATOS_MEMORY_H_INCLUDED  defined */

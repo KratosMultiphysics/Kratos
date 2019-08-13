@@ -1,13 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import os
-
 import KratosMultiphysics
 import KratosMultiphysics.FSIApplication as KratosFSI
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import math
-import convergence_accelerator_factory
+import os, glob
+from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
 def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/AcceleratorSpringTests/" + fileName
@@ -127,7 +125,6 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
             gid_io.FinalizeResults()
 
         # clean temporary files
-        import os,glob
         for f in glob.glob(GetFilePath('*.time')):
             os.remove(f)
 
@@ -175,11 +172,12 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
     # MVQN recursive accelerator test
     def test_mvqn_recursive_accelerator(self,force1,force2,solution):
 
-        mvqn_recursive_settings = KratosMultiphysics.Parameters("""{
-                                                                     "solver_type"        : "MVQN_recursive",
-                                                                     "w_0"                : 0.825,
-                                                                     "buffer_size"        : 5
-                                                                    }""")
+        mvqn_recursive_settings = KratosMultiphysics.Parameters("""
+        {
+            "solver_type": "MVQN_recursive",
+            "w_0": 0.5,
+            "buffer_size": 5
+        }""")
 
         self.test_accelerator(force1,force2,solution,mvqn_recursive_settings)
 
@@ -315,3 +313,9 @@ class ConvergenceAcceleratorSpringTest(KratosUnittest.TestCase):
             return analytical_solution(model_part,k1,k2,z_equilibrium_1,z_equilibrium_2)
 
         self.test_aitken_accelerator(forceA,forceB,solution)
+
+if __name__ == '__main__':
+    test = ConvergenceAcceleratorSpringTest()
+    test.setUp()
+    test.test_mvqn_recursive_accelerator_variable_stiffness()
+    test.tearDown()

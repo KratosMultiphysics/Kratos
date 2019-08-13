@@ -31,7 +31,6 @@
 // Project includes
 #include "includes/kratos_export_api.h"
 #include "includes/code_location.h"
-#include "includes/data_communicator.h"
 
 namespace Kratos
 {
@@ -40,6 +39,8 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
+
+class DataCommunicator; // forward declaration to avoid a cyclic include dependency
 
 /// LoggerMessage class holdes message and the properties of the message.
 /** LoggerMessage holds the origin of the message, severity, level and
@@ -120,10 +121,7 @@ public:
   class MessageSource {
   public:
 
-  MessageSource() {
-    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
-    mRank = r_comm.Rank();
-  }
+  MessageSource();
 
   MessageSource(int TheRank)
     : mRank(TheRank) {}

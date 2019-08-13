@@ -327,6 +327,9 @@ protected:
     bool mSynchronizeConditions;
 
     int mVerbosity;
+    int mNumNodes;
+
+    std::vector<std::unordered_set<std::size_t>> mNodeConnectivities;
 
     ///@}
     ///@name Private Operators
@@ -350,6 +353,7 @@ protected:
                        idxtype* NodeConnectivities,
                        std::vector<idxtype>& rNodePartition)
     {
+        mNumNodes = NumNodes;
         idxtype n = static_cast<idxtype>(NumNodes);
 
         idxtype nparts = static_cast<idxtype>(BaseType::mNumberOfPartitions);
@@ -514,10 +518,17 @@ protected:
                        std::vector<idxtype>& rElemPartition)
     {
         SizeType NumElements = rElemConnectivities.size();
-        std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
 
         // initialize ElementPartition
+        mNodeConnectivities = std::vector<std::unordered_set<std::size_t>>(mNumNodes,std::unordered_set<std::size_t>());
         rElemPartition.resize(NumElements,-1);
+
+        // Fill the node Connectivities
+        for(std::size_t i = 0; i < NumElements; i++) {
+            for (std::vector<SizeType>::const_iterator itNode = rElemConnectivities[i].begin(); itNode != rElemConnectivities[i].end(); ++itNode) {
+               mNodeConnectivities[*itNode-1].insert(i);
+            }
+        }
 
         // Elements where all nodes belong to the same partition always go to that partition
         IO::ConnectivitiesContainerType::const_iterator itElem = rElemConnectivities.begin();
@@ -536,7 +547,6 @@ protected:
             if ( NeighbourNodes == itElem->size() )
             {
                 *itPart = MyPartition;
-                PartitionWeights[MyPartition]++;
             }
 
             // Advance to next element in connectivities array
@@ -582,7 +592,6 @@ protected:
                 int MajorityPartition = NeighbourPartitions[ FindMax(FoundNeighbours,NeighbourWeights) ];
                 {
                     *itPart = MajorityPartition;
-                    PartitionWeights[MajorityPartition]++;
                 }
             }
 
@@ -603,7 +612,6 @@ protected:
     {
       SizeType NumElements = rElemConnectivities.size();
       SizeType NumConditions = rCondConnectivities.size();
-      std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
 
       // initialize CondPartition
       rCondPartition.resize(NumConditions,-1);
@@ -630,12 +638,12 @@ protected:
           if ( NeighbourNodes == itCond->size() )
           {
               *itPart = MyPartition;
-              PartitionWeights[MyPartition]++;
           }
 
           // Advance to next condition in connectivities array
           itCond++;
       }
+      
       // Now distribute boundary conditions
       itCond = rCondConnectivities.begin();
       //int MaxWeight = 1.03 * NumConditions / BaseType::mNumberOfPartitions;
@@ -674,20 +682,21 @@ protected:
               int MajorityPartition = NeighbourPartitions[ FindMax(FoundNeighbours,NeighbourWeights) ];
               {
                   *itPart = MajorityPartition;
-                  PartitionWeights[MajorityPartition]++;
               }
 
               // ensure conditions sharing nodes with an element have same partition as the element
               IO::ConnectivitiesContainerType::value_type tmp(*itCond);
               std::sort(tmp.begin(), tmp.end());
 
-              for (SizeType i=0; i<NumElements; i++)
-              {
-                  if ( std::includes(ElementsSorted[i].begin(), ElementsSorted[i].end(), tmp.begin(), tmp.end()) )
-                  {
-                      *itPart = rElemPartition[i];
-                      break;
+              for (std::vector<SizeType>::const_iterator itNode = itCond->begin(); itNode != itCond->end(); ++itNode) {
+                for(auto shared_element : mNodeConnectivities[*itNode - 1]) {
+                  // Would it be faster to sort the element here as well?
+                  // Should be as far as "numConditions * conPerNode >> numElements", but not otherwise
+                  if ( std::includes(ElementsSorted[shared_element].begin(), ElementsSorted[shared_element].end(), tmp.begin(), tmp.end()) ) {
+                    *itPart = rElemPartition[shared_element];
+                    break;
                   }
+                }
               }
           }
 

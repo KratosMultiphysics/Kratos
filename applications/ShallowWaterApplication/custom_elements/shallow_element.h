@@ -7,10 +7,10 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_SHALLOW_ELEMENT_H_INCLUDED )
+#ifndef KRATOS_SHALLOW_ELEMENT_H_INCLUDED
 #define KRATOS_SHALLOW_ELEMENT_H_INCLUDED
 
 // System includes

@@ -111,9 +111,7 @@ public:
         QUADRATURE_ON_NODES
     };
 
-    /** The bounding box */
-    /*typedef BoundingBox<TPointType, GeometryType>  BoundingBoxType; */
-
+  
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */

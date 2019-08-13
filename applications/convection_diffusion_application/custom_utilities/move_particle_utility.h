@@ -41,7 +41,6 @@
 
 
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/bounding_box.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 
@@ -2433,5 +2432,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_MOVE_PARTICLE_UTILITY_FLUID_PFEM2_TRANSPORT_INCLUDED  defined
-
-

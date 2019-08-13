@@ -21,9 +21,7 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
-#include "shallow_water_application_variables.h"
 
 
 namespace Kratos
@@ -88,6 +86,25 @@ public:
     void ComputeMomentum(ModelPart& rModelPart);
 
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
+
+    void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);
+
+    void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double Thickness = 0.0);
+
+    template<class TContainerType>
+    void DeactivateDryEntities(TContainerType& rContainer, Flags WetFlag)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
+        {
+            auto it = rContainer.begin() + i;
+            it->Set(ACTIVE, it->Is(WetFlag));
+        }
+    }
+
+    void ComputeVisualizationWaterHeight(ModelPart& rModelPart, Flags WetFlag, double SeaWaterLevel = 0.0);
+
+    void ComputeVisualizationWaterSurface(ModelPart& rModelPart);
 
     ///@}
     ///@name Access

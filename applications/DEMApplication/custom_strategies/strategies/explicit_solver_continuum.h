@@ -81,6 +81,7 @@ namespace Kratos {
         void FinalizeSolutionStep() override;
         void FinalizeSolutionStepFEM();
         void MarkNewSkinParticles();
+        void BreakAlmostBrokenSpheres();
 
         virtual void Add_As_Own(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element) {
             KRATOS_TRY
