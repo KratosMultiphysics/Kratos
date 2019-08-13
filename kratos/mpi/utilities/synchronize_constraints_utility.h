@@ -29,7 +29,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Utility for calculating the Distance on a given modelpart
+/// Utility for making constraints work in MPI
 class MpiConstraintsUtility {
 public:
     ///@name Type Definitions
@@ -53,6 +53,7 @@ public:
     /// Default constructor.
     MpiConstraintsUtility(ModelPart& rModelPart) : mrModelPart(rModelPart)
     {
+        mNodeIdsToSync.reserve(1000);
     }
 
     /// Destructor.
@@ -81,6 +82,14 @@ public:
     {
         GetNodeIdsToSynchronize();
         CreateConstraints();
+    }
+
+    void Clear()
+    {
+        mMasterSlaveDetailsVector.clear();
+        mNodeIdsToSync.clear();
+        mDofPointersVector.clear();
+        mVectorOfGlobalPointers.clear();
     }
 
     ///@}
@@ -115,8 +124,8 @@ private:
                                IndexType ConstraintId,
                                IndexType MasterNodeId,
                                IndexType SlaveNodeId,
-                               IndexType Weight,
-                               IndexType Constant)
+                               const double Weight,
+                               const double Constant)
         {
             mSlaveNodeId = SlaveNodeId;
             mMasterNodeId = MasterNodeId;
@@ -169,10 +178,11 @@ private:
                            TMasterVariableType& rMasterVariable,
                            IndexType SlaveNodeId,
                            TSlaveVariableType& rSlaveVariable,
-                           IndexType Weight,
-                           IndexType Constant)
-            : BaseMasterSlaveDetails(ConstraintId, MasterNodeId, SlaveNodeId, Weight, Constant),
-              mrSlaveVariable(rSlaveVariable), mrMasterVariable(rMasterVariable)
+                           const double Weight,
+                           const double Constant)
+            : BaseMasterSlaveDetails(ConstraintName, ConstraintId, MasterNodeId, SlaveNodeId, Weight, Constant),
+              mrSlaveVariable(rSlaveVariable),
+              mrMasterVariable(rMasterVariable)
         {
         }
 
@@ -201,6 +211,21 @@ private:
     ///@name private operations
     ///@{
 
+    template <class TSlaveVariableType, class TMasterVariableType>
+    void AddDistributedConstraint(const std::string ConstraintName,
+                                  IndexType ConstraintId,
+                                  IndexType MasterNodeId,
+                                  TMasterVariableType& rMasterVariable,
+                                  IndexType SlaveNodeId,
+                                  TSlaveVariableType& rSlaveVariable,
+                                  const double Weight,
+                                  const double Constant)
+    {
+        mMasterSlaveDetailsVector.push_back(Kratos::make_shared<MasterSlaveDetails<TSlaveVariableType, TMasterVariableType>>(
+            ConstraintName, ConstraintId, MasterNodeId, rMasterVariable,
+            SlaveNodeId, rSlaveVariable, Weight, Constant));
+    }
+
     void GetNodeIdsToSynchronize()
     {
         for (const auto& constraint_info : mMasterSlaveDetailsVector) {
@@ -214,7 +239,7 @@ private:
     void CreateConstraints()
     {
         auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
-        // IndexType current_rank = r_data_communicator.Rank();
+        IndexType current_rank = r_data_communicator.Rank();
         auto remote_nodes_gps_map = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(
             mrModelPart.Nodes(), mNodeIdsToSync, r_data_communicator);
         GlobalPointersVector<NodeType> vector_of_node_global_pointers;
@@ -238,10 +263,10 @@ private:
             return vec_of_dofs_global_ptr;
         });
         for (const auto& constraint_info : mMasterSlaveDetailsVector) {
-            LinearMasterSlaveConstraint::DofPointerVectorType slave_dof_vector;
-            LinearMasterSlaveConstraint::DofPointerVectorType master_dof_vector;
-            LinearMasterSlaveConstraint::MatrixType relation_matrix(1, 1);
-            LinearMasterSlaveConstraint::VectorType constant_vector(1);
+            MasterSlaveConstraint::DofPointerVectorType slave_dof_vector;
+            MasterSlaveConstraint::DofPointerVectorType master_dof_vector;
+            MasterSlaveConstraint::MatrixType relation_matrix(1, 1);
+            MasterSlaveConstraint::VectorType constant_vector(1);
             const auto& r_slave_node_id = constraint_info->SlaveNodeId();
             const auto& r_master_node_id = constraint_info->MasterNodeId();
             auto slave_node_var_dofs_gps_map =
@@ -250,15 +275,14 @@ private:
                 nodes_result_proxy.Get(remote_nodes_gps_map[r_master_node_id]);
             // Get the global pointers for the dofs of the slave and masters -> construct them using the PARTITION_INDEX of the node
             for (auto& slave_gp_pair : slave_node_var_dofs_gps_map) {
-                if (slave_gp_pair.first == constraint_info->GetVariableKey()) {
+                if (slave_gp_pair.first == constraint_info->GetSlaveVariableKey()) {
                     mVectorOfGlobalPointers.push_back(slave_gp_pair.second);
-                    slave_dof_vector.push_back(DofType::Pointer(
-                        (*(mVectorOfGlobalPointers.ptr_end() - 1)).get()));
+                    // slave_dof_vector.push_back(DofType::Pointer((*(mVectorOfGlobalPointers.ptr_end() - 1)).get()));
                     break;
                 }
             }
             for (auto& master_gp_pair : master_node_var_dofs_gps_map) {
-                if (master_gp_pair.first == constraint_info->GetVariableKey()) {
+                if (master_gp_pair.first == constraint_info->GetMasterVariableKey()) {
                     mVectorOfGlobalPointers.push_back(master_gp_pair.second);
                     // master_dof_vector.push_back( DofType::Pointer( (*(mVectorOfGlobalPointers.ptr_end()-1)).get() ) );
                     break;
@@ -274,12 +298,12 @@ private:
         }
         std::cout << "Num constraints :: " << mVectorOfGlobalPointers.size() << std::endl;
         // // Use the vector of the global pointers to make the pointer_communicator
-        // GlobalPointerCommunicator<DofType> dofs_pointer_comm(r_data_communicator, mVectorOfGlobalPointers);
-        // auto dofs_result_proxy = dofs_pointer_comm.Apply(
-        //         [](GlobalPointer<DofType>& gp){
-        //             return gp;
-        //         }
-        // );
+        GlobalPointerCommunicator<DofType> dofs_pointer_comm(r_data_communicator, mVectorOfGlobalPointers);
+        auto dofs_result_proxy = dofs_pointer_comm.Apply(
+                [](GlobalPointer<DofType>& gp){
+                    return gp;
+                }
+        );
     }
 
     void GetDofsVector()
