@@ -66,7 +66,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         else:
             cl = KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw(
             )
-        self.mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, cl)        
+        self.mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, cl)
 
     def _add_dofs(self):
         KratosMultiphysics.VariableUtils().AddDof(
@@ -172,9 +172,9 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         constrained_nodes = self.mp.GetSubModelPart("DISPLACEMENT_moving_edge").Nodes # these nodes are slaves
         constraint_id = 1
         for node in constrained_nodes:
-            self.mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", constraint_id, fixed_node, KratosMultiphysics.DISPLACEMENT_X, node, KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
+            self.mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", constraint_id, fixed_node.Id, KratosMultiphysics.DISPLACEMENT_X, node.Id, KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
             constraint_id += 1
-            self.mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", constraint_id, fixed_node, KratosMultiphysics.DISPLACEMENT_Y, node, KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
+            self.mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", constraint_id, fixed_node.Id, KratosMultiphysics.DISPLACEMENT_Y, node.Id, KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
             constraint_id += 1
 
     def _apply_mpi_constraints(self):
@@ -184,9 +184,9 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         # rVariable, ConstraintId, SlaveNodeId, MasterNodeId, Weight, Constant
         constraint_id = 1
         for node in constrained_nodes:
-            self.mpi_constraint_utility.AddConstraint(KratosMultiphysics.DISPLACEMENT_X, constraint_id, node.Id, fixed_node_num, 1.0, 0)
+            self.mpi_constraint_utility.AddConstraint("LinearMasterSlaveConstraint",KratosMultiphysics.DISPLACEMENT_X, constraint_id, node.Id, fixed_node_num, 1.0, 0)
             constraint_id += 1
-            self.mpi_constraint_utility.AddConstraint(KratosMultiphysics.DISPLACEMENT_Y, constraint_id, node.Id, fixed_node_num, 1.0, 0)
+            self.mpi_constraint_utility.AddConstraint("LinearMasterSlaveConstraint",KratosMultiphysics.DISPLACEMENT_Y, constraint_id, node.Id, fixed_node_num, 1.0, 0)
             constraint_id += 1
         self.mpi_constraint_utility.SynchronizeAndCreateConstraints()
 
