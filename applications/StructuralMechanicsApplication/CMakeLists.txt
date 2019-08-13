@@ -11,6 +11,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
