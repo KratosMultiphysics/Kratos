@@ -248,6 +248,8 @@ public:
     }
 
     ///@}
+    ///@name Geometry Information
+    ///@{
 
     /**
      * @brief Returns the domain size of the master geometry.
@@ -268,7 +270,7 @@ public:
     }
 
     ///@}
-    ///@name Input and output
+    ///@name Information
     ///@{
 
     /// Turn back information as a string.
