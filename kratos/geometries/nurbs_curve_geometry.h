@@ -21,11 +21,7 @@
 
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
-#include "includes/ublas_interface.h"
-#include "containers/array_1d.h"
 
-#include <stdexcept>
-#include <vector>
 
 namespace Kratos {
 
@@ -46,31 +42,35 @@ public:
         geometry's points.*/
     typedef  typename BaseType::PointsArrayType PointsArrayType;
 
+    typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+
     /// Counted pointer of NurbsSurfaceShapeFunction
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NurbsCurveGeometry);
     ///@}
     ///@name Life Cycle
     ///@{
 
+    /* Conctructor for B-Spline curves. */
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
-        const int PolynomialDegree,
+        const SizeType PolynomialDegree,
         const Vector& rKnots)
-        : BaseType(PointsArrayType(), &msGeometryData)
+        : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
         , mIsRational(false)
     {
-        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNbKnots(PolynomialDegree, rThisPoints.size()))
+        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
             << "Number of knots and control points do not match!" << std::endl;
     }
 
+    /* Conctructor for NURBS curves. */
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
-        const int PolynomialDegree,
+        const SizeType PolynomialDegree,
         const Vector& rKnots,
         const Vector& rWeights)
-        : BaseType(PointsArrayType(), &msGeometryData)
+        : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
         , mIsRational(true)
@@ -91,6 +91,10 @@ public:
     /* Copy constructor.*/
     NurbsCurveGeometry(NurbsCurveGeometry const& rOther)
         : BaseType(rOther)
+        , mPolynomialDegree(rOther.mPolynomialDegree)
+        , mKnots(rOther.mKnots)
+        , mIsRational(rOther.mIsRational)
+        , mWeights(rOther.mWeights)
     {
     }
 
@@ -118,26 +122,55 @@ public:
     ///@name Get and Set functions
     ///@{
 
-    bool IsRational() const
+    /* @return the polynomial degree of this curve.
+    */
+    SizeType PolynomialDegree() const
     {
-        return mWeights.size() != 0;
+        return mPolynomialDegree;
     }
 
+    /* Get Knot vector. This vector is defined to have a multiplicity of p
+    at the beginning and end (NOT: p + 1).
+    @return knot vector.
+    */
     const Vector& Knots() const
     {
         return mKnots;
     }
 
-    int NumberOfKnots() const
+    /* @return Returns the size of the knot vector.
+    */
+    SizeType NumberOfKnots() const
     {
-        return static_cast<int>(mKnots.size());
+        return mKnots.size();
     }
 
+    /* @return the number of nonzero control points of 
+    this curve. */
+    SizeType NumberOfNonzeroControlPoints() const
+    {
+        return PolynomialDegree() + 1;
+    }
+
+    /* Checks if shape functions are rational or not.
+    @return true if NURBS, false if B-Splines only (all weights are considered as 1)
+    */
+    bool IsRational() const
+    {
+        return mWeights.size() != 0;
+    }
+
+    /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
+    @return weights vector.
+    */
     const Vector& Weights() const
     {
         return mWeights;
     }
 
+    /* Provides the natural boundaries of the NURBS/B-Spline curve.
+    @return domain interval.
+    */
     Interval DomainInterval() const
     {
         return Interval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
@@ -145,14 +178,14 @@ public:
 
     std::vector<Interval> KnotSpanIntervals() const
     {
-        const int first_span = mPolynomialDegree - 1;
-        const int last_span = NumberOfKnots() - mPolynomialDegree - 1;
+        const IndexType first_span = mPolynomialDegree - 1;
+        const IndexType last_span = NumberOfKnots() - mPolynomialDegree - 1;
 
-        const int number_of_spans = last_span - first_span + 1;
+        const IndexType number_of_spans = last_span - first_span + 1;
 
         std::vector<Interval> result(number_of_spans);
 
-        for (int i = 0; i < number_of_spans; i++) {
+        for (IndexType i = 0; i < number_of_spans; i++) {
             const double t0 = mKnots[first_span + i];
             const double t1 = mKnots[first_span + i + 1];
 
@@ -175,9 +208,9 @@ public:
     */
     std::vector<CoordinatesArrayType> GlobalDerivatives(
         const CoordinatesArrayType& rCoordinates,
-        const int DerivativeOrder) const
+        const SizeType DerivativeOrder) const
     {
-        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, DerivativeOrder);
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, std::min(DerivativeOrder, PolynomialDegree()));
 
         if (IsRational()) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
@@ -186,19 +219,23 @@ public:
             shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
         }
 
-        std::vector<array_1d<double, 3>> derivatives(shape_function_container.NumberOfShapeFunctionRows());
+        //fill up the vector with zeros
+        std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
 
-        for (int order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
-            int index_0 = shape_function_container.GetFirstNonzeroControlPoint();
+        for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
+            IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
             derivatives[order] = (*this)[index_0] * shape_function_container(order, 0);
+            for (IndexType u = 1; u < shape_function_container.NumberOfNonzeroControlPoints(); u++) {
+                IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + u;
 
-            for (int i = 1; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-                int index = shape_function_container.GetFirstNonzeroControlPoint() + i;
-
-                derivatives[order] += (*this)[index] * shape_function_container(order, i);
+                derivatives[order] += (*this)[index] * shape_function_container(order, u);
             }
         }
 
+        for (IndexType order = shape_function_container.NumberOfShapeFunctionRows(); order <= DerivativeOrder; order++) {
+            IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
+            derivatives[order] = (*this)[index_0] * 0.0;
+        }
         return derivatives;
     }
 
@@ -223,8 +260,8 @@ public:
         }
 
         noalias(rResult) = ZeroVector(3);
-        for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-            const int index = shape_function_container.GetFirstNonzeroControlPoint() + i;
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            const IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + i;
 
             rResult += (*this)[index] * shape_function_container(0, i);
         }
@@ -251,7 +288,7 @@ public:
         if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
             rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
 
-        for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
             rResult[i] = shape_function_container(0, i);
         }
 
@@ -275,11 +312,56 @@ public:
             && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
             rResult.resize(1, shape_function_container.NumberOfNonzeroControlPoints());
 
-        for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
             rResult(0, i) = shape_function_container(1, i);
         }
 
         return rResult;
+    }
+
+    //GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>
+        void ShapeFunctionDerivatives(
+        GeometryData::IntegrationMethod ThisIntegrationMethod,
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const int DerivativeOrder) const
+    {
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 0);
+
+        int number_of_integration_points = rIntegrationPoints.size();
+
+        Matrix shape_functions_values = ZeroMatrix(number_of_integration_points, shape_function_container.NumberOfNonzeroControlPoints());
+        DenseVector<DenseVector<Matrix>> shape_function_derivatives_integration_points(number_of_integration_points);
+
+        for (IndexType ip_itr = 0; ip_itr < number_of_integration_points; ++ip_itr)
+        {
+            if (IsRational()) {
+                shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rIntegrationPoints[ip_itr][0]);
+            }
+            else {
+                shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rIntegrationPoints[ip_itr][0]);
+            }
+
+            for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+                shape_functions_values(ip_itr, i) = shape_function_container(ip_itr, i);
+            }
+
+            DenseVector<Matrix> shape_function_derivatives_array(DerivativeOrder);
+            for (IndexType derivative_order_itr = 1; derivative_order_itr < DerivativeOrder; ++derivative_order_itr)
+            {
+                Matrix shape_function_derivatives_values = ZeroMatrix(1, shape_function_container.NumberOfNonzeroControlPoints());
+                for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+                    shape_function_derivatives_values(0, i) = shape_function_container(derivative_order_itr, i);
+                }
+                shape_function_derivatives_array[derivative_order_itr] = shape_function_derivatives_values;
+            }
+            shape_function_derivatives_integration_points[ip_itr] = shape_function_derivatives_array;
+        }
+
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
+            ThisIntegrationMethod,
+            rIntegrationPoints,
+            shape_functions_values,
+            shape_function_derivatives_integration_points);
     }
 
     ///@}
@@ -312,7 +394,7 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    const int mPolynomialDegree;
+    const SizeType mPolynomialDegree;
     Vector mKnots;
     bool mIsRational;
     Vector mWeights;
@@ -358,9 +440,9 @@ private:
 
 template<int TWorkingSpaceDimension, class TPointType>
 const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TPointType>::msGeometryData(
-    2,
+    1,
     TWorkingSpaceDimension,
-    2,
+    1,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
 
