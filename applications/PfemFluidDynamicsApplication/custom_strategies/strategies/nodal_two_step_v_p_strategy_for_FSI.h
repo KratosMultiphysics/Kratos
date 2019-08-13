@@ -222,8 +222,8 @@ namespace Kratos {
 	double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 	bool timeIntervalChanged=  rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
 
-	bool momentumAlreadyConverged=false;
-	bool continuityAlreadyConverged=false;
+	// bool momentumAlreadyConverged=false;
+	// bool continuityAlreadyConverged=false;
 
 	unsigned int maxNonLinearIterations=mMaxPressureIter;
 	std::cout << "\n                   Solve with nodally_integrated_two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;

@@ -15,9 +15,9 @@
 
 #include "containers/model.h"
 #include "includes/model_part.h"
+#include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
-
 
 #include "testing/testing.h"
 
