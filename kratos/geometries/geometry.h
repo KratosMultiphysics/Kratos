@@ -994,8 +994,9 @@ public:
     }
 
     /**
-    * This function is necessary for composite geometries. It returns the
-    * geometry part which is accessable with a certain index. This index
+    * @brief This function is necessary for composite geometries. It returns the
+    * geometry part which is accessable with a certain index.
+    * @details This index
     * is dependent on the derived implementation.
     * @param Index of the geometry part. This index can be used differently
     *        within the derived classes
