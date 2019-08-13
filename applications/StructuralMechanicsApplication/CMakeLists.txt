@@ -18,8 +18,11 @@ file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
+
+list(REMOVE_ITEM KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp)
+list(INSERT KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE 0 ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp)
 
 ## StructuralMechanics testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -67,7 +70,6 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 if(USE_COTIRE MATCHES ON)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     cotire(KratosStructuralMechanicsCore)
     cotire(KratosStructuralMechanicsApplication)
 endif(USE_COTIRE MATCHES ON)
