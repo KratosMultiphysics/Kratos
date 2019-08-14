@@ -222,8 +222,6 @@ namespace Kratos {
 	double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 	bool timeIntervalChanged=  rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
 
-	// bool momentumAlreadyConverged=false;
-	// bool continuityAlreadyConverged=false;
 
 	unsigned int maxNonLinearIterations=mMaxPressureIter;
 	std::cout << "\n                   Solve with nodally_integrated_two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;
@@ -245,6 +243,10 @@ namespace Kratos {
 	bool momentumConverged = true;
 	bool continuityConverged = false;
 	bool fixedTimeStep=false;
+
+	// bool momentumAlreadyConverged=false;
+	// bool continuityAlreadyConverged=false;
+
 	/* boost::timer solve_step_time; */
 	// std::cout<<" InitializeSolutionStep().... "<<std::endl;
 	InitializeSolutionStep();  // it fills SOLID_NODAL_SFD_NEIGHBOURS_ORDER for solids and NODAL_SFD_NEIGHBOURS_ORDER for fluids and inner solids
@@ -310,7 +312,9 @@ namespace Kratos {
 		    std::cout << "nodal V-P strategy converged in " << it+1 << " iterations." << std::endl;
 		    break;
 	    }
-
+ 		if( fixedTimeStep==true){
+	    	break;
+	  	} 
 	  }
 
 	if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -329,7 +333,7 @@ namespace Kratos {
 void Initialize() override
       {
 
-std::cout<<"                                 Initialize in nodal_two_step_v_p_strategy"<<std::endl;
+	std::cout<<"  \n     Initialize in nodal_two_step_v_p_strategy"<<std::endl;
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 	unsigned int sizeStrains=3*(dimension-1);
@@ -529,8 +533,6 @@ void AssignMaterialToEachNode(ModelPart::NodeIterator itNode)
     {
 	    double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
   		double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
-		double solidDensity=itNode->FastGetSolutionStepValue(DENSITY);
-		itNode->FastGetSolutionStepValue(SOLID_DENSITY)=solidDensity;
 		deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
 		volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
 	}
@@ -633,8 +635,6 @@ void ComputeNodalVolumeAndAssignFlagToElementType()
 	       typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
 	       typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
-			double solidDensity=0;
-
 	       for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  //MSI: To be parallelized
 	       {
 				Element::GeometryType& geometry = itElem->GetGeometry();
@@ -663,9 +663,6 @@ void ComputeNodalVolumeAndAssignFlagToElementType()
 						if(geometry(i)->FastGetSolutionStepValue(INTERFACE_NODE)==true){
 							interfaceNodes+=1;
 						}
-						if(geometry(i)->FastGetSolutionStepValue(INTERFACE_NODE)==false && geometry(i)->Is(SOLID)){
-							solidDensity=geometry(i)->FastGetSolutionStepValue(SOLID_DENSITY);
-						}
 					}
 							
 				if(solidNodes==numNodes){
@@ -682,9 +679,8 @@ void ComputeNodalVolumeAndAssignFlagToElementType()
 				}
 				if(solidNodes==numNodes && fluidNodes==numNodes){
 					itElem->Reset(FLUID);
-				 	std::cout<<"THIS ELEMENT WAS BOTH FLUID AND SOLID "<<geometry(0)->Id()<<"  "<<geometry(1)->Id()<<"  "<<geometry(2)->Id()<<"  "<<std::endl;
+				 	// std::cout<<"THIS ELEMENT WAS BOTH FLUID AND SOLID "<<geometry(0)->Id()<<"  "<<geometry(1)->Id()<<"  "<<geometry(2)->Id()<<"  "<<std::endl;
 				}
-
 
 				for (unsigned int i = 0; i <numNodes; i++)
 				{
@@ -694,7 +690,6 @@ void ComputeNodalVolumeAndAssignFlagToElementType()
 
 					if(itElem->Is(SOLID)){
 
-						geometry(i)->FastGetSolutionStepValue(SOLID_DENSITY)=solidDensity;
 						double& solidVolume = geometry(i)->FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
 						solidVolume+=elementalVolume;
 						nodalVolume += -elementalVolume;
@@ -704,11 +699,11 @@ void ComputeNodalVolumeAndAssignFlagToElementType()
 						// 	nodalVolume += -elementalVolume;
 						// }
 						
-						if(interfaceNodes==numNodes && solidDensity==0){
-							std::cout<<"This interface element has not a correct density....I am assigning it the fluid density----- TODO: IMPROVE IT, TAKE FROM NEIGHBOURS"<<std::endl;
-							double density=geometry(i)->FastGetSolutionStepValue(DENSITY);
-							geometry(i)->FastGetSolutionStepValue(SOLID_DENSITY)=density;
-						}
+						// if(interfaceNodes==numNodes && solidDensity==0){
+						// 	std::cout<<"This interface element has not a correct density....I am assigning it the fluid density----- TODO: IMPROVE IT, TAKE FROM NEIGHBOURS"<<std::endl;
+						// 	double density=geometry(i)->FastGetSolutionStepValue(DENSITY);
+						// 	geometry(i)->FastGetSolutionStepValue(SOLID_DENSITY)=density;
+						// }
 					}
 
 				}
@@ -1079,8 +1074,6 @@ void CalcNodalStrainsAndStressesForInterfaceFluidNode(ModelPart::NodeIterator it
   		const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
      	ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       	const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-	    //   double currFirstLame=itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT);
-	    //   double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
 
 		double deviatoricCoeff =itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 
@@ -1260,9 +1253,13 @@ void CalcNodalStrainsAndStressesForInterfaceSolidNode(ModelPart::NodeIterator it
 
    		ModelPart& rModelPart = BaseType::GetModelPart();
   		const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+    	ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    	const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
-	    double currFirstLame=itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT);
-	    double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+	    double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
+  		double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
+	    double currFirstLame   = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio));
+	    double deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
 
 	    Matrix Fgrad=itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD);
 	    Matrix FgradVel=itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD_VEL);
@@ -1421,12 +1418,14 @@ void CalcNodalStrainsAndStressesForSolidNode(ModelPart::NodeIterator itNode)
 {
 
    		ModelPart& rModelPart = BaseType::GetModelPart();
-
   		const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+    	ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    	const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
-
-	    double currFirstLame=itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT);
-	    double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+	    double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
+  		double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
+	    double currFirstLame   = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio));
+	    double deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
 
 	    Matrix Fgrad=itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD);
 	    Matrix FgradVel=itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD_VEL);
