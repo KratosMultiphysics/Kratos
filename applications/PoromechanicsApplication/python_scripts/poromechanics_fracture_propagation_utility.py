@@ -13,6 +13,8 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 # Import shutil to manage file copying
 import shutil
 
+from importlib import import_module
+
 class FracturePropagationUtility(object):
 
     def __init__(self, model, order_processes_initialization):
@@ -227,7 +229,9 @@ class FracturePropagationUtility(object):
                 value = self.UpdateModelPartNames(value)
 
         # Create new solver (and new_model_part)
-        solver_module = __import__(parameters["solver_settings"]["solver_type"].GetString())
+        python_module_name = "KratosMultiphysics.PoromechanicsApplication"
+        full_module_name = python_module_name + "." + parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
         new_solver = solver_module.CreateSolver(self.model, parameters["solver_settings"])
 
         new_solver.AddVariables()
@@ -239,7 +243,7 @@ class FracturePropagationUtility(object):
         new_list_of_processes = []
         new_list_of_output_processes = []
 
-        from process_factory import KratosProcessFactory
+        from KratosMultiphysics.process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
 
         if parameters.Has("processes"):
