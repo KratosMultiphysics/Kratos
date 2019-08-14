@@ -31,7 +31,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactAxisymConditi
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation > >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -100,17 +100,17 @@ double AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
     {
         // Displacement from the reference to the current configuration
-//         const array_1d<double, 3 > DeltaDisplacement = this->GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);  
-	    const array_1d<double, 3 > current_position = this->GetGeometry()[i_node].Coordinates();
+//         const array_1d<double, 3 > DeltaDisplacement = this->GetParentGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT) - GetParentGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
+	    const array_1d<double, 3 > current_position = this->GetParentGeometry()[i_node].Coordinates();
 // 	    const array_1d<double, 3 > ReferencePosition = current_position - DeltaDisplacement;
-	    
+
 	    current_radius   += current_position[0] * rVariables.NSlave[i_node];
 // 	    reference_radius += ReferencePosition[0] * rVariables.NSlave[i_node];
     }
-    
+
     return current_radius;
 //     return reference_radius;
-        
+
     KRATOS_CATCH( "" );
 }
 

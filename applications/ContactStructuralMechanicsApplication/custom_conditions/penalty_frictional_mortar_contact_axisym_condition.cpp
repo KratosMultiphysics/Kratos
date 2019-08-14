@@ -31,7 +31,7 @@ Condition::Pointer PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_intrusive< PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -98,7 +98,7 @@ double PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVari
 
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         // Displacement from the reference to the current configuration
-        const array_1d<double, 3 >& r_current_position = this->GetGeometry()[i_node].Coordinates();
+        const array_1d<double, 3 >& r_current_position = this->GetParentGeometry()[i_node].Coordinates();
 
         current_radius += r_current_position[0] * rVariables.NSlave[i_node];
     }
