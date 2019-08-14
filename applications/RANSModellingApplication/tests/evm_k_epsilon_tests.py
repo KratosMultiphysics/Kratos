@@ -31,6 +31,15 @@ class EvmKEpsilonTest(UnitTest.TestCase):
 
             kratos_utilities.DeleteFileIfExisting("channel_2d.time")
 
+    def testBackwardFacingStepKEpsilonTransient(self):
+        work_folder = "BackwardFacingStepTest"
+        settings_file_name = "backward_facing_step_k_epsilon_transient_parameters.json"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            self._runTest(settings_file_name)
+
+            # kratos_utilities.DeleteFileIfExisting("channel_2d.time")
+
     def _runTest(self,settings_file_name):
         model = km.Model()
         with open(settings_file_name,'r') as settings_file:
