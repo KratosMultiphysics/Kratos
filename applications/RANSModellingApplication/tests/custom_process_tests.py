@@ -327,6 +327,112 @@ class CustomProcessTest(UnitTest.TestCase):
             node_value = node.GetSolutionStepValue(Kratos.DISTANCE)
             self.assertAlmostEqual(node_value, value, 9)
 
+    def testLogarithmicYPlusCalculationProcess(self):
+        self.__CreateModel()
+
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "ApplyFlagProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test.submodelpart_1",
+                    "echo_level"                     : 0,
+                    "flag_variable_name"             : "STRUCTURE",
+                    "flag_variable_value"            : true,
+                    "apply_to_model_part_conditions" : "all"
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "WallDistanceCalculationProcess",
+                "Parameters" :             {
+                    "model_part_name"          : "test",
+                    "max_iterations"           : 1000,
+                    "echo_level"               : 0,
+                    "wall_flag_variable_name"  : "STRUCTURE",
+                    "wall_flag_variable_value" : true,
+                    "linear_solver_settings" : {
+                        "solver_type"     : "amgcl"
+                    }
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "LogarithmicYPlusCalculationProcess",
+                "Parameters" :             {
+                    "model_part_name" : "test",
+                    "echo_level"      : 0,
+                    "step"            : 0,
+                    "max_iterations"  : 10,
+                    "tolerance"       : 1e-6,
+                    "constants": {
+                        "von_karman"  : 0.41,
+                        "beta"        : 5.2
+                    }
+                }
+            }
+        ]''')
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
+        beta = 5.2
+        von_karman = 0.41
+        for node in self.model_part.Nodes:
+            y_plus = node.GetSolutionStepValue(KratosRANS.RANS_Y_PLUS)
+            nu = node.GetSolutionStepValue(Kratos.KINEMATIC_VISCOSITY)
+            y = node.GetSolutionStepValue(Kratos.DISTANCE)
+            u = node.GetSolutionStepValue(Kratos.VELOCITY)
+            if (y > 0.0):
+                u_tau = y_plus * nu / y
+                u_plus = math.sqrt(u[0] * u[0] + u[1] * u[1] +
+                                   u[2] * u[2]) / u_tau
+                if (y_plus > 11.06):
+                    self.assertAlmostEqual(
+                        u_plus, 1 / von_karman * math.log(y_plus) + beta, 9)
+                    print("Checked logarithmic region...")
+                else:
+                    self.assertAlmostEqual(u_plus, y_plus, 9)
+                    print("Checked linear region...")
+            else:
+                self.assertAlmostEqual(y_plus, 0.0, 9)
+
+    def testNuTHighReCalculationProcess(self):
+        self.__CreateModel()
+
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "NuTHighReCalculationProcess",
+                "Parameters" :             {
+                    "model_part_name" : "test",
+                    "echo_level"      : 0,
+                    "c_mu"            : 0.09
+                }
+            }
+        ]''')
+
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
+        c_mu = 0.09
+        for node in self.model_part.Nodes:
+            k = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY)
+            epsilon = node.GetSolutionStepValue(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
+            node_value = node.GetSolutionStepValue(Kratos.TURBULENT_VISCOSITY)
+            print(node_value, k, epsilon)
+            self.assertAlmostEqual(node_value, c_mu * k * k / epsilon, 9)
+
+
 # test model part is as follows
 #       6   5   4
 #       .---.---.
@@ -342,8 +448,13 @@ class CustomProcessTest(UnitTest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        self.model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
         self.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
+        self.model_part.AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
+        self.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
+        self.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
+        self.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
         self.model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
@@ -383,6 +494,7 @@ class CustomProcessTest(UnitTest.TestCase):
 
         self.model_part.SetBufferSize(2)
         self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 2
+        self.model_part.ProcessInfo[KratosRANS.TURBULENCE_RANS_C_MU] = 0.09
 
         for node in self.model_part.Nodes:
             vector = Kratos.Vector(3)
@@ -400,6 +512,14 @@ class CustomProcessTest(UnitTest.TestCase):
             scalar = random.random()
             node.SetSolutionStepValue(Kratos.DENSITY, 0, scalar)
 
+            scalar = random.random() * 1e-3
+            node.SetSolutionStepValue(Kratos.KINEMATIC_VISCOSITY, 0, scalar)
+
+            scalar = random.random()
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY, 0, scalar)
+            scalar = random.random()
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 0, scalar)
+
     def __ExecuteProcesses(self):
         for process in self.process_list:
             process.Check()
@@ -407,7 +527,6 @@ class CustomProcessTest(UnitTest.TestCase):
             process.ExecuteInitialize()
         for process in self.process_list:
             process.Execute()
-
 
 if __name__ == '__main__':
     UnitTest.main()
