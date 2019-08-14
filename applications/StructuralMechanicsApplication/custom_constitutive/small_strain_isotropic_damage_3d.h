@@ -49,7 +49,7 @@ namespace Kratos
  * - POISSON_RATIO
  * - YIELD_STRESS
  * - INFINITY_YIELD_STRESS
- * - ISOTROPIC_HARDENING_MODULUS
+ * - HARDENING_MODULI_VECTOR: List of hardening modules (only two branches considered)
  * @warning Valid for small strains
  * @note
  * @author Marcelo Raschi
@@ -239,16 +239,24 @@ protected:
             Vector& rStressVectorPos,
             Vector& rStressVector);
 
+    /**
+     * @brief Computes H(r), the hardening module value as a function of the strain variable
+     * @param StrainVariable The properties of the material
+     * @param rMaterialProperties The elastic tensor/matrix to be computed
+     */
+    double EvaluateHardeningModulus(
+            double StrainVariable,
+            const Properties &rMaterialProperties);
+
+    /**
+     * @brief Computes q(r), the hardening law value as a function of the strain variable
+     * @param StrainVariable The properties of the material
+     * @param rMaterialProperties The elastic tensor/matrix to be computed
+     */
     double EvaluateHardeningLaw(
             double StrainVariable,
             const Properties &rMaterialProperties);
 
-//    /**
-//     * @brief This method computes the constitutive tensor
-//     * @param rMaterialProperties The properties of the material
-//     * @param rElasticMatrix The elastic tensor/matrix to be computed
-//     */
-//    virtual void CalculateElasticMatrix(Matrix &rElasticMatrix, Parameters &rMaterialProperties);
     ///@}
 
 private:

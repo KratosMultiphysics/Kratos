@@ -37,7 +37,7 @@ TrussElementLinear3D2N::Create(IndexType NewId,
                                PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
-    return Kratos::make_shared<TrussElementLinear3D2N>(
+    return Kratos::make_intrusive<TrussElementLinear3D2N>(
                NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
@@ -46,7 +46,7 @@ TrussElementLinear3D2N::Create(IndexType NewId,
                                GeometryType::Pointer pGeom,
                                PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<TrussElementLinear3D2N>(
+    return Kratos::make_intrusive<TrussElementLinear3D2N>(
                NewId, pGeom, pProperties);
 }
 

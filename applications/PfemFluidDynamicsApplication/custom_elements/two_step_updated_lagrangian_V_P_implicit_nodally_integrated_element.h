@@ -45,7 +45,7 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
 
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
   ///@}
   ///@name  Enum's
@@ -84,7 +84,7 @@ namespace Kratos
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement);
 
       ///base type:
       typedef TwoStepUpdatedLagrangianElement<TDim> BaseType;
@@ -239,6 +239,10 @@ namespace Kratos
       };
 
 
+      /// Calculate the element's local contribution to the system for the current step.
+      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+				VectorType& rRightHandSideVector,
+				ProcessInfo& rCurrentProcessInfo) override;
 
       /// Checks the input and that all required Kratos variables have been registered.
       /**
@@ -250,6 +254,60 @@ namespace Kratos
        * @return 0 if no errors were found.
        */
       int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
+
+      void CalculateElementalLaplacian(MatrixType& rLeftHandSideMatrix,
+						 VectorType& rRightHandSideVector,
+						 ProcessInfo& rCurrentProcessInfo);
+
+      void CalculateElementalLaplacianAndTau(MatrixType& rLeftHandSideMatrix,
+						 VectorType& rRightHandSideVector,
+						 ProcessInfo& rCurrentProcessInfo);
+
+      void CalculateVolumetricStabilizedTerms(MatrixType& rLeftHandSideMatrix,
+						 VectorType& rRightHandSideVector,
+						 ProcessInfo& rCurrentProcessInfo);
+
+      void CalculateElementalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
+						 VectorType& rRightHandSideVector,
+						 ProcessInfo& rCurrentProcessInfo);
+
+      void CalculateStabilizingTermsContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
+						 VectorType& rRightHandSideVector,
+						 ProcessInfo& rCurrentProcessInfo);
+             
+      void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
+				 const ShapeFunctionsType& rN,
+				 const double Weight);
+
+      void ComputeBoundRHSVectorComplete(VectorType& BoundRHSVector,
+					 const double TimeStep,
+					 const double BoundRHSCoeffAcc,
+					 const double BoundRHSCoeffDev,
+					 const VectorType SpatialDefRate);
+
+      void ComputeElementalBoundRHSVector(VectorType& BoundRHSVector,
+					 const double TimeStep,
+					 const double BoundRHSCoeffAcc,
+					 const double BoundRHSCoeffDev);
+
+      void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
+		       const ShapeFunctionDerivativesType& rShapeDeriv,
+			     const double Weight);
+
+      void CalculateTauFIC(double& TauOne,
+			   double ElemSize,
+			   const double Density,
+			   const double Viscosity,
+			   const ProcessInfo& rCurrentProcessInfo);
+
+      void AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
+					 const double Tau,
+					 const double Density,
+					 const double Weight,
+					 const ShapeFunctionDerivativesType& rDN_DX,
+					 const SizeType i);
+
 
       ///@}
       ///@name Inquiry

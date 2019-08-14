@@ -21,7 +21,7 @@
 #include "containers/model.h"
 #include "includes/kratos_flags.h"
 // #include "includes/gid_io.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 /* Processes */
 #include "processes/find_nodal_h_process.h"
@@ -195,7 +195,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolation(r_model_part, "pre1");
 
-            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -294,7 +294,7 @@ namespace Kratos
             auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(r_model_part);
             process.Execute();
 
-            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -390,7 +390,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolation(r_model_part, "pre2");
 
-            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -490,7 +490,7 @@ namespace Kratos
             auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(r_model_part);
             process.Execute();
 
-            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -567,7 +567,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(r_model_part, "pre1");
 
-            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -646,7 +646,7 @@ namespace Kratos
             auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(r_model_part);
             process.Execute();
 
-            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG2D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -722,7 +722,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(r_model_part, "pre2");
 
-            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -802,7 +802,7 @@ namespace Kratos
             auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(r_model_part);
             process.Execute();
 
-            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(r_model_part, params);
+            MmgProcess<MMGLibrary::MMG3D> mmg_process(r_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG

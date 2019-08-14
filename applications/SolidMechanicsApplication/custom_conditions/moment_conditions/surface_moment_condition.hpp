@@ -43,7 +43,7 @@ public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of SurfaceMomentCondition
-    KRATOS_CLASS_POINTER_DEFINITION( SurfaceMomentCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SurfaceMomentCondition );
     ///@}
 
     ///@name Life Cycle

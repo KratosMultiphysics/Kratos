@@ -65,7 +65,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointSolidElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointSolidElement);
 
     ///@}
     ///@name Life Cycle
@@ -85,6 +85,10 @@ public:
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
+                            PropertiesType::Pointer pProperties) const override;
+
+    Element::Pointer Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
                             PropertiesType::Pointer pProperties) const override;
 
     void Initialize() override;

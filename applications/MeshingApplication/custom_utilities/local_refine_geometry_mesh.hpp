@@ -22,26 +22,16 @@
 // NOTE: Before compute the remeshing it is necessary to compute the neighbours
 
 // System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
-#include <cmath>
-#include <algorithm>
 
 // Extrenal includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/node.h"
-#include "includes/dof.h"
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
+#include "includes/global_pointer_variables.h"
 #include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
-#include "geometries/geometry_data.h"
-#include "containers/data_value_container.h"
-#include "includes/mesh.h"
 #include "utilities/math_utils.h"
 #include "processes/node_erase_process.h"
 

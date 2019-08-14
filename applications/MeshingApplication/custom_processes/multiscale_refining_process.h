@@ -1,8 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -25,6 +25,7 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "includes/global_pointer_variables.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/uniform_refinement_utility.h"
 
@@ -223,7 +224,7 @@ public:
         for (int i = 0; i < static_cast<int>(mRefinedInterfaceContainer.size()); i++)
         {
             auto refined_node = refined_begin + i;
-            WeakPointerVector<NodeType>& father_nodes = refined_node->GetValue(FATHER_NODES);
+            GlobalPointersVector<NodeType>& father_nodes = refined_node->GetValue(FATHER_NODES);
             IndexType number_of_father_nodes = father_nodes.size();
             std::vector<double> weights = refined_node->GetValue(FATHER_NODES_WEIGHTS);
 

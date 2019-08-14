@@ -45,7 +45,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Custom convergence criteria for the mortar condition
+/**
+ * @class ALMFrictionlessComponentsMortarConvergenceCriteria
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief Custom convergence criteria for the mortar mesh tying condition
+ * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace, class TDenseSpace>
 class MeshTyingMortarConvergenceCriteria
@@ -84,7 +88,7 @@ public:
 
     /// Default constructors
     explicit MeshTyingMortarConvergenceCriteria()
-        : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >()
+        : BaseType()
     {
     }
 
@@ -102,7 +106,7 @@ public:
     ///@{
 
     /**
-     * Compute relative and absolute error.
+     * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param rA System matrix (unused)
@@ -128,7 +132,7 @@ public:
     }
 
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart The model part of interest
      */
     void Initialize(ModelPart& rModelPart) override

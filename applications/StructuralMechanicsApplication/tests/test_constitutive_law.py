@@ -1006,7 +1006,10 @@ class SmallStrainIsotropicDamagePlaneStrain2D():
         properties.SetValue(KratosMultiphysics.POISSON_RATIO, self.poisson_ratio)
         properties.SetValue(KratosMultiphysics.YIELD_STRESS, self.yield_stress)
         properties.SetValue(StructuralMechanicsApplication.INFINITY_YIELD_STRESS, self.infinity_yield_stress)
-        properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, self.isotropic_hardening_modulus)
+        hardening_modulus = KratosMultiphysics.Vector(2)
+        hardening_modulus[0] = 0.3
+        hardening_modulus[1] = 0.
+        properties.SetValue(StructuralMechanicsApplication.HARDENING_MODULI_VECTOR, hardening_modulus)
         return properties
 
     @staticmethod

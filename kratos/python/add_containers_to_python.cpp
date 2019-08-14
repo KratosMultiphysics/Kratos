@@ -362,6 +362,10 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,MARKER);
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,PERIODIC);
 
+    // Note: using internal macro for these two because they do not have a NOT_ version
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(m,ALL_DEFINED);
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(m,ALL_TRUE);
+
 
 //     AddDeprecatedVariablesToPython();
 //     AddC2CVariablesToPython();

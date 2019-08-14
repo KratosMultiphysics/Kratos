@@ -14,7 +14,7 @@
 #include "zoltan_cpp.h"
 
 // Project includes
-#include "custom_utilities/parallel_fill_communicator.h"
+#include "includes/model_part.h"
 
 
 namespace Kratos

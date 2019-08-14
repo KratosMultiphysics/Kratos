@@ -67,6 +67,34 @@ public:
         int& rMaximumConditionId,
         ModelPart::ElementsContainerType::ptr_iterator itElem);
 
+    void GeneratePressureLoads3WetNodes(
+        const int NonWetLocalIdNode,
+        const int PressureId,
+        int& rMaximumConditionId,
+        ModelPart::ElementsContainerType::ptr_iterator itElem);
+
+    void CreatePressureLoads(
+        const int Id1,
+        const int Id2,
+        const int Id3,
+        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        ModelPart& rSubModelPart,
+        ModelPart::PropertiesType::Pointer pProperties,
+        int& rMaximumConditionId);
+
+    void CreateLineLoads(
+        const int Id1,
+        const int Id2,
+        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        ModelPart& rSubModelPart,
+        ModelPart::PropertiesType::Pointer pProperties,
+        int& rMaximumConditionId);
+
+    void GeneratePressureLoads4WetNodes(
+        const int PressureId,
+        int& rMaximumConditionId,
+        ModelPart::ElementsContainerType::ptr_iterator itElem);
+
     void GetPressureId(
         ModelPart::ElementsContainerType::ptr_iterator itElem,
         int& rPressureId);
@@ -82,8 +110,7 @@ public:
 protected:
     // Member Variables
     ModelPart& mrModelPart;
-    std::vector<IndexType> mNodeIdContainer;
-    std::vector<int> mNodePressureIdContainer;
+    std::string mPressureName;
 
 };  // Class
 

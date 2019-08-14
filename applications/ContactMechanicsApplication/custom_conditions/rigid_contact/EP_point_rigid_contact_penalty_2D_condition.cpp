@@ -57,7 +57,7 @@ namespace Kratos
   Condition::Pointer EPPointRigidContactPenalty2DCondition::Create(IndexType NewId, NodesArrayType
 								 const& ThisNodes,  PropertiesType::Pointer pProperties) const
   {
-    return Kratos::make_shared<EPPointRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<EPPointRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -73,7 +73,7 @@ namespace Kratos
       // in the constructor of NewCondition I create a new friction law and here I clone the this->
       NewCondition.mpFrictionLaw = this->mpFrictionLaw->Clone();
 
-      return Kratos::make_shared<EPPointRigidContactPenalty2DCondition>(NewCondition);
+      return Kratos::make_intrusive<EPPointRigidContactPenalty2DCondition>(NewCondition);
    }
 
   //************************************************************************************

@@ -62,7 +62,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of @{KRATOS_NAME_CAMEL}
-    KRATOS_CLASS_POINTER_DEFINITION(@{KRATOS_NAME_CAMEL});
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(@{KRATOS_NAME_CAMEL});
 
     ///@}
     ///@name Life Cycle

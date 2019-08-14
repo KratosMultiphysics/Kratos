@@ -9,12 +9,12 @@ namespace Kratos
 
 Element::Pointer SpalartAllmaras::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<SpalartAllmaras>(NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->mIntegrationMethod);
+    return Kratos::make_intrusive<SpalartAllmaras>(NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->mIntegrationMethod);
 }
 
 Element::Pointer SpalartAllmaras::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<SpalartAllmaras>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<SpalartAllmaras>(NewId, pGeom, pProperties);
 }
 
 int SpalartAllmaras::Check(const ProcessInfo &rCurrentProcessInfo)

@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
+#include "includes/variables.h"
 #include "includes/cfd_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
@@ -201,7 +202,7 @@ namespace Kratos
 
         // Build RHS
         // Source terms (bathymetry contribution)
-        noalias(rRightHandSideVector)  = -variables.gravity * variables.height * prod(aux_w_grad_h, variables.depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
+        noalias(rRightHandSideVector)  = variables.gravity * variables.height * prod(aux_w_grad_h, variables.depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
 
         // Source terms (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, variables.rain);
@@ -210,7 +211,7 @@ namespace Kratos
         noalias(rRightHandSideVector) += variables.dt_inv * prod(mass_matrix, variables.proj_unk);
 
         // Substracting the bottom diffusion
-        noalias(rRightHandSideVector) -= (k_dc + tau_h) * prod(aux_h_diffus, variables.depth);
+        noalias(rRightHandSideVector) += (k_dc + tau_h) * prod(aux_h_diffus, variables.depth);
 
         // Subtracting the dirichlet term (since we use a residualbased approach) 
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, variables.unknown);

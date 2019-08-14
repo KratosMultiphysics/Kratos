@@ -141,10 +141,6 @@ namespace Kratos {
         // Constructor with name
         KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart(""),
             "Error: Please don't use empty names (\"\") when creating a ModelPart");
-
-        // Constructor with name and bufferSize
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("", 2),
-            "Error: Please don't use empty names (\"\") when creating a ModelPart");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartNameContainingPoint, KratosCoreFastSuite)
@@ -153,11 +149,7 @@ namespace Kratos {
 
         // Constructor with name
         KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other"),
-            "Error: Please don't use names containing (\".\") when creating a ModelPart");
-
-        // Constructor with name and bufferSize
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other", 2),
-            "Error: Please don't use names containing (\".\") when creating a ModelPart");
+            "Error: Please don't use names containing (\".\") when creating a ModelPart (used in \"name.other\")");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElements, KratosCoreFastSuite)

@@ -117,7 +117,7 @@ public:
     /**
      * @brief Default constructor 
      * @param rModelPart The model part of the problem
-     * @param pScheme The integration scheme
+     * @param p_scheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param MaxIterations The maximum number of iterations
@@ -128,7 +128,7 @@ public:
     
     ResidualBasedNewtonRaphsonContactStrategy(
         ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
+        typename TSchemeType::Pointer p_scheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         IndexType MaxIterations = 30,
@@ -139,7 +139,7 @@ public:
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
     )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, p_scheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -157,7 +157,7 @@ public:
     /**
      * @brief Default constructor 
      * @param rModelPart The model part of the problem
-     * @param pScheme The integration scheme
+     * @param p_scheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param MaxIterations The maximum number of iterations
@@ -168,7 +168,7 @@ public:
     
     ResidualBasedNewtonRaphsonContactStrategy(
         ModelPart& rModelPart,
-        typename TSchemeType::Pointer pScheme,
+        typename TSchemeType::Pointer p_scheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
@@ -180,7 +180,7 @@ public:
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr                                     
         )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, p_scheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -482,12 +482,13 @@ protected:
         // Pointers needed in the solution
         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
+        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
+        auto& r_dof_set = p_builder_and_solver->GetDofSet();
 
-        TSystemMatrixType& A = *BaseType::mpA;
-        TSystemVectorType& Dx = *BaseType::mpDx;
-        TSystemVectorType& b = *BaseType::mpb;
+        TSystemMatrixType& rA = *BaseType::mpA;
+        TSystemVectorType& rDx = *BaseType::mpDx;
+        TSystemVectorType& rb = *BaseType::mpb;
 
         //initializing the parameters of the Newton-Raphson cicle
         IndexType iteration_number = 1;
@@ -495,8 +496,9 @@ protected:
 
         bool is_converged = false;
         bool residual_is_updated = false;
-        pScheme->InitializeNonLinIteration(r_model_part, A, Dx, b);
-        is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
+        p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+        BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+        is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
         // We do a geometry check before solve the system for first time
         if (mThisParameters["adaptative_strategy"].GetBool()) {
@@ -509,23 +511,23 @@ protected:
         
         // Function to perform the building and the solving phase.
         if (StrategyBaseType::mRebuildLevel > 1 || StrategyBaseType::mStiffnessMatrixIsBuilt == false) {
-            TSparseSpace::SetToZero(A);
-            TSparseSpace::SetToZero(Dx);
-            TSparseSpace::SetToZero(b);
+            TSparseSpace::SetToZero(rA);
+            TSparseSpace::SetToZero(rDx);
+            TSparseSpace::SetToZero(rb);
 
-            pBuilderAndSolver->BuildAndSolve(pScheme, r_model_part, A, Dx, b);
+            p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
         } else {
-            TSparseSpace::SetToZero(Dx); //Dx=0.00;
-            TSparseSpace::SetToZero(b);
+            TSparseSpace::SetToZero(rDx); //Dx=0.00;
+            TSparseSpace::SetToZero(rb);
 
-            pBuilderAndSolver->BuildRHSAndSolve(pScheme, r_model_part, A, Dx, b);
+            p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
         }
         
         // Debugging info
         BaseType::EchoInfo(iteration_number);
         
         // Updating the results stored in the database
-        UpdateDatabase(A, Dx, b, StrategyBaseType::MoveMeshFlag());
+        UpdateDatabase(rA, rDx, rb, StrategyBaseType::MoveMeshFlag());
         
         // We now check the geometry
         if (mThisParameters["adaptative_strategy"].GetBool()) {
@@ -536,19 +538,20 @@ protected:
             }
         }
         
-        pScheme->FinalizeNonLinIteration(r_model_part, A, Dx, b);
+        p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+        BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
         if (is_converged) {
             //initialisation of the convergence criteria
-            BaseType::mpConvergenceCriteria->InitializeSolutionStep(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
+            BaseType::mpConvergenceCriteria->InitializeSolutionStep(r_model_part, r_dof_set, rA, rDx, rb);
 
             if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
-                TSparseSpace::SetToZero(b);
+                TSparseSpace::SetToZero(rb);
 
-                pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
             }
 
-            is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
+            is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
         
         // Iteration Cicle... performed only for NonLinearProblems
@@ -556,34 +559,35 @@ protected:
             //setting the number of iteration
             r_process_info[NL_ITERATION_NUMBER] = iteration_number;
 
-            pScheme->InitializeNonLinIteration(r_model_part, A, Dx, b);
+            p_scheme->InitializeNonLinIteration(r_model_part, rA, rDx, rb);
+            BaseType::mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
                     
-            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
+            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, rA, rDx, rb);
 
             //call the linear system solver to find the correction mDx for the
             //it is not called if there is no system to solve
-            if (SparseSpaceType::Size(Dx) != 0) {
+            if (SparseSpaceType::Size(rDx) != 0) {
                 if (StrategyBaseType::mRebuildLevel > 1 || StrategyBaseType::mStiffnessMatrixIsBuilt == false ) {
                     if( BaseType::GetKeepSystemConstantDuringIterations() == false) {
                         //A = 0.00;
-                        TSparseSpace::SetToZero(A);
-                        TSparseSpace::SetToZero(Dx);
-                        TSparseSpace::SetToZero(b);
+                        TSparseSpace::SetToZero(rA);
+                        TSparseSpace::SetToZero(rDx);
+                        TSparseSpace::SetToZero(rb);
 
-                        pBuilderAndSolver->BuildAndSolve(pScheme, r_model_part, A, Dx, b);
+                        p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                     }
                     else {
-                        TSparseSpace::SetToZero(Dx);
-                        TSparseSpace::SetToZero(b);
+                        TSparseSpace::SetToZero(rDx);
+                        TSparseSpace::SetToZero(rb);
 
-                        pBuilderAndSolver->BuildRHSAndSolve(pScheme, r_model_part, A, Dx, b);
+                        p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                     }
                 }
                 else {
-                    TSparseSpace::SetToZero(Dx);
-                    TSparseSpace::SetToZero(b);
+                    TSparseSpace::SetToZero(rDx);
+                    TSparseSpace::SetToZero(rb);
 
-                    pBuilderAndSolver->BuildRHSAndSolve(pScheme, r_model_part, A, Dx, b);
+                    p_builder_and_solver->BuildRHSAndSolve(p_scheme, r_model_part, rA, rDx, rb);
                 }
             } else {
                 KRATOS_WARNING("No DoFs") << "ATTENTION: no free DOFs!! " << std::endl;
@@ -593,7 +597,7 @@ protected:
             BaseType::EchoInfo(iteration_number);
         
             // Updating the results stored in the database
-            UpdateDatabase(A, Dx, b, StrategyBaseType::MoveMeshFlag());
+            UpdateDatabase(rA, rDx, rb, StrategyBaseType::MoveMeshFlag());
             
             // We now check the geometry
             if (mThisParameters["adaptative_strategy"].GetBool()) {
@@ -604,21 +608,22 @@ protected:
                 }
             }
 
-            pScheme->FinalizeNonLinIteration(r_model_part, A, Dx, b);
+            p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
+            BaseType::mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
             residual_is_updated = false;
 
             if (is_converged) {
 
                 if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
-                    TSparseSpace::SetToZero(b);
+                    TSparseSpace::SetToZero(rb);
 
-                    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+                    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
                     residual_is_updated = true;
                     //std::cout << "mb is calculated" << std::endl;
                 }
 
-                is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
+                is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
         }
 
@@ -636,12 +641,12 @@ protected:
             // Pooyan.
 
             //    TSparseSpace::SetToZero(mb);
-            //    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mb);
+            //    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, mb);
         }
 
         // Calculate reactions if required
         if (BaseType::mCalculateReactionsFlag)
-            pBuilderAndSolver->CalculateReactions(pScheme, r_model_part, A, Dx, b);
+            p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
 
         return is_converged;
         

@@ -779,7 +779,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::SpectralDecomposition(
     Vector auxiliar_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
         for (IndexType j = 0; j < Dimension; ++j) {
-            auxiliar_vector[j] = eigen_vectors_matrix(i, j);
+            auxiliar_vector[j] = eigen_vectors_matrix(j, i);
         }
         eigen_vectors_container.push_back(auxiliar_vector);
     }

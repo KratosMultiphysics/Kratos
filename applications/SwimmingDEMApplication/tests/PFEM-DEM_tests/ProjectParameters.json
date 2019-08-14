@@ -17,7 +17,9 @@
         "Parameters" : {
             "postprocess_parameters" : {
                 "result_file_configuration" : {
-                    "gidpost_flags" : {},
+                    "gidpost_flags" : {
+                        "WriteConditionsFlag" : "WriteConditions"
+                     },
                      "plane_output" : [],
                      "nodal_results" : [],
                      "gauss_point_results" : []
@@ -32,6 +34,26 @@
 "do_print_results_option" : false,
 "gradient_calculation_type" : 1,
 "gradient_calculation_type_comment" : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
+"coupling" : {
+    "coupling_level_type" : 1,
+    "coupling_weighing_type" : 1,
+    "coupling_weighing_type_comment" : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
+    "interaction_start_time" : 0.0,
+    "forward_coupling" : {
+        "time_averaging_type" : 0
+    },
+    "backward_coupling" : {
+        "meso_scale_length" : 0.2,
+        "meso_scale_length_comment" : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
+        "shape_factor" : 0.5,
+        "filter_velocity_option" : false,
+        "apply_time_filter_to_fluid_fraction_option" : false,
+        "min_fluid_fraction" : 0.2,
+        "fluid_fraction_grad_type" : 0,
+        "calculate_diffusivity_option" : false,
+        "viscosity_modification_type" : 0
+    }
+},
 "laplacian_calculation_type" : 1,
 "laplacian_calculation_type_comment" : "(Not calculated (0), Finite element projection (1), Superconvergent recovery(2))",
 "print_particles_results_option" : false,
@@ -324,10 +346,10 @@
 
 "custom_dem" : {
     "do_solve_dem" : true,
-    "do_search_neighbours" : false,
+    "do_search_neighbours" : true,
     "type_of_dem_inlet" : "VelocityImposed",
     "type_of_dem_inlet_comment" : "VelocityImposed or ForceImposed",
-    "translational_integration_scheme" : "Symplectic_Euler"
+    "translational_integration_scheme" : "Hybrid_Bashforth"
 },
 
 "dem_parameters" : {

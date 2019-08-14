@@ -44,7 +44,7 @@ public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of SurfaceElasticCondition
-    KRATOS_CLASS_POINTER_DEFINITION( SurfaceElasticCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SurfaceElasticCondition );
     ///@}
 
     ///@name Life Cycle

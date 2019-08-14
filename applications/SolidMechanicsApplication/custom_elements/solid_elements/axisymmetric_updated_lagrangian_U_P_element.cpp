@@ -78,7 +78,7 @@ AxisymmetricUpdatedLagrangianUPElement&  AxisymmetricUpdatedLagrangianUPElement:
 
 Element::Pointer AxisymmetricUpdatedLagrangianUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< AxisymmetricUpdatedLagrangianUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< AxisymmetricUpdatedLagrangianUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -124,7 +124,7 @@ Element::Pointer AxisymmetricUpdatedLagrangianUPElement::Clone( IndexType NewId,
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< AxisymmetricUpdatedLagrangianUPElement >(NewElement);
+    return Kratos::make_intrusive< AxisymmetricUpdatedLagrangianUPElement >(NewElement);
 }
 
 //*******************************DESTRUCTOR*******************************************

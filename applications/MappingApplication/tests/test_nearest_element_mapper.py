@@ -81,10 +81,6 @@ class NearestElementBladeMapping(blade_mapping_test.BladeMappingTests):
         cls.print_output = False
 
 if __name__ == '__main__':
-    import sys
-    if "--using-mpi" in sys.argv:
-        from KratosMultiphysics import mpi # initialize MPI
-        sys.argv.remove("--using-mpi") # has to be removed bcs Unittest cannot parse it
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     import KratosMultiphysics.KratosUnittest as KratosUnittest
     KratosUnittest.main()

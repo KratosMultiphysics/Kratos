@@ -10,6 +10,10 @@
 //  Main author:     Jordi Cotela
 //
 
+#ifdef _OPENMP
+#include "omp.h"
+#endif
+
 #include "includes/parallel_environment.h"
 #include "includes/kratos_components.h"
 #include "input_output/logger.h"
@@ -76,11 +80,36 @@ ParallelEnvironment::ParallelEnvironment()
     RegisterDataCommunicatorDetail("Serial", DataCommunicator(), MakeDefault);
 }
 
+ParallelEnvironment::~ParallelEnvironment()
+{
+    mDestroyed = true;
+    mpInstance = nullptr;
+}
+
 ParallelEnvironment& ParallelEnvironment::GetInstance()
 {
-    static ParallelEnvironment parallel_environment;
+    // Using double-checked locking to ensure thread safety in the first creation of the singleton.
+    if (mpInstance == nullptr)
+    {
+        #ifdef _OPENMP
+        #pragma omp critical
+        if (mpInstance == nullptr)
+        {
+        #endif
+            KRATOS_ERROR_IF(mDestroyed) << "Accessing ParallelEnvironment after its destruction" << std::endl;
+            Create();
+        #ifdef _OPENMP
+        }
+        #endif
+    }
 
-    return parallel_environment;
+    return *mpInstance;
+}
+
+void ParallelEnvironment::Create()
+{
+    static ParallelEnvironment parallel_environment;
+    mpInstance = &parallel_environment;
 }
 
 void ParallelEnvironment::RegisterDataCommunicatorDetail(
@@ -160,5 +189,8 @@ void ParallelEnvironment::PrintDataDetail(std::ostream &rOStream) const
     }
     rOStream << "Default communicator: \"" << mDefaultCommunicator->first << "\": " << *(mDefaultCommunicator->second);
 }
+
+ParallelEnvironment* ParallelEnvironment::mpInstance = nullptr;
+bool ParallelEnvironment::mDestroyed = false;
 
 }

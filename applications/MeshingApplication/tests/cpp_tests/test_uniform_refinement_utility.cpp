@@ -20,7 +20,7 @@
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
 #include "containers/model.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 // Utilities
 #include "custom_utilities/uniform_refinement_utility.h"

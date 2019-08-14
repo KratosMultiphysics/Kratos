@@ -15,7 +15,7 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "utilities/indexed_object.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 #include "includes/condition.h"
 #include "custom_elements/spheric_particle.h"
@@ -30,7 +30,7 @@ namespace Kratos
 
     public:
         /// Pointer definition of Cluster3D
-        KRATOS_CLASS_POINTER_DEFINITION(Cluster3D);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Cluster3D);
 
         Cluster3D();
         Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry);

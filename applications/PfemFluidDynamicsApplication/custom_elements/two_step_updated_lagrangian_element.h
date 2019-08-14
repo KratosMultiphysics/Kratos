@@ -16,7 +16,7 @@
 // External includes
 
 
-// Project includes 
+// Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
 #include "includes/element.h"
@@ -62,7 +62,7 @@ namespace Kratos
   template< unsigned int TDim >
     class TwoStepUpdatedLagrangianElement : public Element
     {
-  
+
     protected:
 
 
@@ -95,16 +95,16 @@ namespace Kratos
       	VectorType UpdatedTotalCauchyStress;
       	VectorType CurrentDeviatoricCauchyStress;
       	VectorType UpdatedDeviatoricCauchyStress;
-            
+
       } ElementalVariables;
-  
+
 
     public:
       ///@name Type Definitions
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianElement);
 
       /// Node type (default is: Node<3>)
       typedef Node <3> NodeType;
@@ -191,7 +191,7 @@ namespace Kratos
       /// copy constructor
 
       TwoStepUpdatedLagrangianElement(TwoStepUpdatedLagrangianElement const& rOther);
-      
+
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianElement()
         {}
@@ -248,10 +248,10 @@ namespace Kratos
       void CalculateRightHandSide(VectorType& rRightHandSideVector,
 				  ProcessInfo& rCurrentProcessInfo) override{};
 
-      
+
       /* virtual void CalculateRightHandSideMomentum(VectorType& rRightHandSideVector, */
       /* 						  ProcessInfo& rCurrentProcessInfo){}; */
- 
+
       // The following methods have different implementations depending on TDim
       /// Provides the global indices for each one of this element's local rows
       /**
@@ -271,23 +271,23 @@ namespace Kratos
       void GetDofList(DofsVectorType& rElementalDofList,
 		      ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
       GeometryData::IntegrationMethod GetIntegrationMethod() const override;
-    
+
       virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo){};
 
       virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables){};
 
       void CalculateDeltaPosition (Matrix & rDeltaPosition);
 
-      void AddExplicitContribution(const VectorType& rRHSVector, 
-				   const Variable<VectorType>& rRHSVariable, 
-				   Variable<array_1d<double,3> >& rDestinationVariable, 
+      void AddExplicitContribution(const VectorType& rRHSVector,
+				   const Variable<VectorType>& rRHSVariable,
+				   Variable<array_1d<double,3> >& rDestinationVariable,
 				   const ProcessInfo& rCurrentProcessInfo) override{};
 
-      void AddExplicitContribution(const VectorType& rRHSVector, 
-				   const Variable<VectorType>& rRHSVariable, 
-				   Variable<double > & rDestinationVariable, 
+      void AddExplicitContribution(const VectorType& rRHSVector,
+				   const Variable<VectorType>& rRHSVariable,
+				   Variable<double > & rDestinationVariable,
 				   const ProcessInfo& rCurrentProcessInfo) override {};
       ///@}
       ///@name Access
@@ -362,7 +362,7 @@ namespace Kratos
       void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 					std::vector<double>& rValues,
 					const ProcessInfo& rCurrentProcessInfo ) override{};
-      
+
       virtual void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,
 						   VectorType& rRightHandSideVector,
 						   ProcessInfo& rCurrentProcessInfo){};
@@ -370,7 +370,7 @@ namespace Kratos
       virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
 							 VectorType& rRightHandSideVector,
 							 ProcessInfo& rCurrentProcessInfo){};
-      
+
       virtual void CalculateExplicitContinuityEquation(MatrixType& rLeftHandSideMatrix,
 						       VectorType& rRightHandSideVector,
 						       ProcessInfo& rCurrentProcessInfo){};
@@ -397,7 +397,7 @@ namespace Kratos
 	std::cout<<"I SHOULD NOT ENTER HERE!"<<std::endl;
 	return 0.0;
       };
-      
+
       void VelocityEquationIdVector(EquationIdVectorType& rResult,
 				    ProcessInfo& rCurrentProcessInfo);
 
@@ -413,15 +413,15 @@ namespace Kratos
 
       void CalcMeanVelocity(double& meanVelocity,
 			    const int Step);
-      
+
       void CalcMeanPressure(double& meanPressure,
 			    const int Step);
-      
+
       void GetPressureValues(Vector& rValues,
-			     const int Step = 0);      
+			     const int Step = 0);
 
       void GetFluidFractionRateValues(Vector& rValues);
- 
+
       void GetFluidFractionRateOldValues(Vector& rValues);
 
       void GetDensityValues(Vector& rValues,
@@ -433,12 +433,15 @@ namespace Kratos
       void GetDisplacementValues(Vector& rValues,
 				 const int Step = 0);
 
-      virtual void GetPositions(Vector& rValues,
+      void GetPositions(Vector& rValues,
 				const ProcessInfo& rCurrentProcessInfo,
-				const double theta){};
+				const double theta);
 
       void GetAccelerationValues(Vector& rValues,
 				 const int Step = 0);
+
+      void GetPressureVelocityValues(Vector& rValues,
+				     const int Step);
 
 
       void GetElementalAcceleration(Vector& rValues,
@@ -475,10 +478,10 @@ namespace Kratos
        */
       void CalculateMassMatrix(Matrix& rMassMatrix,
 			       ProcessInfo& rCurrentProcessInfo) override{};
-      
+
       /* virtual void CalculateMassMatrixMomentum(Matrix& rMassMatrix, */
       /* 				       ProcessInfo& rCurrentProcessInfo){}; */
-      
+
       /* void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix, */
       /* 				    VectorType& rRightHandSideVector, */
       /* 				    Flags& rCalculationFlags); */
@@ -487,17 +490,17 @@ namespace Kratos
 			     const ShapeFunctionsType& rN,
 			     const double Weight,
 			     double& MeanValue);
-      
+
       void ComputeLumpedMassMatrix(Matrix& rMassMatrix,
 				   const double Weight,
 				   double& MeanValue);
 
-    
+
       void AddExternalForces( Vector& rRHSVector,
 			      const double Density,
 			      const ShapeFunctionsType& rN,
 			      const double Weight);
-      
+
       void AddInternalForces( Vector& rRHSVector,
 			      const ShapeFunctionDerivativesType& rDN_DX,
 			      ElementalVariables& rElementalVariables,
@@ -505,18 +508,18 @@ namespace Kratos
 
       void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
 				 const double Weight);
-      
+
       void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
 				       const double Weight);
-      
+
       void ComputeBulkMatrix(MatrixType& BulkMatrix,
 			     const ShapeFunctionsType& rN,
 			     const double Weight);
-       
+
       virtual void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
 					const double Weight){};
-       
-      
+
+
       bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 				const ProcessInfo& rCurrentProcessInfo,
 				const ShapeFunctionDerivativesType& rDN_DX,
@@ -563,7 +566,7 @@ namespace Kratos
 				   MatrixType &SpatialVelocityGrad);
 
       void CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
-				       MatrixType &VelDefgrad, 
+				       MatrixType &VelDefgrad,
 				       VectorType &MDGreenLagrangeMaterial);
 
       void CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial,
@@ -576,9 +579,9 @@ namespace Kratos
       void CalcEquivalentStrainRate(VectorType &SpatialDefRate,
 				    double &EquivalentStrainRate);
 
-      double CalcNormalProjectionDefRate(const VectorType &SpatialDefRate, 
-					 const array_1d<double, 3> NormalVector); 
-      
+      double CalcNormalProjectionDefRate(const VectorType &SpatialDefRate,
+					 const array_1d<double, 3> NormalVector);
+
       double CalcNormalProjectionDefRate(VectorType &SpatialDefRate);
 
       void CheckStrain1(double &VolumetricDefRate,
@@ -587,11 +590,11 @@ namespace Kratos
       void CheckStrain2(MatrixType &SpatialVelocityGrad,
 			MatrixType &Fgrad,
 			MatrixType &VelDefgrad);
-	
+
       bool CheckStrain3(VectorType &SpatialDefRate,
 			MatrixType &SpatialVelocityGrad);
 
-	
+
       virtual void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 						    double TimeStep,
 						    unsigned int g){};
@@ -675,17 +678,17 @@ namespace Kratos
       {
 	GeometryType& rGeom = this->GetGeometry();
 	const SizeType NumNodes = rGeom.PointsNumber();
-	    
+
 	const double& var = rGeom[0].FastGetSolutionStepValue(Var);
 	for (SizeType d = 0; d < TDim; ++d)
 	  rResult[d] = rDN_DX(0,d) * var;
-			
+
 	for(SizeType i = 1; i < NumNodes; i++)
 	  {
 	    const double& var = rGeom[i].FastGetSolutionStepValue(Var);
 	    for (SizeType d = 0; d < TDim; ++d)
 	      rResult[d] += rDN_DX(i,d) * var;
-				
+
 	  }
       }
 
@@ -733,38 +736,38 @@ namespace Kratos
 	  }
 	}
 
+      void GetOutwardsUnitNormalForTwoPoints(array_1d<double, 3> &NormalVector,
+                         unsigned int idA,
+                         unsigned int idB,
+                         unsigned int otherId)
+      {
+    GeometryType& rGeom = this->GetGeometry();
+    double deltaX= rGeom[idB].X()-rGeom[idA].X();
+    double deltaY= rGeom[idB].Y()-rGeom[idA].Y();
+    double elementSize=sqrt(deltaX*deltaX+deltaY*deltaY); // this is just to have an idea of the size of the element
+    if(fabs(deltaX)>fabs(deltaY)){//to avoid division by zero or small numbers
+      NormalVector[0]=-deltaY/deltaX;
+      NormalVector[1]=1.0;
+      double normNormal=NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1];
+      NormalVector*=1.0/sqrt(normNormal);
+    }else{
+      NormalVector[0]=1.0;
+      NormalVector[1]=-deltaX/deltaY;
+      double normNormal=NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1];
+      NormalVector*=1.0/sqrt(normNormal);
+    }
+    //to determine if the computed normal outwards or inwards
+    const array_1d<double, 3> MeanPoint=(rGeom[idB].Coordinates()+rGeom[idA].Coordinates())*0.5;
+    const array_1d<double, 3> DistanceA=rGeom[otherId].Coordinates() - (MeanPoint + NormalVector*elementSize);
+    const array_1d<double, 3> DistanceB=rGeom[otherId].Coordinates() - (MeanPoint - NormalVector*elementSize);
+    const double normA=DistanceA[0]*DistanceA[0] + DistanceA[1]*DistanceA[1];
+    const double normB=DistanceB[0]*DistanceB[0] + DistanceB[1]*DistanceB[1];
+    if(normB>normA){
+      NormalVector*=-1.0;
+    }
+      }
 
-       
-      void GetOutwardsUnitNormalForTwoPoints(array_1d<double, 3> &NormalVector, 
-					     unsigned int idA, 
-					     unsigned int idB, 
-					     unsigned int otherId) 
-      { 
-	GeometryType& rGeom = this->GetGeometry(); 
-	double deltaX= rGeom[idB].X()-rGeom[idA].X(); 
-	double deltaY= rGeom[idB].Y()-rGeom[idA].Y(); 
-	double elementSize=sqrt(deltaX*deltaX+deltaY*deltaY); // this is just to have an idea of the size of the element 
-	if(fabs(deltaX)>fabs(deltaY)){//to avoid division by zero or small numbers 
-	  NormalVector[0]=-deltaY/deltaX; 
-	  NormalVector[1]=1.0; 
-	  double normNormal=NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1]; 
-	  NormalVector*=1.0/sqrt(normNormal); 
-	}else{ 
-	  NormalVector[0]=1.0; 
-	  NormalVector[1]=-deltaX/deltaY; 
-	  double normNormal=NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1]; 
-	  NormalVector*=1.0/sqrt(normNormal); 
-	} 
-	//to determine if the computed normal outwards or inwards 
-	const array_1d<double, 3> MeanPoint=(rGeom[idB].Coordinates()+rGeom[idA].Coordinates())*0.5; 
-	const array_1d<double, 3> DistanceA=rGeom[otherId].Coordinates() - (MeanPoint + NormalVector*elementSize); 
-	const array_1d<double, 3> DistanceB=rGeom[otherId].Coordinates() - (MeanPoint - NormalVector*elementSize); 
-	const double normA=DistanceA[0]*DistanceA[0] + DistanceA[1]*DistanceA[1]; 
-	const double normB=DistanceB[0]*DistanceB[0] + DistanceB[1]*DistanceB[1]; 
-	if(normB>normA){ 
-	  NormalVector*=-1.0; 
-	}   
-      } 
+
 
       void GetOutwardsUnitNormalForThreePoints(array_1d<double, 3> &NormalVector, 
 					       unsigned int idA, 
@@ -785,7 +788,7 @@ namespace Kratos
 	double deltaY= rGeom[idB].Y()-rGeom[idA].Y(); 
 	double deltaZ= rGeom[idB].Z()-rGeom[idA].Z(); 
 	double elementSize=sqrt(deltaX*deltaX+deltaY*deltaY+deltaZ*deltaZ); // this is just to have an idea of the size of the element 
-	const array_1d<double, 3> MeanPoint=(rGeom[idC].Coordinates()+rGeom[idB].Coordinates()+rGeom[idA].Coordinates())*0.3333333333; 
+	const array_1d<double, 3> MeanPoint=(rGeom[idC].Coordinates()+rGeom[idB].Coordinates()+rGeom[idA].Coordinates())/3.0; 
 	const array_1d<double, 3> DistanceA=rGeom[otherId].Coordinates() - (MeanPoint + NormalVector*elementSize); 
 	const array_1d<double, 3> DistanceB=rGeom[otherId].Coordinates() - (MeanPoint - NormalVector*elementSize); 
 	const double normA=DistanceA[0]*DistanceA[0] + DistanceA[1]*DistanceA[1] + DistanceA[2]*DistanceA[2]; 

@@ -64,6 +64,9 @@ class ConvectionDiffusionTestFactory(KratosUnittest.TestCase):
 
 class BasicConvectionDiffusionStationaryTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_conv_diffusion_test_stationary"
-    
+
 class BasicConvectionDiffusionTransientTest(ConvectionDiffusionTestFactory):
     file_name = "basic_conv_diffusion_test/basic_conv_diffusion_test_transient"
+
+class BasicDiffusionStationaryTest(ConvectionDiffusionTestFactory):
+    file_name = "basic_conv_diffusion_test/basic_diffusion_test_stationary"

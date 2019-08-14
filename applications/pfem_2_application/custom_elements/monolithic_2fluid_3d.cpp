@@ -9,43 +9,37 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/monolithic_2fluid_3d.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
-
-#include "processes/process.h"
-#include "includes/node.h"
-//#include "includes/element.h"
-#include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
 
 namespace Kratos
 {
 
-
-
 	//************************************************************************************
 	//************************************************************************************
 	MonolithicPFEM23D::MonolithicPFEM23D(IndexType NewId, GeometryType::Pointer pGeometry)
 		: Element(NewId, pGeometry)
-	{
-		//DO NOT ADD DOFS HERE!!!
-	}
+	{}
 
 	//************************************************************************************
 	//************************************************************************************
 	MonolithicPFEM23D::MonolithicPFEM23D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
 		: Element(NewId, pGeometry, pProperties)
-	{
-
-	}
+	{}
 
 	Element::Pointer MonolithicPFEM23D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 	{
 		return Element::Pointer(new MonolithicPFEM23D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 	}
+
+    Element::Pointer MonolithicPFEM23D::Create(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) const
+    {
+        return Element::Pointer(new MonolithicPFEM23D(NewId, pGeometry, pProperties));
+    }
 
 	MonolithicPFEM23D::~MonolithicPFEM23D()
 	{
@@ -124,7 +118,6 @@ namespace Kratos
         if(rLeftHandSideMatrix.size1() != LocalSize)
 			rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
 		noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
-		//KRATOS_WATCH(LocalSize)
         // Calculate this element's geometric parameters
         double Area;
 
@@ -137,9 +130,6 @@ namespace Kratos
 		const double viscosity_water = rCurrentProcessInfo[VISCOSITY_WATER];
 		const double density_air = rCurrentProcessInfo[DENSITY_AIR];
 		const double density_water = rCurrentProcessInfo[DENSITY_WATER];
-
-
-
 
 		bool split_element=false;
 		for(unsigned int iii = 0; iii<(TDim); iii++)
@@ -168,44 +158,37 @@ namespace Kratos
 				}
 			}
 
-
 			//double element_mean_distance = 0.25*(distances(0)+distances(1)+distances(2)+distances(3));
 			//const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
 			//double density = density_water*(water_fraction)+density_air*(1.0-water_fraction);
-			double density=density_air;
-			//double viscosity=viscosity_air;
 
-			double viscosity_for_tau=0.0;;
-			if (distances(0)<0.0)
+			double density = density_air;
+			double viscosity_for_tau = 0.0;
+
+			if (distances(0) < 0.0)
 			{
-				density=density_water;
-				//viscosity=viscosity_water;
-				viscosity_for_tau=viscosity_water;
+				density = density_water;
+				viscosity_for_tau = viscosity_water;
 
-				if (volume_correction>0.1)
-				  volume_correction=0.1;
-				if (volume_correction<-0.1)
-				  volume_correction=-0.1;
-
+				if (volume_correction > 0.1)
+				    volume_correction = 0.1;
+				if (volume_correction < -0.1)
+				    volume_correction = -0.1;
 			}
 			else
 			{
 				density = density_air;//this->CalculateAirDensity(element_temperature);
-				//viscosity = viscosity_air;//this->CalculateAirViscosity(element_temperature);
-				viscosity_for_tau=viscosity_air;
-				volume_correction=0.0;
+				viscosity_for_tau = viscosity_air;
+                //we must only increase the mass of the water phase, so we turn this coeff off for the air phase
+				volume_correction = 0.0;
 			}
+
 			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, viscosity_for_tau, Area );
-
-
 
 			//CALCULATING TAU (only if we are not near the interfase and we are in step 1 or more)
 			double TauOne = 0.0;
 			double sqElemSize=0.0;
 			{
-				//double Viscosity = rCurrentProcessInfo[VISCOSITY];;
-				//double AdvVelNorm = sqrt(pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z),2));
-				//const double TimeFactor = rCurrentProcessInfo.GetValue(DYNAMIC_TAU);
 				double mElemSize;
 				array_1d<double,3> Edge(3,0.0);
 				Edge = this->GetGeometry()[1].Coordinates() - this->GetGeometry()[0].Coordinates();
@@ -222,9 +205,9 @@ namespace Kratos
 							Length += Edge[d]*Edge[d];
 						if (Length < sqElemSize) sqElemSize = Length;
 					}
-				mElemSize=sqrt(sqElemSize);
+				mElemSize = sqrt(sqElemSize);
 				//actually we're currently using the kinematic viscosity, so no need to divide the second term by the viscosity, it was already done. Great!
-				TauOne =  1.0 / ( 1.0/delta_t + (4.0 * viscosity_for_tau / (mElemSize * mElemSize * density)));// + 2.0 * AdvVelNorm / mElemSize );
+				TauOne = 1.0 / ( 1.0/delta_t + (4.0 * viscosity_for_tau / (mElemSize * mElemSize * density)));// + 2.0 * AdvVelNorm / mElemSize );
 			}
 
 			/*
@@ -242,8 +225,8 @@ namespace Kratos
 				for (unsigned int j=0; j<TDim ; j++)
 					Mass_matrix (i*(TDim+1)+j,i*(TDim+1)+j) = Weight;
 
-			Laplacian_matrix =  -prod(DN_DX,trans(DN_DX))*Area/density;
-			Laplacian_matrix*=TauOne;
+			Laplacian_matrix = -prod(DN_DX,trans(DN_DX)) * Area / density;
+			Laplacian_matrix *= TauOne;
 
 			for (unsigned int i = 0; i < (TDim+1); i++)
 			{
@@ -257,11 +240,6 @@ namespace Kratos
 					rLeftHandSideMatrix(i*(TDim+1)+TDim, j*(TDim+1)+TDim ) += Laplacian_matrix(i,j);
 				}
 			}
-
-
-			//array_1d<double,3> mean_velocity = ZeroVector(3);
-			//for (unsigned int i = 0; i < (TDim+1); i++)
-			//	mean_velocity += GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)*one_quarter/delta_t;
 
 			//and finally the RHS of the velocity plus the RHS on the pressure due to the stabilzation terms:
 			array_1d<double, 3 > rhs_stab = ZeroVector(3);
@@ -280,27 +258,21 @@ namespace Kratos
 				for (unsigned int j = 0; j < TDim; j++)
 					rRightHandSideVector(i*(TDim+1)+j) += factor*Area*body_force(j)*density;
 
-
 				if (use_press_proj)
 					for (unsigned int j = 0; j < TDim; j++)
 						rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,j)*rhs_stab(j) + fabs(DN_DX(i,j)) * volume_correction *0.1) ;
 				else
 					for (unsigned int j = 0; j < TDim; j++)
 						rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,j)*body_force(j) + fabs(DN_DX(i,j)) * volume_correction *0.1) ;
-
 			}
-
 
 			noalias(rRightHandSideVector) += prod((Mass_matrix/delta_t),previous_vel_and_press);
 
 			noalias(rLeftHandSideMatrix) += Mass_matrix/delta_t;
-
-
 		}
 		else //split element:
 		{
 			const array_1d<double,3>& body_force_0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-
 
 			//TOOLS NEEDED TO FIND THE ENRICHMENT SHAPE FUNCTIONS
 			//get position of the cut surface
@@ -332,8 +304,7 @@ namespace Kratos
 			for (unsigned int i = 0; i < TNumNodes; i++)
 			{
 				const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
-				//volumes[i] = 0.0;
-				//KRATOS_WATCH(distances(i));
+
 				for (unsigned int j = 0; j < TDim; j++)
 					coords(i, j) = xyz[j];
 			}
@@ -342,11 +313,11 @@ namespace Kratos
 
 			unsigned int ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
 
-			double Weight=0.0;
-			double Weight_for_tau=0.0;
-			double mass=0.0;
+			double Weight = 0.0;
+			double Weight_for_tau = 0.0;
+			double mass = 0.0;
 
-			for (unsigned int i=0;i<ndivisions;i++) //we go over the three partitions;
+			for (unsigned int i=0;i < ndivisions;i++) //we go over the three partitions;
 			{
 				//double partition_temperature=0.0;
 				//for (unsigned int j = 0; j < 4; j++)
@@ -389,18 +360,7 @@ namespace Kratos
 				}
 			}
 
-			/*
-			this->AddViscousTerm(Momentum_matrix,
-								DN_DX,
-								distances,
-								gauss_gradients,
-								viscosities,
-								signs,
-								volumes,
-								ndivisions);
-			*/
 			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, element_viscosity_for_tau,Area );
-
 
 			/*
 			double fourier= element_viscosity/element_density *delta_t/pow((0.6*this->GetValue(MEAN_SIZE)),2);
@@ -408,14 +368,12 @@ namespace Kratos
 			if (theta<0.0) theta=0.0;
 			else if (theta>1.0) theta=1.0;
 			*/
+
 			//CALCULATING TAU (only if we are not near the interfase and we are in step 1 or more)
 			double TauOne = 0.0;
 			double sqElemSize=0.0;
 
 			{
-				//double Viscosity = rCurrentProcessInfo[VISCOSITY];;
-				//double AdvVelNorm = sqrt(pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z),2));
-				//const double TimeFactor = rCurrentProcessInfo.GetValue(DYNAMIC_TAU);
 				double mElemSize;
 				array_1d<double,3> Edge(3,0.0);
 				Edge = this->GetGeometry()[1].Coordinates() - this->GetGeometry()[0].Coordinates();
@@ -437,8 +395,6 @@ namespace Kratos
 				TauOne =  0.01 / ( 1.0 / delta_t +  (4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density)));//+ 2.0 * AdvVelNorm / mElemSize );
 			}
 
-
-
 			array_1d<double,TDim+1>  lumped_mass = ZeroVector(TDim+1);
 			double condensed_dof_mass1=0.0;
 			double condensed_dof_mass2=0.0;
@@ -456,7 +412,6 @@ namespace Kratos
 					Momentum_matrix((TDim+1)*j+2,(TDim+1)*j+2) += volumes(i)*Ngauss(i,j)*densities(i) / delta_t;
 				}
 
-
 				if (enrich_velocity_dofs!=0)
 				{
 					condensed_dof_mass1 += volumes(i)*Nenriched(i,0)*densities(i);
@@ -469,15 +424,10 @@ namespace Kratos
 				}
 
 				Laplacian_matrix_factor +=volumes(i)/densities(i);
-
 			}
-
-
 
 			Laplacian_matrix =  -prod(DN_DX,trans(DN_DX))*Laplacian_matrix_factor;
 			Laplacian_matrix*=TauOne;
-
-
 
 			BoundedMatrix<double, enrich_pressure_dofs, enrich_pressure_dofs > Laplacian_enrich;
 			noalias(Laplacian_enrich) = ZeroMatrix(enrich_pressure_dofs,enrich_pressure_dofs);
@@ -499,14 +449,8 @@ namespace Kratos
 			array_1d<double,( enrich_pressure_dofs + enrich_velocity_dofs )> rhs_enrich;
 			noalias(rhs_enrich) = ZeroVector(enrich_pressure_dofs + enrich_velocity_dofs);
 
-				//			KRATOS_WATCH(Ngauss)
-				//KRATOS_WATCH(Nenriched)
-
 			for (unsigned int i = 0; i < ndivisions; i++)  //we go through the 3 partitions of the domain
 			{
-
-				//KRATOS_WATCH(gauss_gradients[i])
-
 				//double PartitionTauOne = 1.0 / ( ( 1.0/ delta_t + 4.0 * viscosities(i) / (mElemSize * mElemSize*densities(i)) + 2.0 * AdvVelNorm / mElemSize) );
 
 				for (unsigned int j = 0; j < enrich_pressure_dofs; j++) //we go through the 4 enrichments
@@ -529,7 +473,6 @@ namespace Kratos
 					}
 				}
 
-
 				//we go through the remaining, new velocity dofs. (one x and one y component
 				if (enrich_velocity_dofs!=0)
 				{
@@ -542,19 +485,16 @@ namespace Kratos
 						}
 					}
 
-
 					//also the standard D and G matrices had to be expanded.
-
-						for (unsigned int k = 0; k < TDim; k++) //we go through the 4 standard pressures
-						{
-							for (unsigned int l = 0; l < TDim; l++)
-							{
-								D_matrix(k,(TDim+1)*TDim+l) += gauss_gradients[i](0,l) *volumes(i)*Ngauss(i,k);
-								G_matrix(k,(TDim+1)*TDim+l) -= DN_DX(k,l) *volumes(i)*Nenriched(i,0);
-							}
-						}
+                    for (unsigned int k = 0; k < TDim; k++) //we go through the 4 standard pressures
+                    {
+                        for (unsigned int l = 0; l < TDim; l++)
+                        {
+                            D_matrix(k,(TDim+1)*TDim+l) += gauss_gradients[i](0,l) *volumes(i)*Ngauss(i,k);
+                            G_matrix(k,(TDim+1)*TDim+l) -= DN_DX(k,l) *volumes(i)*Nenriched(i,0);
+                        }
+                    }
 				}
-
 
 				for (unsigned int k = 0; k < enrich_pressure_dofs; k++) //we go through the k enrichments
 					for (unsigned int l = 0; l < TDim; l++)
@@ -562,10 +502,9 @@ namespace Kratos
 
 			}
 
-			Laplacian_enrich*=TauOne;
-			mixed_Laplacian*=TauOne;
-			rhs_enrich *=TauOne;
-
+			Laplacian_enrich *= TauOne;
+			mixed_Laplacian *= TauOne;
+			rhs_enrich *= TauOne;
 
 			if (enrich_velocity_dofs!=0)
 			{
@@ -583,7 +522,6 @@ namespace Kratos
 				//enriched pressure dof
 				for (unsigned int k = 0; k < enrich_pressure_dofs; k++)
 				{
-
 					//enriched
 					for (unsigned int l = 0; l < TDim; l++)
 						condensed_rows(enrich_velocity_dofs+k,i*(TDim+1)+l)= - D_matrix_mixed(k,i*TDim+l);//+mass_stabilization_terms(i*2+1);
@@ -593,8 +531,6 @@ namespace Kratos
 						condensed_columns(enrich_velocity_dofs+k,i*(TDim+1)+l)= - D_matrix_mixed(k,i*TDim+l);
 					condensed_columns(enrich_velocity_dofs+k,i*(TDim+1)+TDim)= mixed_Laplacian(k,i);
 				}
-
-
 
 				for (unsigned int k = 0; k < enrich_velocity_dofs; k++) //we go through the 3 enrichments
 				{
@@ -611,8 +547,6 @@ namespace Kratos
 				}
 
 			}
-			//KRATOS_WATCH(Momentum_matrix)
-
 
 			//now the condensed block terms:
 			//the condensed block has 4 submatrices:    1 [ K+M*] [ G*+]  2
@@ -622,10 +556,12 @@ namespace Kratos
 			for (unsigned int i = 0; i < enrich_velocity_dofs; i++) //we go through the 3 enrichments
 				for (unsigned int k = 0; k < enrich_velocity_dofs; k++) //we go through the 3 enrichments
 					condensed_block(i,k)=Momentum_matrix((TDim+1)*(TDim+1)+i,(TDim+1)*(TDim+1)+k);
+
 			//second block
 			for (unsigned int i = 0; i < enrich_velocity_dofs; i++) //we go through the 3 enrichments
 				for (unsigned int k = 0; k < enrich_pressure_dofs; k++) //we go through the 3 enrichments
 					condensed_block(i,k+enrich_velocity_dofs)= -G_matrix_mixed(k,(TDim+1)*TDim+i);		// in  this case, we are in the gradient side and we should use the gradient if we do not integrate it by parts.
+
 			//third block
 			for (unsigned int i = 0; i < enrich_pressure_dofs; i++) //we go through the 3 enrichments
 				for (unsigned int k = 0; k < enrich_velocity_dofs; k++) //we go through the 3 enrichments
@@ -638,13 +574,12 @@ namespace Kratos
 
 			BoundedMatrix<double, enrich_velocity_dofs+enrich_pressure_dofs , enrich_velocity_dofs+enrich_pressure_dofs  > inverse_enrichments;
 			this->InvertMatrix(condensed_block,inverse_enrichments);
+
 			//condensing
 			BoundedMatrix<double, (TDim+1)*(TDim+1) , enrich_pressure_dofs+enrich_velocity_dofs  > temp_matrix;
 			temp_matrix = prod(trans(condensed_columns),inverse_enrichments);
 			rLeftHandSideMatrix -=  prod(temp_matrix,condensed_rows);
 			noalias(rRightHandSideVector) -= prod(temp_matrix,rhs_enrich);
-
-
 
 			for (unsigned int i = 0; i < TDim+1; i++)
 			{
@@ -659,11 +594,6 @@ namespace Kratos
 				}
 			}
 
-
-			//array_1d<double,3> mean_velocity = ZeroVector(3);
-			//for (unsigned int i = 0; i < 4; i++)
-			//	mean_velocity += GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)*factor;
-
 			//and finally the RHS of the velocity plus the RHS on the pressure due to the stabilzation terms:
 			for (unsigned int i = 0; i < TDim+1; i++)
 			{
@@ -674,34 +604,22 @@ namespace Kratos
 					rRightHandSideVector(i*(TDim+1)+l) += lumped_mass(i)*previous_vel_and_press(i*(TDim+1)+l)/delta_t;
 					rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,l)*body_force(l));
 				}
-
-
 			}
 
 			for (unsigned int i = 0; i < (TDim+1)*(TDim+1); i++)
 				for (unsigned int j = 0; j < (TDim+1)*(TDim+1); j++)
 					rLeftHandSideMatrix(i,j) += Momentum_matrix(i,j);
-
 		}
-
-
-
 
 		//we must actually use  a fraction of the rigidity matrix. since the Lefthandside only has it so far, we multiply it by 0.5:
 		//rLeftHandSideMatrix *= theta;
 
         //finally we add to the righthandside BOTH the mass matrix and the rigidity matrix:
 
-
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,current_vel_and_press);
-
-		//KRATOS_WATCH("ART")
-		//KRATOS_WATCH(rRightHandSideVector)
-		//KRATOS_WATCH(rLeftHandSideMatrix)
 
 		KRATOS_CATCH("");
 	}
-
 
 
 	//************************************************************************************
@@ -789,93 +707,93 @@ namespace Kratos
 		if (true)
 		{
 
-					const double density_air = CurrentProcessInfo[DENSITY_AIR]; //para clindro en rey 100:  0.0005 * 2.0*Area;
-					const double density_water = CurrentProcessInfo[DENSITY_WATER];
+            const double density_air = CurrentProcessInfo[DENSITY_AIR]; //para clindro en rey 100:  0.0005 * 2.0*Area;
+            const double density_water = CurrentProcessInfo[DENSITY_WATER];
 
-					array_1d<double,TDim+1>  pressures = ZeroVector(TDim+1); //to calculate the deformation Gradient F. Dimension = velocity dofs
-					BoundedMatrix<double,TDim+1, TDim > coords; //coordinates of the nodes
-					bool has_negative_node=false;
-					bool has_positive_node=false;
-					double element_mean_distance=0.0;
-					for(unsigned int iii = 0; iii<(TDim+1); iii++)
-					{
-						//saving everything
-						pressures(iii) = GetGeometry()[iii].FastGetSolutionStepValue(PRESSURE);
+            array_1d<double,TDim+1>  pressures = ZeroVector(TDim+1); //to calculate the deformation Gradient F. Dimension = velocity dofs
+            BoundedMatrix<double,TDim+1, TDim > coords; //coordinates of the nodes
+            bool has_negative_node=false;
+            bool has_positive_node=false;
+            double element_mean_distance=0.0;
+            for(unsigned int iii = 0; iii<(TDim+1); iii++)
+            {
+                //saving everything
+                pressures(iii) = GetGeometry()[iii].FastGetSolutionStepValue(PRESSURE);
 
-						//
-						const array_1d<double, 3 > & xyz = this->GetGeometry()[iii].Coordinates();
-						for (unsigned int j = 0; j < TDim; j++)
-							coords(iii, j) = xyz[j];
-						//
-						if (this->GetGeometry()[iii].FastGetSolutionStepValue(DISTANCE)<0.0)
-							has_negative_node=true;
-						else
-							has_positive_node=true;
+                //
+                const array_1d<double, 3 > & xyz = this->GetGeometry()[iii].Coordinates();
+                for (unsigned int j = 0; j < TDim; j++)
+                    coords(iii, j) = xyz[j];
+                //
+                if (this->GetGeometry()[iii].FastGetSolutionStepValue(DISTANCE)<0.0)
+                    has_negative_node=true;
+                else
+                    has_positive_node=true;
 
-						element_mean_distance+=factor*this->GetGeometry()[iii].FastGetSolutionStepValue(DISTANCE);
-					}
+                element_mean_distance+=factor*this->GetGeometry()[iii].FastGetSolutionStepValue(DISTANCE);
+            }
 
-					bool split_element=false;
-					if (has_positive_node && has_negative_node)
-						split_element=true;
+            bool split_element=false;
+            if (has_positive_node && has_negative_node)
+                split_element=true;
 
-					if (split_element==false) //we only calculate if we have a pure fluid element
-					{
+            if (split_element==false) //we only calculate if we have a pure fluid element
+            {
 
 
-						BoundedMatrix<double, (TDim+1), (TDim+1)*TDim > G_matrix; //(gradient)
-						noalias(G_matrix) = ZeroMatrix((TDim+1), (TDim+1)*TDim);
+                BoundedMatrix<double, (TDim+1), (TDim+1)*TDim > G_matrix; //(gradient)
+                noalias(G_matrix) = ZeroMatrix((TDim+1), (TDim+1)*TDim);
 
-						//const double water_fraction = -( element_mean_distance - 1.0) *0.5;
-						//const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
-						//double density = density_water*(water_fraction)+density_air*(1.0-water_fraction);
-						double density = density_air;
-						if (has_negative_node==true)
-							density= density_water;
+                //const double water_fraction = -( element_mean_distance - 1.0) *0.5;
+                //const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
+                //double density = density_water*(water_fraction)+density_air*(1.0-water_fraction);
+                double density = density_air;
+                if (has_negative_node==true)
+                    density= density_water;
 
-						for (unsigned int i = 0; i < (TDim+1); i++) //loop in shape functions (row)
-						{
-							for (unsigned int j = 0; j < (TDim+1) ; j++) //loop in shape functions (column)
-							{
-								for (unsigned int k = 0; k < (TDim) ; k++) //x,y,(z)
-								{
-									G_matrix(i, (j*3)+k ) = DN_DX(i,k)*Area*factor; //mass_factor=(1/3 in 2d, 1/4 in 3d)
-								}
-							}
-						}
-						G_matrix /=density;
+                for (unsigned int i = 0; i < (TDim+1); i++) //loop in shape functions (row)
+                {
+                    for (unsigned int j = 0; j < (TDim+1) ; j++) //loop in shape functions (column)
+                    {
+                        for (unsigned int k = 0; k < (TDim) ; k++) //x,y,(z)
+                        {
+                            G_matrix(i, (j*3)+k ) = DN_DX(i,k)*Area*factor; //mass_factor=(1/3 in 2d, 1/4 in 3d)
+                        }
+                    }
+                }
+                G_matrix /=density;
 
-						//now we save the data:
-						for (unsigned int i=0; i!=(TDim+1); i++) //loop around the nodes of the element to add contribution to node i
-						{
-							geom[i].SetLock();
-							array_1d<double, 3 > & current_press_proj = geom[i].FastGetSolutionStepValue(PRESS_PROJ);
+                //now we save the data:
+                for (unsigned int i=0; i!=(TDim+1); i++) //loop around the nodes of the element to add contribution to node i
+                {
+                    geom[i].SetLock();
+                    array_1d<double, 3 > & current_press_proj = geom[i].FastGetSolutionStepValue(PRESS_PROJ);
 
-							for (unsigned int j = 0; j < (TDim+1) ; j++) //loop around the nodes of the element to add contribution of node j to node i
-							{
+                    for (unsigned int j = 0; j < (TDim+1) ; j++) //loop around the nodes of the element to add contribution of node j to node i
+                    {
 
-								for (unsigned int k = 0; k < (TDim) ; k++) //x,y,(z)
-								{
-									current_press_proj[k] += G_matrix(j,i*(TDim)+k)*(pressures(j));///-old_pressures(j)); //gamma=0!
-								}
-							}
+                        for (unsigned int k = 0; k < (TDim) ; k++) //x,y,(z)
+                        {
+                            current_press_proj[k] += G_matrix(j,i*(TDim)+k)*(pressures(j));///-old_pressures(j)); //gamma=0!
+                        }
+                    }
 
-							geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor;
+                    geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor;
 
-							geom[i].UnSetLock();
+                    geom[i].UnSetLock();
 
-						}
+                }
 
-					} //closing the useful elements
-					else// we add some small addition to the area so that we do not have a division by zero.
-					{
-						for (unsigned int i=0; i!=(TDim+1); i++) //loop around the nodes of the element to add contribution to node i
-						{
-							geom[i].SetLock();
-							geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor*0.00000001;
-							geom[i].UnSetLock();
-						}
-					}
+            } //closing the useful elements
+            else// we add some small addition to the area so that we do not have a division by zero.
+            {
+                for (unsigned int i=0; i!=(TDim+1); i++) //loop around the nodes of the element to add contribution to node i
+                {
+                    geom[i].SetLock();
+                    geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*factor*0.00000001;
+                    geom[i].UnSetLock();
+                }
+            }
 
 		} //closing the if(is_inactive==false)
 		else// we add some small addition to the area so that we do not have a division by zero.
@@ -905,7 +823,6 @@ namespace Kratos
 		//BoundedMatrix<double, 8, 8 > rExtendedDampMatrix= ZeroMatrix(8,8);
 
 		BoundedMatrix<double, 15,6 > B_matrix = ZeroMatrix(15,6);
-
 
 		int counter=0;
 		BoundedMatrix<double, 6, 6 > C_matrix = ZeroMatrix(6,6);
@@ -970,8 +887,6 @@ namespace Kratos
 				for (unsigned int k=0; k!=(3); k++) //x,y,(z)
 					for (unsigned int l=0; l!=(3); l++) //x,y,(z)
 						 output(i*4+k,j*4+l) += ExtendedDampMatrix(i*3+k,j*3+l);
-
-		//KRATOS_WATCH(ExtendedDampMatrix)
 	}
 
 
@@ -980,8 +895,6 @@ namespace Kratos
                          const BoundedMatrix<double, 4, 3 >& rShapeDeriv,
                          double& Viscosity,const double Area)
 	{
-
-
 		BoundedMatrix<double, 12,6 > B_matrix = ZeroMatrix(12,6);
 		for (unsigned int i=0; i!=(4); i++) //i node
 		{
@@ -998,7 +911,6 @@ namespace Kratos
 
 			B_matrix(i*(3)+0,5)=rShapeDeriv(i,2);
 			B_matrix(i*(3)+2,5)=rShapeDeriv(i,0);
-
 		}
 
 		int counter=0;
@@ -1055,7 +967,5 @@ namespace Kratos
 
 		return true;
 	}
-
-
 
 } // Namespace Kratos

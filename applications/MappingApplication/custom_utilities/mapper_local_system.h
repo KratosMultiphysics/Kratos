@@ -92,7 +92,7 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLocalMappingMatrix,
                               EquationIdVectorType& rOriginIds,
-                              EquationIdVectorType& rDestinationIds) // TODO should be const if it werent for the PairingStatus
+                              EquationIdVectorType& rDestinationIds) const
     {
         if (mIsComputed) {
             // This will be called if the EquationIdVectors have been querried before
@@ -163,7 +163,7 @@ public:
     ///@name Input and output
     ///@{
 
-    virtual std::string PairingInfo(const int EchoLevel, const int CommRank) const = 0;
+    virtual std::string PairingInfo(const int EchoLevel) const = 0;
 
     /// Turn back information as a string.
     virtual std::string Info() const {return "MapperLocalSystem";}
@@ -194,7 +194,7 @@ protected:
     EquationIdVectorType mOriginIds;
     EquationIdVectorType mDestinationIds;
 
-    PairingStatus mPairingStatus = PairingStatus::NoInterfaceInfo;
+    mutable PairingStatus mPairingStatus = PairingStatus::NoInterfaceInfo;
 
     ///@}
     ///@name Protected Operations

@@ -257,7 +257,7 @@ Element::Pointer BaseSolidElement::Clone (
 
     KRATOS_WARNING("BaseSolidElement") << " Call BaseSolidElement (base class) Clone " << std::endl;
 
-    BaseSolidElement::Pointer p_new_elem = Kratos::make_shared<BaseSolidElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    BaseSolidElement::Pointer p_new_elem = Kratos::make_intrusive<BaseSolidElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -770,8 +770,8 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
             //Calculate Cauchy Stresses from the FE solution
             std::vector<Vector> sigma_FE_solution(number_of_nodes);
-            Variable<Vector> variable_stress = CAUCHY_STRESS_VECTOR;
-            CalculateOnIntegrationPoints(variable_stress, sigma_FE_solution, rCurrentProcessInfo);
+            const Variable<Vector>& r_variable_stress = CAUCHY_STRESS_VECTOR;
+            CalculateOnIntegrationPoints(r_variable_stress, sigma_FE_solution, rCurrentProcessInfo);
 
             // calculate the determinatn of the Jacobian in the current configuration
             Vector detJ(integration_points.size());
@@ -797,9 +797,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 // sigma_recovered = sum(N_i * sigma_recovered_i)
                 for (IndexType node_number=0; node_number<number_of_nodes; node_number++) {
-                    const auto& sigma_recovered_node = GetGeometry()[node_number].GetValue(RECOVERED_STRESS);
+                    const auto& r_sigma_recovered_node = GetGeometry()[node_number].GetValue(RECOVERED_STRESS);
                     for (IndexType stress_component = 0; stress_component<strain_size; stress_component++) {
-                        sigma_recovered[stress_component] += this_kinematic_variables.N[node_number] * sigma_recovered_node[stress_component];
+                        sigma_recovered[stress_component] += this_kinematic_variables.N[node_number] * r_sigma_recovered_node[stress_component];
                     }
                 }
 

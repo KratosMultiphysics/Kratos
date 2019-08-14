@@ -61,7 +61,7 @@ public:
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
 
-    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -407,7 +407,7 @@ public:
 
 		    // std::cout<<"riticalVolume "<<Volume<<std::endl;
 	      	    if(Volume<CriticalVolume){
-	      	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
+	      	    //   std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
 	      	      // for( unsigned int n=0; n<nds; n++)
 	      	      // 	{
 	      	      // 	  vertices[n].Set(INTERFACE);

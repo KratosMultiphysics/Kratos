@@ -44,7 +44,6 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         else:
             cls.mapper = KratosMapping.MapperFactory.CreateMapper(
                 cls.model_part_origin, cls.model_part_destination, mapper_parameters)
-        print(cls.mapper)
 
 
     def test_Map_constant_scalar(self):

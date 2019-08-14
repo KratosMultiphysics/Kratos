@@ -14,12 +14,12 @@
 //
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
 // Project includes
 #include "local_refine_geometry_mesh.hpp"
-#include <unordered_map>
 
 namespace Kratos
 {
@@ -128,11 +128,11 @@ namespace Kratos
         for(NodesArrayType::iterator i = it_begin; i!=it_end; i++)
         {
             int index_i = i->Id() - 1; // WARNING: MESH MUST BE IN ORDER
-            WeakPointerVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
 
             std::vector<unsigned int> aux(neighb_nodes.size());
             unsigned int active = 0;
-            for (WeakPointerVector< Node < 3 > >::iterator inode = neighb_nodes.begin(); inode != neighb_nodes.end(); inode++)
+            for (GlobalPointersVector< Node < 3 > >::iterator inode = neighb_nodes.begin(); inode != neighb_nodes.end(); inode++)
             {
                 int index_j = inode->Id() - 1;
                 if (index_j > index_i)
@@ -489,14 +489,14 @@ namespace Kratos
             for (auto iNode = rModelPart.Nodes().ptr_begin();
                     iNode != rModelPart.Nodes().ptr_end(); iNode++)
             {
-                WeakPointerVector< Node<3> > &rFatherNodes = (*iNode)->GetValue(FATHER_NODES);
+                GlobalPointersVector< Node<3> > &rFatherNodes = (*iNode)->GetValue(FATHER_NODES);
                 unsigned int ParentCount = rFatherNodes.size();
 
                 if (ParentCount > 0)
                 {
                     unsigned int ParentsInSubModelPart = 0;
 
-                    for ( WeakPointerVector< Node<3> >::iterator iParent = rFatherNodes.begin();
+                    for ( GlobalPointersVector< Node<3> >::iterator iParent = rFatherNodes.begin();
                             iParent != rFatherNodes.end(); iParent++)
                     {
                         unsigned int ParentId = iParent->Id();

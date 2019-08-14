@@ -98,11 +98,11 @@ public:
 
             if(index_i < mEquationSystemSize && (it->GetValue(NEIGHBOUR_NODES)).size() != 0)
             {
-                WeakPointerVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
 
                 //filling the first neighbours list
                 work_array.push_back(index_i);
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     unsigned int index_j = i->GetDof(rScalarVar).EquationId();
                     if(index_j < mEquationSystemSize)

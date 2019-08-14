@@ -404,7 +404,7 @@ Parameters::json_const_iteration_proxy Parameters::items() const noexcept
 
 bool Parameters::Has(const std::string& rEntry) const
 {
-    return mpValue->find(rEntry) != mpValue->end();
+    return mpValue->contains(rEntry);
 }
 
 /***********************************************************************************/
@@ -554,6 +554,9 @@ std::string Parameters::GetString() const
     return mpValue->get<std::string>();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::vector<std::string> Parameters::GetStringArray() const
 {
     KRATOS_ERROR_IF_NOT(this->IsArray()) << "Argument must be an array" << std::endl;
@@ -618,7 +621,6 @@ Matrix Parameters::GetMatrix() const
 
 void Parameters::SetDouble(const double Value)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_number()) << "Parameter must be a number" << std::endl;
     *mpValue=Value;
 }
 
@@ -627,7 +629,6 @@ void Parameters::SetDouble(const double Value)
 
 void Parameters::SetInt(const int Value)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_number()) << "Parameter must be a number" << std::endl;
     *mpValue=Value;
 }
 
@@ -636,7 +637,6 @@ void Parameters::SetInt(const int Value)
 
 void Parameters::SetBool(const bool Value)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_boolean()) << "Parameter must be a bool" << std::endl;
     *mpValue=Value;
 }
 
@@ -645,7 +645,6 @@ void Parameters::SetBool(const bool Value)
 
 void Parameters::SetString(const std::string& rValue)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_string()) << "Parameter must be a string" << std::endl;
     *mpValue=rValue;
 }
 
@@ -654,8 +653,6 @@ void Parameters::SetString(const std::string& rValue)
 
 void Parameters::SetVector(const Vector& rValue)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Parameter must be a Vector (a json list)" << std::endl;
-
     const SizeType size = rValue.size();
 
     nlohmann::json j_array(0.0, size);
@@ -671,8 +668,6 @@ void Parameters::SetVector(const Vector& rValue)
 
 void Parameters::SetMatrix(const Matrix& rValue)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Parameter must be a Matrix (a json list of lists)" << std::endl;
-
     const SizeType nrows = rValue.size1();
     const SizeType ncols = rValue.size2();
 
@@ -726,7 +721,7 @@ Parameters::const_iterator Parameters::end() const
 
 Parameters::SizeType Parameters::size() const
 {
-    KRATOS_ERROR_IF_NOT(mpValue->is_array())  << "Size can only be queried if the value if of Array type" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Size can only be queried if the value is of Array type" << std::endl;
     return mpValue->size();
 }
 
@@ -1032,6 +1027,8 @@ void Parameters::ValidateAndAssignDefaults(const Parameters& rDefaultParameters)
     KRATOS_CATCH("")
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Parameters::ValidateDefaults(const Parameters& rDefaultParameters) const
 {
@@ -1080,6 +1077,9 @@ void Parameters::ValidateDefaults(const Parameters& rDefaultParameters) const
     KRATOS_CATCH("")
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::AddMissingParameters(const Parameters& rDefaultParameters)
 {
     KRATOS_TRY
@@ -1109,6 +1109,9 @@ void Parameters::RecursivelyValidateAndAssignDefaults(const Parameters& rDefault
 
     KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Parameters::RecursivelyValidateDefaults(const Parameters& rDefaultParameters) const
 {
@@ -1161,6 +1164,9 @@ void Parameters::RecursivelyValidateDefaults(const Parameters& rDefaultParameter
 
     KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void Parameters::RecursivelyAddMissingParameters(const Parameters& rDefaultParameters)
 {
