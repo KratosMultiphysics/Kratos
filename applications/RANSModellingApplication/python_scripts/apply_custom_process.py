@@ -24,7 +24,8 @@ def Factory(settings, Model):
         "ApplyEpsilonWallFrictionVelocityProcess", "ClipScalarVariableProcess",
         "ClipScalarVariableByNeighbourAveragingProcess",
         "ApplyExactNodalPeriodicConditionProcess",
-        "ApplyYPlusKCalculationProcess", "ApplyNutYPlusWallFunctionProcess", "NuTLowReCalculationProcess", "CheckScalarConditionBoundsProcess"
+        "ApplyYPlusKCalculationProcess", "ApplyNutYPlusWallFunctionProcess",
+        "NuTLowReCalculationProcess", "CheckScalarConditionBoundsProcess"
     ]
 
     process_name = settings["process_name"].GetString()
@@ -93,8 +94,8 @@ def Factory(settings, Model):
         return KratosRANS.RansApplyExactNodalPeriodicConditionProcess(
             Model, settings["Parameters"])
     elif (process_name == "ApplyYPlusKCalculationProcess"):
-        return KratosRANS.RansYPlusKCalculationProcess(
-            Model, settings["Parameters"])
+        return KratosRANS.RansYPlusKCalculationProcess(Model,
+                                                       settings["Parameters"])
     elif (process_name == "ApplyNutYPlusWallFunctionProcess"):
         return KratosRANS.RansNutYPlusWallFunctionProcess(
             Model, settings["Parameters"])

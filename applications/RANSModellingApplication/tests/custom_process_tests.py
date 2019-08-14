@@ -282,12 +282,68 @@ class CustomProcessTest(UnitTest.TestCase):
             for i in range(3):
                 self.assertAlmostEqual(node_value[i], value[i], 9)
 
+    def testWallDistanceCalculationProcess(self):
+        self.__CreateModel()
+
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "ApplyFlagProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test.submodelpart_1",
+                    "echo_level"                     : 0,
+                    "flag_variable_name"             : "STRUCTURE",
+                    "flag_variable_value"            : true,
+                    "apply_to_model_part_conditions" : "all"
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "WallDistanceCalculationProcess",
+                "Parameters" :             {
+                    "model_part_name"          : "test",
+                    "max_iterations"           : 1000,
+                    "echo_level"               : 0,
+                    "wall_flag_variable_name"  : "STRUCTURE",
+                    "wall_flag_variable_value" : true,
+                    "linear_solver_settings" : {
+                        "solver_type"     : "amgcl"
+                    }
+                }
+            }
+        ]''')
+
+        node_ids = [1, 2, 3, 4, 5, 6]
+        check_values = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
+
+        for node, value in zip(self.model_part.Nodes, check_values):
+            node_value = node.GetSolutionStepValue(Kratos.DISTANCE)
+            self.assertAlmostEqual(node_value, value, 9)
+
+# test model part is as follows
+#       6   5   4
+#       .---.---.
+#      / |4 /\ 3|
+#     / 1| /  \ |
+#    /   |/  2 \|
+#   .----.------.
+#   1    2      3
+
     def __CreateModel(self):
         self.model = Kratos.Model()
         self.model_part = self.model.CreateModelPart("test")
         self.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        self.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
+        self.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
         self.model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
