@@ -14,7 +14,7 @@ class SlidingEdgeProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "constraint_set_name"           : "LinearMasterSlaveConstraint",
+            "constraint_name"           : "LinearMasterSlaveConstraint",
             "master_sub_model_part_name"    : "master_connect",
             "slave_sub_model_part_name"     : "slave_connect",
             "model_name"                    : "Structure",

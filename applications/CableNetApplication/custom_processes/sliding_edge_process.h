@@ -64,7 +64,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
         KRATOS_TRY;
         Parameters default_parameters = Parameters(R"(
         {
-            "constraint_set_name"           : "LinearMasterSlaveConstraint",
+            "constraint_name"           : "LinearMasterSlaveConstraint",
             "master_sub_model_part_name"    : "master_connect",
             "slave_sub_model_part_name"     : "slave_connect",
             "variable_names"                : ["DISPLACEMENT_Y","DISPLACEMENT_Z"],
