@@ -29,7 +29,7 @@ Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMas
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/

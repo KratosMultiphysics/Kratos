@@ -29,7 +29,7 @@ Condition::Pointer PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNode
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_intrusive< PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -41,7 +41,7 @@ Condition::Pointer PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNode
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_intrusive<  PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<  PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -54,7 +54,7 @@ Condition::Pointer PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNode
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pMasterGeom) const
 {
-    return Kratos::make_intrusive<  PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties, pMasterGeom );
+    return Kratos::make_intrusive<  PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/

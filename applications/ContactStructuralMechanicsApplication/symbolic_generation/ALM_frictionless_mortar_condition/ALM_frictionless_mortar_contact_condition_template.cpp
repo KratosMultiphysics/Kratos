@@ -28,7 +28,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -40,7 +40,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -53,7 +53,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pMasterGeom) const
 {
-    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties, pMasterGeom );
+    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/
