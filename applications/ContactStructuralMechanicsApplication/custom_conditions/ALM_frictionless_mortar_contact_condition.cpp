@@ -66,10 +66,6 @@ AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNor
 /***************************** BEGIN AD REPLACEMENT ********************************/
 /***********************************************************************************/
 
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<>
 void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>::CalculateLocalLHS(
     Matrix& rLocalLHS,
