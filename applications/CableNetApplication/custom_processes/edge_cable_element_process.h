@@ -85,15 +85,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
-        /* ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["model_part_name"].GetString());
-        const auto it_elem_begin        = master_model_part.ElementsBegin();
-        const int number_elements       = master_model_part.Elements().size();
-
-        for(int i=0; i<number_elements; ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->Set(ACTIVE,true);
-        } */
-
         KRATOS_CATCH("");
     }
 
@@ -110,15 +101,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
     void CreateEdgeCableElement() const
     {
         KRATOS_TRY;
-        ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["model_part_name"].GetString());
-        NodesArrayType &r_nodes_master  = master_model_part.Nodes();
-
         // !!
         // probably better to create the line equation and calculate the ordering here
         // !!
 
         const SizeType number_nodes     = mParameters["node_id_order"].size();
-        KRATOS_ERROR_IF_NOT(r_nodes_master.size()==number_nodes)
+        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size()==number_nodes)
          << "numbers of nodes in submodel part not consistent with numbers of nodes in process properties"
          << std::endl;
 
@@ -130,25 +118,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
         std::vector<NodeType::Pointer> element_nodes (number_nodes);
         for (SizeType i=0; i<number_nodes; ++i)
         {
-            element_nodes[i] = master_model_part.pGetNode(mParameters["node_id_order"][i].GetInt());
+            element_nodes[i] = mrModelPart.pGetNode(mParameters["node_id_order"][i].GetInt());
         }
         Line3DN <NodeType> line_t ( PointerVector<NodeType>{element_nodes} );
 
         // get properties
-        Properties::Pointer p_elem_prop = master_model_part.pGetProperties(mParameters["property_id"].GetInt());
+        Properties::Pointer p_elem_prop = mrModelPart.pGetProperties(mParameters["property_id"].GetInt());
 
         // create element
         if (mParameters["element_type"].GetString() == "cable")
         {
             const Element& rElem = KratosComponents<Element>::Get("SlidingCableElement3D3N");
             Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
-            master_model_part.AddElement(pElem);
+            mrModelPart.AddElement(pElem);
         }
         else if (mParameters["element_type"].GetString() == "ring")
         {
             const Element& rElem = KratosComponents<Element>::Get("RingElement3D4N");
             Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
-            master_model_part.AddElement(pElem);
+            mrModelPart.AddElement(pElem);
         }
         else KRATOS_ERROR << "element type :" << mParameters["element_type"].GetString() << " not available for sliding process" << std::endl;
 

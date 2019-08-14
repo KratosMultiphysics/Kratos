@@ -57,8 +57,8 @@
 		"python_module"               : "edge_cable_element_process",
 		"process_name"                : "EdgeCableElementProcess",
 		"Parameters"      : {
-			"model_part_name"           : "edgeCable1",
-			"computing_model_part_name" : "computing_domain",
+			"model_part_name"           : "Structure.edgeCable1",
+			"computing_model_part_name" : "Structure.computing_domain",
 			"element_type"              : "cable",
 			"node_id_order"             : [7,10,9,11,12,13,14,17,20,23,29,34,42,47,57,67,77,92,119,296],
 			"element_id"                : 782,
@@ -69,8 +69,8 @@
 		"python_module"               : "edge_cable_element_process",
 		"process_name"                : "EdgeCableElementProcess",
 		"Parameters"      : {
-			"model_part_name"           : "edgeCable2",
-			"computing_model_part_name" : "computing_domain",
+			"model_part_name"           : "Structure.edgeCable2",
+			"computing_model_part_name" : "Structure.computing_domain",
 			"element_type"              : "cable",
 			"node_id_order"             : [297,304,303,306,307,310,311,315,317,320,324,327,329,332,335,337,339,340,342,345],
 			"element_id"                : 783,
@@ -81,8 +81,8 @@
 		"python_module"               : "edge_cable_element_process",
 		"process_name"                : "EdgeCableElementProcess",
 		"Parameters"      : {
-			"model_part_name"           : "edgeCable3",
-			"computing_model_part_name" : "computing_domain",
+			"model_part_name"           : "Structure.edgeCable3",
+			"computing_model_part_name" : "Structure.computing_domain",
 			"element_type"              : "cable",
 			"node_id_order"             : [4,90,120,133,149,164,179,195,211,228,244,258,275,292,313,326,333,338,343,349],
 			"element_id"                : 784,
@@ -93,8 +93,8 @@
 		"python_module"               : "edge_cable_element_process",
 		"process_name"                : "EdgeCableElementProcess",
 		"Parameters"      : {
-			"model_part_name"           : "edgeCable4",
-			"computing_model_part_name" : "computing_domain",
+			"model_part_name"           : "Structure.edgeCable4",
+			"computing_model_part_name" : "Structure.computing_domain",
 			"element_type"              : "cable",
 			"node_id_order"             : [2,5,15,25,36,49,65,82,101,122,143,163,182,202,221,240,260,279,322,347],
 			"element_id"                : 785,
@@ -109,7 +109,8 @@
             "check_variables"  : ["DISPLACEMENT_Z"],
             "input_file_name"  : "ring_set_up_dem_fem/ring_set_up_dem_fem_test_results.json",
             "model_part_name"  : "Structure.checkMP",
-            "time_frequency"   : 5e-04
+            "time_frequency"   : 5e-04,
+			"tolerance"        : 1e-2
         }
     }],
 	"list_other_processes"             :  [],

@@ -25,10 +25,10 @@ class EdgeCableElementProcess(KratosMultiphysics.Process):
         default_settings.ValidateAndAssignDefaults(settings)
 
         # The computing model part
-        self.computing_model_part = Model["Structure"].GetSubModelPart(settings["computing_model_part_name"].GetString())
-        self.edge_model_part      = Model["Structure"].GetSubModelPart(settings["model_part_name"].GetString())
+        self.computing_model_part = Model[settings["computing_model_part_name"].GetString()]
+        self.edge_model_part      = Model[settings["model_part_name"].GetString()]
 
-        self.edge_cable_element_process = CableNetApplication.EdgeCableElementProcess(Model["Structure"], settings)
+        self.edge_cable_element_process = CableNetApplication.EdgeCableElementProcess(self.edge_model_part, settings)
 
 
     def ExecuteInitialize(self):
