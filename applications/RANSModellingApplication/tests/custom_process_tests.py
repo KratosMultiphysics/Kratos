@@ -495,6 +495,8 @@ class CustomProcessTest(UnitTest.TestCase):
         self.model_part.SetBufferSize(2)
         self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 2
         self.model_part.ProcessInfo[KratosRANS.TURBULENCE_RANS_C_MU] = 0.09
+        self.model_part.ProcessInfo[KratosRANS.TURBULENT_VISCOSITY_MIN] = 0.0
+        self.model_part.ProcessInfo[KratosRANS.TURBULENT_VISCOSITY_MAX] = 1e+10
 
         for node in self.model_part.Nodes:
             vector = Kratos.Vector(3)

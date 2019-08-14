@@ -32,14 +32,14 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    # nightSuite.addTest(CustomProcessTest('testApplyFlagProcess'))
-    # nightSuite.addTest(CustomProcessTest('testScalarCellCenterAveragingProcess'))
-    # nightSuite.addTest(CustomProcessTest('testVectorCellCenterAveragingProcess'))
-    # nightSuite.addTest(CustomProcessTest('testVectorAlignProcessTangential'))
-    # nightSuite.addTest(CustomProcessTest('testVectorAlignProcessNormal'))
-    # nightSuite.addTest(CustomProcessTest('testWallDistanceCalculationProcess'))
-    # nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusCalculationProcess'))
-    # nightSuite.addTest(CustomProcessTest('testNuTHighReCalculationProcess'))
+    nightSuite.addTest(CustomProcessTest('testApplyFlagProcess'))
+    nightSuite.addTest(CustomProcessTest('testScalarCellCenterAveragingProcess'))
+    nightSuite.addTest(CustomProcessTest('testVectorCellCenterAveragingProcess'))
+    nightSuite.addTest(CustomProcessTest('testVectorAlignProcessTangential'))
+    nightSuite.addTest(CustomProcessTest('testVectorAlignProcessNormal'))
+    nightSuite.addTest(CustomProcessTest('testWallDistanceCalculationProcess'))
+    nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusCalculationProcess'))
+    nightSuite.addTest(CustomProcessTest('testNuTHighReCalculationProcess'))
     nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
 
     # nightSuite.addTest(EvmKEpsilonTest('testCylinderTransient')) #TODO: Has a convergence problem, therefore gives a race condition
