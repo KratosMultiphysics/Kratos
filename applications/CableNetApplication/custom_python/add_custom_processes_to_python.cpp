@@ -13,7 +13,6 @@
 
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
-//#include "structural_mechanics_application_variables.h"
 
 //Processes
 #include "custom_processes/sliding_edge_process.h"

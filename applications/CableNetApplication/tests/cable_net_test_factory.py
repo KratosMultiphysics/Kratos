@@ -9,11 +9,10 @@ from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import Co
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 
-import KratosMultiphysics.CableNetApplication
 import cable_net_test_case
 import os
 
-have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication")
+have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication", "CoSimulationApplication")
 
 
 def GetFilePath(fileName):

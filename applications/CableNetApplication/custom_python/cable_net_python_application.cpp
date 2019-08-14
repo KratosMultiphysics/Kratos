@@ -19,7 +19,7 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "cable_net_application.h"
 #include "cable_net_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"

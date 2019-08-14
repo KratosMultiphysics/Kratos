@@ -22,7 +22,6 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/define.h"
-#include "includes/variables.h"
 #include "includes/kratos_flags.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -117,12 +116,6 @@ namespace Kratos
         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
         void GetFirstDerivativesVector(Vector& rValues,int Step = 0) override;
 
-        Vector GetCurrentLengthArray() const;
-        Vector GetRefLengthArray() const;
-        Vector GetDeltaPositions(const int& rDirection) const;
-        Vector GetDirectionVectorNt() const;
-        Vector GetInternalForces() const;
-
         Matrix ElasticStiffnessMatrix() const;
         Matrix GeometricStiffnessMatrix() const;
         inline Matrix TotalStiffnessMatrix() const;
@@ -130,10 +123,7 @@ namespace Kratos
         double GetCurrentLength() const;
         double GetRefLength() const;
         double CalculateGreenLagrangeStrain() const;
-        inline double LinearStiffness() const
-        {
-            return (this->GetProperties()[CROSS_AREA] * this->GetProperties()[YOUNG_MODULUS] / this->GetRefLength());
-        };
+        double LinearStiffness() const;
 
         void CalculateLumpedMassVector(VectorType &rMassVector);
 
@@ -172,6 +162,12 @@ namespace Kratos
         Vector CalculateBodyForces();
 
     private:
+
+        Vector GetCurrentLengthArray() const;
+        Vector GetRefLengthArray() const;
+        Vector GetDeltaPositions(const int& rDirection) const;
+        Vector GetDirectionVectorNt() const;
+        Vector GetInternalForces() const;
 
         friend class Serializer;
         void save(Serializer& rSerializer) const override;

@@ -1,7 +1,8 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:     BSD License
 //           license: structural_mechanics_application/license.txt
@@ -706,6 +707,11 @@ Vector RingElement3D::CalculateBodyForces() {
     }
 
     return body_forces_global;
+}
+
+double RingElement3D::LinearStiffness() const
+{
+    return (this->GetProperties()[CROSS_AREA] * this->GetProperties()[YOUNG_MODULUS] / this->GetRefLength());
 }
 
 void RingElement3D::save(Serializer &rSerializer) const {

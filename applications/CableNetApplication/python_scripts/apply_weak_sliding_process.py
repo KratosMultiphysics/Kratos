@@ -17,18 +17,14 @@ class ApplyWeakSlidingProcess(KratosMultiphysics.Process):
             "model_part_name_slave"           : "example_part_slave",
             "model_part_name_master"          : "example_part_master",
             "computing_model_part_name"       : "computing_domain",
+            "model_name"                    : "Structure",
             "element_id"                      : 1,
             "property_id"                     : 1,
             "debug_info"                      : false
         }
         """)
         default_settings.ValidateAndAssignDefaults(settings)
-
-        # The computing model part
-        self.computing_model_part = Model["Structure"].GetSubModelPart(settings["computing_model_part_name"].GetString())
-        self.wip_model_part      = Model["Structure"].GetSubModelPart(settings["model_part_name_slave"].GetString())
-
-        self.custom_process = CableNetApplication.ApplyWeakSlidingProcess(Model["Structure"], settings)
+        self.custom_process = CableNetApplication.ApplyWeakSlidingProcess(Model[settings["model_name"].GetString()], settings)
 
 
     def ExecuteInitialize(self):

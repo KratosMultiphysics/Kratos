@@ -1,6 +1,8 @@
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.CableNetApplication as CableNetApplication
 
+from KratosMultiphysics import Logger
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -37,4 +39,5 @@ class EdgeCableElementProcess(KratosMultiphysics.Process):
         ## add new element in the computing MP
         for element_i in self.edge_model_part.Elements:
             self.computing_model_part.AddElement(element_i, 0)
-        print('>>> Initialized EdgeCableElementProcess')
+        Logger.PrintInfo("Initialized","EdgeCableElementProcess")
+

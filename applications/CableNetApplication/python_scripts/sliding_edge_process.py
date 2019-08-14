@@ -17,6 +17,7 @@ class SlidingEdgeProcess(KratosMultiphysics.Process):
             "constraint_set_name"           : "LinearMasterSlaveConstraint",
             "master_sub_model_part_name"    : "master_connect",
             "slave_sub_model_part_name"     : "slave_connect",
+            "model_name"                    : "Structure",
             "variable_names"                : ["DISPLACEMENT_Y","DISPLACEMENT_Z"],
             "reform_every_step"             : true,
             "debug_info"                    : true,
@@ -32,7 +33,7 @@ class SlidingEdgeProcess(KratosMultiphysics.Process):
 
 
 
-        self.sliding_edge_process = CableNetApplication.SlidingEdgeProcess(Model["Structure"], settings)
+        self.sliding_edge_process = CableNetApplication.SlidingEdgeProcess(Model[settings["model_name"].GetString()], settings)
 
 
 

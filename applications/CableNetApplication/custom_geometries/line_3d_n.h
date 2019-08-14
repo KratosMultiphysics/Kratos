@@ -47,12 +47,7 @@ namespace Kratos
 /**
  * @class Line3DN
  * @ingroup KratosCore
- * @brief An three node 3D line geometry with quadratic shape functions
- * @details The node ordering corresponds with:
- *      0-----2----1
- * @author Riccardo Rossi
- * @author Janosch Stascheit
- * @author Felix Nagel
+ * @brief A arbitrary node 3D line geometry with quadratic shape functions
  */
 template<class TPointType>
 
