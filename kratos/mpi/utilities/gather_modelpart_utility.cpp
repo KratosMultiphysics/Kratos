@@ -88,9 +88,8 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     }
     int temp = destination_model_part.Nodes().size();
     destination_model_part.Nodes().Unique();
-    if (temp != int(destination_model_part.Nodes().size()))
-        KRATOS_THROW_ERROR(std::logic_error,
-                           "the destination_model_part has repeated nodes", "");
+    KRATOS_ERROR_IF(temp != int(destination_model_part.Nodes().size()))
+        << "the destination_model_part has repeated nodes";
     SendNodes.clear();
     RecvNodes.clear();
 
