@@ -173,7 +173,7 @@ void GatherModelPartUtility::GatherOnMaster()
 }
 
 template <class TDataType>
-void GatherModelPartUtility::GatherOnMaster(Variable<TDataType>& ThisVariable)
+void GatherModelPartUtility::GatherOnMaster(const Variable<TDataType>& ThisVariable)
 {
     KRATOS_TRY;
     mr_model_part.GetCommunicator().SynchronizeVariable(ThisVariable);
@@ -181,7 +181,7 @@ void GatherModelPartUtility::GatherOnMaster(Variable<TDataType>& ThisVariable)
 }
 
 template <class TDataType>
-void GatherModelPartUtility::ScatterFromMaster(Variable<TDataType>& ThisVariable)
+void GatherModelPartUtility::ScatterFromMaster(const Variable<TDataType>& ThisVariable)
 {
     KRATOS_TRY;
 
@@ -198,10 +198,10 @@ void GatherModelPartUtility::ScatterFromMaster(Variable<TDataType>& ThisVariable
     KRATOS_CATCH("");
 }
 
-template void GatherModelPartUtility::GatherOnMaster(Variable<double>&);
-template void GatherModelPartUtility::GatherOnMaster(Variable<array_1d<double, 3>>&);
-template void GatherModelPartUtility::ScatterFromMaster(Variable<double>&);
-template void GatherModelPartUtility::ScatterFromMaster(Variable<array_1d<double, 3>>&);
+template void GatherModelPartUtility::GatherOnMaster(const Variable<double>&);
+template void GatherModelPartUtility::GatherOnMaster(const Variable<array_1d<double, 3>>&);
+template void GatherModelPartUtility::ScatterFromMaster(const Variable<double>&);
+template void GatherModelPartUtility::ScatterFromMaster(const Variable<array_1d<double, 3>>&);
 
 namespace Internals
 {

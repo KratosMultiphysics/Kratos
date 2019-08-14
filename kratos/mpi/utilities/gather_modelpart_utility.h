@@ -48,10 +48,10 @@ public:
   void GatherOnMaster();
 
   template <class TDataType>
-  void GatherOnMaster(Variable<TDataType>& ThisVariable);
+  void GatherOnMaster(const Variable<TDataType>& ThisVariable);
 
   template <class TDataType>
-  void ScatterFromMaster(Variable<TDataType>& ThisVariable);
+  void ScatterFromMaster(const Variable<TDataType>& ThisVariable);
 
   private:
   ModelPart& mr_model_part;
@@ -59,13 +59,11 @@ public:
 
 };
 
-extern template void GatherModelPartUtility::GatherOnMaster(Variable<double>&);
-extern template void GatherModelPartUtility::GatherOnMaster(Variable<array_1d<double, 3>>&);
-extern template void GatherModelPartUtility::ScatterFromMaster(Variable<double>&);
-extern template void GatherModelPartUtility::ScatterFromMaster(Variable<array_1d<double, 3>>&);
+extern template void GatherModelPartUtility::GatherOnMaster(const Variable<double>&);
+extern template void GatherModelPartUtility::GatherOnMaster(const Variable<array_1d<double, 3>>&);
+extern template void GatherModelPartUtility::ScatterFromMaster(const Variable<double>&);
+extern template void GatherModelPartUtility::ScatterFromMaster(const Variable<array_1d<double, 3>>&);
 
 } // namespace Kratos.
 
 #endif // KRATOS_GATHER_MODELPART_UTILITY  defined
-
-
