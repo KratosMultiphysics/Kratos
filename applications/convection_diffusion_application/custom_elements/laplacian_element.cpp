@@ -225,7 +225,7 @@ int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo)
 //************************************************************************************
 Element::IntegrationMethod LaplacianElement::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::GI_GAUSS_1;
 }
 
 } // Namespace Kratos
