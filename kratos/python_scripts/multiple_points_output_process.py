@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # other imports
-from point_output_process import PointOutputProcess
+from KratosMultiphysics.point_output_process import PointOutputProcess
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -29,6 +29,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             "positions"         : [[]],
             "output_variables"  : [],
             "historical_value"  : true,
+            "search_tolerance"  : 1e-6,
             "print_format"      : "",
             "output_file_settings": {}
         }''')

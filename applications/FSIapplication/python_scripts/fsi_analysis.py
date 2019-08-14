@@ -2,49 +2,10 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.FSIApplication import python_solvers_wrapper_fsi
 
 class FSIAnalysis(AnalysisStage):
     '''Main script for FSI simulations using the FSI family of python solvers.'''
-
-    def __init__(self, model, project_parameters):
-        '''The constructor of the FSI analysis object
-
-        Note that the base class analysis stage constructor
-        is not called intentionally, since it is not compatible
-        with the current FSI application Json structure.
-        '''
-        if (type(model) != Kratos.Model):
-            raise Exception("Input is expected to be provided as a Kratos Model object")
-
-        if (type(project_parameters) != Kratos.Parameters):
-            raise Exception("Input is expected to be provided as a Kratos Parameters object")
-
-        self.model = model
-        self.project_parameters = project_parameters
-
-        self.echo_level = self.project_parameters["solver_settings"]["echo_level"].GetInt()
-        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
-
-        # If this is an MPI run, load the distributed memory modules
-        if (self.parallel_type == "MPI"):
-            from KratosMultiphysics.mpi import mpi
-            self.is_printing_rank = (mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
-
-        # Deprecation warnings
-        # This makes possible the FSI solver derivation from the core base python_solver.py
-        # if not self.project_parameters.Has("echo_level"):
-        #     Kratos.Logger.PrintInfo("FSIAnalysis", "Using the old way to pass the echo_level, this will be removed!")
-        #     self.project_parameters.AddEmptyValue("echo_level")
-        #     self.project_parameters["echo_level"].SetInt(self.echo_level)
-
-        if not self.project_parameters["solver_settings"].Has("parallel_type"):
-            self.project_parameters["solver_settings"].AddEmptyValue("parallel_type")
-            self.project_parameters["solver_settings"]["parallel_type"].SetString(self.parallel_type)
-
-        # Add solver variables (note that the solver is created in the first _GetSolver() call)
-        self._GetSolver().AddVariables()
 
     def Initialize(self):
         '''
@@ -104,12 +65,11 @@ class FSIAnalysis(AnalysisStage):
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
 
         ## If the echo level is high enough, print the complete list of settings used to run the simulation
-        if self.is_printing_rank and self.echo_level > 1:
+        if self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
 
-        if self.is_printing_rank:
-            Kratos.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START-")
+        Kratos.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START-")
 
     def InitializeSolutionStep(self):
 
@@ -122,9 +82,8 @@ class FSIAnalysis(AnalysisStage):
             err_msg += 'No substepping has been implemented yet. Fluid and structure step must match.'
             raise Exception(err_msg)
 
-        if self.is_printing_rank:
-            Kratos.Logger.PrintInfo(self._GetSimulationName(),"STEP = ", step_fluid)
-            Kratos.Logger.PrintInfo(self._GetSimulationName(),"TIME = ", self.time)
+        Kratos.Logger.PrintInfo(self._GetSimulationName(),"STEP = ", step_fluid)
+        Kratos.Logger.PrintInfo(self._GetSimulationName(),"TIME = ", self.time)
 
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
@@ -140,7 +99,6 @@ class FSIAnalysis(AnalysisStage):
             structure_restart_utility.SaveRestart()
 
     def _CreateSolver(self):
-        from KratosMultiphysics.FSIApplication import python_solvers_wrapper_fsi
         return python_solvers_wrapper_fsi.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
@@ -176,7 +134,7 @@ class FSIAnalysis(AnalysisStage):
             if self.parallel_type == "OpenMP":
                 from restart_utility import RestartUtility as Restart
             elif self.parallel_type == "MPI":
-                from trilinos_restart_utility import TrilinosRestartUtility as Restart
+                from KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility as Restart
             model_part_name = self.project_parameters["fluid_solver_settings"]["solver_settings"]["model_part_name"].GetString()
             if self.model.HasModelPart(model_part_name):
                 model_part = self.model.GetModelPart(model_part_name)
@@ -195,7 +153,7 @@ class FSIAnalysis(AnalysisStage):
             if self.parallel_type == "OpenMP":
                 from restart_utility import RestartUtility as Restart
             elif self.parallel_type == "MPI":
-                from trilinos_restart_utility import TrilinosRestartUtility as Restart
+                from KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility as Restart
 
             model_part_name = self.project_parameters["structure_solver_settings"]["solver_settings"]["model_part_name"].GetString()
             if self.model.HasModelPart(model_part_name):

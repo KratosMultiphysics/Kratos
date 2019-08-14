@@ -5,6 +5,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics import process_factory
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.FSIApplication import fsi_analysis
 
 class WorkFolderScope:
     def __init__(self, work_folder):
@@ -35,7 +36,6 @@ class MokBenchmarkTest(KratosUnittest.TestCase):
             model = Model()
             parameter_file = open(self.settings, 'r')
             project_parameters = Parameters(parameter_file.read())
-            from KratosMultiphysics.FSIApplication import fsi_analysis
             fsi_analysis.FSIAnalysis(model, project_parameters).Run()
 
 if __name__ == '__main__':

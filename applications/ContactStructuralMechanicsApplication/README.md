@@ -2,9 +2,9 @@
  
 The Contact Structural Mechanics Application contains the contact mechanics implementations that can be used by the Structural Mechanics Application within Kratos Multiphysics. 
  
-
 <p align="center">
   <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/validation/double_arch/data/result.gif" alt="Solution" style="width: 600px;"/>
+ <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/in_ring/data/animation.gif" alt="Solution" style="width: 600px;"/>
 </p>
  
 The application includes tests to check the proper functioning of the application
@@ -17,7 +17,7 @@ The application includes tests to check the proper functioning of the applicatio
  
     * Frictionless formulation
 
-    * Frictional formulation (WIP)
+    * Frictional formulation
 
 - Penalty contact conditions based in mortar formulation
 
@@ -28,3 +28,7 @@ The application includes tests to check the proper functioning of the applicatio
 - Strategies, processes, solvers and convergence criterias used by the contact formulation
  
 - The application includes search utilities in order to create the contact conditions
+
+- Frictional laws (WIP) in order to consider different types of frictional behaviour 
+
+- +100 tests, including Validation tests and cpp tests

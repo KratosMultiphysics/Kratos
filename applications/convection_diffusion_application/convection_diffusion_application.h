@@ -29,9 +29,11 @@
 #include "custom_elements/eulerian_diff.h"
 #include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
+#include "custom_elements/adjoint_diffusion_element.h"
 
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
+#include "custom_conditions/adjoint_flux_condition.h"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
@@ -231,12 +233,19 @@ private:
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
+
+    const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement2D3N;
+    const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement3D4N;
+
     const ThermalFace mThermalFace2D2N;
     const ThermalFace mThermalFace3D3N;
     const ThermalFace mThermalFace3D4N;
     const FluxCondition<2>  mFluxCondition2D2N;
     const FluxCondition<3>  mFluxCondition3D3N;
     const FluxCondition<4>  mFluxCondition3D4N;
+
+    const AdjointFluxCondition<FluxCondition<2>> mAdjointFluxCondition2D2N;
+    const AdjointFluxCondition<FluxCondition<3>> mAdjointFluxCondition3D3N;
 
     ///@}
     ///@name Private Operators

@@ -159,6 +159,9 @@ public:
     /// Index pair
     typedef std::pair<IndexType,IndexType> IndexPairType;
 
+    /// Index and string vector pair
+    typedef std::pair<IndexType, std::vector<std::string>> IndexStringVectorPairType;
+
     ///@}
     ///@name  Enum's
     ///@{
@@ -574,13 +577,15 @@ public:
      * @param[in,out] rColorMapCondition Auxiliar color map for conditions
      * @param[in,out] rColorMapElement Auxiliar color map for elements
      * @param[in] Framework The framework considered
+     * @param[in] CollapsePrismElements If the prisms elements are going to be collapsed
      */
     void GenerateMeshDataFromModelPart(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,std::vector<std::string>>& rColors,
         ColorsMapType& rColorMapCondition,
         ColorsMapType& rColorMapElement,
-        const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN
+        const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN,
+        const bool CollapsePrismElements = false
         );
 
     /**

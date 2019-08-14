@@ -445,6 +445,17 @@ private:
     }
 
     /**
+     * @brief This method collapses the prisms elements into triangles
+     */
+    void CollapsePrismsToTriangles();
+
+    /**
+     * @brief This method extrudes the triangles elements into prisms
+     * @param rOldModelPart The old model part
+     */
+    void ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart);
+
+    /**
      * @brief This function removes the conditions with duplicated geometries
      */
     void ClearConditionsDuplicatedGeometries();
@@ -454,6 +465,12 @@ private:
      * @param rOldModelPart The old model part before remesh
      */
     void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
+
+    /**
+     * @brief This method is used in order to mark the conditions in a recursive way to avoid remove necessary conditions
+     * @param rModelPart The modelpart to be marked
+     */
+    void MarkConditionsSubmodelParts(ModelPart& rModelPart);
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors

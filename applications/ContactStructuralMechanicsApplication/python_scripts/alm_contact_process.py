@@ -12,7 +12,7 @@ def Factory(settings, Model):
 
 import sys
 
-import search_base_process
+import KratosMultiphysics.ContactStructuralMechanicsApplication.search_base_process as search_base_process
 
 class ALMContactProcess(search_base_process.SearchBaseProcess):
     """This class is used in order to compute the contact using a mortar ALM formulation
@@ -81,6 +81,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
+                "normal_orientation_threshold"        : 0.0,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,

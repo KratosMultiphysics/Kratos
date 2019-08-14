@@ -31,7 +31,7 @@ namespace Kratos
 //************************************************************************************
 
 CamClayHardeningLaw::CamClayHardeningLaw()
-	:MPMHardeningLaw()
+	:ParticleHardeningLaw()
 {
 
 }
@@ -42,7 +42,7 @@ CamClayHardeningLaw::CamClayHardeningLaw()
 
 CamClayHardeningLaw& CamClayHardeningLaw::operator=(CamClayHardeningLaw const& rOther)
 {
-   MPMHardeningLaw::operator=(rOther);
+   ParticleHardeningLaw::operator=(rOther);
    return *this;
 }
 
@@ -50,7 +50,7 @@ CamClayHardeningLaw& CamClayHardeningLaw::operator=(CamClayHardeningLaw const& r
 //************************************************************************************
 
 CamClayHardeningLaw::CamClayHardeningLaw(CamClayHardeningLaw const& rOther)
-	:MPMHardeningLaw(rOther)
+	:ParticleHardeningLaw(rOther)
 {
 
 }
@@ -80,13 +80,13 @@ double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double
 
 void CamClayHardeningLaw::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMHardeningLaw )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleHardeningLaw )
 
 }
 
 void CamClayHardeningLaw::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMHardeningLaw )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ParticleHardeningLaw )
 
 }
 

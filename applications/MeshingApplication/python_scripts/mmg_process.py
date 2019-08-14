@@ -76,7 +76,7 @@ class MmgProcess(KratosMultiphysics.Process):
             {
                 "isosurface_variable"              : "DISTANCE",
                 "nonhistorical_variable"           : false,
-                "remove_regions"                   : false
+                "remove_internal_regions"          : false
             },
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        :
@@ -140,6 +140,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "boundary_layer_min_size_ratio"    : 2.0,
                 "interpolation"                    : "Linear"
             },
+            "collapse_prisms_elements"         : false,
             "save_external_files"              : false,
             "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
@@ -191,6 +192,9 @@ class MmgProcess(KratosMultiphysics.Process):
         self.initial_step = self.settings["initial_step"].GetInt()
         self.step_frequency = self.settings["step_frequency"].GetInt()
         self.settings["surface_elements"].SetBool(self.is_surface)
+
+        # Setting initial_step_done here
+        self.initial_step_done = False
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -294,6 +298,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("discretization_type",self.settings["discretization_type"])
         mmg_parameters.AddValue("isosurface_parameters",self.settings["isosurface_parameters"])
         mmg_parameters.AddValue("internal_variables_parameters",self.settings["internal_variables_parameters"])
+        mmg_parameters.AddValue("collapse_prisms_elements",self.settings["collapse_prisms_elements"])
         mmg_parameters.AddValue("save_external_files",self.settings["save_external_files"])
         mmg_parameters.AddValue("save_colors_files",self.settings["save_colors_files"])
         mmg_parameters.AddValue("save_mdpa_file",self.settings["save_mdpa_file"])
@@ -337,6 +342,7 @@ class MmgProcess(KratosMultiphysics.Process):
         """
 
         if not self.initial_remeshing:
+            execute_remesh = False
             # We need to check if the model part has been modified recently
             if self.main_model_part.Is(KratosMultiphysics.MODIFIED):
                 self.main_model_part.Set(KratosMultiphysics.MODIFIED, False)
@@ -344,12 +350,19 @@ class MmgProcess(KratosMultiphysics.Process):
             else:
                 self.step += 1
                 if self.step_frequency > 0:
-                    if self.step >= self.step_frequency:
-                        if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
-                            if self.settings["blocking_threshold_size"].GetBool():
-                                MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
-                            self._ExecuteRefinement()
-                            self.step = 0  # Reset
+                    if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
+                        if not self.initial_step_done:
+                                execute_remesh = True
+                        else:
+                            if self.step >= self.step_frequency:
+                                execute_remesh = True
+                    # We remesh if needed
+                    if execute_remesh:
+                        if self.settings["blocking_threshold_size"].GetBool():
+                            MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
+                        self._ExecuteRefinement()
+                        self.initial_step_done = True
+                        self.step = 0  # Reset
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
