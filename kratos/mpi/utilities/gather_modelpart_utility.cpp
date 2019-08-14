@@ -14,17 +14,19 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
 {
     KRATOS_TRY;
 
-    const int mpi_rank = DataCommunicator::GetDefault().Rank();
-    const int mpi_size = DataCommunicator::GetDefault().Size();
+    const DataCommunicator& r_comm =
+        origin_model_part.GetCommunicator().GetDataCommunicator();
+    const int mpi_rank = r_comm.Rank();
+    const int mpi_size = r_comm.Size();
 
     destination_model_part.GetNodalSolutionStepVariablesList() =
         origin_model_part.GetNodalSolutionStepVariablesList();
-    if (DataCommunicator::GetDefault().IsDistributed())
+    if (r_comm.IsDistributed())
     {
       VariablesList* pVariablesList =
           &destination_model_part.GetNodalSolutionStepVariablesList();
       destination_model_part.SetCommunicator(
-          Communicator::Pointer(new MPICommunicator(pVariablesList)));
+          Communicator::Pointer(new MPICommunicator(pVariablesList, r_comm)));
     }
     destination_model_part.SetBufferSize(origin_model_part.GetBufferSize());
 
@@ -56,7 +58,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     std::vector<NodesContainerType> SendNodes(mpi_size);
     std::vector<NodesContainerType> RecvNodes(mpi_size);
     SendNodes[gather_rank].reserve(destination_model_part.Nodes().size());
-    if (DataCommunicator::GetDefault().IsDistributed())
+    if (r_comm.IsDistributed())
     {
       for (NodesContainerType::iterator it = destination_model_part.NodesBegin();
            it != destination_model_part.NodesEnd(); it++)
@@ -74,7 +76,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
           SendNodes[gather_rank].push_back(*it.base());
       }
     }
-    
+
     destination_model_part.GetCommunicator().TransferObjects(SendNodes, RecvNodes);
     for (unsigned int i = 0; i < RecvNodes.size(); i++)
     {
@@ -156,7 +158,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     SendConditions.clear();
     RecvConditions.clear();
 
-    if (DataCommunicator::GetDefault().IsDistributed())
+    if (r_comm.IsDistributed())
     {
       ParallelFillCommunicator(destination_model_part).Execute();
     }
@@ -184,13 +186,15 @@ void GatherModelPartUtility::ScatterFromMaster(Variable<TDataType>& ThisVariable
 {
     KRATOS_TRY;
 
-    if (mgather_rank != DataCommunicator::GetDefault().Rank())
+    Communicator& r_comm = mr_model_part.GetCommunicator();
+
+    if (mgather_rank != r_comm.GetDataCommunicator().Rank())
     {
         for (NodesContainerType::iterator it = mr_model_part.NodesBegin();
              it != mr_model_part.NodesEnd(); it++)
             it->FastGetSolutionStepValue(ThisVariable) = ThisVariable.Zero();
     }
-    mr_model_part.GetCommunicator().AssembleCurrentData(ThisVariable);
+    r_comm.AssembleCurrentData(ThisVariable);
 
     KRATOS_CATCH("");
 }
@@ -202,7 +206,7 @@ template void GatherModelPartUtility::ScatterFromMaster(Variable<array_1d<double
 
 namespace Internals
 {
-  
+
 }
 
 } // namespace Kratos.
