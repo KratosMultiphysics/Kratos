@@ -410,16 +410,16 @@ public:
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 1);
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
 
         if (IsRational()) {
-            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rLocalCoordinates[0], rLocalCoordinates[1]);
         }
         else {
-            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rLocalCoordinates[0], rLocalCoordinates[1]);
         }
 
-        if (rResult.size1() != 1
+        if (rResult.size1() != 2
             && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
             rResult.resize(2, shape_function_container.NumberOfNonzeroControlPoints());
 
