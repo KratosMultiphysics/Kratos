@@ -456,8 +456,8 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self.adjoint_analysis = StructuralMechanicsAnalysis(adjoint_model, adjoint_parameters)
         self.sensitivity_settings = adjoint_parameters["solver_settings"]["sensitivity_settings"].Clone()
         #self.sensitivity_settings = self.response_settings["sensitivity_settings"]
-
-        adjoint_parameters["solver_settings"]["sensitivity_settings"].RemoveValue("element_cross_section_sensitivity_variables")
+        if adjoint_parameters["solver_settings"]["sensitivity_settings"].Has("element_cross_section_sensitivity_variables"):
+            adjoint_parameters["solver_settings"]["sensitivity_settings"].RemoveValue("element_cross_section_sensitivity_variables")
 
         self.primal_state_variables = [KratosMultiphysics.DISPLACEMENT]
         self.adjoint_state_variables = [StructuralMechanicsApplication.ADJOINT_DISPLACEMENT]
@@ -477,38 +477,39 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self.stress_position_z = adjoint_parameters["solver_settings"]["response_function_settings"]["zp"].GetDouble()
         y_stress_position = adjoint_parameters["solver_settings"]["response_function_settings"]["y_stress_position"].GetString()
         z_stress_position = adjoint_parameters["solver_settings"]["response_function_settings"]["z_stress_position"].GetString()
+
         if y_stress_position == "fixed_coordinate":
             self.adaptive_y_coord = False
         elif y_stress_position == "adaptive_coordinate": # here we assume a symmetric cross-section in local y-direction
             self.adaptive_y_coord = True
-            if -0.5 <= self.stress_position_y <= 0.5: # coordinate can be between -0.5 and 0.5 times the cross sectional dimension in y-direction
+            if -0.5 <= self.stress_position_y <= 0.5: # coordinate has to be between -0.5 and 0.5 times the cross sectional dimension in y-direction
                 pass
             else:
                 raise RuntimeError('stress_position_y has to be between -0.5 and 0.5')
         else:
             raise RuntimeError('Unknown setting for y_stress_position!')
+
         if z_stress_position == "fixed_coordinate":
             self.adaptive_z_coord = False
         elif z_stress_position == "adaptive_coordinate": # here we assume a symmetric cross-section in local z-direction
             self.adaptive_z_coord = True
-            if -0.5 <= self.stress_position_z <= 0.5: # coordinate can be between -0.5 and 0.5 times the cross sectional dimension in z-direction
+            if -0.5 <= self.stress_position_z <= 0.5: # coordinate has to be between -0.5 and 0.5 times the cross sectional dimension in z-direction
                 pass
             else:
                 raise RuntimeError('stress_position_z has to be between -0.5 and 0.5')
         else:
             raise RuntimeError('Unknown setting for z_stress_position!')
 
+    # --------------------------------------------------------------------------
     # MFusseder TODO find a better solution to make cross sections available
     def SetCrossSections(self, cross_sections):
         self.cross_sections = cross_sections
 
+    # --------------------------------------------------------------------------
     def SetResponseCrossSection(self, response_cross_section):
         self.response_cross_section = response_cross_section
 
-    def _Check(self):
-        if (self.response_cross_section is None) and ((self.adaptive_y_coord == True) or (self.adaptive_z_coord == True)):
-            raise RuntimeError('adaptive_coordinate is only possible with a given response_cross_section!')
-
+    # --------------------------------------------------------------------------
     def Initialize(self):
         self._Check()
         self.primal_analysis.Initialize()
@@ -517,6 +518,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self.adjoint_analysis_my.Initialize()
         self.adjoint_analysis_mz.Initialize()
 
+    # --------------------------------------------------------------------------
     def InitializeSolutionStep(self):
         # Run the primal analysis.
         # TODO if primal_analysis.status==solved: return
@@ -525,22 +527,13 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self._RunSolutionLoopPrimalAnalysis()
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
-        # compute adjoint subproblems within CalculateGradient
-        self._RunSolutionLoopAdjointSubProblems()
-
-        # compute sensitivities w.r.t. specific variables which are not known by kratos elements
-        variables, _ = GenerateVariableListFromInput(self.sensitivity_settings["element_cross_section_sensitivity_variables"], False)
-        ComputeSpecificCrossSectionSensitivities(variables, self.cross_sections, self.adjoint_model_part_fx)
-        ComputeSpecificCrossSectionSensitivities(variables, self.cross_sections, self.adjoint_model_part_my)
-        ComputeSpecificCrossSectionSensitivities(variables, self.cross_sections, self.adjoint_model_part_mz)
-
-
+    # --------------------------------------------------------------------------
     def CalculateValue(self):
         startTime = timer.time()
         FX = self.adjoint_analysis_fx._GetSolver().response_function.CalculateValue(self.primal_model_part)
         MY = self.adjoint_analysis_my._GetSolver().response_function.CalculateValue(self.primal_model_part)
         MZ = self.adjoint_analysis_mz._GetSolver().response_function.CalculateValue(self.primal_model_part)
-        yp, zp = self.__GetStressPositionWithinCrossSection()
+        yp, zp = self._GetStressPositionWithinCrossSection()
         A = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.CROSS_AREA]
         I22 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I22]
         I33 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I33]
@@ -550,24 +543,38 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
 
+    # --------------------------------------------------------------------------
     def CalculateGradient(self):
         # synchronize the modelparts
         #self._SynchronizeAdjointFromPrimal() TODO is this needed?
         startTime = timer.time()
         Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
 
-        # Moved computation into InitializeSolutionStep
+        # compute adjoint subproblems (solve adjoint analysis for fx, my and mz as responses)
+        self._RunSolutionLoopAdjointSubProblems()
+
+        # compute sensitivities w.r.t. specific variables which are not known by kratos elements (e.g. SECTION_HEIGTH_SENSITIVITY)
+        if self.sensitivity_settings.Has("element_cross_section_sensitivity_variables"):
+            variables, _ = GenerateVariableListFromInput(self.sensitivity_settings["element_cross_section_sensitivity_variables"], False)
+            ComputeSpecificCrossSectionSensitivities(variables, self.cross_sections, self.adjoint_model_part_fx)
+            ComputeSpecificCrossSectionSensitivities(variables, self.cross_sections, self.adjoint_model_part_my)
+            ComputeSpecificCrossSectionSensitivities(variables, self.cross_sections, self.adjoint_model_part_mz)
+
+        # here the results of the adjoint analysisn are combinded
         self._RunSolutionLoopMainProblem()
         self._UpdateSensitivities()
 
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ", round(timer.time() - startTime,2),"s")
 
+    # --------------------------------------------------------------------------
     def GetValue(self):
         return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
+    # --------------------------------------------------------------------------
     def FinalizeSolutionStep(self):
         self.adjoint_analysis.OutputSolutionStep()
 
+    # --------------------------------------------------------------------------
     def Finalize(self):
         self.primal_analysis.Finalize()
         self.adjoint_analysis.Finalize()
@@ -575,17 +582,30 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self.adjoint_analysis_my.Finalize()
         self.adjoint_analysis_mz.Finalize()
 
+    """
+    **************************************************************************************************************
+    PROTECTED MEMBER FUNCTIONS
+    **************************************************************************************************************
+    """
+    # --------------------------------------------------------------------------
+    def _Check(self):
+        if (self.response_cross_section is None) and ((self.adaptive_y_coord == True) or (self.adaptive_z_coord == True)):
+            raise RuntimeError('adaptive_coordinate is only possible with a given response_cross_section!')
+
+    # --------------------------------------------------------------------------
     def _RunSolutionLoopPrimalAnalysis(self):
         if not self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.end_time += 1
         self.primal_analysis.RunSolutionLoop()
 
+    # --------------------------------------------------------------------------
     def _RunSolutionLoopAdjointSubProblems(self):
         # compute here all contributions to sensitivities and influence functions
         self.adjoint_analysis_fx.RunSolutionLoop()
         self.adjoint_analysis_my.RunSolutionLoop()
         self.adjoint_analysis_mz.RunSolutionLoop()
 
+    # --------------------------------------------------------------------------
     def _RunSolutionLoopMainProblem(self):
         # TODO are all this steps of analysis stage necessary?
         self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
@@ -595,7 +615,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         A = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.CROSS_AREA]
         I22 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I22]
         I33 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I33]
-        yp, zp = self.__GetStressPositionWithinCrossSection()
+        yp, zp = self._GetStressPositionWithinCrossSection()
 
         # solve here adjoint problem by superposition TODO improve this
         for variable in self.adjoint_state_variables:
@@ -607,42 +627,12 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
                 adjoint_quantity = adj_disp_fx / A + adj_disp_my / I22 * zp + adj_disp_mz / I33 * yp
                 node.SetSolutionStepValue(variable, adjoint_quantity)
 
+        # it is not possible to use the sensitivity builder of the adjoint analysis even the adjoint variables are correct now.
+        # The c++ dummy response functions delivers not the needed partial derivatives w.r.t. design variable.
+        # This is the reason why the function '_UpdateSensitivities' is needed.
         self.adjoint_analysis.FinalizeSolutionStep()
 
-    def __SetUpAdjointSubAnalysis(self):
-        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
-                adjoint_parameters_fx = Parameters( parameter_file.read() )
-        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
-                adjoint_parameters_my = Parameters( parameter_file.read() )
-        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
-                adjoint_parameters_mz = Parameters( parameter_file.read() )
-
-        # adjoint analysis for FX
-        adjoint_parameters_fx["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
-        adjoint_parameters_fx["solver_settings"]["response_function_settings"]["stress_type"].SetString("FX")
-        adjoint_parameters_fx.RemoveValue("output_processes")
-        adjoint_parameters_fx["solver_settings"]["sensitivity_settings"].RemoveValue("element_cross_section_sensitivity_variables")
-        adjoint_model_fx = KratosMultiphysics.Model()
-        self.adjoint_model_part_fx = _GetModelPart(adjoint_model_fx, adjoint_parameters_fx["solver_settings"])
-        self.adjoint_analysis_fx = StructuralMechanicsAnalysis(adjoint_model_fx, adjoint_parameters_fx)
-        # adjoint analysis for MY
-        adjoint_parameters_my["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
-        adjoint_parameters_my["solver_settings"]["response_function_settings"]["stress_type"].SetString("MY")
-        adjoint_parameters_my.RemoveValue("output_processes")
-        adjoint_parameters_my["solver_settings"]["sensitivity_settings"].RemoveValue("element_cross_section_sensitivity_variables")
-        adjoint_model_my = KratosMultiphysics.Model()
-        self.adjoint_model_part_my = _GetModelPart(adjoint_model_my, adjoint_parameters_my["solver_settings"])
-        self.adjoint_analysis_my = StructuralMechanicsAnalysis(adjoint_model_my, adjoint_parameters_my)
-        # adjoint analysis for MZ
-        adjoint_parameters_mz["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
-        adjoint_parameters_mz["solver_settings"]["response_function_settings"]["stress_type"].SetString("MZ")
-        adjoint_parameters_mz.RemoveValue("output_processes")
-        adjoint_parameters_mz["solver_settings"]["sensitivity_settings"].RemoveValue("element_cross_section_sensitivity_variables")
-        adjoint_model_mz = KratosMultiphysics.Model()
-        self.adjoint_model_part_mz = _GetModelPart(adjoint_model_mz, adjoint_parameters_mz["solver_settings"])
-        self.adjoint_analysis_mz = StructuralMechanicsAnalysis(adjoint_model_mz, adjoint_parameters_mz)
-
-
+    # --------------------------------------------------------------------------
     def _UpdateSensitivities(self):
         nodal_variables, _ = GenerateVariableListFromInput(self.sensitivity_settings["nodal_solution_step_sensitivity_variables"], False)
         element_variables, element_sensitivity_variables = GenerateVariableListFromInput(self.sensitivity_settings["element_data_value_sensitivity_variables"], True)
@@ -654,7 +644,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         A = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.CROSS_AREA]
         I22 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I22]
         I33 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I33]
-        yp, zp = self.__GetStressPositionWithinCrossSection()
+        yp, zp = self._GetStressPositionWithinCrossSection()
         # response superposition for nodal design variables
         for var in nodal_variables:
             if var.Name() == 'SHAPE_SENSITIVITY':
@@ -662,7 +652,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
                     sen_fx = node_fx.GetSolutionStepValue(var)
                     sen_my = node_my.GetSolutionStepValue(var)
                     sen_mz = node_mz.GetSolutionStepValue(var)
-                    sensitivity =  sen_fx / A + sen_my / I22 * zp+ sen_mz / I33 * yp
+                    sensitivity =  sen_fx / A + sen_my / I22 * zp + sen_mz / I33 * yp
                     node.SetSolutionStepValue(var, sensitivity)
             else:
                 raise RuntimeError(var.Name(), ' not available!')
@@ -674,7 +664,10 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
                 sen_my = elem_my.GetValue(sen_var)
                 sen_mz = elem_mz.GetValue(sen_var)
                 sensitivity =  sen_fx / A + sen_my / I22 * zp + sen_mz / I33 * yp
+
                 # add additional contribution from partial derivative w.r.t. design variable
+                # In this cases it is not considered that 'zp' or 'yp' can be dependent on the the
+                # following cross sectional properties
                 if (elem.Id == self.traced_element_id) and (var.Name() == 'CROSS_AREA'):
                     FX = self.adjoint_analysis_fx._GetSolver().response_function.CalculateValue(self.primal_model_part)
                     sensitivity -= FX / A**2
@@ -728,7 +721,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
                     elem.SetValue(var, sensitivity)
 
     # --------------------------------------------------------------------------
-    def __GetStressPositionWithinCrossSection(self):
+    def _GetStressPositionWithinCrossSection(self):
         yp = self.stress_position_y
         zp = self.stress_position_z
         if self.adaptive_y_coord:
@@ -738,6 +731,48 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
             dim_z = self.response_cross_section.GetCharacteristicDimensionZ()
             zp *= dim_z
         return yp, zp
+
+    """
+    **************************************************************************************************************
+    PRIVATE MEMBER FUNCTIONS
+    **************************************************************************************************************
+    """
+    # --------------------------------------------------------------------------
+    def __SetUpAdjointSubAnalysis(self):
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+            adjoint_parameters_fx = Parameters( parameter_file.read() )
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+            adjoint_parameters_my = Parameters( parameter_file.read() )
+        with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+            adjoint_parameters_mz = Parameters( parameter_file.read() )
+
+        # adjoint analysis for FX
+        adjoint_parameters_fx["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters_fx["solver_settings"]["response_function_settings"]["stress_type"].SetString("FX")
+        adjoint_parameters_fx.RemoveValue("output_processes")
+        if adjoint_parameters_fx["solver_settings"]["sensitivity_settings"].Has("element_cross_section_sensitivity_variables"):
+            adjoint_parameters_fx["solver_settings"]["sensitivity_settings"].RemoveValue("element_cross_section_sensitivity_variables")
+        adjoint_model_fx = KratosMultiphysics.Model()
+        self.adjoint_model_part_fx = _GetModelPart(adjoint_model_fx, adjoint_parameters_fx["solver_settings"])
+        self.adjoint_analysis_fx = StructuralMechanicsAnalysis(adjoint_model_fx, adjoint_parameters_fx)
+        # adjoint analysis for MY
+        adjoint_parameters_my["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters_my["solver_settings"]["response_function_settings"]["stress_type"].SetString("MY")
+        adjoint_parameters_my.RemoveValue("output_processes")
+        if adjoint_parameters_my["solver_settings"]["sensitivity_settings"].Has("element_cross_section_sensitivity_variables"):
+            adjoint_parameters_my["solver_settings"]["sensitivity_settings"].RemoveValue("element_cross_section_sensitivity_variables")
+        adjoint_model_my = KratosMultiphysics.Model()
+        self.adjoint_model_part_my = _GetModelPart(adjoint_model_my, adjoint_parameters_my["solver_settings"])
+        self.adjoint_analysis_my = StructuralMechanicsAnalysis(adjoint_model_my, adjoint_parameters_my)
+        # adjoint analysis for MZ
+        adjoint_parameters_mz["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
+        adjoint_parameters_mz["solver_settings"]["response_function_settings"]["stress_type"].SetString("MZ")
+        adjoint_parameters_mz.RemoveValue("output_processes")
+        if adjoint_parameters_mz["solver_settings"]["sensitivity_settings"].Has("element_cross_section_sensitivity_variables"):
+            adjoint_parameters_mz["solver_settings"]["sensitivity_settings"].RemoveValue("element_cross_section_sensitivity_variables")
+        adjoint_model_mz = KratosMultiphysics.Model()
+        self.adjoint_model_part_mz = _GetModelPart(adjoint_model_mz, adjoint_parameters_mz["solver_settings"])
+        self.adjoint_analysis_mz = StructuralMechanicsAnalysis(adjoint_model_mz, adjoint_parameters_mz)
 
 # *************************************************************************************************************
 # ADDITIONAL FUNCTIONS
@@ -751,7 +786,7 @@ def GenerateVariableListFromInput(parameter, create_sensitivity_variable_list):
     for i in range(0, parameter.size()):
         variable_list.append(KratosMultiphysics.KratosGlobals.GetVariable( parameter[i].GetString() ))
         if create_sensitivity_variable_list:
-            sensitivity_variable_list.append(KratosMultiphysics.KratosGlobals.GetVariable( parameter[i].GetString() +"_SENSITIVITY"))
+            sensitivity_variable_list.append(KratosMultiphysics.KratosGlobals.GetVariable( parameter[i].GetString() + "_SENSITIVITY"))
     return variable_list, sensitivity_variable_list
 
 # --------------------------------------------------------------------------
