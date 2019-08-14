@@ -56,6 +56,7 @@
 #include "custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_y_plus_k_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_check_scalar_condition_bounds_process.h"
+#include "custom_processes/auxiliary_processes/rans_check_vector_bounds_process.h"
 
 namespace Kratos
 {
@@ -145,6 +146,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef RansCheckScalarBoundsProcess RansCheckScalarBoundsProcessType;
     py::class_<RansCheckScalarBoundsProcessType, RansCheckScalarBoundsProcessType::Pointer, Process>(
         m, "RansCheckScalarBoundsProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansCheckVectorBoundsProcess RansCheckVectorBoundsProcessType;
+    py::class_<RansCheckVectorBoundsProcessType, RansCheckVectorBoundsProcessType::Pointer, Process>(
+        m, "RansCheckVectorBoundsProcess")
         .def(py::init<Model&, Parameters&>());
 
     typedef RansCheckScalarConditionBoundsProcess RansCheckScalarConditionBoundsProcessType;
