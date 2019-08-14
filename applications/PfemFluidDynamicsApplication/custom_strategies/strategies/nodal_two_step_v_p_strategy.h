@@ -1462,13 +1462,16 @@ protected:
 
       double DvErrorNorm = 0;
       ConvergedMomentum = this->CheckVelocityConvergence(NormDv,DvErrorNorm);
+     
+	  unsigned int iterationForCheck=3;
+        KRATOS_INFO("TwoStepVPStrategy") << "iteration("<<it<<") Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
 
       // Check convergence
       if(it==maxIt-1){
 	      std::cout<<"         iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
 	      fixedTimeStep=this->FixTimeStepMomentum(DvErrorNorm);
-      }else{
-      	std::cout<<"iteration("<<it<<")  Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
+      }else if(it>iterationForCheck){
+	      fixedTimeStep=this->CheckMomentumConvergence(DvErrorNorm);
       }
 			// 	    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 	    // double currentTime = rCurrentProcessInfo[TIME];
@@ -1892,6 +1895,44 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
       }
       return fixedTimeStep;
     }
+
+
+
+    bool CheckMomentumConvergence(const double DvErrorNorm)
+    {
+      ModelPart& rModelPart = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      double minTolerance=0.99999;
+      bool fixedTimeStep=false;
+
+      bool isItNan=false;
+      isItNan=std::isnan(DvErrorNorm);
+      bool isItInf=false;
+      isItInf=std::isinf(DvErrorNorm);
+      if((DvErrorNorm>minTolerance || (DvErrorNorm<0 && DvErrorNorm>0) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true) && DvErrorNorm!=0 && DvErrorNorm!=1){
+      	rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,true);
+	      std::cout<< "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: "<<DvErrorNorm<<" higher than 0.9999"<< std::endl;
+	      std::cout<< "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<< std::endl;
+	      fixedTimeStep=true;
+#pragma omp parallel
+	  {
+	      ModelPart::NodeIterator NodeBegin;
+	      ModelPart::NodeIterator NodeEnd;
+	      OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
+	      for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+	      {
+	      	itNode->FastGetSolutionStepValue(VELOCITY,0)=itNode->FastGetSolutionStepValue(VELOCITY,1);
+	      	itNode->FastGetSolutionStepValue(PRESSURE,0)=itNode->FastGetSolutionStepValue(PRESSURE,1);
+		      itNode->FastGetSolutionStepValue(ACCELERATION,0)=itNode->FastGetSolutionStepValue(ACCELERATION,1);
+	      }
+	  }
+      }else{
+	rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
+      }
+      return fixedTimeStep;
+    }
+
+
 
    bool FixTimeStepContinuity(const double DvErrorNorm)
     {

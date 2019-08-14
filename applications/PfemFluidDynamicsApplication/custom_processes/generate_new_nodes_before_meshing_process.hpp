@@ -884,6 +884,10 @@ private:
     double regularizationCoefficient=SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
 
 
+    MasterNode->FastGetSolutionStepValue(YOUNG_MODULUS)=0;
+    MasterNode->FastGetSolutionStepValue(POISSON_RATIO)=0;
+    MasterNode->FastGetSolutionStepValue(SOLID_DENSITY)=0;
+
     MasterNode->FastGetSolutionStepValue(BULK_MODULUS)=bulkModulus;
     MasterNode->FastGetSolutionStepValue(DENSITY)=density;
     MasterNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY)=viscosity;

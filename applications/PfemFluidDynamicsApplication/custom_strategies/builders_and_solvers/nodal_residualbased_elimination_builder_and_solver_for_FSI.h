@@ -276,8 +276,6 @@ void BuildSolidNodally(
 
           this->SetMaterialPropertiesToSolid(itNode,density,deviatoricCoeff,volumetricCoeff,timeInterval,nodalVolume);
 
-          density=itNode->FastGetSolutionStepValue(SOLID_DENSITY);
-
           firstRow=0;
           firstCol=0;
 
