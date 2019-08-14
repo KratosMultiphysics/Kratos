@@ -8,6 +8,7 @@ from os import remove
 try:
     from KratosMultiphysics.ExternalSolversApplication import *
     from KratosMultiphysics.StructuralMechanicsApplication import *
+    from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural
     missing_external_dependencies = False
     missing_application = ''
 except ImportError as e:
@@ -114,7 +115,6 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
             self.model = Model()
 
             # Construct the structure solver
-            import python_solvers_wrapper_structural
             self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.model, StructureSolverSettings)
 
             self.structure_solver.AddVariables()
@@ -161,7 +161,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 self.structure_solver.Predict()
 
                 self.coupling_utility.InitializeSolutionStep()
-                
+
                 for nl_it in range(1,self.max_nl_it+1):
 
                     self.coupling_utility.InitializeNonLinearIteration()

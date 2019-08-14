@@ -57,8 +57,7 @@ namespace Kratos {
             if(thread_maximums[i] > max_Id) max_Id = thread_maximums[i];
         }
 
-        r_modelpart.GetCommunicator().MaxAll(max_Id);
-        return max_Id;
+        return r_modelpart.GetCommunicator().GetDataCommunicator().MaxAll(max_Id);
         KRATOS_CATCH("")
     }
 
@@ -79,8 +78,7 @@ namespace Kratos {
             if ((int) (element_it->Id()) > max_Id) max_Id = element_it->Id();
         }
 
-        r_modelpart.GetCommunicator().MaxAll(max_Id);
-        return max_Id;
+        return r_modelpart.GetCommunicator().GetDataCommunicator().MaxAll(max_Id);
         KRATOS_CATCH("")
     }
 
@@ -95,17 +93,14 @@ namespace Kratos {
             if ((int) (condition_it->Id()) > max_Id) max_Id = condition_it->Id();
         }
 
-        r_modelpart.GetCommunicator().MaxAll(max_Id);
-        return max_Id;
+        return r_modelpart.GetCommunicator().GetDataCommunicator().MaxAll(max_Id);
         KRATOS_CATCH("")
     }
 
     void ParticleCreatorDestructor::RenumberElementIdsFromGivenValue(ModelPart& r_modelpart, const int initial_id) {
         KRATOS_TRY
         const int number_of_elements = r_modelpart.GetCommunicator().LocalMesh().NumberOfElements();
-        int total_accumulated_elements = 0;
-
-        r_modelpart.GetCommunicator().ScanSum(number_of_elements, total_accumulated_elements);
+        int total_accumulated_elements = r_modelpart.GetCommunicator().GetDataCommunicator().ScanSum(number_of_elements);
 
         int id = total_accumulated_elements - number_of_elements + initial_id;
         auto& local_mesh = r_modelpart.GetCommunicator().LocalMesh();
@@ -1044,13 +1039,14 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 }
             }
 
-            r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[0]);
-            r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[1]);
-            r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[2]);
-            r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[0]);
-            r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[1]);
-            r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[2]);
-            r_balls_model_part.GetCommunicator().MaxAll(ref_radius);
+            const auto& r_comm = r_balls_model_part.GetCommunicator().GetDataCommunicator();
+            mStrictLowPoint[0] = r_comm.MinAll(mStrictLowPoint[0]);
+            mStrictLowPoint[1] = r_comm.MinAll(mStrictLowPoint[1]);
+            mStrictLowPoint[2] = r_comm.MinAll(mStrictLowPoint[2]);
+            mStrictHighPoint[0] = r_comm.MaxAll(mStrictHighPoint[0]);
+            mStrictHighPoint[1] = r_comm.MaxAll(mStrictHighPoint[1]);
+            mStrictHighPoint[2] = r_comm.MaxAll(mStrictHighPoint[2]);
+            ref_radius = r_comm.MaxAll(ref_radius);
 
 
             array_1d<double, 3 > midpoint;

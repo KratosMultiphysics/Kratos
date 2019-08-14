@@ -94,9 +94,14 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     /// Internal constructor.
     ParallelEnvironment();
 
+    /// Destructor
+    ~ParallelEnvironment();
+
     ///@}
     ///@name Private Operations
     ///@{
+
+    static void Create();
 
     void RegisterDataCommunicatorDetail(
         const std::string& Name,
@@ -141,6 +146,9 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     std::unordered_map<std::string, DataCommunicator::UniquePointer> mDataCommunicators;
 
     std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator mDefaultCommunicator;
+
+    static ParallelEnvironment* mpInstance;
+    static bool mDestroyed;
 
     ///@}
     ///@name Un accessible methods

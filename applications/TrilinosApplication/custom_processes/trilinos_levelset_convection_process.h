@@ -112,8 +112,8 @@ public:
                 "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }
 
-        rBaseModelPart.GetCommunicator().SumAll(n_nodes);
-        rBaseModelPart.GetCommunicator().SumAll(n_elems);
+        n_nodes = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_nodes);
+        n_elems = rBaseModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_elems);
 
         KRATOS_ERROR_IF(n_nodes == 0) << "The model has no nodes." << std::endl;
         KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;

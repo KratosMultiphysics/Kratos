@@ -10,8 +10,8 @@ def CreateSolver(model, custom_settings):
     return EulerianPrimitiveVarSolver(model, custom_settings)
 
 class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
-    def __init__(self, model, custom_settings):
-        super(EulerianPrimitiveVarSolver, self).__init__(model, custom_settings)
+    def __init__(self, model, settings):
+        super(EulerianPrimitiveVarSolver, self).__init__(model, settings)
 
         # Set the element and condition names for the replace settings
         self.element_name = "EulerPrimVarElement"
@@ -24,12 +24,3 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
         KM.VariableUtils().AddDof(SW.HEIGHT, self.main_model_part)
 
         KM.Logger.PrintInfo("::[EulerianPrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
-
-    def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Solve equations on the mesh
-            is_converged = self.solver.SolveSolutionStep()
-            # Computing the free surface
-            SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.GetComputingModelPart())
-
-            return is_converged

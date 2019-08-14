@@ -71,7 +71,7 @@ public:
     AdjointFiniteDifferencingBaseElement(IndexType NewId = 0,
                         bool HasRotationDofs = false)
     : Element(NewId),
-      mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId, pGetGeometry())),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGetGeometry())),
       mHasRotationDofs(HasRotationDofs)
     {
     }
@@ -80,7 +80,7 @@ public:
                         GeometryType::Pointer pGeometry,
                         bool HasRotationDofs = false)
     : Element(NewId, pGeometry),
-      mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId, pGeometry)),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry)),
       mHasRotationDofs(HasRotationDofs)
     {
     }
@@ -90,7 +90,7 @@ public:
                         PropertiesType::Pointer pProperties,
                         bool HasRotationDofs = false)
     : Element(NewId, pGeometry, pProperties),
-      mpPrimalElement(std::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties)),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties)),
       mHasRotationDofs(HasRotationDofs)
     {
     }

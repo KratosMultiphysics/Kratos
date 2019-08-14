@@ -53,8 +53,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<FixedMeshALEUtilities, FixedMeshALEUtilities::Pointer>(m, "FixedMeshALEUtilities")
         .def(py::init<Model &, Parameters &>())
-        .def(py::init<ModelPart &, ModelPart &, const std::string>())
+        .def(py::init<ModelPart &, ModelPart &>())
         .def("Initialize", &FixedMeshALEUtilities::Initialize)
+        .def("SetVirtualMeshValuesFromOriginMesh", &FixedMeshALEUtilities::SetVirtualMeshValuesFromOriginMesh)
         .def("ComputeMeshMovement", &FixedMeshALEUtilities::ComputeMeshMovement)
         .def("ProjectVirtualValues2D", &FixedMeshALEUtilities::ProjectVirtualValues<2>)
         .def("ProjectVirtualValues3D", &FixedMeshALEUtilities::ProjectVirtualValues<3>)
@@ -64,6 +65,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<Model &, Parameters &>())
         .def(py::init<ModelPart &, ModelPart &, const double>())
         .def("Initialize", &ExplicitFixedMeshALEUtilities::Initialize)
+        .def("SetVirtualMeshValuesFromOriginMesh", &ExplicitFixedMeshALEUtilities::SetVirtualMeshValuesFromOriginMesh)
         .def("ComputeMeshMovement", &ExplicitFixedMeshALEUtilities::ComputeMeshMovement)
         .def("ProjectVirtualValues2D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<2>)
         .def("ProjectVirtualValues3D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<3>)

@@ -94,7 +94,7 @@ class FluidTransportAnalysis(AnalysisStage):
             fluid_transport_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
             from gid_output_process import GiDOutputProcess as OutputProcess
         elif self.parallel_type == "MPI":
-            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+            from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess as OutputProcess
 
         output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                 self.project_parameters["problem_data"]["problem_name"].GetString() ,

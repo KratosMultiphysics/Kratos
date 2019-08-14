@@ -34,7 +34,7 @@ class UnvOutputProcess(KratosMultiphysics.Process):
         #             kratos_utils.DeleteDirectoryIfExisting(folder_name)
         #         if not os.path.isdir(folder_name):
         #             os.mkdir(folder_name)
-        #     self.model_part.GetCommunicator().Barrier()
+        #     self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
         # self.unv_io = KratosMultiphysics.UnvOutput(self.model_part, self.settings)
         self.unv_io = KratosMultiphysics.UnvOutput(self.model_part, "nxout")

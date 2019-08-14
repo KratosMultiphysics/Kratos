@@ -20,7 +20,10 @@ def CreateConvergenceAccelerator(configuration):
 
     convergence_accelerator_type = configuration["solver_type"].GetString()
 
-    if(convergence_accelerator_type == "Relaxation"):
+    if(convergence_accelerator_type == "constant_relaxation"):
+        return KratosFSI.ConstantRelaxationConvergenceAccelerator(configuration)
+
+    elif(convergence_accelerator_type == "Relaxation"):
         return KratosFSI.AitkenConvergenceAccelerator(configuration)
 
     elif(convergence_accelerator_type == "MVQN"):

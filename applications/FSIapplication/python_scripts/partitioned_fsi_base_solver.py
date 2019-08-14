@@ -358,7 +358,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         return fluid_time_step
 
     def _GetNodalUpdateUtilities(self):
-        structure_time_scheme = self.structure_solver.dynamic_settings["scheme_type"].GetString()
+        structure_time_scheme = self.structure_solver.settings["scheme_type"].GetString()
         if (structure_time_scheme == "newmark"):
             damp_factor_m = 0.0
         elif (structure_time_scheme == "bossak"):
@@ -443,7 +443,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         for condition in self.structure_solver.main_model_part.Conditions:
             max_cond_id = max(max_cond_id, condition.Id)
 
-        max_cond_id = self.structure_solver.main_model_part.GetCommunicator().MaxAll(max_cond_id)
+        max_cond_id = self.structure_solver.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(max_cond_id)
 
         # Set up the point load condition in the structure interface
         structure_interfaces_list = self.settings["coupling_settings"]["structure_interfaces_list"]

@@ -22,10 +22,10 @@ class PythonSolver(object):
         model -- The Model to be used
         settings -- The solver settings used
         """
-        if (type(model) != KratosMultiphysics.Model):
+        if not isinstance(model, KratosMultiphysics.Model):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
-        if (type(settings) != KratosMultiphysics.Parameters):
+        if not isinstance(settings, KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.model = model
@@ -33,7 +33,7 @@ class PythonSolver(object):
 
         # TODO remove the check once the derived solvers implement this
         if hasattr(self, '_validate_settings_in_baseclass'):
-            self.settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
+            self.ValidateSettings()
         else:
             from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
             IssueDeprecationWarning('PythonSolver', 'the settings are not validated in the baseclass for solver "%s", please implement it' %(self.__class__.__name__))
@@ -47,6 +47,12 @@ class PythonSolver(object):
         return KratosMultiphysics.Parameters("""{
             "echo_level" : 0
         }""")
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        default_settings = self.GetDefaultSettings()
+        self.settings.ValidateAndAssignDefaults(default_settings)
 
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart
@@ -187,7 +193,7 @@ class PythonSolver(object):
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
 
         elif(input_type == "use_input_model_part"):
-            pass
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Using already imported model part - no reading necessary.")
 
         else:
             raise Exception("Other model part input options are not yet implemented.")

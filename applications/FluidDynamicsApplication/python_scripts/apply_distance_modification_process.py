@@ -16,7 +16,6 @@ class ApplyDistanceModificationProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
         {
             "model_part_name"                        : "CHOOSE_FLUID_MODELPART_NAME",
-            "distance_factor"                        : 2.0,
             "distance_threshold"                     : 0.01,
             "continuous_distance"                    : true,
             "check_at_each_time_step"                : false,

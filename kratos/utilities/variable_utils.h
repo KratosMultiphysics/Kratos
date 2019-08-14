@@ -105,7 +105,8 @@ public:
      * @brief Copies the nodal value of a variable from an origin model
      * part nodes to the nodes in a destination model part. It is assumed that
      * both origin and destination model parts have the same number of nodes.
-     * @param rVariable reference to the variable to be set
+     * @param rVariable reference to the variable to get the value from
+     * @param rDestinationVariable reference to the variable to be set
      * @param rOriginModelPart origin model part from where the values are retrieved
      * @param rDestinationModelPart destination model part to where the values are copied to
      * @param BuffStep buffer step
@@ -113,10 +114,11 @@ public:
     template< class TVarType >
     void CopyModelPartNodalVar(
         const TVarType& rVariable,
+        const TVarType& rDestinationVariable,
         const ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
-        const unsigned int BuffStep = 0){
-
+        const unsigned int BuffStep = 0)
+    {
         const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
         const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
 
@@ -129,8 +131,62 @@ public:
             auto it_dest_node = rDestinationModelPart.NodesBegin() + i_node;
             const auto &it_orig_node = rOriginModelPart.NodesBegin() + i_node;
             const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
-            it_dest_node->GetSolutionStepValue(rVariable, BuffStep) = r_value;
+            it_dest_node->GetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
         }
+    }
+
+    /**
+     * @brief Copies the nodal value of a variable from an origin model
+     * part nodes to the nodes in a destination model part. It is assumed that
+     * both origin and destination model parts have the same number of nodes.
+     * @param rVariable reference to the variable to get the value from and to save in
+     * @param rOriginModelPart origin model part from where the values are retrieved
+     * @param rDestinationModelPart destination model part to where the values are copied to
+     * @param BuffStep buffer step
+     */
+    template< class TVarType >
+    void CopyModelPartNodalVar(
+        const TVarType& rVariable,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const unsigned int BuffStep = 0)
+    {
+        this->CopyModelPartNodalVar(rVariable, rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
+    }
+
+    template< class TVarType >
+    void CopyModelPartNodalVarToNonHistoricalVar(
+        const TVarType &rVariable,
+        const TVarType &rDestinationVariable,
+        const ModelPart &rOriginModelPart,
+        ModelPart &rDestinationModelPart,
+        const unsigned int BuffStep = 0)
+    {
+        const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
+        const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
+
+        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes) <<
+            "Origin and destination model parts have different number of nodes." <<
+            "\n\t- Number of origin nodes: " << n_orig_nodes <<
+            "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
+
+        #pragma omp parallel for
+        for(int i_node = 0; i_node < n_orig_nodes; ++i_node){
+            auto it_dest_node = rDestinationModelPart.NodesBegin() + i_node;
+            const auto &it_orig_node = rOriginModelPart.NodesBegin() + i_node;
+            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
+            it_dest_node->GetValue(rDestinationVariable) = r_value;
+        }
+    }
+
+    template< class TVarType >
+    void CopyModelPartNodalVarToNonHistoricalVar(
+        const TVarType &rVariable,
+        const ModelPart &rOriginModelPart,
+        ModelPart &rDestinationModelPart,
+        const unsigned int BuffStep = 0)
+    {
+        this->CopyModelPartNodalVarToNonHistoricalVar(rVariable, rVariable, rOriginModelPart, rDestinationModelPart, BuffStep);
     }
 
     /**
@@ -450,14 +506,40 @@ public:
     {
         KRATOS_TRY
 
+        const auto it_cont_begin = rContainer.begin();
+
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = rContainer.begin() + k;
+            auto it_cont = it_cont_begin + k;
             it_cont->Set(rFlag, rFlagValue);
         }
 
         KRATOS_CATCH("")
 
+    }
+
+    /**
+     * @brief Flips a flag over a given container
+     * @param rFlag flag to be set
+     * @param rContainer Reference to the objective container
+     */
+    template< class TContainerType >
+    void ResetFlag(
+        const Flags& rFlag,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        const auto it_cont_begin = rContainer.begin();
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
+            auto it_cont = it_cont_begin + k;
+            it_cont->Reset(rFlag);
+        }
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -473,9 +555,11 @@ public:
     {
         KRATOS_TRY
 
+        const auto it_cont_begin = rContainer.begin();
+
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
-            auto it_cont = rContainer.begin() + k;
+            auto it_cont = it_cont_begin + k;
             it_cont->Flip(rFlag);
         }
 
@@ -710,9 +794,7 @@ public:
             sum_value += it_node->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -758,9 +840,7 @@ public:
             sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -804,9 +884,7 @@ public:
             sum_value += it_cond->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -850,9 +928,7 @@ public:
             sum_value += it_elem->GetValue(rVar);
         }
 
-        r_communicator.SumAll(sum_value);
-
-        return sum_value;
+        return r_communicator.GetDataCommunicator().SumAll(sum_value);
 
         KRATOS_CATCH("")
     }
@@ -942,10 +1018,21 @@ public:
     void UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes);
 
     /**
-     * @brief This method updates the initial nodal coordinates to the current coordinates
      * @param rNodes the nodes to be updated
+     * @brief This method updates the initial nodal coordinates to the current coordinates
      */
     void UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes);
+
+    /**
+     * @brief This method updates the current coordinates
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * @param rNodes
+     * @param rUpdateVariable variable to retrieve the updating values from
+     */
+    void UpdateCurrentPosition(
+        const ModelPart::NodesContainerType &rNodes,
+        const ArrayVarType &rUpdateVariable = DISPLACEMENT);
 
     ///@}
     ///@name Acces

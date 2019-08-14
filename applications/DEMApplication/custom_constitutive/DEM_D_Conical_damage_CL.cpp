@@ -7,8 +7,6 @@
 
 namespace Kratos {
 
-    void DEM_D_Conical_damage::Initialize(const ProcessInfo& r_process_info) {}
-
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Conical_damage::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Conical_damage(*this));
         return p_clone;

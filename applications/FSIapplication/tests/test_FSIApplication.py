@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 from convergence_accelerator_test import ConvergenceAcceleratorTest
 from convergence_accelerator_spring_test import ConvergenceAcceleratorSpringTest
+from fsi_coupling_interface_test import FSICouplingInterfaceTest
 from FSI_problem_emulator_test import FSIProblemEmulatorTest
 from non_conformant_one_side_map_test import NonConformantOneSideMapTest
 
@@ -37,6 +38,7 @@ def AssembleTestSuites():
     smallSuite.addTest(ConvergenceAcceleratorTest('test_mvqn_accelerator'))
     smallSuite.addTest(ConvergenceAcceleratorTest('test_mvqn_recusive_accelerator'))
     smallSuite.addTest(ConvergenceAcceleratorTest('test_accelerator_with_jacobian'))
+    smallSuite.addTest(FSICouplingInterfaceTest('test_fsi_coupling_interface'))
     smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithAitken'))
     smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQN'))
     smallSuite.addTest(FSIProblemEmulatorTest('testFSIProblemEmulatorWithMVQNRecursive'))
