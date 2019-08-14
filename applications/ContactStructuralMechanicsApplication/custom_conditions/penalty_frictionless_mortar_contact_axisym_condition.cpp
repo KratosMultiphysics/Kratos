@@ -31,7 +31,7 @@ Condition::Pointer PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNod
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_intrusive< PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
