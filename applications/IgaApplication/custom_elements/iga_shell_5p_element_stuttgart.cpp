@@ -388,7 +388,7 @@ namespace Kratos
         array_1d<double, 3>&      rG2)
     {
         double thickness = GetProperties().GetValue(THICKNESS);
-        
+
         array_1d<double, 3> DA3_D1 = ZeroVector(3);
         array_1d<double, 3> DA3_D2 = ZeroVector(3);
         array_1d<double, 3> DA1_D1xA2 = ZeroVector(3);
@@ -1149,9 +1149,9 @@ namespace Kratos
 
             array_1d<double, 5> dE_cur_help = ZeroVector(5);
 
-            dE_cur_help[0] = mZeta *(inner_prod(a1_dr, dw_dT1) + inner_prod(a1, dw_dT1_dr));     // MLt
-            dE_cur_help[2] = 0.5 * mZeta*(inner_prod(a1_dr, dw_dT2) + inner_prod(a1, dw_dT2_dr) + inner_prod(a2_dr, dw_dT1) + inner_prod(a2, dw_dT1_dr));     // MLt
-            dE_cur_help[1] = mZeta*(inner_prod(a2_dr, dw_dT2) + inner_prod(a2, dw_dT2_dr));     // MLt
+            dE_cur_help[0] = thickness / 2.0 * mZeta *(inner_prod(a1_dr, dw_dT1) + inner_prod(a1, dw_dT1_dr));     // MLt
+            dE_cur_help[2] = thickness / 2.0 * 0.5 * mZeta*(inner_prod(a1_dr, dw_dT2) + inner_prod(a1, dw_dT2_dr) + inner_prod(a2_dr, dw_dT1) + inner_prod(a2, dw_dT1_dr));     // MLt
+            dE_cur_help[1] = thickness / 2.0 * mZeta*(inner_prod(a2_dr, dw_dT2) + inner_prod(a2, dw_dT2_dr));     // MLt
             dE_cur_help[4] = 0.5 *(inner_prod(dw_dr, a1) + inner_prod(w, a1_dr));
             dE_cur_help[3] = 0.5 *(inner_prod(dw_dr, a2) + inner_prod(w, a2_dr));
 
@@ -1228,11 +1228,11 @@ namespace Kratos
 
         /* Zusatzanteile in Green-Lagrange Verzerrungen durch hier. 5-Parameter-Kinematik */
         /* E11 */
-        Egl[0] = Egl[0] + mZeta*0.5*(inner_prod(a1, dw_dT1) + inner_prod(a1, dw_dT1));    // MLt
+        Egl[0] = Egl[0] + thickness / 2.0 * mZeta*0.5*(inner_prod(a1, dw_dT1) + inner_prod(a1, dw_dT1));    // MLt
         /* 2*E12 */
-        Egl[2] = Egl[2] + 0.5 * mZeta*1.0*(inner_prod(a1, dw_dT2) + inner_prod(a2, dw_dT1));    // MLt
+        Egl[2] = Egl[2] + thickness / 2.0 * 0.5 * mZeta*1.0*(inner_prod(a1, dw_dT2) + inner_prod(a2, dw_dT1));    // MLt
         /* E22 */
-        Egl[1] = Egl[1] + mZeta*0.5*(inner_prod(a2, dw_dT2) + inner_prod(a2, dw_dT2));    // MLt
+        Egl[1] = Egl[1] + thickness / 2.0 * mZeta*0.5*(inner_prod(a2, dw_dT2) + inner_prod(a2, dw_dT2));    // MLt
         /* 2*E13 */
         Egl[4] =  0.5 * inner_prod(w, a1);
         /* 2*E23 */
@@ -1991,13 +1991,13 @@ namespace Kratos
 
                         /* Anteile fuer Inplane-Verzerrungen (nur linear in Dickenrichtung theta^3) */
                         dE11_dkl(5 * k + i, 5 * l + j) = dE11_dkl(5 * k + i, 5 * l + j)
-                                                        + mZeta*0.5*(inner_prod(da1k, dw_dT1_dl) + inner_prod(da1l, dw_dT1_dk) + inner_prod(a1, ddw_dT1_dkl)
+                                                        + thickness / 2.0 * mZeta*0.5*(inner_prod(da1k, dw_dT1_dl) + inner_prod(da1l, dw_dT1_dk) + inner_prod(a1, ddw_dT1_dkl)
                                                                 + inner_prod(da1k, dw_dT1_dl) + inner_prod(da1l, dw_dT1_dk) + inner_prod(a1, ddw_dT1_dkl));     // MLt
                         dE12_dkl(5 * k + i, 5 * l + j) = dE12_dkl(5 * k + i, 5 * l + j)
-                                                        + mZeta*0.5*(inner_prod(da1k, dw_dT2_dl) + inner_prod(da1l, dw_dT2_dk) + inner_prod(a1, ddw_dT2_dkl)
+                                                        + thickness / 2.0 * mZeta*0.5*(inner_prod(da1k, dw_dT2_dl) + inner_prod(da1l, dw_dT2_dk) + inner_prod(a1, ddw_dT2_dkl)
                                                                 + inner_prod(da2k, dw_dT1_dl) + inner_prod(da2l, dw_dT1_dk) + inner_prod(a2, ddw_dT1_dkl));     // MLt
                         dE22_dkl(5 * k + i, 5 * l + j) = dE22_dkl(5 * k + i, 5 * l + j)
-                                                        + mZeta*0.5*(inner_prod(da2k, dw_dT2_dl) + inner_prod(da2l, dw_dT2_dk) + inner_prod(a2, ddw_dT2_dkl)
+                                                        + thickness / 2.0 * mZeta*0.5*(inner_prod(da2k, dw_dT2_dl) + inner_prod(da2l, dw_dT2_dk) + inner_prod(a2, ddw_dT2_dkl)
                                                                 + inner_prod(da2k, dw_dT2_dl) + inner_prod(da2l, dw_dT2_dk) + inner_prod(a2, ddw_dT2_dkl));     // MLt
                         // }    // MLFÄ
 
