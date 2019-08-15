@@ -33,9 +33,8 @@ namespace Kratos
 /**
  * @class BrepFaceCurve
  * @ingroup KratosCore
- * @brief The BrepFaceCurve acts as topology for faces having a pointer
- *        to a surface geometry and a list of BrepEdge s. Those edges
- *        define the trimming of the respective surface.
+ * @brief The BrepFaceCurve acts as topology for faces. Those
+ *        can be enclosed by a certain set of boundary curves.
  */
 template<class TPointType, class TPointEmbeddedType = TPointType>
 class BrepFaceCurve
@@ -71,13 +70,11 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// constructor for untrimmed surface
     BrepFaceCurve( 
-        typename NurbsSurfaceType::Pointer pSurface,
-        typename NurbsCurveType::Pointer pCurve)
+        typename NurbsSurfaceType::Pointer pSurface)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
-        , mpNurbsCurve(pCurve)
-        , mCurveInterval(pCurve->DomainInterval())
     {
     }
 
@@ -201,6 +198,24 @@ public:
         mpNurbsSurface->GlobalCoordinates(rResult, surface_coordinates);
 
         return rResult;
+    }
+
+    /**
+    * Returns whether given arbitrary point is inside the Geometry and the respective
+    * local point for the given global point
+    * @param rPoint The point to be checked if is inside o note in global coordinates
+    * @param rResult The local coordinates of the point
+    * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+    * @return True if the point is inside, false otherwise
+    */
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        rResult = rPoint;
+        return mCurveInterval.IsInside(rResult[0]);
     }
 
     ///@name Shape Function
