@@ -31,6 +31,11 @@ namespace Kratos
         // KRATOS_WATCH("start: Initialize")
         // Constitutive Law initialisation
         BaseDiscreteElement::Initialize();
+        // Check whether ConstitutiveLaw is 2D
+        if (mConstitutiveLawVector[0]->GetStrainSize() != 3){
+            KRATOS_WATCH("ConstitutiveLaw is not 2D.")
+            KRATOS_ERROR << "ConstitutiveLaw is not 2D." << std::endl;
+        }
 
         CalculateMetric(mInitialMetric);
 
@@ -88,7 +93,10 @@ namespace Kratos
         CalculateConstitutiveVariables(actual_metric,
             constitutive_variables_membrane, constitutive_variables_curvature,
             Values, ConstitutiveLaw::StressMeasure_PK2);
-
+        if(Id()==1 && mcount ==1){
+            KRATOS_WATCH(constitutive_variables_membrane.S)
+            KRATOS_WATCH(constitutive_variables_curvature.S)
+        }
         // calculate B MATRICES
         Matrix BMembrane = ZeroMatrix(3, mat_size);
         Matrix BCurvature = ZeroMatrix(3, mat_size);
@@ -104,8 +112,6 @@ namespace Kratos
         // LEFT HAND SIDE MATRIX
         if (CalculateStiffnessMatrixFlag == true)
         {
-            // KRATOS_WATCH(BMembrane)
-
             // Nonlinear Deformation
             SecondVariations second_variations_strain(mat_size);
             SecondVariations second_variations_curvature(mat_size);
@@ -137,22 +143,10 @@ namespace Kratos
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
-            // KRATOS_WATCH(constitutive_variables_membrane.S)
-
             // operation performed: rRightHandSideVector -= Weight*IntForce
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
-
         }
-
-        // if(Id()==1){
-        //     mcount++;
-        //     KRATOS_WATCH(mcount)
-        //     KRATOS_WATCH(rLeftHandSideMatrix)
-        //     KRATOS_WATCH(rRightHandSideVector)
-
-        // }
-        // KRATOS_WATCH("end: CalculateAll")
 
         KRATOS_CATCH("");
     }
@@ -594,11 +588,8 @@ namespace Kratos
                         + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2]);
 
                     rSecondVariationsCurvature.B11(r, s) = mInitialMetric.Q(0, 0)*ddK_cu[0] + mInitialMetric.Q(0, 1)*ddK_cu[1] + mInitialMetric.Q(0, 2)*ddK_cu[2];
-                    // rSecondVariationsCurvature.B11(s, r) = rSecondVariationsCurvature.B11(r, s);
                     rSecondVariationsCurvature.B22(r, s) = mInitialMetric.Q(1, 0)*ddK_cu[0] + mInitialMetric.Q(1, 1)*ddK_cu[1] + mInitialMetric.Q(1, 2)*ddK_cu[2];
-                    // rSecondVariationsCurvature.B22(s, r) = rSecondVariationsCurvature.B22(r, s);
                     rSecondVariationsCurvature.B12(r, s) = mInitialMetric.Q(2, 0)*ddK_cu[0] + mInitialMetric.Q(2, 1)*ddK_cu[1] + mInitialMetric.Q(2, 2)*ddK_cu[2];
-                    // rSecondVariationsCurvature.B12(s, r) = rSecondVariationsCurvature.B12(r, s);
                 }
             }
         }

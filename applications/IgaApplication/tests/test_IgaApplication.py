@@ -13,6 +13,7 @@ from iga_truss_element_tests import IgaTrussElementTests
 from shell_kl_discrete_element_tests import ShellKLDiscreteElementTests
 #from test_iga_output_process import TestIgaOutputProcess
 # from test_iga_test_factory import IgaTestFactory
+from iga_3p_element_tests import Iga3pElementTests
 from iga_5p_element_tests import Iga5pElementTests
 
 def AssembleTestSuites():
@@ -34,6 +35,7 @@ def AssembleTestSuites():
         IgaTrussElementTests,
         ShellKLDiscreteElementTests,
 #        TestIgaOutputProcess,
+        Iga3pElementTests,
         Iga5pElementTests
     ]))
 
