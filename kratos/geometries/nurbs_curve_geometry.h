@@ -84,7 +84,6 @@ public:
 
     explicit NurbsCurveGeometry(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
-        , mPolynomialDegree(0)
     {
     }
 
@@ -430,7 +429,7 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    const SizeType mPolynomialDegree;
+    SizeType mPolynomialDegree;
     Vector mKnots;
     Vector mWeights;
 

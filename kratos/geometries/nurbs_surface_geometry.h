@@ -105,8 +105,6 @@ public:
 
     explicit NurbsSurfaceGeometry(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
-        , mPolynomialDegreeU(0)
-        , mPolynomialDegreeV(0)
     {
     }
 
