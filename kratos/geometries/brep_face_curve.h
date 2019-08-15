@@ -33,8 +33,7 @@ namespace Kratos
 /**
  * @class BrepFaceCurve
  * @ingroup KratosCore
- * @brief The BrepFaceCurve acts as topology for faces. Those
- *        can be enclosed by a certain set of boundary curves.
+ * @brief The BrepFaceCurve acts as topology for curves on surfaces.
  */
 template<class TPointType, class TPointEmbeddedType = TPointType>
 class BrepFaceCurve
@@ -72,7 +71,8 @@ public:
 
     /// constructor for untrimmed surface
     BrepFaceCurve( 
-        typename NurbsSurfaceType::Pointer pSurface)
+        typename NurbsSurfaceType::Pointer pSurface,
+        typename NurbsCurveType::Pointer pCurve)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
     {

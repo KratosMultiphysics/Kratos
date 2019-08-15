@@ -80,27 +80,28 @@ namespace Testing {
         auto p_surface = GenerateReferenceNodeSurfacePointer();
         auto p_curve = GenerateReferenceCurve2dPointer();
 
-        auto p_brep_face_curve = BrepFaceCurve<NodeType, Point>(
+        auto brep_face_curve = BrepFaceCurve<NodeType, Point>(
             p_surface, p_curve);
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(p_brep_face_curve.Dimension(), 1);
-        KRATOS_CHECK_EQUAL(p_brep_face_curve.WorkingSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL(p_brep_face_curve.LocalSpaceDimension(), 2);
+        KRATOS_CHECK_EQUAL(brep_face_curve.Dimension(), 1);
+        KRATOS_CHECK_EQUAL(brep_face_curve.WorkingSpaceDimension(), 3);
+        KRATOS_CHECK_EQUAL(brep_face_curve.LocalSpaceDimension(), 2);
+
 
         array_1d<double, 3> coords(3, 0.0);
         coords[0] = 1.0;
         Vector N;
 
-        p_brep_face_curve.ShapeFunctionsValues(N, coords);
-        KRATOS_WATCH(N)
-        Matrix DN_De;
-        p_brep_face_curve.ShapeFunctionsLocalGradients(DN_De, coords);
-        KRATOS_WATCH(DN_De)
+        //brep_face_curve.ShapeFunctionsValues(N, coords);
+        //KRATOS_WATCH(N)
+        //Matrix DN_De;
+        //brep_face_curve.ShapeFunctionsLocalGradients(DN_De, coords);
+        //KRATOS_WATCH(DN_De)
 
-        array_1d<double, 3> result(3, 0.0);
-        p_brep_face_curve.GlobalCoordinates(result, coords);
-        KRATOS_WATCH(result)
+        //array_1d<double, 3> result(3, 0.0);
+        //brep_face_curve.GlobalCoordinates(result, coords);
+        //KRATOS_WATCH(result)
 
         //auto results = p_brep_face_curve.GlobalDerivatives(coords, 3);
         //KRATOS_WATCH(results[0])
