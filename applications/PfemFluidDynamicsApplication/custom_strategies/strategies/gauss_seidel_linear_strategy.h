@@ -20,7 +20,7 @@
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
-#include "boost/timer.hpp"
+//#include "boost/timer.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -547,7 +547,7 @@ private:
 
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         typename TSchemeType::Pointer pScheme = GetScheme();
-        int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+        //int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
     	/* ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo(); */
 
@@ -562,7 +562,7 @@ private:
 	/* std::cout << "Gauss-Seidel VP Strategy,  CurrentTime: " << pCurrentProcessInfo[TIME] << std::endl; */
 
         //loop to reform the dofset
-        boost::timer system_construction_time;
+        // boost::timer system_construction_time;
 
     	//setting up the list of the DOFs to be solved
     	pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
@@ -572,8 +572,8 @@ private:
 
     	//setting up the Vectors involved to the correct size
     	pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
-        if (BaseType::GetEchoLevel() > 1 && rank == 0)
-    	  std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
+        //if (BaseType::GetEchoLevel() > 1 && rank == 0)
+    	//  std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
 
 
         TSystemMatrixType& mA = *mpA;
