@@ -44,8 +44,8 @@ public:
 
     typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
-    /// Counted pointer of NurbsSurfaceShapeFunction
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NurbsCurveGeometry);
+    /// Counted pointer of NurbsCurveGeometry
+    KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveGeometry);
 
     ///@}
     ///@name Life Cycle
