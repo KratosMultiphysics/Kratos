@@ -8,7 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Tobias Teschemacher
-//  contributors:    Pooyan Dadvand
+//                   Andreas Apostolatos
+//                   Pooyan Dadvand
 //                   Philipp Bucher
 //
 
@@ -182,25 +183,6 @@ public:
     ///@}
     ///@name Geometrical Operations
     ///@{
-
-    /*
-    * @brief This method maps from local space to working space and computes the
-    *        number of derivatives at the local space parameter in the dimension of the object.
-    * @param LocalCoordinates The local coordinates in dimension space
-    * @param Derivative Number of computed derivatives
-    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
-    * @see PointLocalCoordinates
-    */
-    //std::vector<CoordinatesArrayType> GlobalDerivatives(
-    //    const CoordinatesArrayType& rCoordinates,
-    //    const SizeType DerivativeOrder) const
-    //{
-    //    CoordinatesArrayType result(3, 0.0);
-
-    //    mpNurbsCurve->GlobalCoordinates(result, rCoordinates);
-
-    //    return mpNurbsSurface->GlobalDerivatives(rCoordinates, DerivativeOrder);
-    //}
 
     /*
     * @brief This method maps from dimension space to working space.
