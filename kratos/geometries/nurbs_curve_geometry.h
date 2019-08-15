@@ -462,12 +462,7 @@ private:
     NurbsCurveGeometry() : BaseType(PointsArrayType(), &msGeometryData) {};
 
     ///@}
-    ///@name Private Friends
-    ///@{
 
-    template<int TWorkingSpaceDimension, class TOtherPointType> friend class NurbsCurveGeometry;
-
-    ///@}
 }; // class NurbsCurveGeometry
 
 template<int TWorkingSpaceDimension, class TPointType>

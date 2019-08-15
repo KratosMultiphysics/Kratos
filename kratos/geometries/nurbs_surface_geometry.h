@@ -44,7 +44,7 @@ public:
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
-    typedef typename PointType::Pointer PointPointerType;
+    typedef typename TPointType::Pointer PointPointerType;
     typedef const PointPointerType ConstPointPointerType;
     typedef TPointType& PointReferenceType;
     typedef const TPointType& ConstPointReferenceType;
@@ -592,12 +592,7 @@ private:
     NurbsSurfaceGeometry() : BaseType(PointsArrayType(), &msGeometryData) {};
 
     ///@}
-    ///@name Private Friends
-    ///@{
 
-    template<int TWorkingSpaceDimension, class TOtherPointType> friend class NurbsSurfaceGeometry;
-
-    ///@}
 }; // class NurbsSurfaceGeometry
 
 template<int TWorkingSpaceDimension, class TPointType>
