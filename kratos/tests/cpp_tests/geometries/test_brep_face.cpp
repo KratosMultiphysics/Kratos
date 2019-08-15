@@ -165,9 +165,7 @@ namespace Testing {
 
         BrepFace<NodeType, Point>::BrepFaceCurveLoopArrayType outer_loops(1);
         outer_loops[0] = outer_loop;
-
         BrepFace<NodeType, Point>::BrepFaceCurveLoopArrayType inner_loops(0);
-        //std::vector<std::vector<BrepFaceCurve<NodeType, Point>::Pointer>> inner_loops(0);
 
         auto brep_face = BrepFace<NodeType, Point>(
             p_surface, outer_loops, inner_loops);
@@ -177,9 +175,6 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(brep_face.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(brep_face.LocalSpaceDimension(), 2);
 
-        KRATOS_WATCH(brep_face.Dimension())
-            KRATOS_WATCH(brep_face.WorkingSpaceDimension())
-            KRATOS_WATCH(brep_face.LocalSpaceDimension())
 
         //array_1d<double, 3> coords(3, 0.0);
         //coords[0] = 1.0;
