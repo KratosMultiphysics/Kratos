@@ -208,6 +208,7 @@ public:
     typedef const TPointType& ConstPointReferenceType;
     typedef std::vector<PointPointerType> PointPointerContainerType;
 
+    /// PointsArrayType typedefs
     typedef typename PointsArrayType::iterator iterator;
     typedef typename PointsArrayType::const_iterator const_iterator;
 
@@ -322,9 +323,7 @@ public:
     }
 
     /// Destructor. Do nothing!!!
-    virtual ~Geometry()
-    {
-    };
+    virtual ~Geometry() {}
 
     virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
     {
@@ -410,20 +409,8 @@ public:
         return mPoints(i);
     }
 
-    //virtual bool operator==(const Geometry& r) const // nothrow
-    //{
-    //    if (size() != r.size())
-    //        return false;
-    //    else
-    //        return std::equal(
-    //            mPoints.begin(),
-    //            mPoints.end(),
-    //            r.mPoints.begin(),
-    //            this->EqualKeyTo());
-    //}
-
     ///@}
-    ///@name Operations
+    ///@name PointerVector Operations
     ///@{
 
     virtual iterator                   begin()
@@ -497,7 +484,6 @@ public:
     {
         mPoints.push_back(x);
     }
-
 
     virtual void clear()
     {
