@@ -11,6 +11,9 @@ from KratosMultiphysics.StructuralMechanicsApplication import structural_mechani
 # Import auxiliar methods
 from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
 
+# Moving import
+from KratosMultiphysics.ContactStructuralMechanicsApplication import contact_convergence_criteria_factory
+
 def CreateSolver(model, custom_settings):
     return ContactStaticMechanicalSolver(model, custom_settings)
 
@@ -82,13 +85,13 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         super(ContactStaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.
 
         # No verbosity from strategy
-        if self.contact_settings["silent_strategy"].GetBool() is True:
+        if self.contact_settings["silent_strategy"].GetBool():
             mechanical_solution_strategy = self.get_mechanical_solution_strategy()
             mechanical_solution_strategy.SetEchoLevel(0)
 
         # We set the flag INTERACTION
         computing_model_part = self.GetComputingModelPart()
-        if self.contact_settings["simplified_semi_smooth_newton"].GetBool() is True:
+        if self.contact_settings["simplified_semi_smooth_newton"].GetBool():
             computing_model_part.Set(KM.INTERACTION, False)
         else:
             computing_model_part.Set(KM.INTERACTION, True)
@@ -126,7 +129,6 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         return auxiliar_methods_solvers.AuxiliarCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
 
     def _create_convergence_criterion(self):
-        from KratosMultiphysics.ContactStructuralMechanicsApplication import contact_convergence_criteria_factory
         convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
