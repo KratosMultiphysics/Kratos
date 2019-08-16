@@ -130,6 +130,12 @@ namespace Kratos
             Variable<array_1d<double, 3>>& rDestinationVariable,
             const ProcessInfo& rCurrentProcessInfo) override;
 
+        void AddExplicitContribution(
+            const VectorType& rRHSVector,
+            const Variable<VectorType>& rRHSVariable,
+            Variable<double >& rDestinationVariable,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
 
         void GetValuesVector(
             Vector& rValues,
