@@ -55,11 +55,9 @@
 	},{
         "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : [],
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignDirectionVectorProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.SelfWeight3D_truss",
             "variable_name"   : "VOLUME_ACCELERATION",
             "modulus"         : 9.81,

@@ -5,14 +5,13 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
-
-
 import cable_net_test_case
 import os
 
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication", "CoSimulationApplication")
+
+from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 
 def GetFilePath(fileName):

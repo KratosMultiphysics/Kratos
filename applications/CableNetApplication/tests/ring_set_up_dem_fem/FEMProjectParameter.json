@@ -45,7 +45,6 @@
 		"check"                       : "DirectorVectorNonZero direction",
 		"process_name"                : "AssignDirectionVectorProcess",
 		"Parameters"      : {
-			"mesh_id"                 : 0,
 			"model_part_name"         : "Structure",
 			"variable_name"           : "VOLUME_ACCELERATION",
 			"modulus"                 : 9.81,
