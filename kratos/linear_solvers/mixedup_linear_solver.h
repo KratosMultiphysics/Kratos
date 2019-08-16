@@ -21,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "reorderer.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 #include "linear_solvers/iterative_solver.h"
 #include <boost/numeric/ublas/vector.hpp>
