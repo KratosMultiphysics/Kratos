@@ -32,11 +32,19 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
                 DeleteFileIfExisting("diffusion_test_primal.post.bin")
                 DeleteFileIfExisting("diffusion_test_adjoint.post.bin")
 
+    def testAdjointHeatDiffusion(self):
+        self.directSensitivityCheck()
+
     def testAdjointHeatDiffusionWithSourceTerm(self):
         self.volume_source = 200.0
-        self.testAdjointHeatDiffusion()
+        self.directSensitivityCheck()
 
-    def testAdjointHeatDiffusion(self):
+    def testAdjointHeatDiffusionWithConvectionCondition(self):
+        self.primal_parameter_file_name = "ProjectParametersConvectionConditionPrimal.json"
+        self.adjoint_parameter_file_name = "ProjectParametersConvectionConditionAdjoint.json"
+        self.directSensitivityCheck()
+
+    def directSensitivityCheck(self):
         model = kratos.Model()
         settings = kratos.Parameters(r'''{}''')
 
@@ -65,7 +73,12 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
             for node_id,fd_sensitivity in zip(self.node_ids_to_test, finite_difference_results):
                 node = adjoint_model_part.Nodes[node_id]
                 adjoint_sensitivity = node.GetSolutionStepValue(kratos.SHAPE_SENSITIVITY,0)
-                #print(node_id, adjoint_sensitivity, fd_sensitivity, adjoint_sensitivity-fd_sensitivity)
+                #diff = adjoint_sensitivity-fd_sensitivity
+                #if (diff[0]**2 + diff[1]**2 + diff[2]**2)**0.5 < self.check_tolerance:
+                #    status = "PASS"
+                #else:
+                #    status = "FAIL"
+                #print(status, node_id, adjoint_sensitivity, fd_sensitivity, diff)
                 self.assertAlmostEqual(adjoint_sensitivity[0], fd_sensitivity[0], delta=self.check_tolerance)
                 self.assertAlmostEqual(adjoint_sensitivity[1], fd_sensitivity[1], delta=self.check_tolerance)
 
