@@ -15,8 +15,11 @@ from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_me
 from KratosMultiphysics import eigen_solver_factory
 
 # Convergence criteria class
-class convergence_criterion:
-    def __init__(self, convergence_criterion_parameters):
+class ContactConvergenceCriteriaFactory:
+    def __init__(self, model_part, convergence_criterion_parameters):
+        # The main model part
+        self.model_part = model_part
+
         # Note that all the convergence settings are introduced via a Kratos parameters object.
         self.echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         self.convergence_criterion_name = convergence_criterion_parameters["convergence_criterion"].GetString()
