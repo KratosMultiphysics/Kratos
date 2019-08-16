@@ -448,6 +448,13 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
 
         self.__SetUpAdjointSubAnalysis()
 
+        # adjustment of influence function. Needed to create adjoint fields.
+        self.add_particular_solution = False
+        if adjoint_parameters["solver_settings"]["response_function_settings"].Has("add_particular_solution"):
+            self.add_particular_solution = adjoint_parameters["solver_settings"]["response_function_settings"]["add_particular_solution"].GetBool()
+            # Set now the the bool to False in order to prevent wrong behaviour in dummy response
+            adjoint_parameters["solver_settings"]["response_function_settings"]["add_particular_solution"].SetBool(False)
+
         # use here c++ local stress response as meaningful dummy
         adjoint_parameters["solver_settings"]["response_function_settings"]["response_type"].SetString("adjoint_local_stress")
         adjoint_parameters["solver_settings"]["response_function_settings"]["stress_type"].SetString("FX")
@@ -572,6 +579,9 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
 
     # --------------------------------------------------------------------------
     def FinalizeSolutionStep(self):
+        # add particular solution in order to compute and visualize the adjoint fields within 'OutputSolutionStep'.
+        if self.add_particular_solution:
+            self._AddParticularSolutionToStressInfluenceFunction()
         self.adjoint_analysis.OutputSolutionStep()
 
     # --------------------------------------------------------------------------
@@ -731,6 +741,36 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
             dim_z = self.response_cross_section.GetCharacteristicDimensionZ()
             zp *= dim_z
         return yp, zp
+
+    # --------------------------------------------------------------------------
+    def _AddParticularSolutionToStressInfluenceFunction(self):
+        # in this function the negative unit pre-deformations of the the stress resultant influence functions
+        # are scaled according to the stress formula and summed up leading to the particular solution of the
+        # normal stress influence function. Needed to compute the adjoint fields within the method of
+        # generalized influence functions.
+        yp, zp = self._GetStressPositionWithinCrossSection()
+        A = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.CROSS_AREA]
+        I22 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I22]
+        I33 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I33]
+
+        elem_fx = self.adjoint_model_part_fx.GetElement(self.traced_element_id)
+        elem_my = self.adjoint_model_part_my.GetElement(self.traced_element_id)
+        elem_mz = self.adjoint_model_part_mz.GetElement(self.traced_element_id)
+        elem_stress = self.adjoint_model_part.GetElement(self.traced_element_id)
+
+        if  (elem_fx.Has(StructuralMechanicsApplication.ADJOINT_PARTICULAR_DISPLACEMENT) == False or
+                elem_my.Has(StructuralMechanicsApplication.ADJOINT_PARTICULAR_DISPLACEMENT) == False or
+                elem_mz.Has(StructuralMechanicsApplication.ADJOINT_PARTICULAR_DISPLACEMENT) == False):
+            raise RuntimeError('Some or all adjoint sub analysis have no particular solution!')
+
+        part_sol_fx = elem_fx.GetValue(StructuralMechanicsApplication.ADJOINT_PARTICULAR_DISPLACEMENT)
+        part_sol_my = elem_my.GetValue(StructuralMechanicsApplication.ADJOINT_PARTICULAR_DISPLACEMENT)
+        part_sol_mz = elem_mz.GetValue(StructuralMechanicsApplication.ADJOINT_PARTICULAR_DISPLACEMENT)
+        complete_part_sol = (part_sol_fx / A +
+                             part_sol_my / I22 * zp +
+                             part_sol_mz / I33 * yp )
+        elem_stress.SetValue(StructuralMechanicsApplication.ADJOINT_PARTICULAR_DISPLACEMENT, complete_part_sol)
+
 
     """
     **************************************************************************************************************
