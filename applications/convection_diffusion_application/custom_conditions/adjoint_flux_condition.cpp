@@ -289,9 +289,6 @@ typename AdjointFluxCondition<PrimalCondition>::MatrixType AdjointFluxCondition<
     return jacobian;
 }
 
-
-template class AdjointFluxCondition<FluxCondition<2>>;
-template class AdjointFluxCondition<FluxCondition<3>>;
 template class AdjointFluxCondition<ThermalFace>;
 
 }
