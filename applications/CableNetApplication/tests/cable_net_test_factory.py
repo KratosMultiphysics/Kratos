@@ -10,8 +10,12 @@ import os
 
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication", "CoSimulationApplication")
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+if kratos_utils.CheckIfApplicationsAvailable("CoSimulationApplication"):
+    from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
+
+if kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
+    from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+
 
 
 def GetFilePath(fileName):
