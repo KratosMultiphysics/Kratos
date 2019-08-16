@@ -209,12 +209,19 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
     auto& r_settings = *p_settings;
 
     const Variable<double>& r_flux_variable = r_settings.GetSurfaceSourceVariable();
+    const Variable<double>& r_unknown_variable = r_settings.GetUnknownVariable();
 
     Vector nodal_flux = ZeroVector(num_nodes);
+    Vector nodal_unknown = ZeroVector(num_nodes);
     for (unsigned int i = 0; i < num_nodes; i++)
     {
         nodal_flux[i] = r_geom[i].FastGetSolutionStepValue(r_flux_variable);
+        nodal_unknown[i] = r_geom[i].FastGetSolutionStepValue(r_unknown_variable);
     }
+
+    const Properties& r_properties = this->GetProperties();
+    const double ambient_temperature = r_properties.GetValue(AMBIENT_TEMPERATURE);
+    const double convection_coefficient = r_properties.GetValue(CONVECTION_COEFFICIENT);
 
     if (rDesignVariable == SHAPE_SENSITIVITY)
     {
@@ -231,6 +238,8 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
 
             Vector N = row(shape_functions, g);
             double q_gauss = inner_prod(N,nodal_flux);
+            double value_gauss = inner_prod(N, nodal_unknown);
+            q_gauss += convection_coefficient*(value_gauss - ambient_temperature); // add flux contribution from convection condition
 
             const double weight = integration_points[g].Weight();
 
