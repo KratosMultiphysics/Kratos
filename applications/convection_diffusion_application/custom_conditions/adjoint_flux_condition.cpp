@@ -61,22 +61,11 @@ void AdjointFluxCondition<PrimalCondition>::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-    const Geometry<Node<3>>& r_geom = this->GetGeometry();
-    const unsigned int num_nodes = r_geom.PointsNumber();
+    // Delegating LHS matrix to base class
+    PrimalCondition::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
-    if (rLeftHandSideMatrix.size1() != num_nodes || rLeftHandSideMatrix.size2() != num_nodes)
-    {
-        rLeftHandSideMatrix.resize(num_nodes,num_nodes,0);
-    }
-
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(num_nodes,num_nodes);
-
-    if (rRightHandSideVector.size() != num_nodes)
-    {
-        rRightHandSideVector.resize(num_nodes,false);
-    }
-
-    noalias(rRightHandSideVector) = ZeroVector(num_nodes);
+    // Setting the RHS vector to zero
+    noalias(rRightHandSideVector) = ZeroVector(rLeftHandSideMatrix.size2());
 }
 
 template<class PrimalCondition>
