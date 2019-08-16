@@ -405,6 +405,21 @@ void WeakSlidingElement3D3N::AddExplicitContribution(
 
     KRATOS_CATCH("")
 }
+
+void WeakSlidingElement3D3N::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY;
+    // overwriting base class function to omit error msg
+    // this element does not contribute any mass or damping
+    KRATOS_CATCH("")
+}
+
+
 void WeakSlidingElement3D3N::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 }

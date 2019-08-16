@@ -10,6 +10,9 @@ import os
 
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication", "CoSimulationApplication")
 
+# needed to find elements associated with CableNetApplication
+import KratosMultiphysics.CableNetApplication
+
 if kratos_utils.CheckIfApplicationsAvailable("CoSimulationApplication"):
     from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
 
@@ -102,6 +105,11 @@ class TestCableNetFEMCases(cable_net_test_case.CableNetTestCase):
         def test_RingElement(self):
             with KratosUnittest.WorkFolderScope(".", __file__):
                 self._createTest("ring_element")
+                self._runTest()
+
+        def test_WeakSlidingElementExplicitTimeInt(self):
+            with KratosUnittest.WorkFolderScope(".", __file__):
+                self._createTest("weak_sliding_explicit")
                 self._runTest()
 
 if __name__ == '__main__':
