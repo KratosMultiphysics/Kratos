@@ -183,6 +183,13 @@ public:
 
 protected:
 
+    ///@name Protected Life Cycle
+    ///@{
+
+    // Internal default constructor for serialization
+    ThermalFace();
+
+    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -205,9 +212,6 @@ private:
     ///@name Serialization
     ///@{
     friend class Serializer;
-
-    // A private default constructor necessary for serialization
-    ThermalFace();
 
     void save(Serializer& rSerializer) const override;
 
