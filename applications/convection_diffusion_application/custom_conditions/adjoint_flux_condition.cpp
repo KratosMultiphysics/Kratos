@@ -11,6 +11,7 @@
 
 #include "adjoint_flux_condition.h"
 #include "flux_condition.h"
+#include "thermal_face.h"
 
 #include "convection_diffusion_application_variables.h"
 
@@ -293,5 +294,6 @@ typename AdjointFluxCondition<PrimalCondition>::MatrixType AdjointFluxCondition<
 
 template class AdjointFluxCondition<FluxCondition<2>>;
 template class AdjointFluxCondition<FluxCondition<3>>;
+template class AdjointFluxCondition<ThermalFace>;
 
 }
