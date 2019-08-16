@@ -1,17 +1,21 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
-def print_on_rank_zero(*args):
+# Import sys
+import sys
+
+def  print_on_rank_zero(*args):
     # This function will be overridden in the trilinos-solvers
     KM.Logger.PrintInfo(" ".join(map(str, args)))
 
-def print_warning_on_rank_zero(*args):
+def  print_warning_on_rank_zero(*args):
     # This function will be overridden in the trilinos-solvers
     KM.Logger.PrintWarning(" ".join(map(str, args)))
 
-def AuxiliarContactSettings():
+def  AuxiliarContactSettings():
     contact_settings = KM.Parameters("""
     {
         "contact_settings" :
@@ -55,7 +59,7 @@ def AuxiliarContactSettings():
 
     return contact_settings
 
-def AuxiliarExplicitContactSettings():
+def  AuxiliarExplicitContactSettings():
     contact_settings = KM.Parameters("""
     {
         "contact_settings" :
@@ -71,7 +75,7 @@ def AuxiliarExplicitContactSettings():
 
     return contact_settings
 
-def AuxiliarSetSettings(settings, contact_settings):
+def  AuxiliarSetSettings(settings, contact_settings):
     if not settings["clear_storage"].GetBool():
         print_on_rank_zero("Clear storage", "Storage must be cleared each step. Switching to True")
         settings["clear_storage"].SetBool(True)
@@ -86,12 +90,12 @@ def AuxiliarSetSettings(settings, contact_settings):
 
     return settings
 
-def AuxiliarValidateSettings(solver):
+def  AuxiliarValidateSettings(solver):
     default_settings = solver.GetDefaultSettings()
     default_settings.RecursivelyAddMissingParameters(solver.settings)
     solver.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
-def AuxiliarAddVariables(main_model_part, mortar_type = ""):
+def  AuxiliarAddVariables(main_model_part, mortar_type = ""):
     if mortar_type != "":
         main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)  # Add normal
         main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
@@ -120,7 +124,7 @@ def AuxiliarAddVariables(main_model_part, mortar_type = ""):
             main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add vector LM
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
 
-def AuxiliarAddDofs(main_model_part, mortar_type = ""):
+def  AuxiliarAddDofs(main_model_part, mortar_type = ""):
     if mortar_type == "ALMContactFrictionless":                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
         KM.VariableUtils().AddDof(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, CSMA.WEIGHTED_SCALAR_RESIDUAL, main_model_part)
     elif "ALMContactFrictional" in mortar_type or mortar_type == "ALMContactFrictionlessComponents": # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
@@ -134,7 +138,7 @@ def AuxiliarAddDofs(main_model_part, mortar_type = ""):
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, main_model_part)
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, CSMA.WEIGHTED_VECTOR_RESIDUAL_Z, main_model_part)
 
-def AuxiliarSolve(mechanical_solution_strategy):
+def  AuxiliarSolve(mechanical_solution_strategy):
     # The steps of the solve are Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep(), FinalizeSolutionStep()
     mechanical_solution_strategy.Solve()
     # mechanical_solution_strategy.Initialize()
@@ -143,7 +147,7 @@ def AuxiliarSolve(mechanical_solution_strategy):
     # mechanical_solution_strategy.SolveSolutionStep()
     # mechanical_solution_strategy.FinalizeSolutionStep()
 
-def AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, contact_settings):
+def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, contact_settings):
     if settings["time_stepping"].Has("time_step"):
         delta_time = settings["time_stepping"]["time_step"].GetDouble()
         if contact_settings["inner_loop_adaptive"].GetBool():
@@ -168,7 +172,7 @@ def AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, co
     else:
         raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
-def AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_settings):
+def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_settings):
     # Create an auxiliary Kratos parameters object to store the convergence settings.
     if contact_settings["fancy_convergence_criterion"].GetBool():
         table = KM.TableStreamUtility()
@@ -201,7 +205,7 @@ def AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_setti
 
     return conv_params
 
-def AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, linear_solver_settings, linear_solver):
+def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, linear_solver_settings, linear_solver):
     if contact_settings["rescale_linear_solver"].GetBool():
         linear_solver = KM.ScalingSolver(linear_solver, False)
     mortar_type = contact_settings["mortar_type"].GetString()
@@ -256,7 +260,7 @@ def AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, m
                                             newton_parameters
                                             )
 
-def AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
+def  AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")
     newton_parameters.AddValue("adaptative_strategy", contact_settings["adaptative_strategy"])
     newton_parameters.AddValue("split_factor", contact_settings["split_factor"])
