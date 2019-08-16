@@ -5,6 +5,15 @@ import KratosMultiphysics as KM
 # Import applications
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
+# Construction of the class convergence_criterion
+from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
+
+# Import auxiliar methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
+
+# Import eigen solver factory
+from KratosMultiphysics import eigen_solver_factory
+
 # Convergence criteria class
 class convergence_criterion:
     def __init__(self, convergence_criterion_parameters):
@@ -103,9 +112,8 @@ class convergence_criterion:
             # Adding the mortar criteria
             Mortar = self.GetMortarCriteria()
 
-            if (condn_convergence_criterion is True):
+            if condn_convergence_criterion:
                 # Construct the solver
-                from KratosMultiphysics import eigen_solver_factory
                 settings_max = KM.Parameters("""
                 {
                     "solver_type"             : "power_iteration_highest_eigenvalue_solver",
@@ -153,8 +161,6 @@ class convergence_criterion:
         elif self.convergence_criterion_name == "adaptative_remesh_criteria":
             self.mechanical_convergence_criterion = None
         else: # Standard criteria (same as structural mechanics application)
-            # Construction of the class convergence_criterion
-            from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
             base_mechanical_convergence_criterion = convergence_criteria_factory.convergence_criterion(convergence_criterion_parameters)
 
             # Adding the mortar criteria
