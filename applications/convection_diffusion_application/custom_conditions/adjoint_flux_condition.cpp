@@ -239,7 +239,7 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
             Vector N = row(shape_functions, g);
             double q_gauss = inner_prod(N,nodal_flux);
             double value_gauss = inner_prod(N, nodal_unknown);
-            q_gauss += convection_coefficient*(value_gauss - ambient_temperature); // add flux contribution from convection condition
+            q_gauss -= convection_coefficient*(value_gauss - ambient_temperature); // add flux contribution from convection condition
 
             const double weight = integration_points[g].Weight();
 
