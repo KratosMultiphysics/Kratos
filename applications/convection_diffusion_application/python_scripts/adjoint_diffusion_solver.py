@@ -111,6 +111,7 @@ class AdjointDiffusionSolver(PythonSolver):
             # initialize the adjoint model part using primal results
             primal_model_part = self.model.GetModelPart(self.primal_model_part_name)
             variable_utils = kratos.VariableUtils()
+            variable_utils.CopyModelPartNodalVar(kratos.CONDUCTIVITY, primal_model_part, self.model_part, 0)
             variable_utils.CopyModelPartNodalVar(kratos.TEMPERATURE, primal_model_part, self.model_part, 0)
             variable_utils.CopyModelPartNodalVar(kratos.HEAT_FLUX, primal_model_part, self.model_part, 0)
             variable_utils.CopyModelPartNodalVar(kratos.FACE_HEAT_FLUX, primal_model_part, self.model_part, 0)
