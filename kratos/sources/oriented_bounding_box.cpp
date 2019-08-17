@@ -281,8 +281,8 @@ bool OrientedBoundingBox<TDim>::DirectHasIntersection(const OrientedBoundingBox<
 
     // Id 2D we check edges
     if (TDim == 2) {
-        auto r_edges_1 = geom1.Edges();
-        auto r_edges_2 = geom2.Edges();
+        const auto r_edges_1 = geom1.GenerateEdges();
+        const auto r_edges_2 = geom2.GenerateEdges();
         Point int_pt(0.0,0.0,0.0);
         for (auto& r_edge_1 : r_edges_1) {
             for (auto& r_edge_2 : r_edges_2) {
@@ -298,8 +298,8 @@ bool OrientedBoundingBox<TDim>::DirectHasIntersection(const OrientedBoundingBox<
             }
         }
     } else { // If 3D we check faces
-        auto faces_1 = geom1.Faces();
-        auto faces_2 = geom2.Faces();
+        const auto faces_1 = geom1.GenerateFaces();
+        const auto faces_2 = geom2.GenerateFaces();
         for (auto& r_face_1 : faces_1) {
             for (auto& r_face_2 : faces_2) {
                 if (r_face_1.HasIntersection(r_face_2)){
