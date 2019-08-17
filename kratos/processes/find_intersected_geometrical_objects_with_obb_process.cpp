@@ -218,9 +218,9 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection2D(
     )
 {
     // The edges
-    PointerVector<GeometryType> r_edges_1 = rFirstGeometry.Edges();
+    const PointerVector<GeometryType> r_edges_1 = rFirstGeometry.GenerateEdges();
     const std::size_t number_of_edges_1 = r_edges_1.size();
-    PointerVector<GeometryType> r_edges_2 = rSecondGeometry.Edges();
+    const PointerVector<GeometryType> r_edges_2 = rSecondGeometry.GenerateEdges();
     const std::size_t number_of_edges_2 = r_edges_2.size();
 
     // First geometry
@@ -308,10 +308,10 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection3D(
     )
 {
     // The faces
-    PointerVector<GeometryType> r_faces_1 = rFirstGeometry.Faces();
+    const PointerVector<GeometryType> r_faces_1 = rFirstGeometry.GenerateFaces();
     const std::size_t number_of_faces_1 = r_faces_1.size();
 
-    PointerVector<GeometryType> r_faces_2 = rSecondGeometry.Faces();
+    const PointerVector<GeometryType> r_faces_2 = rSecondGeometry.GenerateFaces();
     const std::size_t number_of_faces_2 = r_faces_2.size();
 
     // First geometry
