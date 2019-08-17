@@ -240,16 +240,9 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
 
 def  AuxiliarPureSlipCheck(model_part):
     # Check if the properties have friction coefficient
-    aux_sum_friction_coeff = 0.0
-    for prop in model_part.GetProperties():
-           if prop.Has(KM.FRICTION_COEFFICIENT):
-               aux_sum_friction_coeff += prop.GetValue(KM.FRICTION_COEFFICIENT)
-
+    aux_sum_friction_coeff = sum(prop.GetValue(KM.FRICTION_COEFFICIENT) for prop in model_part.GetProperties() if prop.Has(KM.FRICTION_COEFFICIENT))
     # Check value
-    if aux_sum_friction_coeff > sys.float_info.epsilon:
-        return False
-    else:
-        return True
+    return False if aux_sum_friction_coeff > sys.float_info.epsilon else True
 
 def  AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")
