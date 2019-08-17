@@ -27,7 +27,7 @@ ContactSearchWrapperProcess::ContactSearchWrapperProcess(
 {
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // The dimensions
     const SizeType dimension = rMainModelPart.GetProcessInfo()[DOMAIN_SIZE];
