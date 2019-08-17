@@ -18,7 +18,6 @@ cmake .. \
 -DDAM_APPLICATION=ON                                                                            \
 -DDEM_APPLICATION=ON                                                                            \
 -DCO_SIMULATION_APPLICATION=ON                                                                  \
--DEMPIRE_APPLICATION=ON                                                                         \
 -DEXTERNAL_SOLVERS_APPLICATION=ON                                                               \
 -DFSI_APPLICATION=ON                                                                            \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                                 \
