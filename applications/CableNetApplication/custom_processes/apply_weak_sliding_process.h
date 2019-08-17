@@ -122,7 +122,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
 
         for(NodeType& node_i : r_nodes_slave)
         {
-            std::vector<int> neighbour_nodes = FindNearestNeighbours(node_i);
+            std::vector<std::size_t> neighbour_nodes = FindNearestNeighbours(node_i);
 
             const SizeType number_nodes     = 3;
             std::vector<NodeType::Pointer> element_nodes (number_nodes);
@@ -142,15 +142,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
         KRATOS_CATCH("");
     }
 
-    std::vector<int> FindNearestNeighbours(const NodeType& node_i)
+    std::vector<std::size_t> FindNearestNeighbours(const NodeType& node_i)
     {
         KRATOS_TRY;
         ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["model_part_name_master"].GetString());
         NodesArrayType &r_nodes_master  = master_model_part.Nodes();
 
-        double distance = 1e12;
+        double distance = 1e12; // better: std::numeric_limits<double>::max()
         double distance_i = 0.0;
-        std::vector<int> neighbour_ids = {0,0};
+        std::vector<std::size_t> neighbour_ids = {0,0};
 
 
         for(NodeType& node_j : r_nodes_master)
@@ -163,7 +163,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
             }
         }
 
-        distance = 1e12;
+        distance = 1e12; // better: std::numeric_limits<double>::max()
 
         for(NodeType& node_j : r_nodes_master)
         {

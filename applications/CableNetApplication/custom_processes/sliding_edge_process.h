@@ -365,16 +365,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
 
 
 
-    std::vector<int> FindNearestNeighboursCustom(const NodeType& node_i, std::vector<double>& weights)
+    std::vector<std::size_t> FindNearestNeighboursCustom(const NodeType& node_i, std::vector<double>& weights)
     {
         KRATOS_TRY;
         //const double numerical_limit    = std::numeric_limits<double>::epsilon();
         ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
         NodesArrayType &r_nodes_master  = master_model_part.Nodes();
 
-        double distance = 1e12;
+        double distance = 1e12; // better: std::numeric_limits<double>::max()
         double distance_i = 0.0;
-        std::vector<int> neighbour_ids = {0,0};
+        std::vector<std::size_t> neighbour_ids = {0,0};
         weights.clear();
         weights = {0.0,0.0};
 
@@ -388,7 +388,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
             }
         }
         weights[0] = distance;
-        distance = 1e12;
+        distance = 1e12; // better: std::numeric_limits<double>::max()
 
         for(NodeType& node_j : r_nodes_master)
         {
@@ -443,7 +443,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
       for(NodeType& node_i : r_nodes_slave)
       {
         std::vector<double> nodal_weights = {0.0,0.0};
-        std::vector<int> neighbour_node_ids = FindNearestNeighboursCustom(node_i,nodal_weights);
+        std::vector<std::size_t> neighbour_node_ids = FindNearestNeighboursCustom(node_i,nodal_weights);
         NodeVector neighbour_nodes( max_number_of_neighbours );
         neighbour_nodes[0] = master_model_part.pGetNode(neighbour_node_ids[0]);
         neighbour_nodes[1] = master_model_part.pGetNode(neighbour_node_ids[1]);

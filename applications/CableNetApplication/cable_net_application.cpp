@@ -42,11 +42,11 @@ void KratosCableNetApplication::Register()
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    KRATOS_INFO("")  <<  "    KRATOS ___      _     _          __     _\n"
-                     <<  "          / __\\__ _| |__ | | ___  /\\ \\ \\___| |_\n"
-                     <<  "         / /  / _` | '_ \\| |/ _ \\/  \\/ / _ \\ __|\n"
-                     <<  "        / /__| (_| | |_) | |  __/ /\\  /  __/ |_\n"
-                     <<  "        \\____/\\__,_|_.__/|_|\\___\\_\\ \\/ \\___|\\__| Application\n"
+    KRATOS_INFO("")  <<  "    KRATOS    ___      _     _          __     _\n"
+                     <<  "             / __\\__ _| |__ | | ___  /\\ \\ \\___| |_\n"
+                     <<  "            / /  / _` | '_ \\| |/ _ \\/  \\/ / _ \\ __|\n"
+                     <<  "           / /__| (_| | |_) | |  __/ /\\  /  __/ |_\n"
+                     <<  "           \\____/\\__,_|_.__/|_|\\___\\_\\ \\/ \\___|\\__| Application\n"
                      <<    "Initializing KratosCableNetApplication..." << std::endl;
 
 
