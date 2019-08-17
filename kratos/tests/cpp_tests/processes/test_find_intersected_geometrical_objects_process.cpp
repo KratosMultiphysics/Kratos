@@ -33,12 +33,12 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess2D, KratosCoreFastSuite)
         {
-            Node<3>::Pointer p_point1(new Node<3>(1, 0.0, 0.0, 0.0));
-            Node<3>::Pointer p_point2(new Node<3>(2, 0.0, 1.0, 0.0));
-            Node<3>::Pointer p_point3(new Node<3>(3, 1.0, 1.0, 0.0));
-            Node<3>::Pointer p_point4(new Node<3>(4, 1.0, 0.0, 0.0));
+            NodeType::Pointer p_point1(new NodeType(1, 0.0, 0.0, 0.0));
+            NodeType::Pointer p_point2(new NodeType(2, 0.0, 1.0, 0.0));
+            NodeType::Pointer p_point3(new NodeType(3, 1.0, 1.0, 0.0));
+            NodeType::Pointer p_point4(new NodeType(4, 1.0, 0.0, 0.0));
 
-            Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+            Quadrilateral2D4<NodeType > geometry(p_point1, p_point2, p_point3, p_point4);
 
             Parameters mesher_parameters(R"(
             {
@@ -125,12 +125,12 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection2D, KratosCoreFastSuite)
         {
-            Node<3>::Pointer p_point1(new Node<3>(1, 0.0, 0.0, 0.0));
-            Node<3>::Pointer p_point2(new Node<3>(2, 0.0, 1.0, 0.0));
-            Node<3>::Pointer p_point3(new Node<3>(3, 1.0, 1.0, 0.0));
-            Node<3>::Pointer p_point4(new Node<3>(4, 1.0, 0.0, 0.0));
+            NodeType::Pointer p_point1(new NodeType(1, 0.0, 0.0, 0.0));
+            NodeType::Pointer p_point2(new NodeType(2, 0.0, 1.0, 0.0));
+            NodeType::Pointer p_point3(new NodeType(3, 1.0, 1.0, 0.0));
+            NodeType::Pointer p_point4(new NodeType(4, 1.0, 0.0, 0.0));
 
-            Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+            Quadrilateral2D4<NodeType > geometry(p_point1, p_point2, p_point3, p_point4);
 
             Parameters mesher_parameters(R"(
             {
@@ -509,11 +509,11 @@ namespace Kratos {
             ModelPart &surface_part = current_model.CreateModelPart("Surface");
 
             // Create surface part
-            Node<3>::Pointer p_point1(new Node<3>(1, 0.0, 0.0, 0.0));
-            Node<3>::Pointer p_point2(new Node<3>(2, 0.0, 1.0, 0.0));
-            Node<3>::Pointer p_point3(new Node<3>(3, 1.0, 1.0, 0.0));
-            Node<3>::Pointer p_point4(new Node<3>(4, 1.0, 0.0, 0.0));
-            Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+            NodeType::Pointer p_point1(new NodeType(1, 0.0, 0.0, 0.0));
+            NodeType::Pointer p_point2(new NodeType(2, 0.0, 1.0, 0.0));
+            NodeType::Pointer p_point3(new NodeType(3, 1.0, 1.0, 0.0));
+            NodeType::Pointer p_point4(new NodeType(4, 1.0, 0.0, 0.0));
+            Quadrilateral2D4<NodeType > geometry(p_point1, p_point2, p_point3, p_point4);
             Parameters mesher_parameters(R"({
                 "number_of_divisions" : 3,
                 "element_name" : "Element2D3N"
@@ -537,16 +537,16 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess3D, KratosCoreFastSuite)
         {
-            Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-            Node<3>::Pointer p_point2(new Node<3>(2, 10.00, 0.00, 0.00));
-            Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-            Node<3>::Pointer p_point4(new Node<3>(4, 0.00, 10.00, 0.00));
-            Node<3>::Pointer p_point5(new Node<3>(5, 0.00, 0.00, 10.00));
-            Node<3>::Pointer p_point6(new Node<3>(6, 10.00, 0.00, 10.00));
-            Node<3>::Pointer p_point7(new Node<3>(7, 10.00, 10.00, 10.00));
-            Node<3>::Pointer p_point8(new Node<3>(8, 0.00, 10.00, 10.00));
+            NodeType::Pointer p_point1(new NodeType(1, 0.00, 0.00, 0.00));
+            NodeType::Pointer p_point2(new NodeType(2, 10.00, 0.00, 0.00));
+            NodeType::Pointer p_point3(new NodeType(3, 10.00, 10.00, 0.00));
+            NodeType::Pointer p_point4(new NodeType(4, 0.00, 10.00, 0.00));
+            NodeType::Pointer p_point5(new NodeType(5, 0.00, 0.00, 10.00));
+            NodeType::Pointer p_point6(new NodeType(6, 10.00, 0.00, 10.00));
+            NodeType::Pointer p_point7(new NodeType(7, 10.00, 10.00, 10.00));
+            NodeType::Pointer p_point8(new NodeType(8, 0.00, 10.00, 10.00));
 
-            Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+            Hexahedra3D8<NodeType > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
             Parameters mesher_parameters(R"(
             {
