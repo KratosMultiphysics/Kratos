@@ -7,14 +7,6 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 # Import sys
 import sys
 
-def  print_on_rank_zero(*args):
-    # This function will be overridden in the trilinos-solvers
-    KM.Logger.PrintInfo(" ".join(map(str, args)))
-
-def  print_warning_on_rank_zero(*args):
-    # This function will be overridden in the trilinos-solvers
-    KM.Logger.PrintWarning(" ".join(map(str, args)))
-
 def  AuxiliarContactSettings():
     contact_settings = KM.Parameters("""
     {
@@ -77,15 +69,15 @@ def  AuxiliarExplicitContactSettings():
 
 def  AuxiliarSetSettings(settings, contact_settings):
     if not settings["clear_storage"].GetBool():
-        print_on_rank_zero("Clear storage", "Storage must be cleared each step. Switching to True")
+        KM.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
         settings["clear_storage"].SetBool(True)
     if not settings["reform_dofs_at_each_step"].GetBool():
-        print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
+        KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         settings["reform_dofs_at_each_step"].SetBool(True)
     mortar_type = contact_settings["mortar_type"].GetString()
     if "Frictional" in mortar_type:
         if not settings["buffer_size"].GetInt() < 3:
-            print_on_rank_zero("Reform Buffer Size", "Buffer size requires a size of at least 3. Switching to 3")
+            KM.Logger.PrintInfo("Reform Buffer Size", "Buffer size requires a size of at least 3. Switching to 3")
             settings["buffer_size"].SetInt(3)
 
     return settings
@@ -211,7 +203,7 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
     mortar_type = contact_settings["mortar_type"].GetString()
     if "ALMContactFrictional" in mortar_type or mortar_type == "ALMContactFrictionlessComponents":
         if contact_settings["use_mixed_ulm_solver"].GetBool():
-            print_on_rank_zero("::[Contact Mechanical Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
+            KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
             name_mixed_solver = contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
             if name_mixed_solver == "mixed_ulm_linear_solver":
                 linear_solver_name = settings["linear_solver_settings"]["solver_type"].GetString()
@@ -239,7 +231,7 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
                 mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
                 return mixed_ulm_solver
             else:
-                print_on_rank_zero("::[Contact Mechanical Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
+                KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
                 return linear_solver
         else:
             return linear_solver
