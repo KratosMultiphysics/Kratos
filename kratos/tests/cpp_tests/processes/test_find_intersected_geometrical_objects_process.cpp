@@ -28,7 +28,7 @@
 namespace Kratos {
     namespace Testing {
 
-        typedef Node<3> NodeType; // TODO: Replace in the rest of the test
+        typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess2D, KratosCoreFastSuite)
