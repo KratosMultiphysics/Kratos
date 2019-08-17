@@ -216,9 +216,9 @@ private:
 
     ModelPart& mThisModelPart;                                  /// The model part to compute
 
-    std::vector<Variable<double>*> mrOriginVariableDoubleList;  /// The scalar variable list to compute
-    std::vector<ComponentType*> mrOriginVariableComponentsList; /// The scalar variable list to compute (components)
-    Variable<double>* mpRatioReferenceVariable = &DISTANCE;     /// Variable used to compute the anisotropic ratio
+    std::vector<const Variable<double>*> mrOriginVariableDoubleList;  /// The scalar variable list to compute
+    std::vector<const ComponentType*> mrOriginVariableComponentsList; /// The scalar variable list to compute (components)
+    const Variable<double>* mpRatioReferenceVariable;           /// Variable used to compute the anisotropic ratio
 
     Parameters mThisParameters;                                 /// Here configurations are stored
     Interpolation mInterpolation;                               /// The interpolation type

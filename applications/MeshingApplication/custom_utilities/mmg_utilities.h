@@ -159,6 +159,9 @@ public:
     /// Index pair
     typedef std::pair<IndexType,IndexType> IndexPairType;
 
+    /// Index and string vector pair
+    typedef std::pair<IndexType, std::vector<std::string>> IndexStringVectorPairType;
+
     ///@}
     ///@name  Enum's
     ///@{
