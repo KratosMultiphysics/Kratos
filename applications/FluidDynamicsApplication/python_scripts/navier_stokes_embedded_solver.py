@@ -124,7 +124,39 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
-    def _get_fm_ale_implicit_default_settings(self):
+    def __GetDistanceModificationDefaultSettings(self, level_set_type):
+        if level_set_type == "continuous":
+            return self.__GetContinuousDistanceModificationDefaultSettings()
+        elif level_set_type == "discontinuous":
+            return self.__GetDiscontinuousDistanceModificationDefaultSettings()
+        else:
+            err_msg = 'Provided level set type is: \'' + level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
+            raise Exception(err_msg)
+
+    @classmethod
+    def __GetContinuousDistanceModificationDefaultSettings(cls):
+        return KratosMultiphysics.Parameters(r'''{
+            "model_part_name": "",
+            "distance_threshold": 1e-3,
+            "continuous_distance": true,
+            "check_at_each_time_step": true,
+            "avoid_almost_empty_elements": true,
+            "deactivate_full_negative_elements": true
+        }''')
+
+    @classmethod
+    def __GetDiscontinuousDistanceModificationDefaultSettings(cls):
+        return KratosMultiphysics.Parameters(r'''{
+            "model_part_name": "",
+            "distance_threshold": 1e-3,
+            "continuous_distance": false,
+            "check_at_each_time_step": true,
+            "avoid_almost_empty_elements": false,
+            "deactivate_full_negative_elements": false
+        }''')
+
+    @classmethod
+    def _get_fm_ale_implicit_default_settings(cls):
         return KratosMultiphysics.Parameters("""
         {
             "virtual_model_part_name": "VirtualModelPart",
@@ -152,7 +184,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         }
         """)
 
-    def _get_fm_ale_explicit_default_settings(self):
+    @classmethod
+    def _get_fm_ale_explicit_default_settings(cls):
         return KratosMultiphysics.Parameters("""
         {
             "virtual_model_part_name": "VirtualModelPart",
@@ -185,6 +218,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             "distance_reading_settings"    : {
                 "import_mode"         : "from_mdpa",
                 "distance_file_name"  : "no_distance_file"
+            },
+            "distance_modification_settings": {
             },
             "maximum_iterations": 7,
             "echo_level": 0,
@@ -336,6 +371,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
         (self.solver).Initialize() # Initialize the solver. Otherwise the constitutive law is not initializated.
 
+        # Set the distance modification process
+        self.__GetDistanceModificationProcess().ExecuteInitialize()
+
         # For the primitive Ausas formulation, set the find nodal neighbours process
         # Recall that the Ausas condition requires the nodal neighbours.
         if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
@@ -381,12 +419,27 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
+            # Correct the distance field
+            # Note that this is intentionally placed in here (and not in the InitializeSolutionStep() of the solver
+            # It has to be done before each call to the Solve() in case an outer non-linear iteration is performed (FSI)
+            self.__GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+
             # Perform the FM-ALE operations
             # Note that this also sets the EMBEDDED_VELOCITY from the MESH_VELOCITY
             self._do_fm_ale_operations()
 
             # Call the base SolveSolutionStep to solve the embedded CFD problem
-            return super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
+            is_converged = super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
+
+            # Undo the FM-ALE virtual mesh movement
+            self._get_mesh_moving_util().UndoMeshMovement()
+
+            # Restore the fluid node fixity to its original status
+            # Note that this is intentionally placed in here (and not in the FinalizeSolutionStep() of the solver
+            # It has to be done after each call to the Solve() and the FM-ALE in case an outer non-linear iteration is performed (FSI)
+            self.__GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+
+            return is_converged
         else:
             return True
 
@@ -450,6 +503,19 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             for node in self.main_model_part.Nodes:
                 distance_value = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -distance_value)
+
+    def __GetDistanceModificationProcess(self):
+        if not hasattr(self, '_distance_modification_process'):
+            self._distance_modification_process = self.__CreateDistanceModificationProcess()
+        return self._distance_modification_process
+
+    def __CreateDistanceModificationProcess(self):
+        # Set the distance modification settings according to the level set type
+        # Note that the distance modification process is applied to the volume model part
+        distance_modification_settings = self.settings["distance_modification_settings"]
+        distance_modification_settings.ValidateAndAssignDefaults(self.__GetDistanceModificationDefaultSettings(self.level_set_type))
+        distance_modification_settings["model_part_name"].SetString(self.settings["volume_model_part_name"].GetString())
+        return KratosCFD.DistanceModificationProcess(self.model, distance_modification_settings)
 
     def _get_fm_ale_structure_model_part(self):
         structure_model_part_name = self.settings["fm_ale_settings"]["fm_ale_solver_settings"]["structure_model_part_name"].GetString()

@@ -35,6 +35,8 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 "import_mode"         : "from_GID_file",
                 "distance_file_name"  : "distance_file"
             },
+            "distance_modification_settings": {
+            },
             "maximum_iterations": 7,
             "echo_level": 0,
             "consider_periodic_conditions": false,
