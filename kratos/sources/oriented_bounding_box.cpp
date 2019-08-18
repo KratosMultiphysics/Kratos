@@ -66,7 +66,7 @@ OrientedBoundingBox<2>::OrientedBoundingBox(
     // Creating OBB
     noalias(mOrientationVectors[0]) = geometry_high_node - geometry_low_node;
     const double norm_orientation_vectors = norm_2(mOrientationVectors[0]);
-    if (norm_orientation_vectors > std::numeric_limits<double>::epsilon())
+    if (norm_orientation_vectors > ZeroTolerance)
         mOrientationVectors[0] /= norm_orientation_vectors;
     else
         KRATOS_ERROR << "Zero norm on OrientedBoundingBox direction" << std::endl;
@@ -96,7 +96,7 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
         // Creating OBB
         noalias(mOrientationVectors[0]) = geometry_high_node - geometry_low_node;
         const double norm_mOrientationVectors = norm_2(mOrientationVectors[0]);
-        if (norm_mOrientationVectors > std::numeric_limits<double>::epsilon())
+        if (norm_mOrientationVectors > ZeroTolerance)
             mOrientationVectors[0] /= norm_mOrientationVectors;
         else
             KRATOS_ERROR << "Zero norm in OrientedBoundingBox direction" << std::endl;
@@ -569,7 +569,7 @@ void OrientedBoundingBox<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
     const double angle = - std::atan2(mOrientationVectors[0][1], mOrientationVectors[0][0]);
 
     // Avoid if no rotation
-    if (std::abs(angle) < std::numeric_limits<double>::epsilon()) {
+    if (std::abs(angle) < ZeroTolerance) {
         return void();
     }
 
