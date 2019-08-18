@@ -87,7 +87,7 @@ public:
     NormalGapProcess(
         ModelPart& rMasterModelPart,
         ModelPart& rSlaveModelPart,
-        const bool SearchOrientation = false
+        const bool SearchOrientation = true
         ) : mrMasterModelPart(rMasterModelPart),
             mrSlaveModelPart(rSlaveModelPart),
             mSearchOrientation(SearchOrientation)
