@@ -99,7 +99,7 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
         if (norm_mOrientationVectors > std::numeric_limits<double>::epsilon())
             mOrientationVectors[0] /= norm_mOrientationVectors;
         else
-            KRATOS_ERROR << "Zero norm on OrientedBoundingBox direction" << std::endl;
+            KRATOS_ERROR << "Zero norm in OrientedBoundingBox direction" << std::endl;
         MathUtils<double>::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
 
         // Compute center
