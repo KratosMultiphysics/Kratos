@@ -679,84 +679,25 @@ public:
     ///@name Input and output
     ///@{
 
-    /** Turn back information as a string.
-
-    @return String contains information about this geometry.
-    @see PrintData()
-    @see PrintInfo()
-    */
+    /// Turn back information as a string.
     virtual std::string Info() const
     {
         return "geometry data";
     }
 
-    /** Print information about this object.
-
-    @param rOStream Stream to print into it.
-    @see PrintData()
-    @see Info()
-    */
+    /// Print information about this object.
     virtual void PrintInfo( std::ostream& rOStream ) const
     {
         rOStream << "geometry data";
     }
 
-    /** Print geometry's data into given stream. Prints it's points
-    by the order they stored in the geometry and then center
-    point of geometry.
-
-    @param rOStream Stream to print into it.
-    @see PrintInfo()
-    @see Info()
-    */
+    /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
         rOStream << "    Dimension               : " << mpGeometryDimension->Dimension() << std::endl;
         rOStream << "    working space dimension : " << mpGeometryDimension->WorkingSpaceDimension() << std::endl;
         rOStream << "    Local space dimension   : " << mpGeometryDimension->LocalSpaceDimension();
     }
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
 
 
     ///@}
@@ -777,8 +718,6 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    template<typename TPointType>
-    friend class Geometry;
 
     friend class Serializer;
 

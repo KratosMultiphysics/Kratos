@@ -164,36 +164,19 @@ public:
     ///@name Input and output
     ///@{
 
-    /** Turn back information as a string.
-
-    @return String contains information about this geometry.
-    @see PrintData()
-    @see PrintInfo()
-    */
+    /// Turn back information as a string.
     virtual std::string Info() const
     {
         return "geometry dimension";
     }
 
-    /** Print information about this object.
-
-    @param rOStream Stream to print into it.
-    @see PrintData()
-    @see Info()
-    */
+    /// Print information about this object.
     virtual void PrintInfo( std::ostream& rOStream ) const
     {
         rOStream << "geometry dimension";
     }
 
-    /** Print geometry's data into given stream. Prints it's points
-    by the order they stored in the geometry and then center
-    point of geometry.
-
-    @param rOStream Stream to print into it.
-    @see PrintInfo()
-    @see Info()
-    */
+    /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
         rOStream << "    Dimension               : " << mDimension << std::endl;
