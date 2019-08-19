@@ -852,10 +852,11 @@ Condition::Pointer BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::A
     // We add the ID and we create a new auxiliar condition
     if (mOptions.Is(BaseContactSearchProcess::CREATE_AUXILIAR_CONDITIONS)) { // TODO: Check this!!
         ++rConditionId;
-        Condition::Pointer p_auxiliar_condition = rComputingModelPart.CreateNewCondition(mConditionName, rConditionId, pObjectSlave->GetGeometry(), pProperties);
+        const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get(mConditionName));
+        Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(rConditionId, pObjectSlave->pGetGeometry(), pProperties, pObjectMaster->pGetGeometry());
         // We set the geometrical values
+        rComputingModelPart.AddCondition(p_auxiliar_condition);
         pIndexesPairs->SetNewEntityId(pObjectMaster->Id(), rConditionId);
-        p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, pObjectMaster->pGetGeometry());
         p_auxiliar_condition->SetValue(NORMAL, rSlaveNormal);
         p_auxiliar_condition->SetValue(PAIRED_NORMAL, rMasterNormal);
         // We activate the condition and initialize it
