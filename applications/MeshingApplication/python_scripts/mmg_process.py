@@ -88,6 +88,7 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["DISTANCE"],
+                "non_historical_metric_variable"   : [false],
                 "estimate_interpolation_error"     : false,
                 "interpolation_error"              : 0.04,
                 "mesh_dependent_constant"          : 0.28125
@@ -247,6 +248,12 @@ class MmgProcess(KratosMultiphysics.Process):
             self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.settings["level_set_strategy_parameters"]["gradient_variable"].GetString() )
         elif self.strategy == "Hessian":
             self.metric_variables = self.__generate_variable_list_from_input(self.settings["hessian_strategy_parameters"]["metric_variable"])
+            self.non_historical_metric_variable = self.__generate_boolean_list_from_input(self.settings["hessian_strategy_parameters"]["non_historical_metric_variable"])
+            len_metric_variables = len(self.metric_variables)
+            len_non_historical_metric_variable = len(self.non_historical_metric_variable)
+            if len_metric_variables > len_non_historical_metric_variable:
+                for i in range(len_non_historical_metric_variable, len_metric_variables):
+                    self.non_historical_metric_variable.append(False)
             mesh_dependent_constant = self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if mesh_dependent_constant == 0.0:
                 self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.domain_size/(self.domain_size + 1))**2.0)
@@ -408,11 +415,14 @@ class MmgProcess(KratosMultiphysics.Process):
             hessian_parameters.AddValue("enforce_current",self.settings["enforce_current"])
             hessian_parameters.AddValue("hessian_strategy_parameters",self.settings["hessian_strategy_parameters"])
             hessian_parameters["hessian_strategy_parameters"].RemoveValue("metric_variable")
+            hessian_parameters["hessian_strategy_parameters"].RemoveValue("non_historical_metric_variable")
+            hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("non_historical_metric_variable")
             hessian_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             hessian_parameters.AddValue("enforce_anisotropy_relative_variable",self.settings["enforce_anisotropy_relative_variable"])
             hessian_parameters.AddValue("enforced_anisotropy_parameters",self.settings["anisotropy_parameters"])
             hessian_parameters["enforced_anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
-            for current_metric_variable in self.metric_variables:
+            for current_metric_variable, non_historical_metric_variable in zip(self.metric_variables, self.non_historical_metric_variable):
+                hessian_parameters["hessian_strategy_parameters"]["non_historical_metric_variable"].SetBool(non_historical_metric_variable)
                 self.metric_processes.append(MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, current_metric_variable, hessian_parameters))
         elif self.strategy == "superconvergent_patch_recovery":
             if not structural_dependencies:
@@ -503,6 +513,20 @@ class MmgProcess(KratosMultiphysics.Process):
         self.metric_process.Execute()
         self.estimated_error = self.main_model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE]
 
+    def __generate_boolean_list_from_input(self,param):
+      '''Parse a list of booleans from input.'''
+      # At least verify that the input is an array
+      if not param.IsArray():
+          raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+      # Retrieve the boolean from the arrays
+      boolean_list = []
+
+      for i in range( 0,param.size()):
+          boolean_list.append(param[i].GetBool())
+
+      return boolean_list
+
     def __generate_submodelparts_list_from_input(self,param):
         '''Parse a list of variables from input.'''
         # At least verify that the input is a string
@@ -519,7 +543,6 @@ class MmgProcess(KratosMultiphysics.Process):
           raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
       # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-
       variable_list = []
       if len(self.main_model_part.Nodes) > 0:
           node = (self.main_model_part.Nodes)[1]
@@ -538,12 +561,11 @@ class MmgProcess(KratosMultiphysics.Process):
 
     def __generate_internal_variable_list_from_input(self,param):
       '''Parse a list of variables from input.'''
-      # At least verify that the input is a string
+      # At least verify that the input is an array
       if not param.IsArray():
           raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
       # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-
       variable_list = []
 
       for i in range( 0,param.size()):
