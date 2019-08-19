@@ -94,7 +94,7 @@ public:
         ) :Condition(NewId, pGeometry),
            mpPairedGeometry(nullptr)
     {
-        KRATOS_ERROR << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
+        KRATOS_WARNING_FIRST_N("PairedCondition", 10) << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
     }
 
     // Constructor 2
@@ -105,7 +105,7 @@ public:
         ) :Condition( NewId, pGeometry, pProperties ),
            mpPairedGeometry(nullptr)
     {
-        KRATOS_ERROR << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
+        KRATOS_WARNING_FIRST_N("PairedCondition", 10) << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
     }
 
     // Constructor 3
