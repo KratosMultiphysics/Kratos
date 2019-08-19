@@ -104,7 +104,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int block_size = this->GetBlockSize();
-    const unsigned int matrix_size = number_of_nodes * block_size * 2;
+    const unsigned int matrix_size = number_of_nodes * dimension * 2;
 
     // Resizing as needed the LHS
     if ( CalculateStiffnessMatrixFlag == true )
@@ -192,19 +192,20 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                     lagrange_matrix(jbase+k, ibase+k) = NN;
                 }
 
-                //TODO: Check this
-                if (augmention_factor > 0.0)
-                {
-                    //Depending on the solver if needed.
-                    if (lagrange_matrix(dimension * j, ibase) <= 0.000001)
-                        lagrange_matrix(ibase, ibase) = augmention_factor;
 
-                    if (lagrange_matrix(dimension * j + 1, ibase + 1) <= 0.000001)
-                        lagrange_matrix(ibase + 1, ibase + 1) = augmention_factor;
+
+                if (augmentation_factor > 0.0)
+                {
+                    //Stabilization
+                    //if (lagrange_matrix(dimension * j, ibase) <= 0.01)
+                        lagrange_matrix(ibase, ibase) = -augmentation_factor;
+
+                    //if (lagrange_matrix(dimension * j + 1, ibase + 1) <= 0.01)
+                        lagrange_matrix(ibase + 1, ibase + 1) = -augmentation_factor;
 
                     if (dimension == 3){
-                        if (lagrange_matrix(dimension * j + 2, ibase + 2) <= 0.000001)
-                            lagrange_matrix(ibase +2, ibase +2) = augmention_factor;
+                        if (lagrange_matrix(dimension * j + 2, ibase + 2) <= 0.001)
+                            lagrange_matrix(ibase +2, ibase +2) = -augmentation_factor;
                     }
                 }
             }

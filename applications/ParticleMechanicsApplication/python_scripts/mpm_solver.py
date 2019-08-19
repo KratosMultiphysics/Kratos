@@ -350,7 +350,7 @@ class MPMSolver(PythonSolver):
         elif (convergence_criterion_parameters["convergence_criterion"].GetString() == "displacement_criterion"):
                 D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
                 D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
-                convergence_criterion = KratosMultiphysics.ResidualCriteria(D_RT, D_AT)
+                convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
                 convergence_criterion.SetEchoLevel(convergence_criterion_parameters["echo_level"].GetInt())
         else:
             err_msg  = "The requested convergence criteria \"" + convergence_criterion_parameters["convergence_criterion"].GetString()
