@@ -130,6 +130,8 @@ public:
     }
 
     ///@}
+    ///@name Integration Method
+    ///@{
 
     IntegrationMethod DefaultIntegrationMethod() const
     {
@@ -140,6 +142,10 @@ public:
     {
         return (!mIntegrationPoints[ThisMethod].empty());
     }
+
+    ///@}
+    ///@name Integration Points
+    ///@{
 
     SizeType IntegrationPointsNumber() const
     {
@@ -161,6 +167,7 @@ public:
         return mIntegrationPoints[ThisMethod];
     }
 
+    ///@}
     ///@name Shape Function
     ///@{
 
@@ -236,36 +243,19 @@ public:
     ///@name Input and output
     ///@{
 
-    /** Turn back information as a string.
-
-    @return String contains information about this geometry.
-    @see PrintData()
-    @see PrintInfo()
-    */
+    /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "geometry data";
+        return "shape function container";
     }
 
-    /** Print information about this object.
-
-    @param rOStream Stream to print into it.
-    @see PrintData()
-    @see Info()
-    */
+    /// Print information about this object.
     virtual void PrintInfo( std::ostream& rOStream ) const
     {
         rOStream << "shape function container";
     }
 
-    /** Print geometry's data into given stream. Prints it's points
-    by the order they stored in the geometry and then center
-    point of geometry.
-
-    @param rOStream Stream to print into it.
-    @see PrintInfo()
-    @see Info()
-    */
+    /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
     }
@@ -304,12 +294,6 @@ private:
     ///@}
 
 }; // Class GeometryShapeFunctionContainer
-
-///@}
-
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output
