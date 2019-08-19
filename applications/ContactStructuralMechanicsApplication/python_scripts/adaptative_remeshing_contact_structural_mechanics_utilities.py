@@ -10,7 +10,7 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 import KratosMultiphysics.StructuralMechanicsApplication.adaptative_remeshing_structural_mechanics_utilities as adaptative_remeshing_structural_mechanics_utilities
 
 # Import factories
-from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_convergence_criteria_factory import convergence_criterion
+from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_convergence_criteria_factory import ContactConvergenceCriteriaFactory
 
 class AdaptativeRemeshingContactMechanicalUtilities(adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingMechanicalUtilities):
     """These are common utilities for adaptative remeshing (for contact)
@@ -36,7 +36,7 @@ class AdaptativeRemeshingContactMechanicalUtilities(adaptative_remeshing_structu
     def GetConvergenceCriteria(self, error_criteria, conv_settings):
         if "_with_adaptative_remesh" in error_criteria:
             conv_settings["convergence_criterion"].SetString(error_criteria.replace("_with_adaptative_remesh", ""))
-        convergence_criterion_created = convergence_criterion(conv_settings)
+        convergence_criterion_created = ContactConvergenceCriteriaFactory(conv_settings)
 
         # If we just use the adaptative convergence criteria
         if error_criteria == "adaptative_remesh_criteria":
