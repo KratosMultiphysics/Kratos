@@ -8,13 +8,12 @@ cd Kratos
 git remote add upstream https://github.com/KratosMultiphysics/Kratos/
 
 # Check out one of the following branches:
-# - master (release)
+# - master (Kratos)
 # - CoCoNuT (UGent)
-# - CoSimApp-development (TUM)
 
 git checkout CoCoNuT
 
-# Copy the following lines to Kratos/cmake_build/configure.sh
+# Copy the following lines to Kratos/cmake_build/configure.sh, possibly setting the install prefix to another directory
 
 #!/bin/sh
 
@@ -23,6 +22,7 @@ rm -f *.cmake
 rm -rf CMakeFiles\
 
 cmake ../applications/CoSimulationApplication \
+-DCMAKE_INSTALL_PREFIX=/lusers/temp/Kratos \
 -DCO_SIMULATION_APPLICATION_PYTHON=ON                                               
 
 # Load modules
@@ -38,6 +38,10 @@ cd Kratos/cmake_build
 sh configure.sh
 make 
 make install
+
+# Configure Python, possibly with other install prefix
+
+export PYTHONPATH=/lusers/temp/Kratos/:PYTHONPATH
 
 # Copy Unittest
 
