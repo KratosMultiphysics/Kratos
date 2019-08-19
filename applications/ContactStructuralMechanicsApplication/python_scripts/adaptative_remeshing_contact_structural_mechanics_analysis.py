@@ -55,13 +55,16 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
                 project_parameters["solver_settings"]["contact_settings"].AddValue("fancy_convergence_criterion", default_params["contact_settings"]["fancy_convergence_criterion"])
         else:
             project_parameters["solver_settings"].AddValue("contact_settings", default_params["contact_settings"])
-        self.process_remesh = False
+        self.process_remesh = ""
         if project_parameters.Has("mesh_adaptivity_processes"):
-            self.process_remesh = True
+            self.process_remesh = "remesh_loop"
         if project_parameters.Has("processes"):
             if project_parameters["processes"].Has("mesh_adaptivity_processes"):
-                self.process_remesh = True
-        if not self.process_remesh:
+                self.process_remesh = "remesh_loop"
+        if project_parameters["solver_settings"].Has("convergence_criterion"):
+            if project_parameters["solver_settings"]["convergence_criterion"].GetString() == "adaptative_remesh_criteria":
+                self.process_remesh = "adaptively"
+        if self.process_remesh == "adaptively":
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
         super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
@@ -81,10 +84,12 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         It can be overridden by derived classes
         """
         # If we remesh using a process
-        if self.process_remesh:
+        if self.process_remesh == "remesh_loop":
             self.adaptive_utilities.AdaptativeRemeshingRunSolutionLoop()
-        else: # Remeshing adaptively
+        elif self.process_remesh == "adaptively": # Remeshing adaptively
             self.adaptive_utilities.SPRAdaptativeRemeshingRunSolutionLoop()
+        else:
+            super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).RunSolutionLoop()
 
     def ClearDatabase(self):
         """ This method clears the database in case it is necessary
