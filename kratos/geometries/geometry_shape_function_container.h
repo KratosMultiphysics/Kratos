@@ -65,6 +65,11 @@ public:
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
+    typedef IntegrationPoint<3> IntegrationPointType;
+    typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointsArrayType, IntegrationMethod::NumberOfIntegrationMethods> IntegrationPointsContainerType;
+
+
     typedef std::array<Matrix, IntegrationMethod::NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
     typedef std::array<DenseVector<Matrix>, IntegrationMethod::NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
 
@@ -76,16 +81,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-    GeometryShapeFunctionContainer( 
-                  const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
-                  const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients )
-        : mShapeFunctionsValues( ThisShapeFunctionsValues )
+    GeometryShapeFunctionContainer(
+        IntegrationMethod ThisDefaultMethod,
+        const IntegrationPointsContainerType& ThisIntegrationPoints,
+        const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
+        const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients )
+        : mDefaultMethod(ThisDefaultMethod)
+        , mIntegrationPoints(ThisIntegrationPoints)
+        , mShapeFunctionsValues( ThisShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( ThisShapeFunctionsLocalGradients )
     {
     }
 
     GeometryShapeFunctionContainer()
-        : mShapeFunctionsValues({})
+        : mIntegrationPoints({})
+        , mShapeFunctionsValues({})
         , mShapeFunctionsLocalGradients({})
     {
     }
@@ -94,7 +104,9 @@ public:
     Construct this geometry shape function container as a copy of given geometry data.
     */
     GeometryShapeFunctionContainer( const GeometryShapeFunctionContainer& rOther )
-        : mShapeFunctionsValues( rOther.mShapeFunctionsValues )
+        : mDefaultMethod(rOther.mDefaultMethod)
+        , mIntegrationPoints(rOther.mIntegrationPoints)
+        , mShapeFunctionsValues( rOther.mShapeFunctionsValues )
         , mShapeFunctionsLocalGradients( rOther.mShapeFunctionsLocalGradients )
     {
     }
@@ -109,6 +121,8 @@ public:
     GeometryShapeFunctionContainer& operator=( 
         const GeometryShapeFunctionContainer& rOther )
     {
+        mDefaultMethod = rOther.mDefaultMethod;
+        mIntegrationPoints = rOther.mIntegrationPoints;
         mShapeFunctionsValues = rOther.mShapeFunctionsValues;
         mShapeFunctionsLocalGradients = rOther.mShapeFunctionsLocalGradients;
 
@@ -116,8 +130,44 @@ public:
     }
 
     ///@}
+
+    IntegrationMethod DefaultIntegrationMethod() const
+    {
+        return mDefaultMethod;
+    }
+
+    bool HasIntegrationMethod(IntegrationMethod ThisMethod) const
+    {
+        return (!mIntegrationPoints[ThisMethod].empty());
+    }
+
+    SizeType IntegrationPointsNumber() const
+    {
+        return mIntegrationPoints[mDefaultMethod].size();
+    }
+
+    SizeType IntegrationPointsNumber(IntegrationMethod ThisMethod) const
+    {
+        return mIntegrationPoints[ThisMethod].size();
+    }
+
+    const IntegrationPointsArrayType& IntegrationPoints() const
+    {
+        return mIntegrationPoints[mDefaultMethod];
+    }
+
+    const IntegrationPointsArrayType& IntegrationPoints(IntegrationMethod ThisMethod) const
+    {
+        return mIntegrationPoints[ThisMethod];
+    }
+
     ///@name Shape Function
     ///@{
+
+    const Matrix& ShapeFunctionsValues() const
+    {
+        return mShapeFunctionsValues[mDefaultMethod];
+    }
 
     const Matrix& ShapeFunctionsValues( 
         IntegrationMethod ThisMethod ) const
@@ -139,10 +189,26 @@ public:
         return mShapeFunctionsValues[ThisMethod]( IntegrationPointIndex, ShapeFunctionIndex );
     }
 
+    double ShapeFunctionValue(IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex) const
+    {
+        return mShapeFunctionsValues[mDefaultMethod](IntegrationPointIndex, ShapeFunctionIndex);
+    }
+
+    const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients() const
+    {
+        return mShapeFunctionsLocalGradients[mDefaultMethod];
+    }
+
     const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients(
         IntegrationMethod ThisMethod ) const
     {
         return mShapeFunctionsLocalGradients[ThisMethod];
+    }
+
+    const Matrix& ShapeFunctionLocalGradient(
+        IndexType IntegrationPointIndex) const
+    {
+        return ShapeFunctionLocalGradient(IntegrationPointIndex, mDefaultMethod);
     }
 
     const Matrix& ShapeFunctionLocalGradient(
@@ -211,6 +277,10 @@ protected:
 private:
     ///@name Member Variables
     ///@{
+
+    IntegrationMethod mDefaultMethod;
+
+    IntegrationPointsContainerType mIntegrationPoints;
 
     ShapeFunctionsValuesContainerType mShapeFunctionsValues;
 

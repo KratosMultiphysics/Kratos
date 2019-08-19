@@ -160,13 +160,13 @@ public:
     method. IntegrationPoints functions used this type to return
     their results.
     */
-    typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
+    typedef GeometryShapeFunctionContainer<IntegrationMethod>::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     /** A Vector of IntegrationPointsArrayType which used to hold
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef std::array<IntegrationPointsArrayType, IntegrationMethod::NumberOfIntegrationMethods> IntegrationPointsContainerType;
+    typedef GeometryShapeFunctionContainer<IntegrationMethod>::IntegrationPointsContainerType IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
     continer.
@@ -266,12 +266,12 @@ public:
                   const IntegrationPointsContainerType& ThisIntegrationPoints,
                   const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
                   const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients )
-        : mDefaultMethod( ThisDefaultMethod )
-        , mIntegrationPoints( ThisIntegrationPoints )
-        , mGeometryShapeFunctionContainer(
+        : mGeometryShapeFunctionContainer(
             GeometryShapeFunctionContainer<IntegrationMethod>(
-            ThisShapeFunctionsValues,
-            ThisShapeFunctionsLocalGradients))
+                ThisDefaultMethod,
+                ThisIntegrationPoints,
+                ThisShapeFunctionsValues,
+                ThisShapeFunctionsLocalGradients))
     {
         mpGeometryDimension = new GeometryDimension(
             ThisDimension,
@@ -285,10 +285,10 @@ public:
         const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
         const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients)
         : mpGeometryDimension(pThisGeometryDimension)
-        , mDefaultMethod(ThisDefaultMethod)
-        , mIntegrationPoints(ThisIntegrationPoints)
         , mGeometryShapeFunctionContainer(
             GeometryShapeFunctionContainer<IntegrationMethod>(
+                ThisDefaultMethod,
+                ThisIntegrationPoints,
                 ThisShapeFunctionsValues,
                 ThisShapeFunctionsLocalGradients))
     {
@@ -299,8 +299,6 @@ public:
     */
     GeometryData( const GeometryData& rOther )
         : mpGeometryDimension( rOther.mpGeometryDimension)
-        , mDefaultMethod( rOther.mDefaultMethod )
-        , mIntegrationPoints( rOther.mIntegrationPoints )
         , mGeometryShapeFunctionContainer( rOther.mGeometryShapeFunctionContainer)
     {
     }
@@ -328,8 +326,6 @@ public:
     GeometryData& operator=( const GeometryData& rOther )
     {
         mpGeometryDimension = rOther.mpGeometryDimension;
-        mDefaultMethod = rOther.mDefaultMethod;
-        mIntegrationPoints = rOther.mIntegrationPoints;
         mGeometryShapeFunctionContainer = rOther.mGeometryShapeFunctionContainer;
 
         return *this;
@@ -393,7 +389,7 @@ public:
     */
     bool HasIntegrationMethod( IntegrationMethod ThisMethod ) const
     {
-        return ( !mIntegrationPoints[ThisMethod].empty() );
+        return mGeometryShapeFunctionContainer.HasIntegrationMethod(ThisMethod);
     }
 
     ///@}
@@ -411,12 +407,12 @@ public:
 
     IntegrationMethod DefaultIntegrationMethod() const
     {
-        return mDefaultMethod;
+        return mGeometryShapeFunctionContainer.DefaultIntegrationMethod();
     }
 
     SizeType IntegrationPointsNumber() const
     {
-        return mIntegrationPoints[mDefaultMethod].size();
+        return mGeometryShapeFunctionContainer.IntegrationPointsNumber();
     }
 
     /** Number of integtation points for given integration
@@ -429,7 +425,7 @@ public:
     */
     SizeType IntegrationPointsNumber( IntegrationMethod ThisMethod ) const
     {
-        return mIntegrationPoints[ThisMethod].size();
+        return mGeometryShapeFunctionContainer.IntegrationPointsNumber(ThisMethod);
     }
 
 
@@ -443,7 +439,7 @@ public:
     */
     const IntegrationPointsArrayType& IntegrationPoints() const
     {
-        return mIntegrationPoints[mDefaultMethod];
+        return mGeometryShapeFunctionContainer.IntegrationPoints();
     }
 
     /** Integtation points for given integration
@@ -456,7 +452,7 @@ public:
     */
     const IntegrationPointsArrayType& IntegrationPoints(  IntegrationMethod ThisMethod ) const
     {
-        return mIntegrationPoints[ThisMethod];
+        return mGeometryShapeFunctionContainer.IntegrationPoints(ThisMethod);
     }
 
     ///@}
@@ -483,7 +479,7 @@ public:
     */
     const Matrix& ShapeFunctionsValues() const
     {
-        return mGeometryShapeFunctionContainer.ShapeFunctionsValues(mDefaultMethod);
+        return mGeometryShapeFunctionContainer.ShapeFunctionsValues();
     }
 
     /** This method gives all shape functions values evaluated in all
@@ -538,8 +534,7 @@ public:
     {
         return mGeometryShapeFunctionContainer.ShapeFunctionValue(
             IntegrationPointIndex,
-            ShapeFunctionIndex,
-            mDefaultMethod);
+            ShapeFunctionIndex);
     }
 
     /** This method gives value of given shape function evaluated in given
@@ -590,8 +585,7 @@ public:
     */
     const ShapeFunctionsGradientsType& ShapeFunctionsLocalGradients() const
     {
-        return mGeometryShapeFunctionContainer.ShapeFunctionsLocalGradients(
-            mDefaultMethod);
+        return mGeometryShapeFunctionContainer.ShapeFunctionsLocalGradients();
     }
 
     /** This method gives all shape functions gradients evaluated in
@@ -644,7 +638,7 @@ public:
     */
     const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex ) const
     {
-        return mGeometryShapeFunctionContainer.ShapeFunctionLocalGradient(IntegrationPointIndex, mDefaultMethod);
+        return mGeometryShapeFunctionContainer.ShapeFunctionLocalGradient(IntegrationPointIndex);
     }
 
     /** This method gives gradient of given shape function evaluated
@@ -777,10 +771,6 @@ private:
     ///@{
 
     GeometryDimension const* mpGeometryDimension;
-
-    IntegrationMethod mDefaultMethod;
-
-    IntegrationPointsContainerType mIntegrationPoints;
 
     GeometryShapeFunctionContainer<IntegrationMethod> mGeometryShapeFunctionContainer;
 
