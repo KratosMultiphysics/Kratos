@@ -97,10 +97,18 @@ void ComputeHessianSolMetricProcess::Execute()
 
     // Some checks
     NodesArrayType& r_nodes_array = mrModelPart.Nodes();
-    if (mrOriginVariableDoubleList.size() > 0) {
-        VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], r_nodes_array);
+    if (!mNonHistoricalVariable) {
+        if (mrOriginVariableDoubleList.size() > 0) {
+            VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], r_nodes_array);
+        } else {
+            VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], r_nodes_array);
+        }
     } else {
-        VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], r_nodes_array);
+        if (mrOriginVariableDoubleList.size() > 0) {
+            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariableDoubleList[0])) << "Variable " << mrOriginVariableDoubleList[0]->Name() << " not defined on non-historial database" << std::endl;
+        } else {
+            KRATOS_ERROR_IF_NOT(r_nodes_array.begin()->Has(*mrOriginVariableComponentsList[0])) << "Variable " << mrOriginVariableComponentsList[0]->Name() << " not defined on non-historial database" << std::endl;
+        }
     }
 
     // Checking NODAL_H
