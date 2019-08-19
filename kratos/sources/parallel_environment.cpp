@@ -22,15 +22,6 @@ namespace Kratos {
 
 // Public interface of ParallelEnvironment ////////////////////////////////////
 
-void ParallelEnvironment::RegisterDataCommunicator(
-    const std::string& Name,
-    const DataCommunicator& rPrototype,
-    const bool Default)
-{
-    ParallelEnvironment& env = GetInstance();
-    env.RegisterDataCommunicatorDetail(Name, rPrototype, Default);
-}
-
 DataCommunicator& ParallelEnvironment::GetDataCommunicator(const std::string& rName)
 {
     const ParallelEnvironment& env = GetInstance();
@@ -47,6 +38,27 @@ void ParallelEnvironment::SetDefaultDataCommunicator(const std::string& rName)
 {
     ParallelEnvironment& env = GetInstance();
     env.SetDefaultDataCommunicatorDetail(rName);
+}
+
+int ParallelEnvironment::GetDefaultRank()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.mDefaultRank;
+}
+
+int ParallelEnvironment::GetDefaultSize()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.mDefaultSize;
+}
+
+void ParallelEnvironment::RegisterDataCommunicator(
+    const std::string& Name,
+    const DataCommunicator& rPrototype,
+    const bool Default)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.RegisterDataCommunicatorDetail(Name, rPrototype, Default);
 }
 
 bool ParallelEnvironment::HasDataCommunicator(const std::string& rName)

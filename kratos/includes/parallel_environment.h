@@ -49,6 +49,22 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@name Access
     ///@{
 
+    /// Retrieve a registered DataCommunicator instance.
+    /** @param rName The name used to register the string. */
+    static DataCommunicator& GetDataCommunicator(const std::string& rName);
+
+    /// Retrieve the default DataCommunicator instance.
+    static DataCommunicator& GetDefaultDataCommunicator();
+
+    /// Set a new default DataCommunicator instance.
+    /** @param rName The name the new default DataCommunicator was registered with. */
+    static void SetDefaultDataCommunicator(const std::string& rName);
+
+    /// Get the rank of the current process, as given by the default DataCommunicator.
+    static int GetDefaultRank();
+
+    /// Get the MPI Comm size, as given by the default DataCommunicator.
+    static int GetDefaultSize();
 
     ///@}
     ///@name Operations
@@ -58,12 +74,6 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
         const std::string& rName,
         const DataCommunicator& rPrototype,
         const bool Default = DoNotMakeDefault);
-
-    static DataCommunicator& GetDataCommunicator(const std::string& rName);
-
-    static DataCommunicator& GetDefaultDataCommunicator();
-
-    static void SetDefaultDataCommunicator(const std::string& rName);
 
     ///@}
     ///@name Inquiry
