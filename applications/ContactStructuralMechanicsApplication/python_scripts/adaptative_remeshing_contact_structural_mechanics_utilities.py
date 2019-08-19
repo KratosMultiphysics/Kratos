@@ -33,10 +33,10 @@ class AdaptativeRemeshingContactMechanicalUtilities(adaptative_remeshing_structu
     def SetDefaultParameters(self, settings):
         self.adaptative_remesh_parameters = settings
 
-    def GetConvergenceCriteria(self, error_criteria, conv_settings):
+    def GetConvergenceCriteria(self, main_model_part, error_criteria, conv_settings):
         if "_with_adaptative_remesh" in error_criteria:
             conv_settings["convergence_criterion"].SetString(error_criteria.replace("_with_adaptative_remesh", ""))
-        convergence_criterion_created = ContactConvergenceCriteriaFactory(conv_settings)
+        convergence_criterion_created = ContactConvergenceCriteriaFactory(main_model_part, conv_settings)
 
         # If we just use the adaptative convergence criteria
         if error_criteria == "adaptative_remesh_criteria":

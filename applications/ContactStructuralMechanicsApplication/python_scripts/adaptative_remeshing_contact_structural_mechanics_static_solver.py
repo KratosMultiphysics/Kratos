@@ -80,4 +80,4 @@ class AdaptativeRemeshingContactStaticMechanicalSolver(contact_structural_mechan
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
-        return self.adaptative_remeshing_utilities.GetConvergenceCriteria(error_criteria, conv_settings)
+        return self.adaptative_remeshing_utilities.GetConvergenceCriteria(self.main_model_part, error_criteria, conv_settings)

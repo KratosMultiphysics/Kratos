@@ -46,7 +46,7 @@ class AdaptativeRemeshingMechanicalUtilities(object):
                 {
                     "isosurface_variable"              : "DISTANCE",
                     "nonhistorical_variable"           : false,
-                    "remove_regions"                   : false
+                    "remove_internal_regions"          : false
                 },
                 "framework"                            : "Lagrangian",
                 "internal_variables_parameters"        :
