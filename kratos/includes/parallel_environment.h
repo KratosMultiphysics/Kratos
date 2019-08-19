@@ -126,6 +126,8 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     static ParallelEnvironment& GetInstance();
 
+    void SetAsDefault(std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator& rThisCommunicator);
+
     ///@}
     ///@name Private Input and output
     ///@{
@@ -146,6 +148,9 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     std::unordered_map<std::string, DataCommunicator::UniquePointer> mDataCommunicators;
 
     std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator mDefaultCommunicator;
+
+    int mDefaultRank;
+    int mDefaultSize;
 
     static ParallelEnvironment* mpInstance;
     static bool mDestroyed;

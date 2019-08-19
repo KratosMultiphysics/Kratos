@@ -106,6 +106,15 @@ ParallelEnvironment& ParallelEnvironment::GetInstance()
     return *mpInstance;
 }
 
+void ParallelEnvironment::SetAsDefault(
+    std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator& rThisCommunicator)
+{
+    mDefaultCommunicator = rThisCommunicator;
+    const auto& r_comm = *(rThisCommunicator->second);
+    mDefaultRank = r_comm.Rank();
+    mDefaultSize = r_comm.Size();
+}
+
 void ParallelEnvironment::Create()
 {
     static ParallelEnvironment parallel_environment;
@@ -127,7 +136,7 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
 
         if (Default == MakeDefault)
         {
-            mDefaultCommunicator = pair_iterator;
+            SetAsDefault(pair_iterator);
         }
     }
     else {
@@ -159,7 +168,7 @@ void ParallelEnvironment::SetDefaultDataCommunicatorDetail(const std::string& rN
     << "Trying to set \"" << rName << "\" as the default DataCommunicator,"
     << " but no registered DataCommunicator with that name has been found." << std::endl;
 
-    mDefaultCommunicator = found;
+    SetAsDefault(found);
 }
 
 bool ParallelEnvironment::HasDataCommunicatorDetail(const std::string& rName) const
