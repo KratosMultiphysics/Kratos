@@ -70,6 +70,11 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@name Operations
     ///@{
 
+    /// Add a new DataCommunicator instance to the ParallelEnvironment.
+    /** @param rName The name to be used to identify the DataCommunicator within ParallelEnvironment.
+     *  @param rPrototype The DataCommunicator instance.
+     *  @param Default If set to ParallelEnvironment::MakeDefault (a.k.a. true), the provided DataCommunicator will also be made default.
+     */
     static void RegisterDataCommunicator(
         const std::string& rName,
         const DataCommunicator& rPrototype,
@@ -79,8 +84,11 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@name Inquiry
     ///@{
 
+    /// Check if a DataCommunicator is registered as rName.
     static bool HasDataCommunicator(const std::string& rName);
 
+    /// Get the registered name of the current default.
+    /** This is a convenience function to help with temporarily changing the default DataCommunicator. */
     static std::string GetDefaultDataCommunicatorName();
 
     ///@}
