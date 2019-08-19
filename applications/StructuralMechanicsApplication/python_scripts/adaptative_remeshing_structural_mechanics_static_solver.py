@@ -8,7 +8,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import structural_mechani
 
 # Import auxiliar methods
 from KratosMultiphysics.StructuralMechanicsApplication import auxiliar_methods_adaptative_solvers
-from KratosMultiphysics.StructuralMechanicsApplication import adaptative_remeshing_structural_mechanics_utilities
+from KratosMultiphysics.StructuralMechanicsApplication.adaptative_remeshing_structural_mechanics_utilities import AdaptativeRemeshingMechanicalUtilities
 
 def CreateSolver(model, custom_settings):
     return AdaptativeRemeshingStaticMechanicalSolver(model, custom_settings)
@@ -18,15 +18,6 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
     See structural_mechanics_static_solver.py for more information.
     """
     def __init__(self, model, custom_settings):
-        # Set defaults and validate custom settings.
-        self.adaptative_remeshing_utilities = adaptative_remeshing_structural_mechanics_utilities.AdaptativeRemeshingMechanicalUtilities()
-        adaptative_remesh_parameters = self.adaptative_remeshing_utilities.GetDefaultParameters()
-
-        # Validate the remaining settings in the base class.
-        self.validate_and_transfer_matching_settings(custom_settings, adaptative_remesh_parameters)
-        self.adaptative_remesh_parameters = adaptative_remesh_parameters
-        self.adaptative_remeshing_utilities.SetDefaultParameters(self.adaptative_remesh_parameters)
-
         # Construct the base solver.
         super(AdaptativeRemeshingStaticMechanicalSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[AdaptativeRemeshingStaticMechanicalSolver]:: ", "Construction finished")
@@ -44,7 +35,7 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         return self._remeshing_process
 
     def _create_remeshing_process(self):
-        return auxiliar_methods_adaptative_solvers.CreateRemeshingProcess(self.main_model_part, self.adaptative_remesh_parameters)
+        return auxiliar_methods_adaptative_solvers.CreateRemeshingProcess(self.main_model_part, self.settings)
 
     def get_metric_process(self):
         if not hasattr(self, '_metric_process'):
@@ -52,12 +43,19 @@ class AdaptativeRemeshingStaticMechanicalSolver(structural_mechanics_static_solv
         return self._metric_process
 
     def _create_metric_process(self):
-        return auxiliar_methods_adaptative_solvers.CreateMetricProcess(self.main_model_part, self.adaptative_remesh_parameters)
+        return auxiliar_methods_adaptative_solvers.CreateMetricProcess(self.main_model_part, self.settings)
 
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
         conv_settings = self._get_convergence_criterion_settings()
-        return self.adaptative_remeshing_utilities.GetConvergenceCriteria(error_criteria, conv_settings)
+        return AdaptativeRemeshingMechanicalUtilities().GetConvergenceCriteria(error_criteria, conv_settings)
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        # Set defaults and validate custom settings.
+        this_defaults = AdaptativeRemeshingMechanicalUtilities().GetDefaultParameters()
+        this_defaults.RecursivelyAddMissingParameters(super(AdaptativeRemeshingStaticMechanicalSolver, cls).GetDefaultSettings())
+        return this_defaults
 
 
 
