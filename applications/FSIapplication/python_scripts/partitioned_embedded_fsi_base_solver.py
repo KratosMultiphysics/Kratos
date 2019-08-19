@@ -159,15 +159,17 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # give a better approximation of the level-set position at the end of step.
         self.structure_solver.Predict()
 
-        # Update the level set position
+        # Update the level set position with the structure prediction
         self.__UpdateLevelSet()
+
+        # Correct the updated level set
+        self.fluid_solver.__GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
         # Fluid solver prediction
         self.fluid_solver.Predict()
 
-        # # Restore the fluid node fixity to its original status
-        # # TODO: THIS SHOULDN'T BE NEEDED ANYMORE
-        # self.__GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        # Restore the fluid node fixity to its original status
+        self.fluid_solver.__GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
@@ -328,43 +330,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
             raise Exception(err_msg)
 
-    # def __GetDistanceModificationProcess(self):
-    #     if not hasattr(self, '_distance_modification_process'):
-    #         self._distance_modification_process = self.__CreateDistanceModificationProcess()
-    #     return self._distance_modification_process
-
-    # # TODO: This should be moved to the fluid solver
-    # def __CreateDistanceModificationProcess(self):
-    #     # Set the distance modification settings according to the level set type
-    #     if (self.level_set_type == "continuous"):
-    #         distance_modification_settings = KratosMultiphysics.Parameters(r'''{
-    #             "model_part_name": "",
-    #             "distance_threshold": 1e-3,
-    #             "continuous_distance": true,
-    #             "check_at_each_time_step": true,
-    #             "avoid_almost_empty_elements": true,
-    #             "deactivate_full_negative_elements": true
-    #         }''')
-    #     elif (self.level_set_type == "discontinuous"):
-    #         distance_modification_settings = KratosMultiphysics.Parameters(r'''{
-    #             "model_part_name": "",
-    #             "distance_threshold": 1e-4,
-    #             "continuous_distance": false,
-    #             "check_at_each_time_step": true,
-    #             "avoid_almost_empty_elements": false,
-    #             "deactivate_full_negative_elements": false
-    #         }''')
-    #     else:
-    #         err_msg = 'Level set type is: \'' + self.level_set_type + '\'. Expected \'continuous\' or \'discontinuous\'.'
-    #         raise Exception(err_msg)
-
-    #     # Set the volume model part name in which the distance modification is applied to
-    #     volume_model_part_name = self.settings["fluid_solver_settings"]["volume_model_part_name"].GetString()
-    #     distance_modification_settings["model_part_name"].SetString(volume_model_part_name)
-
-    #     # Construct and return the distance modification process
-    #     return KratosFluid.DistanceModificationProcess(self.model, distance_modification_settings)
-
     def __GetEmbeddedSkinUtility(self):
         if not hasattr(self, '_embedded_skin_utility'):
             self._embedded_skin_utility = self.__CreateEmbeddedSkinUtility()
@@ -428,24 +393,12 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Recompute the distance field with the obtained solution
         self.__GetDistanceToSkinProcess().Execute()
 
-        # # Correct the distance field
-        # # TODO: MUST GO TO THE SolveSolutionStep() OF THE FLUID SOLVER (before the solve) --> DONE
-        # self.__GetDistanceModificationProcess().Execute()
-
     def __SolveFluid(self):
         # Update the current iteration level-set position
         self.__UpdateLevelSet()
 
         # Solve fluid problem
-        self.fluid_solver.SolveSolutionStep() # This contains the FM-ALE operations
-
-        # # Undo the FM-ALE virtual mesh movement
-        # # TODO: MUST GO TO THE SolveSolutionStep() OF THE FLUID SOLVER (after the solve) --> DONE
-        # self.fluid_solver._get_mesh_moving_util().UndoMeshMovement()
-
-        # # Restore the fluid node fixity to its original status
-        # # TODO: MUST GO TO THE SolveSolutionStep() OF THE FLUID SOLVER (after the solve) --> DONE
-        # self.__GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        self.fluid_solver.SolveSolutionStep() # This contains the FM-ALE operations and the level set correction
 
     def __TransferFluidLoad(self):
         if (self.level_set_type == "continuous"):
