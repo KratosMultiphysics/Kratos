@@ -191,6 +191,14 @@ class AnalysisStage(object):
         """this function is where the user could change material parameters as a part of the solution step """
         pass
 
+    def ClearDatabase(self):
+        """ This method clears the database in case it is necessary
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        pass
+
     def ReInitializeSolver(self):
         """ This reinitializes the solver and the processes (used for example on remesh or on adaptive NR)
 

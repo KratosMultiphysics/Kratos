@@ -110,6 +110,7 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
             non_linear_iteration = 1
             while non_linear_iteration <= self.analysis.non_linear_iterations:
                 if root_model_part.Is(KratosMultiphysics.MODIFIED):
+                    self.analysis.ClearDatabase()
                     self.analysis.ReInitializeSolver()
                 if non_linear_iteration == 1 or root_model_part.Is(KratosMultiphysics.MODIFIED):
                     self.analysis.InitializeSolutionStep()
