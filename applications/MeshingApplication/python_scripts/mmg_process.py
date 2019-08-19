@@ -548,15 +548,16 @@ class MmgProcess(KratosMultiphysics.Process):
       if len(self.main_model_part.Nodes) > 0:
           node = (self.main_model_part.Nodes)[1]
           for i in range( 0,param.size()):
-              aux_var = KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() )
-              val = node.GetSolutionStepValue(aux_var, 0)
-              if isinstance(val,float):
+              variable_name = param[i].GetString()
+              aux_var = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+              varriable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
+              if varriable_type == "Double" or varriable_type == "Component":
                   variable_list.append(aux_var)
               else:
-                  variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_X" ))
-                  variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Y" ))
+                  variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_X" ))
+                  variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_Y" ))
                   if self.domain_size == 3:
-                      variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
+                      variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_Z" ))
 
       return variable_list
 
