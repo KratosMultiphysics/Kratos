@@ -30,6 +30,10 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             "analysis_type" : "linear"
         }
         """)
+        if project_parameters["problem_data"].Has("generate_auxiliar_boundary"):
+            self.generate_auxiliar_boundary = project_parameters["problem_data"]["generate_auxiliar_boundary"].GetBool()
+        else:
+            self.generate_auxiliar_boundary = False
         if project_parameters["solver_settings"].Has("max_iteration"):
             self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
         else:
@@ -53,7 +57,10 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
     def Initialize(self):
         """ Initializing the Analysis """
         super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).Initialize()
-        self.adaptive_utilities.AdaptativeRemeshingDetectBoundary()
+
+        # If the boundary is detected automatically
+        if self.generate_auxiliar_boundary :
+            self.adaptive_utilities.AdaptativeRemeshingDetectBoundary()
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage

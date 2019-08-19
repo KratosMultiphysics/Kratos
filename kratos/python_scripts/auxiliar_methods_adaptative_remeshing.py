@@ -20,7 +20,7 @@ class AuxiliarMethodsAdaptiveRemeshing(object):
         self.analysis = analysis
 
     def AdaptativeRemeshingDetectBoundary(self):
-        """This function executes the Initialize of the AnalysisStage for cases where remeshing may be considered
+        """This function detects the boundary to preserve pure node BC
 
             Keyword arguments:
             self It signifies an instance of a class.

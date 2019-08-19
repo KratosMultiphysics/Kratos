@@ -33,12 +33,13 @@ class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsAdaptiveRemeshing):
         map_parameters = KM.Parameters("""
         {
             "echo_level"                       : 0,
+            "origin_variable_historical"       : false,
             "destination_variable_historical"  : false,
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
             "origin_variable"                  : "AUGMENTED_NORMAL_CONTACT_PRESSURE",
-            "destination_variable"             : "CONTACT_PRESSURE",
+            "destination_variable"             : "AUGMENTED_NORMAL_CONTACT_PRESSURE",
             "integration_order"                : 2
         }
         """)
