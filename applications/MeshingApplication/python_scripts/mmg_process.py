@@ -535,46 +535,45 @@ class MmgProcess(KratosMultiphysics.Process):
             raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
         # Retrieve submodelparts name from input (a string) and request the corresponding C++ object to the kernel
-        return [self.main_model_part.GetSubModelPart(param[i].GetString()) for i in range(0, param.size())]
+        return [self.main_model_part.GetSubModelPart(sub_model_part_name) for sub_model_part_name in param.GetStringArray()]
 
     def __generate_variable_list_from_input(self,param):
-      '''Parse a list of variables from input.'''
-      # At least verify that the input is a string
-      if not param.IsArray():
-          raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+        '''Parse a list of variables from input.'''
+        # At least verify that the input is a string
+        if not param.IsArray():
+            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
-      # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-      variable_list = []
-      if len(self.main_model_part.Nodes) > 0:
-          node = (self.main_model_part.Nodes)[1]
-          for i in range( 0,param.size()):
-              variable_name = param[i].GetString()
-              aux_var = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
-              varriable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
-              if varriable_type == "Double" or varriable_type == "Component":
-                  variable_list.append(aux_var)
-              else:
-                  variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_X" ))
-                  variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_Y" ))
-                  if self.domain_size == 3:
-                      variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_Z" ))
+        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
+        variable_list = []
+        param_names = param.GetStringArray()
+        for variable_name in param_names:
+            aux_var = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+            varriable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
+            if varriable_type == "Double" or varriable_type == "Component":
+                variable_list.append(aux_var)
+            else:
+                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_X" ))
+                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_Y" ))
+                if self.domain_size == 3:
+                    variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_Z" ))
 
-      return variable_list
+        return variable_list
 
     def __generate_internal_variable_list_from_input(self,param):
-      '''Parse a list of variables from input.'''
-      # At least verify that the input is an array
-      if not param.IsArray():
-          raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+        '''Parse a list of variables from input.'''
+        # At least verify that the input is an array
+        if not param.IsArray():
+            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
-      # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-      variable_list = []
+        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
+        variable_list = []
 
-      for i in range( 0,param.size()):
-          aux_var = KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() )
-          variable_list.append(aux_var)
+        param_names = param.GetStringArray()
+        for variable_name in param_names:
+            aux_var = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
+            variable_list.append(aux_var)
 
-      return variable_list
+        return variable_list
 
     def _debug_output_gid(self, label, name, prefix):
         '''Debug postprocess with GiD.'''
