@@ -55,6 +55,7 @@ cmake .. \
 -DMAPPING_APPLICATION=ON                                                                        \
 -DMETIS_APPLICATION=OFF                                                                         \
 -DCOMPRESSIBLE_POTENTIAL_FLOW_APPLICATION=ON                                                    \
+-DCABLE_NET_APPLICATION=ON                                                                      \
 -DPARMETIS_ROOT_DIR=\"UNSET\"                                                                   \
 -DTRILINOS_APPLICATION=OFF                                                                      \
 -DTRILINOS_ROOT=\"UNSET\"                                                                       \
