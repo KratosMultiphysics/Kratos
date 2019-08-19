@@ -284,11 +284,16 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
+        rSerializer.save("IntegrationPoints", mIntegrationPoints);
+        rSerializer.save("ShapeFunctionsValues", mShapeFunctionsValues);
+        rSerializer.save("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
     }
 
     virtual void load( Serializer& rSerializer )
     {
-
+        rSerializer.load("IntegrationPoints", mIntegrationPoints);
+        rSerializer.load("ShapeFunctionsValues", mShapeFunctionsValues);
+        rSerializer.load("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
     }
 
     ///@}

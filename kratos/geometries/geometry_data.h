@@ -703,11 +703,6 @@ public:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -723,46 +718,20 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
+        rSerializer.save("GeometryDimension", mpGeometryDimension);
+        rSerializer.save("GeometryShapeFunctionContainer", mGeometryShapeFunctionContainer);
     }
 
     virtual void load( Serializer& rSerializer )
     {
+        rSerializer.load("GeometryDimension", const_cast<GeometryDimension*>(mpGeometryDimension));
+        rSerializer.load("GeometryShapeFunctionContainer", mGeometryShapeFunctionContainer);
     }
 
     // Private default constructor for serialization
     GeometryData()
     {
     }
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Private Friends
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
 
     ///@}
 
