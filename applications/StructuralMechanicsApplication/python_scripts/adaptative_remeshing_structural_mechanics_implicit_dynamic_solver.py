@@ -54,5 +54,5 @@ class AdaptativeRemeshingImplicitMechanicalSolver(structural_mechanics_implicit_
     def GetDefaultSettings(cls):
         # Set defaults and validate custom settings.
         this_defaults = AdaptativeRemeshingMechanicalUtilities().GetDefaultParameters()
-        this_defaults.RecursivelyAddMissingParameters(super(AdaptativeRemeshingStaticMechanicalSolver, cls).GetDefaultSettings())
+        this_defaults.RecursivelyAddMissingParameters(super(AdaptativeRemeshingImplicitMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults
