@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics as KM
+import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Other imports
 import sys
@@ -84,6 +85,16 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             self.adaptive_utilities.AdaptativeRemeshingRunSolutionLoop()
         else: # Remeshing adaptively
             self.adaptive_utilities.SPRAdaptativeRemeshingRunSolutionLoop()
+
+    def ClearDatabase(self):
+        """ This method clears the database in case it is necessary
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        solver = self._GetSolver()
+        computing_model_part = solver.GetComputingModelPart()
+        computing_model_part.ProcessInfo.SetValue(CSMA.ACTIVE_SET_COMPUTED, False)
 
     #### Internal functions ####
     def _CreateSolver(self):
