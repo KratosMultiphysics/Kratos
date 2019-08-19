@@ -16,8 +16,8 @@
 // base class was moved to the core
 
 
-#ifndef APPLY_WEAK_SLIDING_PROCESS_H
-#define APPLY_WEAK_SLIDING_PROCESS_H
+#ifndef APPLY_WEAK_SLIDING_PROCESS_STRUCT_H
+#define APPLY_WEAK_SLIDING_PROCESS_STRUCT_H
 
 // System includes
 #include <string>
@@ -38,7 +38,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcessStruct
     : public Process
 {
   public:
@@ -58,10 +58,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ApplyWeakSlidingProcess
 
 
     /// Pointer definition of ApplyMultipointConstraintsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyWeakSlidingProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyWeakSlidingProcessStruct);
 
     /// Constructor.
-    ApplyWeakSlidingProcess(ModelPart &rModelPart,
+    ApplyWeakSlidingProcessStruct(ModelPart &rModelPart,
      Parameters InputParameters):mrModelPart(rModelPart),mParameters(InputParameters)
     {
         KRATOS_TRY;

@@ -8,7 +8,7 @@ def Factory(settings, Model):
 
 
 
-class SlidingEdgeProcess(KratosMultiphysics.Process):
+class SlidingEdgeProcessStruct(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -32,7 +32,7 @@ class SlidingEdgeProcess(KratosMultiphysics.Process):
 
 
 
-        self.sliding_edge_process = StructuralMechanicsApplication.SlidingEdgeProcess(Model["Structure"], settings)
+        self.sliding_edge_process = StructuralMechanicsApplication.SlidingEdgeProcessStruct(Model["Structure"], settings)
 
 
 

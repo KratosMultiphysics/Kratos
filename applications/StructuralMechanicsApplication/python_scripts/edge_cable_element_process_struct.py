@@ -8,7 +8,7 @@ def Factory(settings, Model):
 
 
 
-class EdgeCableElementProcess(KratosMultiphysics.Process):
+class EdgeCableElementProcessStruct(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -28,7 +28,7 @@ class EdgeCableElementProcess(KratosMultiphysics.Process):
         self.computing_model_part = Model["Structure"].GetSubModelPart(settings["computing_model_part_name"].GetString())
         self.edge_model_part      = Model["Structure"].GetSubModelPart(settings["model_part_name"].GetString())
 
-        self.edge_cable_element_process = StructuralMechanicsApplication.EdgeCableElementProcess(Model["Structure"], settings)
+        self.edge_cable_element_process = StructuralMechanicsApplication.EdgeCableElementProcessStruct(Model["Structure"], settings)
 
 
     def ExecuteInitialize(self):

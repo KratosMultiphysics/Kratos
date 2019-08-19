@@ -16,8 +16,8 @@
 // base class was moved to the core
 
 
-#ifndef SLIDING_EDGE_PROCESS_H
-#define SLIDING_EDGE_PROCESS_H
+#ifndef SLIDING_EDGE_PROCESS_STRUCT_H
+#define SLIDING_EDGE_PROCESS_STRUCT_H
 
 // System includes
 #include <string>
@@ -37,7 +37,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcessStruct
     : public Process
 {
   public:
@@ -59,10 +59,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
 
 
     /// Pointer definition of ApplyMultipointConstraintsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SlidingEdgeProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(SlidingEdgeProcessStruct);
 
     /// Constructor.
-    SlidingEdgeProcess(ModelPart &rModelPart,
+    SlidingEdgeProcessStruct(ModelPart &rModelPart,
      Parameters InputParameters):mrModelPart(rModelPart),mParameters(InputParameters)
     {
         KRATOS_TRY;

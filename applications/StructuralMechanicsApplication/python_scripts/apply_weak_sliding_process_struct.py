@@ -8,7 +8,7 @@ def Factory(settings, Model):
 
 
 
-class ApplyWeakSlidingProcess(KratosMultiphysics.Process):
+class ApplyWeakSlidingProcessStruct(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -28,7 +28,7 @@ class ApplyWeakSlidingProcess(KratosMultiphysics.Process):
         self.computing_model_part = Model["Structure"].GetSubModelPart(settings["computing_model_part_name"].GetString())
         self.wip_model_part      = Model["Structure"].GetSubModelPart(settings["model_part_name_slave"].GetString())
 
-        self.custom_process = StructuralMechanicsApplication.ApplyWeakSlidingProcess(Model["Structure"], settings)
+        self.custom_process = StructuralMechanicsApplication.ApplyWeakSlidingProcessStruct(Model["Structure"], settings)
 
 
     def ExecuteInitialize(self):

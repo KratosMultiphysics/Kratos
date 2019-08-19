@@ -16,8 +16,8 @@
 // base class was moved to the core
 
 
-#ifndef EDGE_CABLE_ELEMENT_PROCESS_H
-#define EDGE_CABLE_ELEMENT_PROCESS_H
+#ifndef EDGE_CABLE_ELEMENT_PROCESS_STRUCT_H
+#define EDGE_CABLE_ELEMENT_PROCESS_STRUCT_H
 
 // System includes
 #include <string>
@@ -38,7 +38,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcessStruct
     : public Process
 {
   public:
@@ -54,10 +54,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
 
 
     /// Pointer definition of ApplyMultipointConstraintsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(EdgeCableElementProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(EdgeCableElementProcessStruct);
 
     /// Constructor.
-    EdgeCableElementProcess(ModelPart &rModelPart,
+    EdgeCableElementProcessStruct(ModelPart &rModelPart,
      Parameters InputParameters):mrModelPart(rModelPart),mParameters(InputParameters)
     {
         KRATOS_TRY;
