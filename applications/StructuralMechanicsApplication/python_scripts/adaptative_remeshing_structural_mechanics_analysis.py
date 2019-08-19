@@ -34,13 +34,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             self.generate_auxiliar_boundary = project_parameters["problem_data"]["generate_auxiliar_boundary"].GetBool()
         else:
             self.generate_auxiliar_boundary = False
-        if project_parameters["solver_settings"].Has("max_iteration"):
-            self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
-        else:
-            self.non_linear_iterations = 10
-            project_parameters["solver_settings"].AddValue("max_iteration", default_params["max_iteration"])
-        if not project_parameters["solver_settings"].Has("analysis_type"):
-            project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
+
         self.process_remesh = ""
         if project_parameters.Has("mesh_adaptivity_processes"):
             self.process_remesh = "remesh_loop"
@@ -50,8 +44,21 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         if project_parameters["solver_settings"].Has("convergence_criterion"):
             if project_parameters["solver_settings"]["convergence_criterion"].GetString() == "adaptative_remesh_criteria":
                 self.process_remesh = "adaptively"
+
+        # If adaptively we modify certains parameters
+        if not project_parameters["solver_settings"].Has("analysis_type"):
+            project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
         if self.process_remesh == "adaptively":
+            # Linear solve
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
+
+            # Iterations number
+            if project_parameters["solver_settings"].Has("max_iteration"):
+                self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
+            else:
+                self.non_linear_iterations = 10
+                project_parameters["solver_settings"].AddValue("max_iteration", default_params["max_iteration"])
+
         super(AdaptativeRemeshingStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
         # Create utilities

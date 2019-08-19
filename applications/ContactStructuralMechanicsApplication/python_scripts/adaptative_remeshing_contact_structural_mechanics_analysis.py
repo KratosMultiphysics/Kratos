@@ -35,24 +35,13 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             }
         }
         """)
+
         if project_parameters["problem_data"].Has("generate_auxiliar_boundary"):
             self.generate_auxiliar_boundary = project_parameters["problem_data"]["generate_auxiliar_boundary"].GetBool()
         else:
             self.generate_auxiliar_boundary = False
-        if project_parameters["solver_settings"].Has("max_iteration"):
-            self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
-        else:
-            self.non_linear_iterations = 10
-            project_parameters["solver_settings"].AddValue("max_iteration", default_params["max_iteration"])
-        if not project_parameters["solver_settings"].Has("analysis_type"):
-            project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
-        if project_parameters["solver_settings"].Has("contact_settings"):
-            if project_parameters["solver_settings"]["contact_settings"].Has("fancy_convergence_criterion"):
-                project_parameters["solver_settings"]["contact_settings"]["fancy_convergence_criterion"].SetBool(False)
-            else:
-                project_parameters["solver_settings"]["contact_settings"].AddValue("fancy_convergence_criterion", default_params["contact_settings"]["fancy_convergence_criterion"])
-        else:
-            project_parameters["solver_settings"].AddValue("contact_settings", default_params["contact_settings"])
+
+        # Type of remeshing to execute
         self.process_remesh = ""
         if project_parameters.Has("mesh_adaptivity_processes"):
             self.process_remesh = "remesh_loop"
@@ -62,8 +51,30 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
         if project_parameters["solver_settings"].Has("convergence_criterion"):
             if project_parameters["solver_settings"]["convergence_criterion"].GetString() == "adaptative_remesh_criteria":
                 self.process_remesh = "adaptively"
+
+        # If adaptively we modify certains parameters
+        if not project_parameters["solver_settings"].Has("analysis_type"):
+            project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
         if self.process_remesh == "adaptively":
+            # Linear solve
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
+
+            # Iterations number
+            if project_parameters["solver_settings"].Has("max_iteration"):
+                self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
+            else:
+                self.non_linear_iterations = 10
+                project_parameters["solver_settings"].AddValue("max_iteration", default_params["max_iteration"])
+
+            # Verbosity
+            if project_parameters["solver_settings"].Has("contact_settings"):
+                if project_parameters["solver_settings"]["contact_settings"].Has("fancy_convergence_criterion"):
+                    project_parameters["solver_settings"]["contact_settings"]["fancy_convergence_criterion"].SetBool(False)
+                else:
+                    project_parameters["solver_settings"]["contact_settings"].AddValue("fancy_convergence_criterion", default_params["contact_settings"]["fancy_convergence_criterion"])
+            else:
+                project_parameters["solver_settings"].AddValue("contact_settings", default_params["contact_settings"])
+
         super(AdaptativeRemeshingContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
         # Create utilities
