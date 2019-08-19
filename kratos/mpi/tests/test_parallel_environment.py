@@ -23,6 +23,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
 
     def testDefaultRankAndSize(self):
         default_comm = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
+        original_default_name = Kratos.ParallelEnvironment.GetDefaultDataCommunicatorName()
         self.assertEqual(default_comm.Rank(), Kratos.ParallelEnvironment.GetDefaultRank())
         self.assertEqual(default_comm.Size(), Kratos.ParallelEnvironment.GetDefaultSize())
 
@@ -33,7 +34,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
         self.assertEqual(new_default.Size(), 1)
 
         # Restore the original default
-        Kratos.ParallelEnvironment.SetDefaultDataCommunicator("World")
+        Kratos.ParallelEnvironment.SetDefaultDataCommunicator(original_default_name)
         self.assertEqual(default_comm.Rank(), Kratos.ParallelEnvironment.GetDefaultRank())
         self.assertEqual(default_comm.Size(), Kratos.ParallelEnvironment.GetDefaultSize())
 

@@ -67,6 +67,12 @@ bool ParallelEnvironment::HasDataCommunicator(const std::string& rName)
     return env.HasDataCommunicatorDetail(rName);
 }
 
+std::string ParallelEnvironment::GetDefaultDataCommunicatorName()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.mDefaultCommunicator->first;
+}
+
 std::string ParallelEnvironment::Info()
 {
     const ParallelEnvironment& env = GetInstance();
@@ -156,7 +162,7 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
         << "Trying to register a new DataCommunicator with name " << Name
         << " but a DataCommunicator with the same name already exists: "
         << *(found->second)
-        << " The second object has not been added." << std::endl;
+        << " The provided DataCommunicator has not been added." << std::endl;
     }
 }
 

@@ -81,6 +81,8 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     static bool HasDataCommunicator(const std::string& rName);
 
+    static std::string GetDefaultDataCommunicatorName();
+
     ///@}
     ///@name Input and output
     ///@{
