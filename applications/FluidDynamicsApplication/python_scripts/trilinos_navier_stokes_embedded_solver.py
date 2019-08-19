@@ -182,6 +182,9 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         (self.solver).Initialize()
 
+        # Set the distance modification process
+        self.__GetDistanceModificationProcess().ExecuteInitialize()
+
         # For the primitive Ausas formulation, set the find nodal neighbours process
         # Recall that the Ausas condition requires the nodal neighbouts.
         if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
