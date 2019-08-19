@@ -208,15 +208,28 @@ class AnalysisStage(object):
         solver = self._GetSolver()
         processes = self._GetListOfProcesses()
         solver.Clear()
-        # WE INITIALIZE THE SOLVER
-        solver.Initialize()
+
+        self.ModifyInitialProperties()
+        self.ModifyInitialGeometry()
+
         # WE RECOMPUTE THE PROCESSES AGAIN
         ## Processes initialization
         for process in processes:
             process.ExecuteInitialize()
+
+        # WE INITIALIZE THE SOLVER
+        solver.Initialize()
+
+        # Call check
+        self.Check()
+
+        # Modify after initialize
+        self.ModifyAfterSolverInitialize()
+
         ## Processes before the loop
         for process in processes:
             process.ExecuteBeforeSolutionLoop()
+
         ## Processes of initialize the solution step
         for process in processes:
             process.ExecuteInitializeSolutionStep()
