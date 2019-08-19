@@ -39,9 +39,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         else:
             self.non_linear_iterations = 10
             project_parameters["solver_settings"].AddValue("max_iteration", default_params["max_iteration"])
-        if project_parameters["solver_settings"].Has("analysis_type"):
-            project_parameters["solver_settings"]["analysis_type"].SetString("linear")
-        else:
+        if not project_parameters["solver_settings"].Has("analysis_type"):
             project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
         self.process_remesh = ""
         if project_parameters.Has("mesh_adaptivity_processes"):
