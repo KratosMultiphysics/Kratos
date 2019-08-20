@@ -451,6 +451,7 @@ virtual void save(Serializer& rSerializer) const override
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
 
     // public members
+    rSerializer.save("mpInlet", mpInlet);
     rSerializer.save("mElasticEnergy", mElasticEnergy);
     rSerializer.save("mInelasticFrictionalEnergy", mInelasticFrictionalEnergy);
     rSerializer.save("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
@@ -473,6 +474,7 @@ virtual void save(Serializer& rSerializer) const override
 
     rSerializer.save("HasStressTensor", (int)this->Is(DEMFlags::HAS_STRESS_TENSOR));
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
+        rSerializer.save("mStressTensor", mStressTensor);
         rSerializer.save("mSymmStressTensor", mSymmStressTensor);
     }
 
@@ -492,6 +494,7 @@ virtual void load(Serializer& rSerializer) override
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
     // public members
+    rSerializer.load("mpInlet", mpInlet);
     rSerializer.load("mElasticEnergy", mElasticEnergy);
     rSerializer.load("mInelasticFrictionalEnergy", mInelasticFrictionalEnergy);
     rSerializer.load("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
@@ -520,6 +523,7 @@ virtual void load(Serializer& rSerializer) override
         *mStressTensor = ZeroMatrix(3,3);
         mSymmStressTensor = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
+        rSerializer.load("mStressTensor", mStressTensor);
         rSerializer.load("mSymmStressTensor", mSymmStressTensor);
     }
 
