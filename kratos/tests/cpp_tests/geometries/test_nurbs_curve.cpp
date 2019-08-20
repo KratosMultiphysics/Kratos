@@ -96,7 +96,7 @@ typedef Node<3> NodeType;
     }
 
     ///// Tests
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2d, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2d, KratosCoreNurbsGeometriesFastSuite) {
         auto curve = GenerateReferenceCurve2d();
 
         // Check general information, input to ouput
@@ -127,7 +127,7 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(derivatives[4][1], 0.0, TOLERANCE);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve3d, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve3d, KratosCoreNurbsGeometriesFastSuite) {
 
         auto curve = GenerateReferenceCurve3d();
 
