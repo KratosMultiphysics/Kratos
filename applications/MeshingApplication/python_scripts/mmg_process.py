@@ -641,6 +641,19 @@ class MmgProcess(KratosMultiphysics.Process):
                 gid_io.PrintOnGaussPoints(var, self.main_model_part, label)
         else:
             gid_io.WriteNodalResults(KratosMultiphysics.VELOCITY, self.main_model_part.Nodes, label, 0)
+
+        if self.strategy == "LevelSet":
+            gid_io.WriteNodalResults(self.scalar_variable, self.main_model_part.Nodes, label, 0)
+            gid_io.WriteNodalResults(self.gradation_value, self.main_model_part.Nodes, label, 0)
+        elif self.strategy == "Hessian":
+            variables = self.settings["hessian_strategy_parameters"]["metric_variable"].GetStringArray()
+            for i in range(len(variables)):
+                aux_var = KratosMultiphysics.KratosGlobals.GetVariable( variables[i] )
+                if self.settings["hessian_strategy_parameters"]["non_historical_metric_variable"][i].GetBool():
+                    gid_io.WriteNodalResultsNonHistorical(aux_var, self.main_model_part.Nodes, label)
+                else:
+                    gid_io.WriteNodalResults(aux_var, self.main_model_part.Nodes, label, 0)
+
         gid_io.FinalizeResults()
 
         #raise NameError("DEBUG")
@@ -670,6 +683,18 @@ class MmgProcess(KratosMultiphysics.Process):
                 vtk_settings["gauss_point_variables"].Append(var.Name())
         else:
             vtk_settings["nodal_solution_step_data_variables"].Append("VELOCITY")
+
+        if self.strategy == "LevelSet":
+            vtk_settings["nodal_solution_step_data_variables"].Append(self.scalar_variable.Name())
+            vtk_settings["nodal_solution_step_data_variables"].Append(self.gradation_value.Name())
+        elif self.strategy == "Hessian":
+            variables = self.settings["hessian_strategy_parameters"]["metric_variable"].GetStringArray()
+            for i in range(len(variables)):
+                aux_var = KratosMultiphysics.KratosGlobals.GetVariable( variables[i] )
+                if self.settings["hessian_strategy_parameters"]["non_historical_metric_variable"][i].GetBool():
+                    vtk_settings["nodal_data_value_variables"].Append(variables[i])
+                else:
+                    vtk_settings["nodal_solution_step_data_variables"].Append(variables[i])
 
         vtk_io = KratosMultiphysics.VtkOutput(self.main_model_part, vtk_settings)
         vtk_io.PrintOutput()
