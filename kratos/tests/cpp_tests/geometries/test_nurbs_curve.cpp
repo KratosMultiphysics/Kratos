@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Teschemacher
+//  Main authors:    Thomas Oberbichler
 //
 
 // System includes
