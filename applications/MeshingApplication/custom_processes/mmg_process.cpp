@@ -76,8 +76,8 @@ MmgProcess<TMMGLibrary>::MmgProcess(
     // The discretization type
     mDiscretization = ConvertDiscretization(mThisParameters["discretization_type"].GetString());
 
-    if ( mDiscretization == DiscretizationOption::ISOSURFACE ){
-        mRemoveRegions = mThisParameters["isosurface_parameters"]["remove_regions"].GetBool();
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        mRemoveRegions = mThisParameters["isosurface_parameters"]["remove_internal_regions"].GetBool();
     } else {
         mRemoveRegions = false;
     }
@@ -113,9 +113,32 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
     /* We print one important information message */
     KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition)" << std::endl;
 
-    if( mRemoveRegions ){
-        // The conditions are re-creted in the process
-        mrThisModelPart.Conditions().clear();
+    // The conditions are re-created in the process
+    if( mRemoveRegions ) {
+        // Mark conditions from submodelparts
+        MarkConditionsSubmodelParts(mrThisModelPart);
+
+        // Remove not marked
+        auto& r_conditions_array = mrThisModelPart.Conditions();
+        const auto it_cond_begin = r_conditions_array.begin();
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = it_cond_begin + i;
+            if (it_cond->IsNot(MARKER)) {
+                it_cond->Set(TO_ERASE, true);
+            }
+        }
+        mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE); // In theory with RemoveConditions is enough
+
+        // Setting to erare on the auxiliar model part
+        if (mrThisModelPart.HasSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART")) {
+            VariableUtils().SetFlag(TO_ERASE, true, mrThisModelPart.GetSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART").Conditions());
+        }
+
+        // Reset flag
+        VariableUtils().ResetFlag(MARKER, mrThisModelPart.Conditions());
+
+        // Passing that info to logger
         KRATOS_INFO("MmgProcess") << "Conditions were cleared" << std::endl;
     }
 
@@ -297,10 +320,8 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
     }
     mMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework, collapse_prisms_elements);
 
-    // Iterate over components
-    auto& r_nodes_array = mrThisModelPart.Nodes();
-
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
+    auto& r_nodes_array = mrThisModelPart.Nodes();
     mDofs = r_nodes_array.begin()->GetDofs();
     for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         it_dof->FreeDof();
@@ -1008,6 +1029,19 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::MarkConditionsSubmodelParts(ModelPart& rModelPart)
+{
+    // Iterate over submodelparts
+    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+        VariableUtils().SetFlag(MARKER, true, r_sub_model_part.Conditions());
+        MarkConditionsSubmodelParts(r_sub_model_part);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
 void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
 {
     // Iterate over nodes
@@ -1052,7 +1086,7 @@ Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters()
         {
             "isosurface_variable"              : "DISTANCE",
             "nonhistorical_variable"           : false,
-            "remove_regions"                   : false
+            "remove_internal_regions"          : false
         },
         "framework"                            : "Eulerian",
         "internal_variables_parameters"        :

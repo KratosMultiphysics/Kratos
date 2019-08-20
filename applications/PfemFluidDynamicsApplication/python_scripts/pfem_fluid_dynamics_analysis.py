@@ -115,7 +115,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### Processes settings start ####
 
         #obtain the list of the processes to be applied
-        import process_handler
+        from KratosMultiphysics.SolidMechanicsApplication.process_handler import ProcessHandler
 
         process_parameters = KratosMultiphysics.Parameters("{}")
         process_parameters.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
@@ -130,7 +130,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         # if( self.project_parameters.Has("check_process_list") ):
         #     process_parameters.AddValue("check_process_list", self.project_parameters["check_process_list"])
 
-        self.model_processes = process_handler.ProcessHandler(self.model, process_parameters)
+        self.model_processes = ProcessHandler(self.model, process_parameters)
 
         self.model_processes.ExecuteInitialize()
 
@@ -362,8 +362,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
     #### Main internal methods ####
 
     def _import_project_parameters(self, input_file):
-        import input_manager
-        self.input_manager = input_manager.InputManager(input_file)
+        from KratosMultiphysics.SolidMechanicsApplication.input_manager import InputManager
+        self.input_manager = InputManager(input_file)
         return self.input_manager.Getparameters()
 
 
