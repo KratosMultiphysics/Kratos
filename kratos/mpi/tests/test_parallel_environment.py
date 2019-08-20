@@ -12,6 +12,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
     def tearDown(self):
         pass
 
+    @UnitTest.skipIf(not Kratos.IsDistributedRun(), "This test is designed for distributed runs only.")
     def testDataCommunicatorRetrievalFromParallelEnvironment(self):
         default_comm = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
 

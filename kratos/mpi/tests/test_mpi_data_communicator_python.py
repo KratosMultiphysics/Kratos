@@ -1,5 +1,4 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.mpi as mpi
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -13,6 +12,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
     def tearDown(self):
         pass
 
+    @UnitTest.skipIf(not Kratos.IsDistributedRun(), "This test is designed for distributed runs only.")
     def testDataCommunicatorRetrievalFromDataCommunicator(self):
         default_comm = Kratos.DataCommunicator.GetDefault()
 
