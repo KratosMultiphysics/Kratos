@@ -41,7 +41,7 @@ make install
 
 # Configure Python, possibly with other install prefix
 
-export PYTHONPATH=/lusers/temp/Kratos/:PYTHONPATH
+export PYTHONPATH=/lusers/temp/Kratos/:$PYTHONPATH
 
 # Copy Unittest
 
