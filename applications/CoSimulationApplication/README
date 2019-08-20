@@ -49,7 +49,7 @@ cp Kratos/kratos/python_scripts/KratosUnittest.py Kratos/KratosMultiphysics/
 
 # Go to source code
 
-cd Kratos/applications/CoSimApplication
+cd Kratos/applications/CoSimulationApplication
 
 # Run tests
 
