@@ -10,7 +10,7 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
-import dam_MPI_thermo_mechanic_solver
+from KratosMultiphysics.DamApplication import dam_MPI_thermo_mechanic_solver
 
 
 def CreateSolver(main_model_part, custom_settings):

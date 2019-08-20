@@ -642,9 +642,9 @@ void BuildAndSolve(
 
     /* Build(pScheme, rModelPart, A, b); */
 
-  	boost::timer build_time;
+  	//boost::timer build_time;
 	  BuildNodally(pScheme, rModelPart, A, b);
-	  std::cout << "CONTINUITY EQ: build_time : " << build_time.elapsed() << std::endl;
+	  //std::cout << "CONTINUITY EQ: build_time : " << build_time.elapsed() << std::endl;
 
 	  Timer::Stop("Build");
 
@@ -655,9 +655,9 @@ void BuildAndSolve(
     const double start_solve = OpenMPUtils::GetCurrentTime();
     Timer::Start("Solve");
 	
-	  boost::timer solve_time;
+	  //boost::timer solve_time;
     SystemSolveWithPhysics(A, Dx, b, rModelPart);
-	  std::cout << "CONTINUITY EQ: solve_time : " << solve_time.elapsed() << std::endl;
+	  //std::cout << "CONTINUITY EQ: solve_time : " << solve_time.elapsed() << std::endl;
 
     Timer::Stop("Solve");
     const double stop_solve = OpenMPUtils::GetCurrentTime();
@@ -952,7 +952,7 @@ void BuildAndSolve(
       {
         KRATOS_TRY
 
-	  boost::timer contruct_matrix;
+	  //boost::timer contruct_matrix;
 
 	  if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
 	    {
@@ -996,7 +996,7 @@ void BuildAndSolve(
         if (b.size() != BaseType::mEquationSystemSize)
 	  b.resize(BaseType::mEquationSystemSize, false);
 
-	std::cout << "CONTINUITY EQ: contruct_matrix : " << contruct_matrix.elapsed() << std::endl;
+	//std::cout << "CONTINUITY EQ: contruct_matrix : " << contruct_matrix.elapsed() << std::endl;
 
         KRATOS_CATCH("")
 	  }
