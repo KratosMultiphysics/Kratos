@@ -711,7 +711,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
                     sen_mz = elem_mz.GetValue(var)
                     sensitivity =  sen_fx / A + sen_my / I22 * zp + sen_mz / I33 * yp
 
-                    if (elem.Id == self.traced_element_id) and ((var.Name() == 'SECTION_HEIGTH_SENSITIVITY') or (var.Name() == 'SECTION_WIDTH_SENSITIVTY')):
+                    if (elem.Id == self.traced_element_id) and ((var.Name() == 'SECTION_HEIGTH_SENSITIVITY') or (var.Name() == 'SECTION_WIDTH_SENSITIVITY')):
                         if self.response_cross_section is None:
                             raise RuntimeError('It is not possible to compute ' + var.Name() + ' without a defined cross section!')
                         FX = self.adjoint_analysis_fx._GetSolver().response_function.CalculateValue(self.primal_model_part)
@@ -723,11 +723,10 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
                         sensitivity -= (FX / A**2 * dA_dX +
                                         MY / I22**2 * zp * dI22_dX +
                                         MZ / I33**2 * yp * dI33_dX)
-                        if self.adaptive_y_coord:
+                        if self.adaptive_y_coord and (var.Name() == 'SECTION_WIDTH_SENSITIVITY'):
                             sensitivity += MZ / I33 * self.stress_position_y
-                        if self.adaptive_z_coord:
+                        if self.adaptive_z_coord and (var.Name() == 'SECTION_HEIGTH_SENSITIVITY'):
                             sensitivity += MY / I22 * self.stress_position_z
-
                     elem.SetValue(var, sensitivity)
 
     # --------------------------------------------------------------------------
