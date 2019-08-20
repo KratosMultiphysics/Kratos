@@ -304,21 +304,36 @@ public:
         const double ParameterT)
     {
         // compute B-Spline shape
-        ComputeBSplineShapeFunctionValuesAtSpan(
-            rKnots, Span, ParameterT);
-
-        // compute weighted sum
-        double weightedSum{ 0 };
-
-        for (IndexType i = 0; i < NumberOfNonzeroControlPoints(); i++) {
-            mValues[i] *= rWeights(i);
-            weightedSum += mValues[i];
-        }
+        ComputeBSplineShapeFunctionValuesAtSpan(rKnots, Span, ParameterT);
 
         // apply weights
+        
+        std::vector<double> weightedSums(NumberOfShapeFunctionRows());
 
-        for (IndexType i = 0; i < NumberOfNonzeroControlPoints(); i++) {
-            mValues[i] /= weightedSum;
+        for (int k = 0; k < NumberOfShapeFunctionRows(); k++) {
+            weightedSums[k] = 0;
+
+            for (int i = 0; i < NumberOfNonzeroControlPoints(); i++) {
+                const size_t poleIndex = GetFirstNonzeroControlPoint() + i;
+                ShapeFunctionValue(k, i) *= rWeights(poleIndex);
+                weightedSums[k] += ShapeFunctionValue(k, i);
+            }
+        }
+
+        for (int k = 0; k < NumberOfShapeFunctionRows(); k++) {
+            for (int i = 1; i <= k; i++) {
+                const double a = NurbsUtilities::GetBinomCoefficient(k, i) *
+                    weightedSums[i];
+
+                for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
+                    ShapeFunctionValue(k, p) -=
+                        a * ShapeFunctionValue(k - i, p);
+                }
+            }
+
+            for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
+                ShapeFunctionValue(k, p) /= weightedSums[0];
+            }
         }
     }
 
