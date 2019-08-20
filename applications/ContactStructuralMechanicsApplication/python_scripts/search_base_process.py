@@ -4,6 +4,12 @@ import KratosMultiphysics as KM
 
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
+try:
+    import KratosMultiphysics.MeshingApplication as MA
+    meshing_dependencies = True
+except ImportError as e:
+    meshing_dependencies = False
+
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -111,9 +117,27 @@ class SearchBaseProcess(KM.Process):
 
         # First we generate or identify the different model parts
         if self.computing_model_part.HasSubModelPart("Contact"):
-            self.preprocess = False
-            # We get the submodelpart
-            self.search_model_part = self.computing_model_part.GetSubModelPart("Contact")
+            # If remeshed we remove and redo everything from scratch
+            if self.computing_model_part.GetRootModelPart().Is(KM.MODIFIED):
+                self.preprocess = True
+
+                # We remove the submodelpart
+                KM.VariableUtils().SetFlag(KM.TO_ERASE, True, self.computing_model_part.GetSubModelPart("ComputingContact").Conditions)
+                self.computing_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KM.TO_ERASE)
+
+                self.computing_model_part.RemoveSubModelPart("Contact")
+                self.computing_model_part.RemoveSubModelPart("ComputingContact")
+
+                if meshing_dependencies:
+                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(self.computing_model_part)
+                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(self.computing_model_part.GetRootModelPart())
+
+                # We create the submodelpart
+                self.search_model_part = self.computing_model_part.CreateSubModelPart("Contact")
+            else:
+                self.preprocess = False
+                # We get the submodelpart
+                self.search_model_part = self.computing_model_part.GetSubModelPart("Contact")
         else:
             self.preprocess = True
             # We create the submodelpart
