@@ -35,6 +35,10 @@
             "input_filename" : "beam_tests/hyperelastic_cantilever_beam/penalty_self_weight_load_2D_quad_test_Grid"
         },
         "pressure_dofs"                      : false,
+        "linear_solver_settings"             : {
+            "solver_type" : "ExternalSolversApplication.super_lu",
+            "scaling"     : false
+        },
         "auxiliary_variables_list"           : ["NORMAL", "WEIGHTED_VECTOR_RESIDUAL", "VECTOR_LAGRANGE_MULTIPLIER" ],
         "auxiliary_dofs_list": [ "VECTOR_LAGRANGE_MULTIPLIER" ],
         "auxiliary_reaction_list": [ "WEIGHTED_VECTOR_RESIDUAL" ]
@@ -59,7 +63,8 @@
                 "model_part_name" : "Background_Grid.PENALTY_Condition_Auto1",
                 "particles_per_condition" : 7,
                 "imposition_type": "lagrange",
-                "constrained"     : "fixed"
+                "constrained"     : "fixed",
+                "augmentation_factor": 0
             }
         },{
             "python_module"   : "from_json_check_result_process",

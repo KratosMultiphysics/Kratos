@@ -390,7 +390,7 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
         const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
         const array_1d<double, 3 > & lagrange_multiplier = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
         unsigned int index = i * dimension;
-        const unsigned int lagrange_index = number_of_nodes * dimension;
+        const unsigned int lagrange_index = i * dimension+number_of_nodes * dimension;
         for(unsigned int k = 0; k < dimension; ++k)
         {
             rValues[index + k] = Displacement[k];
