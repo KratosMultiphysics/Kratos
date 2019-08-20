@@ -147,7 +147,8 @@ namespace Kratos
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
         }
-
+        if(Id()==1 && rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+            KRATOS_WATCH(rCurrentProcessInfo.GetValue(NL_ITERATION_NUMBER))
         KRATOS_CATCH("");
     }
 
@@ -284,41 +285,41 @@ namespace Kratos
         double lg_con2 = norm_2(g2_con);
         array_1d<double, 3> e2 = g2_con / lg_con2;
 
-        // transformation matrix Q from contravariant to local cartesian coordinate system
+        // transformation matrix T_con_to_car from contravariant to local cartesian coordinate system
         Matrix mG = ZeroMatrix(2, 2);
         mG(0, 0) = inner_prod(e1, g1_con);
         mG(0, 1) = inner_prod(e1, g2_con);
         mG(1, 0) = inner_prod(e2, g1_con);
         mG(1, 1) = inner_prod(e2, g2_con);
 
-        rMetric.Q(0, 0) = pow(mG(0, 0), 2);
-        rMetric.Q(0, 1) = pow(mG(0, 1), 2);
-        rMetric.Q(0, 2) = 2.00 * mG(0, 0) * mG(0, 1);
+        rMetric.T_con_to_car(0, 0) = pow(mG(0, 0), 2);
+        rMetric.T_con_to_car(0, 1) = pow(mG(0, 1), 2);
+        rMetric.T_con_to_car(0, 2) = 2.00 * mG(0, 0) * mG(0, 1);
 
-        rMetric.Q(1, 0) = pow(mG(1, 0), 2);
-        rMetric.Q(1, 1) = pow(mG(1, 1), 2);
-        rMetric.Q(1, 2) = 2.00 * mG(1, 0) * mG(1, 1);
+        rMetric.T_con_to_car(1, 0) = pow(mG(1, 0), 2);
+        rMetric.T_con_to_car(1, 1) = pow(mG(1, 1), 2);
+        rMetric.T_con_to_car(1, 2) = 2.00 * mG(1, 0) * mG(1, 1);
 
-        rMetric.Q(2, 0) = 2.00 * mG(0, 0) * mG(1, 0);
-        rMetric.Q(2, 1) = 2.00 * mG(0, 1) * mG(1, 1);
-        rMetric.Q(2, 2) = 2.00 * (mG(0, 0) * mG(1, 1) + mG(0, 1) * mG(1, 0));
+        rMetric.T_con_to_car(2, 0) = 2.00 * mG(0, 0) * mG(1, 0);
+        rMetric.T_con_to_car(2, 1) = 2.00 * mG(0, 1) * mG(1, 1);
+        rMetric.T_con_to_car(2, 2) = 2.00 * (mG(0, 0) * mG(1, 1) + mG(0, 1) * mG(1, 0));
 
-        // transformation matrix TransCartToCov from local Cartesian to covariant basis
-        rMetric.TransCartToCov = trans(rMetric.Q);
+        // transformation matrix T_car_to_cov from local Cartesian to covariant basis
+        rMetric.T_car_to_cov = trans(rMetric.T_con_to_car);
         for (unsigned int i = 0; i < 3; i++){
-            rMetric.TransCartToCov(2, i) = rMetric.TransCartToCov(i, 2) / 2;    // because it is not used for strains
+            rMetric.T_car_to_cov(2, i) = rMetric.T_car_to_cov(i, 2) / 2;    // because it is not used for strains
         }
 
         double mG_00 = inner_prod(e1, rMetric.g1);
         double mG_01 = inner_prod(e1, rMetric.g2);
         double mG_11 = inner_prod(e2, rMetric.g2);
-        // transformation matrix TransCovToCart from covariant to local Cartesian basis
-        rMetric.TransCovToCart(0, 0) = pow(mG_00, 2);
-        rMetric.TransCovToCart(0, 1) = pow(mG_01, 2);
-        rMetric.TransCovToCart(0, 2) = 2 * mG_00 * mG_01;
-        rMetric.TransCovToCart(1, 1) = pow(mG_11, 2);
-        rMetric.TransCovToCart(2, 1) = mG_01 * mG_11;
-        rMetric.TransCovToCart(2, 2) = mG_00 * mG_11;
+        // transformation matrix T_cov_to_car from covariant to local Cartesian basis
+        rMetric.T_cov_to_car(0, 0) = pow(mG_00, 2);
+        rMetric.T_cov_to_car(0, 1) = pow(mG_01, 2);
+        rMetric.T_cov_to_car(0, 2) = 2 * mG_00 * mG_01;
+        rMetric.T_cov_to_car(1, 1) = pow(mG_11, 2);
+        rMetric.T_cov_to_car(2, 1) = mG_01 * mG_11;
+        rMetric.T_cov_to_car(2, 2) = mG_00 * mG_11;
     }
 
     void IgaShell3pElement::CalculateConstitutiveVariables(
@@ -333,9 +334,9 @@ namespace Kratos
         Vector curvature_vector = ZeroVector(3);
 
         CalculateStrain(strain_vector, rActualMetric.gab);
-        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.Q, strain_vector);
+        rThisConstitutiveVariablesMembrane.E = prod(mInitialMetric.T_con_to_car, strain_vector);
         CalculateCurvature(curvature_vector, rActualMetric.curvature);
-        rThisConstitutiveVariablesCurvature.E = prod(mInitialMetric.Q, curvature_vector);
+        rThisConstitutiveVariablesCurvature.E = prod(mInitialMetric.T_con_to_car, curvature_vector);
 
         //Constitive Matrices DMembrane and DCurvature
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.E); //this is the input parameter
@@ -407,9 +408,9 @@ namespace Kratos
             dE_curvilinear[1] = DN_De(kr, 1)*rMetric.g2(dirr);
             dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*rMetric.g2(dirr) + rMetric.g1(dirr)*DN_De(kr, 1));
 
-            rB(0, r) = mInitialMetric.Q(0, 0)*dE_curvilinear[0] + mInitialMetric.Q(0, 1)*dE_curvilinear[1] + mInitialMetric.Q(0, 2)*dE_curvilinear[2];
-            rB(1, r) = mInitialMetric.Q(1, 0)*dE_curvilinear[0] + mInitialMetric.Q(1, 1)*dE_curvilinear[1] + mInitialMetric.Q(1, 2)*dE_curvilinear[2];
-            rB(2, r) = mInitialMetric.Q(2, 0)*dE_curvilinear[0] + mInitialMetric.Q(2, 1)*dE_curvilinear[1] + mInitialMetric.Q(2, 2)*dE_curvilinear[2];
+            rB(0, r) = mInitialMetric.T_con_to_car(0, 0)*dE_curvilinear[0] + mInitialMetric.T_con_to_car(0, 1)*dE_curvilinear[1] + mInitialMetric.T_con_to_car(0, 2)*dE_curvilinear[2];
+            rB(1, r) = mInitialMetric.T_con_to_car(1, 0)*dE_curvilinear[0] + mInitialMetric.T_con_to_car(1, 1)*dE_curvilinear[1] + mInitialMetric.T_con_to_car(1, 2)*dE_curvilinear[2];
+            rB(2, r) = mInitialMetric.T_con_to_car(2, 0)*dE_curvilinear[0] + mInitialMetric.T_con_to_car(2, 1)*dE_curvilinear[1] + mInitialMetric.T_con_to_car(2, 2)*dE_curvilinear[2];
         }
     }
 
@@ -476,7 +477,7 @@ namespace Kratos
                 b(2, index + 2) = 0 - (DDN_DDe(i, 2) * rMetric.g3[2] + rMetric.H(0, 2)*dn(2, 0) + rMetric.H(1, 2)*dn(2, 1) + rMetric.H(2, 2)*dn(2, 2));
             }
 
-            rB = prod(mInitialMetric.Q, b);
+            rB = prod(mInitialMetric.T_con_to_car, b);
         }
         else
         {
@@ -554,9 +555,9 @@ namespace Kratos
                         ddE_cu[1] = DN_De(kr, 1)*DN_De(ks, 1);
                         ddE_cu[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
 
-                        rSecondVariationsStrain.B11(r, s) = mInitialMetric.Q(0, 0)*ddE_cu[0] + mInitialMetric.Q(0, 1)*ddE_cu[1] + mInitialMetric.Q(0, 2)*ddE_cu[2];
-                        rSecondVariationsStrain.B22(r, s) = mInitialMetric.Q(1, 0)*ddE_cu[0] + mInitialMetric.Q(1, 1)*ddE_cu[1] + mInitialMetric.Q(1, 2)*ddE_cu[2];
-                        rSecondVariationsStrain.B12(r, s) = mInitialMetric.Q(2, 0)*ddE_cu[0] + mInitialMetric.Q(2, 1)*ddE_cu[1] + mInitialMetric.Q(2, 2)*ddE_cu[2];
+                        rSecondVariationsStrain.B11(r, s) = mInitialMetric.T_con_to_car(0, 0)*ddE_cu[0] + mInitialMetric.T_con_to_car(0, 1)*ddE_cu[1] + mInitialMetric.T_con_to_car(0, 2)*ddE_cu[2];
+                        rSecondVariationsStrain.B22(r, s) = mInitialMetric.T_con_to_car(1, 0)*ddE_cu[0] + mInitialMetric.T_con_to_car(1, 1)*ddE_cu[1] + mInitialMetric.T_con_to_car(1, 2)*ddE_cu[2];
+                        rSecondVariationsStrain.B12(r, s) = mInitialMetric.T_con_to_car(2, 0)*ddE_cu[0] + mInitialMetric.T_con_to_car(2, 1)*ddE_cu[1] + mInitialMetric.T_con_to_car(2, 2)*ddE_cu[2];
                     }
 
                     // curvature
@@ -587,9 +588,9 @@ namespace Kratos
                     ddK_cu[2] = - (DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)       // MLFÄ
                         + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2]);
 
-                    rSecondVariationsCurvature.B11(r, s) = mInitialMetric.Q(0, 0)*ddK_cu[0] + mInitialMetric.Q(0, 1)*ddK_cu[1] + mInitialMetric.Q(0, 2)*ddK_cu[2];
-                    rSecondVariationsCurvature.B22(r, s) = mInitialMetric.Q(1, 0)*ddK_cu[0] + mInitialMetric.Q(1, 1)*ddK_cu[1] + mInitialMetric.Q(1, 2)*ddK_cu[2];
-                    rSecondVariationsCurvature.B12(r, s) = mInitialMetric.Q(2, 0)*ddK_cu[0] + mInitialMetric.Q(2, 1)*ddK_cu[1] + mInitialMetric.Q(2, 2)*ddK_cu[2];
+                    rSecondVariationsCurvature.B11(r, s) = mInitialMetric.T_con_to_car(0, 0)*ddK_cu[0] + mInitialMetric.T_con_to_car(0, 1)*ddK_cu[1] + mInitialMetric.T_con_to_car(0, 2)*ddK_cu[2];
+                    rSecondVariationsCurvature.B22(r, s) = mInitialMetric.T_con_to_car(1, 0)*ddK_cu[0] + mInitialMetric.T_con_to_car(1, 1)*ddK_cu[1] + mInitialMetric.T_con_to_car(1, 2)*ddK_cu[2];
+                    rSecondVariationsCurvature.B12(r, s) = mInitialMetric.T_con_to_car(2, 0)*ddK_cu[0] + mInitialMetric.T_con_to_car(2, 1)*ddK_cu[1] + mInitialMetric.T_con_to_car(2, 2)*ddK_cu[2];
                 }
             }
         }
@@ -600,6 +601,8 @@ namespace Kratos
         double& rValues,
         const ProcessInfo& rCurrentProcessInfo)
     {
+        if(Id()==1)
+            KRATOS_WATCH("here")
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
         // Set constitutive law flags:
@@ -621,13 +624,13 @@ namespace Kratos
         // stresses
         double thickness = GetProperties().GetValue(THICKNESS);
         array_1d<double, 3> membrane_stress_pk2_cart = constitutive_variables_membrane.S / thickness;
-        array_1d<double, 3> membrane_stress_pk2_cov = prod(mInitialMetric.TransCartToCov, membrane_stress_pk2_cart);
+        array_1d<double, 3> membrane_stress_pk2_cov = prod(mInitialMetric.T_car_to_cov, membrane_stress_pk2_cart);
         array_1d<double, 3> membrane_stress_cau_cov = membrane_stress_pk2_cov / detF;
-        array_1d<double, 3> membrane_stress_cau_cart = prod(actual_metric.TransCovToCart, membrane_stress_cau_cov);
+        array_1d<double, 3> membrane_stress_cau_cart = prod(actual_metric.T_cov_to_car, membrane_stress_cau_cov);
         array_1d<double, 3> bending_stress_pk2_cart = constitutive_variables_curvature.S / pow(thickness, 3) * 12;
-        array_1d<double, 3> bending_stress_pk2_cov = prod(mInitialMetric.TransCartToCov, bending_stress_pk2_cart);
+        array_1d<double, 3> bending_stress_pk2_cov = prod(mInitialMetric.T_car_to_cov, bending_stress_pk2_cart);
         array_1d<double, 3> bending_stress_cau_cov = bending_stress_pk2_cov / detF;
-        array_1d<double, 3> bending_stress_cau_cart = prod(actual_metric.TransCovToCart, bending_stress_cau_cov);
+        array_1d<double, 3> bending_stress_cau_cart = prod(actual_metric.T_cov_to_car, bending_stress_cau_cov);
 
         // internal forces
         array_1d<double, 3> n = membrane_stress_cau_cart * thickness;
@@ -671,7 +674,7 @@ namespace Kratos
         else if (rVariable == INTERNAL_MOMENT_22)
             rValues = m[1];
         //shear force
-        else if (Has(SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES)){
+        else if (Has(SHAPE_FUNCTION_LOCAL_THIRD_DERIVATIVES) && (rVariable == SHEAR_FORCE_1 || rVariable == SHEAR_FORCE_2)){
             array_1d<double, 2> q = ZeroVector(2);
             CalculateShearForce(q, actual_metric, constitutive_variables_curvature);
             if (rVariable == SHEAR_FORCE_1)
@@ -688,47 +691,46 @@ namespace Kratos
         const MetricVariables& rActualMetric,
         const ConstitutiveVariables& rConstitutiveVariablesCurvature)
     {
-        std::vector<array_1d<double, 3>> dk_cu(2);
-        dk_cu[0] = mInitialMetric.Dcurvature_D1 - rActualMetric.Dcurvature_D1;
-        dk_cu[1] = mInitialMetric.Dcurvature_D2 - rActualMetric.Dcurvature_D2;
+        std::vector<array_1d<double, 3>> Dk_con_Dalpha(2);
+        Dk_con_Dalpha[0] = mInitialMetric.Dcurvature_D1 - rActualMetric.Dcurvature_D1;
+        Dk_con_Dalpha[1] = mInitialMetric.Dcurvature_D2 - rActualMetric.Dcurvature_D2;
 
-        Vector k_cu = ZeroVector(3);
-        CalculateCurvature(k_cu, rActualMetric.curvature);
-        array_1d<double, 3> m_ca = prod(rConstitutiveVariablesCurvature.D, k_cu);
-        array_1d<double, 3> m_cu = prod(mInitialMetric.TransCartToCov, m_ca);
+        Vector k_con = ZeroVector(3);
+        CalculateCurvature(k_con, rActualMetric.curvature);
+        array_1d<double, 3> k_car = prod(mInitialMetric.T_con_to_car, k_con);
+        array_1d<double, 3> m_car = prod(rConstitutiveVariablesCurvature.D, k_car);
 
-        // derivative of the transformation matrix Q (contravariant to local Cartesian basis)
-        std::vector<Matrix> DQ_Dalpha_init(2, ZeroMatrix(3, 3));
-        std::vector<Matrix> DTransCartToCov_Dalpha_init(2, ZeroMatrix(3, 3));
-        CalculateDerivativeTransformationMatrices(DQ_Dalpha_init, DTransCartToCov_Dalpha_init);
+        // derivative of the transformation matrix T_con_to_car (contravariant to local Cartesian basis)
+        std::vector<Matrix> DT_con_to_car_init_Dalpha(2, ZeroMatrix(3, 3));
+        std::vector<Matrix> DT_car_to_cov_init_Dalpha(2, ZeroMatrix(3, 3));
+        CalculateDerivativeTransformationMatrices(DT_con_to_car_init_Dalpha, DT_car_to_cov_init_Dalpha);
 
         // derivative of the moment
-        std::vector<array_1d<double, 3>> dm_ca(2);
-        std::vector<array_1d<double, 3>> dm_cu(2);
-        array_1d<double, 3> dk_1_ca = prod(mInitialMetric.Q, dk_cu[0]) + prod(DQ_Dalpha_init[0], k_cu);
-        array_1d<double, 3> dk_2_ca = prod(mInitialMetric.Q, dk_cu[1]) + prod(DQ_Dalpha_init[1], k_cu);
-        dm_ca[0] = prod(rConstitutiveVariablesCurvature.D, dk_1_ca);
-        dm_ca[1] = prod(rConstitutiveVariablesCurvature.D, dk_2_ca);
+        std::vector<array_1d<double, 3>> Dm_car_Dalpha(2);
+        std::vector<array_1d<double, 3>> Dm_cov_Dalpha(2);
+        array_1d<double, 3> Dk_car_D1 = prod(mInitialMetric.T_con_to_car, Dk_con_Dalpha[0]) + prod(DT_con_to_car_init_Dalpha[0], k_con);
+        array_1d<double, 3> Dk_car_D2 = prod(mInitialMetric.T_con_to_car, Dk_con_Dalpha[1]) + prod(DT_con_to_car_init_Dalpha[1], k_con);
+        Dm_car_Dalpha[0] = prod(rConstitutiveVariablesCurvature.D, Dk_car_D1);
+        Dm_car_Dalpha[1] = prod(rConstitutiveVariablesCurvature.D, Dk_car_D2);
 
-        dm_cu[0] = prod(mInitialMetric.TransCartToCov, dm_ca[0]) + prod(DTransCartToCov_Dalpha_init[0], m_ca);
-        dm_cu[1] = prod(mInitialMetric.TransCartToCov, dm_ca[1]) + prod(DTransCartToCov_Dalpha_init[1], m_ca);
+        Dm_cov_Dalpha[0] = prod(mInitialMetric.T_car_to_cov, Dm_car_Dalpha[0]) + prod(DT_car_to_cov_init_Dalpha[0], m_car);
+        Dm_cov_Dalpha[1] = prod(mInitialMetric.T_car_to_cov, Dm_car_Dalpha[1]) + prod(DT_car_to_cov_init_Dalpha[1], m_car);
 
         array_1d<double, 2> q_pk2_cov;
-        q_pk2_cov[0] = dm_cu[0](0) / sqrt(rActualMetric.gab[0]) + dm_cu[1](2) / sqrt(rActualMetric.gab[1]);
-        q_pk2_cov[1] = dm_cu[1](1) / sqrt(rActualMetric.gab[1]) + dm_cu[0](2) / sqrt(rActualMetric.gab[0]);
+        q_pk2_cov[0] = Dm_cov_Dalpha[0](0) / sqrt(rActualMetric.gab[0]) + Dm_cov_Dalpha[1](2) / sqrt(rActualMetric.gab[1]);
+        q_pk2_cov[1] = Dm_cov_Dalpha[1](1) / sqrt(rActualMetric.gab[1]) + Dm_cov_Dalpha[0](2) / sqrt(rActualMetric.gab[0]);
         double detF = rActualMetric.dA / mInitialMetric.dA; // should be checked (ML)
         array_1d<double, 2> q_cau_cov = q_pk2_cov / detF;
 
         // transformation actual covariant basis to local Cartesian basis
-        array_1d<double, 3> g1_con = rActualMetric.g1 * rActualMetric.gab_con[0] + rActualMetric.g2 * rActualMetric.gab_con[2];
         array_1d<double, 3> g2_con = rActualMetric.g1 * rActualMetric.gab_con[2] + rActualMetric.g2 * rActualMetric.gab_con[1];
         //local cartesian coordinates
         double lg1 = norm_2(rActualMetric.g1);
         array_1d<double, 3> e1 = rActualMetric.g1 / lg1;
         double lg_con2 = norm_2(g2_con);
         array_1d<double, 3> e2 = g2_con / lg_con2;
-        rq[0] = inner_prod(e1, g1_con) * q_cau_cov[0];
-        rq[1] = inner_prod(e2, g1_con) * q_cau_cov[0] + inner_prod(e2, g2_con) * q_cau_cov[1];
+        rq[0] = inner_prod(e1, rActualMetric.g1) * q_cau_cov[0];
+        rq[1] = inner_prod(e2, rActualMetric.g2) * q_cau_cov[1];
         }
 
     void IgaShell3pElement::CalculateDerivativeTransformationMatrices(
@@ -788,7 +790,7 @@ namespace Kratos
         double eG21_d1 = inner_prod(De2_D1, g1_con) + inner_prod(e2, Dg1_con_D1);
         double eG22_d1 = inner_prod(De2_D1, g2_con) + inner_prod(e2, Dg2_con_D1);
         
-        // derivative of the transformation matrix Q (contravariant to local Cartesian basis) of the initial configuration w.r.t. theta1
+        // derivative of the transformation matrix T_con_to_car (contravariant to local Cartesian basis) of the initial configuration w.r.t. theta1
         rDQ_Dalpha_init[0](0,0) = eG11_d1 * eG11 + eG11 * eG11_d1;
         rDQ_Dalpha_init[0](0,1) = eG12_d1 * eG12 + eG12 * eG12_d1;
         rDQ_Dalpha_init[0](0,2) = 2.0 * (eG11_d1 * eG12 + eG11 * eG12_d1);
@@ -798,7 +800,7 @@ namespace Kratos
         rDQ_Dalpha_init[0](2,0) = 2.0 * (eG11_d1 * eG21 + eG11 * eG21_d1);  // should be always zero (ML)
         rDQ_Dalpha_init[0](2,1) = 2.0 * (eG12_d1 * eG22 + eG12 * eG22_d1);
         rDQ_Dalpha_init[0](2,2) = 2.0 * (eG11_d1 * eG22 + eG12_d1 * eG21 + eG11 * eG22_d1 + eG12 * eG21_d1);
-        // derivative of the transformation matrix TransCartToCov (local Cartesian to covariant basis) of the initial configuration 
+        // derivative of the transformation matrix T_car_to_cov (local Cartesian to covariant basis) of the initial configuration 
         // w.r.t. theta1
         rDTransCartToCov_Dalpha_init[0](0,0) = eG11_d1 * eG11 + eG11 * eG11_d1;
         rDTransCartToCov_Dalpha_init[0](0,1) = eG21_d1 * eG21 + eG21 * eG21_d1;
@@ -834,7 +836,7 @@ namespace Kratos
         double eG21_d2 = inner_prod(De2_D2, g1_con) + inner_prod(e2, Dg1_con_D2);
         double eG22_d2 = inner_prod(De2_D2, g2_con) + inner_prod(e2, Dg2_con_D2);
 
-        // derivative of the transformation matrix Q (contravariant to local Cartesian basis) of the initial configuration w.r.t. theta2
+        // derivative of the transformation matrix T_con_to_car (contravariant to local Cartesian basis) of the initial configuration w.r.t. theta2
         rDQ_Dalpha_init[1](0,0) = eG11_d2 * eG11 + eG11 * eG11_d2;
         rDQ_Dalpha_init[1](0,1) = eG12_d2 * eG12 + eG12 * eG12_d2;
         rDQ_Dalpha_init[1](0,2) = 2.0 * (eG11_d2 * eG12 + eG11 * eG12_d2);
@@ -845,7 +847,7 @@ namespace Kratos
         rDQ_Dalpha_init[1](2,1) = 2.0 * (eG12_d2 * eG22 + eG12 * eG22_d2);
         rDQ_Dalpha_init[1](2,2) = 2.0 * (eG11_d2 * eG22 + eG12_d2 * eG21 + eG11 * eG22_d2 + eG12 * eG21_d2);
         
-        // derivative of the transformation matrix TransCartToCov (local Cartesian to covariant basis) of the initial configuration 
+        // derivative of the transformation matrix T_car_to_cov (local Cartesian to covariant basis) of the initial configuration 
         // w.r.t. theta2
         rDTransCartToCov_Dalpha_init[1](0,0) = eG11_d2 * eG11 + eG11 * eG11_d2;
         rDTransCartToCov_Dalpha_init[1](0,1) = eG21_d2*eG21 + eG21*eG21_d2;

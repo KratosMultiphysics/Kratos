@@ -184,9 +184,9 @@ private:
         Vector Da1_D2;  // derivative of base vector 1 w.r.t. theta2
         Vector Da2_D2;  // derivative of base vector 2 w.r.t. theta2
         Matrix H; //Hessian (second derivative of cartesian coordinates w.r.t. curvilinear coordinates)
-        Matrix Q; //Transformation matrix Q from contravariant to local Cartesian basis (only for strains!!!)
-        Matrix TransCartToCov; // Transformation matrix from local Cartesian to covariant basis
-        Matrix TransCovToCart; // Transformation matrix from covariant to local Cartesian basis
+        Matrix T_con_to_car; //Transformation matrix T_con_to_car from contravariant to local Cartesian basis (only for strains!!!)
+        Matrix T_car_to_cov; // Transformation matrix from local Cartesian to covariant basis
+        Matrix T_cov_to_car; // Transformation matrix from covariant to local Cartesian basis
 
         /**
         * The default constructor
@@ -218,9 +218,9 @@ private:
             Da2_D2 = ZeroVector(rWorkingSpaceDimension);
 
             H = ZeroMatrix(rWorkingSpaceDimension, rWorkingSpaceDimension);
-            Q = ZeroMatrix(rStrainSize, rStrainSize);
-            TransCartToCov = ZeroMatrix(rStrainSize, rStrainSize);
-            TransCovToCart = ZeroMatrix(rStrainSize, rStrainSize);
+            T_con_to_car = ZeroMatrix(rStrainSize, rStrainSize);
+            T_car_to_cov = ZeroMatrix(rStrainSize, rStrainSize);
+            T_cov_to_car = ZeroMatrix(rStrainSize, rStrainSize);
         }
     };
 

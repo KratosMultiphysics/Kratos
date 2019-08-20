@@ -162,9 +162,9 @@ private:
         Vector Dcurvature_D1;   // derivative of curvature w.r.t. theta1
         Vector Dcurvature_D2;   // derivative of curvature w.r.t. theta2
         Matrix H; //Hessian
-        Matrix Q; //Transformation matrix Q from contravariant to local Cartesian basis (only for strains!!!)
-        Matrix TransCartToCov; // Transformation matrix from local Cartesian to covariant basis
-        Matrix TransCovToCart; // Transformation matrix from covariant to local Cartesian basis
+        Matrix T_con_to_car; //Transformation matrix T_con_to_car from contravariant to local Cartesian basis (only for strains!!!)
+        Matrix T_car_to_cov; // Transformation matrix from local Cartesian to covariant basis
+        Matrix T_cov_to_car; // Transformation matrix from covariant to local Cartesian basis
 
         /**
         * The default constructor
@@ -195,9 +195,9 @@ private:
             Dcurvature_D2 = ZeroVector(Dimension);
 
             H = ZeroMatrix(3, 3);
-            Q = ZeroMatrix(3, 3);
-            TransCartToCov = ZeroMatrix(3, 3);
-            TransCovToCart = ZeroMatrix(3, 3);
+            T_con_to_car = ZeroMatrix(3, 3);
+            T_car_to_cov = ZeroMatrix(3, 3);
+            T_cov_to_car = ZeroMatrix(3, 3);
         }
     };
 
