@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -30,9 +31,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// Some forward delcarations to avoid increase a lot the compilation time
+// Some forward declarations to avoid increase a lot the compilation time
 class Model;
-class Parameters;
 
 /**
  * @class Process
