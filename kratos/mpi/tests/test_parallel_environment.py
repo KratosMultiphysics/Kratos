@@ -1,5 +1,4 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.mpi as mpi
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
