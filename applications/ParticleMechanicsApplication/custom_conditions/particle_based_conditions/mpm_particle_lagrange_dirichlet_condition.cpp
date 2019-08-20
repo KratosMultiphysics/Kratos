@@ -103,7 +103,6 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int block_size = this->GetBlockSize();
     const unsigned int matrix_size = number_of_nodes * dimension * 2;
 
     // Resizing as needed the LHS

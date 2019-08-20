@@ -116,6 +116,24 @@ public:
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
+    unsigned int GetBlockSize()
+    {
+        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        if( HasRotDof() ) // if it has rotations
+        {
+            if(dimension == 2)
+                return 6;
+            else if(dimension == 3)
+                return 12;
+            else
+                KRATOS_ERROR << "the conditions only works for 2D and 3D elements";
+        }
+        else
+        {
+            return dimension * 2;
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
