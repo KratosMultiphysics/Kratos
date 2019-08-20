@@ -64,6 +64,34 @@ class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsAdaptiveRemeshing):
         mortar_mapping = KM.SimpleMortarMapperProcess(slave_interface_model_part, master_interface_model_part, map_parameters)
         mortar_mapping.Execute()
 
+    def AdaptativeRemeshingRunSolutionLoop(self):
+        """This function executes the solution loop of the AnalysisStage for cases where remeshing may be considered
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+
+        # If we remesh using a process
+        computing_model_part = self.analysis._GetSolver().GetComputingModelPart()
+        root_model_part = computing_model_part.GetRootModelPart()
+
+        while self.analysis.KeepAdvancingSolutionLoop():
+            self.analysis.time = self.analysis._GetSolver().AdvanceInTime(self.analysis.time)
+            # We reinitialize if remeshed previously
+            if root_model_part.Is(KM.MODIFIED):
+                self.analysis.ReInitializeSolver()
+            self.ExecuteBeforeFinalizeSolutionStep()
+            self.analysis.InitializeSolutionStep()
+            # We reinitialize if remeshed on the InitializeSolutionStep
+            if root_model_part.Is(KM.MODIFIED):
+                self.analysis.ReInitializeSolver()
+                self.analysis.InitializeSolutionStep()
+            self.analysis._GetSolver().Predict()
+            self.analysis._GetSolver().SolveSolutionStep()
+            self.ExecuteBeforeFinalizeSolutionStep()
+            self.analysis.FinalizeSolutionStep()
+            self.analysis.OutputSolutionStep()
+
     def SPRAdaptativeRemeshingRunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage for cases where remeshing may be considered with SPR convergence criteria
 
