@@ -1,3 +1,6 @@
+import sys
+
+
 cs_data_structure = None
 
 
@@ -22,6 +25,7 @@ def ImportDataStructure(parameters_file_name):
         if data_structure_name == 'KratosMultiphysics':
             cs_data_structure = __import__('KratosMultiphysics')
         elif data_structure_name == 'pyKratos':
+            sys.path.append("../custom_data_structure/")
             cs_data_structure = __import__('pyKratos')
         else:
             raise Exception('data_structure needs to be KratosMultiphysics or pyKratos')
