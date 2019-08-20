@@ -197,6 +197,9 @@ class MmgProcess(KratosMultiphysics.Process):
         # Setting initial_step_done here
         self.initial_step_done = False
 
+        # Initialize flag
+        self.remesh_executed = False
+
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
 
@@ -348,28 +351,30 @@ class MmgProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
 
-        if not self.initial_remeshing:
-            execute_remesh = False
-            # We need to check if the model part has been modified recently
-            if self.main_model_part.Is(KratosMultiphysics.MODIFIED):
-                self.main_model_part.Set(KratosMultiphysics.MODIFIED, False)
-                self.step = 0  # Reset (just to be sure)
-            else:
-                self.step += 1
-                if self.step_frequency > 0:
-                    if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
-                        if not self.initial_step_done:
-                                execute_remesh = True
-                        else:
-                            if self.step >= self.step_frequency:
-                                execute_remesh = True
-                    # We remesh if needed
-                    if execute_remesh:
-                        if self.settings["blocking_threshold_size"].GetBool():
-                            MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
-                        self._ExecuteRefinement()
-                        self.initial_step_done = True
-                        self.step = 0  # Reset
+        # If not previous remesh
+        if not self.remesh_executed:
+            if not self.initial_remeshing:
+                execute_remesh = False
+                # We need to check if the model part has been modified recently
+                if self.main_model_part.Is(KratosMultiphysics.MODIFIED):
+                    self.main_model_part.Set(KratosMultiphysics.MODIFIED, False)
+                    self.step = 0  # Reset (just to be sure)
+                else:
+                    self.step += 1
+                    if self.step_frequency > 0:
+                        if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
+                            if not self.initial_step_done:
+                                    execute_remesh = True
+                            else:
+                                if self.step >= self.step_frequency:
+                                    execute_remesh = True
+                        # We remesh if needed
+                        if execute_remesh:
+                            if self.settings["blocking_threshold_size"].GetBool():
+                                MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
+                            self._ExecuteRefinement()
+                            self.initial_step_done = True
+                            self.step = 0  # Reset
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -379,6 +384,9 @@ class MmgProcess(KratosMultiphysics.Process):
         """
         if self.strategy == "superconvergent_patch_recovery":
             self._ErrorCalculation()
+
+        # Reset flag
+        self.remesh_executed = False
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -499,6 +507,9 @@ class MmgProcess(KratosMultiphysics.Process):
 
         # We need to set that the model part has been modified (later on we will act in consequence)
         self.main_model_part.Set(KratosMultiphysics.MODIFIED, True)
+
+        # Deactivate to avoid remesh again
+        self.remesh_executed = True
 
         KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remesh finished")
 
