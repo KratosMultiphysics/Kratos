@@ -9,6 +9,7 @@ try:
 except ImportError as e:
     structural_dependencies = False
 
+from KratosMultiphysics import kratos_utilities
 from KratosMultiphysics import json_utilities
 import os
 
@@ -274,7 +275,7 @@ class MmgProcess(KratosMultiphysics.Process):
             self.remeshing_cycle = 0
             self.main_model_part.ProcessInfo[MeshingApplication.EXECUTE_REMESHING] = True
 
-        self.internal_variable_interpolation_list = self.__generate_internal_variable_list_from_input(self.settings["internal_variables_parameters"]["internal_variable_interpolation_list"])
+        self.internal_variable_interpolation_list = kratos_utilities.GenerateVariableListFromInput(self.settings["internal_variables_parameters"]["internal_variable_interpolation_list"])
 
         # Model parts to fix the nodes
         fix_contour_model_parts = self.__generate_submodelparts_list_from_input(self.settings["fix_contour_model_parts"])
@@ -597,21 +598,6 @@ class MmgProcess(KratosMultiphysics.Process):
                     variable_types.append(2)
 
         return variable_list, variable_types
-
-    def __generate_internal_variable_list_from_input(self,param):
-        '''Parse a list of variables from input.'''
-        # At least verify that the input is an array
-        if not param.IsArray():
-            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
-
-        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-        variable_list = []
-
-        param_names = param.GetStringArray()
-        for variable_name in param_names:
-            variable_list.append(KratosMultiphysics.KratosGlobals.GetVariable( variable_name ))
-
-        return variable_list
 
     def __list_extender(self, values, repetition_list):
         '''Extends the list depending of a repetition parameter'''
