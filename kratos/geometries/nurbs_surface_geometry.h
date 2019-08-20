@@ -8,7 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Thomas Oberbichler
-//                   Tobias Teschemacher
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
