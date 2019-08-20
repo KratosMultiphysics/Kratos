@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-class TestMPIDataCommunicatorPython(UnitTest.TestCase):
+class TestParallelEnvironment(UnitTest.TestCase):
 
     def setUp(self):
         self.world = Kratos.DataCommunicator.GetDefault()
