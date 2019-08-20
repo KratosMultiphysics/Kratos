@@ -9,8 +9,7 @@ try:
 except ImportError as e:
     structural_dependencies = False
 
-from json_utilities import *
-import json
+from KratosMultiphysics import json_utilities
 import os
 
 def Factory(settings, Model):
@@ -90,6 +89,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["DISTANCE"],
                 "non_historical_metric_variable"   : [false],
+                "normalization_factor"             : [1.0],
                 "estimate_interpolation_error"     : false,
                 "interpolation_error"              : 0.04,
                 "mesh_dependent_constant"          : 0.28125
@@ -251,13 +251,20 @@ class MmgProcess(KratosMultiphysics.Process):
             self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.settings["level_set_strategy_parameters"]["scalar_variable"].GetString() )
             self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.settings["level_set_strategy_parameters"]["gradient_variable"].GetString() )
         elif self.strategy == "Hessian":
-            self.metric_variables = self.__generate_variable_list_from_input(self.settings["hessian_strategy_parameters"]["metric_variable"])
+            self.metric_variables, variable_types = self.__generate_variable_list_from_input(self.settings["hessian_strategy_parameters"]["metric_variable"])
             self.non_historical_metric_variable = self.__generate_boolean_list_from_input(self.settings["hessian_strategy_parameters"]["non_historical_metric_variable"])
+            self.non_historical_metric_variable = self.__list_extender(self.non_historical_metric_variable, variable_types)
+            self.normalization_factor = self.__generate_double_list_from_input(self.settings["hessian_strategy_parameters"]["normalization_factor"])
+            self.normalization_factor = self.__list_extender(self.normalization_factor, variable_types)
             len_metric_variables = len(self.metric_variables)
             len_non_historical_metric_variable = len(self.non_historical_metric_variable)
             if len_metric_variables > len_non_historical_metric_variable:
                 for i in range(len_non_historical_metric_variable, len_metric_variables):
                     self.non_historical_metric_variable.append(False)
+            len_normalization_factor = len(self.normalization_factor)
+            if len_metric_variables > len_normalization_factor:
+                for i in range(len_normalization_factor, len_metric_variables):
+                    self.normalization_factor.append(1.0)
             mesh_dependent_constant = self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if mesh_dependent_constant == 0.0:
                 self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.domain_size/(self.domain_size + 1))**2.0)
@@ -426,12 +433,15 @@ class MmgProcess(KratosMultiphysics.Process):
             hessian_parameters["hessian_strategy_parameters"].RemoveValue("metric_variable")
             hessian_parameters["hessian_strategy_parameters"].RemoveValue("non_historical_metric_variable")
             hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("non_historical_metric_variable")
+            hessian_parameters["hessian_strategy_parameters"].RemoveValue("normalization_factor")
+            hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("normalization_factor")
             hessian_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             hessian_parameters.AddValue("enforce_anisotropy_relative_variable",self.settings["enforce_anisotropy_relative_variable"])
             hessian_parameters.AddValue("enforced_anisotropy_parameters",self.settings["anisotropy_parameters"])
             hessian_parameters["enforced_anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
-            for current_metric_variable, non_historical_metric_variable in zip(self.metric_variables, self.non_historical_metric_variable):
+            for current_metric_variable, non_historical_metric_variable, normalization_factor in zip(self.metric_variables, self.non_historical_metric_variable, self.normalization_factor):
                 hessian_parameters["hessian_strategy_parameters"]["non_historical_metric_variable"].SetBool(non_historical_metric_variable)
+                hessian_parameters["hessian_strategy_parameters"]["normalization_factor"].SetDouble(normalization_factor)
                 self.metric_processes.append(MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, current_metric_variable, hessian_parameters))
         elif self.strategy == "superconvergent_patch_recovery":
             if not structural_dependencies:
@@ -539,6 +549,20 @@ class MmgProcess(KratosMultiphysics.Process):
 
       return boolean_list
 
+    def __generate_double_list_from_input(self,param):
+      '''Parse a list of doubles from input.'''
+      # At least verify that the input is an array
+      if not param.IsArray():
+          raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+      # Retrieve the boolean from the arrays
+      double_list = []
+
+      for i in range( 0,param.size()):
+          double_list.append(param[i].GetDouble())
+
+      return double_list
+
     def __generate_submodelparts_list_from_input(self,param):
         '''Parse a list of variables from input.'''
         # At least verify that the input is a string
@@ -556,19 +580,23 @@ class MmgProcess(KratosMultiphysics.Process):
 
         # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
         variable_list = []
+        variable_types = []
         param_names = param.GetStringArray()
         for variable_name in param_names:
-            aux_var = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
             varriable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
             if varriable_type == "Double" or varriable_type == "Component":
-                variable_list.append(aux_var)
+                variable_list.append(KratosMultiphysics.KratosGlobals.GetVariable(variable_name))
+                variable_types.append(1)
             else:
                 variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_X" ))
                 variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_Y" ))
                 if self.domain_size == 3:
                     variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( variable_name + "_Z" ))
+                    variable_types.append(3)
+                else:
+                    variable_types.append(2)
 
-        return variable_list
+        return variable_list, variable_types
 
     def __generate_internal_variable_list_from_input(self,param):
         '''Parse a list of variables from input.'''
@@ -581,10 +609,19 @@ class MmgProcess(KratosMultiphysics.Process):
 
         param_names = param.GetStringArray()
         for variable_name in param_names:
-            aux_var = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
-            variable_list.append(aux_var)
+            variable_list.append(KratosMultiphysics.KratosGlobals.GetVariable( variable_name ))
 
         return variable_list
+
+    def __list_extender(self, values, repetition_list):
+        '''Extends the list depending of a repetition parameter'''
+
+        aux_list = []
+        for value, repetition in zip(values, repetition_list):
+            for i in range(repetition):
+                aux_list.append(value)
+
+        return aux_list
 
     def _debug_output_gid(self, label, name, prefix):
         '''Debug postprocess with GiD.'''
@@ -641,14 +678,14 @@ class MmgProcess(KratosMultiphysics.Process):
 
 def _linear_interpolation(x, x_list, y_list):
     tb = KratosMultiphysics.PiecewiseLinearTable()
-    for i in range(len(x_list)):
-        tb.AddRow(x_list[i], y_list[i])
+    for x,y in zip(x_list, y_list):
+        tb.AddRow(x, y)
 
     return tb.GetNearestValue(x)
 
 def _normpdf(x, mean, sd):
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    data = read_external_json(dir_path+"/normal_distribution.json")
+    data = json_utilities.read_external_json(dir_path+"/normal_distribution.json")
     z = (x-mean)/sd
     z_list = data["Z"]
     prob_list = data["Prob"]
@@ -661,7 +698,7 @@ def _normpdf(x, mean, sd):
 
 def _normvalf(prob, mean, sd):
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    data = read_external_json(dir_path+"/normal_distribution.json")
+    data = json_utilities.read_external_json(dir_path+"/normal_distribution.json")
     z_list = data["Z"]
     prob_list = data["Prob"]
     if (prob >= 0.5):
