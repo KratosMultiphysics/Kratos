@@ -320,6 +320,8 @@ private:
     void CalculateDerivativeTransformationMatrices(
         std::vector<Matrix>& rDQ_Dalpha_init,
         std::vector<Matrix>& rDTransCartToCov_Dalpha_init);
+
+    unsigned int mcount = 0;
     ///@}
 
     ///@}

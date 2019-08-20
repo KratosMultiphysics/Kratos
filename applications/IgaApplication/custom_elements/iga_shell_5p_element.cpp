@@ -1124,11 +1124,6 @@ namespace Kratos
                 }
             }
         } // r-loop
-        if(Id()==5 && mcount==1){
-            KRATOS_WATCH(rSecondVariations.B11(5,0))
-            KRATOS_WATCH(rSecondVariations.B11(0,5))
-
-        }
     }
 
     void IgaShell5pElement::Calculate(
@@ -1193,10 +1188,8 @@ namespace Kratos
         }
     
         // Cauchy stress at midspan
-        array_1d<double, 3> stress_cau_cart_mid;
-        stress_cau_cart_mid[0] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][0] + stress_cau_cart[0][0]) / 2.0;
-        stress_cau_cart_mid[1] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][1] + stress_cau_cart[0][1]) / 2.0;
-        stress_cau_cart_mid[2] = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][2] + stress_cau_cart[0][2]) / 2.0;
+        array_1d<double, 5> stress_cau_cart_mid;
+        stress_cau_cart_mid = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1] + stress_cau_cart[0]) / 2.0;
 
         if (rVariable == STRESS_CAUCHY_TOP_11){
             rValues = stress_cau_cart_mid[0] + (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][0] 
@@ -1240,20 +1233,10 @@ namespace Kratos
             rValues = (stress_cau_cart[mGaussQuadratureThickness.num_GP_thickness-1][2] - stress_cau_cart_mid[2]) * thickness * thickness / 
             (mGaussQuadratureThickness.zeta(mGaussQuadratureThickness.num_GP_thickness-1) * 6);
         }
-        else if (rVariable == SHEAR_FORCE_1){
-            if(mGaussQuadratureThickness.num_GP_thickness != 3){
-                KRATOS_WATCH("Calculation formula of SHEAR_FORCE_1 is implemented for 3 Gauss points in thickness direction and can not be used in this case.")
-                KRATOS_ERROR << "Calculation formula of SHEAR_FORCE_1 is implemented for 3 Gauss points in thickness direction and can not be used in this case." << std::endl;
-            }
-            rValues = 5.0/6.0 * thickness * stress_cau_cart[1][4];     // q1=5/6*t*sig_13(xi^3=0)
-        }
-        else if (rVariable == SHEAR_FORCE_2){
-            if(mGaussQuadratureThickness.num_GP_thickness != 3){
-                KRATOS_WATCH("Calculation formula of SHEAR_FORCE_2 is implemented for 3 Gauss points in thickness direction and can not be used in this case.")
-                KRATOS_ERROR << "Calculation formula of SHEAR_FORCE_2 is implemented for 3 Gauss points in thickness direction and can not be used in this case." << std::endl;
-            }
-            rValues = 5.0/6.0 * thickness * stress_cau_cart[1][3];     // q2=5/6*t*sig_23(xi^3=0)
-        }
+        else if (rVariable == SHEAR_FORCE_1)
+            rValues = thickness * stress_cau_cart_mid[4];
+        else if (rVariable == SHEAR_FORCE_2)
+            rValues = thickness * stress_cau_cart_mid[4];
         else{
             KRATOS_WATCH("No results for desired variable available in Calculate of IgaShell5pElement.")
             rValues = 0.0;

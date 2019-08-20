@@ -1,0 +1,106 @@
+{
+	"problem_data": {
+		"problem_name": "Non-linearBeam(thick, p=2, n_CP=22) - 5p_kratos",
+		"model_part_name": "IgaModelPart",
+		"echo_level": 0,
+		"parallel_type": "OpenMP",
+		"start_time": 0,
+		"end_time": 0.010000000000000009
+	},
+	"solver_settings": {
+		"model_part_name": "IgaModelPart",
+		"domain_size": 1,
+		"echo_level": 0,
+		"buffer_size": 2,
+		"analysis_type": "non_linear",
+		"model_import_settings": {
+			"input_type": "json",
+			"input_filename": "geometry",
+			"physics_filename": "physics_5p.json"
+		},
+		"computing_model_part_name": "iga_computing_model_part",
+		"material_import_settings": {
+			"materials_filename": "materials_5p.json"
+		},
+		"time_stepping": {
+			"time_step": 0.1
+		},
+		"rotation_dofs": true,
+		"reform_dofs_at_each_step": false,
+		"line_search": false,
+		"compute_reactions": true,
+		"block_builder": true,
+		"clear_storage": false,
+		"move_mesh_flag": true,
+		"convergence_criterion": "residual_criterion",
+		"displacement_relative_tolerance": 0.0001,
+		"displacement_absolute_tolerance": 0.001,
+		"residual_relative_tolerance": 0.0001,
+		"residual_absolute_tolerance": 0.001,
+		"max_iteration": 100,
+		"solver_type": "static",
+		"linear_solver_settings": {
+			"solver_type": "amgcl",
+			"max_iteration": 500,
+			"tolerance": 1E-09,
+			"scaling": false,
+			"verbosity": 1
+		},
+		"problem_domain_sub_model_part_list": ["StructuralAnalysis"],
+		"processes_sub_model_part_list": ["IgaModelPart"],
+		"auxiliary_variables_list": [],
+		"auxiliary_dofs_list": [],
+		"auxiliary_reaction_list": [],
+		"multi_point_constraints_used": false
+	},
+	"processes": {
+		"additional_processes": [{
+				"kratos_module": "IgaApplication",
+				"python_module": "iga_output_integration_domain_process",
+				"Parameters": {
+					"output_file_name": "Non-linearBeam(thick, p=2, n_CP=22) - 5p_kratos_0_integrationdomain.json",
+					"model_part_name": "IgaModelPart",
+					"output_geometry_elements": true,
+					"output_geometry_conditions": false,
+					"output_brep_elements": false,
+					"output_brep_conditions": false
+				}
+			}
+		],
+		"dirichlet_process_list": [{
+				"python_module": "assign_vector_variable_process",
+				"Parameters": {
+					"mesh_id": 0,
+					"model_part_name": "IgaModelPart.Support_3",
+					"variable_name": "DISPLACEMENT",
+					"value": [0, 0, 0],
+					"interval": [0, "End"]
+				}
+			}, {
+				"python_module": "assign_vector_variable_process",
+				"Parameters": {
+					"mesh_id": 0,
+					"model_part_name": "IgaModelPart.Support_4",
+					"variable_name": "DISPLACEMENT",
+					"value": [null, 0, 0],
+					"interval": [0, "End"]
+				}
+			}
+		],
+		"neumann_process_list": [{
+				"kratos_module": "IgaApplication",
+				"python_module": "assign_vector_variable_to_conditions_process",
+				"Parameters": {
+					"mesh_id": 0,
+					"model_part_name": "Load_5",
+					"variable_name": "SURFACE_LOAD",
+					"value": [0, 0, -2],
+					"interval": [0, "End"]
+				}
+			}
+		]
+	},
+	"output_processes": {
+		"output_process_list": []
+	}
+}
