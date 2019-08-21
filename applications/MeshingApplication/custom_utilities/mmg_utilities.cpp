@@ -170,7 +170,7 @@ template struct MMGMeshInfo<MMGLibrary::MMGS>;
 // The member variables related with the MMG library
 MMG5_pMesh mMmgMesh; /// The mesh data from MMG
 MMG5_pSol  mMmgSol;  /// The metric variable for MMG
-// MMG5_pSol  mmgDisp; /// The displacement variable for MMG
+MMG5_pSol  mMmgDisp; /// The displacement variable for MMG
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1299,11 +1299,13 @@ void MmgUtilities<MMGLibrary::MMG2D>::InitMesh()
 {
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
-//     MmgDisp = nullptr;
+    mMmgDisp = nullptr;
 
     // We init the MMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_end);
+    } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
     } else {
@@ -1321,13 +1323,13 @@ void MmgUtilities<MMGLibrary::MMG3D>::InitMesh()
 {
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
-//     MmgDisp = nullptr;
+    mMmgDisp = nullptr;
 
     // We init the MMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_end);
-//     } else if (Discretization == DiscretizationOption::LAGRANGIAN) {
-//         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_ppDisp, &MmgDisp, MMG5_ARG_end);
+    } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
     } else {
@@ -1345,11 +1347,13 @@ void MmgUtilities<MMGLibrary::MMGS>::InitMesh()
 {
     mMmgMesh = nullptr;
     mMmgSol = nullptr;
-//     MmgDisp = nullptr;
+    mMmgDisp = nullptr;
 
     // We init the MMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_end);
+    } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppMet, &mMmgSol, MMG5_ARG_ppDisp, &mMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mMmgMesh, MMG5_ARG_ppLs, &mMmgSol, MMG5_ARG_end);
     } else {
@@ -1523,9 +1527,47 @@ void MmgUtilities<MMGLibrary::MMGS>::SetSolSizeTensor(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetDispSizeVector(const SizeType NumNodes)
+{
+    // TODO: Reactivate when dependency problem is solved
+//     KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,mMmgDisp,MMG2D_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
+    KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgDisp,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetDispSizeVector(const SizeType NumNodes)
+{
+    // TODO: Reactivate when dependency problem is solved
+//     KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,mMmgDisp,MMG3D_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
+    KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgDisp,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetDispSizeVector(const SizeType NumNodes)
+{
+    // TODO: Reactivate when dependency problem is solved
+//     KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh,mMmgDisp,MMGS_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
+    KRATOS_ERROR_IF( MMGS_Set_solSize(mMmgMesh,mMmgDisp,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
 void MmgUtilities<MMGLibrary::MMG2D>::CheckMeshData()
 {
-    KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
+        KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -1534,7 +1576,12 @@ void MmgUtilities<MMGLibrary::MMG2D>::CheckMeshData()
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::CheckMeshData()
 {
-    KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
+        KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( MMG3D_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -1543,7 +1590,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::CheckMeshData()
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::CheckMeshData()
 {
-    KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong solution data" << std::endl;
+        KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgDisp) != 1 ) << "Wrong displacement data" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, mMmgSol) != 1 ) << "Wrong mesh data" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -1741,6 +1793,54 @@ void MmgUtilities<MMGLibrary::MMGS>::OutputSol(const std::string& rOutputName)
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::OutputDisplacement(const std::string& rOutputName)
+{
+    const std::string sol_name = rOutputName + ".disp.sol";
+    const char* sol_file = sol_name.c_str();
+
+    // a)  Give the ouptut sol name using MMG2D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+    MMG2D_Set_outputSolName(mMmgMesh, mMmgDisp, sol_file);
+
+    // b) Function calling
+    KRATOS_INFO_IF("MmgUtilities", MMG2D_saveSol(mMmgMesh, mMmgDisp, sol_file) != 1) << "UNABLE TO SAVE DISPLACEMENT" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::OutputDisplacement(const std::string& rOutputName)
+{
+    const std::string sol_name = rOutputName + ".disp.sol";
+    const char* sol_file = sol_name.c_str();
+
+    // a)  Give the ouptut sol name using MMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+    MMG3D_Set_outputSolName(mMmgMesh, mMmgDisp, sol_file);
+
+    // b) Function calling
+    KRATOS_INFO_IF("MmgUtilities", MMG3D_saveSol(mMmgMesh,mMmgDisp, sol_file) != 1)<< "UNABLE TO SAVE DISPLACEMENT" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::OutputDisplacement(const std::string& rOutputName)
+{
+    const std::string sol_name = rOutputName + ".disp.sol";
+    const char* sol_file = sol_name.c_str();
+
+    // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+    MMGS_Set_outputSolName(mMmgMesh, mMmgDisp, sol_file);
+
+    // b) Function calling
+    KRATOS_INFO_IF("MmgUtilities", MMGS_saveSol(mMmgMesh,mMmgDisp, sol_file) != 1)<< "UNABLE TO SAVE DISPLACEMENT" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<MMGLibrary TMMGLibrary>
 void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
     const std::string& rOutputName,
@@ -1791,7 +1891,11 @@ void MmgUtilities<TMMGLibrary>::OutputReferenceEntitities(
 template<>
 void MmgUtilities<MMGLibrary::MMG2D>::FreeAll()
 {
-    MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
+    } else {
+        MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
+    }
 }
 
 /***********************************************************************************/
@@ -1800,7 +1904,11 @@ void MmgUtilities<MMGLibrary::MMG2D>::FreeAll()
 template<>
 void MmgUtilities<MMGLibrary::MMG3D>::FreeAll()
 {
-    MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
+    } else {
+        MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
+    }
 }
 
 /***********************************************************************************/
@@ -1809,7 +1917,11 @@ void MmgUtilities<MMGLibrary::MMG3D>::FreeAll()
 template<>
 void MmgUtilities<MMGLibrary::MMGS>::FreeAll()
 {
-    MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_ppDisp,&mMmgDisp,MMG5_ARG_end);
+    } else {
+        MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mMmgMesh,MMG5_ARG_ppMet,&mMmgSol,MMG5_ARG_end);
+    }
 }
 
 /***********************************************************************************/
@@ -1869,7 +1981,13 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallMetric(Parameters ConfigurationP
         }
     }
 
-    const int ier = MMG2D_mmg2dlib(mMmgMesh, mMmgSol);
+    // Actually computing remesh
+    int ier;
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        ier = MMG2D_mmg2dmov(mMmgMesh, mMmgSol, mMmgDisp);
+    } else {
+        ier = MMG2D_mmg2dlib(mMmgMesh, mMmgSol);
+    }
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -1966,7 +2084,13 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallMetric(Parameters ConfigurationP
         }
     }
 
-    const int ier = MMG3D_mmg3dlib(mMmgMesh, mMmgSol);
+    // Actually computing remesh
+    int ier;
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        ier = MMG3D_mmg3dmov(mMmgMesh, mMmgSol, mMmgDisp);
+    } else {
+        ier = MMG3D_mmg3dlib(mMmgMesh, mMmgSol);
+    }
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2089,8 +2213,13 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallMetric(Parameters ConfigurationPa
         }
     }
 
-    // Compute remesh
-    const int ier = MMGS_mmgslib(mMmgMesh, mMmgSol);
+    // Actually computing remesh
+    int ier;
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+        KRATOS_ERROR << "Surface remesh not compatible with LAGRANGIAN motion" << std::endl;
+    } else {
+        ier = MMGS_mmgslib(mMmgMesh, mMmgSol);
+    }
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2486,6 +2615,42 @@ void MmgUtilities<MMGLibrary::MMGS>::SetMetricTensor(
 /***********************************************************************************/
 
 template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetDisplacementVector(
+    const array_1d<double, 3>& rDisplacement,
+    const IndexType NodeId
+    )
+{
+    KRATOS_ERROR_IF( MMG2D_Set_vectorSol(mMmgDisp, rDisplacement[0], rDisplacement[1], NodeId) != 1 ) << "Unable to set vector displacement" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetDisplacementVector(
+    const array_1d<double, 3>& rDisplacement,
+    const IndexType NodeId
+    )
+{
+    KRATOS_ERROR_IF( MMG3D_Set_vectorSol(mMmgDisp, rDisplacement[0], rDisplacement[1], rDisplacement[2], NodeId) != 1 ) << "Unable to set vector displacement" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetDisplacementVector(
+    const array_1d<double, 3>& rDisplacement,
+    const IndexType NodeId
+    )
+{
+    KRATOS_ERROR_IF( MMGS_Set_vectorSol(mMmgDisp, rDisplacement[0], rDisplacement[1], rDisplacement[2], NodeId) != 1 ) << "Unable to set vector displacement" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
 void MmgUtilities<MMGLibrary::MMG2D>::GetMetricScalar(double& rMetric)
 {
     KRATOS_ERROR_IF( MMG2D_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
@@ -2564,6 +2729,34 @@ void MmgUtilities<MMGLibrary::MMGS>::GetMetricTensor(array_1d<double, 6>& rMetri
 {
     // The order is XX, XY, XZ, YY, YZ, ZZ
     KRATOS_ERROR_IF( MMGS_Get_tensorSol(mMmgSol, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::GetDisplacementVector(array_1d<double, 3>& rDisplacement)
+{
+    rDisplacement[2] = 0.0;
+    KRATOS_ERROR_IF( MMG2D_Get_vectorSol(mMmgDisp, &rDisplacement[0], &rDisplacement[1]) != 1 ) << "Unable to get vector displacement" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::GetDisplacementVector(array_1d<double, 3>& rDisplacement)
+{
+    KRATOS_ERROR_IF( MMG3D_Get_vectorSol(mMmgDisp, &rDisplacement[0], &rDisplacement[1], &rDisplacement[2]) != 1 ) << "Unable to get vector displacement" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::GetDisplacementVector(array_1d<double, 3>& rDisplacement)
+{
+    KRATOS_ERROR_IF( MMGS_Get_vectorSol(mMmgDisp, &rDisplacement[0], &rDisplacement[1], &rDisplacement[2]) != 1 ) << "Unable to get vector displacement" << std::endl;
 }
 
 /***********************************************************************************/
@@ -3120,6 +3313,34 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
 
             // We set the metric
             SetMetricTensor(r_metric, it_node->Id());
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::GenerateDisplacementDataFromModelPart(ModelPart& rModelPart)
+{
+    // Iterate in the nodes
+    auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+
+    // Set size of the solution
+    SetDispSizeVector(r_nodes_array.size());
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
+
+        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        if (!old_entity) {
+            // We get the displacement
+            const array_1d<double, 3>& r_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+            // We set the displacement
+            SetDisplacementVector(r_displacement, it_node->Id());
         }
     }
 }
