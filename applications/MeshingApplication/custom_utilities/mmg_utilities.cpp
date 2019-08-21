@@ -2610,7 +2610,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     for (auto sub_model_part_name : sub_model_part_names) {
         ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(rModelPart, sub_model_part_name);
 
-        KRATOS_WARNING_IF("MmgProcess", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
+        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
         "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
         "It is not guaranteed that the submodelpart will be preserved." << std::endl <<
         "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
@@ -2644,7 +2644,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 num_lines += 1;
             } else {
                 it_cond->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS A CONDITION WITH " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
             }
         }
 
@@ -2659,7 +2659,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 num_tri += 1;
             } else {
                 it_elem->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS AN ELEMENT WITH " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
             }
         }
 
@@ -2681,14 +2681,14 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 num_quad += 1;
             } else {
                 it_cond->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS A CONDITION WITH " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
             }
         }
 
         mmg_mesh_info.NumberOfTriangles = num_tri;
         mmg_mesh_info.NumberOfQuadrilaterals = num_quad;
 
-        KRATOS_INFO_IF("MmgProcess", ((num_tri + num_quad) < r_conditions_array.size()) && mEchoLevel > 0) <<
+        KRATOS_INFO_IF("MmgUtilities", ((num_tri + num_quad) < r_conditions_array.size()) && mEchoLevel > 0) <<
         "Number of Conditions: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
 
         /* Elements */
@@ -2702,7 +2702,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 num_tetra += 1;
             } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
                 if (CollapsePrismElements) {
-                    KRATOS_INFO_IF("MmgProcess", mEchoLevel > 1) << "Prismatic element " << it_elem->Id() << " will be collapsed to a triangle" << std::endl;
+                    KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 1) << "Prismatic element " << it_elem->Id() << " will be collapsed to a triangle" << std::endl;
                 } else {
                     for (auto& r_node : it_elem->GetGeometry())
                         remeshed_nodes.insert(r_node.Id());
@@ -2710,14 +2710,14 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 }
             } else {
                 it_elem->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS AN ELEMENT WITH " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
             }
         }
 
         mmg_mesh_info.NumberOfTetrahedra = num_tetra;
         mmg_mesh_info.NumberOfPrism = num_prisms;
 
-        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < r_elements_array.size()) && mEchoLevel > 0) <<
+        KRATOS_INFO_IF("MmgUtilities", ((num_tetra + num_prisms) < r_elements_array.size()) && mEchoLevel > 0) <<
         "Number of Elements: " << r_elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
     } else { // Surfaces
         /* Conditions */
@@ -2731,7 +2731,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 num_lines += 1;
             } else {
                 it_cond->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
             }
         }
 
@@ -2745,10 +2745,10 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                     remeshed_nodes.insert(r_node.Id());
                 num_tri += 1;
             } else if (CollapsePrismElements && (it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) {
-                KRATOS_INFO_IF("MmgProcess", mEchoLevel > 1) << "Prismatic element " << it_elem->Id() << " will be collapsed to a triangle" << std::endl;
+                KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 1) << "Prismatic element " << it_elem->Id() << " will be collapsed to a triangle" << std::endl;
             } else {
                 it_elem->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
             }
         }
 
