@@ -401,6 +401,11 @@ class MmgProcess(KratosMultiphysics.Process):
                 self.main_model_part.ProcessInfo[MeshingApplication.EXECUTE_REMESHING] = False
 
     def _CreateMetricsProcess(self):
+        """ This method is responsible to create the metrics of the process
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         self.metric_processes = []
         if self.strategy == "LevelSet":
             level_set_parameters = KratosMultiphysics.Parameters("""{}""")
@@ -461,6 +466,11 @@ class MmgProcess(KratosMultiphysics.Process):
                 self.metric_process = MeshingApplication.MetricErrorProcess3D(self.main_model_part, error_metric_parameters)
 
     def _CreateGradientProcess(self):
+        """ This method is responsible of create the gradients for the level-set process
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         # We compute the scalar value gradient
         if self.domain_size == 2:
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.main_model_part, self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
@@ -468,6 +478,11 @@ class MmgProcess(KratosMultiphysics.Process):
             self.local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.main_model_part, self.scalar_variable, self.gradient_variable, KratosMultiphysics.NODAL_AREA)
 
     def _ExecuteRefinement(self):
+        """ This method is the one responsible to execute the remeshing
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         if self.strategy == "LevelSet":
             # Calculate the gradient
             self.local_gradient.Execute()
@@ -489,6 +504,10 @@ class MmgProcess(KratosMultiphysics.Process):
         elif self.settings["debug_mode"].GetString() == "VTK": # VTK
             self._debug_output_vtk(self.step, "", "BEFORE_")
 
+        # Execute before remesh
+        self._AuxiliarCallsBeforeRemesh()
+
+        # Actually remesh
         KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remeshing")
         self.mmg_process.Execute()
 
@@ -513,6 +532,11 @@ class MmgProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remesh finished")
 
     def _ErrorCalculation(self):
+        """ This method calculates the error in case an error estimation procedure is chosen
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
 
         # Initialize metric
         self.initialize_metric.Execute()
@@ -523,6 +547,14 @@ class MmgProcess(KratosMultiphysics.Process):
         # Execute metric computation
         self.metric_process.Execute()
         self.estimated_error = self.main_model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE]
+
+    def _AuxiliarCallsBeforeRemesh(self):
+        """ This method is executed right before execute the remesh
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        pass
 
     def __generate_boolean_list_from_input(self,param):
       '''Parse a list of booleans from input.'''
