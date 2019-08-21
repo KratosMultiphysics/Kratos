@@ -19,6 +19,7 @@
 
 // Processes
 #include "custom_response_functions/adjoint_processes/replace_multiple_elements_and_conditions_process.h"
+#include "custom_response_functions/adjoint_processes/generalized_influence_functions_process.h"
 
 // Response Functions
 #include "custom_response_functions/response_utilities/strain_energy_response_function_utility.h"
@@ -63,6 +64,10 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     // Processes
     py::class_<ReplaceMultipleElementsAndConditionsProcess, ReplaceMultipleElementsAndConditionsProcess::Pointer , Process>
         (m, "ReplaceMultipleElementsAndConditionsProcess")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<GeneralizedInfluenceFunctionsProcess, GeneralizedInfluenceFunctionsProcess::Pointer , Process>
+        (m, "GeneralizedInfluenceFunctionsProcess")
         .def(py::init<ModelPart&, Parameters>());
 
     // Response Functions
