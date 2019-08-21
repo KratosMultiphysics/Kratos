@@ -10,7 +10,6 @@
 //
 
 #include "adjoint_flux_condition.h"
-#include "flux_condition.h"
 #include "thermal_face.h"
 
 #include "convection_diffusion_application_variables.h"
