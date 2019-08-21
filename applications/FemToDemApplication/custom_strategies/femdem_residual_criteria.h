@@ -173,7 +173,7 @@ public:
             }
 
             const TDataType float_size_residual = static_cast<TDataType>(size_residual);
-            const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
+            const TDataType absolute_norm = (mCurrentResidualNorm / float_size_residual);
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
