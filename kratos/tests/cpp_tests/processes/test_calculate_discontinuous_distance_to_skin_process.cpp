@@ -255,6 +255,58 @@ namespace Testing {
         KRATOS_CHECK_NEAR(r_elem_dist[3], -0.0714286, 1e-6);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneZeroDiscontinuousDistanceProcess, KratosCoreFastSuite)
+	{
+
+		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+		Node<3>::Pointer p_point1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+		Node<3>::Pointer p_point2 = Kratos::make_intrusive<Node<3>>(2, 10.00, 0.00, 0.00);
+		Node<3>::Pointer p_point3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
+		Node<3>::Pointer p_point4 = Kratos::make_intrusive<Node<3>>(4, 0.00, 10.00, 0.00);
+		Node<3>::Pointer p_point5 = Kratos::make_intrusive<Node<3>>(5, 0.00, 0.00, 10.00);
+		Node<3>::Pointer p_point6 = Kratos::make_intrusive<Node<3>>(6, 10.00, 0.00, 10.00);
+		Node<3>::Pointer p_point7 = Kratos::make_intrusive<Node<3>>(7, 10.00, 10.00, 10.00);
+		Node<3>::Pointer p_point8 = Kratos::make_intrusive<Node<3>>(8, 0.00, 10.00, 10.00);
+
+		Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+
+		Parameters mesher_parameters(R"(
+		{
+			"number_of_divisions":   2,
+			"element_name":     "Element3D4N"
+		})");
+
+        Model current_model;
+		ModelPart &volume_part = current_model.CreateModelPart("Volume");
+		StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+		// Generate the skin
+		ModelPart &skin_part = current_model.CreateModelPart("Skin");
+		skin_part.CreateNewNode(901, 0.0, 0.0, 5.0);
+		skin_part.CreateNewNode(902, 10.0, 0.0, 5.0);
+		skin_part.CreateNewNode(903, 10.0, 10.0, 5.0);
+		skin_part.CreateNewNode(904, 0.0, 10.0, 5.0);
+		Properties::Pointer p_properties = skin_part.CreateNewProperties(0);
+		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
+
+		// Compute distance
+        bool use_plane_optimization = false;
+		CalculateDiscontinuousDistanceToSkinProcess<3>(volume_part, skin_part, use_plane_optimization).Execute();
+
+        for (auto &elem : volume_part.Elements()) {
+            const auto elem_dist = elem.GetValue(ELEMENTAL_DISTANCES);
+            KRATOS_WATCH(elem_dist)
+        }
+
+
+        const auto &r_elem_dist = (volume_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -5.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -5.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], -5.0, 1e-6);
+	}
+
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximationSkewed3D, KratosCoreFastSuite)
     {
         Model current_model;
