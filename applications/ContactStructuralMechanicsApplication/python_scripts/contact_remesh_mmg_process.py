@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
+import KratosMultiphysics.MeshingApplication as MeshingApplication
 
 # Import base process
 from KratosMultiphysics.MeshingApplication.mmg_process import MmgProcess
@@ -334,5 +335,17 @@ class ContactRemeshMmgProcess(MmgProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        pass
 
+        # We remove the submodelpart
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.GetSubModelPart("ComputingContact").Conditions)
+        self.computing_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+
+        self.computing_model_part.RemoveSubModelPart("Contact")
+        self.computing_model_part.RemoveSubModelPart("ComputingContact")
+
+        MeshingApplication.MeshingUtilities.EnsureModelPartOwnsProperties(self.computing_model_part)
+        MeshingApplication.MeshingUtilities.EnsureModelPartOwnsProperties(self.computing_model_part.GetRootModelPart())
+
+        # We create the submodelpart
+        self.computing_model_part.CreateSubModelPart("Contact")
+        self.computing_model_part.CreateSubModelPart("ComputingContact")
