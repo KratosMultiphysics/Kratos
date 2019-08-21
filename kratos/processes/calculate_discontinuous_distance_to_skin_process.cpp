@@ -79,6 +79,7 @@ namespace Kratos
 		#pragma omp parallel for schedule(dynamic)
 		for (int i = 0; i < number_of_elements; ++i) {
 			CalculateElementalDistances(*(r_elements[i]), rIntersectedObjects[i]);
+			CalculateNaiveElementalDistances(*(r_elements[i]), rIntersectedObjects[i]);
 		}
 	}
 
@@ -94,7 +95,6 @@ namespace Kratos
 		this->Initialize();
 		this->FindIntersections();
 		this->CalculateDistances(this->GetIntersections());
-		// this->CalculateNaiveElementalDistances(this->GetIntersections());
 	}
 
 	/// Turn back information as a string.
@@ -188,48 +188,39 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
-	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateNaiveElementalDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateNaiveElementalDistances(
+		Element& rElement,
+		PointerVector<GeometricalObject>& rIntersectedObjects)
 	{
-		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
-		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
+		if (rIntersectedObjects.empty()) {
+			rElement.Set(TO_SPLIT, false);
+		} else {
+			// This function assumes tetrahedra element and triangle intersected object as input at this moment
+			constexpr int number_of_tetrahedra_points = TDim + 1;
+			constexpr double epsilon = std::numeric_limits<double>::epsilon();
+			Vector &elemental_distances = rElement.GetValue(ELEMENTAL_DISTANCES);
 
-		#pragma omp parallel for schedule(dynamic)
-		for (int i = 0; i < number_of_elements; ++i) {
-			Element &r_element = *(r_elements[i]);
-			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i];
-
-			// Check if the element has intersections
-			if (r_element_intersections.empty()) {
-				r_element.Set(TO_SPLIT, false);
-			} else {
-				// This function assumes tetrahedra element and triangle intersected object as input at this moment
-				constexpr int number_of_tetrahedra_points = TDim + 1;
-				constexpr double epsilon = std::numeric_limits<double>::epsilon();
-				Vector &elemental_distances = r_element.GetValue(ELEMENTAL_DISTANCES);
-
-				if (elemental_distances.size() != number_of_tetrahedra_points){
-					elemental_distances.resize(number_of_tetrahedra_points, false);
-				}
-
-				for (int i = 0; i < number_of_tetrahedra_points; i++) {
-					elemental_distances[i] = this->CalculateDistanceToNode(r_element.GetGeometry()[i], r_element_intersections, epsilon);
-				}
-				auto &r_geometry = r_element.GetGeometry();
-
-				CorrectDistanceOrientation( r_geometry, r_element_intersections, elemental_distances);
-
-				bool has_positive_distance = false;
-				bool has_negative_distance = false;
-				for (int i = 0; i < number_of_tetrahedra_points; i++){
-					if (elemental_distances[i] > epsilon) {
-						has_positive_distance = true;
-					} else {
-						has_negative_distance = true;
-					}
-				}
-
-				r_element.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
+			if (elemental_distances.size() != number_of_tetrahedra_points){
+				elemental_distances.resize(number_of_tetrahedra_points, false);
 			}
+
+			for (int i = 0; i < number_of_tetrahedra_points; i++) {
+				elemental_distances[i] = this->CalculateDistanceToNode(rElement.GetGeometry()[i], rIntersectedObjects, epsilon);
+			}
+
+			CorrectDistanceOrientation(rElement.GetGeometry(), rIntersectedObjects, elemental_distances);
+
+			bool has_positive_distance = false;
+			bool has_negative_distance = false;
+			for (int i = 0; i < number_of_tetrahedra_points; i++){
+				if (elemental_distances[i] > epsilon) {
+					has_positive_distance = true;
+				} else {
+					has_negative_distance = true;
+				}
+			}
+
+			rElement.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
 		}
 	}
 

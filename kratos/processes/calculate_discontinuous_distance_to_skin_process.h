@@ -130,16 +130,6 @@ public:
         const Variable<double> &rEmbeddedVariable);
 
     /**
-     * @brief Computes the discontinuous elemental distance
-     * This method firstly computes the elemental distances. The base discontinuous
-     * distance class is not used in this case since a naive elemental distance
-     * (avoiding the complexities implemented in the base class) is enough to serve
-     * as base to compute the continuous distance field.
-     * @param rIntersectedObjects array containing pointers to the intersecting objects
-     */
-    void CalculateNaiveElementalDistances(std::vector<PointerVector<GeometricalObject>> &rIntersectedObjects);
-
-    /**
      * @brief Calculate embedded variable from skin array specialization
      * This method calls the specialization method for two double variables
      * @param rVariable origin array variable in the skin mesh
@@ -210,6 +200,18 @@ private:
      */
     void CalculateElementalDistances(
         Element& rElement1,
+        PointerVector<GeometricalObject>& rIntersectedObjects);
+
+    /**
+     * @brief Computes the discontinuous elemental distance
+     * This method firstly computes the elemental distances. The base discontinuous
+     * distance class is not used in this case since a naive elemental distance
+     * (avoiding the complexities implemented in the base class) is enough to serve
+     * as base to compute the continuous distance field.
+     * @param rIntersectedObjects array containing pointers to the intersecting objects
+     */
+    void CalculateNaiveElementalDistances(
+        Element& rElement,
         PointerVector<GeometricalObject>& rIntersectedObjects);
 
     /**
