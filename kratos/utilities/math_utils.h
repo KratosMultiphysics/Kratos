@@ -100,7 +100,7 @@ public:
      * @brief This function returns the machine precision
      * @return The corresponding epsilon for the TDataType
      */
-    static inline const TDataType GetZeroTolerance()
+    static inline TDataType GetZeroTolerance()
     {
         return ZeroTolerance;
     }
