@@ -76,15 +76,10 @@ namespace Kratos
 		std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
 		// Compute the discontinuous (elemental) distance field
-		const bool use_base_elemental_distance = false;
+		// Use the base class elemental distance computation (includes plane optimization)
+		CalculateDiscontinuousDistanceToSkinProcess<TDim>::mUsePlaneOptimization = false;
+		CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDistances(rIntersectedObjects);
 
-		if (use_base_elemental_distance) {
-			// Use the base class elemental distance computation (includes plane optimization)
-			CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDistances(rIntersectedObjects);
-		} else {
-			// Use a naive elemental distance computation (without plane optimization)
-			CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateNaiveElementalDistances(rIntersectedObjects);
-		}
 		// Get the minimum elemental distance value for each node
 		this->CalculateNodalDistances();
 		// Perform raycasting to sign the previous distance field

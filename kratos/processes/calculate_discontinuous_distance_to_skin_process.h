@@ -58,6 +58,12 @@ public:
         ModelPart& rVolumePart,
         ModelPart& rSkinPart);
 
+    /// Constructor using plane optimization flag
+    CalculateDiscontinuousDistanceToSkinProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        bool UsePlaneOptimiztion);
+
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;
 
@@ -159,6 +165,11 @@ public:
 
     ///@}
 protected:
+    ///@name Member Variables
+    ///@{
+    bool mUsePlaneOptimization = true;
+    ///@}
+
     ///@name Protected Operations
     ///@{
 
