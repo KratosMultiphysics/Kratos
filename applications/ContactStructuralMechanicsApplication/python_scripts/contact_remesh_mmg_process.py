@@ -42,6 +42,7 @@ class ContactRemeshMmgProcess(MmgProcess):
             "automatic_normalization_factor"   : true,
             "consider_strain_energy"           : false,
             "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "computing_model_part_name"        : "computing_domain",
             "blocking_threshold_size"          : false,
             "threshold_sizes" : {
                 "minimal_size"                     : 0.1,
@@ -131,6 +132,9 @@ class ContactRemeshMmgProcess(MmgProcess):
         self.automatic_normalization_factor = settings["automatic_normalization_factor"].GetBool()
         self.consider_strain_energy = settings["consider_strain_energy"].GetBool()
 
+        # The computing model part name
+        computing_model_part_name = settings["computing_model_part_name"].GetString()
+
         # Refill missing
         number_of_metric_variable = settings["hessian_strategy_parameters"]["metric_variable"].size()
         number_of_non_historical_metric_variable = settings["hessian_strategy_parameters"]["non_historical_metric_variable"].size()
@@ -177,14 +181,17 @@ class ContactRemeshMmgProcess(MmgProcess):
         # Avoid conflict with mother class
         settings.RemoveValue("automatic_normalization_factor")
         settings.RemoveValue("consider_strain_energy")
+        settings.RemoveValue("computing_model_part_name")
 
         # Construct the base process.
         super(ContactRemeshMmgProcess, self).__init__(Model, settings)
 
-        # Create extrapolation process
+        # Create model parts
         model_part_name = settings["model_part_name"].GetString()
         self.main_model_part = Model[model_part_name]
+        self.computing_model_part = self.main_model_part.GetSubModelPart(computing_model_part_name)
 
+        # Create extrapolation process
         extrapolation_parameters = KratosMultiphysics.Parameters("""
         {
             "model_part_name"            : "",
@@ -319,3 +326,12 @@ class ContactRemeshMmgProcess(MmgProcess):
 
         # We call to the base process
         super(ContactRemeshMmgProcess, self).ExecuteFinalize()
+
+    def _AuxiliarCallsBeforeRemesh(self):
+        """ This method is executed right before execute the remesh
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        pass
+
