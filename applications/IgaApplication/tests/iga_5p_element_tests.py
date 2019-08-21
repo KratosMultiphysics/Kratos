@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.IgaApplication as Iga
 from KratosMultiphysics.IgaApplication.iga_analysis import IgaAnalysis
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -85,6 +86,26 @@ class Iga5pElementTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(rot[0], rotation_results[0], 10)
         self.assertAlmostEqual(rot[1], rotation_results[1], 10)
         self.assertAlmostEqual(rot[2], rotation_results[2], 10)
+
+        os.chdir(current_directory)
+            
+    def test_nonlinear_beam_internal_forces(self):
+        current_directory = os.getcwd()
+        os.chdir(current_directory + "/applications/IgaApplication/tests/nonlinear_beam_thick_sd_p3_nCP83")
+
+        with open("ProjectParameters_5p.json",'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    
+        model = KratosMultiphysics.Model()
+        simulation = IgaAnalysis(model,parameters)
+        simulation.Run()
+        
+        structural_analysis_model_part = model.GetModelPart("IgaModelPart.StructuralAnalysis")
+        elements = structural_analysis_model_part.Elements
+        moment_result = elements[633].Calculate(Iga.INTERNAL_MOMENT_11, structural_analysis_model_part.ProcessInfo)
+        self.assertAlmostEqual(moment_result, -24.997443146162688, 10)
+        shear_result = elements[1].Calculate(Iga.SHEAR_FORCE_1, structural_analysis_model_part.ProcessInfo)
+        self.assertAlmostEqual(shear_result, -9.984730264779031, 10)
 
         os.chdir(current_directory)
 
