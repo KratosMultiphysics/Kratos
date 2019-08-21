@@ -55,21 +55,6 @@ namespace Kratos
         if(mAddParticularSolution)
             this->CalculateParticularSolution();
 
-        // MFusseder delete the following it is just for testing ------------------------------
-        Parameters test_parameters = Parameters(R"(
-        {
-            "variable_type"               : "element_property",
-            "design_variable_name"        : "YOUNG_MODULUS",
-            "delta"                       : 1.0e-6
-        })" );
-
-        for(int i=0; i< static_cast<int>(mrModelPart.Elements().size()); ++i)
-        {
-            auto it = mrModelPart.ElementsBegin() + i;
-            it->SetValue(INFLUENCE_FUNCTIONS_EXTENSIONS, Kratos::make_shared<GeneralizedInfluenceFunctionsExtension>(test_parameters));
-        }
-        // --------------------------------------------------------------------------------------
-
         KRATOS_CATCH("");
     }
 
