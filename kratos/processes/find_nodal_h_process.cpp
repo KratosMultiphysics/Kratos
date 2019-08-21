@@ -33,12 +33,14 @@ void FindNodalHProcess<THistorical>::Execute()
         KRATOS_ERROR_IF_NOT(mrModelPart.NodesBegin()->SolutionStepsDataHas( NODAL_H )) << "Variable NODAL_H not in the model part!" << std::endl;
     }
 
+    // Initialize NODAL_H values
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node = mrModelPart.NodesBegin() + i;
         SetInitialValue(it_node);
     }
 
+    // Calculate the NODAL_H values
     for(IndexType i=0; i < mrModelPart.Elements().size(); ++i) {
         auto it_element = mrModelPart.ElementsBegin() + i;
         auto& r_geom = it_element->GetGeometry();
