@@ -58,9 +58,10 @@ public:
 
 
 private:
-     std::string mDesignVariableName;
-     double mDelta;
-     bool mNormalize;
+    std::string mDesignVariableName;
+    double mDelta;
+    bool mNormalize;
+    bool mAdaptStepSize;
 
     friend class Serializer;
 
@@ -69,6 +70,7 @@ private:
         rSerializer.save("DesignVariableName",mDesignVariableName);
         rSerializer.save("Delta",mDelta);
         rSerializer.save("Normalize",mNormalize);
+        rSerializer.save("AdaptStepSize",mAdaptStepSize);
     }
 
     void load(Serializer& rSerializer)
@@ -76,6 +78,7 @@ private:
         rSerializer.load("DesignVariableName",mDesignVariableName);
         rSerializer.load("Delta",mDelta);
         rSerializer.load("Normalize",mNormalize);
+        rSerializer.load("AdaptStepSize",mAdaptStepSize);
     }
 
 };

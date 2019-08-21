@@ -34,6 +34,8 @@ namespace Kratos
         mDelta = AnalysisSettings["delta"].GetDouble();
 
         mNormalize = AnalysisSettings["normalize"].GetBool();
+
+        mAdaptStepSize = AnalysisSettings["adapt_step_size"].GetBool();
     }
 
     GeneralizedInfluenceFunctionsExtension::~GeneralizedInfluenceFunctionsExtension()
@@ -49,14 +51,22 @@ namespace Kratos
         if (rPseudoQuantityVariable == PSEUDO_MOMENT)
         {
             const Variable<double>& r_design_variable = KratosComponents<Variable<double>>::Get(mDesignVariableName);
+
+            double perturbation_size = mDelta;
+            if (mAdaptStepSize) { perturbation_size *= rElement.GetProperties()[r_design_variable];}
+
             ElementFiniteDifferenceUtility::CalculateIntegrationPointsResultsDerivative(rElement, MOMENT,
-                r_design_variable, mDelta, rOutput, rCurrentProcessInfo);
+                r_design_variable, perturbation_size, rOutput, rCurrentProcessInfo);
         }
         else if (rPseudoQuantityVariable == PSEUDO_FORCE)
         {
             const Variable<double>& r_design_variable = KratosComponents<Variable<double>>::Get(mDesignVariableName);
+
+            double perturbation_size = mDelta;
+            if (mAdaptStepSize) { perturbation_size *= rElement.GetProperties()[r_design_variable];}
+
             ElementFiniteDifferenceUtility::CalculateIntegrationPointsResultsDerivative(rElement, FORCE,
-                r_design_variable, mDelta, rOutput, rCurrentProcessInfo);
+                r_design_variable, perturbation_size, rOutput, rCurrentProcessInfo);
         }
         else
             KRATOS_ERROR << "It is not possible to provide a pseudo quantity for: " << rPseudoQuantityVariable.Name() << "!" << std::endl;
