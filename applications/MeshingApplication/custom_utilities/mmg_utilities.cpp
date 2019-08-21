@@ -1984,7 +1984,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallMetric(Parameters ConfigurationP
     // Actually computing remesh
     int ier;
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-        ier = MMG2D_mmg2dmov(mMmgMesh, mMmgSol, mMmgDisp);
+//         ier = MMG2D_mmg2dmov(mMmgMesh, mMmgSol, mMmgDisp); // TODO: Reactivate when dependency problem is solved
+        ier = MMG2D_mmg2dlib(mMmgMesh, mMmgSol);
     } else {
         ier = MMG2D_mmg2dlib(mMmgMesh, mMmgSol);
     }
@@ -2087,7 +2088,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallMetric(Parameters ConfigurationP
     // Actually computing remesh
     int ier;
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-        ier = MMG3D_mmg3dmov(mMmgMesh, mMmgSol, mMmgDisp);
+//         ier = MMG3D_mmg3dmov(mMmgMesh, mMmgSol, mMmgDisp); // TODO: Reactivate when dependency problem is solved
+        ier = MMG3D_mmg3dlib(mMmgMesh, mMmgSol);
     } else {
         ier = MMG3D_mmg3dlib(mMmgMesh, mMmgSol);
     }

@@ -331,6 +331,20 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
     if (collapse_prisms_elements) {
         CollapsePrismsToTriangles();
     }
+
+    // Move mesh before remesh
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {  // TODO: Revert when dependency problem solved
+        NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
+            noalias(it_node->GetInitialPosition().Coordinates()) = it_node->Coordinates();
+        }
+    }
+
+    // Actually generate mesh data
     mMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework, collapse_prisms_elements);
 
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
@@ -561,8 +575,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     }
 
     /* Unmoving the original mesh to be able to interpolate */
-    if (mFramework == FrameworkEulerLagrange::LAGRANGIAN && mDiscretization != DiscretizationOption::LAGRANGIAN) {
-//     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) { // TODO: Revert when dependency problem solved
+    if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
         NodesArrayType& r_old_nodes_array = r_old_model_part.Nodes();
 
         #pragma omp parallel for
