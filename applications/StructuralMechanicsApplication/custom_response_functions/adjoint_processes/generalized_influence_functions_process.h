@@ -66,7 +66,7 @@ public:
             "variable_type"               : "element_property",
             "design_variable_name"        : "SOME_ELEMENT_PROPERTY_VARIABLE",
             "delta"                       : 1.0e-6,
-            "adapt_step_size"             : true
+            "adapt_step_size"             : true,
             "normalize"                   : true
         })" );
 
@@ -88,18 +88,12 @@ public:
     /// Assignment operator.
     GeneralizedInfluenceFunctionsProcess& operator=(GeneralizedInfluenceFunctionsProcess const& rOther) = delete;
 
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
-
     ///@}
     ///@name Operations
     ///@{
 
     /// Execute method is used to execute the GeneralizedInfluenceFunctionsProcess algorithms.
-    void Execute() override;
+    void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Input and output
@@ -127,8 +121,8 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    ModelPart& mrModelPart; /// The main model part where the elements and conditions will be replaced
-    Parameters mSettings;   /// The settings of the problem (names of the conditions and elements)
+    ModelPart& mrModelPart;
+    Parameters mSettings;
 
     ///@}
 
@@ -143,20 +137,6 @@ private:
 ///@name Input and output
 ///@{
 
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  GeneralizedInfluenceFunctionsProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const GeneralizedInfluenceFunctionsProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 }  // namespace Kratos.
