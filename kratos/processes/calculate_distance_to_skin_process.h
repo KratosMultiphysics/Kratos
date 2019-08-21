@@ -123,31 +123,6 @@ public:
     void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects) override;
 
     /**
-     * @brief Computes the discontinuous elemental distance
-     * This method firstly computes the elemental distances. The base discontinuous
-     * distance class is not used in this case since a naive elemental distance
-     * (avoiding the complexities implemented in the base class) is enough to serve
-     * as base to compute the continuous distance field.
-     * @param rIntersectedObjects array containing pointers to the intersecting objects
-     */
-    void CalculateElementalDistances(std::vector<PointerVector<GeometricalObject>> &rIntersectedObjects);
-
-    /**
-     * @brief Calculate the nodal distance for a given node
-     * Given a list of the objects intersecting an element, this method computes the
-     * minimum distance for a given node of such element. This is done by computing the
-     * point-triangle (3D) or the point-line (2D) distance.
-     * @param rNode reference to the node of interest
-     * @param rIntersectedObjects list containing pointers to all the intersecting objects of an element
-     * @param Epsilon zero distance threshold
-     * @return double the nodal distance of the node of interest
-     */
-    double CalculateDistanceToNode(
-        Node<3> &rNode,
-        PointerVector<GeometricalObject> &rIntersectedObjects,
-        const double Epsilon);
-
-    /**
      * @brief Initialize the nodal distance values
      * This method initializes the nodal (continuous) distance values to a maximum positive value
      */
@@ -208,17 +183,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Calculates the distance to an intersecting object
-     * This method computes the distance from a point to an intersecting object
-     * @param rIntObjGeom reference to the intersecting object
-     * @param rDistancePoint point to compute the distance to
-     * @return double obtained distance value
-     */
-    double inline CalculatePointDistance(
-        const Element::GeometryType &rIntObjGeom,
-        const Point &rDistancePoint);
 
     ///@}
     ///@name Private  Access
