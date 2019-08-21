@@ -49,6 +49,7 @@ class ContactRemeshMmgProcess(MmgProcess):
                 "maximal_size"                     : 10.0
             },
             "strategy"                             : "Hessian",
+            "discretization_type"                  : "Standard",
             "framework"                            : "Lagrangian",
             "internal_variables_parameters"        :
             {
