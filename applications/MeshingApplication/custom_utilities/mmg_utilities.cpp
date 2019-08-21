@@ -820,6 +820,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgUtilities") << "Condition creation avoided" << std::endl;
 
+    if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Length() < ZeroTolerance) << "Creating a almost zero or negative length condition" << std::endl;
     return p_condition;
 }
 
@@ -878,6 +879,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Condition creation avoided" << std::endl;
 
+    if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area condition" << std::endl;
     return p_condition;
 }
 
@@ -920,6 +922,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
     } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgUtilities") << "Condition creation avoided" << std::endl;
 
+    if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Length() < ZeroTolerance) << "Creating a almost zero or negative length condition" << std::endl;
     return p_condition;
 }
 
@@ -981,6 +984,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Condition creation avoided" << std::endl;
 
+    if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area condition" << std::endl;
     return p_condition;
 }
 
@@ -1075,6 +1079,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
             KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
     }
 
+    if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area element" << std::endl;
     return p_element;
 }
 
@@ -1156,6 +1161,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
             KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
     }
 
+    if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Volume() < ZeroTolerance) << "Creating a almost zero or negative volume element" << std::endl;
     return p_element;
 }
 
@@ -1199,6 +1205,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
 
+    if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area element" << std::endl;
     return p_element;
 }
 
@@ -1264,6 +1271,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
 
+    if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Volume() < ZeroTolerance) << "Creating a almost zero or negative volume element" << std::endl;
     return p_element;
 }
 

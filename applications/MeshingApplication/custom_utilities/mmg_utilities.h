@@ -162,6 +162,9 @@ public:
     /// Index and string vector pair
     typedef std::pair<IndexType, std::vector<std::string>> IndexStringVectorPairType;
 
+    /// Definition of the zero tolerance
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name  Enum's
     ///@{
