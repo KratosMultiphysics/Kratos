@@ -34,21 +34,21 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     // be careful to push back the pointer and not copy
     // construct the object
     for (NodesContainerType::iterator it = origin_model_part.GetMesh(mesh_id).NodesBegin();
-         it != origin_model_part.GetMesh(mesh_id).NodesEnd(); it++)
+         it != origin_model_part.GetMesh(mesh_id).NodesEnd(); ++it)
     {
         destination_model_part.Nodes().push_back(*it.base());
     }
 
     for (ElementsContainerType::iterator it =
              origin_model_part.GetMesh(mesh_id).ElementsBegin();
-         it != origin_model_part.GetMesh(mesh_id).ElementsEnd(); it++)
+         it != origin_model_part.GetMesh(mesh_id).ElementsEnd(); ++it)
     {
         destination_model_part.Elements().push_back(*it.base());
     }
 
     for (ConditionsContainerType::iterator it =
              origin_model_part.GetMesh(mesh_id).ConditionsBegin();
-         it != origin_model_part.GetMesh(mesh_id).ConditionsEnd(); it++)
+         it != origin_model_part.GetMesh(mesh_id).ConditionsEnd(); ++it)
     {
         destination_model_part.Conditions().push_back(*it.base());
     }
@@ -61,7 +61,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     if (r_comm.IsDistributed())
     {
       for (NodesContainerType::iterator it = destination_model_part.NodesBegin();
-           it != destination_model_part.NodesEnd(); it++)
+           it != destination_model_part.NodesEnd(); ++it)
       {
           // only send the nodes owned by this partition
           if (it->FastGetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
@@ -71,7 +71,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     else
     {
       for (NodesContainerType::iterator it = destination_model_part.NodesBegin();
-           it != destination_model_part.NodesEnd(); it++)
+           it != destination_model_part.NodesEnd(); ++it)
       {
           SendNodes[gather_rank].push_back(*it.base());
       }
@@ -81,7 +81,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     for (unsigned int i = 0; i < RecvNodes.size(); i++)
     {
         for (NodesContainerType::iterator it = RecvNodes[i].begin();
-             it != RecvNodes[i].end(); it++)
+             it != RecvNodes[i].end(); ++it)
             if (destination_model_part.Nodes().find(it->Id()) ==
                 destination_model_part.Nodes().end())
                 destination_model_part.Nodes().push_back(*it.base());
@@ -98,7 +98,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     std::vector<ElementsContainerType> RecvElements(mpi_size);
     SendElements[gather_rank].reserve(destination_model_part.Elements().size());
     for (ElementsContainerType::iterator it = destination_model_part.ElementsBegin();
-         it != destination_model_part.ElementsEnd(); it++)
+         it != destination_model_part.ElementsEnd(); ++it)
     {
         SendElements[gather_rank].push_back(*it.base());
     }
@@ -106,7 +106,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     for (unsigned int i = 0; i < RecvElements.size(); i++)
     {
         for (ElementsContainerType::iterator it = RecvElements[i].begin();
-             it != RecvElements[i].end(); it++)
+             it != RecvElements[i].end(); ++it)
         {
             // replace the nodes copied with the element by nodes
             // in the model part
@@ -130,7 +130,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     std::vector<ConditionsContainerType> RecvConditions(mpi_size);
     SendConditions[gather_rank].reserve(destination_model_part.Conditions().size());
     for (ConditionsContainerType::iterator it = destination_model_part.ConditionsBegin();
-         it != destination_model_part.ConditionsEnd(); it++)
+         it != destination_model_part.ConditionsEnd(); ++it)
     {
         SendConditions[gather_rank].push_back(*it.base());
     }
@@ -138,7 +138,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
     for (unsigned int i = 0; i < RecvConditions.size(); i++)
     {
         for (ConditionsContainerType::iterator it = RecvConditions[i].begin();
-             it != RecvConditions[i].end(); it++)
+             it != RecvConditions[i].end(); ++it)
         {
             // replace the nodes copied with the condition by nodes
             // in the model part
@@ -190,7 +190,7 @@ void GatherModelPartUtility::ScatterFromMaster(const Variable<TDataType>& ThisVa
     if (mgather_rank != r_comm.GetDataCommunicator().Rank())
     {
         for (NodesContainerType::iterator it = mr_model_part.NodesBegin();
-             it != mr_model_part.NodesEnd(); it++)
+             it != mr_model_part.NodesEnd(); ++it)
             it->FastGetSolutionStepValue(ThisVariable) = ThisVariable.Zero();
     }
     r_comm.AssembleCurrentData(ThisVariable);

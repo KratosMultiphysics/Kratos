@@ -88,7 +88,6 @@ def SetPressureOnLocalNodes(model_part, unary_func):
 
 
 def SetPressureOnAllNodes(model_part, unary_func):
-    mpi_comm = Kratos.DataCommunicator.GetDefault()
     for node in model_part.Nodes:
         node.SetSolutionStepValue(Kratos.PRESSURE, unary_func(node))
 
