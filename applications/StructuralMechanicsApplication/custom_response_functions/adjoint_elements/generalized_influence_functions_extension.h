@@ -60,6 +60,7 @@ public:
 private:
      std::string mDesignVariableName;
      double mDelta;
+     bool mNormalize;
 
     friend class Serializer;
 
@@ -67,12 +68,14 @@ private:
     {
         rSerializer.save("DesignVariableName",mDesignVariableName);
         rSerializer.save("Delta",mDelta);
+        rSerializer.save("Normalize",mNormalize);
     }
 
     void load(Serializer& rSerializer)
     {
         rSerializer.load("DesignVariableName",mDesignVariableName);
         rSerializer.load("Delta",mDelta);
+        rSerializer.load("Normalize",mNormalize);
     }
 
 };

@@ -32,6 +32,8 @@ namespace Kratos
             << "Chosen design variable " << mDesignVariableName << " is not available or no variable of type double!" << std::endl;
 
         mDelta = AnalysisSettings["delta"].GetDouble();
+
+        mNormalize = AnalysisSettings["normalize"].GetBool();
     }
 
     GeneralizedInfluenceFunctionsExtension::~GeneralizedInfluenceFunctionsExtension()
@@ -74,6 +76,16 @@ namespace Kratos
         std::string primal_element_name;
         CompareElementsAndConditionsUtility::GetRegisteredName(rPrimalElement, primal_element_name);
 
+        double response_value = 1.0;
+        double variable_value = 1.0;
+        if(mNormalize)
+        {
+            if (rCurrentProcessInfo.Has(RESPONSE_VALUE)) {response_value = std::abs(rCurrentProcessInfo.GetValue(RESPONSE_VALUE));}
+            else {KRATOS_ERROR << "Can't normalize variational sensitivity since no response value is provided!" << std::endl;}
+            const Variable<double>& r_design_variable = KratosComponents<Variable<double>>::Get(mDesignVariableName);
+            variable_value = rAdjointElement.GetProperties()[r_design_variable];
+        }
+
         if(primal_element_name == "CrLinearBeamElement3D2N")
         {
             std::vector< array_1d<double, 3> > pseudo_moment;
@@ -92,9 +104,10 @@ namespace Kratos
             // MFusseder TODO investigate signs!!
             for(IndexType i = 0; i < write_points_number; ++i)
             {
-                rOutput[i] = pseudo_moment[i][0] * adjoint_curvature[i][0] - pseudo_force[i][0] * adjoint_strain[i][0] +
-                             pseudo_moment[i][1] * adjoint_curvature[i][1] + pseudo_force[i][1] * adjoint_strain[i][1] +
-                             pseudo_moment[i][2] * adjoint_curvature[i][2] + pseudo_force[i][2] * adjoint_strain[i][2];
+                rOutput[i] = (pseudo_moment[i][0] * adjoint_curvature[i][0] - pseudo_force[i][0] * adjoint_strain[i][0] +
+                              pseudo_moment[i][1] * adjoint_curvature[i][1] + pseudo_force[i][1] * adjoint_strain[i][1] +
+                              pseudo_moment[i][2] * adjoint_curvature[i][2] + pseudo_force[i][2] * adjoint_strain[i][2])*
+                              variable_value / response_value;
             }
         }
         else if(primal_element_name == "TrussLinearElement3D2N")
@@ -108,13 +121,17 @@ namespace Kratos
 
             for(IndexType i = 0; i < write_points_number; ++i)
             {
-                rOutput[i] = pseudo_force[i][0] * adjoint_strain[i][0] +
-                             pseudo_force[i][1] * adjoint_strain[i][1] +
-                             pseudo_force[i][2] * adjoint_strain[i][2];
+                rOutput[i] = (pseudo_force[i][0] * adjoint_strain[i][0] +
+                              pseudo_force[i][1] * adjoint_strain[i][1] +
+                              pseudo_force[i][2] * adjoint_strain[i][2])*
+                              variable_value / response_value;
+
             }
         }
         else
             KRATOS_ERROR << "CalculateSensitivityOnIntegrationPoints not available for " << primal_element_name << "!" << std::endl;
+
+
 
 
         KRATOS_CATCH("");
