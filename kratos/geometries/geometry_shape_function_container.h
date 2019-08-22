@@ -304,6 +304,13 @@ public:
         return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
     }
 
+    /*
+    * @brief access each item separateley.
+    * @param DerivativeOrderIndex defines the wanted order of the derivative
+    * @param DerivativeOrderRowIndex within each derivative the entries can
+    *        be accessed differently.
+    * @return the shape function or derivative value related to the input parameters.
+    */
     double& ShapeFunctionDerivativeValue(
         IndexType IntegrationPointIndex,
         IndexType DerivativeOrderIndex,
@@ -341,8 +348,6 @@ public:
     }
 
     ///@}
-
-protected:
 
 private:
     ///@name Member Variables
@@ -406,7 +411,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }
 
 ///@}
-
 
 }  // namespace Kratos.
 
