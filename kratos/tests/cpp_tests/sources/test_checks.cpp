@@ -128,10 +128,10 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(MatrixChecks, KratosCoreFastSuite)
         {
-            Matrix m1 = IdentityMatrix(2,2);
-            Matrix m2 = IdentityMatrix(2,2);
+            Matrix m1 = IdentityMatrix(2);
+            Matrix m2 = IdentityMatrix(2);
             m2(0,1) = 0.01;
-            Matrix m3 = IdentityMatrix(3,3);
+            Matrix m3 = IdentityMatrix(3);
 
             KRATOS_CHECK_MATRIX_EQUAL(m1, m1);
             KRATOS_CHECK_MATRIX_NEAR(m1, m2, 0.1);
