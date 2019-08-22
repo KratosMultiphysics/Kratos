@@ -483,10 +483,10 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mRadius", mRadius);
     rSerializer.save("mSearchRadius", mSearchRadius);
     rSerializer.save("mRealMass", mRealMass);
-    rSerializer.save("mFastProperties", mFastProperties);
+    //rSerializer.save("mFastProperties", mFastProperties);
     rSerializer.save("mClusterId", mClusterId);
-    rSerializer.save("mpTranslationalIntegrationScheme", mpTranslationalIntegrationScheme);
-    rSerializer.save("mpRotationalIntegrationScheme",mpRotationalIntegrationScheme);
+    //rSerializer.save("mpTranslationalIntegrationScheme", mpTranslationalIntegrationScheme);
+    //rSerializer.save("mpRotationalIntegrationScheme",mpRotationalIntegrationScheme);
     rSerializer.save("mGlobalDamping",mGlobalDamping);
 }
 
@@ -532,10 +532,10 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mRadius", mRadius);
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass", mRealMass);
-    rSerializer.load("mFastProperties", mFastProperties);
+    //rSerializer.load("mFastProperties", mFastProperties);
     rSerializer.load("mClusterId", mClusterId);
-    rSerializer.load("mpTranslationalIntegrationScheme", mpTranslationalIntegrationScheme);
-    rSerializer.load("mpRotationalIntegrationScheme",mpRotationalIntegrationScheme);
+    //rSerializer.load("mpTranslationalIntegrationScheme", mpTranslationalIntegrationScheme);
+    //rSerializer.load("mpRotationalIntegrationScheme",mpRotationalIntegrationScheme);
     rSerializer.load("mGlobalDamping",mGlobalDamping);
 }
 
