@@ -733,6 +733,9 @@ void MmgProcess<TMMGLibrary>::FreeMemory()
     // Free reference std::unordered_map
     mpRefElement.clear();
     mpRefCondition.clear();
+
+    // Clear the colors
+    mColors.clear();
 }
 
 /***********************************************************************************/
