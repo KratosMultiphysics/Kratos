@@ -316,7 +316,7 @@ public:
         IndexType DerivativeOrderIndex,
         IndexType DerivativeOrderRowIndex,
         IndexType ShapeFunctionIndex,
-        IntegrationMethod ThisMethod = mDefaultMethod)
+        IntegrationMethod ThisMethod)
     {
         if (DerivativeOrderIndex == 0)
             return mShapeFunctionsValues[ThisMethod](IntegrationPointIndex, ShapeFunctionIndex);
