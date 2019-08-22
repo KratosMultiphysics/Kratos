@@ -86,7 +86,7 @@ namespace Kratos
                 // Line loads
                 if (this->Has(LINE_LOAD))
                 {
-                    const array_1d<double, 3> line_load = this->GetValue(LINE_LOAD);
+                    const array_1d<double, 3>& line_load = this->GetValue(LINE_LOAD);
 
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
