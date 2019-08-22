@@ -60,7 +60,6 @@ namespace Kratos {
         Geometry<Node<3>>::Pointer GenerateQuadraturePoint2() {
             auto triangle = GeneratePointsTriangle2D32();
 
-            auto integration_method = triangle->GetDefaultIntegrationMethod();
             auto integration_points = triangle->IntegrationPoints();
 
             auto r_N = triangle->ShapeFunctionsValues();
