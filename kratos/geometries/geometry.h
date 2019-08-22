@@ -808,8 +808,8 @@ public:
         KRATOS_ERROR_IF(dimension == local_space_dimension) << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
 
         // We define the normal and tangents
-        array_1d<double,3> tangent_xi(3, 0.0);
-        array_1d<double,3> tangent_eta(3, 0.0);
+        array_1d<double,3> tangent_xi = ZeroVector(3);
+        array_1d<double,3> tangent_eta = ZeroVector(3);
 
         Matrix j_node = ZeroMatrix( dimension, local_space_dimension );
         this->Jacobian( j_node, rPointLocalCoordinates);
@@ -866,8 +866,8 @@ public:
             << this->WorkingSpaceDimension() << std::endl;
 
         // We define the normal and tangents
-        array_1d<double, 3> tangent_xi(3, 0.0);
-        array_1d<double, 3> tangent_eta(3, 0.0);
+        array_1d<double, 3> tangent_xi = ZeroVector(3);
+        array_1d<double, 3> tangent_eta = ZeroVector(3);
 
         Matrix j_node = ZeroMatrix(dimension, local_space_dimension);
         this->Jacobian(j_node, IntegrationPointIndex, ThisMethod);
