@@ -110,9 +110,6 @@ namespace Kratos {
             serializer.save(tag_string, line_saved);
             serializer.load(tag_string, line_loaded);
 
-            double size1 = line_saved->size();
-            double size2 = line_loaded->size();
-
             KRATOS_CHECK_NEAR((*line_saved)[0].X(), (*line_loaded)[0].X(), 1e-6);
             KRATOS_CHECK_NEAR((*line_saved)[0].Y(), (*line_loaded)[0].Y(), 1e-6);
             KRATOS_CHECK_NEAR((*line_saved)[0].Z(), (*line_loaded)[0].Z(), 1e-6);
