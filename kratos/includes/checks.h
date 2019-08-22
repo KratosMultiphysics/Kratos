@@ -48,21 +48,44 @@ KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given s
 
 #define KRATOS_CHECK_VECTOR_NEAR(a, b, tolerance) {                        \
 KRATOS_ERROR_IF_NOT(a.size() == b.size())                                  \
-<< "Check failed because vector arguments do not have the same size"       \
-<< "First argument has size " << a.size() << ". "                          \
-<< "Second argument has size " << b.size() << ". " << std::endl;           \
+<< "Check failed because vector arguments do not have the same size:"      \
+<< std::endl                                                               \
+<< "First argument has size " << a.size() << ", "                          \
+<< "second argument has size " << b.size() << "." << std::endl;            \
 for (std::size_t i = 0; i < a.size(); i++) {                               \
    KRATOS_ERROR_IF( std::abs(a[i] - b[i]) > tolerance )                    \
    << "Check failed because vector " << #a << " with values" << std::endl  \
    << a << std::endl                                                       \
-   << "Is not near to vector " << #b << " with values" << std::endl        \
+   << "Is not near vector " << #b << " with values" << std::endl           \
    << b << std::endl                                                       \
-   << "Mismatch found in component " << i << ": " << std::endl             \
-   << a[i] << " not near to " << b[i]                                      \
+   << "Mismatch found in component " << i << ":" << std::endl              \
+   << a[i] << " not near " << b[i]                                         \
    << " within tolerance " << tolerance << "." << std::endl;               \
 }                                                                          \
 }
 #define KRATOS_CHECK_VECTOR_EQUAL(a, b) KRATOS_CHECK_VECTOR_NEAR(a,b,std::numeric_limits<double>::epsilon())
+
+#define KRATOS_CHECK_MATRIX_NEAR(a, b, tolerance) {                              \
+KRATOS_ERROR_IF_NOT((a.size1() == b.size1()) || (a.size2() == b.size2()))        \
+<< "Check failed because matrix arguments do not have the same dimensions:"      \
+<< std::endl                                                                     \
+<< "First argument has dimensions (" << a.size1() << "," << a.size2() << "), "   \
+<< "second argument has dimensions (" << b.size1() << "," << b.size2() << ")."   \
+<< std::endl;                                                                    \
+for (std::size_t i = 0; i < a.size1(); i++) {                                    \
+    for (std::size_t j = 0; j < a.size2(); j++) {                                \
+       KRATOS_ERROR_IF( std::abs(a(i,j) - b(i,j)) > tolerance )                  \
+       << "Check failed because matrix " << #a << " with values" << std::endl    \
+       << a << std::endl                                                         \
+       << "Is not near matrix " << #b << " with values" << std::endl             \
+       << b << std::endl                                                         \
+       << "Mismatch found in component (" << i << "," << j << "): " << std::endl \
+       << a(i,j) << " not near " << b(i,j)                                       \
+       << " within tolerance " << tolerance << "." << std::endl;                 \
+    }                                                                            \
+}                                                                                \
+}
+#define KRATOS_CHECK_MATRIX_EQUAL(a, b) KRATOS_CHECK_MATRIX_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
 #define KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)                 \
 try {                                                                                   \
@@ -118,6 +141,9 @@ try {                                                                           
 #define KRATOS_DEBUG_CHECK_VECTOR_NEAR(a, b, tolerance) KRATOS_CHECK_VECTOR_NEAR(a, b, tolerance)
 #define KRATOS_DEBUG_CHECK_VECTOR_EQUAL(a, b) KRATOS_CHECK_VECTOR_EQUAL(a, b)
 
+#define KRATOS_DEBUG_CHECK_MATRIX_NEAR(a, b, tolerance) KRATOS_CHECK_MATRIX_NEAR(a, b, tolerance)
+#define KRATOS_DEBUG_CHECK_MATRIX_EQUAL(a, b) KRATOS_CHECK_MATRIX_EQUAL(a, b)
+
 #define KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
 
 #define KRATOS_DEBUG_CHECK_VARIABLE_KEY(TheVariable) KRATOS_CHECK_VARIABLE_KEY(TheVariable)
@@ -147,6 +173,9 @@ try {                                                                           
 
 #define KRATOS_DEBUG_CHECK_VECTOR_NEAR(a, b, tolerance) if (false) KRATOS_CHECK_VECTOR_NEAR(a, b, tolerance)
 #define KRATOS_DEBUG_CHECK_VECTOR_EQUAL(a, b) if (false) KRATOS_CHECK_VECTOR_EQUAL(a, b)
+
+#define KRATOS_DEBUG_CHECK_MATRIX_NEAR(a, b, tolerance) if (false) KRATOS_CHECK_MATRIX_NEAR(a, b, tolerance)
+#define KRATOS_DEBUG_CHECK_MATRIX_EQUAL(a, b) if (false) KRATOS_CHECK_MATRIX_EQUAL(a, b)
 
 #define KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) if(false) KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
 
