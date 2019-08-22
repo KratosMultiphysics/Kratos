@@ -258,13 +258,13 @@ public:
     */
     Point Center() const override
     {
-        const std::size_t points_number = this->PointsNumber();
+        const std::size_t node_number = this->PointsNumber();
 
         Point point(0.0, 0.0, 0.0);
-        const Matrix& N = this->ShapeFunctionsValues();
+        const Matrix& r_N = this->ShapeFunctionsValues();
 
         for (IndexType point_number = 0; point_number < this->IntegrationPointsNumber(); ++point_number) {
-            for (IndexType i = 0; i < this->PointsNumber(); ++i) {
+            for (IndexType i = 0; i < node_number; ++i) {
                 point += (*this)[i] * N(point_number, i);
             }
         }
