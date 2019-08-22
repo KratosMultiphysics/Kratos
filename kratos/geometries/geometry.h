@@ -423,36 +423,6 @@ public:
     //     return p_clone;
     // }
 
-    ///@}
-    ///@name Parent
-    ///@{
-
-    ///**
-    //* @brief Some geometries require relations to other geometries. This is the
-    //*        case for e.g. quadrature points. To reach the parent geometry
-    //*        this function can be used.
-    //* @return Parent geometry of this geometry object.
-    //*/
-    //virtual GeometryType& GetGeometryParent(IndexType Index) const
-    //{
-    //    KRATOS_ERROR <<
-    //        "Calling GetGeometryParent from base geometry class."
-    //        << std::endl;
-    //}
-
-    ///**
-    //* @brief Some geometries require relations to other geometries. This is the
-    //*        case for e.g. quadrature points. To set or change the parent geometry
-    //*        this function can be used.
-    //* @param Parent geometry of this geometry object.
-    //*/
-    //virtual void SetGeometryParent(GeometryType* pGeometryParent)
-    //{
-    //    KRATOS_ERROR <<
-    //        "Calling SetGeometryParent from base geometry class."
-    //        << std::endl;
-    //}
-
     /**
      * @brief Lumping factors for the calculation of the lumped mass matrix
      * @param rResult Vector containing the lumping factors
