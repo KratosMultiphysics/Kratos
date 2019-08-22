@@ -60,27 +60,38 @@ public:
     /// Pointer definition of GeometryShapeFunctionContainer
     KRATOS_CLASS_POINTER_DEFINITION( GeometryShapeFunctionContainer );
 
+    /// Defining enum of integration method
     using IntegrationMethod = TIntegrationMethodType;
 
+    /// Size types
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
 
+    /// Integration points
     typedef IntegrationPoint<3> IntegrationPointType;
     typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
     typedef std::array<IntegrationPointsArrayType, IntegrationMethod::NumberOfIntegrationMethods> IntegrationPointsContainerType;
 
-
+    /// Shape functions
     typedef std::array<Matrix, IntegrationMethod::NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
+
+    /// First derivatives/ gradients
+    typedef DenseVector<Matrix> ShapeFunctionsGradientsType;
     typedef std::array<DenseVector<Matrix>, IntegrationMethod::NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
 
-    typedef DenseVector<Matrix> ShapeFunctionsGradientsType;
-    typedef DenseVector<Matrix> ShapeFunctionsSecondDerivativesType;
-    typedef DenseVector<DenseVector<Matrix> > ShapeFunctionsThirdDerivativesType;
+    /// Higher order derivatives
+    typedef DenseVector<Matrix>
+        ShapeFunctionsDerivativesType;
+    typedef DenseVector<DenseVector<ShapeFunctionsDerivativesType> >
+        ShapeFunctionsDerivativesIntegrationPointArrayType;
+    typedef std::array<ShapeFunctionsDerivativesIntegrationPointArrayType, IntegrationMethod::NumberOfIntegrationMethods>
+        ShapeFunctionsDerivativesContainerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
+    /// Constructor for single integration point having the full containers
     GeometryShapeFunctionContainer(
         IntegrationMethod ThisDefaultMethod,
         const IntegrationPointsContainerType& ThisIntegrationPoints,
@@ -93,6 +104,59 @@ public:
     {
     }
 
+    /// Constructor ONLY for single integration point with first derivatives
+    GeometryShapeFunctionContainer(
+        IntegrationMethod ThisDefaultMethod,
+        const IntegrationPointType& ThisIntegrationPoint,
+        const Matrix& ThisShapeFunctionsValues,
+        const Matrix& ThisShapeFunctionsGradients)
+        : mDefaultMethod(ThisDefaultMethod)
+    {
+        IntegrationPointsArrayType ips(1);
+        ips[0] = ThisIntegrationPoint;
+        mIntegrationPoints[ThisDefaultMethod] = ips;
+
+        mShapeFunctionsValues[ThisDefaultMethod] = ThisShapeFunctionsValues;
+
+        ShapeFunctionsGradientsType DN_De_array(1);
+        DN_De_array[0] = ThisShapeFunctionsGradients;
+        mShapeFunctionsLocalGradients[ThisDefaultMethod] = DN_De_array;
+    }
+
+    /// Constructor ONLY for single integration point with first derivatives
+    GeometryShapeFunctionContainer(
+        IntegrationMethod ThisDefaultMethod,
+        const IntegrationPointType& ThisIntegrationPoint,
+        const Matrix& ThisShapeFunctionsValues,
+        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives)
+        : mDefaultMethod(ThisDefaultMethod)
+    {
+        IntegrationPointsArrayType ips(1);
+        ips[0] = ThisIntegrationPoint;
+        mIntegrationPoints[ThisDefaultMethod] = ips;
+
+        mShapeFunctionsValues[ThisDefaultMethod] = ThisShapeFunctionsValues;
+
+        if (ThisShapeFunctionsDerivatives.size() > 0)
+        {
+            ShapeFunctionsGradientsType DN_De_array(1);
+            DN_De_array[0] = ThisShapeFunctionsDerivatives[0];
+            mShapeFunctionsLocalGradients[ThisDefaultMethod] = DN_De_array;
+        }
+        if (ThisShapeFunctionsDerivatives.size() > 1)
+        {
+            ShapeFunctionsDerivativesIntegrationPointArrayType derivatives_array(ThisShapeFunctionsDerivatives.size() - 1);
+            for (int i = 1; i < ThisShapeFunctionsDerivatives.size(); ++i)
+            {
+                ShapeFunctionsDerivativesType DN_De_i_array(1);
+                DN_De_i_array[0] = ThisShapeFunctionsDerivatives[i];
+                derivatives_array[i - 1] = DN_De_i_array;
+            }
+            mShapeFunctionsDerivatives[ThisDefaultMethod] = derivatives_array;
+        }
+    }
+
+    /// Default Constructor
     GeometryShapeFunctionContainer()
         : mIntegrationPoints({})
         , mShapeFunctionsValues({})
@@ -100,8 +164,9 @@ public:
     {
     }
 
-    /** Copy constructor.
-    Construct this geometry shape function container as a copy of given geometry data.
+    /*
+    * Copy constructor.
+    * Construct this geometry shape function container as a copy of given geometry data.
     */
     GeometryShapeFunctionContainer( const GeometryShapeFunctionContainer& rOther )
         : mDefaultMethod(rOther.mDefaultMethod)
@@ -239,6 +304,21 @@ public:
         return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
     }
 
+    double& ShapeFunctionDerivativeValue(
+        IndexType IntegrationPointIndex,
+        IndexType DerivativeOrderIndex,
+        IndexType DerivativeOrderRowIndex,
+        IndexType ShapeFunctionIndex,
+        IntegrationMethod ThisMethod = mDefaultMethod)
+    {
+        if (DerivativeOrderIndex == 0)
+            return mShapeFunctionsValues[ThisMethod](IntegrationPointIndex, ShapeFunctionIndex);
+        if (DerivativeOrderIndex == 1)
+            return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](DerivativeOrderRowIndex, ShapeFunctionIndex);
+        if (DerivativeOrderIndex > 2)
+            return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](DerivativeOrderRowIndex, ShapeFunctionIndex);
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -276,6 +356,8 @@ private:
 
     ShapeFunctionsLocalGradientsContainerType mShapeFunctionsLocalGradients;
 
+    ShapeFunctionsDerivativesContainerType mShapeFunctionsDerivatives;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -287,6 +369,7 @@ private:
         rSerializer.save("IntegrationPoints", mIntegrationPoints);
         rSerializer.save("ShapeFunctionsValues", mShapeFunctionsValues);
         rSerializer.save("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
+        rSerializer.save("ShapeFunctionsDerivatives", mShapeFunctionsDerivatives);
     }
 
     virtual void load( Serializer& rSerializer )
@@ -294,6 +377,7 @@ private:
         rSerializer.load("IntegrationPoints", mIntegrationPoints);
         rSerializer.load("ShapeFunctionsValues", mShapeFunctionsValues);
         rSerializer.load("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
+        rSerializer.load("ShapeFunctionsDerivatives", mShapeFunctionsDerivatives);
     }
 
     ///@}
@@ -303,7 +387,6 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<typename TIntegrationMethodType>
