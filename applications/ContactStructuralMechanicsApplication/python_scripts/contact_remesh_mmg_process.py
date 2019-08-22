@@ -113,7 +113,7 @@ class ContactRemeshMmgProcess(MmgProcess):
             "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
             "max_number_of_searchs"            : 1000,
-            "preserve_flags"                   : true,
+            "preserve_flags"                   : false,
             "interpolate_non_historical"       : true,
             "extrapolate_contour_values"       : true,
             "surface_elements"                 : false,
