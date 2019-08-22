@@ -53,7 +53,7 @@ public:
 
     typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
-    typedef GeometryShapeFunctionContainer<GeometryType::IntegrationMethod> GeometryShapeFunctionContainerType;
+    typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> GeometryShapeFunctionContainerType;
 
     typedef typename GeometryType::IntegrationPointsContainerType IntegrationPointsContainerType;
     typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
