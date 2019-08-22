@@ -65,6 +65,7 @@ public:
         {
             "variable_type"               : "element_property",
             "design_variable_name"        : "SOME_ELEMENT_PROPERTY_VARIABLE",
+            "differentiation_method"      : "finite_differences",
             "delta"                       : 1.0e-6,
             "adapt_step_size"             : true,
             "normalize"                   : true

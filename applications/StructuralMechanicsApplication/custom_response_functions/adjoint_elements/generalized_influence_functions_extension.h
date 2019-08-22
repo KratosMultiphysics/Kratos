@@ -53,15 +53,24 @@ public:
     void CalculatePseudoQuantityOnIntegrationPoints(Element& rElement, const Variable<array_1d<double, 3>>& rPseudoQuantityVariable,
                                             std::vector< array_1d<double, 3> >& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
 
-
     void CalculateSensitivityOnIntegrationPoints(Element& rPrimalElement, Element& rAdjointElement, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
 
 
 private:
     std::string mDesignVariableName;
-    double mDelta;
+    unsigned int mDifferentiationMethod;
+    double mDelta = 1e-6;
     bool mNormalize;
-    bool mAdaptStepSize;
+    bool mAdaptStepSize = false;
+
+    void CalculatePseudoQuantityWithFiniteDifferences(Element& rElement, const Variable<array_1d<double, 3>>& rQuantityVariable, const Variable<double>& rDesignVariable,
+                                            std::vector< array_1d<double, 3> >& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
+
+    void CalculatePseudoQuantityWithChainRule(Element& rElement, const Variable<array_1d<double, 3>>& rQuantityVariable,
+                                            std::vector< array_1d<double, 3> >& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
+
+    void CalculatePseudoQuantityByModificationOfMaterialMatrix(Element& rElement, const Variable<array_1d<double, 3>>& rQuantityVariable,
+                                            std::vector< array_1d<double, 3> >& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
 
     friend class Serializer;
 
