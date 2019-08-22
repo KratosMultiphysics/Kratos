@@ -9,9 +9,13 @@ try:
 except ImportError as e:
     structural_dependencies = False
 
+# Some Kratos dependencies
 from KratosMultiphysics import kratos_utilities
 from KratosMultiphysics import json_utilities
+
+# Some python dependencies
 import os
+import statistics as stat
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -216,7 +220,6 @@ class MmgProcess(KratosMultiphysics.Process):
 
         # Calculate the parameters of automatic remeshing
         if self.settings["automatic_remesh"].GetBool():
-            import statistics as stat
             nodal_h_values = []
             for node in self.main_model_part.Nodes:
                 nodal_h_values.append(node.GetValue(KratosMultiphysics.NODAL_H))
@@ -239,6 +242,13 @@ class MmgProcess(KratosMultiphysics.Process):
 
                 prob = (self.settings["automatic_remesh_parameters"]["max_size_current_percentage"].GetDouble())/100
                 self.settings["maximal_size"].SetDouble(_normvalf(prob, mean, stdev)) # Using normal normal distribution to get the maximal size as a stadistical meaninful value
+
+            # We deactivate, so it doesn't recalculate each initialization
+            self.settings["automatic_remesh"].SetBool(False)
+
+        # We print the parameters considered
+        KratosMultiphysics.Logger.PrintInfo("MINIMAL SIZE: ", "{:.2e}".format(self.settings["minimal_size"].GetDouble()))
+        KratosMultiphysics.Logger.PrintInfo("MAXIMAL SIZE: ", "{:.2e}".format(self.settings["maximal_size"].GetDouble()))
 
         # Anisotropic remeshing parameters
         self.anisotropy_remeshing = self.settings["anisotropy_remeshing"].GetBool()
