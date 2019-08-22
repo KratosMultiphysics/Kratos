@@ -24,6 +24,7 @@
 #endif /* MMG_INCLUDES defined */
 
 // Project includes
+#include "containers/model.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "custom_utilities/mmg_utilities.h"
 
@@ -3225,15 +3226,38 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         auto it_cond = it_cond_begin + i;
         const IndexType cond_id = it_cond->Id();
         const IndexType color = cond_colors[cond_id];
-        if (!(rColorMapCondition.find(color) != rColorMapCondition.end()))
+        if ((rColorMapCondition.find(color) == rColorMapCondition.end()))
             rColorMapCondition.insert (IndexPairType(color,cond_id));
     }
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
         const IndexType elem_id = it_elem->Id();
         const IndexType color = elem_colors[elem_id];
-        if (!(rColorMapElement.find(color) != rColorMapElement.end()))
+        if ((rColorMapElement.find(color) == rColorMapElement.end()))
             rColorMapElement.insert (IndexPairType(color,elem_id));
+    }
+
+    // Add missing entities
+    Model& r_model = rModelPart.GetModel();
+    for (auto& r_color : rColors) {
+        const IndexType color = r_color.first;
+        if (color != 0) { // Not including main model part
+            for (auto& r_sub_model_part_name : r_color.second) {
+                ModelPart& r_sub_model_part = r_model.GetModelPart(rModelPart.Name() + "." + r_sub_model_part_name);
+                if ((rColorMapCondition.find(color) == rColorMapCondition.end())) {
+                    if (r_sub_model_part.NumberOfConditions() > 0) {
+                        const IndexType cond_id = r_sub_model_part.Conditions().begin()->Id();
+                        rColorMapCondition.insert (IndexPairType(color,cond_id));
+                    }
+                }
+                if ((rColorMapElement.find(color) == rColorMapElement.end())) {
+                    if (r_sub_model_part.NumberOfElements() > 0) {
+                        const IndexType elem_id = r_sub_model_part.Elements().begin()->Id();
+                        rColorMapElement.insert (IndexPairType(color,elem_id));
+                    }
+                }
+            }
+        }
     }
 }
 
