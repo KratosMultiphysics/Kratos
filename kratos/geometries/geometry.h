@@ -802,8 +802,8 @@ public:
      */
     virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
-        const unsigned int local_space_dimension = this->LocalSpaceDimension();
-        const unsigned int dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        const SizeType dimension = this->WorkingSpaceDimension();
 
         KRATOS_ERROR_IF(dimension == local_space_dimension) << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
 
@@ -833,17 +833,114 @@ public:
     }
 
     /**
+     * @brief It returns the vector, which is normal to its corresponding
+     *        geometry in the given integration point for the default
+     *        integration method.
+     * @param IntegrationPointIndex index in internal integration point list
+     * @return The normal in the given integration point
+     */
+    virtual array_1d<double, 3> Normal(
+        IndexType IntegrationPointIndex) const
+    {
+        return Normal(IntegrationPointIndex, mpGeometryData->DefaultIntegrationMethod());
+    }
+
+    /**
+     * @brief It returns the vector, which is normal to its corresponding
+     *        geometry in the given integration point.
+     * @param IntegrationPointIndex index in internal integration point list
+     * @param ThisMethod the integration point is dependent on the used
+     *        integration method
+     * @return The normal in the given integration point
+     */
+    virtual array_1d<double, 3> Normal(
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        const SizeType dimension = this->WorkingSpaceDimension();
+
+        KRATOS_DEBUG_ERROR_IF(dimension == local_space_dimension)
+            << "Remember the normal can be computed just in geometries with a local dimension: "
+            << this->LocalSpaceDimension() << "smaller than the spatial dimension: "
+            << this->WorkingSpaceDimension() << std::endl;
+
+        // We define the normal and tangents
+        array_1d<double, 3> tangent_xi(3, 0.0);
+        array_1d<double, 3> tangent_eta(3, 0.0);
+
+        Matrix j_node = ZeroMatrix(dimension, local_space_dimension);
+        this->Jacobian(j_node, IntegrationPointIndex, ThisMethod);
+
+        // Using the Jacobian tangent directions
+        if (dimension == 2) {
+            tangent_eta[2] = 1.0;
+            for (IndexType i_dim = 0; i_dim < dimension; i_dim++) {
+                tangent_xi[i_dim] = j_node(i_dim, 0);
+            }
+        }
+        else {
+            for (IndexType i_dim = 0; i_dim < dimension; i_dim++) {
+                tangent_xi[i_dim] = j_node(i_dim, 0);
+                tangent_eta[i_dim] = j_node(i_dim, 1);
+            }
+        }
+
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+        return normal;
+    }
+
+    /**
      * @brief It computes the unit normal of the geometry in the given local point
      * @param rPointLocalCoordinates Refernce to the local coordinates of the point in where the unit normal is to be computed
      * @return The unit normal in the given point
      */
-    virtual array_1d<double, 3> UnitNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
+    virtual array_1d<double, 3> UnitNormal(
+        const CoordinatesArrayType& rPointLocalCoordinates) const
     {
         array_1d<double, 3> normal = Normal(rPointLocalCoordinates);
         const double norm_normal = norm_2(normal);
         if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
         else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
         return normal;
+    }
+
+    /**
+     * @brief It returns the normalized normal vector
+     *        in the given integration point.
+     * @param IntegrationPointIndex index in internal integration point list
+     * @param ThisMethod the integration point is dependent on the used
+     *        integration method
+     * @return The normal in the given integration point
+     */
+    virtual array_1d<double, 3> UnitNormal(
+        IndexType IntegrationPointIndex) const
+    {
+        return UnitNormal(IntegrationPointIndex, mpGeometryData->DefaultIntegrationMethod());
+    }
+
+    /**
+     * @brief It returns the normalized normal vector
+     *        in the given integration point.
+     * @param IntegrationPointIndex index in internal integration point list
+     * @param ThisMethod the integration point is dependent on the used
+     *        integration method
+     * @return The normal in the given integration point
+     */
+    virtual array_1d<double, 3> UnitNormal(
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex);
+        const double norm_normal = norm_2(normal_vector);
+        if (norm_normal > std::numeric_limits<double>::epsilon())
+            normal_vector /= norm_normal;
+        else
+            KRATOS_ERROR 
+            << "ERROR: The normal norm is zero or almost zero: "
+            << norm_normal << std::endl;
+        return normal_vector;
     }
 
     /** Calculates the quality of the geometry according to a given criteria.
