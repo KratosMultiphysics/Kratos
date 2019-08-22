@@ -53,9 +53,8 @@ public:
 
     typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
-    typedef GeometryShapeFunctionContainer<IntegrationMethod> GeometryShapeFunctionContainerType;
+    typedef GeometryShapeFunctionContainer<GeometryType::IntegrationMethod> GeometryShapeFunctionContainerType;
 
-    typedef typename GeometryType::IntegrationMethod IntegrationMethod;
     typedef typename GeometryType::IntegrationPointsContainerType IntegrationPointsContainerType;
     typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
     typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
@@ -265,7 +264,7 @@ public:
 
         for (IndexType point_number = 0; point_number < this->IntegrationPointsNumber(); ++point_number) {
             for (IndexType i = 0; i < node_number; ++i) {
-                point += (*this)[i] * N(point_number, i);
+                point += (*this)[i] * r_N(point_number, i);
             }
         }
         return point;
