@@ -158,7 +158,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 	def GenerateDEM(self): # 3D version
 		if self.echo_level > 0:
 			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: GenerateDEM")
-		self.CountErasedVolume()
+
+		# If we want to compute sand production
+		# self.CountErasedVolume()
 
 		if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
 			dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)

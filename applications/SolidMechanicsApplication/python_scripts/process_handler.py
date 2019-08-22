@@ -162,7 +162,6 @@ class ProcessHandler(KratosMultiphysics.Process):
         python_module = import_module(process["kratos_module"].GetString() + "." + process["python_module"].GetString())
         return(python_module.Factory(process, self.model))
 
-
     #
     def ConstructList(self, process_list):
 
