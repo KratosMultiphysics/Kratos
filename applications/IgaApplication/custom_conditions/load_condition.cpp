@@ -72,7 +72,7 @@ namespace Kratos
                 // Point loads
                 if (this->Has(POINT_LOAD))
                 {
-                    const array_1d<double, 3> point_load = this->GetValue(POINT_LOAD);
+                    const array_1d<double, 3>& point_load = this->GetValue(POINT_LOAD);
 
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
