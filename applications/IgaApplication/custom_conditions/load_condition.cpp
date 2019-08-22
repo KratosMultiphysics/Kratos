@@ -100,7 +100,7 @@ namespace Kratos
                 // Surface loads
                 if (this->Has(SURFACE_LOAD))
                 {
-                    const array_1d<double, 3> surface_load = this->GetValue(SURFACE_LOAD);
+                    const array_1d<double, 3>& surface_load = this->GetValue(SURFACE_LOAD);
 
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
