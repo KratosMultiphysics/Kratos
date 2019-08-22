@@ -32,7 +32,7 @@
             "verbosity": 0,
             "scaling": false
         },
-        "auxiliary_variables_list" : ["NODAL_H","GEOMETRY_DISTANCE","DISTANCE"]
+        "auxiliary_variables_list" : ["GEOMETRY_DISTANCE","DISTANCE"]
     },
     "processes"            : {
         "initial_conditions_process_list"  : [],
