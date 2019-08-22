@@ -153,7 +153,6 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         MetricParameters = KratosMultiphysics.Parameters("""
         {
             "hessian_strategy_parameters"              :{
-                "metric_variable"                  : ["DISTANCE"],
                 "estimate_interpolation_error"     : false,
                 "interpolation_error"              : 1.0e-6,
                 "mesh_dependent_constant"          : 0.28125
@@ -162,7 +161,6 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
             "maximal_size"                     : 0.5,
             "sizing_parameters":
             {
-                "reference_variable_name"              : "DISTANCE",
                 "boundary_layer_max_distance"          : 1.0,
                 "interpolation"                        : "constant"
             },
