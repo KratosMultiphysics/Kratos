@@ -294,8 +294,25 @@ public:
     {
     }
 
-    /** Copy constructor.
-    Construct this geometry data as a copy of given geometry data.
+    /*
+    * Constructor which has a precomputed shape function container.
+    * @param pThisGeometryDimension pointer to the dimensional data
+    * @param ThisGeometryShapeFunctionContainer including the evaluated
+    *        values for the shape functions, it's derivatives and the 
+    *        integration points.
+    */
+    GeometryData(GeometryDimension const *pThisGeometryDimension,
+        GeometryShapeFunctionContainer<IntegrationMethod>& ThisGeometryShapeFunctionContainer)
+        : mpGeometryDimension(pThisGeometryDimension)
+        , mGeometryShapeFunctionContainer(
+            GeometryShapeFunctionContainer<IntegrationMethod>(
+                ThisGeometryShapeFunctionContainer))
+    {
+    }
+
+    /*
+    * Copy constructor.
+    * Construct this geometry data as a copy of given geometry data.
     */
     GeometryData( const GeometryData& rOther )
         : mpGeometryDimension( rOther.mpGeometryDimension)
