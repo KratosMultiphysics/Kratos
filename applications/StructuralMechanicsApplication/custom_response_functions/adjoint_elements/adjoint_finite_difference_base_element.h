@@ -457,7 +457,7 @@ protected:
     ///@{
 
     template <typename TDataType>
-    void CalculateAdjointFieldOnIntegrationPoints(const Variable<TDataType>& rVariable, std::vector< TDataType >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    void CalculateAdjointFieldOnIntegrationPoints(const Variable<TDataType>& rVariable, std::vector< TDataType >& rOutput, const ProcessInfo& rCurrentProcessInfo, bool ParticularOnly =false)
     {
         KRATOS_TRY;
 
@@ -509,9 +509,17 @@ protected:
             for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
             {
                 initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
-                mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) =
-                                            this->GetGeometry()[i].FastGetSolutionStepValue(adjoint_solution_variable_list[j]) +
-                                            particular_solution[index + j];
+                if (!ParticularOnly)
+                {
+                    mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) =
+                            this->GetGeometry()[i].FastGetSolutionStepValue(adjoint_solution_variable_list[j]) +
+                            particular_solution[index + j];
+                }
+                else
+                {
+                    mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) =
+                        0.0 + particular_solution[index + j];
+                }
             }
         }
 

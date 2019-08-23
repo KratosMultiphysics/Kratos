@@ -50,7 +50,7 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
 {
     KRATOS_TRY
 
-    if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_STRAIN)
+    if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_STRAIN || ADJOINT_PARTICULAR_CURVATURE || ADJOINT_PARTICULAR_STRAIN)
     {
         const double E = this->GetProperties()[YOUNG_MODULUS];
         const double nu = this->GetProperties()[POISSON_RATIO];
@@ -60,9 +60,13 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
         const double Iy = this->GetProperties()[I22];
         const double Iz = this->GetProperties()[I33];
 
-        if (rVariable == ADJOINT_CURVATURE)
+        if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_PARTICULAR_CURVATURE)
         {
-            AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo);
+            KRATOS_WATCH(rVariable)
+            if (rVariable == ADJOINT_CURVATURE)
+                AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo);
+            else
+                AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo, true);
 
             double response_value = 1.0;
             //if (rCurrentProcessInfo.Has(RESPONSE_VALUE)) {response_value = rCurrentProcessInfo.GetValue(RESPONSE_VALUE);}
@@ -74,9 +78,12 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
                 rOutput[i][2] *= -1.0 / (E * Iz) / response_value;
             }
         }
-        else if (rVariable == ADJOINT_STRAIN)
+        else if (rVariable == ADJOINT_STRAIN || rVariable == ADJOINT_PARTICULAR_STRAIN)
         {
-            AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(FORCE, rOutput, rCurrentProcessInfo);
+            if (rVariable == ADJOINT_STRAIN)
+                AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(FORCE, rOutput, rCurrentProcessInfo);
+            else
+                AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(FORCE, rOutput, rCurrentProcessInfo, true);
 
             KRATOS_WARNING_IF("ADJOINT_STRAIN", (this->GetProperties().Has(AREA_EFFECTIVE_Y) || this->GetProperties().Has(AREA_EFFECTIVE_Z)))
                         << "Not available for Timoschenko beam!" << std::endl;
