@@ -349,65 +349,74 @@ class DEMAnalysisStage(AnalysisStage):
     def GetProblemTypeFilename(self):
         return self.DEM_parameters["problem_name"].GetString()
 
-    def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
-        spheres_mp_filename = self.GetMpFilename()
+    def ReadModelParts(self, max_node_id=0, max_elem_id=0, max_cond_id=0):
+
         model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]
         input_type = model_part_import_settings["input_type"].GetString()
 
-        model_part_io_spheres = self.model_part_reader(spheres_mp_filename, max_node_Id, max_elem_Id, max_cond_Id)
+        if input_type == "rest":
+            Logger.PrintInfo('DEM', 'Loading model part ' + self.spheres_model_part.Name + ' from restart file...')
+            from DEM_restart_utility import DEMRestartUtility
+            DEMRestartUtility(self.spheres_model_part, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
+            Logger.PrintInfo('DEM', 'Finished loading ' + self.spheres_model_part.Name + '.')
+            # DEMRestartUtility(self.rigid_face_model_part, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
+            # DEMRestartUtility(self.cluster_model_part, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
+            # DEMRestartUtility(self.dem_inlet_model_part, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
 
-        if self.DEM_parameters.Has("do_not_perform_initial_partition") and self.DEM_parameters["do_not_perform_initial_partition"].GetBool():
-            pass
-        else:
-            self.parallelutils.PerformInitialPartition(model_part_io_spheres)
+        elif input_type == "mdpa":
+            mp_file_names = dict()
+            spheres_mp_filename = self.GetMpFilename()
+            rigidFace_mp_filename = self.GetFemFilename()
+            clusters_mp_filename = self.GetClusterFilename()
+            DEM_Inlet_filename = self.GetInletFilename()
 
-        [model_part_io_spheres, self.spheres_model_part] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+            model_part_io_spheres = self.model_part_reader(spheres_mp_filename, max_node_id, max_elem_id, max_cond_id)
 
-        if input_type == "mdpa":
+            if self.DEM_parameters.Has("do_not_perform_initial_partition"):
+                if self.DEM_parameters["do_not_perform_initial_partition"].GetBool() == False:
+                    self.parallelutils.PerformInitialPartition(model_part_io_spheres)
+
+            model_part_io_spheres, self.spheres_model_part = self.parallelutils.SetCommunicator(
+                                                                self.spheres_model_part,
+                                                                model_part_io_spheres,
+                                                                spheres_mp_filename)
+            def UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, model_part):
+                max_node_id = max(max_node_id, self.creator_destructor.FindMaxNodeIdInModelPart(model_part))
+                max_elem_id = max(max_elem_id, self.creator_destructor.FindMaxElementIdInModelPart(model_part))
+                max_cond_id = max(max_cond_id, self.creator_destructor.FindMaxConditionIdInModelPart(model_part))
+                return max_node_id, max_elem_id, max_cond_id
+
             model_part_io_spheres.ReadModelPart(self.spheres_model_part)
-        elif input_type == "rest":
-            Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
-            from restart_utility import RestartUtility
-            RestartUtility(self.spheres_model_part, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
-            Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
 
+            max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.spheres_model_part)
+
+            old_max_elem_id_spheres = max_elem_id
+            if os.path.isfile(rigidFace_mp_filename+".mdpa"):
+                model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_id + 1, max_elem_id + 1, max_cond_id + 1)
+                model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
+            else:
+                self.KratosPrintInfo('No mdpa file found for DEM walls. Continuing.')
+            max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.rigid_face_model_part)
+
+            if os.path.isfile(clusters_mp_filename+".mdpa"):
+                model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_id + 1, max_elem_id + 1, max_cond_id + 1)
+                model_part_io_clusters.ReadModelPart(self.cluster_model_part)
+            else:
+                self.KratosPrintInfo('No mdpa file found for DEM clusters. Continuing.')
+
+            max_elem_id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
+            if max_elem_id != old_max_elem_id_spheres:
+                self.creator_destructor.RenumberElementIdsFromGivenValue(self.cluster_model_part, max_elem_id)
+
+            max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.cluster_model_part)
+
+            if os.path.isfile(DEM_Inlet_filename+".mdpa"):
+                model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_id + 1, max_elem_id + 1, max_cond_id + 1)
+                model_part_io_demInlet.ReadModelPart(self.dem_inlet_model_part)
+            else:
+                self.KratosPrintInfo('No mdpa file found for DEM inlets. Continuing.')
         else:
-            raise Exception('The model part input option' + input_type + 'is not yet implemented.')
-
-        max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part))
-        max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part))
-        max_cond_Id = max(max_cond_Id, self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part))
-        old_max_elem_Id_spheres = max_elem_Id
-        rigidFace_mp_filename = self.GetFemFilename()
-        if os.path.isfile(rigidFace_mp_filename+".mdpa"):
-            model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-            model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
-        else:
-            self.KratosPrintInfo('No mdpa file found for DEM walls. Continuing.')
-
-        max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part))
-        max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part))
-        max_cond_Id = max(max_cond_Id, self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part))
-        clusters_mp_filename = self.GetClusterFilename()
-        if os.path.isfile(clusters_mp_filename+".mdpa"):
-            model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-            model_part_io_clusters.ReadModelPart(self.cluster_model_part)
-        else:
-            self.KratosPrintInfo('No mdpa file found for DEM clusters. Continuing.')
-
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
-        if max_elem_Id != old_max_elem_Id_spheres:
-            self.creator_destructor.RenumberElementIdsFromGivenValue(self.cluster_model_part, max_elem_Id)
-
-        max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.cluster_model_part))
-        max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.cluster_model_part))
-        max_cond_Id = max(max_cond_Id, self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part))
-        DEM_Inlet_filename = self.GetInletFilename()
-        if os.path.isfile(DEM_Inlet_filename+".mdpa"):
-            model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-            model_part_io_demInlet.ReadModelPart(self.dem_inlet_model_part)
-        else:
-            self.KratosPrintInfo('No mdpa file found for DEM inlets. Continuing.')
+            raise Exception('DEM', 'The model part input option' + input_type + 'is not yet implemented.')
 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()

@@ -17,7 +17,10 @@ class ExplicitStrategy(object):
             "strategy" : "sphere_strategy",
             "do_search_neighbours" : true,
             "RemoveBallsInitiallyTouchingWalls": false,
-            "model_import_settings": {}
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            }
         }""")
         self.solver_settings.ValidateAndAssignDefaults(default_settings)
 
