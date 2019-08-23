@@ -12,7 +12,7 @@
 //
 
 // System includes
-
+#include <vector>
 
 // External includes
 
@@ -101,6 +101,8 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(VectorChecks, KratosCoreFastSuite)
         {
+            using Kratos::operator<<; // operator<< for vectors is defined in namespace Kratos, we are inside the namespace "Testing"
+
             std::vector<double> v1{1.0, 2.0};
             std::vector<double> v2{1.0, 1.99};
             std::vector<double> v3{1.0, 2.0, 3.0};
