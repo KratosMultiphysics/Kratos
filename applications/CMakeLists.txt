@@ -228,7 +228,7 @@ if(${STRING_DYNAMICS_APPLICATION} MATCHES ON)
 endif(${STRING_DYNAMICS_APPLICATION} MATCHES ON)
 
 if(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
-  add_subdirectory(convection_diffusion_application)
+  add_subdirectory(ConvectionDiffusionApplication)
 endif(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
 
 if(${MESHING_APPLICATION} MATCHES ON)
