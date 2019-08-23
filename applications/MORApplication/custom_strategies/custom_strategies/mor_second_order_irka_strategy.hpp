@@ -64,13 +64,13 @@ namespace Kratos
  */
 template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
-          class TLinearSolver, //= LinearSolver<TSparseSpace,TDenseSpace>
+          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           //class TLinearSolver  // feast? TODO: check if this is necessary
-          class TTrilLinearSolver
+          //class TTrilLinearSolver
           >
 class MorSecondOrderIRKAStrategy
     // : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
-    : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver, TTrilLinearSolver >
+    : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
   public:
     ///@name Type Definitions
@@ -128,7 +128,7 @@ class MorSecondOrderIRKAStrategy
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
-        typename TTrilLinearSolver::Pointer pNewLinearEigSolver,
+        typename TLinearSolver::Pointer pNewLinearEigSolver,
         vector< double > samplingPoints,
         bool MoveMeshFlag = false)
         : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)
@@ -282,7 +282,7 @@ class MorSecondOrderIRKAStrategy
         vector<double> mSamplingPoints_old; // for convergence check; TODO: make complex (also in offline_strategy)
 
 
-        int iter = 1;
+        int iter = 9;
         int err  = 1;
         // TODO: adapt max iter and tol; additional parameters, settings?
         while(iter<10 && err > 1e-4){
@@ -314,6 +314,8 @@ class MorSecondOrderIRKAStrategy
             TDenseVectorType Eigenvalues;
             TDenseMatrixType Eigenvectors;
 
+            // DenseSpaceType::Resize(Eigenvalues, 2*reduced_system_size);
+            // DenseSpaceType::Resize(Eigenvectors,2*reduced_system_size, 2*reduced_system_size);
 
             // linearize the EV problem, since FEAST can only deal with the generalized problem
             // auto L = SparseSpaceType::CreateEmptyMatrixPointer();
@@ -330,7 +332,7 @@ class MorSecondOrderIRKAStrategy
 
             // "no type named size_type in class shared_ptr"
             //subrange(L1, (size_t) 0, reduced_system_size-1, (size_t) 0, reduced_system_size-1) = r_M_reduced;
-            subrange(r_L1, 0, reduced_system_size-1, 0, reduced_system_size-1) = r_M_reduced;
+            subrange(r_L1, 0, reduced_system_size, 0, reduced_system_size) = r_M_reduced;
 
             // "bad alloc" or memory corruption when running the python file...
             // for(size_t i = reduced_system_size; i < 2*reduced_system_size; ++i){
@@ -343,7 +345,7 @@ class MorSecondOrderIRKAStrategy
 
 
             subrange(r_L2, 0, reduced_system_size, 0, reduced_system_size) = r_D_reduced;
-            subrange(r_L2, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_K_reduced;            
+            subrange(r_L2, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = -1.0*id_m;//r_K_reduced;            
 
             // for(size_t i = 0; i < reduced_system_size; ++i){
             //     r_L2(reduced_system_size+i,i) = -1;
@@ -358,10 +360,44 @@ class MorSecondOrderIRKAStrategy
             //KRATOS_WATCH(subrange(r_L1, reduced_system_size-2, reduced_system_size+2, reduced_system_size-2, reduced_system_size+2));
             //KRATOS_WATCH(subrange(r_L2, reduced_system_size-2, reduced_system_size+2, reduced_system_size-2, reduced_system_size+2));
 
- 
+            // DenseSpaceType::Resize(Eigenvalues,  3);
+            // DenseSpaceType::Resize(Eigenvectors, 3, 3);
+            
+            auto L1_test = SparseSpaceType::CreateEmptyMatrixPointer();
+            auto& r_L1_test = *L1_test;
+            SparseSpaceType::Resize(r_L1_test, 3, 3);
+            
+            auto L2_test = SparseSpaceType::CreateEmptyMatrixPointer();
+            auto& r_L2_test = *L2_test;
+            SparseSpaceType::Resize(r_L2_test, 3, 3);
+
+            for(size_t i = 0; i < 3; ++i){
+                r_L2_test(i,i) = 1;
+            }
+
+            r_L1_test(0,0) = 2;
+            r_L1_test(0,1) = 1;
+            r_L1_test(0,2) = 1;
+
+            r_L1_test(1,0) = 1;
+            r_L1_test(1,1) = 2;
+            r_L1_test(1,2) = 1;
+
+            r_L1_test(2,0) = 1;
+            r_L1_test(2,1) = 1;
+            r_L1_test(2,2) = 2;
+
+            KRATOS_WATCH(r_L1_test);
+            KRATOS_WATCH(r_L2_test);
+
+            //TODO: issue linearized version: not spd
+
+
             p_builder_and_solver_feast->GetLinearSystemSolver()->Solve(
-                r_L1,
-                r_L2,
+                //r_L1,
+                //r_L2,
+                r_L1_test,
+                r_L2_test,
                 //r_K_reduced,
                 //r_M_reduced,
                 Eigenvalues,
