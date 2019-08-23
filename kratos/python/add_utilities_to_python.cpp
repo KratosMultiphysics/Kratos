@@ -214,7 +214,8 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
 
 void VariableUtilsUpdateCurrentPosition(
     VariableUtils &rVariableUtils,
-    const ModelPart::NodesContainerType &rNodes)
+    const ModelPart::NodesContainerType &rNodes
+    )
 {
     rVariableUtils.UpdateCurrentPosition(rNodes);
 }
@@ -222,9 +223,20 @@ void VariableUtilsUpdateCurrentPosition(
 void VariableUtilsUpdateCurrentPositionWithVariable(
     VariableUtils &rVariableUtils,
     const ModelPart::NodesContainerType &rNodes,
-    const VariableUtils::ArrayVarType &rUpdateVariable)
+    const VariableUtils::ArrayVarType &rUpdateVariable
+    )
 {
     rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable);
+}
+
+void VariableUtilsUpdateCurrentPositionWithVariableAndPosition(
+    VariableUtils &rVariableUtils,
+    const ModelPart::NodesContainerType &rNodes,
+    const VariableUtils::ArrayVarType &rUpdateVariable,
+    const IndexType BufferPosition
+    )
+{
+    rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable, BufferPosition);
 }
 
 template<class TVarType>
@@ -551,6 +563,7 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition)
         ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
