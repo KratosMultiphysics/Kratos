@@ -288,8 +288,15 @@ namespace Kratos
                 }
                 else
                     KRATOS_ERROR << "It is not possible to compute pseudo stress quantity since I33_DERIVED is not available" << std::endl;
+
+                if(rElement.GetProperties().Has(TORSIONAL_INERTIA_DERIVED))
+                {
+                    const double value_derived = rElement.GetProperties()[TORSIONAL_INERTIA_DERIVED];
+                    p_local_property->SetValue(TORSIONAL_INERTIA, value_derived);
+                }
+                else
+                    KRATOS_ERROR << "It is not possible to compute pseudo stress quantity since TORSIONAL_INERTIA_DERIVED is not available" << std::endl;
             }
-            // MFusseder TODO add also modification of the torsional inertia!
         }
         else
             KRATOS_ERROR << "CalculatePseudoQuantityByModificationOfMaterialMatrix not available for given variable!" << std::endl;
