@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Teschemacher
+//  Main authors:    Thomas Oberbichler
 //
 
 // System includes
@@ -150,7 +150,7 @@ namespace Testing {
     }
 
     ///// Tests
-    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfacePoint, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfacePoint, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferencePointSurface();
 
         // Check general information, input to ouput
@@ -176,7 +176,7 @@ namespace Testing {
         surface.GlobalCoordinates(result, parameter);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCylinderSurface, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCylinderSurface, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferencePieceOfCylinderNurbsSurface();
 
         // Check general information, input to ouput
@@ -243,7 +243,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(derivatives_2[2][2], 1.0, TOLERANCE);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceNode, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceNode, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferenceNodeSurface();
 
         // Check general information, input to ouput

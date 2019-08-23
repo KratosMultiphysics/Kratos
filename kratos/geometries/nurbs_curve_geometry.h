@@ -8,7 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Thomas Oberbichler
-//                   Tobias Teschemacher
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
@@ -44,13 +43,14 @@ public:
 
     typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
-    /// Counted pointer of NurbsSurfaceShapeFunction
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NurbsCurveGeometry);
+    /// Counted pointer of NurbsCurveGeometry
+    KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveGeometry);
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /* Conctructor for B-Spline curves. */
+    /// Conctructor for B-Spline curves
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
@@ -58,13 +58,12 @@ public:
         : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
-        , mIsRational(false)
     {
         KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
             << "Number of knots and control points do not match!" << std::endl;
     }
 
-    /* Conctructor for NURBS curves. */
+    /// Conctructor for NURBS curves
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
@@ -73,7 +72,6 @@ public:
         : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
-        , mIsRational(true)
         , mWeights(rWeights)
     {
         KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
@@ -93,7 +91,6 @@ public:
         : BaseType(rOther)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
-        , mIsRational(rOther.mIsRational)
         , mWeights(rOther.mWeights)
     {
     }
@@ -102,80 +99,141 @@ public:
     template<class TOtherPointType> NurbsCurveGeometry(
         NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointType> const& rOther)
         : BaseType(rOther)
+        , mPolynomialDegree(rOther.mPolynomialDegree)
+        , mKnots(rOther.mKnots)
+        , mWeights(rOther.mWeights)
     {
     }
 
-    /* Destructor.*/
-    ~NurbsCurveGeometry() override {}
+    /// Destructor
+    ~NurbsCurveGeometry() override = default;
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /**
+     * Assignment operator.
+     *
+     * @note This operator don't copy the points and this
+     * geometry shares points with given source geometry. It's
+     * obvious that any change to this geometry's point affect
+     * source geometry's points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
+    NurbsCurveGeometry& operator=(const NurbsCurveGeometry& rOther)
     {
-        return GeometryData::Kratos_generic_family;
+        BaseType::operator=(rOther);
+        return *this;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() const override
+    /**
+     * @brief Assignment operator for geometries with different point type.
+     *
+     * @note This operator don't copy the points and this
+     * geometry shares points with given source geometry. It's
+     * obvious that any change to this geometry's point affect
+     * source geometry's points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
+    template<class TOtherPointType>
+    NurbsCurveGeometry& operator=(
+        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointType> const & rOther)
     {
-        return GeometryData::Kratos_generic_type;
+        BaseType::operator=(rOther);
+        return *this;
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    typename BaseType::Pointer Create(
+        PointsArrayType const& ThisPoints) const override
+    {
+        return Kratos::make_shared<NurbsCurveGeometry>(ThisPoints);
     }
 
     ///@}
     ///@name Get and Set functions
     ///@{
 
-    /* @return the polynomial degree of this curve.
+    /*
+    * @brief Polynomial degree of this curve.
+    * @return the polynomial degree.
     */
     SizeType PolynomialDegree() const
     {
         return mPolynomialDegree;
     }
 
-    /* Get Knot vector. This vector is defined to have a multiplicity of p
-    at the beginning and end (NOT: p + 1).
-    @return knot vector.
+    /* 
+    * @brief Knot vector is defined to have a multiplicity of p
+    *        at the beginning and end (NOT: p + 1).
+    * @return knot vector.
     */
     const Vector& Knots() const
     {
         return mKnots;
     }
 
-    /* @return Returns the size of the knot vector.
+    /*
+    * @brief The number of knots within the knot vector.
+    * @return the size of the knot vector.
     */
     SizeType NumberOfKnots() const
     {
         return mKnots.size();
     }
 
-    /* @return the number of nonzero control points of 
-    this curve. */
+    /*
+    * @brief The number of nonzero control points for one point in the curve
+    *        is given by p+1.
+    * @return the number of nonzero control points.
+    */
     SizeType NumberOfNonzeroControlPoints() const
     {
         return PolynomialDegree() + 1;
     }
 
-    /* Checks if shape functions are rational or not.
-    @return true if NURBS, false if B-Splines only (all weights are considered as 1)
+    /*
+    * @brief Checks if shape functions are rational or not.
+    * @return true if NURBS,
+    *         false if B-Splines only (all weights are considered as 1.0)
     */
     bool IsRational() const
     {
         return mWeights.size() != 0;
     }
 
-    /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
-    @return weights vector.
+    /*
+    * @brief Provides weights vector. All values are 1.0 for B-Splines,
+    *        for NURBS those can be unequal 1.0.
+    *        Has size 0 if B-Spline.
+    * @return weights vector.
     */
     const Vector& Weights() const
     {
         return mWeights;
     }
 
-    /* Provides the natural boundaries of the NURBS/B-Spline curve.
-    @return domain interval.
+    /* 
+    * @brief Provides the natural boundaries of the NURBS/B-Spline curve.
+    * @return domain interval.
     */
     Interval DomainInterval() const
     {
         return Interval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
     }
 
+    /*
+    * @brief Provides all knot intervals within one curve.
+    * @return vector of domain intervals.
+    */
     std::vector<Interval> KnotSpanIntervals() const
     {
         const IndexType first_span = mPolynomialDegree - 1;
@@ -199,8 +257,10 @@ public:
     ///@name Operations
     ///@{
 
-    /** This method maps from dimension space to working space and computes the
-    * number of derivatives at the dimension parameter.
+    /** 
+    * @brief This method maps from dimension space to working space and computes the
+    *        number of derivatives at the dimension parameter.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
     * @param LocalCoordinates The local coordinates in dimension space
     * @param Derivative Number of computed derivatives
     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
@@ -219,7 +279,6 @@ public:
             shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
         }
 
-        //fill up the vector with zeros
         std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
 
         for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
@@ -232,6 +291,7 @@ public:
             }
         }
 
+        //fill up the vector with zeros
         for (IndexType order = shape_function_container.NumberOfShapeFunctionRows(); order <= DerivativeOrder; order++) {
             IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
             derivatives[order] = (*this)[index_0] * 0.0;
@@ -239,7 +299,9 @@ public:
         return derivatives;
     }
 
-    /** This method maps from dimension space to working space.
+    /*
+    * @brief This method maps from dimension space to working space.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A3.1/ A4.1
     * @param rResult array_1d<double, 3> with the coordinates in working space
     * @param LocalCoordinates The local coordinates in dimension space
     * @return array_1d<double, 3> with the coordinates in working space
@@ -272,6 +334,13 @@ public:
     ///@name Shape Function
     ///@{
 
+    /*
+    * @brief This function computes the shape functions at a certain point.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A3.1/ A4.1
+    * @param rResult the given Vector, which will be overwritten by the solution
+    * @param rCoordinates the given local coordinates, with the coordinates u and v.
+    * @return vector of the shape functions at rCoordinates
+    */
     Vector& ShapeFunctionsValues(
         Vector &rResult,
         const CoordinatesArrayType& rCoordinates) const override
@@ -295,6 +364,14 @@ public:
         return rResult;
     }
 
+    /*
+    * @brief This function computes the first derivatives at a certain point.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
+    * @param rResult the given Matrix which will be overwritten by the solution
+    * @param rCoordinates the given local coordinates, with the coordinates u and v.
+    * @return matrix of derivatives at rCoordinates.
+    *         (0,i): dN/du, (1,i): dN/dv
+    */
     Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
@@ -319,71 +396,28 @@ public:
         return rResult;
     }
 
-    //GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>
-        void ShapeFunctionDerivatives(
-        GeometryData::IntegrationMethod ThisIntegrationMethod,
-        IntegrationPointsArrayType& rIntegrationPoints,
-        const int DerivativeOrder) const
-    {
-        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 0);
-
-        int number_of_integration_points = rIntegrationPoints.size();
-
-        Matrix shape_functions_values = ZeroMatrix(number_of_integration_points, shape_function_container.NumberOfNonzeroControlPoints());
-        DenseVector<DenseVector<Matrix>> shape_function_derivatives_integration_points(number_of_integration_points);
-
-        for (IndexType ip_itr = 0; ip_itr < number_of_integration_points; ++ip_itr)
-        {
-            if (IsRational()) {
-                shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rIntegrationPoints[ip_itr][0]);
-            }
-            else {
-                shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rIntegrationPoints[ip_itr][0]);
-            }
-
-            for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-                shape_functions_values(ip_itr, i) = shape_function_container(ip_itr, i);
-            }
-
-            DenseVector<Matrix> shape_function_derivatives_array(DerivativeOrder);
-            for (IndexType derivative_order_itr = 1; derivative_order_itr < DerivativeOrder; ++derivative_order_itr)
-            {
-                Matrix shape_function_derivatives_values = ZeroMatrix(1, shape_function_container.NumberOfNonzeroControlPoints());
-                for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-                    shape_function_derivatives_values(0, i) = shape_function_container(derivative_order_itr, i);
-                }
-                shape_function_derivatives_array[derivative_order_itr] = shape_function_derivatives_values;
-            }
-            shape_function_derivatives_integration_points[ip_itr] = shape_function_derivatives_array;
-        }
-
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
-            ThisIntegrationMethod,
-            rIntegrationPoints,
-            shape_functions_values,
-            shape_function_derivatives_integration_points);
-    }
-
     ///@}
     ///@name Information
     ///@{
+
+    /// Turn back information as a string.
     std::string Info() const override
     {
         return TWorkingSpaceDimension + " dimensional nurbs curve.";
     }
 
+    /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << TWorkingSpaceDimension << " dimensional nurbs curve.";
     }
 
+    /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
     }
+
     ///@}
-
-protected:
-
 private:
     ///@name Private Static Member Variables
     ///@{
@@ -394,9 +428,8 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    const SizeType mPolynomialDegree;
+    SizeType mPolynomialDegree;
     Vector mKnots;
-    bool mIsRational;
     Vector mWeights;
 
     ///@}
@@ -414,7 +447,6 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
         rSerializer.save("PolynomialDegree", mPolynomialDegree);
         rSerializer.save("Knots", mKnots);
-        rSerializer.save("IsRational", mIsRational);
         rSerializer.save("Weights", mWeights);
     }
 
@@ -423,19 +455,13 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
         rSerializer.load("PolynomialDegree", mPolynomialDegree);
         rSerializer.load("Knots", mKnots);
-        rSerializer.load("IsRational", mIsRational);
         rSerializer.load("Weights", mWeights);
     }
 
     NurbsCurveGeometry() : BaseType(PointsArrayType(), &msGeometryData) {};
 
     ///@}
-    ///@name Private Friends
-    ///@{
 
-    template<int TWorkingSpaceDimension, class TOtherPointType> friend class NurbsCurveGeometry;
-
-    ///@}
 }; // class NurbsCurveGeometry
 
 template<int TWorkingSpaceDimension, class TPointType>

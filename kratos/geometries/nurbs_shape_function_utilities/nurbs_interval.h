@@ -27,6 +27,11 @@
 namespace Kratos
 {
 
+/// Class for optimized use of intervals
+/*
+* Provides universal geometrical utiltity functions for the computation of
+* curve and surface NURBS/ B-Spline shape functions.
+*/
 class Interval
 {
 public:
@@ -131,6 +136,12 @@ public:
     ///@name Operators
     ///@{
 
+    /*
+    * @brief Detects if ParameterT lays within the limits of this interval.
+    *        Keeps the ParameterT or sets it to the value of the insulted
+    *        bounding interval limit.
+    * @return true if ParameterT is inside.
+    */
     bool IsInside(double& ParameterT) const
     {
         const double min_parameter = MinParameter();

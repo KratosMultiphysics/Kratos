@@ -8,7 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Thomas Oberbichler
-//                   Tobias Teschemacher
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
@@ -16,18 +15,26 @@
 #if !defined(KRATOS_NURBS_CURVE_SHAPE_FUNCTIONS_H_INCLUDED )
 #define  KRATOS_NURBS_CURVE_SHAPE_FUNCTIONS_H_INCLUDED
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "nurbs_utilities.h"
 
 namespace Kratos {
+///@name Kratos Classes
+///@{
 
+/// NurbsCurveShapeFunction
+/* Container with memory management for an efficient computation
+* of NURBS and B-Spline - 1 dimensional curve functions.
+*/
 class NurbsCurveShapeFunction
 {
 public:
     ///@name Type Definitions
     ///@{
-
-    typedef typename std::size_t IndexType;
-    typedef typename std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -38,11 +45,13 @@ public:
     {
     };
 
-    /* Constructor using the degree u, degree v and the order of shape functions.
-       This is required to make an optimized memory management. */
+    /* 
+    * Constructor using the degree u, degree v and the order of shape functions.
+    *   This information is required to make an optimized memory management.
+    */
     NurbsCurveShapeFunction(
-        const SizeType PolynomialDegree,
-        const SizeType DerivativeOrder)
+        const int PolynomialDegree,
+        const int DerivativeOrder)
     {
         ResizeDataContainers(PolynomialDegree, DerivativeOrder);
     }
@@ -51,25 +60,29 @@ public:
     ///@name Operators
     ///@{
 
-    double operator()(const IndexType DerivativeRow, const IndexType ControlPoint) const
+    double operator()(const int DerivativeRow, const int NonzeroControlPointIndex) const
     {
-        return ShapeFunctionValue(DerivativeRow, ControlPoint);
+        return ShapeFunctionValue(DerivativeRow, NonzeroControlPointIndex);
     }
 
     ///@}
     ///@name Operations
     ///@{
 
-    /* Resizes the data containers which are needed to compute the values of the
-    shape functions. */
+    /* 
+    * @brief Resizes the data containers which are needed to compute the
+    *        values of the shape functions.
+    */
     void ResizeDataContainers(
-        const SizeType PolynomialDegree,
-        const SizeType DerivativeOrder)
+        const int PolynomialDegree,
+        const int DerivativeOrder)
     {
-        KRATOS_DEBUG_ERROR_IF(DerivativeOrder > PolynomialDegree) << "NurbsCurveShapeFunction, "
-            << "cannot compute shape function derivative with higher derivative than the polynomial degree" << std::endl;
+        // Not possible to compute shape functions where derivative order
+        // is higher than the polynomial degree. Those are returned as zero
+        // within the access function ShapeFunctionValue
+        mDerivativeOrder = std::min(DerivativeOrder, PolynomialDegree);
 
-        mValues.resize((DerivativeOrder + 1) * (PolynomialDegree + 1));
+        mValues.resize((mDerivativeOrder + 1) * (PolynomialDegree + 1));
         mLeft.resize(PolynomialDegree);
         mRight.resize(PolynomialDegree);
         mNdu.resize((PolynomialDegree + 1) * (PolynomialDegree + 1));
@@ -77,35 +90,44 @@ public:
         mB.resize(PolynomialDegree + 1);
 
         mPolynomialDegree = PolynomialDegree;
-        mDerivativeOrder = DerivativeOrder;
     }
 
-    /* @return provides the polynomial degree of this shape function generator. */
-    SizeType PolynomialDegree() const
+    /*
+    * @return provides the polynomial degree of this shape function generator.
+    */
+    int PolynomialDegree() const
     {
         return mPolynomialDegree;
     }
 
-    /* @return the number of nonzero control points of this shape function generator. */
-    SizeType NumberOfNonzeroControlPoints() const
+    /*
+    * @brief the number of nonzero control points for one point on the curve is
+    *        given by polynomial degree + 1.
+    * @return the number of nonzero control points of this shape function generator.
+    */
+    int NumberOfNonzeroControlPoints() const
     {
         return PolynomialDegree() + 1;
     }
 
-    /* @return the number of shape function rows. This is the derivative order + 1.
-       rows are defined as: N | dN/de | dN^2/de^2 | ...*/
-    SizeType NumberOfShapeFunctionRows() const
+    /*
+    * @return the number of shape function rows. This is the derivative order + 1.
+    *         rows are defined as: N | dN/de | dN^2/de^2 | ...
+    */
+    int NumberOfShapeFunctionRows() const
     {
         return mDerivativeOrder + 1;
     }
 
-    /* Provides the shape function value depending to the DerivativeOrder and
-    the index of the control point.*/
+    /* 
+    * @brief Provides the shape function value depending to the DerivativeOrder and
+    *        the index of the control point.
+    */
     double ShapeFunctionValue(
-        const IndexType DerivativeRow,
-        const IndexType ControlPointIndex) const
+        const int DerivativeRow,
+        const int ControlPointIndex) const
     {
-        IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+        int index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
             ControlPointIndex, DerivativeRow);
 
@@ -115,22 +137,21 @@ public:
         return mValues[index];
     }
 
-    /* @return the index of the first nonzero control point.*/
-    IndexType GetFirstNonzeroControlPoint() const
+    /*
+    * @brief the first nonzero control point index within the list.
+    * @return the index of the first nonzero control point.
+    */
+    int GetFirstNonzeroControlPoint() const
     {
         return mFirstNonzeroControlPoint;
     }
 
-    /* @return the index of the last nonzero control point.*/
-    IndexType GetLastNonzeroControlPoint() const
+    /*
+    * @return the indices of all nonzero control points.
+    */
+    std::vector<int> GetNonzeroControlPointIndices() const
     {
-        return GetFirstNonzeroControlPoint() + PolynomialDegree();
-    }
-
-    /* @return the indices of all nonzero control points.*/
-    std::vector<IndexType> GetNonzeroControlPointIndices() const
-    {
-        std::vector<IndexType> indices(NumberOfNonzeroControlPoints());
+        std::vector<int> indices(NumberOfNonzeroControlPoints());
 
         for (int i = 0; i < NumberOfNonzeroControlPoints(); i++) {
             indices[i] = GetFirstNonzeroControlPoint() + i;
@@ -143,9 +164,33 @@ public:
     ///@name Shape Function Computation
     ///@{
 
+    /*
+    * @brief Computation of B-Spline shape function values, use this function
+    *        if span of ParameterT is unknown.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A3.1
+    * @param rKnots, the full knot span.
+    * @param ParameterT, the parameter at which the shape functions
+    *        are evaluated.
+    */
+    void ComputeBSplineShapeFunctionValues(const Vector& rKnots, const double ParameterT)
+    {
+        const int span = NurbsUtilities::GetUpperSpan(
+            PolynomialDegree(), rKnots, ParameterT);
+
+        ComputeBSplineShapeFunctionValuesAtSpan(rKnots, span, ParameterT);
+    }
+
+    /*
+    * @brief Computation of B-Spline shape function values.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A2.2 and A2.3
+    * @param rKnots, the full knot span.
+    * @param Span, the index of the span of interest.
+    * @param ParameterT, the parameter at which the shape functions
+    *        are evaluated.
+    */
     void ComputeBSplineShapeFunctionValuesAtSpan(
         const Vector& rKnots,
-        const IndexType Span,
+        const int Span,
         const double ParameterT)
     {
         ClearValues();
@@ -155,13 +200,13 @@ public:
         // compute B-Spline shape
         Ndu(0, 0) = 1.0;
 
-        for (IndexType j = 0; j < PolynomialDegree(); j++) {
+        for (int j = 0; j < PolynomialDegree(); j++) {
             mLeft[j] = ParameterT - rKnots[Span - j];
             mRight[j] = rKnots[Span + j + 1] - ParameterT;
 
             double saved = 0.0;
 
-            for (IndexType r = 0; r <= j; r++) {
+            for (int r = 0; r <= j; r++) {
                 Ndu(j + 1, r) = mRight[r] + mLeft[j - r];
 
                 double temp = Ndu(r, j) / Ndu(j + 1, r);
@@ -173,17 +218,17 @@ public:
             Ndu(j + 1, j + 1) = saved;
         }
 
-        for (IndexType j = 0; j < NumberOfNonzeroControlPoints(); j++) {
+        for (int j = 0; j < NumberOfNonzeroControlPoints(); j++) {
             ShapeFunctionValue(0, j) = Ndu(j, PolynomialDegree());
         }
 
         auto& a = mA;
         auto& b = mB;
 
-        for (IndexType r = 0; r < NumberOfNonzeroControlPoints(); r++) {
+        for (int r = 0; r < NumberOfNonzeroControlPoints(); r++) {
             a[0] = 1.0;
 
-            for (IndexType k = 1; k < NumberOfShapeFunctionRows(); k++) {
+            for (int k = 1; k < NumberOfShapeFunctionRows(); k++) {
                 double& value = ShapeFunctionValue(k, r);
 
                 int rk = r - k;
@@ -197,7 +242,7 @@ public:
                 int j1 = r >= k - 1 ? 1 : k - r;
                 int j2 = r <= pk + 1 ? k : NumberOfNonzeroControlPoints() - r;
 
-                for (IndexType j = j1; j < j2; j++) {
+                for (int j = j1; j < j2; j++) {
                     b[j] = (a[j] - a[j - 1]) / Ndu(pk + 1, rk + j);
                     value += b[j] * Ndu(rk + j, pk);
                 }
@@ -213,47 +258,23 @@ public:
 
         int s = PolynomialDegree();
 
-        for (IndexType k = 1; k < NumberOfShapeFunctionRows(); k++) {
-            for (IndexType j = 0; j < NumberOfNonzeroControlPoints(); j++) {
+        for (int k = 1; k < NumberOfShapeFunctionRows(); k++) {
+            for (int j = 0; j < NumberOfNonzeroControlPoints(); j++) {
                 ShapeFunctionValue(k, j) *= s;
             }
             s *= PolynomialDegree() - k;
         }
     }
 
-    void ComputeNurbsShapeFunctionValuesAtSpan(
-        const Vector& rKnots,
-        const IndexType Span,
-        const Vector& rWeights,
-        const double ParameterT)
-    {
-        // compute B-Spline shape
-        ComputeBSplineShapeFunctionValuesAtSpan(
-            rKnots, Span, ParameterT);
-
-        // compute weighted sum
-        double weightedSum{ 0 };
-
-        for (IndexType i = 0; i < NumberOfNonzeroControlPoints(); i++) {
-            mValues[i] *= rWeights(i);
-            weightedSum += mValues[i];
-        }
-
-        // apply weights
-
-        for (IndexType i = 0; i < NumberOfNonzeroControlPoints(); i++) {
-            mValues[i] /= weightedSum;
-        }
-    }
-
-    void ComputeBSplineShapeFunctionValues(const Vector& rKnots, const double ParameterT)
-    {
-        const IndexType span = NurbsUtilities::GetUpperSpan(
-            PolynomialDegree(), rKnots, ParameterT);
-
-        ComputeBSplineShapeFunctionValuesAtSpan(rKnots, span, ParameterT);
-    }
-
+    /*
+    * @brief Computation of NURBS shape function values, use this function
+    *        if span of ParameterT is unknown.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A4.2
+    * @param rKnots, the full knot span.
+    * @param rWeights, the complete weights of the curve.
+    * @param ParameterT, the parameter at which the shape functions
+    *        are evaluated.
+    */
     void ComputeNurbsShapeFunctionValues(
         const Vector& rKnots,
         const Vector& rWeights,
@@ -265,34 +286,89 @@ public:
         ComputeNurbsShapeFunctionValuesAtSpan(rKnots, span, rWeights, ParameterT);
     }
 
+    /*
+    * @brief Computation of NURBS shape function values
+    * From Piegl and Tiller, The NURBS Book, Algorithm A4.2
+    * @param rKnots, the full knot span.
+    * @param rWeights, the complete weights of the curve.
+    * @param ParameterT, the parameter at which the shape functions
+    *        are evaluated.
+    */
+    void ComputeNurbsShapeFunctionValuesAtSpan(
+        const Vector& rKnots,
+        const int Span,
+        const Vector& rWeights,
+        const double ParameterT)
+    {
+        // compute B-Spline shape
+        ComputeBSplineShapeFunctionValuesAtSpan(rKnots, Span, ParameterT);
+
+        // apply weights
+        
+        std::vector<double> weightedSums(NumberOfShapeFunctionRows());
+
+        for (int k = 0; k < NumberOfShapeFunctionRows(); k++) {
+            weightedSums[k] = 0;
+
+            for (int i = 0; i < NumberOfNonzeroControlPoints(); i++) {
+                const size_t poleIndex = GetFirstNonzeroControlPoint() + i;
+                ShapeFunctionValue(k, i) *= rWeights(poleIndex);
+                weightedSums[k] += ShapeFunctionValue(k, i);
+            }
+        }
+
+        for (int k = 0; k < NumberOfShapeFunctionRows(); k++) {
+            for (int i = 1; i <= k; i++) {
+                const double a = NurbsUtilities::GetBinomCoefficient(k, i) *
+                    weightedSums[i];
+
+                for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
+                    ShapeFunctionValue(k, p) -=
+                        a * ShapeFunctionValue(k - i, p);
+                }
+            }
+
+            for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
+                ShapeFunctionValue(k, p) /= weightedSums[0];
+            }
+        }
+    }
+
     ///@}
 
 private:
     ///@name Private Operations
     ///@{
 
-    /* Provides the shape function value depending to the DerivativeOrder and
-    the index of the control point.*/
-    double& ShapeFunctionValue(const IndexType DerivativeRow, const IndexType ControlPointIndex)
+    /*
+    * @brief Provides the shape function value depending to the derivative row and
+    *        the index of the control point.
+    *        For curves the indices for derivatives are as following:
+    *        0-> N | 1-> dN/de | 2-> ddN/dde | ...
+    */
+    double& ShapeFunctionValue(const int DerivativeRow, const int NonzeroControlPointIndex)
     {
-        const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+        const int index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
-            ControlPointIndex, DerivativeRow);
+            NonzeroControlPointIndex, DerivativeRow);
 
         return mValues[index];
     }
 
-    double& Ndu(const IndexType IndexI, const IndexType IndexJ)
+    double& Ndu(const int DerivativeRow, const int NonzeroControlPointIndex)
     {
-        const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
-            NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(), IndexJ, IndexI);
+        const int index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+            NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(), NonzeroControlPointIndex, DerivativeRow);
 
         return mNdu[index];
     }
 
+    /*
+    * @brief resets the shape function container.
+    */
     void ClearValues()
     {
-        const SizeType number_of_values = NumberOfNonzeroControlPoints() * NumberOfShapeFunctionRows();
+        const int number_of_values = NumberOfNonzeroControlPoints() * NumberOfShapeFunctionRows();
 
         mValues = ZeroVector(number_of_values);
     }
@@ -301,15 +377,15 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mPolynomialDegree;
-    SizeType mDerivativeOrder;
+    int mPolynomialDegree;
+    int mDerivativeOrder;
     Vector mValues;
     Vector mLeft;
     Vector mRight;
     Vector mNdu;
     Vector mA;
     Vector mB;
-    IndexType mFirstNonzeroControlPoint;
+    int mFirstNonzeroControlPoint;
 
     ///@}
     ///@name Private Serialization
@@ -345,6 +421,7 @@ private:
 
     ///@}
 };
+///@}
 
 } // namespace Kratos
 
