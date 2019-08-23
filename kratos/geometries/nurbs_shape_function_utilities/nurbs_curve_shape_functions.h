@@ -80,7 +80,8 @@ public:
         // Not possible to compute shape functions where derivative order
         // is higher than the polynomial degree. Those are returned as zero
         // within the access function ShapeFunctionValue
-        mDerivativeOrder = std::min(DerivativeOrder, PolynomialDegree);
+        // mDerivativeOrder = std::min(DerivativeOrder, PolynomialDegree);
+        mDerivativeOrder = DerivativeOrder;
 
         mValues.resize((mDerivativeOrder + 1) * (PolynomialDegree + 1));
         mLeft.resize(PolynomialDegree);
