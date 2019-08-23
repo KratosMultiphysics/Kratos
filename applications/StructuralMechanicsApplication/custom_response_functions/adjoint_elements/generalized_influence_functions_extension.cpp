@@ -204,9 +204,9 @@ namespace Kratos
         if(primal_element_name == "CrLinearBeamElement3D2N")
         {
             std::vector<Variable<double> > explicit_variables = {YOUNG_MODULUS, CROSS_AREA, I22, I33,
-                                            AREA_EFFECTIVE_Y, AREA_EFFECTIVE_Y, POISSON_RATIO};
+                                            AREA_EFFECTIVE_Y, AREA_EFFECTIVE_Z, TORSIONAL_INERTIA, POISSON_RATIO};
             std::vector<Variable<double> > derived_variables = {YOUNG_MODULUS_DERIVED, CROSS_AREA_DERIVED, I22_DERIVED, I33_DERIVED,
-                                            AREA_EFFECTIVE_Y_DERIVED, AREA_EFFECTIVE_Y_DERIVED, POISSON_RATIO_DERIVED};
+                                            AREA_EFFECTIVE_Y_DERIVED, AREA_EFFECTIVE_Z_DERIVED, TORSIONAL_INERTIA_DERIVED, POISSON_RATIO_DERIVED};
 
             const SizeType write_points_number = rElement.GetGeometry().IntegrationPointsNumber(rElement.GetIntegrationMethod());
             if (rOutput.size() != write_points_number)
