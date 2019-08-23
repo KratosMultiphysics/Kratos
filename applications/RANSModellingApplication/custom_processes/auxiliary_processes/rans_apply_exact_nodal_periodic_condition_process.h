@@ -28,6 +28,8 @@
 #include "processes/process.h"
 #include "utilities/openmp_utils.h"
 
+#include "custom_utilities/rans_check_utilities.h"
+
 namespace Kratos
 {
 ///@addtogroup RANSModellingApplication
@@ -52,23 +54,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliary process to set Boussinesq buoyancy forces in variable temperature flows.
-/** This process modifies the BODY_FORCE variable according to the Boussinesq hypothesis
-    so that the fluid element can take natural convection into account.
-
-    This process makes use of the following data:
-    - TEMPERATURE from the nodal solution step data: current temperature for the node (mandatory).
-    - AMBIENT_TEMPERATURE from ProcessInfo: The reference temperature for the simulation (mandatory).
-    - gravity from the Parameters passed in the constructor: an array that defines the gravity vector (mandatory).
-    - thermal_expansion_coefficient from the Parameters: a double defining the thermal expansion coefficient for the fluid (optional).
-
-    With this, the process calculates the Boussinesq force and assings it to the BODY_FORCE solution step variable of each node.
-    The force is set to (1 + thermal_expansion_coefficient*(temperature - ambient_temperature) ) * g
-
-    If the thermal expansion coefficient is not provided, it is assumed to be (1/ambient_temperature).
-    This is the usual value for perfect gases (if the temperature is given in Kelvin).
+/**
+ * @brief A process to create periodic conditions between two boundaries
+ *
+ * This process does node to node matching to create periodic boundary
+ * conditions between the master and slave model parts, to be used in ResidualBasedBlockBuilderAndSolverPeriodic.
+ *
+ * This process requires two boundaries to have maching meshes.
+ * Make sure to avoid calling "ReplaceElementsAndConditions" method call, and directly impose element
+ * and condition name in the "*.mdpa" file in order to correctly use this process alongside with
+ * ResidualBasedBlockBuilderAndSolverPeriodic
+ *
+ * @see class ResidualBasedBlockBuilderAndSolverPeriodic
  */
-
 class RansApplyExactNodalPeriodicConditionProcess : public Process
 {
 public:
@@ -159,7 +157,6 @@ public:
     /// Destructor.
     ~RansApplyExactNodalPeriodicConditionProcess() override
     {
-        // delete mpDistanceCalculator;
     }
 
     ///@}
@@ -174,8 +171,38 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << "Check passed for " << mBaseModelPartName << ".\n";
+        RansCheckUtilities rans_check_utilities;
+
+        rans_check_utilities.CheckIfModelPartExists(mrModel, mBaseModelPartName);
+        rans_check_utilities.CheckIfModelPartExists(mrModel, mMasterModelPartName);
+        rans_check_utilities.CheckIfModelPartExists(mrModel, mSlaveModelPartName);
+
+        ModelPart::NodesContainerType& r_base_model_part_nodes =
+            mrModel.GetModelPart(mBaseModelPartName).Nodes();
+
+        for (std::string variable_name : mVariablesList)
+        {
+            if (KratosComponents<Variable<double>>::Has(variable_name))
+            {
+                const Variable<double>& variable =
+                    KratosComponents<Variable<double>>::Get(variable_name);
+                rans_check_utilities.CheckIfVariableExistsInNodesContainer(
+                    r_base_model_part_nodes, variable);
+            }
+            else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
+                         variable_name))
+            {
+                const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& variable =
+                    KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
+                        variable_name);
+                rans_check_utilities.CheckIfVariableExistsInNodesContainer(
+                    r_base_model_part_nodes, variable);
+            }
+            else
+            {
+                KRATOS_ERROR << "Variable " << variable_name << " not found.\n";
+            }
+        }
 
         return 0;
 

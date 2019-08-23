@@ -283,13 +283,13 @@ private:
         const double y_plus = rNode.FastGetSolutionStepValue(RANS_Y_PLUS);
         const double nu = rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
         const double wall_distance = rNode.FastGetSolutionStepValue(DISTANCE);
-        const double u_tau = y_plus * nu / wall_distance;
+
+        const double wall_velocity_magnitude = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
+
+        const double u_tau = wall_velocity_magnitude / (std::log(y_plus)/0.41 + 5.2);
 
         double& epsilon = rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-        if (wall_distance > std::numeric_limits<double>::epsilon())
-            epsilon = std::pow(u_tau, 3) / (mVonKarman * wall_distance);
-
-        epsilon = std::max(mMinEpsilonValue, epsilon);
+        epsilon = std::max(std::pow(u_tau, 4) / (mVonKarman * nu * y_plus), mMinEpsilonValue);
     }
 
     ///@}

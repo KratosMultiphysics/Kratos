@@ -21,13 +21,14 @@
 
 // Project includes
 #include "containers/model.h"
-#include "custom_utilities/rans_variable_utils.h"
-#include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "rans_modelling_application_variables.h"
+
+#include "custom_utilities/rans_check_utilities.h"
+#include "custom_utilities/rans_variable_utils.h"
 
 namespace Kratos
 {
@@ -53,21 +54,20 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliary process to set Boussinesq buoyancy forces in variable temperature flows.
-/** This process modifies the BODY_FORCE variable according to the Boussinesq hypothesis
-    so that the fluid element can take natural convection into account.
-
-    This process makes use of the following data:
-    - TEMPERATURE from the nodal solution step data: current temperature for the node (mandatory).
-    - AMBIENT_TEMPERATURE from ProcessInfo: The reference temperature for the simulation (mandatory).
-    - gravity from the Parameters passed in the constructor: an array that defines the gravity vector (mandatory).
-    - thermal_expansion_coefficient from the Parameters: a double defining the thermal expansion coefficient for the fluid (optional).
-
-    With this, the process calculates the Boussinesq force and assings it to the BODY_FORCE solution step variable of each node.
-    The force is set to (1 + thermal_expansion_coefficient*(temperature - ambient_temperature) ) * g
-
-    If the thermal expansion coefficient is not provided, it is assumed to be (1/ambient_temperature).
-    This is the usual value for perfect gases (if the temperature is given in Kelvin).
+/**
+ * @brief Sets epsilon value best on turbulent mixing length
+ *
+ * This process sets epsilon values based on the following formula
+ *
+ * \[
+ *
+ *  \epsilon = \frac{C_\mu^{0.75} max\left\lbrace k, 0.0\right\rbrace^{1.5}}{L}
+ *
+ * \]
+ *
+ * In here $k$ is turbulent kinetic energy, $\epsilon$ is turbulent energy
+ * dissipation rate, and $L$ is turbulent mixing length.
+ *
  */
 
 class RansEpsilonTurbulentMixingLengthInletProcess : public Process
@@ -118,7 +118,6 @@ public:
     /// Destructor.
     ~RansEpsilonTurbulentMixingLengthInletProcess() override
     {
-        // delete mpDistanceCalculator;
     }
 
     ///@}
@@ -176,17 +175,17 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
 
+        RansCheckUtilities rans_check_utilities;
+
+        rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+
         ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();
-        int number_of_nodes = r_nodes.size();
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
-        }
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(
+            r_nodes, TURBULENT_KINETIC_ENERGY);
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(
+            r_nodes, TURBULENT_ENERGY_DISSIPATION_RATE);
 
         return 0;
     }

@@ -20,7 +20,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utils.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
@@ -28,6 +27,9 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "rans_modelling_application_variables.h"
+
+#include "custom_utilities/rans_calculation_utilities.h"
+#include "custom_utilities/rans_check_utilities.h"
 
 namespace Kratos
 {
@@ -53,21 +55,26 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliary process to set Boussinesq buoyancy forces in variable temperature flows.
-/** This process modifies the BODY_FORCE variable according to the Boussinesq hypothesis
-    so that the fluid element can take natural convection into account.
-
-    This process makes use of the following data:
-    - TEMPERATURE from the nodal solution step data: current temperature for the node (mandatory).
-    - AMBIENT_TEMPERATURE from ProcessInfo: The reference temperature for the simulation (mandatory).
-    - gravity from the Parameters passed in the constructor: an array that defines the gravity vector (mandatory).
-    - thermal_expansion_coefficient from the Parameters: a double defining the thermal expansion coefficient for the fluid (optional).
-
-    With this, the process calculates the Boussinesq force and assings it to the BODY_FORCE solution step variable of each node.
-    The force is set to (1 + thermal_expansion_coefficient*(temperature - ambient_temperature) ) * g
-
-    If the thermal expansion coefficient is not provided, it is assumed to be (1/ambient_temperature).
-    This is the usual value for perfect gases (if the temperature is given in Kelvin).
+/**
+ * @brief Calculates y_plus value base on the logarithmic law
+ *
+ * This process calculates $y^+$ value based on the following formula:
+ *
+ * \[
+ * 	u^+ = \frac{||\vvel||}{\vel_\tau} =
+ * \begin{cases}
+ *	\frac{1}{\kappa}ln\left(y^+\right) + \beta &\text{ for } y^+ > y^+_{limit} \\
+ *  y^+ &\text{ for } y^+ \leq y^+_{limit}
+ * \end{cases}
+ * \]
+ * Where,
+ * \[
+ *	y^+ = \frac{\vel_\tau y}{\nu}
+ * \]
+ * \[
+ *	y^+_{limit} = \frac{1}{\kappa}ln\left(y^+_{limit}\right) + \beta = \vel^+
+ * \]
+ *
  */
 
 class RansLogarithmicYPlusCalculationProcess : public Process
@@ -125,7 +132,6 @@ public:
     /// Destructor.
     ~RansLogarithmicYPlusCalculationProcess() override
     {
-        // delete mpDistanceCalculator;
     }
 
     ///@}
@@ -138,26 +144,28 @@ public:
 
     int Check() override
     {
+        KRATOS_TRY
+
         KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
         KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
         KRATOS_CHECK_VARIABLE_KEY(KINEMATIC_VISCOSITY);
         KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
 
+        RansCheckUtilities rans_check_utilities;
+
+        rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+
         const ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();
-        int number_of_nodes = r_nodes.size();
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
-        }
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, VELOCITY);
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, DISTANCE);
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, KINEMATIC_VISCOSITY);
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, RANS_Y_PLUS);
 
         return 0;
+
+        KRATOS_CATCH("");
     }
 
     void Execute() override

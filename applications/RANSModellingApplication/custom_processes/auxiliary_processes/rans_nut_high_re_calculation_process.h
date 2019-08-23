@@ -19,19 +19,16 @@
 // External includes
 
 // Project includes
-#include "containers/global_pointers_vector.h"
 #include "containers/model.h"
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
-#include "custom_utilities/rans_variable_utils.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
-#include "includes/linear_solver_factory.h"
 #include "includes/model_part.h"
-#include "processes/find_nodal_neighbours_process.h"
 #include "processes/process.h"
 #include "rans_modelling_application_variables.h"
-#include "utilities/normal_calculation_utils.h"
+
+#include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
+#include "custom_utilities/rans_check_utilities.h"
 
 namespace Kratos
 {
@@ -57,21 +54,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliary process to set Boussinesq buoyancy forces in variable temperature flows.
-/** This process modifies the BODY_FORCE variable according to the Boussinesq hypothesis
-    so that the fluid element can take natural convection into account.
-
-    This process makes use of the following data:
-    - TEMPERATURE from the nodal solution step data: current temperature for the node (mandatory).
-    - AMBIENT_TEMPERATURE from ProcessInfo: The reference temperature for the simulation (mandatory).
-    - gravity from the Parameters passed in the constructor: an array that defines the gravity vector (mandatory).
-    - thermal_expansion_coefficient from the Parameters: a double defining the thermal expansion coefficient for the fluid (optional).
-
-    With this, the process calculates the Boussinesq force and assings it to the BODY_FORCE solution step variable of each node.
-    The force is set to (1 + thermal_expansion_coefficient*(temperature - ambient_temperature) ) * g
-
-    If the thermal expansion coefficient is not provided, it is assumed to be (1/ambient_temperature).
-    This is the usual value for perfect gases (if the temperature is given in Kelvin).
+/**
+ * @brief Calculates turbulent kinematic viscosity
+ *
+ * This process uses following formula to calculate turbulent kinematic viscosity
+ *
+ * \[
+ *      \nu_t = C_\mu\frac{k^2}{\epsilon}
+ * \]
+ *
+ * $k$ is the turbulent kinetic energy, $\epsilon$ is the turbulent energy dissipation rate
  */
 
 class RansNutHighReCalculationProcess : public Process
@@ -115,7 +107,6 @@ public:
     /// Destructor.
     ~RansNutHighReCalculationProcess() override
     {
-        // delete mpDistanceCalculator;
     }
 
     ///@}
@@ -135,18 +126,18 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(TURBULENCE_RANS_C_MU);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_VISCOSITY);
 
+        RansCheckUtilities rans_check_utilities;
+
+        rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+
         const ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();
-        int number_of_nodes = r_nodes.size();
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
-        }
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(
+            r_nodes, TURBULENT_KINETIC_ENERGY);
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(
+            r_nodes, TURBULENT_ENERGY_DISSIPATION_RATE);
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, TURBULENT_VISCOSITY);
 
         return 0;
 
@@ -159,9 +150,6 @@ public:
 
         ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        const double c_mu = r_process_info[TURBULENCE_RANS_C_MU];
-
         NodesContainerType& r_nodes = r_model_part.Nodes();
         int number_of_nodes = r_nodes.size();
 
@@ -173,26 +161,10 @@ public:
             const double epsilon =
                 r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
             const double nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
-                c_mu, tke, epsilon, 1.0);
+                mCmu, tke, epsilon, 1.0);
 
             r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = nu_t;
         }
-
-        const double nu_t_min = r_process_info[TURBULENT_VISCOSITY_MIN];
-        const double nu_t_max = r_process_info[TURBULENT_VISCOSITY_MAX];
-
-        unsigned int lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes;
-        RansVariableUtils().ClipScalarVariable(
-            lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes,
-            nu_t_min, nu_t_max, TURBULENT_VISCOSITY, r_nodes);
-
-        KRATOS_WARNING_IF(this->Info(),
-                          (lower_number_of_nodes > 0 || higher_number_of_nodes > 0) &&
-                              this->mEchoLevel > 0)
-            << "TURBULENT_VISCOSITY out of bounds. [ " << lower_number_of_nodes
-            << " nodes < " << std::scientific << nu_t_min << ", "
-            << higher_number_of_nodes << " nodes > " << std::scientific << nu_t_max
-            << "  out of total number of " << total_selected_nodes << " nodes. ]\n";
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
             << "Calculated nu_t for nodes in" << mModelPartName << "\n";

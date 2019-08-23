@@ -281,12 +281,12 @@ private:
     void CalculateTurbulentValues(NodeType& rNode)
     {
         const double y_plus = rNode.FastGetSolutionStepValue(RANS_Y_PLUS);
-        const double nu = rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
-        const double wall_distance = rNode.FastGetSolutionStepValue(DISTANCE);
-        const double u_tau = y_plus * nu / wall_distance;
+        const double wall_velocity_magnitude = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
+
+        const double u_tau = wall_velocity_magnitude / (std::log(y_plus)/0.41 + 5.2);
 
         rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) =
-            std::min(mMinValue, std::pow(u_tau, 2) / std::sqrt(mCmu));
+            std::max(mMinValue, std::pow(u_tau, 2) / std::sqrt(mCmu));
     }
 
     ///@}

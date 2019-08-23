@@ -115,9 +115,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
 
         linear_solver = linear_solver_factory.ConstructSolver(
             solver_settings["linear_solver_settings"])
-        convergence_criteria = KratosRANS.GenericScalarConvergenceCriteria(
-            solver_settings["relative_tolerance"].GetDouble(),
-            solver_settings["absolute_tolerance"].GetDouble())
 
         is_periodic = solver_settings["is_periodic"].GetBool()
 
@@ -130,14 +127,23 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
                 linear_solver)
 
         if (scheme_settings["scheme_type"].GetString() == "bossak"):
+            convergence_criteria = KratosRANS.GenericScalarConvergenceCriteria(
+                solver_settings["relative_tolerance"].GetDouble(),
+                solver_settings["absolute_tolerance"].GetDouble())
             time_scheme = KratosRANS.GenericResidualBasedBossakVelocityDynamicScalarScheme(
                 scheme_settings["alpha_bossak"].GetDouble(),
                 solver_settings["relaxation_factor"].GetDouble(),
                 scalar_variable, scalar_variable_rate,
                 relaxed_scalar_variable_rate)
         elif (scheme_settings["scheme_type"].GetString() == "steady"):
+            convergence_criteria = Kratos.ResidualCriteria(
+                solver_settings["relative_tolerance"].GetDouble(),
+                solver_settings["absolute_tolerance"].GetDouble())
             time_scheme = KratosRANS.GenericResidualBasedSimpleSteadyScalarScheme(
                 solver_settings["relaxation_factor"].GetDouble())
+            self.fluid_model_part.ProcessInfo[
+                Kratos.
+                BOSSAK_ALPHA] = scheme_settings["alpha_bossak"].GetDouble()
             self.fluid_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA] = 1.0
             self.fluid_model_part.ProcessInfo[
                 KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] = True

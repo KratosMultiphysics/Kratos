@@ -314,10 +314,14 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         # Creating the solution strategy
-        self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                     self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                     self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                     self.settings["absolute_pressure_tolerance"].GetDouble())
+        if (self.settings["time_scheme"].GetString() == "bossak"):
+            self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
+                                                         self.settings["absolute_velocity_tolerance"].GetDouble(),
+                                                         self.settings["relative_pressure_tolerance"].GetDouble(),
+                                                         self.settings["absolute_pressure_tolerance"].GetDouble())
+        elif self.settings["time_scheme"].GetString() == "steady":
+            self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
+                                                                     self.settings["absolute_velocity_tolerance"].GetDouble())
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 

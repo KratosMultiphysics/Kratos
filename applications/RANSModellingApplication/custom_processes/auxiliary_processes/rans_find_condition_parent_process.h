@@ -26,6 +26,8 @@
 #include "processes/process.h"
 #include "rans_modelling_application_variables.h"
 
+#include "custom_utilities/rans_check_utilities.h"
+
 namespace Kratos
 {
 ///@addtogroup RANSModellingApplication
@@ -50,21 +52,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliary process to set Boussinesq buoyancy forces in variable temperature flows.
-/** This process modifies the BODY_FORCE variable according to the Boussinesq hypothesis
-    so that the fluid element can take natural convection into account.
-
-    This process makes use of the following data:
-    - TEMPERATURE from the nodal solution step data: current temperature for the node (mandatory).
-    - AMBIENT_TEMPERATURE from ProcessInfo: The reference temperature for the simulation (mandatory).
-    - gravity from the Parameters passed in the constructor: an array that defines the gravity vector (mandatory).
-    - thermal_expansion_coefficient from the Parameters: a double defining the thermal expansion coefficient for the fluid (optional).
-
-    With this, the process calculates the Boussinesq force and assings it to the BODY_FORCE solution step variable of each node.
-    The force is set to (1 + thermal_expansion_coefficient*(temperature - ambient_temperature) ) * g
-
-    If the thermal expansion coefficient is not provided, it is assumed to be (1/ambient_temperature).
-    This is the usual value for perfect gases (if the temperature is given in Kelvin).
+/**
+ * @brief Finds parent element of conditions
+ *
+ * This process finds parent element of conditions
+ *
  */
 
 class RansFindConditionParentProcess : public Process
@@ -104,7 +96,6 @@ public:
     /// Destructor.
     ~RansFindConditionParentProcess() override
     {
-        // delete mpDistanceCalculator;
     }
 
     ///@}
@@ -119,8 +110,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << "Check passed for " << mModelPartName << ".\n";
+        RansCheckUtilities().CheckIfModelPartExists(mrModel, mModelPartName);
 
         return 0;
 
@@ -129,6 +119,8 @@ public:
 
     void ExecuteInitialize() override
     {
+        KRATOS_TRY
+
         ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
         const int number_of_conditions = r_model_part.NumberOfConditions();
@@ -138,6 +130,8 @@ public:
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
             << "Found parents for conditions in " << mModelPartName << ".\n";
+
+        KRATOS_CATCH("");
     }
 
     ///@}

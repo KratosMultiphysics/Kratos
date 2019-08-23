@@ -21,13 +21,15 @@
 
 // Project includes
 #include "containers/model.h"
-#include "custom_utilities/rans_variable_utils.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "rans_modelling_application_variables.h"
+
+#include "custom_utilities/rans_check_utilities.h"
+#include "custom_utilities/rans_variable_utils.h"
 
 namespace Kratos
 {
@@ -53,21 +55,22 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliary process to set Boussinesq buoyancy forces in variable temperature flows.
-/** This process modifies the BODY_FORCE variable according to the Boussinesq hypothesis
-    so that the fluid element can take natural convection into account.
-
-    This process makes use of the following data:
-    - TEMPERATURE from the nodal solution step data: current temperature for the node (mandatory).
-    - AMBIENT_TEMPERATURE from ProcessInfo: The reference temperature for the simulation (mandatory).
-    - gravity from the Parameters passed in the constructor: an array that defines the gravity vector (mandatory).
-    - thermal_expansion_coefficient from the Parameters: a double defining the thermal expansion coefficient for the fluid (optional).
-
-    With this, the process calculates the Boussinesq force and assings it to the BODY_FORCE solution step variable of each node.
-    The force is set to (1 + thermal_expansion_coefficient*(temperature - ambient_temperature) ) * g
-
-    If the thermal expansion coefficient is not provided, it is assumed to be (1/ambient_temperature).
-    This is the usual value for perfect gases (if the temperature is given in Kelvin).
+/**
+ * @brief Set turbulent kinetic energy value based on the given turbulent intensity
+ *
+ * This process sets turbulent kinetic energy of a given model part based on the
+ * following equation
+ *
+ * \[
+ *
+ *     k = \frac{3}{2}\left(I||\underline{u}||\right)^2
+ *
+ * \]
+ *
+ * $k$ is the turbulent kinetic energy, $||\underline{u}||$ is the velocity magnitude,
+ * $I$ is the turbulent intensity. If the velocity magnitude is zero, then $k_{min}$ is
+ * assigned as the turbulent kinetic energy.
+ *
  */
 
 class RansKTurbulentIntensityInletProcess : public Process
@@ -110,12 +113,19 @@ public:
         mModelPartName = mrParameters["model_part_name"].GetString();
         mMinValue = mrParameters["min_k_value"].GetDouble();
 
+        KRATOS_ERROR_IF(mTurbulentIntensity < 0.0)
+            << "Turbulent intensity needs to be positive in the modelpart "
+            << mModelPartName << "\n.";
+        KRATOS_ERROR_IF(mMinValue < 0.0)
+            << "Minimum turbulent kinetic energy needs to be positive in the "
+               "modelpart "
+            << mModelPartName << "\n.";
+
         KRATOS_CATCH("");
     }
     /// Destructor.
     ~RansKTurbulentIntensityInletProcess() override
     {
-        // delete mpDistanceCalculator;
     }
 
     ///@}
@@ -168,23 +178,26 @@ public:
 
     int Check() override
     {
+        KRATOS_TRY
+
         // Checking variable definitions
         KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
 
+        RansCheckUtilities rans_check_utilities;
+
+        rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
+
         ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();
-        int number_of_nodes = r_nodes.size();
 
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        }
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(
+            r_nodes, TURBULENT_KINETIC_ENERGY);
+        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, VELOCITY);
 
         return 0;
+
+        KRATOS_CATCH("");
     }
 
     ///@}
