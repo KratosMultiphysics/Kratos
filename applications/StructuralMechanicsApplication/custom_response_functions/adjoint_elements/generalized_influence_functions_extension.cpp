@@ -214,7 +214,7 @@ namespace Kratos
             for(IndexType j = 0; j < write_points_number; ++j)
                 rOutput[j].clear();
 
-            for (int i=0; i<(int)explicit_variables.size(); ++i)
+            for (IndexType i = 0; i < explicit_variables.size(); ++i)
             {
                 if(rElement.GetProperties().Has(explicit_variables[i]) && rElement.GetProperties().Has(derived_variables[i]))
                 {
@@ -224,10 +224,10 @@ namespace Kratos
 
                     const double variable_derivative = rElement.GetProperties()[derived_variables[i]];
 
-                    for(IndexType j = 0; j < write_points_number; ++j)
+                    for(IndexType gp = 0; gp < write_points_number; ++gp)
                     {
-                        for(IndexType k = 0; k < 3; ++k)
-                            rOutput[j][k] = (rOutput[j][k] + pseudo_quantity[j][k] * variable_derivative); // here the chain rule is applied (dM/dX * DX/ds)
+                        for(IndexType comp = 0; comp < 3; ++comp)
+                            rOutput[gp][comp] += pseudo_quantity[gp][comp] * variable_derivative; // here the chain rule is applied (dM/dX * DX/ds)
                     }
                 }
             }
