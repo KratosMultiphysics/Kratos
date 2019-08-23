@@ -213,17 +213,20 @@ void AdjointDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
     const unsigned int num_integration_points = integration_points.size();
     Vector primal_values = ZeroVector(num_nodes);
     Vector diffusivities = ZeroVector(num_nodes);
+    Vector volume_source = ZeroVector(num_nodes);
 
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
 
     const Variable<double>& r_primal_values_variable = r_settings.GetUnknownVariable();
     const Variable<double>& r_diffusivity_variable = r_settings.GetDiffusionVariable();
+    const Variable<double>& r_volume_source_variable = r_settings.GetVolumeSourceVariable();
 
     for (unsigned int i = 0; i < num_nodes; i++)
     {
         primal_values[i] = r_geom[i].FastGetSolutionStepValue(r_primal_values_variable);
         diffusivities[i] = r_geom[i].FastGetSolutionStepValue(r_diffusivity_variable);
+        volume_source[i] = r_geom[i].FastGetSolutionStepValue(r_volume_source_variable);
     }
 
     if (rDesignVariable == SHAPE_SENSITIVITY)
@@ -247,6 +250,7 @@ void AdjointDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
             const double weight = integration_points[g].Weight();
             const auto N = row(N_values, g);
             const double diffusivity = inner_prod(N, diffusivities);
+            const double volume_source_gauss = inner_prod(N, volume_source);
 
             Vector primal_gradient = prod(trans(shape_function_global_gradients),primal_values);
             Matrix laplacian_operator = prod(shape_function_global_gradients, trans(shape_function_global_gradients));
@@ -262,9 +266,10 @@ void AdjointDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
                 Vector aux = prod(trans(shape_function_gradient_deriv), primal_values);
 
                 // Calculation by product rule of d/dX_l ( w * J * dN_i/dx_k * dN_j/dx_k * Temperature_j )
+                // Plus source term contribution d/dX_l ( w * J * N_i * N_j * VolumeSource_j )
                 for (unsigned int i = 0; i < num_nodes; i++)
                 {
-                    // partial derivative of the determinant of Jacobian w * dJ/dX * dN_i/dx_k * dN_j/dx_k * Temperature_j
+                    // partial derivative of the determinant of Jacobian: w * conductivity * dJ/dX * dN_i/dx_k * dN_j/dx_k * Temperature_j
                     double contribution_li = det_j_deriv * laplacian_rhs[i];
 
                     for (unsigned int k = 0; k < dimension; k++)
@@ -276,7 +281,11 @@ void AdjointDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
                         contribution_li += det_j * shape_function_global_gradients(i,k) * aux[k];
                     }
 
-                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += weight * diffusivity * contribution_li;
+                    contribution_li *= weight*diffusivity;
+                    // plus partial derivative of source term: w * dJ/DX * N_i * N_j * VolumeSource_j
+                    contribution_li -= weight * det_j_deriv * N[i] * volume_source_gauss;
+
+                    rOutput(deriv.NodeIndex * dimension + deriv.Direction, i) += contribution_li;
                 }
             }
         }
