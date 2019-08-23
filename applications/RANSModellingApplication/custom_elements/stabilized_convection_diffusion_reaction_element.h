@@ -25,6 +25,8 @@
 #include "stabilized_convection_diffusion_reaction_utilities.h"
 #include "utilities/time_discretization.h"
 #include "includes/cfd_variables.h"
+#include "utilities/geometry_utilities.h"
+#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -722,19 +724,22 @@ public:
                    double& rOutput,
                    const ProcessInfo& rCurrentProcessInfo) override
     {
-        if (rVariable == NODAL_AREA)
-        {
-            const double length = this->GetGeometry().Length();
+        // if (rVariable == NODAL_AREA)
+        // {
+        //     // Get the element's geometric parameters
+        //     double Area;
+        //     array_1d<double, TNumNodes> N;
+        //     BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+        //     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
-            // Carefully write results to nodal variables, to avoid parallelism problems
-            for (unsigned int i = 0; i < TNumNodes; ++i)
-            {
-                this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-                this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) +=
-                    length * length / TNumNodes;
-                this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
-            }
-        }
+        //     // Carefully write results to nodal variables, to avoid parallelism problems
+        //     for (unsigned int i = 0; i < TNumNodes; ++i)
+        //     {
+        //         this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+        //         this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
+        //         this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
+        //     }
+        // }
     }
 
     /**

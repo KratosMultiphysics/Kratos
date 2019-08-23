@@ -38,6 +38,9 @@
 #include "scalar_co_solving_process.h"
 #include "scalar_co_solving_utilities.h"
 
+//debugging
+#include "input_output/vtk_output.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -80,6 +83,26 @@ public:
                              Parameters& rParameters)
         : BaseType(rModelPart, rParameters, TURBULENT_VISCOSITY)
     {
+        // Debugging output
+        Parameters default_parameters = Parameters(R"(
+            {
+                "model_part_name"                    : "FluidModelPart",
+                "file_format"                        : "ascii",
+                "output_precision"                   : 7,
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1.0,
+                "output_sub_model_parts"             : false,
+                "folder_name"                        : "VTK_Output",
+                "custom_name_prefix"                 : "",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["VELOCITY", "PRESSURE", "TURBULENT_KINETIC_ENERGY", "TURBULENT_ENERGY_DISSIPATION_RATE", "TURBULENT_VISCOSITY", "VISCOSITY", "RANS_Y_PLUS"],
+                "nodal_data_value_variables"         : [],
+                "element_data_value_variables"       : [],
+                "condition_data_value_variables"     : [],
+                "gauss_point_variables"              : []
+            })" );
+
+            mVtkOutput = new VtkOutput(rModelPart, default_parameters);
     }
 
     /// Destructor.
@@ -198,6 +221,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    VtkOutput* mVtkOutput;
+
     ///@}
     ///@name Operations
     ///@{
@@ -232,6 +257,10 @@ private:
 
             r_node.FastGetSolutionStepValue(VISCOSITY) = nu_t + nu;
         }
+
+
+        this->mrModelPart.GetProcessInfo()[STEP] += 1;
+        mVtkOutput->PrintOutput();
     }
 
     ///@}

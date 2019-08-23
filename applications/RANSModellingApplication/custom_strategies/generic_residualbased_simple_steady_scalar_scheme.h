@@ -184,27 +184,27 @@ public:
                                    TSystemVectorType& rDx,
                                    TSystemVectorType& rb) override
     {
-        KRATOS_TRY;
+//         KRATOS_TRY;
 
-        for (typename ModelPart::NodesContainerType::iterator itNode =
-                 rModelPart.NodesBegin();
-             itNode != rModelPart.NodesEnd(); itNode++)
-            itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+//         for (typename ModelPart::NodesContainerType::iterator itNode =
+//                  rModelPart.NodesBegin();
+//              itNode != rModelPart.NodesEnd(); itNode++)
+//             itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
 
-        double output;
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        const int number_of_elements = rModelPart.NumberOfElements();
-#pragma omp parallel for private(output)
-        for (int i = 0; i < number_of_elements; i++)
-        {
-            ModelPart::ElementsContainerType::iterator it_elem =
-                rModelPart.ElementsBegin() + i;
-            it_elem->Calculate(NODAL_AREA, output, CurrentProcessInfo);
-        }
+//         double output;
+//         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+//         const int number_of_elements = rModelPart.NumberOfElements();
+// #pragma omp parallel for private(output)
+//         for (int i = 0; i < number_of_elements; i++)
+//         {
+//             ModelPart::ElementsContainerType::iterator it_elem =
+//                 rModelPart.ElementsBegin() + i;
+//             it_elem->Calculate(NODAL_AREA, output, CurrentProcessInfo);
+//         }
 
-        rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+//         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
 
-        KRATOS_CATCH("");
+//         KRATOS_CATCH("");
     }
 
     ///@}
@@ -224,7 +224,30 @@ protected:
         Matrix Mass;
         this->CalculateLumpedMassMatrix(rGeometry, Mass);
 
-        noalias(LHS_Contribution) += Mass * (1.0 / (mRelaxationFactor * LocalDeltaTime));
+        const unsigned int NumNodes = rGeometry.PointsNumber();
+        const unsigned int Dimension = rGeometry.WorkingSpaceDimension();
+
+        for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
+        {
+            const array_1d<double, 3>& rVel =
+                rGeometry[iNode].FastGetSolutionStepValue(VELOCITY, 0);
+            const double Area = rGeometry[iNode].FastGetSolutionStepValue(NODAL_AREA, 0);
+            double VelNorm = 0.0;
+            for (unsigned int d = 0; d < Dimension; ++d)
+                VelNorm += rVel[d] * rVel[d];
+            VelNorm = sqrt(VelNorm);
+            double LocalDt;
+            if (VelNorm != 0.0)
+                LocalDt = pow(Area, 1.0 / double(Dimension)) / VelNorm;
+            else
+                LocalDt = 1.0;
+
+            Mass(iNode, iNode) *= 1.0 / (mRelaxationFactor * LocalDt);
+        }
+
+        noalias(LHS_Contribution) += Mass;
+
+        // noalias(LHS_Contribution) += Mass * (1.0 / (mRelaxationFactor * LocalDeltaTime));
     }
 
     void CalculateLumpedMassMatrix(const GeometryType& rGeometry,
