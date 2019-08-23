@@ -376,10 +376,10 @@ public:
 
                     if (u == 0 && v==0)
                         derivatives[shape_function_row_i] =
-                        (*this)[index] * shape_function_container(shape_function_row_i, u, v);
+                        (*this)[index] * shape_function_container(u, v, shape_function_row_i);
                     else
                         derivatives[shape_function_row_i] +=
-                        (*this)[index] * shape_function_container(shape_function_row_i, u, v);
+                        (*this)[index] * shape_function_container(u, v, shape_function_row_i);
                 }
             }
         }
@@ -419,7 +419,7 @@ public:
                 const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                     NumberOfControlPointsU(), NumberOfControlPointsV(), cp_index_u, cp_index_v);
 
-                rResult += (*this)[index] * shape_function_container(0, u, v);
+                rResult += (*this)[index] * shape_function_container(u, v, 0);
             }
         }
 
@@ -447,7 +447,7 @@ public:
             rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-            rResult[i] = shape_function_container(0, i);
+            rResult[i] = shape_function_container(i, 0);
         }
 
         return rResult;
@@ -471,8 +471,8 @@ public:
             rResult.resize(2, shape_function_container.NumberOfNonzeroControlPoints());
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-            rResult(0, i) = shape_function_container(1, i);
-            rResult(1, i) = shape_function_container(2, i);
+            rResult(0, i) = shape_function_container(i, 1);
+            rResult(1, i) = shape_function_container(i, 2);
         }
 
         return rResult;
@@ -500,7 +500,7 @@ public:
     //        }
 
     //        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //            shape_functions_values(ip_itr, i) = shape_function_container(ip_itr, i);
+    //            shape_functions_values(ip_itr, i) = shape_function_container(i, ip_itr);
     //        }
 
     //        DenseVector<Matrix> shape_function_derivatives_array(DerivativeOrder);
@@ -508,7 +508,7 @@ public:
     //        {
     //            Matrix shape_function_derivatives_values = ZeroMatrix(1, shape_function_container.NumberOfNonzeroControlPoints());
     //            for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //                shape_function_derivatives_values(0, i) = shape_function_container(derivative_order_itr, i);
+    //                shape_function_derivatives_values(0, i) = shape_function_container(i, derivative_order_itr);
     //            }
     //            shape_function_derivatives_array[derivative_order_itr] = shape_function_derivatives_values;
     //        }

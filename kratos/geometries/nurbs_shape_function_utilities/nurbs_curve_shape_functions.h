@@ -60,9 +60,9 @@ public:
     ///@name Operators
     ///@{
 
-    double operator()(const int DerivativeRow, const int NonzeroControlPointIndex) const
+    double operator()(const int NonzeroControlPointIndex, const int DerivativeRow) const
     {
-        return ShapeFunctionValue(DerivativeRow, NonzeroControlPointIndex);
+        return ShapeFunctionValue(NonzeroControlPointIndex, DerivativeRow);
     }
 
     ///@}
@@ -83,7 +83,7 @@ public:
         // mDerivativeOrder = std::min(DerivativeOrder, PolynomialDegree);
         mDerivativeOrder = DerivativeOrder;
 
-        mValues.resize((mDerivativeOrder + 1) * (PolynomialDegree + 1));
+        mValues.resize((PolynomialDegree + 1) * (mDerivativeOrder + 1));
         mLeft.resize(PolynomialDegree);
         mRight.resize(PolynomialDegree);
         mNdu.resize((PolynomialDegree + 1) * (PolynomialDegree + 1));
@@ -125,8 +125,8 @@ public:
     *        the index of the control point.
     */
     double ShapeFunctionValue(
-        const int DerivativeRow,
-        const int ControlPointIndex) const
+        const int ControlPointIndex,
+        const int DerivativeRow) const
     {
         int index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
@@ -220,7 +220,7 @@ public:
         }
 
         for (int j = 0; j < NumberOfNonzeroControlPoints(); j++) {
-            ShapeFunctionValue(0, j) = Ndu(j, PolynomialDegree());
+            ShapeFunctionValue(j, 0) = Ndu(j, PolynomialDegree());
         }
 
         auto& a = mA;
@@ -230,7 +230,7 @@ public:
             a[0] = 1.0;
 
             for (int k = 1; k < NumberOfShapeFunctionRows(); k++) {
-                double& value = ShapeFunctionValue(k, r);
+                double& value = ShapeFunctionValue(r, k);
 
                 int rk = r - k;
                 int pk = PolynomialDegree() - k;
@@ -261,7 +261,7 @@ public:
 
         for (int k = 1; k < NumberOfShapeFunctionRows(); k++) {
             for (int j = 0; j < NumberOfNonzeroControlPoints(); j++) {
-                ShapeFunctionValue(k, j) *= s;
+                ShapeFunctionValue(j, k) *= s;
             }
             s *= PolynomialDegree() - k;
         }
@@ -313,8 +313,8 @@ public:
 
             for (int i = 0; i < NumberOfNonzeroControlPoints(); i++) {
                 const size_t poleIndex = GetFirstNonzeroControlPoint() + i;
-                ShapeFunctionValue(k, i) *= rWeights(poleIndex);
-                weightedSums[k] += ShapeFunctionValue(k, i);
+                ShapeFunctionValue(i, k) *= rWeights(poleIndex);
+                weightedSums[k] += ShapeFunctionValue(i, k);
             }
         }
 
@@ -324,13 +324,13 @@ public:
                     weightedSums[i];
 
                 for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                    ShapeFunctionValue(k, p) -=
-                        a * ShapeFunctionValue(k - i, p);
+                    ShapeFunctionValue(p, k) -=
+                        a * ShapeFunctionValue(p, k - i);
                 }
             }
 
             for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                ShapeFunctionValue(k, p) /= weightedSums[0];
+                ShapeFunctionValue(p, k) /= weightedSums[0];
             }
         }
     }
@@ -347,7 +347,7 @@ private:
     *        For curves the indices for derivatives are as following:
     *        0-> N | 1-> dN/de | 2-> ddN/dde | ...
     */
-    double& ShapeFunctionValue(const int DerivativeRow, const int NonzeroControlPointIndex)
+    double& ShapeFunctionValue(const int NonzeroControlPointIndex, const int DerivativeRow)
     {
         const int index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),

@@ -85,18 +85,18 @@ public:
     ///@{
 
     double operator()(
-        const IndexType DerivativeRow,
-        const IndexType ControlPointIndex) const
+        const IndexType ControlPointIndex,
+        const IndexType DerivativeRow) const
     {
-        return ShapeFunctionValue(DerivativeRow, ControlPointIndex);
+        return ShapeFunctionValue(ControlPointIndex, DerivativeRow);
     }
 
     double operator()(
-        const IndexType DerivativeRow,
         const IndexType ControlPointIndexU,
-        const IndexType ControlPointIndexV) const
+        const IndexType ControlPointIndexV,
+        const IndexType DerivativeRow) const
     {
-        return ShapeFunctionValue(DerivativeRow, ControlPointIndexU, ControlPointIndexV);
+        return ShapeFunctionValue(ControlPointIndexU, ControlPointIndexV, DerivativeRow);
     }
 
     ///@}
@@ -112,7 +112,7 @@ public:
 
         mShapeFunctionsU.ResizeDataContainers(PolynomialDegreeU, std::min(DerivativeOrder, PolynomialDegreeU));
         mShapeFunctionsV.ResizeDataContainers(PolynomialDegreeV, std::min(DerivativeOrder, PolynomialDegreeV));
-        mShapeFunctionValues.resize(number_of_shape_function_rows * number_of_nonzero_control_points);
+        mShapeFunctionValues.resize(number_of_nonzero_control_points * number_of_shape_function_rows);
         mWeightedSums.resize(number_of_shape_function_rows);
 
         mDerivativeOrder = DerivativeOrder;
@@ -173,21 +173,21 @@ public:
     }
 
     const double ShapeFunctionValue(
-        const SizeType DerivativeRow,
         const IndexType ControlPointIndexU,
-        const IndexType ControlPointIndexV) const
+        const IndexType ControlPointIndexV,
+        const SizeType DerivativeRow) const
     {
         const IndexType index = this->GetIndex(
-            DerivativeRow,
             ControlPointIndexU,
-            ControlPointIndexV);
+            ControlPointIndexV,
+            DerivativeRow);
 
         return mShapeFunctionValues[index];
     }
 
     const double ShapeFunctionValue(
-        const SizeType DerivativeOrder,
-        const IndexType ControlPointIndex) const
+        const IndexType ControlPointIndex,
+        const SizeType DerivativeOrder) const
     {
         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfShapeFunctionRows(), NumberOfNonzeroControlPoints(),
@@ -242,7 +242,7 @@ public:
                     for (int b = 0; b < NumberOfNonzeroControlPointsV(); b++) {
                         const int index = IndexOfShapeFunctionRow(i, j);
 
-                        ShapeFunctionValue(index, a, b) = mShapeFunctionsU(i, a) * mShapeFunctionsV(j, b);
+                        ShapeFunctionValue(a, b, index) = mShapeFunctionsU(a, i) * mShapeFunctionsV(b, j);
                     }
                 }
             }
@@ -290,8 +290,8 @@ public:
                     const IndexType ControlPointIndexV = GetFirstNonzeroControlPointV() + v;
 
                     const double weight = Weights(GetControlPointIndex(rKnotsU.size(), rKnotsV.size(), ControlPointIndexU, ControlPointIndexV));
-                    ShapeFunctionValue(shape_row_index, u, v) *= weight;
-                    GetWeightedSum(shape_row_index) += ShapeFunctionValue(shape_row_index, u, v);
+                    ShapeFunctionValue(u, v, shape_row_index) *= weight;
+                    GetWeightedSum(shape_row_index) += ShapeFunctionValue(u, v, shape_row_index);
                 }
             }
         }
@@ -306,7 +306,7 @@ public:
                     double a = NurbsUtilities::GetBinomCoefficient(l, j) * GetWeightedSum(0, j);
 
                     for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                        ShapeFunctionValue(shape, p) -= a * ShapeFunctionValue(index, p);
+                        ShapeFunctionValue(p, shape) -= a * ShapeFunctionValue(p, index);
                     }
                 }
 
@@ -316,7 +316,7 @@ public:
                     double a = NurbsUtilities::GetBinomCoefficient(k, i) * GetWeightedSum(i, 0);
 
                     for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                        ShapeFunctionValue(shape, p) -= a * ShapeFunctionValue(index, p);
+                        ShapeFunctionValue(p, shape) -= a * ShapeFunctionValue(p, index);
                     }
                 }
 
@@ -330,13 +330,13 @@ public:
                             GetWeightedSum(i, j);
 
                         for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                            ShapeFunctionValue(shape, p) -= b * ShapeFunctionValue(index, p);
+                            ShapeFunctionValue(p, shape) -= b * ShapeFunctionValue(p, index);
                         }
                     }
                 }
 
                 for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                    ShapeFunctionValue(shape, p) /= GetWeightedSum(0);
+                    ShapeFunctionValue(p, shape) /= GetWeightedSum(0);
                 }
             }
         }
@@ -395,9 +395,9 @@ private:
     }
 
     inline int GetIndex(
-        const SizeType DerivativeRow,
         const IndexType ControlPointIndexU,
-        const IndexType ControlPointIndexV)
+        const IndexType ControlPointIndexV,
+        const SizeType DerivativeRow)
         const
     {
         const IndexType control_point_index = GetNonzeroControlPointIndex(
@@ -410,8 +410,8 @@ private:
     }
 
     double& ShapeFunctionValue(
-        const IndexType DerivativeRow,
-        const IndexType ControlPointIndex)
+        const IndexType ControlPointIndex,
+        const IndexType DerivativeRow)
     {
         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfShapeFunctionRows(), NumberOfNonzeroControlPoints(),
@@ -421,11 +421,11 @@ private:
     }
 
     double& ShapeFunctionValue(
-        const SizeType DerivativeRow,
         const IndexType ControlPointIndexU,
-        const IndexType ControlPointIndexV)
+        const IndexType ControlPointIndexV,
+        const SizeType DerivativeRow)
     {
-        const IndexType index = this->GetIndex(DerivativeRow, ControlPointIndexU, ControlPointIndexV);
+        const IndexType index = this->GetIndex(ControlPointIndexU, ControlPointIndexV, DerivativeRow);
 
         return mShapeFunctionValues[index];
     }
