@@ -476,8 +476,8 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         self.traced_element_id = adjoint_parameters["solver_settings"]["response_function_settings"]["traced_element_id"].GetInt()
         # response_cross_section is the cross section of the traced element
         self.response_cross_section = None
-        # this are cross sections of some sub model parts. Can be set by the function 'SetCrossSections'
-        self.cross_sections = []
+        # this are element domain python classes of some sub model parts. Can be set by the function 'SetElementDomains'
+        self.element_domains = []
 
         # here the position within the cross section is defined where the the stress is traced
         self.stress_position_y = adjoint_parameters["solver_settings"]["response_function_settings"]["yp"].GetDouble()
@@ -520,9 +520,8 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
                     break
 
     # --------------------------------------------------------------------------
-    # MFusseder TODO find a better solution to make cross sections available
-    def SetCrossSections(self, cross_sections):
-        self.cross_sections = cross_sections
+    def SetElementDomains(self, element_domains):
+        self.element_domains = element_domains
 
     # --------------------------------------------------------------------------
     def SetResponseCrossSection(self, response_cross_section):
@@ -575,9 +574,9 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         # compute sensitivities w.r.t. specific variables which are not known by kratos elements (e.g. SECTION_HEIGTH_SENSITIVITY)
         if self.sensitivity_settings.Has("element_cross_section_sensitivity_variables"):
             variables, _ = GenerateVariableListFromInput(self.sensitivity_settings["element_cross_section_sensitivity_variables"], False)
-            ComputeSpecificCrossSectionSensitivities(variables, self.cross_sections, self.adjoint_model_part_fx)
-            ComputeSpecificCrossSectionSensitivities(variables, self.cross_sections, self.adjoint_model_part_my)
-            ComputeSpecificCrossSectionSensitivities(variables, self.cross_sections, self.adjoint_model_part_mz)
+            ComputeSpecificCrossSectionSensitivities(variables, self.element_domains, self.adjoint_model_part_fx)
+            ComputeSpecificCrossSectionSensitivities(variables, self.element_domains, self.adjoint_model_part_my)
+            ComputeSpecificCrossSectionSensitivities(variables, self.element_domains, self.adjoint_model_part_mz)
 
         # here the results of the adjoint analysisn are combinded
         self._RunSolutionLoopMainProblem()
@@ -597,7 +596,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
 
         # assist the method of generalized influence functions
         if self.required_gen_iff_assistance:
-            ExecuteAssistanceForGeneralizedInfluenceFunctions(self.gen_iff_settings, self.cross_sections, self.adjoint_model_part)
+            ExecuteAssistanceForGeneralizedInfluenceFunctions(self.gen_iff_settings, self.element_domains, self.adjoint_model_part)
 
         self.adjoint_analysis.OutputSolutionStep()
 
@@ -856,13 +855,13 @@ def GetSensitivityModelPart(model_part_name, root_mp):
         raise RuntimeError('Given model part ' + model_part_name + ' is not available!')
 
 # --------------------------------------------------------------------------
-def ComputeSpecificCrossSectionSensitivities(variables_list, cross_sections, model_part):
+def ComputeSpecificCrossSectionSensitivities(variables_list, element_domains, model_part):
     for var_i in variables_list:
-        for sec_i in cross_sections:
-            sec_i.ComputeSpecificCrossSectionSensitivities(var_i, model_part)
+        for elem_dom_i in element_domains:
+            elem_dom_i.ComputeSpecificCrossSectionSensitivities(var_i, model_part)
 
 # --------------------------------------------------------------------------
-def ExecuteAssistanceForGeneralizedInfluenceFunctions(settings, cross_sections, model_part):
+def ExecuteAssistanceForGeneralizedInfluenceFunctions(settings, element_domains, model_part):
     variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["design_variable_name"].GetString())
-    for sec_i in cross_sections:
-        sec_i.AddDerivedCrossSectionQuantitiesToProperties(variable, model_part)
+    for elem_dom_i in element_domains:
+        elem_dom_i.AddDerivedVariablesToProperties(variable, model_part)
