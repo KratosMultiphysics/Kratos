@@ -13,6 +13,7 @@
 // Project includes
 #include "define_2d_wake_process.h"
 #include "utilities/variable_utils.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos {
 
@@ -152,7 +153,7 @@ void Define2DWakeProcess::MarkWakeElements()
             BoundedVector<double, 3> nodal_distances_to_wake = ComputeNodalDistancesToWake(*it_elem);
 
             // Selecting the cut (wake) elements
-            bool is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
+            const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(nodal_distances_to_wake);;
 
             // Mark wake element and save their nodal distances to the wake
             if (is_wake_element) {
@@ -224,28 +225,6 @@ const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(
         nodal_distances_to_wake[i] = distance_to_wake;
     }
     return nodal_distances_to_wake;
-}
-
-// This function checks whether the element is cut by the wake
-const bool Define2DWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const
-{
-    // Initialize counters
-    unsigned int number_of_nodes_with_positive_distance = 0;
-    unsigned int number_of_nodes_with_negative_distance = 0;
-
-    // Count how many element nodes are above and below the wake
-    for (unsigned int i = 0; i < rNodalDistancesToWake.size(); i++) {
-        if (rNodalDistancesToWake(i) < 0.0) {
-            number_of_nodes_with_negative_distance += 1;
-        }
-        else {
-            number_of_nodes_with_positive_distance += 1;
-        }
-    }
-
-    // Elements with nodes above and below the wake are wake elements
-    return number_of_nodes_with_negative_distance > 0 &&
-           number_of_nodes_with_positive_distance > 0;
 }
 
 // This function adds the trailing edge elements in the
