@@ -24,7 +24,7 @@
 // Project includes
 #include "includes/kratos_export_api.h"
 #include "includes/code_location.h"
-#include "utilities/stl_io.h"
+#include "utilities/stl_io.h" // Defines operator<< for several stl types, needed to print such types in error messages using Exception::operator<<
 
 
 namespace Kratos
