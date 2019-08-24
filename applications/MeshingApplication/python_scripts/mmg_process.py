@@ -533,6 +533,9 @@ class MmgProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remeshing")
         self.mmg_process.Execute()
 
+        # Execute after remesh
+        self._AuxiliarCallsAfterRemesh()
+
         # Debug after remesh
         if self.settings["debug_mode"].GetString() == "GiD": # GiD
             self._debug_output_gid(self.step, "", "AFTER_")
@@ -572,6 +575,14 @@ class MmgProcess(KratosMultiphysics.Process):
 
     def _AuxiliarCallsBeforeRemesh(self):
         """ This method is executed right before execute the remesh
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        pass
+
+    def _AuxiliarCallsAfterRemesh(self):
+        """ This method is executed right after execute the remesh
 
         Keyword arguments:
         self -- It signifies an instance of a class.
