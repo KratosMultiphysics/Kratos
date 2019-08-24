@@ -19,8 +19,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 #============================================================================================================================
 	def Initialize(self):
-		self.number_of_nodes_element = 4
-		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 #Sand Production Calculations
+		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
 		self.FEM_Solution.Initialize()
 		self.DEM_Solution.Initialize()
 
@@ -47,6 +46,11 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		if self.DoRemeshing:
 			self.InitializeMMGvariables()
 			self.RemeshingProcessMMG.ExecuteInitialize()
+
+		if self.FEM_Solution.ProjectParameters.Has("transfer_dem_contact_forces") == False:
+			self.TransferDEMContactForcesToFEM = False
+		else:
+			self.TransferDEMContactForcesToFEM = self.FEM_Solution.ProjectParameters["transfer_dem_contact_forces"].GetBool()
 
 		if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
 			self.PressureLoad = False
@@ -144,7 +148,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.DEM_Solution.FinalizeTimeStep(self.DEM_Solution.time)
 
 		# Transfer the contact forces of the DEM to the FEM nodes
-		self.TransferNodalForcesToFEM()
+		if self.TransferDEMContactForcesToFEM:
+			self.TransferNodalForcesToFEM()
 
 		self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 
