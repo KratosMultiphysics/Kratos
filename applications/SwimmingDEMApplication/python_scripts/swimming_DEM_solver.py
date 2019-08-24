@@ -246,6 +246,8 @@ class SwimmingDEMSolver(PythonSolver):
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')
         self.SolveDEM()
 
+        return True
+
     def SolveFluidSolutionStep(self):
         self.fluid_solver.SolveSolutionStep()
         if self.move_mesh_flag:
