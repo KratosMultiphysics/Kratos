@@ -443,7 +443,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    double ExplicitSolverStrategy::Solve() {
+    double ExplicitSolverStrategy::SolveSolutionStep() {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
 

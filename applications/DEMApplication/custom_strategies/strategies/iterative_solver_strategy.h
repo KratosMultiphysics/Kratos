@@ -90,7 +90,7 @@ namespace Kratos
         //BaseType::GetScheme()->Calculate(BaseType::GetClusterModelPart(),2);
       }
 
-      virtual double Solve() override
+      virtual double SolveSolutionStep() override
       {
 
         KRATOS_TRY
@@ -107,7 +107,7 @@ namespace Kratos
 
         KRATOS_CATCH("")
 
-      }//Solve()
+      }//SolveSolutionStep()
 
   };//ClassIterativeSolverStrategy
 

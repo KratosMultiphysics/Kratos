@@ -138,7 +138,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }// Initialize()
 
-    double ContinuumExplicitSolverStrategy::Solve() {
+    double ContinuumExplicitSolverStrategy::SolveSolutionStep() {
 
         KRATOS_TRY
 
@@ -158,7 +158,7 @@ namespace Kratos {
 
         return 0.0;
 
-    }//Solve()
+    }//SolveSolutionStep()
 
     void ContinuumExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();

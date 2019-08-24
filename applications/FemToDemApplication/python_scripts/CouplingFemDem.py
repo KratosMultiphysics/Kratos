@@ -164,7 +164,6 @@ class FEMDEM_Solution:
         # We update coordinates, displ and velocities of the DEM according to FEM
         self.UpdateDEMVariables()
 
-        self.DEM_Solution.InitializeTimeStep()
         self.DEM_Solution.time = self.FEM_Solution.time
         self.DEM_Solution.step = self.FEM_Solution.step
         self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
@@ -172,10 +171,10 @@ class FEMDEM_Solution:
                                                                    self.DEM_Solution.solver.dt,
                                                                    self.DEM_Solution.step,
                                                                    self.DEM_Solution.IsTimeToPrintPostProcess())
-        self.DEM_Solution._BeforeSolveOperations(self.DEM_Solution.time)
+        self.DEM_Solution.InitializeSolutionStep()
 
         #### SOLVE DEM #########################################
-        self.DEM_Solution.solver.Solve()
+        self.DEM_Solution.solver.SolveSolutionStep()
         ########################################################
 
         self.DEM_Solution.AfterSolveOperations()
@@ -261,7 +260,7 @@ class FEMDEM_Solution:
 
 #============================================================================================================================
     def UpdateDEMVariables(self):
-        update_de_kinematics_process = KratosFemDem.UpdateDemKinematicsProcess(self.FEM_Solution.main_model_part, 
+        update_de_kinematics_process = KratosFemDem.UpdateDemKinematicsProcess(self.FEM_Solution.main_model_part,
                                                                                self.SpheresModelPart)
         update_de_kinematics_process.Execute()
 

@@ -17,7 +17,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 	def Info(self):
 		print("Coupling of the 3D FEMDEM App")
 
-#============================================================================================================================
+	#============================================================================================================================
 	def Initialize(self):
 		self.number_of_nodes_element = 4
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 #Sand Production Calculations
@@ -39,8 +39,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.DEMProperties = self.SpheresModelPart.GetProperties()[1]
 
 		self.ParticleCreatorDestructor = PCD.FemDemParticleCreatorDestructor(self.SpheresModelPart,
-                                                                             self.DEMProperties,
-                                                                             self.DEMParameters)
+																				self.DEMProperties,
+																				self.DEMParameters)
 
 		self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
 
@@ -55,7 +55,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		if self.PressureLoad:
 			KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
 
-        # for the dem contact forces coupling
+		# for the dem contact forces coupling
 		self.InitializeDummyNodalForces()
 
 		# Just to find neighbours the 1st time
@@ -97,7 +97,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.FEM_Solution.step = self.FEM_Solution.step + 1
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
 
-		self.FindNeighboursIfNecessary()	
+		self.FindNeighboursIfNecessary()
 		self.PerformRemeshingIfNecessary()
 
 		if self.echo_level > 0:
@@ -123,16 +123,14 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		self.UpdateDEMVariables()     # We update coordinates, displ and velocities of the DEM according to FEM
 
-		self.DEM_Solution.InitializeTimeStep()
-
 		self.DEM_Solution.time = self.FEM_Solution.time
 		self.DEM_Solution.step = self.FEM_Solution.step
 
 		self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts, self.DEM_Solution.time,self.DEM_Solution.solver.dt,self.DEM_Solution.step, self.DEM_Solution.IsTimeToPrintPostProcess())
-		self.DEM_Solution._BeforeSolveOperations(self.DEM_Solution.time)
+		self.DEM_Solution.InitializeSolutionStep()
 
 		#### SOLVE DEM #########################################
-		self.DEM_Solution.solver.Solve()
+		self.DEM_Solution.solver.SolveSolutionStep()
 		########################################################
 		self.DEM_Solution.AfterSolveOperations()
 
@@ -175,7 +173,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #============================================================================================================================
 	def CheckInactiveNodes(self):
 
-		FEM_Elements = self.FEM_Solution.main_model_part.Elements
+        FEM_Elements = self.FEM_Solution.main_model_part.Elements
 		FEM_Nodes    = self.FEM_Solution.main_model_part.Nodes
 		erased_nodes_id = []
 		conditions_to_erase_id = []
@@ -266,7 +264,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
 							total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
 							total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
-							total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)	
+							total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
 
 				self.PlotFile = open("PlotFile.txt","a")
 				self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(total_displacement_x).rjust(11) +
@@ -547,4 +545,4 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			erased_vol = self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME]
 			self.ErasedVolume.write("    " + "{0:.4e}".format(self.FEM_Solution.time).rjust(11) + "    " + "{0:.4e}".format(erased_vol).rjust(11) + "\n")
 			self.ErasedVolume.close()
-		
+
