@@ -278,7 +278,7 @@ public:
      * @param Value array containing the Value to be set
      * @param rNodes reference to the objective node set
      */
-    void SetVectorVar(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable") void SetVectorVar(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
         NodesContainerType& rNodes
@@ -306,10 +306,10 @@ public:
      * @param Value Value to be set
      * @param rNodes reference to the objective node set
      */
-    template< class TType >
+    template<class TDataType, class TVarType = Variable<TDataType> >
     void SetVariable(
-        const Variable< TType >& rVariable,
-        const TType& Value,
+        const TVarType& rVariable,
+        const TDataType& Value,
         NodesContainerType& rNodes
         )
     {
