@@ -248,7 +248,7 @@ if(${MESH_MOVING_APPLICATION} MATCHES ON)
 endif(${MESH_MOVING_APPLICATION} MATCHES ON)
 
 if(${FSI_APPLICATION} MATCHES ON)
-  add_subdirectory(FSIapplication)
+  add_subdirectory(FSIApplication)
 endif(${FSI_APPLICATION} MATCHES ON)
 
 if(${EMPIRE_APPLICATION} MATCHES ON)
