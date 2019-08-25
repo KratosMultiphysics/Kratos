@@ -127,20 +127,31 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
         ##set the model part
         model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         ##set the variable values
         viscosity = 0.1
+        partition_index = 1
+        velocity = KratosMultiphysics.Vector(3)
+        velocity[0] = 2.0
+        velocity[1] = 4.0
+        velocity[2] = 8.0
         displacement = KratosMultiphysics.Vector(3)
         displacement[0] = 1.0
         displacement[1] = 2.0
         displacement[2] = 3.0
 
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, viscosity, model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.DISPLACEMENT, displacement, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VISCOSITY, viscosity, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VELOCITY_X, velocity[0], model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VELOCITY_Y, velocity[1], model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.VELOCITY_Z, velocity[2], model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.DISPLACEMENT, displacement, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.PARTITION_INDEX, partition_index, model_part.Nodes)
 
         ##verify the result
         for node in model_part.Nodes:
