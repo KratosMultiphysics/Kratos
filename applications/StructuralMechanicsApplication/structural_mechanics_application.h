@@ -173,8 +173,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-extern template class AdjointSolidElement<TotalLagrangian>;
-
 /**
  * @class KratosStructuralMechanicsApplication
  * @ingroup StructuralMechanicsApplication
@@ -806,7 +804,7 @@ private:
 
     // Rules of mixtures
     const RuleOfMixturesLaw mRuleOfMixturesLaw;
-    
+
     ///@}
     ///@name Private Operators
     ///@{

@@ -59,7 +59,7 @@
             "fluid":
             {
                 "type" : "solver_wrappers.kratos.fluid_dynamics_wrapper",
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "input_file"  : "fsi_wall/ProjectParametersCFD"
                 },
                 "data" : {
@@ -83,7 +83,7 @@
             "structure" :
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "input_file"  : "fsi_wall/ProjectParametersCSM"
                 },
                 "data" : {
