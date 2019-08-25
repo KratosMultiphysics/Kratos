@@ -209,11 +209,11 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
-        self.norm_obj_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(DF1DX_MAPPED)
+        self.norm_objective_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(DF1DX_MAPPED)
 
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
-        additional_values_to_log["norm_obj_gradient"] = self.norm_obj_gradient
+        additional_values_to_log["norm_objective_gradient"] = self.norm_objective_gradient
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 
@@ -228,14 +228,14 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             # Check gradient norm
             if self.optimization_iteration == 2:
-                self.initial_norm_obj_gradient = self.norm_obj_gradient
+                self.initial_norm_objective_gradient = self.norm_objective_gradient
             else:
-                if self.norm_obj_gradient < self.gradient_tolerance*self.initial_norm_obj_gradient:
+                if self.norm_objective_gradient < self.gradient_tolerance*self.initial_norm_objective_gradient:
                     print("\n> Optimization problem converged as gradient norm reached specified tolerance of ",self.gradient_tolerance)
                     return True
 
             # Check for relative tolerance
-            relativeChangeOfObjectiveValue = self.data_logger.GetValue("rel_change_obj", self.optimization_iteration)
+            relativeChangeOfObjectiveValue = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]
             if abs(relativeChangeOfObjectiveValue) < self.relative_tolerance:
                 print("\n> Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
                 return True

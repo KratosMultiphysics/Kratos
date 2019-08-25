@@ -5,6 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import CouplingFemDem
 import math
+import KratosMultiphysics.MeshingApplication as MeshingApplication
 
 def Wait():
 	input("Press Something")
@@ -19,6 +20,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #============================================================================================================================
 	def Initialize(self):
 		self.number_of_nodes_element = 4
+		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 #Sand Production Calculations
 		self.FEM_Solution.Initialize()
 		self.DEM_Solution.Initialize()
 
@@ -58,17 +60,31 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# Just to find neighbours the 1st time
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = True
-		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = 1
+		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = True
 
-		KratosMultiphysics.Logger.PrintInfo(" /$$$$$$$$ /$$$$$$$$ /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$ /$$      /$$")
-		KratosMultiphysics.Logger.PrintInfo("| $$_____/| $$_____/| $$$    /$$$ /$$__  $$| $$__  $$| $$_____/| $$$    /$$$")
-		KratosMultiphysics.Logger.PrintInfo("| $$      | $$      | $$$$  /$$$$|__/  \ $$| $$  \ $$| $$      | $$$$  /$$$$")
-		KratosMultiphysics.Logger.PrintInfo("| $$$$$   | $$$$$   | $$ $$/$$ $$  /$$$$$$/| $$  | $$| $$$$$   | $$ $$/$$ $$")
-		KratosMultiphysics.Logger.PrintInfo("| $$__/   | $$__/   | $$  $$$| $$ /$$____/ | $$  | $$| $$__/   | $$  $$$| $$")
-		KratosMultiphysics.Logger.PrintInfo("| $$      | $$      | $$\  $ | $$| $$      | $$  | $$| $$      | $$\  $ | $$")
-		KratosMultiphysics.Logger.PrintInfo("| $$      | $$$$$$$$| $$ \/  | $$| $$$$$$$$| $$$$$$$/| $$$$$$$$| $$ \/  | $$")
-		KratosMultiphysics.Logger.PrintInfo("|__/      |________/|__/     |__/|________/|_______/ |________/|__/     |__/ 3D Application")
-		KratosMultiphysics.Logger.PrintInfo("")
+		self.FEM_Solution.KratosPrintInfo(" /$$$$$$$$ /$$$$$$$$ /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$ /$$      /$$")
+		self.FEM_Solution.KratosPrintInfo("| $$_____/| $$_____/| $$$    /$$$ /$$__  $$| $$__  $$| $$_____/| $$$    /$$$")
+		self.FEM_Solution.KratosPrintInfo("| $$      | $$      | $$$$  /$$$$|__/  \ $$| $$  \ $$| $$      | $$$$  /$$$$")
+		self.FEM_Solution.KratosPrintInfo("| $$$$$   | $$$$$   | $$ $$/$$ $$  /$$$$$$/| $$  | $$| $$$$$   | $$ $$/$$ $$")
+		self.FEM_Solution.KratosPrintInfo("| $$__/   | $$__/   | $$  $$$| $$ /$$____/ | $$  | $$| $$__/   | $$  $$$| $$")
+		self.FEM_Solution.KratosPrintInfo("| $$      | $$      | $$\  $ | $$| $$      | $$  | $$| $$      | $$\  $ | $$")
+		self.FEM_Solution.KratosPrintInfo("| $$      | $$$$$$$$| $$ \/  | $$| $$$$$$$$| $$$$$$$/| $$$$$$$$| $$ \/  | $$")
+		self.FEM_Solution.KratosPrintInfo("|__/      |________/|__/     |__/|________/|_______/ |________/|__/     |__/ 3D Application")
+		self.FEM_Solution.KratosPrintInfo("")
+
+		if self.echo_level > 0:
+			self.FEM_Solution.KratosPrintInfo("FEM-DEM Solution initialized")
+
+		# We assign the flag to recompute neighbours inside the 3D elements the 1st time
+		utils = KratosMultiphysics.VariableUtils()
+		utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
+
+		if self.echo_level > 0:
+			KratosMultiphysics.Logger.PrintInfo("FEM-DEM Solution initialized")
+
+		# We assign the flag to recompute neighbours inside the 3D elements the 1st time
+		utils = KratosMultiphysics.VariableUtils()
+		utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
 #============================================================================================================================
 	def InitializeSolutionStep(self):
@@ -83,6 +99,10 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		self.FindNeighboursIfNecessary()	
 		self.PerformRemeshingIfNecessary()
+
+		if self.echo_level > 0:
+			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
+
 		self.FEM_Solution.InitializeSolutionStep()
 
 #============================================================================================================================
@@ -136,6 +156,12 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 #============================================================================================================================
 	def GenerateDEM(self): # 3D version
+		if self.echo_level > 0:
+			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: GenerateDEM")
+
+		# If we want to compute sand production
+		# self.CountErasedVolume()
+
 		if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
 			dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
 			dem_generator_process.Execute()
@@ -143,6 +169,10 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			self.RemoveAloneDEMElements()
 			element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
 			element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
+
+			# We assign the flag to recompute neighbours inside the 3D elements
+			utils = KratosMultiphysics.VariableUtils()
+			utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
 #============================================================================================================================
 	def CheckInactiveNodes(self):
@@ -427,6 +457,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 	def InitializeIntegrationPointsVariables(self):
 
 		utils = KratosMultiphysics.VariableUtils()
+		utils.SetNonHistoricalVariable(KratosFemDem.VOLUME_COUNTED, False, self.FEM_Solution.main_model_part.Elements)
 		utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, self.FEM_Solution.main_model_part.Elements)
 		utils.SetNonHistoricalVariable(KratosFemDem.DAMAGE_ELEMENT, 0.0, self.FEM_Solution.main_model_part.Elements)
 		utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_EXPANDED, 0, self.FEM_Solution.main_model_part.Elements)
@@ -448,6 +479,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #===================================================================================================================================
 
 	def ExtrapolatePressure(self):
+		if self.echo_level > 0:
+			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ExtrapolatePressureLoad")
 		if self.PressureLoad:
 			# we reconstruct the pressure load if necessary
 			if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] == 1:
@@ -469,6 +502,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			is_remeshing = self.CheckIfHasRemeshed()
 
 			if is_remeshing:
+				if self.echo_level > 0:
+					self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNormalizedFreeEnergyOnNodesProcess")
+
 				# Extrapolate the VonMises normalized stress to nodes (remeshing)
 				parameters = self.FEM_Solution.ProjectParameters["AMR_data"]["hessian_variable_parameters"]
 				KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, parameters).Execute()
@@ -480,16 +516,37 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
 
 			if is_remeshing:
+				if self.echo_level > 0:
+					self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionAfterRemeshing")
+
 				self.RefineMappedVariables()
 				self.InitializeSolutionAfterRemeshing()
 				self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
 				self.nodal_neighbour_finder.Execute()
+				# We assign the flag to recompute neighbours inside the 3D elements
+				utils = KratosMultiphysics.VariableUtils()
+				utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
 #===================================================================================================================================
 
 	def FindNeighboursIfNecessary(self):
+		if self.echo_level > 0:
+			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNeighboursIfNecessary")
+
 		if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]: # The neighbours have changed
 			self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
 			self.nodal_neighbour_finder.Execute()
 			# We reset the flag
 			self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
+
+	def CountErasedVolume(self):
+		count_erased_vol = True
+		if count_erased_vol:
+			erased_vol_process = KratosFemDem.ComputeSandProduction(self.FEM_Solution.main_model_part)
+			erased_vol_process.Execute()
+
+			self.ErasedVolume = open("ErasedVolume.txt","a")
+			erased_vol = self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME]
+			self.ErasedVolume.write("    " + "{0:.4e}".format(self.FEM_Solution.time).rjust(11) + "    " + "{0:.4e}".format(erased_vol).rjust(11) + "\n")
+			self.ErasedVolume.close()
+		

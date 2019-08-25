@@ -30,6 +30,7 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
 
 
     def _create_nodes(self,mp):
@@ -89,15 +90,14 @@ class BaseTestDynamicEigenvalueAnalysis(KratosUnittest.TestCase):
             "tolerance"             : 1e-6,
             "number_of_eigenvalues" : 2,
             "echo_level"            : 3,
-            "normalize_eigenvectors": true,
-            "compute_modal_decomposition": true
+            "normalize_eigenvectors": true
         }
         """)
 
         eigen_solver = EigenSolversApplication.EigensystemSolver(eigensolver_settings)
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
         eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
-        compute_modal_decomposition = eigensolver_settings["compute_modal_decomposition"].GetBool()
+        compute_modal_decomposition = True
         eig_strategy = StructuralMechanicsApplication.EigensolverStrategy(mp,
                                                                           eigen_scheme,
                                                                           builder_and_solver,

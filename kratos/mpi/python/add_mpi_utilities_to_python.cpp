@@ -18,6 +18,8 @@
 // Project includes
 #include "add_mpi_utilities_to_python.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
+#include "mpi/utilities/gather_modelpart_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -29,6 +31,20 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     py::class_<ModelPartCommunicatorUtilities>(m,"ModelPartCommunicatorUtilities")
     .def_static("SetMPICommunicator",&ModelPartCommunicatorUtilities::SetMPICommunicator)
     ;
+
+    py::class_<ParallelFillCommunicator >(m,"ParallelFillCommunicator")
+    .def(py::init<ModelPart& >() )
+    .def("Execute", &ParallelFillCommunicator::Execute )
+    .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
+    ;
+
+    py::class_<GatherModelPartUtility>(m, "GatherModelPartUtility")
+        .def(py::init<int, ModelPart&, int, ModelPart&>())
+        .def("GatherOnMaster", &GatherModelPartUtility::GatherOnMaster<double>)
+        .def("GatherOnMaster", &GatherModelPartUtility::GatherOnMaster<array_1d<double, 3>>)
+        .def("ScatterFromMaster", &GatherModelPartUtility::ScatterFromMaster<double>)
+        .def("ScatterFromMaster",
+             &GatherModelPartUtility::ScatterFromMaster<array_1d<double, 3>>);
 }
 
 } // namespace Python

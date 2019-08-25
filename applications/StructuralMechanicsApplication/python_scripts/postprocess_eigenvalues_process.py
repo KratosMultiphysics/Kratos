@@ -15,7 +15,7 @@ def Factory(settings, Model):
     if process_settings.Has("computing_model_part_name"):
         computing_model_part = Model[process_settings["computing_model_part_name"].GetString()]
     else: # using default name
-        computing_model_part = Model["Structure.computing_domain"]
+        computing_model_part = Model["Structure"]
 
     process_settings.RemoveValue("computing_model_part_name")
     process_settings.RemoveValue("help")

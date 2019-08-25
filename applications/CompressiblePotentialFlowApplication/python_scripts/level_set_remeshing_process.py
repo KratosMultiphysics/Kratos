@@ -43,10 +43,11 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
                     }
                 },
                 "distance_modification_parameters":{
-                    "distance_threshold"                     : 0.001,
-                    "check_at_each_time_step"                : true,
-                    "avoid_almost_empty_elements"            : true,
-                    "deactivate_full_negative_elements"      : true
+                    "distance_threshold"                          : 0.001,
+                    "check_at_each_time_step"                     : true,
+                    "avoid_almost_empty_elements"                 : true,
+                    "deactivate_full_negative_elements"           : true,
+                    "full_negative_elements_fixed_variables_list" : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"]
                 }
             }  """ );
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -81,15 +82,6 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self._ModifyFinalDistance()
         self._CopyAndDeleteDefaultDistance()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
-
-        #############################################################################################
-        #THIS FUNCTION CALL IS TEMPORARY AND WILL BE REMOVED ONCE THE EMBEDDED WAKE PROCESS IS DEFINED
-        # Find nodal neigbours util call
-        avg_elem_num = 10
-        avg_node_num = 10
-        KratosMultiphysics.FindNodalNeighboursProcess(
-            self.main_model_part, avg_elem_num, avg_node_num).Execute()
-        #############################################################################################
 
     def _InitializeSkinModelPart(self):
         ''' This function loads and moves the skin_model_part in the main_model_part to the desired initial point (origin).

@@ -142,6 +142,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, expected_error_msg):
             read_materials_process.Factory(test_settings, current_model)
 
+    @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_without_tables_and_variables(self):
         self._prepare_test()
         self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("auxiliar_files_for_python_unnitest/materials_files/material_without_tables_and_variables.json"))

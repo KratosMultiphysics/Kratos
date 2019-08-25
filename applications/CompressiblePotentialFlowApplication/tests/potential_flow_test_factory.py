@@ -16,7 +16,6 @@ import os
 
 # Check other applications dependency
 hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
-structural_mechanics_is_available = kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
 
 class WorkFolderScope:
     def __init__(self, work_folder):
@@ -38,11 +37,10 @@ class PotentialFlowTests(UnitTest.TestCase):
     def test_Naca0012SmallAdjoint(self):
         if not hdf5_is_available:
             self.skipTest("Missing required application: HDF5Application")
-        if not structural_mechanics_is_available:
-            self.skipTest("Missing required application: StructuralMechanicsApplication")
         file_name = "naca0012_small_sensitivities"
         settings_file_name_primal = file_name + "_primal_parameters.json"
         settings_file_name_adjoint = file_name + "_adjoint_parameters.json"
+        settings_file_name_adjoint_analytical = file_name + "_adjoint_analytical_parameters.json"
         work_folder = "naca0012_small_adjoint_test"
 
         with WorkFolderScope(work_folder):
@@ -50,12 +48,30 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.327805503865, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.105810071870, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.3230253050805644, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.32651526722535246, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.0036897206842046205, 0.0, 1e-9)
             self._runTest(settings_file_name_adjoint)
+            self._runTest(settings_file_name_adjoint_analytical)
 
             for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
+    def test_Naca0012SmallCompressible(self):
+        file_name = "naca0012_small_compressible"
+        settings_file_name = file_name + "_parameters.json"
+        work_folder = "naca0012_small_compressible_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.4968313580730855, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+
+            for file_name in os.listdir():
+                if file_name.endswith(".time"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
     def test_EmbeddedCircleNoWake(self):
         settings_file_name = "embedded_circle_no_wake_parameters.json"
         work_folder = "embedded_test"
@@ -63,46 +79,134 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
+    def test_WakeProcess3DSmall(self):
+        # This tests a simple small 3D model
+        settings_file_name = "small_3d_parameters.json"
+        work_folder = "wake_process_3d_tests/15_elements_small_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            reference_wake_elements_id_list = [2, 4, 9, 13, 15]
+            self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
+            reference_kutta_elements_id_list = [1, 10, 14]
+            self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
+
+    def test_WakeProcess3DNodesOnWake(self):
+        # This tests a model with nodes laying on the wake
+        settings_file_name = "small_3d_parameters.json"
+        work_folder = "wake_process_3d_tests/25_elements_nodes_on_wake_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            reference_wake_elements_id_list = [1, 2, 3, 4, 5, 6]
+            self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
+            reference_kutta_elements_id_list = [13, 14, 15, 17, 18, 19, 20, 21, 22, 23]
+            self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
+
+    def test_WakeProcess3DKuttaNodesAboveTheWake(self):
+        # This tests a model with some kutta nodes above the wake
+        settings_file_name = "small_3d_parameters.json"
+        work_folder = "wake_process_3d_tests/24_elements_kutta_node_above_wake_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            reference_wake_elements_id_list = [2, 4, 8, 16, 17, 19, 20]
+            self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
+            reference_kutta_elements_id_list = [10, 11, 12, 13, 14, 15, 18, 23, 24]
+            self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
+
+    def _validateWakeProcess(self,reference_element_id_list, variable_name):
+        variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+        solution_element_id_list = []
+        for elem in self.main_model_part.Elements:
+            if(elem.GetValue(variable)):
+                solution_element_id_list.append(elem.Id)
+        self._validateIdList(solution_element_id_list, reference_element_id_list)
+
+    def _validateIdList(self, solution_element_id_list, reference_element_id_list):
+        if(abs(len(reference_element_id_list) - len(solution_element_id_list)) > 0.1):
+            raise Exception('Lists have different lengths', ' reference_element_id_list = ',
+                            reference_element_id_list, ' solution_element_id_list = ', solution_element_id_list)
+        else:
+            for i in range(len(reference_element_id_list)):
+                self._check_results(solution_element_id_list[i], reference_element_id_list[i], 0.0, 1e-9)
+
     def _runTest(self,settings_file_name):
         model = KratosMultiphysics.Model()
         with open(settings_file_name,'r') as settings_file:
             settings = KratosMultiphysics.Parameters(settings_file.read())
 
         if self.print_output:
-            settings.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
-                "gid_output" : [{
-                    "python_module" : "gid_output_process",
-                    "kratos_module" : "KratosMultiphysics",
-                    "process_name"  : "GiDOutputProcess",
-                    "help"          : "This process writes postprocessing files for GiD",
-                    "Parameters"    : {
-                        "model_part_name"        : "MainModelPart",
-                        "output_name"            : "output",
-                        "postprocess_parameters" : {
-                            "result_file_configuration" : {
-                                "gidpost_flags"       : {
-                                    "GiDPostMode"           : "GiD_PostBinary",
-                                    "WriteDeformedMeshFlag" : "WriteDeformed",
-                                    "WriteConditionsFlag"   : "WriteConditions",
-                                    "MultiFileFlag"         : "SingleFile"
+            if settings_file_name == "naca0012_small_sensitivities_adjoint_parameters.json":
+                settings.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
+                    "gid_output" : [{
+                        "python_module" : "gid_output_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "GiDOutputProcess",
+                        "help"          : "This process writes postprocessing files for GiD",
+                        "Parameters"    : {
+                            "model_part_name"        : "MainModelPart",
+                            "output_name"            : "naca0012_adjoint",
+                            "postprocess_parameters" : {
+                                "result_file_configuration" : {
+                                    "gidpost_flags"       : {
+                                        "GiDPostMode"           : "GiD_PostBinary",
+                                        "WriteDeformedMeshFlag" : "WriteDeformed",
+                                        "WriteConditionsFlag"   : "WriteConditions",
+                                        "MultiFileFlag"         : "SingleFile"
+                                    },
+                                    "file_label"          : "step",
+                                    "output_control_type" : "step",
+                                    "output_frequency"    : 1,
+                                    "body_output"         : true,
+                                    "node_output"         : false,
+                                    "skin_output"         : false,
+                                    "plane_output"        : [],
+                                    "nodal_results"       : ["SHAPE_SENSITIVITY","ADJOINT_VELOCITY_POTENTIAL", "ADJOINT_AUXILIARY_VELOCITY_POTENTIAL"],
+                                    "nodal_nonhistorical_results": [],
+                                    "elemental_conditional_flags_results": [],
+                                    "gauss_point_results" : []
                                 },
-                                "file_label"          : "step",
-                                "output_control_type" : "step",
-                                "output_frequency"    : 1,
-                                "body_output"         : true,
-                                "node_output"         : false,
-                                "skin_output"         : false,
-                                "plane_output"        : [],
-                                "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","DISTANCE"],
-                                "nodal_nonhistorical_results": ["TRAILING_EDGE"],
-                                "elemental_conditional_flags_results": ["STRUCTURE"],
-                                "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","ELEMENTAL_DISTANCES","KUTTA"]
-                            },
-                            "point_data_configuration"  : []
+                                "point_data_configuration"  : []
+                            }
                         }
-                    }
-                }]
-            }'''))
+                    }]
+                }'''))
+            else:
+                settings.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
+                    "gid_output" : [{
+                        "python_module" : "gid_output_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "GiDOutputProcess",
+                        "help"          : "This process writes postprocessing files for GiD",
+                        "Parameters"    : {
+                            "model_part_name"        : "MainModelPart",
+                            "output_name"            : "naca0012",
+                            "postprocess_parameters" : {
+                                "result_file_configuration" : {
+                                    "gidpost_flags"       : {
+                                        "GiDPostMode"           : "GiD_PostBinary",
+                                        "WriteDeformedMeshFlag" : "WriteDeformed",
+                                        "WriteConditionsFlag"   : "WriteConditions",
+                                        "MultiFileFlag"         : "SingleFile"
+                                    },
+                                    "file_label"          : "step",
+                                    "output_control_type" : "step",
+                                    "output_frequency"    : 1,
+                                    "body_output"         : true,
+                                    "node_output"         : false,
+                                    "skin_output"         : false,
+                                    "plane_output"        : [],
+                                    "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
+                                    "nodal_nonhistorical_results": ["TRAILING_EDGE","WAKE_DISTANCE"],
+                                    "elemental_conditional_flags_results": ["STRUCTURE"],
+                                    "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
+                                },
+                                "point_data_configuration"  : []
+                            }
+                        }
+                    }]
+                }'''))
 
         potential_flow_analysis = PotentialFlowAnalysis(model, settings)
         potential_flow_analysis.Run()
