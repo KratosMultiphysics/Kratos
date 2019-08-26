@@ -301,7 +301,6 @@ public:
         ComputeBSplineShapeFunctionValuesAtSpan(rKnots, Span, ParameterT);
 
         // apply weights
-        
         std::vector<double> weightedSums(NumberOfShapeFunctionRows());
 
         for (int k = 0; k < NumberOfShapeFunctionRows(); k++) {

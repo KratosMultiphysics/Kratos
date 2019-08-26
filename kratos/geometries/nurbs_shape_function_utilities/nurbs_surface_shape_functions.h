@@ -276,6 +276,12 @@ public:
         const double ParameterU,
         const double ParameterV)
     {
+        // Check input
+        KRATOS_DEBUG_ERROR_IF(Weights.size() !=
+            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU(), rKnotsU.size())
+                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV(), rKnotsV.size())))
+            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
+
         // compute B-Spline shape functions
         ComputeBSplineShapeFunctionValuesAtSpan(
             rKnotsU, rKnotsV, SpanU, SpanV, ParameterU, ParameterV);
