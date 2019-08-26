@@ -18,7 +18,6 @@ cmake .. \
 -DDAM_APPLICATION=ON                                                                            \
 -DDEM_APPLICATION=ON                                                                            \
 -DCO_SIMULATION_APPLICATION=ON                                                                  \
--DEMPIRE_APPLICATION=ON                                                                         \
 -DEXTERNAL_SOLVERS_APPLICATION=ON                                                               \
 -DFSI_APPLICATION=ON                                                                            \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                                 \
@@ -55,6 +54,7 @@ cmake .. \
 -DMAPPING_APPLICATION=ON                                                                        \
 -DMETIS_APPLICATION=OFF                                                                         \
 -DCOMPRESSIBLE_POTENTIAL_FLOW_APPLICATION=ON                                                    \
+-DCABLE_NET_APPLICATION=ON                                                                      \
 -DPARMETIS_ROOT_DIR=\"UNSET\"                                                                   \
 -DTRILINOS_APPLICATION=OFF                                                                      \
 -DTRILINOS_ROOT=\"UNSET\"                                                                       \

@@ -9,7 +9,7 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
-import dam_mechanical_solver
+from KratosMultiphysics.DamApplication import dam_mechanical_solver
 from KratosMultiphysics.mpi import distributed_import_model_part_utility
 
 
