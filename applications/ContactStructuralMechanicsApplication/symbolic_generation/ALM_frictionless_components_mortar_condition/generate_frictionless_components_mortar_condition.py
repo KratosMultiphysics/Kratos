@@ -2,12 +2,11 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Import KratosMultiphysics
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication  as StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication  as ContactStructuralMechanicsApplication
+import KratosMultiphysics.ContactStructuralMechanicsApplication
 
 # Import sympy utils
 import sympy
-import custom_sympy_fe_utilities
+from KratosMultiphysics.ContactStructuralMechanicsApplication import custom_sympy_fe_utilities
 
 do_simplifications = False
 mode = "c" #to output to a c++ file

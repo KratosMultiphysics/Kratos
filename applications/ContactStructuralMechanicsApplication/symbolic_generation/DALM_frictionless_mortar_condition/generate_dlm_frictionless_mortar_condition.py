@@ -1,12 +1,12 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-from KratosMultiphysics import *
-from KratosMultiphysics.ContactStructuralMechanicsApplication  import *
+# Import KratosMultiphysics
+import KratosMultiphysics
+import KratosMultiphysics.ContactStructuralMechanicsApplication
 
-from sympy import *
-from sympy.physics.vector import *
-from custom_sympy_fe_utilities import *
-import operator
+# Import sympy utils
+import sympy
+from KratosMultiphysics.ContactStructuralMechanicsApplication import custom_sympy_fe_utilities
 
 do_simplifications = False
 mode = "c" #to output to a c++ file
