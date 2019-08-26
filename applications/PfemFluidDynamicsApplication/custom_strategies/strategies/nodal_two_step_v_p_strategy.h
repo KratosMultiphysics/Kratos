@@ -1002,8 +1002,9 @@ void ComputeAndStoreNodalDeformationGradient(ModelPart::NodeIterator itNode, dou
 	        dNdYi=rNodalSFDneigh[firstRow+1];
           unsigned int neigh_nodes_id= neighb_nodes[i].Id(); 
           unsigned int other_neigh_nodes_id=nodalSFDneighboursId[i+1];
-          if(neigh_nodes_id!=other_neigh_nodes_id)
-            std::cout<<"neigh_nodes_id "<<neigh_nodes_id<<"   other_neigh_nodes_id "<<other_neigh_nodes_id<< std::endl;
+          if(neigh_nodes_id!=other_neigh_nodes_id){
+            std::cout<<"node (x,y)=("<<itNode->X()<<","<<itNode->Y()<<") with neigh_nodes_id "<<neigh_nodes_id<<" different than  other_neigh_nodes_id "<<other_neigh_nodes_id<< std::endl;
+		  }
 	        Fgrad(0,0)+=dNdXi*neighb_nodes[i].X();
 	        Fgrad(0,1)+=dNdYi*neighb_nodes[i].X();
 	        Fgrad(1,0)+=dNdXi*neighb_nodes[i].Y();

@@ -333,7 +333,7 @@ namespace Kratos {
 void Initialize() override
       {
 
-	std::cout<<"  \n     Initialize in nodal_two_step_v_p_strategy"<<std::endl;
+	std::cout<<"  \n     Initialize in nodal_two_step_v_p_strategy_FSI"<<std::endl;
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 	unsigned int sizeStrains=3*(dimension-1);
@@ -533,7 +533,10 @@ void AssignMaterialToEachNode(ModelPart::NodeIterator itNode)
     {
 	    double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
   		double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
+
+		//deviatoricCoeff=deltaT*secondLame
 		deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
+		//volumetricCoeff=bulk*deltaT=deltaT*(firstLame+2*secondLame/3)
 		volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
 	}
 	else if(itNode->Is(FLUID) || itNode->Is(RIGID) )
@@ -550,6 +553,7 @@ void AssignMaterialToEachNode(ModelPart::NodeIterator itNode)
 
 	double currFirstLame=volumetricCoeff - 2.0*deviatoricCoeff/3.0;
   
+    //currFirstLame=deltaT*firstLame
 	itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT)=currFirstLame;
  	itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT)=deviatoricCoeff;
 
@@ -1003,6 +1007,7 @@ void CalcNodalStrainsAndStresses()
 					noalias(solidInterfaceFgrad)=ZeroMatrix(dimension,dimension);
            			noalias(solidInterfaceFgradVel)=ZeroMatrix(dimension,dimension);
 
+					// theta=1.0;
 					// Matrix solidInterfaceFgrad=ZeroMatrix(dimension,dimension);
 					// Matrix solidInterfaceFgradVel=ZeroMatrix(dimension,dimension);
 					ComputeAndStoreNodalDeformationGradientForInterfaceNode(itNode, solidNodalSFDneighboursId, rSolidNodalSFDneigh, theta, solidInterfaceFgrad, solidInterfaceFgradVel);
@@ -1013,14 +1018,17 @@ void CalcNodalStrainsAndStresses()
 		}
 		else{
 			if(itNode->Is(SOLID) && solidNodalVolume>0){
+				// theta=1.0;
 				ComputeAndStoreNodalDeformationGradientForSolidNode(itNode, theta);
 				CalcNodalStrainsAndStressesForSolidNode(itNode);					
 			}else if(nodalVolume>0){
+				// theta=0.5;
 				this->ComputeAndStoreNodalDeformationGradient(itNode, theta);
 				this->CalcNodalStrainsAndStressesForNode(itNode);
 			}
 		}
 		if(nodalVolume==0 && solidNodalVolume==0){ // if nodalVolume==0
+				//theta=0.5;
 				this->InitializeNodalVariablesForRemeshedDomain(itNode);
 				InitializeNodalVariablesForSolidRemeshedDomain(itNode);
 		}
@@ -1096,8 +1104,8 @@ void CalcNodalStrainsAndStressesForInterfaceFluidNode(ModelPart::NodeIterator it
 
 
 
-	      Matrix Fgrad=itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD);
-	      Matrix FgradVel=itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD_VEL);
+	      Matrix Fgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
+	      Matrix FgradVel=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
 	      double detFgrad=1.0;
 	      Matrix InvFgrad=ZeroMatrix(dimension,dimension);
 	      Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
@@ -1110,6 +1118,172 @@ void CalcNodalStrainsAndStressesForInterfaceFluidNode(ModelPart::NodeIterator it
 
 	      //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 	      SpatialVelocityGrad=prod(FgradVel,InvFgrad);
+
+	      if(dimension==2)
+        {
+	      	itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
+	      	itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
+		    itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+
+			double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+			if(yieldShear>0)
+			{
+					itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=sqrt((2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+						  2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+						  4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]));
+					double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+					double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+					double exponent=-adaptiveExponent*equivalentStrainRate;
+					if(equivalentStrainRate!=0){
+						deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+					}
+					if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
+						// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+						deviatoricCoeff=adaptiveExponent*yieldShear;
+					}
+			}
+
+	       	double DefVol=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]+itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+
+	      	itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
+
+		    double nodalSigmaTot_xx= currFirstLame*DefVol + 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
+	      	double nodalSigmaTot_yy= currFirstLame*DefVol + 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+		    double nodalSigmaTot_xy= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
+
+	       	double nodalSigmaDev_xx= 2.0*deviatoricCoeff*(itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] - DefVol/3.0);
+	      	double nodalSigmaDev_yy= 2.0*deviatoricCoeff*(itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] - DefVol/3.0);
+		    double nodalSigmaDev_xy= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
+
+		//       if(itNode->Is(SOLID))
+        //   {
+		//         nodalSigmaTot_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[0];
+		//         nodalSigmaTot_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[1];
+		//         nodalSigmaTot_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[2];
+
+		//         nodalSigmaDev_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[0];
+		//         nodalSigmaDev_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[1];
+		//         nodalSigmaDev_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[2];
+	    //   	}
+
+	      	itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
+	      	itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
+		    itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_xy;
+
+	      	itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
+		    itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
+		    itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_xy;
+			
+
+	      }else if (dimension==3)
+        {
+		    itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
+		    itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
+	      	itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=SpatialVelocityGrad(2,2);
+			itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+		    itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4]=0.5*(SpatialVelocityGrad(2,0)+SpatialVelocityGrad(0,2));
+		    itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]=0.5*(SpatialVelocityGrad(2,1)+SpatialVelocityGrad(1,2));
+
+					double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+					if(yieldShear>0){
+							itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE)=sqrt(2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] +
+						   2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] +
+						   2.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] +
+						   4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3] +
+						   4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4] +
+						   4.0*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]*itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5] );
+							double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
+							double equivalentStrainRate=itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
+							double exponent=-adaptiveExponent*equivalentStrainRate;
+							if(equivalentStrainRate!=0){
+								deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
+							}
+							if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
+								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
+								deviatoricCoeff=adaptiveExponent*yieldShear;
+							}
+					}
+
+	      	double DefVol=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] + itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
+
+	      	itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
+
+		    double nodalSigmaTot_xx= currFirstLame*DefVol + 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
+	      	double nodalSigmaTot_yy= currFirstLame*DefVol + 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+		    double nodalSigmaTot_zz= currFirstLame*DefVol + 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
+		    double nodalSigmaTot_xy= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3];
+	      	double nodalSigmaTot_xz= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4];
+		    double nodalSigmaTot_yz= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5];
+
+		    double nodalSigmaDev_xx= 2.0*deviatoricCoeff*(itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0] - DefVol/3.0);
+	      	double nodalSigmaDev_yy= 2.0*deviatoricCoeff*(itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1] - DefVol/3.0);
+	      	double nodalSigmaDev_zz= 2.0*deviatoricCoeff*(itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2] - DefVol/3.0);
+		    double nodalSigmaDev_xy= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3];
+		    double nodalSigmaDev_xz= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4];
+	      	double nodalSigmaDev_yz= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5];
+
+	      	// if(itNode->Is(SOLID))
+         	// {
+		    //     nodalSigmaTot_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[0];
+		    //     nodalSigmaTot_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[1];
+		    //     nodalSigmaTot_zz+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[2];
+		    //     nodalSigmaTot_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[3];
+		    //     nodalSigmaTot_xz+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[4];
+		    //     nodalSigmaTot_yz+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[5];
+
+		    //     nodalSigmaDev_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[0];
+		    //     nodalSigmaDev_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[1];
+		    //     nodalSigmaDev_zz+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[2];
+		    //     nodalSigmaDev_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[3];
+		    //     nodalSigmaDev_xz+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[4];
+		    //     nodalSigmaDev_yz+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[5];
+	      	// }
+
+		    itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
+		    itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
+		    itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_zz;
+		    itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[3]=nodalSigmaTot_xy;
+		    itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[4]=nodalSigmaTot_xz;
+	      	itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[5]=nodalSigmaTot_yz;
+
+		    itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
+		    itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
+		    itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_zz;
+	      	itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[3]=nodalSigmaDev_xy;
+	      	itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[4]=nodalSigmaDev_xz;
+		    itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[5]=nodalSigmaDev_yz;
+
+	      }
+}
+
+void CalcNodalStrainsAndStressesForInterfaceSolidNode(ModelPart::NodeIterator itNode)
+{
+
+   		ModelPart& rModelPart = BaseType::GetModelPart();
+  		const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+    	ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    	const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+
+	    double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
+  		double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
+
+	    double currFirstLame   = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio));
+	    double deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
+
+	    Matrix Fgrad=itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD);
+	    Matrix FgradVel=itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD_VEL);
+	    double detFgrad=1.0;
+	    Matrix InvFgrad=ZeroMatrix(dimension,dimension);
+	    Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
+
+        if(dimension==2){
+          MathUtils< double>::InvertMatrix2(Fgrad,InvFgrad,detFgrad);
+        }else if(dimension==3){
+           MathUtils< double>::InvertMatrix3(Fgrad,InvFgrad,detFgrad);
+        }
+
+	      //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+	    SpatialVelocityGrad=prod(FgradVel,InvFgrad);
 
 	      if(dimension==2)
         {
@@ -1160,11 +1334,11 @@ void CalcNodalStrainsAndStressesForInterfaceFluidNode(ModelPart::NodeIterator it
 
 	      	itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
 	      	itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_xy;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_xy;
 
 	      	itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_xy;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_xy;
 			
 
 	      }else if (dimension==3)
@@ -1172,12 +1346,12 @@ void CalcNodalStrainsAndStressesForInterfaceFluidNode(ModelPart::NodeIterator it
 		    itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
 		    itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
 	      	itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]=SpatialVelocityGrad(2,2);
-			itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+		    itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
 		    itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4]=0.5*(SpatialVelocityGrad(2,0)+SpatialVelocityGrad(0,2));
 		    itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5]=0.5*(SpatialVelocityGrad(2,1)+SpatialVelocityGrad(1,2));
 
-					double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-					if(yieldShear>0){
+			double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
+			if(yieldShear>0){
 							itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE)=sqrt(2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] +
 						   2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] +
 						   2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] +
@@ -1194,7 +1368,7 @@ void CalcNodalStrainsAndStressesForInterfaceFluidNode(ModelPart::NodeIterator it
 								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
 								deviatoricCoeff=adaptiveExponent*yieldShear;
 							}
-					}
+			}
 
 	      	double DefVol=itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
 
@@ -1231,24 +1405,25 @@ void CalcNodalStrainsAndStressesForInterfaceFluidNode(ModelPart::NodeIterator it
 		        nodalSigmaDev_yz+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[5];
 	      	}
 
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_zz;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[3]=nodalSigmaTot_xy;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[4]=nodalSigmaTot_xz;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_zz;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[3]=nodalSigmaTot_xy;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[4]=nodalSigmaTot_xz;
 	      	itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[5]=nodalSigmaTot_yz;
 
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_zz;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_zz;
 	      	itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[3]=nodalSigmaDev_xy;
 	      	itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[4]=nodalSigmaDev_xz;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[5]=nodalSigmaDev_yz;
+		    itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[5]=nodalSigmaDev_yz;
 
 	      }
 }
 
-void CalcNodalStrainsAndStressesForInterfaceSolidNode(ModelPart::NodeIterator itNode)
+
+void CalcNodalStrainsAndStressesForSolidNode(ModelPart::NodeIterator itNode)
 {
 
    		ModelPart& rModelPart = BaseType::GetModelPart();
@@ -1258,6 +1433,7 @@ void CalcNodalStrainsAndStressesForInterfaceSolidNode(ModelPart::NodeIterator it
 
 	    double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
   		double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
+
 	    double currFirstLame   = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio));
 	    double deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
 
@@ -1270,13 +1446,23 @@ void CalcNodalStrainsAndStressesForInterfaceSolidNode(ModelPart::NodeIterator it
         if(dimension==2){
           MathUtils< double>::InvertMatrix2(Fgrad,InvFgrad,detFgrad);
         }else if(dimension==3){
-           MathUtils< double>::InvertMatrix3(Fgrad,InvFgrad,detFgrad);
+          MathUtils< double>::InvertMatrix3(Fgrad,InvFgrad,detFgrad);
         }
-
+		// if(itNode->Is(SOLID)){
+		// 	std::cout<<"solid node"<<std::endl;
+		// }
+		// if(itNode->Is(FLUID)){
+		// 	std::cout<<"FLUID node"<<std::endl;
+		// }
+		// if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
+		// 	std::cout<<"currFirstLame "<<currFirstLame<<"  deviatoricCoeff "<<deviatoricCoeff<<std::endl;
+		// }else{
+		// 	std::cout<<"NOT INTERFACE currFirstLame "<<currFirstLame<<"  deviatoricCoeff "<<deviatoricCoeff<<std::endl;
+		// }
 	      //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
 	    SpatialVelocityGrad=prod(FgradVel,InvFgrad);
 
-	      if(dimension==2)
+	    if(dimension==2)
         {
 	      	itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
 	      	itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
@@ -1286,8 +1472,8 @@ void CalcNodalStrainsAndStressesForInterfaceSolidNode(ModelPart::NodeIterator it
 			if(yieldShear>0)
 			{
 					itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE)=sqrt((2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] +
-						  2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] +
-						  4.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]));
+						2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] +
+						4.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]));
 					double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
 					double equivalentStrainRate=itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
 					double exponent=-adaptiveExponent*equivalentStrainRate;
@@ -1409,182 +1595,6 @@ void CalcNodalStrainsAndStressesForInterfaceSolidNode(ModelPart::NodeIterator it
 	      	itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[3]=nodalSigmaDev_xy;
 	      	itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[4]=nodalSigmaDev_xz;
 		    itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[5]=nodalSigmaDev_yz;
-
-	      }
-}
-
-
-void CalcNodalStrainsAndStressesForSolidNode(ModelPart::NodeIterator itNode)
-{
-
-   		ModelPart& rModelPart = BaseType::GetModelPart();
-  		const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-    	ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-    	const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-
-	    double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
-  		double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
-	    double currFirstLame   = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio));
-	    double deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
-
-	    Matrix Fgrad=itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD);
-	    Matrix FgradVel=itNode->FastGetSolutionStepValue(SOLID_NODAL_DEFORMATION_GRAD_VEL);
-	    double detFgrad=1.0;
-	    Matrix InvFgrad=ZeroMatrix(dimension,dimension);
-	    Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
-
-        if(dimension==2){
-          MathUtils< double>::InvertMatrix2(Fgrad,InvFgrad,detFgrad);
-        }else if(dimension==3){
-          MathUtils< double>::InvertMatrix3(Fgrad,InvFgrad,detFgrad);
-        }
-		// if(itNode->Is(SOLID)){
-		// 	std::cout<<"solid node"<<std::endl;
-		// }
-		// if(itNode->Is(FLUID)){
-		// 	std::cout<<"FLUID node"<<std::endl;
-		// }
-		// if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-		// 	std::cout<<"currFirstLame "<<currFirstLame<<"  deviatoricCoeff "<<deviatoricCoeff<<std::endl;
-		// }else{
-		// 	std::cout<<"NOT INTERFACE currFirstLame "<<currFirstLame<<"  deviatoricCoeff "<<deviatoricCoeff<<std::endl;
-		// }
-	      //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
-	    SpatialVelocityGrad=prod(FgradVel,InvFgrad);
-
-	    if(dimension==2)
-        {
-	      	itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
-	      	itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
-		    itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
-
-			double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-			if(yieldShear>0)
-			{
-					itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE)=sqrt((2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] +
-						2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] +
-						4.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]));
-					double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-					double equivalentStrainRate=itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
-					double exponent=-adaptiveExponent*equivalentStrainRate;
-					if(equivalentStrainRate!=0){
-						deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
-					}
-					if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
-						// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-						deviatoricCoeff=adaptiveExponent*yieldShear;
-					}
-			}
-
-	       	double DefVol=itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0]+itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
-
-	      	itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
-
-		      double nodalSigmaTot_xx= currFirstLame*DefVol + 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0];
-	      	double nodalSigmaTot_yy= currFirstLame*DefVol + 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
-		      double nodalSigmaTot_xy= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
-
-	       	double nodalSigmaDev_xx= 2.0*deviatoricCoeff*(itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] - DefVol/3.0);
-	      	double nodalSigmaDev_yy= 2.0*deviatoricCoeff*(itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] - DefVol/3.0);
-		      double nodalSigmaDev_xy= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
-
-		      if(itNode->Is(SOLID))
-          {
-		        nodalSigmaTot_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[0];
-		        nodalSigmaTot_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[1];
-		        nodalSigmaTot_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[2];
-
-		        nodalSigmaDev_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[0];
-		        nodalSigmaDev_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[1];
-		        nodalSigmaDev_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[2];
-	      	}
-
-	      	itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
-	      	itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_xy;
-
-	      	itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_xy;
-			
-
-	      }else if (dimension==3)
-        {
-		      itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
-		      itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
-	      	itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]=SpatialVelocityGrad(2,2);
-		      itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
-		      itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4]=0.5*(SpatialVelocityGrad(2,0)+SpatialVelocityGrad(0,2));
-		      itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5]=0.5*(SpatialVelocityGrad(2,1)+SpatialVelocityGrad(1,2));
-
-					double yieldShear=itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-					if(yieldShear>0){
-							itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE)=sqrt(2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] +
-						   2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] +
-						   2.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] +
-						   4.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3] +
-						   4.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4] +
-						   4.0*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5]*itNode->FastGetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5] );
-							double adaptiveExponent=itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-							double equivalentStrainRate=itNode->FastGetSolutionStepValue(SOLID_NODAL_EQUIVALENT_STRAIN_RATE);
-							double exponent=-adaptiveExponent*equivalentStrainRate;
-							if(equivalentStrainRate!=0){
-								deviatoricCoeff+=(yieldShear/equivalentStrainRate)*(1-exp(exponent));
-							}
-							if(equivalentStrainRate<0.00001 && yieldShear!=0 && adaptiveExponent!=0){
-								// for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-								deviatoricCoeff=adaptiveExponent*yieldShear;
-							}
-					}
-
-	      	double DefVol=itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] + itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
-
-	      	itNode->GetSolutionStepValue(SOLID_NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
-
-		      double nodalSigmaTot_xx= currFirstLame*DefVol + 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0];
-	      	double nodalSigmaTot_yy= currFirstLame*DefVol + 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1];
-		      double nodalSigmaTot_zz= currFirstLame*DefVol + 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2];
-		      double nodalSigmaTot_xy= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3];
-	      	double nodalSigmaTot_xz= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4];
-		      double nodalSigmaTot_yz= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5];
-
-		      double nodalSigmaDev_xx= 2.0*deviatoricCoeff*(itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[0] - DefVol/3.0);
-	      	double nodalSigmaDev_yy= 2.0*deviatoricCoeff*(itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[1] - DefVol/3.0);
-	      	double nodalSigmaDev_zz= 2.0*deviatoricCoeff*(itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[2] - DefVol/3.0);
-		      double nodalSigmaDev_xy= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[3];
-		      double nodalSigmaDev_xz= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[4];
-	      	double nodalSigmaDev_yz= 2.0*deviatoricCoeff*itNode->GetSolutionStepValue(SOLID_NODAL_SPATIAL_DEF_RATE)[5];
-
-	      	if(itNode->Is(SOLID))
-          {
-		        nodalSigmaTot_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[0];
-		        nodalSigmaTot_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[1];
-		        nodalSigmaTot_zz+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[2];
-		        nodalSigmaTot_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[3];
-		        nodalSigmaTot_xz+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[4];
-		        nodalSigmaTot_yz+=itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,1)[5];
-
-		        nodalSigmaDev_xx+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[0];
-		        nodalSigmaDev_yy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[1];
-		        nodalSigmaDev_zz+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[2];
-		        nodalSigmaDev_xy+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[3];
-		        nodalSigmaDev_xz+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[4];
-		        nodalSigmaDev_yz+=itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,1)[5];
-	      	}
-
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_zz;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[3]=nodalSigmaTot_xy;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[4]=nodalSigmaTot_xz;
-	      	itNode->GetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS,0)[5]=nodalSigmaTot_yz;
-
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_zz;
-	      	itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[3]=nodalSigmaDev_xy;
-	      	itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[4]=nodalSigmaDev_xz;
-		      itNode->GetSolutionStepValue(SOLID_NODAL_DEVIATORIC_CAUCHY_STRESS,0)[5]=nodalSigmaDev_yz;
 
 	      }
 }
@@ -1865,7 +1875,6 @@ void ComputeAndStoreNodalDeformationGradientForSolidNode(ModelPart::NodeIterator
     Matrix Fgrad=ZeroMatrix(dimension,dimension);
     Matrix FgradVel=ZeroMatrix(dimension,dimension);
     NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-
     if(dimension==2)
     {
 
@@ -1895,8 +1904,9 @@ void ComputeAndStoreNodalDeformationGradientForSolidNode(ModelPart::NodeIterator
 	        dNdYi=rNodalSFDneigh[firstRow+1];
           unsigned int neigh_nodes_id= neighb_nodes[i].Id(); 
           unsigned int other_neigh_nodes_id=nodalSFDneighboursId[i+1];
-          if(neigh_nodes_id!=other_neigh_nodes_id)
-            std::cout<<"neigh_nodes_id "<<neigh_nodes_id<<"   other_neigh_nodes_id "<<other_neigh_nodes_id<< std::endl;
+          if(neigh_nodes_id!=other_neigh_nodes_id){
+            std::cout<<"node (x,y)=("<<itNode->X()<<","<<itNode->Y()<<") with neigh_nodes_id "<<neigh_nodes_id<<" different than  other_neigh_nodes_id "<<other_neigh_nodes_id<< std::endl;
+		  }
 	        Fgrad(0,0)+=dNdXi*neighb_nodes[i].X();
 	        Fgrad(0,1)+=dNdYi*neighb_nodes[i].X();
 	        Fgrad(1,0)+=dNdXi*neighb_nodes[i].Y();
