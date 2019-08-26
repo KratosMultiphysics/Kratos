@@ -69,7 +69,7 @@ class FEMDEM_Solution:
             self.RemeshingProcessMMG.ExecuteInitialize()
 
         if self.FEM_Solution.ProjectParameters.Has("transfer_dem_contact_forces") == False:
-            self.TransferDEMContactForcesToFEM = False
+            self.TransferDEMContactForcesToFEM = True
         else:
             self.TransferDEMContactForcesToFEM = self.FEM_Solution.ProjectParameters["transfer_dem_contact_forces"].GetBool()
 
