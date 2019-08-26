@@ -6,9 +6,11 @@ import KratosMultiphysics as KM
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.factories.io_factory as io_factory
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 def Create(settings, name):
-    return CoSimulationSolverWrapper(settings, name)
+    raise Exception('"CoSimulationSolverWrapper" is a baseclass and cannot be used directly!')
 
 class CoSimulationSolverWrapper(object):
     """Baseclass for the solver wrappers used for CoSimulation
@@ -41,7 +43,8 @@ class CoSimulationSolverWrapper(object):
 
 
     def Initialize(self):
-        pass
+        if self.__HasIO():
+            self.__GetIO().Initialize()
 
     def InitializeCouplingInterfaceData(self):
         # Initializing of the CouplingInterfaceData can only be done after the meshes are read
@@ -50,7 +53,8 @@ class CoSimulationSolverWrapper(object):
             data.Initialize()
 
     def Finalize(self):
-        pass
+        if self.__HasIO():
+            self.__GetIO().Finalize()
 
     def AdvanceInTime(self, current_time):
         raise Exception('"AdvanceInTime" must be implemented in the derived class!')
@@ -68,11 +72,12 @@ class CoSimulationSolverWrapper(object):
         pass
 
     def SolveSolutionStep(self):
-        pass
+        for data in self.data_dict.values():
+            data.is_outdated = True
 
 
-    def CreateIO(self, solvers, io_echo_level):
-        if self.__IOIsCreated():
+    def CreateIO(self, io_echo_level):
+        if self.__HasIO():
             raise Exception('IO for solver "{}" is already created!'.format(self.name))
 
         io_settings = self.settings["io_settings"]
@@ -80,19 +85,27 @@ class CoSimulationSolverWrapper(object):
         if not io_settings.Has("echo_level"):
             io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
 
-        self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self._GetIOType())
+        self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self.name, self._GetIOType())
 
-    def ImportCouplingInterfaceData(self, data_name, from_client=None):
-        self.__GetIO().ImportCouplingInterfaceData(data_name, from_client)
+    def ImportCouplingInterface(self, interface_config):
+        if self.echo_level > 2:
+            cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing coupling interface "{}" of solver: "{}"'.format(colors.magenta(interface_config["model_part_name"]), colors.blue(self.name)))
+        self.__GetIO().ImportCouplingInterface(interface_config)
 
-    def ImportCouplingInterface(self, geometry_name, from_client=None):
-        self.__GetIO().ImportCouplingInterface(geometry_name, from_client)
+    def ExportCouplingInterface(self, interface_config):
+        if self.echo_level > 2:
+            cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting coupling interface "{}" of solver: "{}"'.format(colors.magenta(interface_config["model_part_name"]), colors.blue(self.name)))
+        self.__GetIO().ExportCouplingInterface(interface_config)
 
-    def ExportCouplingInterfaceData(self, data_name, to_client=None):
-        self.__GetIO().ExportCouplingInterfaceData(data_name, to_client)
+    def ImportData(self, data_config):
+        if self.echo_level > 2:
+            cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Importing data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
+        self.__GetIO().ImportData(data_config)
 
-    def ExportCouplingInterface(self, geometry_name, to_client=None):
-        self.__GetIO().ExportCouplingInterface(geometry_name, to_client)
+    def ExportData(self, data_config):
+        if self.echo_level > 2:
+            cs_tools.cs_print_info("CoSimulationSolverWrapper", 'Exporting data of solver: "{}" with type: "{}"'.format(colors.blue(self.name), data_config["type"]))
+        self.__GetIO().ExportData(data_config)
 
 
     def GetInterfaceData(self, data_name):
@@ -124,19 +137,19 @@ class CoSimulationSolverWrapper(object):
         return "dummy_io"
 
     def __GetIO(self):
-        if not self.__IOIsCreated():
+        if not self.__HasIO():
             raise Exception('IO for solver "{}" is not created!'.format(self.name))
         return self.__io
 
-    def __IOIsCreated(self):
+    def __HasIO(self):
         return self.__io is not None
 
     @classmethod
     def _GetDefaultSettings(cls):
         return KM.Parameters("""{
-            "type"        : "",
-            "io_settings" : {},
-            "settings"    : {},
-            "data"        : {},
-            "echo_level"  : 0
+            "type"                    : "",
+            "solver_wrapper_settings" : {},
+            "io_settings"             : {},
+            "data"                    : {},
+            "echo_level"              : 0
         }""")
