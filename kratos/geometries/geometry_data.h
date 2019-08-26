@@ -279,6 +279,11 @@ public:
             ThisLocalSpaceDimension);
     }
 
+    /*
+    * Constructor which has a precomputed a pointer to the static geometry dimension.
+    * @param pThisGeometryDimension pointer to the dimensional data
+    * @see other constructors.
+    */
     GeometryData(GeometryDimension const *pThisGeometryDimension,
         IntegrationMethod ThisDefaultMethod,
         const IntegrationPointsContainerType& ThisIntegrationPoints,
