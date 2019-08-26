@@ -35,7 +35,10 @@ namespace Kratos
  *        from outside.
  *        The parent pointer can provide the adress to the owner of this quadrature point.
  */
-template<int TWorkingSpaceDimension, int TLocalSpaceDimension, class TPointType>
+template<class TPointType,
+    int TWorkingSpaceDimension,
+    int TLocalSpaceDimension = TWorkingSpaceDimension,
+    int TDimension = TLocalSpaceDimension>
 class QuadraturePoint
     : public Geometry<TPointType>
 {
@@ -48,6 +51,7 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     typedef typename GeometryType::PointsArrayType PointsArrayType;
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
@@ -58,6 +62,13 @@ public:
     typedef typename GeometryType::IntegrationPointsContainerType IntegrationPointsContainerType;
     typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
     typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+
+    /// using base class functions
+    using BaseType::Jacobian;
+    using BaseType::DeterminantOfJacobian;
+    using BaseType::ShapeFunctionsValues; 
+    using BaseType::ShapeFunctionsLocalGradients;
+    using BaseType::InverseOfJacobian;
 
     ///@}
     ///@name Life Cycle
@@ -156,7 +167,7 @@ public:
      * geometry points too.
      */
     template<class TOtherPointType>
-    QuadraturePoint( QuadraturePoint<TWorkingSpaceDimension, TLocalSpaceDimension, TOtherPointType> const& rOther )
+    QuadraturePoint( QuadraturePoint<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -198,7 +209,7 @@ public:
      * @see ClonePoints
      */
     template<class TOtherPointType>
-    QuadraturePoint& operator=( QuadraturePoint<TWorkingSpaceDimension, TLocalSpaceDimension, TOtherPointType> const & rOther )
+    QuadraturePoint& operator=( QuadraturePoint<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const & rOther )
     {
         BaseType::operator=( rOther );
 
@@ -218,15 +229,15 @@ public:
     ///@name Parent
     ///@{
 
-    //GeometryType& GetGeometryParent(IndexType Index) const override
-    //{
-    //    return *mpGeometryParent;
-    //}
+    GeometryType& GetGeometryParent(IndexType Index) const override
+    {
+        return *mpGeometryParent;
+    }
 
-    //void SetGeometryParent(GeometryType* pGeometryParent) override
-    //{
-    //    mpGeometryParent = pGeometryParent;
-    //}
+    void SetGeometryParent(GeometryType* pGeometryParent) override
+    {
+        mpGeometryParent = pGeometryParent;
+    }
 
     ///@}
     ///@name Geometrical Operations
@@ -270,7 +281,122 @@ public:
         return point;
     }
 
+    ///@}
+    ///@name Coordinates
+    ///@{
 
+    /**
+    * This method provides the global coordinates corresponding to the
+    * local coordinates. The mapping is done on the parent.
+    * Error if Parent is not assigned is only thrown in debug mode.
+    */
+    CoordinatesArrayType& GlobalCoordinates(
+        CoordinatesArrayType& rResult,
+        CoordinatesArrayType const& LocalCoordinates
+    ) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+            << "Trying to call GlobalCoordinates(LocalCoordinates) from quadrature point. "
+            << "Pointer to parent is not asigned." << std::endl;
+
+        return mpGeometryParent->GlobalCoordinates(rResult, LocalCoordinates);
+    }
+
+    CoordinatesArrayType& GlobalCoordinates(
+        CoordinatesArrayType& rResult,
+        CoordinatesArrayType const& LocalCoordinates,
+        Matrix& DeltaPosition
+    ) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+            << "Trying to call GlobalCoordinates(LocalCoordinates, DeltaPosition) from quadrature point. "
+            << "Pointer to parent is not asigned." << std::endl;
+
+        return mpGeometryParent->GlobalCoordinates(rResult, LocalCoordinates, DeltaPosition);
+    }
+
+    ///@}
+    ///@name Jacobian
+    ///@{
+
+    /**
+    * @brief Jacobian in given point. Computed on parent
+    *        geometry.
+    * Error if Parent is not assigned is only thrown in debug mode.
+    * @param rCoordinates point which jacobians has to
+    *        be calculated in it.
+    * @return jacobian matrix \f$ J \f$ in given point.
+    */
+    Matrix& Jacobian(
+        Matrix& rResult,
+        const CoordinatesArrayType& rCoordinates
+    ) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+            << "Trying to call Jacobian(LocalCoordinates) from quadrature point. "
+            << "Pointer to parent is not asigned." << std::endl;
+
+        return mpGeometryParent->Jacobian(rResult, rCoordinates);
+    }
+
+    /** Determinant of jacobian in given point. Computed on parent
+    *        geometry.
+    * Error if Parent is not assigned is only thrown in debug mode.
+    * @param rPoint point which determinant of jacobians has to
+    *        be calculated in it.
+    * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
+    *         point.
+    */
+    virtual double DeterminantOfJacobian(
+        const CoordinatesArrayType& rPoint
+    ) const
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+            << "Trying to call DeterminantOfJacobian(rPoint) from quadrature point. "
+            << "Pointer to parent is not asigned." << std::endl;
+
+        return mpGeometryParent->DeterminantOfJacobian(rPoint);
+    }
+
+    virtual Matrix& InverseOfJacobian(
+        Matrix& rResult,
+        const CoordinatesArrayType& rCoordinates
+    ) const
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+            << "Trying to call InverseOfJacobian(rPoint) from quadrature point. "
+            << "Pointer to parent is not asigned." << std::endl;
+
+        return mpGeometryParent->InverseOfJacobian(rResult, rCoordinates);
+    }
+
+    ///@}
+    ///@name Shape Function
+    ///@{
+
+    Vector& ShapeFunctionsValues(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates
+    ) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+            << "Trying to call ShapeFunctionsValues(rCoordinates) from quadrature point. "
+            << "Pointer to parent is not asigned." << std::endl;
+
+        return mpGeometryParent->ShapeFunctionsValues(rResult, rCoordinates);
+    }
+
+    virtual Matrix& ShapeFunctionsLocalGradients(
+        Matrix& rResult,
+        const CoordinatesArrayType& rPoint
+    ) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+            << "Trying to call ShapeFunctionsLocalGradients(rPoint) from quadrature point. "
+            << "Pointer to parent is not asigned." << std::endl;
+
+        return mpGeometryParent->ShapeFunctionsLocalGradients(rResult, rPoint);
+    }
 
     ///@}
     ///@name Input and output
@@ -341,7 +467,7 @@ private:
     ///@name Private Friend
     ///@{
 
-    //template<class TOtherPointType> friend class QuadraturePoint<TWorkingSpaceDimension, TLocalSpaceDimension, TPointType>;
+    //template<class TOtherPointType> friend class QuadraturePoint<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>;
 
     ///@}
 }; // Class Geometry
@@ -350,16 +476,22 @@ private:
 ///@{
 
 /// input stream function
-template<int TWorkingSpaceDimension, int TLocalSpaceDimension, class TPointType>
+template<class TPointType,
+    int TWorkingSpaceDimension,
+    int TLocalSpaceDimension,
+    int TDimension>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    QuadraturePoint<TWorkingSpaceDimension, TLocalSpaceDimension, TPointType>& rThis );
+    QuadraturePoint<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>& rThis );
 
 /// output stream function
-template<int TWorkingSpaceDimension, int TLocalSpaceDimension, class TPointType>
+template<class TPointType,
+    int TWorkingSpaceDimension,
+    int TLocalSpaceDimension,
+    int TDimension>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const QuadraturePoint<TWorkingSpaceDimension, TLocalSpaceDimension, TPointType>& rThis )
+    const QuadraturePoint<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -372,11 +504,18 @@ inline std::ostream& operator << (
 ///@name Type Dimension Definition
 ///@{
 
-template<int TWorkingSpaceDimension, int TLocalSpaceDimension, class TPointType>
-const GeometryDimension QuadraturePoint<TWorkingSpaceDimension, TLocalSpaceDimension, TPointType>::msGeometryDimension(
-    TLocalSpaceDimension,
+template<class TPointType,
+    int TWorkingSpaceDimension,
+    int TLocalSpaceDimension,
+    int TDimension>
+const GeometryDimension QuadraturePoint<
+    TPointType,
     TWorkingSpaceDimension,
-    TLocalSpaceDimension);
+    TLocalSpaceDimension,
+    TDimension>::msGeometryDimension(
+        TLocalSpaceDimension,
+        TWorkingSpaceDimension,
+        TLocalSpaceDimension);
 
 ///@}
 
