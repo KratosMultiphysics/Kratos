@@ -201,7 +201,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	// reading integration points
-	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
 	//auxiliary terms
 	Vector volume_force(dimension);
@@ -217,7 +217,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 
 		//calculating weights for integration on the "reference configuration"
 		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
-		variables.IntegrationWeight = this->CalculateIntegrationWeight( variables.IntegrationWeight );
+		variables.IntegrationWeight = this->CalculateIntegrationWeight(variables.IntegrationWeight);
 
         bool is_damaging = false;
         if (yield_surface != "Elastic") {
