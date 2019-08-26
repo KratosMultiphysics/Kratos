@@ -2,11 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 from KratosMultiphysics import kratos_utilities as kratos_utils
 
-import os, filecmp
+import os
 from shutil import copyfile
 
 conv_signal_file_name = "EMPIRE_convergence_signal_default.dat" # this is hardcoded in C++
@@ -76,8 +77,15 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
         KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(model_part)
 
-        # can directly use filecmp because there are no decimal-number issues
-        self.assertTrue(filecmp.cmp(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), "EMPIRE_mesh_For_Sending.vtk"))
+        params = KM.Parameters("""{
+            "comparison_type"     : "vtk",
+            "reference_file_name" : "",
+            "output_file_name"    : ""
+        }""")
+        params["reference_file_name"].SetString(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"))
+        params["output_file_name"].SetString("EMPIRE_mesh_For_Sending.vtk")
+
+        CompareTwoFilesCheckProcess(params).Execute()
 
         kratos_utils.DeleteFileIfExisting("EMPIRE_mesh_For_Sending.vtk")
 
