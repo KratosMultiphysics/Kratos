@@ -501,7 +501,16 @@ void GenericLargeDisplacementFemDemElement<3,5>::CalculateB(Matrix& rB, const Ma
 {
     this->CalculateB3D(rB, rF, rDN_DX);
 }
-
+template<>
+void GenericLargeDisplacementFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB2D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB3D(rB, rF, rDN_DX);
+}
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB2D(
@@ -794,11 +803,13 @@ template class GenericLargeDisplacementFemDemElement<2,2>;
 template class GenericLargeDisplacementFemDemElement<2,3>;
 template class GenericLargeDisplacementFemDemElement<2,4>;
 template class GenericLargeDisplacementFemDemElement<2,5>;
+template class GenericLargeDisplacementFemDemElement<2,6>;
 template class GenericLargeDisplacementFemDemElement<3,0>;
 template class GenericLargeDisplacementFemDemElement<3,1>;
 template class GenericLargeDisplacementFemDemElement<3,2>;
 template class GenericLargeDisplacementFemDemElement<3,3>;
 template class GenericLargeDisplacementFemDemElement<3,4>;
 template class GenericLargeDisplacementFemDemElement<3,5>;
+template class GenericLargeDisplacementFemDemElement<3,6>;
 
 } // namespace Kratos

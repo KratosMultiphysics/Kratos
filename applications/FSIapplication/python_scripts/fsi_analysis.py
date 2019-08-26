@@ -2,6 +2,7 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.FSIApplication import python_solvers_wrapper_fsi
 
 class FSIAnalysis(AnalysisStage):
     '''Main script for FSI simulations using the FSI family of python solvers.'''
@@ -98,7 +99,6 @@ class FSIAnalysis(AnalysisStage):
             structure_restart_utility.SaveRestart()
 
     def _CreateSolver(self):
-        from KratosMultiphysics.FSIApplication import python_solvers_wrapper_fsi
         return python_solvers_wrapper_fsi.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
@@ -134,7 +134,7 @@ class FSIAnalysis(AnalysisStage):
             if self.parallel_type == "OpenMP":
                 from restart_utility import RestartUtility as Restart
             elif self.parallel_type == "MPI":
-                from trilinos_restart_utility import TrilinosRestartUtility as Restart
+                from KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility as Restart
             model_part_name = self.project_parameters["fluid_solver_settings"]["solver_settings"]["model_part_name"].GetString()
             if self.model.HasModelPart(model_part_name):
                 model_part = self.model.GetModelPart(model_part_name)
@@ -153,7 +153,7 @@ class FSIAnalysis(AnalysisStage):
             if self.parallel_type == "OpenMP":
                 from restart_utility import RestartUtility as Restart
             elif self.parallel_type == "MPI":
-                from trilinos_restart_utility import TrilinosRestartUtility as Restart
+                from KratosMultiphysics.mpi.distributed_restart_utility import DistributedRestartUtility as Restart
 
             model_part_name = self.project_parameters["structure_solver_settings"]["solver_settings"]["model_part_name"].GetString()
             if self.model.HasModelPart(model_part_name):

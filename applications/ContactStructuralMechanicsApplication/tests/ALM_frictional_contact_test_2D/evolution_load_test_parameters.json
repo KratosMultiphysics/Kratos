@@ -154,20 +154,6 @@
                 "model_part_name"      : "GENERIC_Add_SubModelPart_Auto1",
                 "time_frequency"       : 5.0e-2
             }
-        },
-        {
-            "python_module"   : "from_json_check_result_process",
-            "kratos_module" : "KratosMultiphysics",
-            "help"                  : "",
-            "process_name"          : "FromJsonCheckResultProcess",
-            "Parameters"            : {
-                "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE_X"],
-                "check_for_flag"       : "ACTIVE",
-                "input_file_name"      : "ALM_frictional_contact_test_2D/evolution_load_test_LM_results.json",
-                "historical_value"     : false,
-                "model_part_name"      : "GENERIC_Add_SubModelPart_Auto1",
-                "time_frequency"       : 5.0e-2
-            }
         }
         ]
     },
@@ -228,6 +214,34 @@
             }
         }]
     },
+    "_json_check_process" : [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "input_file_name"      : "ALM_frictional_contact_test_2D/evolution_load_test_results.json",
+            "model_part_name"      : "GENERIC_Add_SubModelPart_Auto1",
+            "time_frequency"       : 5.0e-2
+        }
+    },
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE_X"],
+            "check_for_flag"       : "ACTIVE",
+            "input_file_name"      : "ALM_frictional_contact_test_2D/evolution_load_test_LM_results.json",
+            "historical_value"     : false,
+            "model_part_name"      : "GENERIC_Add_SubModelPart_Auto1",
+            "time_frequency"       : 5.0e-2
+        }
+    }
+    ],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

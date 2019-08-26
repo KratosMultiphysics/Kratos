@@ -3,24 +3,24 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io import CoSimulationIO
 
-def Create(model, custom_settings):
-    return DummyIO(model, custom_settings)
+def Create(model, settings, solver_name):
+    return DummyIO(model, settings, solver_name)
 
 class DummyIO(CoSimulationIO):
     """This class is used if a Solver directly uses Kratos as a data-structure
     e.g. Kratos itself or simple-solvers written in Python
     """
 
-    def ImportCouplingInterfaceData(self, data_object, from_solver=None):
+    def ImportCouplingInterface(self, interface_config):
         pass
 
-    def ImportCouplingInterface(self, mesh_config, from_solver=None):
+    def ExportCouplingInterface(self, interface_config):
         pass
 
-    def ExportCouplingInterfaceData(self, data_object, to_solver=None):
+    def ImportData(self, data_config):
         pass
 
-    def ExportCouplingInterface(self, mesh_config, to_solver=None):
+    def ExportData(self, data_config):
         pass
 
     def PrintInfo(self):

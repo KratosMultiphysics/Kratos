@@ -367,6 +367,11 @@ private:
     void InitializeSolDataDistance();
 
     /**
+     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
+     */
+    void InitializeDisplacementData();
+
+    /**
      * @brief We execute the MMg library and build the new model part from the old model part
      */
     void ExecuteRemeshing();
@@ -465,6 +470,12 @@ private:
      * @param rOldModelPart The old model part before remesh
      */
     void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
+
+    /**
+     * @brief This method is used in order to mark the conditions in a recursive way to avoid remove necessary conditions
+     * @param rModelPart The modelpart to be marked
+     */
+    void MarkConditionsSubmodelParts(ModelPart& rModelPart);
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors

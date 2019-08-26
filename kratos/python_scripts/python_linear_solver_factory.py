@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
+from importlib import import_module
 
 def __DeprecatedApplicationImport(solver_type):
     # dict specifying in which applications the linear-solvers are defined
@@ -47,7 +48,7 @@ def __DeprecatedApplicationImport(solver_type):
                 err_msg += '" which is not compiled'
                 raise Exception(err_msg)
             # import the Application in which the linear solver is defined
-            __import__("KratosMultiphysics." + app_name)
+            import_module("KratosMultiphysics." + app_name)
             break
 
 def __CheckIfSolverTypeIsDeprecated(config):
@@ -155,7 +156,7 @@ def ConstructSolver(configuration):
         # the following is only needed for the check in the ComplexLinearSolverFactory
         # note that the solver-configuration is NOT modified
         solver_type = splitted_name[1]
-        __import__("KratosMultiphysics." + app_name)
+        import_module("KratosMultiphysics." + app_name)
     else:
         __DeprecatedApplicationImport(solver_type)
 

@@ -4,19 +4,20 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Import applications
-import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 
-from adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
-import trilinos_import_model_part_utility
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(main_model_part, custom_settings):
     return AdjointVMSMonolithicMPISolver(main_model_part, custom_settings)
 
 class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
         # default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -52,10 +53,11 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
             }
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(AdjointVMSMonolithicMPISolver, cls).GetDefaultSettings())
+        return default_settings
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(AdjointVMSMonolithicSolver, self).__init__(model, custom_settings)
 
         self.element_name = "VMSAdjointElement"
@@ -66,7 +68,6 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         self.min_buffer_size = 2
 
         # construct the linear solver
-        import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointVMSMonolithicMPISolver finished.")
@@ -81,17 +82,17 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables for the AdjointVMSMonolithicMPISolver added correctly in each processor.")
 
     def ImportModelPart(self):
-        ## Construct the Trilinos import model part utility
-        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        ## Construct the distributed import model part utility
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
-        self.trilinos_model_part_importer.ExecutePartitioningAndReading()
+        self.distributed_model_part_importer.ExecutePartitioningAndReading()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
 
     def PrepareModelPart(self):
         super(self.__class__,self).PrepareModelPart()
-        ## Construct Trilinos the communicators
-        self.trilinos_model_part_importer.CreateCommunicators()
+        ## Construct the MPI communicators
+        self.distributed_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
         super(self.__class__, self).AddDofs()

@@ -34,6 +34,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_variables_calculation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_dynamic_factor_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_spr_error_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/normal_gap_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/base_contact_search_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_search_wrapper_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/advanced_contact_search_process.cpp
@@ -98,9 +99,15 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(${INSTALL_TESTING_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+  PATTERN "*.git" EXCLUDE
+  PATTERN "*.c" EXCLUDE
+  PATTERN "*.h" EXCLUDE
+  PATTERN "*.cpp" EXCLUDE
+  PATTERN "*.hpp" EXCLUDE
+)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

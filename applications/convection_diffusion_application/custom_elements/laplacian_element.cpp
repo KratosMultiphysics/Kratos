@@ -85,9 +85,9 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     noalias(rRightHandSideVector) = ZeroVector(number_of_points); //resetting RHS
 
     //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients();
-    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues();
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     Element::GeometryType::JacobiansType J0;
     Matrix DN_DX(number_of_points,dim);
@@ -102,7 +102,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
         nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_diffusivity_var);
     }
 
-    r_geometry.Jacobian(J0);
+    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
     double DetJ0;
 
     for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
@@ -134,6 +134,14 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
 
 
     KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    VectorType temp(0);
+    CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
 }
 
 //************************************************************************************
@@ -193,7 +201,7 @@ int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_ERROR_IF_NOT(r_settings.IsDefinedUnknownVariable()) << "No Unknown Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
     KRATOS_ERROR_IF_NOT(r_settings.IsDefinedDiffusionVariable()) << "No Diffusion Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
     KRATOS_ERROR_IF_NOT(r_settings.IsDefinedVolumeSourceVariable()) << "No Volume Source Variable defined in provided CONVECTION_DIFFUSION_SETTINGS." << std::endl;
-    
+
     const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
     const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable();
     const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable();
@@ -211,6 +219,13 @@ int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     return Element::Check(rCurrentProcessInfo);
+}
+
+//************************************************************************************
+//************************************************************************************
+Element::IntegrationMethod LaplacianElement::GetIntegrationMethod() const
+{
+    return GeometryData::GI_GAUSS_1;
 }
 
 } // Namespace Kratos

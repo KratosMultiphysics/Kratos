@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import structural_mechanics_analysis
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 if kratos_utilities.CheckIfApplicationsAvailable("HDF5Application"):
