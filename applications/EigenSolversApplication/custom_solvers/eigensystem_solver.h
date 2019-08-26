@@ -120,7 +120,8 @@ class EigensystemSolver
         // --- calculation
 
         int nn = a.rows();
-        int nc = std::min(2 * nroot, nroot + 8);
+        //int nc = std::min(2 * nroot, nroot + 8);
+        int nc = nroot;
 
         // projections
         matrix_t ar(nc, nc);
@@ -182,6 +183,7 @@ class EigensystemSolver
         int iteration = 0;
 
         Eigen::GeneralizedSelfAdjointEigenSolver<matrix_t> eig;
+        //Eigen::GeneralizedEigenSolver<matrix_t> eig;
 
         do {
             iteration++;

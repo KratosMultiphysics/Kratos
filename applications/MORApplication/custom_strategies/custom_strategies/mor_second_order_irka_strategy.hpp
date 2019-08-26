@@ -32,6 +32,9 @@
 //#include "EigenSolversApplication/costum_solvers/eigensystem_solver.h"
 //#include "../ExternalSolversApplication/external_includes/feast_solver.h"
 
+//test include eigen matrix
+#include <Eigen/Dense>
+
 namespace Kratos
 {
 
@@ -359,6 +362,49 @@ class MorSecondOrderIRKAStrategy
 
             //KRATOS_WATCH(subrange(r_L1, reduced_system_size-2, reduced_system_size+2, reduced_system_size-2, reduced_system_size+2));
             //KRATOS_WATCH(subrange(r_L2, reduced_system_size-2, reduced_system_size+2, reduced_system_size-2, reduced_system_size+2));
+
+
+            Eigen::Matrix3d t_eig_m3;
+            t_eig_m3(0,0) = 2;
+            t_eig_m3(0,1) = 1;
+            t_eig_m3(0,2) = 1;
+
+            t_eig_m3(1,0) = 1;
+            t_eig_m3(1,1) = 2;
+            t_eig_m3(1,2) = 1;
+
+            t_eig_m3(2,0) = 1;
+            t_eig_m3(2,1) = 1;
+            t_eig_m3(2,2) = 2;
+
+            Eigen::Matrix3d t_eig_id3; 
+            t_eig_id3 = Eigen::Matrix3d::Identity();
+
+            KRATOS_WATCH(t_eig_m3);
+            KRATOS_WATCH(t_eig_id3);
+
+            Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> eig_test;
+            eig_test.compute(t_eig_m3,t_eig_id3);
+            KRATOS_WATCH(eig_test.eigenvalues());
+            KRATOS_WATCH(eig_test.eigenvectors());
+
+            // -> same results (also correct according to WolframAlpha)
+            // -> ??? happens in eigensystem_solver.h for #eigenvalues>1 ...
+            // -> need to code another wrapper? 
+            // -> maybe also turn to feast then anyway (complex case included)
+            // possible bug (?): 
+            //               replace "int nc = std::min(2 * nroot, nroot + 8);"   //why??
+            //               by/with "int nc = nroot;"
+            //  then it also works via eigensystem_solver.h with #eigenvalues>1
+
+
+
+
+
+
+
+
+
 
             // DenseSpaceType::Resize(Eigenvalues,  3);
             // DenseSpaceType::Resize(Eigenvectors, 3, 3);
