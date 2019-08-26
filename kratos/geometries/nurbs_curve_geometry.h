@@ -86,7 +86,7 @@ public:
     {
     }
 
-    /* Copy constructor.*/
+    /// Copy constructor.
     NurbsCurveGeometry(NurbsCurveGeometry const& rOther)
         : BaseType(rOther)
         , mPolynomialDegree(rOther.mPolynomialDegree)
@@ -95,7 +95,7 @@ public:
     {
     }
 
-    /* Copy constructor from a geometry with different point type.*/
+    /// Copy constructor from a geometry with different point type.
     template<class TOtherPointType> NurbsCurveGeometry(
         NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointType> const& rOther)
         : BaseType(rOther)

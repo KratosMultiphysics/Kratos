@@ -38,8 +38,6 @@ public:
     ///@name Life Cycle
     ///@{
     Interval()
-        : mT0(std::numeric_limits<double>::quiet_NaN())
-        , mT1(std::numeric_limits<double>::quiet_NaN())
     {
     }
 

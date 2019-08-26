@@ -72,7 +72,7 @@ public:
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
     {
-        KRATOS_DEBUG_ERROR_IF(rThisPoints.size() !=
+        KRATOS_ERROR_IF(rThisPoints.size() !=
             (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
                 * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
             << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
@@ -93,12 +93,12 @@ public:
         , mKnotsV(rKnotsV)
         , mWeights(rWeights)
     {
-        KRATOS_DEBUG_ERROR_IF(rThisPoints.size() != 
+        KRATOS_ERROR_IF(rThisPoints.size() != 
             (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
                 * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
             << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
 
-        KRATOS_DEBUG_ERROR_IF(rWeights.size() != rThisPoints.size())
+        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
     }
 
@@ -107,7 +107,7 @@ public:
     {
     }
 
-    /* Copy constructor.*/
+    /// Copy constructor.
     NurbsSurfaceGeometry(NurbsSurfaceGeometry const& rOther)
         : BaseType(rOther, &msGeometryData)
         , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
@@ -118,7 +118,7 @@ public:
     {
     }
 
-    /* Copy constructor from a geometry with different point type.*/
+    /// Copy constructor from a geometry with different point type.
     template<class TOtherPointType> NurbsSurfaceGeometry(
         NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherPointType> const& rOther)
         : BaseType(rOther)
@@ -130,7 +130,7 @@ public:
     {
     }
 
-    /* Destructor.*/
+    /// Destructor.
     ~NurbsSurfaceGeometry() override = default;
 
 
@@ -183,22 +183,6 @@ public:
     {
         return Kratos::make_shared<NurbsSurfaceGeometry>(ThisPoints);
     }
-
-    ///@}
-
-    //virtual PointPointerType& operator()(const SizeType& i, const SizeType& j)
-    //{
-    //    const int index = NurbsUtilities::GetVectorIndexFromMatrixIndices(NumberOfControlPointsV(), i, j);
-
-    //    return (*this)(index);
-    //}
-
-    //virtual ConstPointPointerType& operator()(const SizeType& i, const SizeType& j) const
-    //{
-    //    const int index = NurbsUtilities::GetVectorIndexFromMatrixIndices(NumberOfControlPointsV(), i, j);
-
-    //    return (*this)(index);
-    //}
 
     ///@}
     ///@name Get and Set functions
@@ -477,50 +461,6 @@ public:
 
         return rResult;
     }
-
-    //void ShapeFunctionDerivatives(
-    //    GeometryData::IntegrationMethod ThisIntegrationMethod,
-    //    IntegrationPointsArrayType& rIntegrationPoints,
-    //    const int DerivativeOrder) const
-    //{
-    //    NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 0);
-
-    //    int number_of_integration_points = rIntegrationPoints.size();
-
-    //    Matrix shape_functions_values = ZeroMatrix(number_of_integration_points, shape_function_container.NumberOfNonzeroControlPoints());
-    //    DenseVector<DenseVector<Matrix>> shape_function_derivatives_integration_points(number_of_integration_points);
-
-    //    for (IndexType ip_itr = 0; ip_itr < number_of_integration_points; ++ip_itr)
-    //    {
-    //        if (IsRational()) {
-    //            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rIntegrationPoints[ip_itr][0]);
-    //        }
-    //        else {
-    //            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rIntegrationPoints[ip_itr][0]);
-    //        }
-
-    //        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //            shape_functions_values(ip_itr, i) = shape_function_container(i, ip_itr);
-    //        }
-
-    //        DenseVector<Matrix> shape_function_derivatives_array(DerivativeOrder);
-    //        for (IndexType derivative_order_itr = 1; derivative_order_itr < DerivativeOrder; ++derivative_order_itr)
-    //        {
-    //            Matrix shape_function_derivatives_values = ZeroMatrix(1, shape_function_container.NumberOfNonzeroControlPoints());
-    //            for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //                shape_function_derivatives_values(0, i) = shape_function_container(i, derivative_order_itr);
-    //            }
-    //            shape_function_derivatives_array[derivative_order_itr] = shape_function_derivatives_values;
-    //        }
-    //        shape_function_derivatives_integration_points[ip_itr] = shape_function_derivatives_array;
-    //    }
-
-    //    GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
-    //        ThisIntegrationMethod,
-    //        rIntegrationPoints,
-    //        shape_functions_values,
-    //        shape_function_derivatives_integration_points);
-    //}
 
     ///@}
     ///@name Information
