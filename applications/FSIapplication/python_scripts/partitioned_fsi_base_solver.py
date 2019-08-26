@@ -358,7 +358,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         return fluid_time_step
 
     def _GetNodalUpdateUtilities(self):
-        structure_time_scheme = self.structure_solver.dynamic_settings["scheme_type"].GetString()
+        structure_time_scheme = self.structure_solver.settings["scheme_type"].GetString()
         if (structure_time_scheme == "newmark"):
             damp_factor_m = 0.0
         elif (structure_time_scheme == "bossak"):

@@ -115,12 +115,13 @@ void MetricDivergenceFreeProcess<TDim>::Execute()
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
     KRATOS_DEBUG_ERROR_IF(elements_array.size() == 0) <<  "ERROR:: Empty list of elements" << std::endl;
 
-    if (nodes_array.begin()->Has(tensor_variable) == false) {
+    const auto it_node_begin = nodes_array.begin();
+    if (it_node_begin->Has(tensor_variable) == false) {
         const TensorArrayType zero_array = ZeroVector(3 * (TDim - 1));
         // Iteration over the nodes
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-            (nodes_array.begin() + i)->SetValue(tensor_variable, zero_array);
+            (it_node_begin + i)->SetValue(tensor_variable, zero_array);
     }
 
     // 2) Initialize what is needed for each refinement strategy
@@ -228,6 +229,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             const double divergencefree_elem_value = divergence_nodal_values[i_node];
 
             // Estimate element size
+            KRATOS_CHECK(it_node->GetValue(NODAL_H) > 0.0);
             const double nodal_h = it_node->GetValue(NODAL_H);
 
             // Check for zero values
@@ -279,6 +281,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             // Retrieve variable
             double divergencefree_interp_value = divergence_nodal_values[i_node];
             // Estimate element size
+            KRATOS_CHECK(it_node->GetValue(NODAL_H) > 0.0);
             const double nodal_h = it_node->GetValue(NODAL_H);
             // Set element size
             double element_size;

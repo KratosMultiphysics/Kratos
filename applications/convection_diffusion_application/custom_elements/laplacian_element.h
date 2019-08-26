@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -80,16 +80,20 @@ public:
     ///@{
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
-    
+
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -100,6 +104,7 @@ public:
     ///@name Inquiry
     ///@{
 
+    IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Input and output
@@ -146,6 +151,10 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    // Protected default constructor necessary for serialization
+    LaplacianElement() : Element()
+    {
+    }
 
     ///@}
 
@@ -163,11 +172,6 @@ private:
     ///@name Serialization
     ///@{
     friend class Serializer;
-
-    // A private default constructor necessary for serialization
-    LaplacianElement() : Element()
-    {
-    }
 
     void save(Serializer& rSerializer) const override
     {

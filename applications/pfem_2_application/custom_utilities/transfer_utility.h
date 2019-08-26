@@ -91,7 +91,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/triangle_3d_3.h"
 #include "geometries/point.h"
 
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "utilities/openmp_utils.h"
 
 #include "time.h"

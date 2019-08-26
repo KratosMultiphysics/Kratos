@@ -35,8 +35,10 @@ class FSICouplingInterfaceTest(UnitTest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
         # Import model part from mdpa file.
-        input_filename = 'FSIProblemEmulatorTest/test_FSI_emulator_Structural'
-        KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(model_part)
+        work_folder = "FSIProblemEmulatorTest"
+        input_filename = 'test_FSI_emulator_Structural'
+        with UnitTest.WorkFolderScope(work_folder,__file__):
+            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(model_part)
 
         # Create the convergence accelerator
         conv_acc_factory = KratosMultiphysics.Parameters("""
@@ -69,7 +71,7 @@ class FSICouplingInterfaceTest(UnitTest.TestCase):
 
     def tearDown(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
-            KratosUtilities.DeleteFileIfExisting('FSIProblemEmulatorTest/test_FSI_emulator_Structural.time')
+            KratosUtilities.DeleteFileIfExisting('test_FSI_emulator_Structural.time')
 
     def checkResults(self):
         # Check the previously performed update

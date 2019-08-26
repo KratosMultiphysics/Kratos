@@ -235,14 +235,6 @@ private:
     ///@name Private Operators
     ///@{
 
-    /**
-     * @brief This method computes the potential size for neighbours
-     * @param itElem The element iterator where to check the size and so on
-     * @return The reserve size for the neighbour elements vector
-     * @todo Check that EdgesNumber() and FacesNumber() are properly implemeted on the geometries of interest
-     */
-    SizeType ComputePotentialNeighboursSize(ElementsIteratorType itElem);
-
     ///@}
     ///@name Private Operations
     ///@{

@@ -123,7 +123,7 @@ namespace Kratos
 
         GlobalPointerCommunicator<Element> pointer_comm(mrComm, constructor_functor );
         auto id_proxy = pointer_comm.Apply(
-                [](GlobalPointer<Element>& gp){return gp->Id();}
+                [](GlobalPointer<Element> const& gp){return gp->Id();}
         );
 
         #pragma omp parallel for
@@ -133,7 +133,7 @@ namespace Kratos
             auto& neighbours = it->GetValue(NEIGHBOUR_ELEMENTS);
             neighbours.shrink_to_fit();
             std::sort(neighbours.ptr_begin(), neighbours.ptr_end(),
-                [&id_proxy](GlobalPointer<Element>& gp1, GlobalPointer<Element>& gp2)
+                [&id_proxy](GlobalPointer<Element> const& gp1, GlobalPointer<Element> const& gp2)
                 {
                     return id_proxy.Get(gp1) < id_proxy.Get(gp2);
                 }

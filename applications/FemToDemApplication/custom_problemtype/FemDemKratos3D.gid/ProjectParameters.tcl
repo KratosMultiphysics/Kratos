@@ -164,7 +164,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \"gidpost_flags\":       \{"
     puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
-    puts $FileVar "                \"GiDPostMode\":           \"GiD_PostAscii\","
+    puts $FileVar "                \"GiDPostMode\":           \"GiD_PostBinary\","
     puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
     puts $FileVar "            \},"
     puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","

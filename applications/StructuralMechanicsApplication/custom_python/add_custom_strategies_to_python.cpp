@@ -28,6 +28,7 @@
 // Schemes
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
+#include "custom_strategies/custom_schemes/explicit_multi_stage_kim_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 
 // Convergence criterias
@@ -74,6 +75,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
+    typedef ExplicitMultiStageKimScheme< SparseSpaceType, LocalSpaceType >  ExplicitMultiStageKimSchemeType;
 
 
     // Custom convergence criterion types
@@ -138,6 +140,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< const double, const double, const double>())
         .def(py::init< Parameters>())
         ;
+
+    // Explicit Multi Stage Scheme Type
+    py::class_< ExplicitMultiStageKimSchemeType,typename ExplicitMultiStageKimSchemeType::Pointer, BaseSchemeType >(m,"ExplicitMultiStageKimScheme")
+        .def(py::init< const double>())
+        .def(py::init< Parameters>())
+        ;
+
 
 
     //********************************************************************

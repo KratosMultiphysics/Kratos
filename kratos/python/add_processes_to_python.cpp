@@ -28,7 +28,7 @@
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
-#include "processes/find_global_nodal_elemental_neighbours_process.h" 
+#include "processes/find_global_nodal_elemental_neighbours_process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/node_erase_process.h" // TODO: To be removed
 #include "processes/entity_erase_process.h"
@@ -40,7 +40,6 @@
 #include "processes/rotation_operation.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/tetrahedral_mesh_orientation_check.h"
-#include "processes/compute_bdfcoefficients_process.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "processes/levelset_convection_process.h"
 #include "processes/apply_constant_scalarvalue_process.h"
@@ -243,10 +242,6 @@ void  AddProcessesToPython(pybind11::module& m)
     orientation_check_interface.attr("COMPUTE_CONDITION_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_CONDITION_NORMALS;
     orientation_check_interface.attr("NOT_COMPUTE_CONDITION_NORMALS") = &TetrahedralMeshOrientationCheck::NOT_COMPUTE_CONDITION_NORMALS;
 
-    py::class_<ComputeBDFCoefficientsProcess, ComputeBDFCoefficientsProcess::Pointer, Process>(m,"ComputeBDFCoefficientsProcess")
-            .def(py::init<ModelPart&, const unsigned int>())
-    ;
-
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
@@ -311,8 +306,13 @@ void  AddProcessesToPython(pybind11::module& m)
 
     /* Historical */
     py::class_<ComputeNodalGradientProcess< ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalGradientProcess")
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>&, const bool >())
+    .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>&, const bool >())
     ;
 
     m.attr("ComputeNodalGradientProcess2D") = m.attr("ComputeNodalGradientProcess");
@@ -322,8 +322,13 @@ void  AddProcessesToPython(pybind11::module& m)
 
     /* Non-Historical */
     py::class_<ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess")
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>&, const bool >())
+    .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>&, const bool >())
     ;
 
     m.attr("ComputeNonHistoricalNodalGradientProcess2D") = m.attr("ComputeNonHistoricalNodalGradientProcess");

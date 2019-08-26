@@ -1,6 +1,9 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.ExaquteSandboxApplication import *
-from KratosMultiphysics.MeshingApplication import *
+try:
+    from KratosMultiphysics.MeshingApplication import *
+except:
+    raise Exception ("MeshingApplication is not compiled but is required to run the ExaquteSandboxApplication tests")
 
 def run():
     Tester.SetVerbosity(Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
