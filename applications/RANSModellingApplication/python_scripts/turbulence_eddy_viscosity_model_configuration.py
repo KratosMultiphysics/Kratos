@@ -186,12 +186,13 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
 
     def Initialize(self):
         rans_variable_utils = KratosRANS.RansVariableUtils()
-        rans_variable_utils.CopyScalarVar(Kratos.VISCOSITY,
-                                          Kratos.KINEMATIC_VISCOSITY,
-                                          self.fluid_model_part.Nodes)
-        rans_variable_utils.SetScalarVar(Kratos.TURBULENT_VISCOSITY,
-                                         self.nu_t_min,
-                                         self.fluid_model_part.Nodes)
+        # set this from the json file.
+        # rans_variable_utils.CopyScalarVar(Kratos.VISCOSITY,
+        #                                   Kratos.KINEMATIC_VISCOSITY,
+        #                                   self.fluid_model_part.Nodes)
+        # rans_variable_utils.SetScalarVar(Kratos.TURBULENT_VISCOSITY,
+        #                                  self.nu_t_min,
+        #                                  self.fluid_model_part.Nodes)
 
         self.PrepareSolvingStrategy()
 

@@ -95,7 +95,7 @@ public:
                 "folder_name"                        : "VTK_Output",
                 "custom_name_prefix"                 : "",
                 "save_output_files_in_folder"        : true,
-                "nodal_solution_step_data_variables" : ["VELOCITY", "PRESSURE", "TURBULENT_KINETIC_ENERGY", "TURBULENT_ENERGY_DISSIPATION_RATE", "TURBULENT_VISCOSITY", "VISCOSITY", "RANS_Y_PLUS"],
+                "nodal_solution_step_data_variables" : ["VELOCITY", "PRESSURE", "KINEMATIC_VISCOSITY", "TURBULENT_KINETIC_ENERGY", "TURBULENT_ENERGY_DISSIPATION_RATE", "TURBULENT_VISCOSITY", "VISCOSITY", "RANS_Y_PLUS"],
                 "nodal_data_value_variables"         : [],
                 "element_data_value_variables"       : [],
                 "condition_data_value_variables"     : [],
@@ -241,6 +241,8 @@ private:
     void UpdateConvergenceVariable() override
     {
         this->ExecuteAuxiliaryProcesses();
+        // this->mrModelPart.GetProcessInfo()[STEP] += 1;
+        // mVtkOutput->PrintOutput();
     }
 
     void UpdateEffectiveViscosity()
@@ -259,8 +261,7 @@ private:
         }
 
 
-        this->mrModelPart.GetProcessInfo()[STEP] += 1;
-        mVtkOutput->PrintOutput();
+
     }
 
     ///@}
