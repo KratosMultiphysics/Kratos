@@ -116,6 +116,12 @@ public:
       mrRemesh.MeshElementsSelectedFlag = true;
 
 
+			bool keepSolidElement=false;
+	
+      if( mrModelPart.Name() == "Body2" ){
+				keepSolidElement=true;
+			}
+
       mrRemesh.Info->NumberOfElements=0;
 
       const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
@@ -123,7 +129,7 @@ public:
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
       bool firstMesh=false;
       if(currentTime<2*timeInterval){
-	firstMesh=true;
+				firstMesh=true;
       }
 
       bool box_side_element = false;
@@ -156,12 +162,14 @@ public:
 	  int number = 0;
 	  // std::cout<<" num nodes "<<rNodes.size()<<std::endl;
 	  // std::cout<<" NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
-
+	  bool solidWithNodalIntegration=false;
 	  //#pragma omp parallel for reduction(+:number) private(el)
 	  for(el=0; el<OutNumberOfElements; el++)
 	    {
 	      Geometry<Node<3> > vertices;
 
+	      unsigned int  fluidNodes =0;
+	      unsigned int  solidNodes =0;
 	      unsigned int  numfreesurf =0;
 	      unsigned int  numboundary =0;
 	      unsigned int  numrigid =0;
@@ -205,11 +213,25 @@ public:
 		    numisolated++;
 		  }
 
+			if(vertices.back().Is(FLUID)){
+		    fluidNodes++;
+		  }
+
+			if(vertices.back().Is(SOLID)){
+		    solidNodes++;
+		  }
+
+			if(vertices.back().Is(SOLID) && vertices.back().SolutionStepsDataHas(NODAL_CAUCHY_STRESS) && keepSolidElement==true){
+		    solidWithNodalIntegration=true;
+		  }else{
+				solidWithNodalIntegration=false;
+			}
+
        		  if(vertices.back().Is(BOUNDARY)){
 		    numboundary++;
 		    // std::cout<<" BOUNDARY COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
-		  if(vertices.back().Is(RIGID) || vertices.back().Is(SOLID)){
+		  if(vertices.back().Is(RIGID) || (vertices.back().Is(SOLID) && solidWithNodalIntegration==false)){
 		    numrigid++;
 
 		    NodeWeakPtrVectorType& rN = vertices.back().GetValue(NEIGHBOUR_NODES);
@@ -227,11 +249,11 @@ public:
 
        		    // std::cout<<" rigid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
-		  if(vertices.back().Is(SOLID) && vertices.back().IsNot(BOUNDARY)){
+		  if((vertices.back().Is(SOLID) && solidWithNodalIntegration==false) && vertices.back().IsNot(BOUNDARY)){
 		    numinternalsolid++;
 		    // std::cout<<" internal solid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
-		  if(vertices.back().Is(SOLID)){
+		  if((vertices.back().Is(SOLID) && solidWithNodalIntegration==false)){
 		    numsolid++;
 		    // std::cout<<"solid COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 		  }
@@ -318,8 +340,12 @@ public:
 	      if(firstMesh==true){
 		Alpha*=1.15;
 	      }
+ 
+			if(numsolid==nds){
+		    Alpha*=0;
+		   }
 
-	      // Alpha*=1.175;
+	    //    Alpha*=1.5;
 
 	      bool accepted=false;
 
@@ -407,7 +433,7 @@ public:
 
 		    // std::cout<<"riticalVolume "<<Volume<<std::endl;
 	      	    if(Volume<CriticalVolume){
-	      	    //   std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
+	      	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
 	      	      // for( unsigned int n=0; n<nds; n++)
 	      	      // 	{
 	      	      // 	  vertices[n].Set(INTERFACE);

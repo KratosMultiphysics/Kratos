@@ -1873,7 +1873,19 @@ namespace Kratos {
         // rRHSVector[FirstRow] += Weight * Density * rN[i] * VolumeAcceleration[0]*coeffX;
 
         // rRHSVector[FirstRow+1] += Weight * Density * rN[i] * VolumeAcceleration[1]*coeffY;
-        
+        if(this->GetGeometry()[i].X0()>24.999){
+              ElementWeakPtrVectorType& neighb_elems = this->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
+              double numberOfNeighElems=double(neighb_elems.size());
+              double value=40/numberOfNeighElems;
+              // rRHSVector[1] += value/2.0;  // mesh 4      (1 element per edge)
+              // rRHSVector[1] += value/3.0;  // mesh 2      (2 element per edge)
+              // rRHSVector[1] += value/5.0;  // mesh 1      (4 element per edge)
+              // rRHSVector[1] += value/9.0;  // mesh 0.5    (8 element per edge)
+              // rRHSVector[1] += value/17.0; // mesh 0.25   (16 element per edge)
+              // rRHSVector[1] += value/33.0; // mesh 0.125  (32 element per edge)
+              rRHSVector[1] += value/65.0; // mesh 0.0625 (64 element per edge)
+        }
+
 	        for (SizeType d = 0; d < TDim; ++d)
         {
           // Volume Acceleration

@@ -18,6 +18,7 @@ class PfemFluidSolver(PythonSolver):
         {
             "solver_type": "pfem_fluid_solver",
             "model_part_name": "PfemFluidModelPart",
+            "physics_type"   : "fluid",
             "domain_size": 2,
             "time_stepping"               : {
                 "automatic_time_step" : false,
@@ -263,8 +264,15 @@ class PfemFluidSolver(PythonSolver):
         print ("::[Pfem Fluid Solver]:: Model reading finished.")
 
     def _ComputeDeltaTime(self):
-
-        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        ## Automatic time step computation according to user defined CFL number
+        #if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            #adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
+            #adaptive_time_interval.Execute()
+        ## User-defined delta time
+        #else:
+        #   delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        
+        delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
 
         return delta_time
 
