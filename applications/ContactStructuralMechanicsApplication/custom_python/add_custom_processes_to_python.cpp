@@ -32,6 +32,7 @@
 #include "custom_processes/simple_contact_search_process.h"
 #include "custom_processes/advanced_contact_search_process.h"
 #include "custom_processes/find_intersected_geometrical_objects_with_obb_for_contact_search_process.h"
+#include "custom_processes/normal_gap_process.h"
 
 namespace Kratos
 {
@@ -216,6 +217,29 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def("InvertSearch",&AdvancedContactSearchProcess<3, 4, 3>::InvertSearch)
     ;
 
+    // Normal gap process
+    py::class_<NormalGapProcess<2, 2>, typename NormalGapProcess<2, 2>::Pointer, Process>(m, "NormalGapProcess2D2N")
+    .def(py::init<ModelPart&, ModelPart&>())
+    .def(py::init<ModelPart&, ModelPart&, const bool>())
+    ;
+    py::class_<NormalGapProcess<3, 3>, typename NormalGapProcess<3, 3>::Pointer, Process>(m, "NormalGapProcess3D3N")
+    .def(py::init<ModelPart&, ModelPart&>())
+    .def(py::init<ModelPart&, ModelPart&, const bool>())
+    ;
+    py::class_<NormalGapProcess<3, 4>, typename NormalGapProcess<3, 4>::Pointer, Process>(m, "NormalGapProcess3D4N")
+    .def(py::init<ModelPart&, ModelPart&>())
+    .def(py::init<ModelPart&, ModelPart&, const bool>())
+    ;
+    py::class_<NormalGapProcess<3, 3, 4>, typename NormalGapProcess<3, 3, 4>::Pointer, Process>(m, "NormalGapProcess3D3N4N")
+    .def(py::init<ModelPart&, ModelPart&>())
+    .def(py::init<ModelPart&, ModelPart&, const bool>())
+    ;
+    py::class_<NormalGapProcess<3, 4, 3>, typename NormalGapProcess<3, 4, 3>::Pointer, Process>(m, "NormalGapProcess3D4N3N")
+    .def(py::init<ModelPart&, ModelPart&>())
+    .def(py::init<ModelPart&, ModelPart&, const bool>())
+    ;
+
+    // FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
     py::class_<FindIntersectedGeometricalObjectsWithOBBContactSearchProcess, FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::Pointer, Process>(m,"FindIntersectedGeometricalObjectsWithOBBContactSearchProcess")
     .def(py::init<ModelPart&,ModelPart&>())
     .def(py::init<ModelPart&,ModelPart&, const double>())

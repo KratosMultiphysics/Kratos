@@ -104,6 +104,7 @@ public:
     ///@name Inquiry
     ///@{
 
+    IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Input and output
