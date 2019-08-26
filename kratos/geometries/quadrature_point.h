@@ -347,9 +347,9 @@ public:
     * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
     *         point.
     */
-    virtual double DeterminantOfJacobian(
+    double DeterminantOfJacobian(
         const CoordinatesArrayType& rPoint
-    ) const
+    ) const override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
             << "Trying to call DeterminantOfJacobian(rPoint) from quadrature point. "
@@ -358,10 +358,10 @@ public:
         return mpGeometryParent->DeterminantOfJacobian(rPoint);
     }
 
-    virtual Matrix& InverseOfJacobian(
+    Matrix& InverseOfJacobian(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates
-    ) const
+    ) const override
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
             << "Trying to call InverseOfJacobian(rPoint) from quadrature point. "
