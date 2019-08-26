@@ -1,0 +1,27 @@
+/ make mesh running following commands from this folder:
+/   ml GAMBIT/2.4.6
+/   gambit -inp gambit.jou
+vertex create coordinates 0 0 0
+vertex create coordinates 1 0 0
+vertex create coordinates 1 0.1 0
+vertex create coordinates 0 0.1 0
+
+edge create straight "vertex.1" "vertex.2"
+edge create straight "vertex.2" "vertex.3"
+edge create straight "vertex.3" "vertex.4"
+edge create straight "vertex.1" "vertex.4"
+
+face create wireframe "edge.1" "edge.2" "edge.3" "edge.4" real
+
+edge mesh "edge.1" "edge.2" "edge.3" "edge.4" size 0.01
+face mesh "face.1" map
+
+physics create "inlet" btype "VELOCITY_INLET" edge "edge.4"
+physics create "outlet" btype "PRESSURE_OUTLET" edge "edge.2"
+physics create "wall_bottom" btype "WALL" edge "edge.1"
+physics create "wall_top" btype "WALL" edge "edge.3"
+physics create "fluid" ctype "FLUID" face "face.1"
+
+solver select "FLUENT 5/6"
+export fluent5 "./mesh.msh" nozval
+abort

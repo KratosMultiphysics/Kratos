@@ -1,0 +1,20 @@
+file set-batch-options n n n
+(enable-dynamic-mesh-node-ids #t)
+
+f rc "mesh.msh"
+solve set expert y n y
+
+def materials copy fluid water-liquid
+def bc fluid , y water-liquid ,,, ,,, ,,,,
+def materials delete air
+
+def models viscous inviscid y
+
+def bc vel inlet n y y n , n 1 n 0
+
+def dyn dyn y n n
+def dyn controls smoothing n
+def dyn zones create default-interior deforming faceted n y n n ,,, n
+
+f wc "case.cas"
+e y
