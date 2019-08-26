@@ -50,8 +50,8 @@ public:
     typedef Geometry<TPointType> BaseType;
     typedef Geometry<TPointType> GeometryType;
 
-    typedef GeometryType::IndexType IndexType;
-    typedef GeometryType::SizeType SizeType;
+    typedef typename GeometryType::IndexType IndexType;
+    typedef typename GeometryType::SizeType SizeType;
 
     typedef typename GeometryType::PointsArrayType PointsArrayType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
