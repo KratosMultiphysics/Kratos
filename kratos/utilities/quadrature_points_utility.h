@@ -44,6 +44,58 @@ namespace Kratos
         ///@name Operations
         ///@{
 
+        static GeometryType::Pointer CreateFromCoordinates(
+            typename GeometryType::Pointer pGeometry,
+            const array_1d<double, 3>& rCoordinates) {
+            KRATOS_TRY;
+
+            auto local_coordinates = pGeometry->PointLocalCoordinates();
+
+            std::vector<typename GeometryType::Pointer> geometry_pointer_vector(
+                integration_points.size());
+
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                default_method,
+                integration_points[i],
+                N_i,
+                pGeometry->ShapeFunctionLocalGradient(i));
+
+            if (pGeometry->WorkingSpaceDimension() == 1
+                && pGeometry->LocalSpaceDimension() == 1)
+                return typename Geometry<TPointType>::Pointer(
+                    Kratos::make_shared<
+                    QuadraturePoint<TPointType, 1>>(
+                        pGeometry->Points(),
+                        pGeometry->ShapeFunctionsValues(rLocalCoordinates),
+                        pGeometry.get()));
+            if (pGeometry->WorkingSpaceDimension() == 2
+                && pGeometry->LocalSpaceDimension() == 2)
+                return typename Geometry<TPointType>::Pointer(
+                    Kratos::make_shared<
+                    QuadraturePoint<TPointType, 2>>(
+                        pGeometry->Points(),
+                        pGeometry->ShapeFunctionsValues(rLocalCoordinates),
+                        pGeometry.get()));
+            else if (pGeometry->WorkingSpaceDimension() == 3
+                && pGeometry->LocalSpaceDimension() == 2)
+                return typename Geometry<TPointType>::Pointer(
+                    Kratos::make_shared<
+                    QuadraturePoint<TPointType, 3, 2>>(
+                        pGeometry->Points(),
+                        pGeometry->ShapeFunctionsValues(rLocalCoordinates),
+                        pGeometry.get()));
+            else if (pGeometry->WorkingSpaceDimension() == 3
+                && pGeometry->LocalSpaceDimension() == 3)
+                return typename Geometry<TPointType>::Pointer(
+                    Kratos::make_shared<
+                    QuadraturePoint<TPointType, 3>>(
+                        pGeometry->Points(),
+                        pGeometry->ShapeFunctionsValues(rLocalCoordinates),
+                        pGeometry.get()));
+
+            KRATOS_CATCH("");
+        }
+
         static std::vector<typename GeometryType::Pointer> Create(
             typename GeometryType::Pointer pGeometry) {
             KRATOS_TRY;

@@ -21,11 +21,16 @@
 #include "particle_mechanics_application_variables.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 
+// Quadrature point imports
+#include "geometries/quadrature_point.h"
+#include "utilities/quadrature_points_utility.h"
 
 namespace Kratos
 {
 namespace MPMParticleGeneratorUtility
 {
+    typedef Node<3> NodeType;
+    typedef Geometry<Node<3>> GeometryType;
 
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
@@ -68,8 +73,6 @@ namespace MPMParticleGeneratorUtility
                 if(i->IsDefined(ACTIVE))
                 {
                     Properties::Pointer properties = i->pGetProperties();
-                    const int material_id = i->GetProperties().Id();
-                    const double density  = i->GetProperties()[DENSITY];
 
                     // Check number of particles per element to be created
                     unsigned int particles_per_element;
@@ -88,153 +91,65 @@ namespace MPMParticleGeneratorUtility
                     const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
                     const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current element's geometry
-                    const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
-                    Matrix shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    if (geo_type == GeometryData::Kratos_Tetrahedra3D4  || geo_type == GeometryData::Kratos_Triangle2D3)
+
+                    GeometryData::IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_1;
+                    switch (particles_per_element)
                     {
-                        switch (particles_per_element)
-                        {
-                            case 1:
-                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                                break;
-                            case 3:
-                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                                break;
-                            case 6:
-                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
-                                break;
-                            case 12:
-                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
-                                break;
-                            case 16:
-                                if (domain_size==2){
-                                    shape_functions_values = MP16ShapeFunctions();
-                                    break;
-                                }
-                            case 33:
-                                if (domain_size==2) {
-                                    shape_functions_values = MP33ShapeFunctions();
-                                    break;
-                                }
-                            default:
-                                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
-                                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
-                                warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
-                                warning_msg += "The default number of particle: 3 is currently assumed.";
-                                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
-                                break;
-                        }
-                    }
-                    else if(geo_type == GeometryData::Kratos_Hexahedra3D8  || geo_type == GeometryData::Kratos_Quadrilateral2D4)
-                    {
-                        switch (particles_per_element)
-                        {
-                            case 1:
-                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                                break;
-                            case 4:
-                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                                break;
-                            case 9:
-                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
-                                break;
-                            case 16:
-                                shape_functions_values = r_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
-                                break;
-                            default:
-                                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
-                                warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
-                                warning_msg += "Available options are: 1, 4, 9, 16.\n";
-                                warning_msg += "The default number of particle: 4 is currently assumed.";
-                                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
-                                break;
-                        }
+                    case 3:
+                        this_integration_method = GeometryData::GI_GAUSS_2;
+                        break;
+                    case 6:
+                        this_integration_method = GeometryData::GI_GAUSS_3;
+                        break;
+                    case 12:
+                        this_integration_method = GeometryData::GI_GAUSS_4;
+                        break;
+                    default:
+                        std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
+                        warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
+                        warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
+                        warning_msg += "The default number of particle: 3 is currently assumed.";
+                        KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                        break;
                     }
 
-                    // Check element type
-                    std::string element_type_name;
-                    if (domain_size==2){
-                        if (background_geo_type == GeometryData::Kratos_Triangle2D3){
-                            if (IsMixedFormulation)
-                                element_type_name = "UpdatedLagrangianUP2D3N";
-                            else{
-                                if (IsAxisSymmetry)
-                                    element_type_name = "UpdatedLagrangianAxisymmetry2D3N";
-                                else
-                                    element_type_name = "UpdatedLagrangian2D3N";
-                            }
-                        }
-                        else if (background_geo_type == GeometryData::Kratos_Quadrilateral2D4){
-                            if (IsMixedFormulation)
-                                KRATOS_ERROR << "Element for mixed U-P formulation in 2D for Quadrilateral Element is not yet implemented." << std::endl;
-                            else{
-                                if (IsAxisSymmetry)
-                                    element_type_name = "UpdatedLagrangianAxisymmetry2D4N";
-                                else
-                                    element_type_name = "UpdatedLagrangian2D4N";
-                            }
-                        }
-                    }
-                    else if (domain_size==3){
-                        if (background_geo_type == GeometryData::Kratos_Tetrahedra3D4){
-                            if (IsMixedFormulation)
-                                KRATOS_ERROR << "Element for mixed U-P formulation in 3D for Tetrahedral Element is not yet implemented." << std::endl;
-                            else
-                                element_type_name = "UpdatedLagrangian3D4N";
-                        }
-                        else if (background_geo_type == GeometryData::Kratos_Hexahedra3D8){
-                            if (IsMixedFormulation)
-                                KRATOS_ERROR << "Element for mixed U-P formulation in 3D for Hexahedral Element is not yet implemented." << std::endl;
-                            else
-                                element_type_name = "UpdatedLagrangian3D8N";
-                        }
-                    }
-
-                    // Get new element
-                    const Element& new_element = KratosComponents<Element>::Get(element_type_name);
+                    GeometryType::IntegrationPointsArrayType integration_points = r_geometry->IntegrationPoints(this_integration_method);
 
                     // Number of MP per elements
-                    const unsigned int integration_point_per_elements = shape_functions_values.size1();
+                    const unsigned int integration_point_per_elements = integration_points.size();
 
-                    // Evaluation of element area/volume
-                    const double area = r_geometry.Area();
-                    if(domain_size == 2 && i->GetProperties().Has( THICKNESS )){
-                        const double thickness = i->GetProperties()[THICKNESS];
-                        mp_mass = area * thickness * density / integration_point_per_elements;
-                    }
-                    else {
-                        mp_mass = area * density / integration_point_per_elements;
-                    }
-                    mp_volume = area / integration_point_per_elements;
+                    //CAN WE DO THIS ON THE ELEMENT?
+                    //// Evaluation of element area/volume
+                    //const double area = r_geometry.Area();
+                    //if(domain_size == 2 && i->GetProperties().Has( THICKNESS )){
+                    //    const double thickness = i->GetProperties()[THICKNESS];
+                    //    mp_mass = area * thickness * density / integration_point_per_elements;
+                    //}
+                    //else {
+                    //    mp_mass = area * density / integration_point_per_elements;
+                    //}
+                    //mp_volume = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
                     unsigned int new_element_id = 0;
                     for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
                     {
+                        auto p_new_geometry = CreateQuadraturePointsUtility<NodeType>::CreateFromCoordinates(
+                            rBackgroundGridModelPart.ElementsBegin()->GetGeometry(),
+                            integration_point_per_elements);
+
                         // Create new material point element
                         new_element_id = last_element_id + PointNumber;
-                        Element::Pointer p_element = new_element.Create(new_element_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
+                        Element::Pointer p_element = Kratos::make_share<ParticleElement>(
+                            ParticleElement(
+                                new_element_id,
+                                p_new_geometry,
+                                properties));
 
                         const double MP_density  = density;
                         const int MP_material_id = material_id;
 
-                        xg.clear();
-
-                        // Loop over the nodes of the grid element
-                        for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++)
-                        {
-                            for ( unsigned int j = 0; j < r_geometry.size(); j ++)
-                            {
-                                xg[dimension] = xg[dimension] + shape_functions_values(PointNumber, j) * r_geometry[j].Coordinates()[dimension];
-                            }
-                        }
-
                         // Setting particle element's initial condition
-                        p_element->SetValue(MP_MATERIAL_ID, MP_material_id);
-                        p_element->SetValue(MP_DENSITY, MP_density);
-                        p_element->SetValue(MP_MASS, mp_mass);
-                        p_element->SetValue(MP_VOLUME, mp_volume);
-                        p_element->SetValue(MP_COORD, xg);
                         p_element->SetValue(MP_DISPLACEMENT, mp_displacement);
                         p_element->SetValue(MP_VELOCITY, mp_velocity);
                         p_element->SetValue(MP_ACCELERATION, mp_acceleration);
