@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:     BSD License
-//           Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:   Philipp Bucher
 //
 //
 
@@ -16,6 +16,9 @@
 #include "includes/serializer.h"
 #include "includes/file_serializer.h"
 #include "includes/stream_serializer.h"
+
+#include "utilities/quadrature_points_utility.h"
+
 #include "geometries/point.h"
 
 #include "geometries/triangle_2d_3.h"
@@ -56,21 +59,6 @@ namespace Kratos {
             }
             Matrix DN_De = triangle->ShapeFunctionLocalGradient(0);
 
-            QuadraturePoint<2, 2, Node<3>>::IntegrationPointsArrayType ips(1);
-            ips[0] = integration_points[0];
-
-            QuadraturePoint<2, 2, Node<3>>::IntegrationPointsContainerType ips_container =
-            { { ips } };
-
-            QuadraturePoint<2, 2, Node<3>>::ShapeFunctionsValuesContainerType N_container =
-            { { N_i } };
-
-            auto DN_De_array = DenseVector<Matrix>(1);
-            DN_De_array[0] = DN_De;
-
-            QuadraturePoint<2, 2, Node<3>>::ShapeFunctionsLocalGradientsContainerType DN_De_container =
-            { { DN_De_array } };
-
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 GeometryData::GI_GAUSS_1,
                 integration_points[0],
@@ -78,12 +66,29 @@ namespace Kratos {
                 DN_De);
 
             Geometry<Node<3>>::Pointer p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePoint<2, 2, Node<3>>>(
+                Kratos::make_shared<QuadraturePoint<Node<3>, 2, 2>>(
                     triangle->Points(),
                     data_container,
                     triangle.get()));
 
             return p_this_quadrature_point;
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(QuadraturePointUtility, KratosCoreFastSuite)
+        {
+            auto triangle = GeneratePointsTriangle2D3();
+
+            auto quadrature_points = CreateQuadraturePointsUtility<NodeType>::Create(
+                triangle, GeometryData::GI_GAUSS_3);
+
+            KRATOS_CHECK_EQUAL(quadrature_points.size(), 4);
+            KRATOS_CHECK_EQUAL(quadrature_points[0]->size(), 3);
+            KRATOS_CHECK_EQUAL(quadrature_points[0]->WorkingSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(quadrature_points[0]->LocalSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(quadrature_points[0]->Dimension(), 2);
+
+            KRATOS_CHECK_MATRIX_NEAR(quadrature_points[0]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_3)[0], 1e-6);
+            KRATOS_CHECK_MATRIX_NEAR(quadrature_points[1]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_3)[1], 1e-6);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(QuadraturePoint2d, KratosCoreFastSuite)
@@ -97,10 +102,6 @@ namespace Kratos {
 
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->ShapeFunctionsValues().size1(), 1);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->ShapeFunctionsValues().size2(), 3);
-
-            KRATOS_WATCH(p_this_quadrature_point->ShapeFunctionsValues())
-            KRATOS_WATCH(p_this_quadrature_point->ShapeFunctionsLocalGradients()[0])
-            KRATOS_WATCH(p_this_quadrature_point->Center())
         }
 
     } // namespace Testing
