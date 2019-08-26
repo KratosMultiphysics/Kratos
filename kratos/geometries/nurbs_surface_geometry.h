@@ -72,7 +72,7 @@ public:
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
     {
-        KRATOS_DEBUG_ERROR_IF(rThisPoints.size() !=
+        KRATOS_ERROR_IF(rThisPoints.size() !=
             (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
                 * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
             << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
