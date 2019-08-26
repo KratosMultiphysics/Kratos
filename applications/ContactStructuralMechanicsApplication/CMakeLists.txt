@@ -34,6 +34,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_variables_calculation_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_dynamic_factor_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_spr_error_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/normal_gap_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/base_contact_search_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_search_wrapper_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/advanced_contact_search_process.cpp

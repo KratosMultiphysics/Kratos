@@ -66,35 +66,44 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The matrix type
     typedef Matrix MatrixType;
 
+    /// The vector type
     typedef Vector VectorType;
 
+    /// The size type
     typedef std::size_t SizeType;
 
+    /// The index type
     typedef std::size_t IndexType;
 
+    /// The indirect array type
     typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
+    /// The machine precision
     static constexpr TDataType ZeroTolerance = std::numeric_limits<TDataType>::epsilon();
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /* Constructor */
-
-
-    /** Destructor */
-
     ///@}
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This function returns the machine precision
+     * @return The corresponding epsilon for the TDataType
+     */
+    static inline TDataType GetZeroTolerance()
+    {
+        return ZeroTolerance;
+    }
 
     /**
      * @brief This function calculates the number of elements between first and last.
@@ -102,7 +111,6 @@ public:
      * @param rSecondData Second element
      * @return Distance Number of elements
      */
-
     static TDataType Distance(
         const TDataType& rFirstData,
         const TDataType& rSecondData
@@ -1240,7 +1248,7 @@ public:
     static inline TMatrixType StressVectorToTensor(const TVector& rStressVector)
     {
         KRATOS_TRY;
-        
+
         const SizeType matrix_size = rStressVector.size() == 3 ? 2 : 3;
         TMatrixType stress_tensor(matrix_size, matrix_size);
 
@@ -1421,7 +1429,7 @@ public:
                 rSize = 6;
             }
         }
-        
+
         Vector strain_vector(rSize);
 
         if (rSize == 3) {
@@ -1476,7 +1484,7 @@ public:
                 rSize = 6;
             }
         }
-        
+
         TVector stress_vector(rSize);
 
         if (rSize == 3) {
@@ -1528,7 +1536,7 @@ public:
                 rSize = 6;
             }
         }
-        
+
         Vector vector(rSize);
 
         if (rSize == 3) {
