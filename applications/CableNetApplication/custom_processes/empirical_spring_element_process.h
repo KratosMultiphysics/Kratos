@@ -55,7 +55,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EmpiricalSpringElementProcess
 
     /// Constructor.
     EmpiricalSpringElementProcess(ModelPart &rModelPart,
-     Parameters InputParameters, const Vector &FittedPolynomial):mrModelPart(rModelPart),mParameters(InputParameters),mrFittedPoly(FittedPolynomial)
+     Parameters InputParameters, const DoubleVector &FittedPolynomial):mrModelPart(rModelPart),mParameters(InputParameters),mrFittedPoly(FittedPolynomial)
     {
         KRATOS_TRY;
         Parameters default_parameters = Parameters(R"(
@@ -117,7 +117,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EmpiricalSpringElementProcess
 
     ModelPart& mrModelPart;
     Parameters mParameters;
-    const Vector& mrFittedPoly;
+    const DoubleVector& mrFittedPoly;
 
 }; // Class
 

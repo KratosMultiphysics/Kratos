@@ -1,6 +1,7 @@
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.CableNetApplication as CableNetApplication
 
+
 from numpy import polyfit
 
 from KratosMultiphysics import Logger
@@ -30,6 +31,7 @@ class EmpiricalSpringElementProcess(KratosMultiphysics.Process):
         """)
         default_settings.ValidateAndAssignDefaults(settings)
         self.function_fitted = polyfit(settings["displacement_data"].GetVector(),settings["force_data"].GetVector(),settings["polynomial_order"].GetInt())
+
 
         # The computing model part
         self.computing_model_part = Model[settings["computing_model_part_name"].GetString()]
