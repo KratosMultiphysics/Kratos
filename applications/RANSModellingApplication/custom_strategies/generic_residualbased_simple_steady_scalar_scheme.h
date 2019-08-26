@@ -25,6 +25,11 @@
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/openmp_utils.h"
 
+//debugging
+#include "input_output/vtk_output.h"
+
+#include "custom_strategies/relaxed_dof_updater.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -75,6 +80,19 @@ public:
     ///@name Operators
     ///@{
 
+    void InitializeSolutionStep(ModelPart &r_model_part,
+                                        TSystemMatrixType &A,
+                                        TSystemVectorType &Dx,
+                                        TSystemVectorType &b) override
+    {
+        BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
+        if (TSparseSpace::Size(mPreviousB) != TSparseSpace::Size(b)) {
+            TSparseSpace::Resize(mPreviousB, TSparseSpace::Size(b));
+        }
+        TSparseSpace::SetToZero(mPreviousB);
+        mIterationCounter = 0;
+    }
+
     void Update(ModelPart& rModelPart,
                 DofsArrayType& rDofSet,
                 TSystemMatrixType& rA,
@@ -83,9 +101,14 @@ public:
     {
         KRATOS_TRY;
 
-        mpDofUpdater->UpdateDofs(rDofSet, rDx);
+        mpDofUpdater->UpdateDofs(rDofSet, rDx, mRelaxationFactor);
 
         KRATOS_CATCH("");
+    }
+
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
     }
 
     void CalculateSystemContributions(Element::Pointer rCurrentElement,
@@ -113,8 +136,8 @@ public:
         if (SteadyLHS.size1() != 0)
             noalias(LHS_Contribution) += SteadyLHS;
 
-        AddRelaxation(rCurrentElement->GetGeometry(), local_delta_time,
-                      LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        // AddRelaxation(rCurrentElement->GetGeometry(), local_delta_time,
+        //               LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -144,8 +167,8 @@ public:
         if (SteadyLHS.size1() != 0)
             noalias(LHS_Contribution) += SteadyLHS;
 
-        AddRelaxation(rCurrentCondition->GetGeometry(), local_delta_time,
-                      LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        // AddRelaxation(rCurrentCondition->GetGeometry(), local_delta_time,
+        //               LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -178,12 +201,44 @@ public:
 
         KRATOS_CATCH("");
     }
+    void FinalizeNonLinIteration(ModelPart& rModelPart,
+                                   TSystemMatrixType& rA,
+                                   TSystemVectorType& rDx,
+                                   TSystemVectorType& rb) override
+    {
+        // rModelPart.GetProcessInfo()[STEP] += 1;
+        // mVtkOutput->PrintOutput();
+    }
+
 
     void InitializeNonLinIteration(ModelPart& rModelPart,
                                    TSystemMatrixType& rA,
                                    TSystemVectorType& rDx,
                                    TSystemVectorType& rb) override
     {
+        // Debugging output
+        Parameters default_parameters = Parameters(R"(
+            {
+                "model_part_name"                    : "FluidModelPart",
+                "file_format"                        : "ascii",
+                "output_precision"                   : 7,
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1.0,
+                "output_sub_model_parts"             : false,
+                "folder_name"                        : "VTK_Output",
+                "custom_name_prefix"                 : "",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["VELOCITY", "PRESSURE", "KINEMATIC_VISCOSITY", "TURBULENT_KINETIC_ENERGY", "TURBULENT_ENERGY_DISSIPATION_RATE", "TURBULENT_VISCOSITY", "VISCOSITY", "RANS_Y_PLUS"],
+                "nodal_data_value_variables"         : [],
+                "element_data_value_variables"       : [],
+                "condition_data_value_variables"     : [],
+                "gauss_point_variables"              : []
+            })" );
+
+            default_parameters["model_part_name"].SetString(rModelPart.Name());
+
+            if (mVtkOutput == nullptr)
+                mVtkOutput = new VtkOutput(rModelPart, default_parameters);
 //         KRATOS_TRY;
 
 //         for (typename ModelPart::NodesContainerType::iterator itNode =
@@ -295,9 +350,22 @@ private:
     ///@name Member Variables
     ///@{
 
+    TSystemVectorType mPreviousB;
+
+    double mPreviousRelaxationFactor;
+
+    unsigned int mIterationCounter = 0;
+
+    VtkOutput* mVtkOutput;
+
+    typedef RelaxedDofUpdater<TSparseSpace> DofUpdaterType;
+    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
+
+    DofUpdaterPointerType mpDofUpdater = Kratos::make_unique<DofUpdaterType>();
+
     double mRelaxationFactor;
-    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
-        TSparseSpace::CreateDofUpdater();
+    // typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
+    //     TSparseSpace::CreateDofUpdater();
 
     ///@}
 };

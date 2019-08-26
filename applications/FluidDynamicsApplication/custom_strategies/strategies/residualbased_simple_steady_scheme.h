@@ -114,6 +114,8 @@ public:
 
     mRotationTool.RotateVelocities(rModelPart);
 
+    noalias(rDx) = rDx * mVelocityRelaxationFactor;
+
     mpDofUpdater->UpdateDofs(rDofSet,rDx);
 
     mRotationTool.RecoverVelocities(rModelPart);
@@ -140,7 +142,7 @@ public:
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
 
-    AddRelaxation(rCurrentElement->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+    // AddRelaxation(rCurrentElement->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     // apply slip condition
     mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
@@ -168,7 +170,7 @@ public:
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
 
-    AddRelaxation(rCurrentCondition->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+    // AddRelaxation(rCurrentCondition->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     // apply slip condition
     mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
