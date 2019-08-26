@@ -77,7 +77,7 @@ namespace Kratos
 	{
 		// Compute the discontinuous (elemental) distance field
 		// Use the base class elemental distance computation (includes plane optimization)
-		CalculateDiscontinuousDistanceToSkinProcess<TDim>::mUsePlaneOptimization = false;
+		CalculateDiscontinuousDistanceToSkinProcess<TDim>::mUseIntersectionPlaneOptimization = false;
 		CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDistances(rIntersectedObjects);
 
 		// Get the minimum elemental distance value for each node

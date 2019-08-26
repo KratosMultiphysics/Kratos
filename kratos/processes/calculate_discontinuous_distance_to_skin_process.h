@@ -62,7 +62,7 @@ public:
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        bool UsePlaneOptimiztion);
+        bool UseIntersectionPlaneOptimization);
 
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;
@@ -167,7 +167,7 @@ public:
 protected:
     ///@name Member Variables
     ///@{
-    bool mUsePlaneOptimization = true;
+    bool mUseIntersectionPlaneOptimization = true;
     ///@}
 
     ///@name Protected Operations

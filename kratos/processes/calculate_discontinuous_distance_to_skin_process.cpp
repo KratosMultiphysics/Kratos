@@ -30,8 +30,8 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
-	CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart, bool UsePlaneOptimization)
-		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart), mUsePlaneOptimization(UsePlaneOptimization), mrSkinPart(rSkinPart), mrVolumePart(rVolumePart)
+	CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart, bool UseIntersectionPlaneOptimization)
+		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart), mUseIntersectionPlaneOptimization(UseIntersectionPlaneOptimization), mrSkinPart(rSkinPart), mrVolumePart(rVolumePart)
 	{
 	}
 
@@ -82,7 +82,7 @@ namespace Kratos
 		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
 		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
 
-		if (mUsePlaneOptimization) {
+		if (mUseIntersectionPlaneOptimization) {
 			#pragma omp parallel for schedule(dynamic)
 			for (int i = 0; i < number_of_elements; ++i) {
 				CalculateElementalDistances(*(r_elements[i]), rIntersectedObjects[i]);
