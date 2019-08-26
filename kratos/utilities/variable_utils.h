@@ -226,12 +226,11 @@ public:
      * @param Value Value to be set
      * @param rNodes reference to the objective node set
      */
-    template< class TVarType >
-    void SetScalarVar(
-        const TVarType& rVariable,
+    template <class TVarType>
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable") void SetScalarVar(
+        const TVarType &rVariable,
         const double Value,
-        NodesContainerType& rNodes
-        )
+        NodesContainerType &rNodes)
     {
         KRATOS_TRY
 
