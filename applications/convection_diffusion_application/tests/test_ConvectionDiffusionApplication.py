@@ -59,6 +59,7 @@ def AssembleTestSuites():
     smallSuite.addTest(ThermalCouplingTest('testDirichletNeumann'))
     smallSuite.addTest(ApplyThermalFaceProcessTest('testThermalFaceProcess'))
     smallSuite.addTest(AdjointHeatDiffusionTest('testAdjointHeatDiffusion'))
+    smallSuite.addTest(AdjointHeatDiffusionTest('testAdjointHeatDiffusionWithSourceTerm'))
 
     ### Adding Small Tests
     smallSuite.addTest(TBasicConvectionDiffusionStationaryTest('test_execution'))

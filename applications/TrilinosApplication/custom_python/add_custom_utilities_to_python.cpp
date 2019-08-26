@@ -26,7 +26,6 @@
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
-#include "custom_utilities/gather_modelpart_utility.h"
 #include "custom_utilities/mpi_normal_calculation_utilities.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
 #include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
@@ -117,14 +116,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<TrilinosRefineMesh>(m,"TrilinosRefineMesh").def(py::init<ModelPart& , Epetra_MpiComm& >() )
         .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
         .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
-        ;
-
-    py::class_<GatherModelPartUtility>(m,"GatherModelPartUtility")
-        .def(py::init<int, ModelPart&, int , ModelPart&>() )
-        .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<double> )
-        .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<array_1d<double,3> > )
-        .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<double> )
-        .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<array_1d<double,3> > )
         ;
 
     py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils").def(py::init<>())

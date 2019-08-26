@@ -852,10 +852,11 @@ Condition::Pointer BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::A
     // We add the ID and we create a new auxiliar condition
     if (mOptions.Is(BaseContactSearchProcess::CREATE_AUXILIAR_CONDITIONS)) { // TODO: Check this!!
         ++rConditionId;
-        Condition::Pointer p_auxiliar_condition = rComputingModelPart.CreateNewCondition(mConditionName, rConditionId, pObjectSlave->GetGeometry(), pProperties);
+        const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get(mConditionName));
+        Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(rConditionId, pObjectSlave->pGetGeometry(), pProperties, pObjectMaster->pGetGeometry());
         // We set the geometrical values
+        rComputingModelPart.AddCondition(p_auxiliar_condition);
         pIndexesPairs->SetNewEntityId(pObjectMaster->Id(), rConditionId);
-        p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, pObjectMaster->pGetGeometry());
         p_auxiliar_condition->SetValue(NORMAL, rSlaveNormal);
         p_auxiliar_condition->SetValue(PAIRED_NORMAL, rMasterNormal);
         // We activate the condition and initialize it
@@ -1338,81 +1339,14 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeM
 {
     KRATOS_TRY
 
-    // We get the process info
-    const ProcessInfo& r_process_info = mrMainModelPart.GetProcessInfo();
-
-    // Iterate over the nodes
+    // Compute gap
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart("MasterSubModelPart"+mThisParameters["id_name"].GetString());
-    NodesArrayType& r_nodes_array_master = r_master_model_part.Nodes();
-    const auto it_node_begin_master = r_nodes_array_master.begin();
     ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart("SlaveSubModelPart"+mThisParameters["id_name"].GetString());
-    NodesArrayType& r_nodes_array_slave = r_slave_model_part.Nodes();
-    const auto it_node_begin_slave = r_nodes_array_slave.begin();
 
-    // We set the auxiliar Coordinates
-    const array_1d<double, 3> zero_array = ZeroVector(3);
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array_master.size()); ++i) {
-        auto it_node = it_node_begin_master + i;
-
-        if (SearchOrientation) {
-            it_node->SetValue(AUXILIAR_COORDINATES, it_node->Coordinates());
-        } else {
-            it_node->SetValue(AUXILIAR_COORDINATES, zero_array);
-        }
-    }
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array_slave.size()); ++i) {
-        auto it_node = it_node_begin_slave + i;
-
-        if (!SearchOrientation) {
-            it_node->SetValue(AUXILIAR_COORDINATES, it_node->Coordinates());
-        } else {
-            it_node->SetValue(AUXILIAR_COORDINATES, zero_array);
-        }
-    }
-
-    // Switch MASTER/SLAVE
-    NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
-    if (!SearchOrientation)
-        SwitchFlagNodes(r_nodes_array);
-
-    // We set the mapper parameters
-    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24,"update_interface" : false, "remove_isolated_conditions" : true, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
-    if (r_process_info.Has(DISTANCE_THRESHOLD)) {
-        mapping_parameters["distance_threshold"].SetDouble(r_process_info[DISTANCE_THRESHOLD]);
-    }
-    MapperType mapper(r_master_model_part, r_slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
-    mapper.Execute();
-
-    // Switch again MASTER/SLAVE
-    if (!SearchOrientation)
-        SwitchFlagNodes(r_nodes_array);
-
-    // We compute now the normal gap and set the nodes under certain threshold as active
-    array_1d<double, 3> normal, auxiliar_coordinates, components_gap;
-    double gap = 0.0;
-    const auto it_node_begin = r_nodes_array.begin();
-    #pragma omp parallel for firstprivate(gap, normal, auxiliar_coordinates, components_gap)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-
-        if (it_node->Is(SLAVE) == SearchOrientation) {
-            // We compute the gap
-            noalias(normal) = it_node->FastGetSolutionStepValue(NORMAL);
-            noalias(auxiliar_coordinates) = it_node->GetValue(AUXILIAR_COORDINATES);
-            noalias(components_gap) = ( it_node->Coordinates() - auxiliar_coordinates);
-            gap = inner_prod(components_gap, - normal);
-
-            // We activate if the node is close enough
-            if (norm_2(auxiliar_coordinates) > ZeroTolerance)
-                it_node->SetValue(NORMAL_GAP, gap);
-        } else {
-            it_node->SetValue(NORMAL_GAP, 0.0);
-        }
-    }
+    NormalGapProcessType normal_gap(r_master_model_part, r_slave_model_part, SearchOrientation);
+    normal_gap.Execute();
 
     KRATOS_CATCH("")
 }
