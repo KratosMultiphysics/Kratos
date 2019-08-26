@@ -20,6 +20,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #============================================================================================================================
 	def Initialize(self):
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
+		self.number_of_nodes_element = 4
 		self.FEM_Solution.Initialize()
 		self.DEM_Solution.Initialize()
 
