@@ -69,28 +69,28 @@ namespace Kratos
                     pGeometry->ShapeFunctionLocalGradient(i));
 
                 if (pGeometry->WorkingSpaceDimension() == 1 && pGeometry->LocalSpaceDimension() == 1)
-                    geometry_pointer_vector[i] = Geometry<Node<3>>::Pointer(
+                    geometry_pointer_vector[i] = Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
                         QuadraturePoint<TPointType, 1>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 if(pGeometry->WorkingSpaceDimension() == 2 && pGeometry->LocalSpaceDimension() == 2)
-                    geometry_pointer_vector[i] = Geometry<Node<3>>::Pointer(
+                    geometry_pointer_vector[i] = Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
                         QuadraturePoint<TPointType, 2>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 2)
-                    geometry_pointer_vector[i] = Geometry<Node<3>>::Pointer(
+                    geometry_pointer_vector[i] = Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
                         QuadraturePoint<TPointType, 3, 2>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 3)
-                    geometry_pointer_vector[i] = Geometry<Node<3>>::Pointer(
+                    geometry_pointer_vector[i] = Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
                         QuadraturePoint<TPointType, 3>>(
                             pGeometry->Points(),
@@ -127,28 +127,28 @@ namespace Kratos
                     pGeometry->ShapeFunctionLocalGradient(i, ThisIntegrationMethod));
 
                 if (pGeometry->WorkingSpaceDimension() == 1 && pGeometry->LocalSpaceDimension() == 1)
-                    geometry_pointer_vector[i] = Geometry<Node<3>>::Pointer(
+                    geometry_pointer_vector[i] = Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
                         QuadraturePoint<TPointType, 1>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 if (pGeometry->WorkingSpaceDimension() == 2 && pGeometry->LocalSpaceDimension() == 2)
-                    geometry_pointer_vector[i] = Geometry<Node<3>>::Pointer(
+                    geometry_pointer_vector[i] = Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
                         QuadraturePoint<TPointType, 2>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 2)
-                    geometry_pointer_vector[i] = Geometry<Node<3>>::Pointer(
+                    geometry_pointer_vector[i] = Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
                         QuadraturePoint<TPointType, 3, 2>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 3)
-                    geometry_pointer_vector[i] = Geometry<Node<3>>::Pointer(
+                    geometry_pointer_vector[i] = Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
                         QuadraturePoint<TPointType, 3>>(
                             pGeometry->Points(),
