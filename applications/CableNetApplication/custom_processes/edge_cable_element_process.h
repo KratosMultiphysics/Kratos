@@ -148,6 +148,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
 
   protected:
 
+
   private:
 
     ModelPart& mrModelPart;

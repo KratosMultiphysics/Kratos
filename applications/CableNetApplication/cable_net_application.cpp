@@ -55,5 +55,7 @@ void KratosCableNetApplication::Register()
     KRATOS_REGISTER_ELEMENT("SlidingCableElement3D3N", mSlidingCableElement3D3N)
     KRATOS_REGISTER_ELEMENT("RingElement3D4N", mRingElement3D4N)
     KRATOS_REGISTER_ELEMENT("RingElement3D3N", mRingElement3D3N)
+
+    KRATOS_REGISTER_VARIABLE(SPRING_DEFORMATION_EMPIRICAL_POLYNOMIAL)
 }
 }  // namespace Kratos.
