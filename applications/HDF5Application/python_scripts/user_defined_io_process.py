@@ -16,10 +16,10 @@ from KratosMultiphysics.HDF5Application import core
 
 def Factory(settings, Model):
     """Return a user-defined input/output process for HDF5.
-    
+
     The input settings are a json array of parameters which maps to the
     structure of the HDF5 IO python core.
-    
+
     The settings of each array item are given in the following table:
     +-----------------------+------------+-------------------------------------------+
     | Setting               | Type       | Default Value                             |
@@ -44,7 +44,7 @@ def Factory(settings, Model):
     |                       |            | }]                                        |
     +-----------------------+------------+-------------------------------------------+
 
-    
+
     For example:
         '''
         [{
@@ -79,7 +79,7 @@ def Factory(settings, Model):
         /ModelData/Elements
         ...
         /ResultsData/NodalSolutionStepData/DISPLACEMENT
-    
+
     In the above example, the nonterminal symbols <model_part_name> and <time>
     are automatically replaced by the name of the model part and the current
     time.
