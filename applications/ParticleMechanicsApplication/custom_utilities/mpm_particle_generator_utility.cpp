@@ -280,6 +280,7 @@ namespace MPMParticleGeneratorUtility
         double mpc_area = 0.0;
         double mpc_penalty_factor = 0.0;
         double mpc_augmentation_factor = 0.0;
+        bool mpc_stabilization = false;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
@@ -519,8 +520,10 @@ namespace MPMParticleGeneratorUtility
                             mpc_imposed_acceleration = i->GetValue(ACCELERATION);
                         if (i->Has(PENALTY_FACTOR))
                             mpc_penalty_factor = i->GetValue(PENALTY_FACTOR);
-                         if (i->Has(SCALAR_LAGRANGE_MULTIPLIER))
+                        if (i->Has(SCALAR_LAGRANGE_MULTIPLIER))
                             mpc_augmentation_factor = i->GetValue(SCALAR_LAGRANGE_MULTIPLIER);
+                        if (i->Has(STABILIZATION_LAGRANGE_MULTIPLIER))
+                            mpc_stabilization = i->GetValue(STABILIZATION_LAGRANGE_MULTIPLIER);
 
                         const bool is_slip = i->Is(SLIP);
                         const bool is_contact = i->Is(CONTACT);
@@ -619,7 +622,11 @@ namespace MPMParticleGeneratorUtility
                                 if (boundary_condition_type == 1)
                                     p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
                                 else if (boundary_condition_type == 2)
+                                {
                                     p_condition->SetValue(SCALAR_LAGRANGE_MULTIPLIER, mpc_augmentation_factor);
+                                    p_condition->SetValue(STABILIZATION_LAGRANGE_MULTIPLIER, mpc_stabilization);
+
+                                }
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);
@@ -677,7 +684,11 @@ namespace MPMParticleGeneratorUtility
                                 if (boundary_condition_type == 1)
                                     p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
                                 else if (boundary_condition_type == 2)
+                                {
                                     p_condition->SetValue(SCALAR_LAGRANGE_MULTIPLIER, mpc_augmentation_factor);
+                                    p_condition->SetValue(STABILIZATION_LAGRANGE_MULTIPLIER, mpc_stabilization);
+                                }
+
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);

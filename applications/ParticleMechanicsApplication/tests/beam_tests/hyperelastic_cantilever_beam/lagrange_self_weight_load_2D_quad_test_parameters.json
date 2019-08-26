@@ -64,7 +64,8 @@
                 "particles_per_condition" : 7,
                 "imposition_type": "lagrange",
                 "constrained"     : "fixed",
-                "augmentation_factor": 0
+                "augmentation_factor": 0,
+                "stabilization": false
             }
         },{
             "python_module"   : "from_json_check_result_process",

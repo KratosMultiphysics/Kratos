@@ -134,6 +134,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     // Prepare variables
     GeneralVariables Variables;
     const double augmentation_factor = this->GetValue(SCALAR_LAGRANGE_MULTIPLIER);
+    bool stabilization = this->GetValue(STABILIZATION_LAGRANGE_MULTIPLIER);
 
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
@@ -149,16 +150,18 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
+            const array_1d<double, 3> displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
             {
                 for ( unsigned int j = 0; j < dimension; j++)
                 {
-                    field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
+                    field_displacement[j] += Variables.N[i] * displacement[j];
+
                 }
             }
         }
-
         const double penetration = MathUtils<double>::Dot((field_displacement - imposed_displacement), unit_normal_vector);
+
 
         // If penetrates, apply constraint, otherwise no
         if (penetration >= 0.0)
@@ -193,10 +196,9 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                 }
 
 
-                //Stabilization
-                if (augmentation_factor > 0.0)
+                //Stabilization needed for some solvers
+                if (stabilization)
                 {
-                    //Stabilization
                     lagrange_matrix(ibase, ibase) = -std::numeric_limits<double>::epsilon();
                     lagrange_matrix(ibase + 1, ibase + 1) = -std::numeric_limits<double>::epsilon();
 

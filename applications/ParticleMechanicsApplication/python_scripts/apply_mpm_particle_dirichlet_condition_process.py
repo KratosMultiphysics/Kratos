@@ -18,6 +18,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
                 "augmentation_factor"         : 0,
+                "stabilization"             : false,
                 "variable_name"             : "DISPLACEMENT",
                 "modulus"                   : 1.0,
                 "constrained"               : "fixed",
@@ -46,6 +47,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         elif (self.imposition_type == "lagrange" or self.imposition_type == "Lagrange"):
             self.augmentation_factor = settings["augmentation_factor"].GetDouble()
             self.boundary_condition_type = 2
+            self.stabilization = settings["stabilization"].GetBool()
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
             err_msg += "Available option is: \"penalty\"or \"lagrange\"."
@@ -107,6 +109,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                     condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
                 elif self.boundary_condition_type==2:
                     condition.SetValue(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER, self.augmentation_factor)
+                    condition.SetValue(KratosParticle.STABILIZATION_LAGRANGE_MULTIPLIER, self.stabilization)
 
                 condition.SetValue(self.variable, self.vector)
         else:
