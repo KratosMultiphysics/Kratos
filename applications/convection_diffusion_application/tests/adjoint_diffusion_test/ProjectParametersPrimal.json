@@ -66,7 +66,17 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "Parts_solid",
+                "model_part_name" : "ThermalModelPart.Parts_solid",
+                "variable_name"   : "HEAT_FLUX",
+                "value"           : 0.0,
+                "constrained"     : false
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "ThermalModelPart.Parts_solid",
                 "variable_name"   : "HEAT_FLUX",
                 "value"           : 0.0,
                 "constrained"     : false
@@ -97,7 +107,7 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["TEMPERATURE"],
+                        "nodal_results"       : ["TEMPERATURE","HEAT_FLUX"],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []

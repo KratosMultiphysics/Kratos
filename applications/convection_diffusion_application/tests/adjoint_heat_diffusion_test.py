@@ -20,6 +20,8 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
         self.print_output = False
         self.node_ids_to_test = range(1,10)
 
+        self.volume_source = 0.0
+
     def tearDown(self):
 
         with unittest.WorkFolderScope(self.work_folder, __file__):
@@ -31,12 +33,30 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
                 DeleteFileIfExisting("diffusion_test_adjoint.post.bin")
 
     def testAdjointHeatDiffusion(self):
+        self.directSensitivityCheck()
+
+    def testAdjointHeatDiffusionWithSourceTerm(self):
+        self.volume_source = 200.0
+        self.directSensitivityCheck()
+
+    def testAdjointHeatDiffusionWithConvectionCondition(self):
+        self.primal_parameter_file_name = "ProjectParametersConvectionConditionPrimal.json"
+        self.adjoint_parameter_file_name = "ProjectParametersConvectionConditionAdjoint.json"
+        self.directSensitivityCheck()
+
+    def directSensitivityCheck(self):
         model = kratos.Model()
         settings = kratos.Parameters(r'''{}''')
 
         with unittest.WorkFolderScope(self.work_folder, __file__):
             with open(self.primal_parameter_file_name,'r') as primal_parameter_file:
                 settings.AddValue("primal_settings", kratos.Parameters(primal_parameter_file.read()))
+
+            # enable volume source if needed
+            other_processes_list = settings["primal_settings"]["processes"]["list_other_processes"]
+            for i in range(other_processes_list.size()):
+                if other_processes_list[i]["process_name"].GetString() == "AssignScalarVariableProcess" and other_processes_list[i]["Parameters"]["variable_name"].GetString() == "HEAT_FLUX":
+                    other_processes_list[i]["Parameters"]["value"].SetDouble(self.volume_source)
 
             self.primalSolution(model, settings["primal_settings"])
 
@@ -53,7 +73,12 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
             for node_id,fd_sensitivity in zip(self.node_ids_to_test, finite_difference_results):
                 node = adjoint_model_part.Nodes[node_id]
                 adjoint_sensitivity = node.GetSolutionStepValue(kratos.SHAPE_SENSITIVITY,0)
-                #print(node_id, adjoint_sensitivity, fd_sensitivity)
+                #diff = adjoint_sensitivity-fd_sensitivity
+                #if (diff[0]**2 + diff[1]**2 + diff[2]**2)**0.5 < self.check_tolerance:
+                #    status = "PASS"
+                #else:
+                #    status = "FAIL"
+                #print(status, node_id, adjoint_sensitivity, fd_sensitivity, diff)
                 self.assertAlmostEqual(adjoint_sensitivity[0], fd_sensitivity[0], delta=self.check_tolerance)
                 self.assertAlmostEqual(adjoint_sensitivity[1], fd_sensitivity[1], delta=self.check_tolerance)
 
@@ -87,7 +112,11 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
             self.primalSolution(model_y,settings)
             y_temp = self.average_temperature_objective(model_y.GetModelPart(model_part_name+"."+objective_model_part_name))
 
-            results.append([(x_temp-base_temp)/self.perturbation_magnitude, (y_temp-base_temp)/self.perturbation_magnitude])
+            result = kratos.Array3()
+            result[0] = (x_temp-base_temp)/self.perturbation_magnitude
+            result[1] = (y_temp-base_temp)/self.perturbation_magnitude
+
+            results.append(result)
 
         return results
 

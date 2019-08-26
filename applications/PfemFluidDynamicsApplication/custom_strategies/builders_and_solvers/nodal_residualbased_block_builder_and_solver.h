@@ -317,7 +317,7 @@ namespace Kratos
 		RHS_Contribution[0]  += (-deltaPressure/volumetricCoeff +  volumetricDefRate)*nodalVolume;
 
 		bool stabilizationNeeded=false;
-		if((itNode->Is(FLUID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
+		if((itNode->Is(FLUID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49999))){
 		  stabilizationNeeded=true;
 		}else{		  
 		  for (unsigned int i = 0; i< neighSize; i++)
