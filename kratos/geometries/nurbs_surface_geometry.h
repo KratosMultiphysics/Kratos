@@ -350,7 +350,7 @@ public:
         const CoordinatesArrayType& rCoordinates,
         const SizeType DerivativeOrder) const
     {
-        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 4);
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, DerivativeOrder);
 
         if (IsRational()) {
             shape_function_container.ComputeNurbsShapeFunctionValues(

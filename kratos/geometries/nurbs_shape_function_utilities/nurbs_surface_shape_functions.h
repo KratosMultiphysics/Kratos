@@ -110,8 +110,8 @@ public:
         const SizeType number_of_shape_function_rows = this->NumberOfShapeFunctionRows(DerivativeOrder);
         const SizeType number_of_nonzero_control_points = (PolynomialDegreeU + 1) * (PolynomialDegreeV + 1);
 
-        mShapeFunctionsU.ResizeDataContainers(PolynomialDegreeU, std::min(DerivativeOrder, PolynomialDegreeU));
-        mShapeFunctionsV.ResizeDataContainers(PolynomialDegreeV, std::min(DerivativeOrder, PolynomialDegreeV));
+        mShapeFunctionsU.ResizeDataContainers(PolynomialDegreeU, DerivativeOrder);
+        mShapeFunctionsV.ResizeDataContainers(PolynomialDegreeV, DerivativeOrder);
         mShapeFunctionValues.resize(number_of_nonzero_control_points * number_of_shape_function_rows);
         mWeightedSums.resize(number_of_shape_function_rows);
 
