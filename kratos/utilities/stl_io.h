@@ -18,7 +18,6 @@
 #include <iostream>
 #include <vector>
 #include <set>
-#include <memory>
 
 // Project includes
 #include "includes/define.h"
@@ -54,23 +53,6 @@ std::ostream& operator <<(std::ostream& rOStream, const std::set<T>& rSet) {
   }
   rOStream << "]";
 
-  return rOStream;
-}
-
-template<class T>
-std::ostream& operator <<(std::ostream& rOStream, const std::weak_ptr<T>& rData) {
-
-  if(!rData.expired())
-    rOStream << *rData.lock().get();
-  else
-    rOStream <<" expired weak_ptr ";
-
-  return rOStream;
-}
-
-template<class T>
-std::ostream& operator <<(std::ostream& rOStream, const Kratos::intrusive_ptr<T>& rData) {
-  rOStream << *rData.get();
   return rOStream;
 }
 
