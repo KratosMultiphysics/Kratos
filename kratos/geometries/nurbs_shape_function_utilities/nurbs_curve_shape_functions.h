@@ -384,38 +384,7 @@ private:
     int mFirstNonzeroControlPoint;
 
     ///@}
-    ///@name Private Serialization
-    ///@{
 
-    friend class Serializer;
-
-    void save(Serializer& rSerializer) const
-    {
-        rSerializer.save("PolynomialDegree", mPolynomialDegree);
-        rSerializer.save("DerivativeOrder", mDerivativeOrder);
-        rSerializer.save("Values", mValues);
-        rSerializer.save("Left", mLeft);
-        rSerializer.save("Right", mRight);
-        rSerializer.save("Ndu", mNdu);
-        rSerializer.save("A", mA);
-        rSerializer.save("B", mB);
-        rSerializer.save("FirstNonzeroControlPoint", mFirstNonzeroControlPoint);
-    }
-
-    void load(Serializer& rSerializer)
-    {
-        rSerializer.load("PolynomialDegree", mPolynomialDegree);
-        rSerializer.load("DerivativeOrder", mDerivativeOrder);
-        rSerializer.load("Values", mValues);
-        rSerializer.load("Left", mLeft);
-        rSerializer.load("Right", mRight);
-        rSerializer.load("Ndu", mNdu);
-        rSerializer.load("A", mA);
-        rSerializer.load("B", mB);
-        rSerializer.load("FirstNonzeroControlPoint", mFirstNonzeroControlPoint);
-    }
-
-    ///@}
 };
 ///@}
 
