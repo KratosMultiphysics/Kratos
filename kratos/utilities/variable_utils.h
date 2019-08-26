@@ -252,7 +252,7 @@ public:
      * @param Check What is checked from the flag
      */
     template< class TVarType >
-    void SetScalarVarForFlag(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable") void SetScalarVarForFlag(
         const TVarType& rVariable,
         const double Value,
         NodesContainerType& rNodes,
@@ -291,7 +291,7 @@ public:
      * @param Flag The flag to be considered in the assignation
      * @param Check What is checked from the flag
      */
-    void SetVectorVarForFlag(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable") void SetVectorVarForFlag(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
         NodesContainerType& rNodes,
@@ -301,6 +301,8 @@ public:
 
     /**
      * @brief Sets the nodal value of a scalar variable
+     * @tparam TDataType Variable data type
+     * @tparam Variable<TDataType> Variable type
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
      * @param rNodes reference to the objective node set
@@ -308,16 +310,49 @@ public:
     template<class TDataType, class TVarType = Variable<TDataType> >
     void SetVariable(
         const TVarType& rVariable,
-        const TDataType& Value,
+        const TDataType& rValue,
         NodesContainerType& rNodes
         )
     {
         KRATOS_TRY
 
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
             NodesContainerType::iterator it_node = rNodes.begin() + k;
-            it_node->FastGetSolutionStepValue(rVariable) = Value;
+            it_node->FastGetSolutionStepValue(rVariable) = rValue;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Sets the nodal value of a scalar variable (considering flag)
+     * @tparam TDataType Variable data type
+     * @tparam Variable<TDataType> Variable type
+     * @param rVariable reference to the scalar variable to be set
+     * @param rValue Value to be set
+     * @param rNodes reference to the objective node set
+     * @param Flag The flag to be considered in the assignation
+     * @param Check What is checked from the flag
+     */
+    template <class TDataType, class TVarType = Variable<TDataType>>
+    void SetVariable(
+        const TVarType &rVariable,
+        const TDataType &rValue,
+        NodesContainerType &rNodes,
+        const Flags Flag,
+        const bool CheckValue = true)
+    {
+        KRATOS_TRY
+
+#pragma omp parallel for
+        for (int k = 0; k < static_cast<int>(rNodes.size()); ++k)
+        {
+            auto it_node = rNodes.begin() + k;
+            if (it_node->Is(Flag) == CheckValue)
+            {
+                it_node->FastGetSolutionStepValue(rVariable) = rValue;
+            }
         }
 
         KRATOS_CATCH("")
@@ -350,34 +385,6 @@ public:
     {
         KRATOS_TRY
         this->SetVariable(rVariable, rVariable.Zero(), rNodes);
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Sets the nodal value of a scalar variable (considering flag)
-     * @param rVariable reference to the scalar variable to be set
-     * @param Value Value to be set
-     * @param rNodes reference to the objective node set
-     * @param Flag The flag to be considered in the assignation
-     * @param Check What is checked from the flag
-     */
-    template< class TType >
-    void SetVariableForFlag(
-        const Variable< TType >& rVariable,
-        const TType& Value,
-        NodesContainerType& rNodes,
-        const Flags Flag,
-        const bool Check = true
-        )
-    {
-        KRATOS_TRY
-
-        #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator it_node = rNodes.begin() + k;
-            if (it_node->Is(Flag) == Check) it_node->FastGetSolutionStepValue(rVariable) = Value;
-        }
-
         KRATOS_CATCH("")
     }
 
@@ -423,7 +430,7 @@ public:
      * @param Value Value to be set
      * @param rContainer Reference to the objective container
      */
-    template< class TType, class TContainerType, class TVarType =  Variable< TType >>
+    template< class TType, class TContainerType, class TVarType = Variable< TType >>
     void SetNonHistoricalVariable(
         const TVarType& rVariable,
         const TType& Value,
@@ -449,10 +456,10 @@ public:
      * @param Flag The flag to be considered in the assignation
      * @param Check What is checked from the flag
      */
-    template< class TType, class TContainerType >
-    void SetNonHistoricalVariableForFlag(
-        const Variable< TType >& rVariable,
-        const TType& Value,
+    template< class TType, class TContainerType, class TVarType = Variable< TType >>
+    void SetNonHistoricalVariable(
+        const TVarType& rVariable,
+        const TType& rValue,
         TContainerType& rContainer,
         const Flags Flag,
         const bool Check = true
@@ -463,12 +470,13 @@ public:
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
             auto it_cont = rContainer.begin() + k;
-            if (it_cont->Is(Flag) == Check) it_cont->SetValue(rVariable, Value);
+            if (it_cont->Is(Flag) == Check) {
+                it_cont->SetValue(rVariable, rValue);
+            }
         }
 
         KRATOS_CATCH("")
     }
-
 
     /**
      * @brief Clears the container data value container

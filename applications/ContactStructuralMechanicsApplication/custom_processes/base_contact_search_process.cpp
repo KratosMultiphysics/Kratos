@@ -928,7 +928,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearScalarMort
 {
     KRATOS_TRY
 
-    VariableUtils().SetVariableForFlag(SCALAR_LAGRANGE_MULTIPLIER, 0.0, rNodesArray, ACTIVE, false);
+    VariableUtils().SetVariable(SCALAR_LAGRANGE_MULTIPLIER, 0.0, rNodesArray, ACTIVE, false);
 
     KRATOS_CATCH("")
 }
@@ -942,7 +942,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearComponents
     KRATOS_TRY
 
     const array_1d<double, 3> zero_array = ZeroVector(3);
-    VariableUtils().SetVariableForFlag(VECTOR_LAGRANGE_MULTIPLIER, zero_array, rNodesArray, ACTIVE, false);
+    VariableUtils().SetVariable(VECTOR_LAGRANGE_MULTIPLIER, zero_array, rNodesArray, ACTIVE, false);
 
     KRATOS_CATCH("")
 }
@@ -955,7 +955,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearALMFrictio
 {
     KRATOS_TRY
 
-    VariableUtils().SetVariableForFlag(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0.0, rNodesArray, ACTIVE, false);
+    VariableUtils().SetVariable(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0.0, rNodesArray, ACTIVE, false);
 
     KRATOS_CATCH("")
 }

@@ -440,6 +440,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         ## Set the model part
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"))
@@ -448,10 +449,14 @@ class TestVariableUtils(KratosUnittest.TestCase):
         ## Initialize the variable values
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, node.Id)
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [node.Id, 2 * node.Id, 3.0 * node.Id])
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, [2.0 * node.Id, 4.0 * node.Id, 8.0 * node.Id])
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [node.Id, 2.0 * node.Id, 3.0 * node.Id])
 
         ## Set the variable values to zero
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.VISCOSITY, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.VELOCITY_X, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.VELOCITY_Y, model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.VELOCITY_Z, model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISPLACEMENT, model_part.Nodes)
 
         ## Verify the result
