@@ -31,7 +31,7 @@ namespace Kratos
 
 	template<std::size_t TDim>
 	CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart, bool UsePlaneOptimization)
-		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart), mrSkinPart(rSkinPart), mrVolumePart(rVolumePart), mUsePlaneOptimization(UsePlaneOptimization)
+		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart), mUsePlaneOptimization(UsePlaneOptimization), mrSkinPart(rSkinPart), mrVolumePart(rVolumePart)
 	{
 	}
 
