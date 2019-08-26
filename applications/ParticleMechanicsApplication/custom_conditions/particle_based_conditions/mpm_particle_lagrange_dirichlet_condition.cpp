@@ -182,30 +182,27 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                 const unsigned int jbase = j * dimension;
 
                 // Matrix in following shape:
-                // |0 H^T|
-                // |H 0  |
+                // |aug*H   H^T|
+                // |H       0  |
                 // Lambda in X
                 for (unsigned int k = 0; k < dimension; k++)
                 {
+                    lagrange_matrix(jbase+k, jbase+k) = NN * augmentation_factor;
                     lagrange_matrix(ibase+k, jbase+k) = NN;
                     lagrange_matrix(jbase+k, ibase+k) = NN;
                 }
 
 
-
+                //Stabilization
                 if (augmentation_factor > 0.0)
                 {
                     //Stabilization
-                    //if (lagrange_matrix(dimension * j, ibase) <= 0.01)
-                        lagrange_matrix(ibase, ibase) = -augmentation_factor;
+                    lagrange_matrix(ibase, ibase) = -std::numeric_limits<double>::epsilon();
+                    lagrange_matrix(ibase + 1, ibase + 1) = -std::numeric_limits<double>::epsilon();
 
-                    //if (lagrange_matrix(dimension * j + 1, ibase + 1) <= 0.01)
-                        lagrange_matrix(ibase + 1, ibase + 1) = -augmentation_factor;
+                    if (dimension == 3)
+                            lagrange_matrix(ibase +2, ibase +2) = -std::numeric_limits<double>::epsilon();
 
-                    if (dimension == 3){
-                        if (lagrange_matrix(dimension * j + 2, ibase + 2) <= 0.001)
-                            lagrange_matrix(ibase +2, ibase +2) = -augmentation_factor;
-                    }
                 }
             }
         }
