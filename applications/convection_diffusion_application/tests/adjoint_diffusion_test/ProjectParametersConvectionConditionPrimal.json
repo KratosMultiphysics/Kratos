@@ -44,44 +44,26 @@
             "python_module" : "assign_scalar_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.HeatFlux2D_right",
-                "variable_name"   : "FACE_HEAT_FLUX",
-                "constrained"     : false,
-                "value"           : -100.0,
-                "interval"        : [0.0,"End"]
-            }
-        },{
-            "python_module" : "assign_scalar_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "Parameters"    : {
                 "model_part_name" : "ThermalModelPart.ImposedTemperature2D_left",
                 "variable_name"   : "TEMPERATURE",
                 "constrained"     : true,
                 "value"           : 300.0,
                 "interval"        : [0.0,"End"]
             }
-        }],
-        "list_other_processes"            : [{
-            "python_module" : "assign_scalar_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignScalarVariableProcess",
-            "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.Parts_solid",
-                "variable_name"   : "HEAT_FLUX",
-                "value"           : 0.0,
-                "constrained"     : false
-            }
         },{
-            "python_module" : "assign_scalar_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignScalarVariableProcess",
+            "python_module" : "apply_thermal_face_process",
+            "kratos_module" : "KratosMultiphysics.ConvectionDiffusionApplication",
             "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.Parts_solid",
-                "variable_name"   : "HEAT_FLUX",
-                "value"           : 0.0,
-                "constrained"     : false
+                "model_part_name"        : "ThermalModelPart.HeatFlux2D_right",
+                "ambient_temperature"    : 150.0,
+                "add_ambient_radiation"  : false,
+                "emissivity"             : 0.0,
+                "add_ambient_convection" : true,
+                "convection_coefficient" : 2.0,
+                "interval"               : [0.0,"End"]
             }
-        }]
+        }],
+        "list_other_processes"            : []
     },
     "output_processes" : {
         "gid_output" : [{
@@ -91,7 +73,7 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "ThermalModelPart.thermal_computing_domain",
-                "output_name"            : "diffusion_test_primal",
+                "output_name"            : "adjoint_test_convection_condition",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {
@@ -107,18 +89,39 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["TEMPERATURE","HEAT_FLUX"],
+                        "nodal_results"       : ["TEMPERATURE"],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []
                 }
             }
+        }],
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "help"          : "This process writes postprocessing files for Paraview",
+            "Parameters"    : {
+                "model_part_name"                    : "ThermalModelPart.thermal_computing_domain",
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1,
+                "file_format"                        : "ascii",
+                "output_precision"                   : 7,
+                "output_sub_model_parts"             : false,
+                "folder_name"                        : "vtk_output",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["TEMPERATURE"],
+                "nodal_data_value_variables"         : [],
+                "element_data_value_variables"       : [],
+                "condition_data_value_variables"     : [],
+                "gauss_point_variables"              : []
+            }
         }]
     },
     "restart_options"  : {
-        "SaveRestart"      : "False",
+        "SaveRestart"      : false,
         "RestartFrequency" : 0,
-        "LoadRestart"      : "False",
+        "LoadRestart"      : false,
         "Restart_Step"     : 0
     }
 }
