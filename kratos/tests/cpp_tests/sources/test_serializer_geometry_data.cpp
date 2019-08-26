@@ -29,7 +29,7 @@ namespace Kratos {
         typedef Geometry<Node<3>> GeometryType;
         typedef Node<3> NodeType;
 
-        Geometry<Node<3>>::Pointer GenerateLine2D3() {
+        Geometry<Node<3>>::Pointer GenerateLine2D3Test() {
             return Kratos::make_shared<Line2D3<Node<3>>>(
                 new NodeType(1, 0.0, 0.0, 0.0),
                 new NodeType(2, 1.0, 0.0, 0.0),
@@ -37,7 +37,7 @@ namespace Kratos {
                 );
         }
 
-        Geometry<Node<3>>::Pointer GenerateLine2D32() {
+        Geometry<Node<3>>::Pointer GenerateLine2D3TestLoad() {
             return Kratos::make_shared<Line2D3<Node<3>>>(
                 new NodeType(4, 20, 0.0, 0.0),
                 new NodeType(5, 20, 0.0, 0.0),
@@ -46,10 +46,10 @@ namespace Kratos {
         }
 
         /** Generates a point type sample triangle2D3.
- * Generates a point type right triangle with origin in the origin and leg size 1.
- * @return  Pointer to a triangle2D3
- */
-        Geometry<Node<3>>::Pointer GeneratePointsTriangle2D32() {
+         * Generates a point type right triangle with origin in the origin and leg size 1.
+         * @return  Pointer to a triangle2D3
+         */
+        Geometry<Node<3>>::Pointer GeneratePointsTriangle2D3TestQP() {
             return Kratos::make_shared<Triangle2D3<NodeType>>(
                 new NodeType(1, 0.0, 0.0, 0.0),
                 new NodeType(2, 1.0, 0.0, 0.0),
@@ -57,43 +57,42 @@ namespace Kratos {
                 );
         }
 
-        //Geometry<Node<3>>::Pointer GenerateQuadraturePoint2() {
-        //    auto triangle = GeneratePointsTriangle2D32();
+        Geometry<Node<3>>::Pointer GenerateQuadraturePoint2() {
+            auto triangle = GeneratePointsTriangle2D3TestQP();
 
-        //    auto integration_points = triangle->IntegrationPoints();
+            auto integration_points = triangle->IntegrationPoints();
 
-        //    auto r_N = triangle->ShapeFunctionsValues();
+            auto r_N = triangle->ShapeFunctionsValues();
 
-                //Matrix N_i = ZeroMatrix(1, triangle->size());
-                //for (std::size_t j = 0; j < triangle->size(); ++j)
-                //{
-                //    N_i(0, j) = r_N(0, j);
-                //}
-                //Matrix DN_De = triangle->ShapeFunctionLocalGradient(0);
+            Matrix N_i = ZeroMatrix(1, triangle->size());
+            for (IndexType j = 0; j < triangle->size(); ++j)
+            {
+                N_i(0, j) = r_N(0, j);
+            }
+            Matrix DN_De = triangle->ShapeFunctionLocalGradient(0);
 
-                //auto DN_De_array = DenseVector<Matrix>(1);
-                //DN_De_array[0] = DN_De;
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                GeometryData::GI_GAUSS_1,
+                integration_points[0],
+                N_i,
+                DN_De);
 
-                //QuadraturePoint<2, 2, Node<3>>::ShapeFunctionsLocalGradientsContainerType DN_De_container =
-                //{ { DN_De_array } };
+            Geometry<Node<3>>::Pointer p_this_quadrature_point(
+                Kratos::make_shared<QuadraturePoint<Node<3>, 2, 2>>(
+                    triangle->Points(),
+                    data_container,
+                    triangle.get()));
 
-                //Geometry<Node<3>>::Pointer p_this_quadrature_point(
-                //    Kratos::make_shared<QuadraturePoint<2, 2, Node<3>>>(
-                //        triangle->Points(),
-                //        ips_container,
-                //        N_container,
-                //        DN_De_container));
-
-                //return p_this_quadrature_point;
-        //}
+            return p_this_quadrature_point;
+        }
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerLine2D3, KratosCoreFastSuite)
         {
             StreamSerializer serializer;
 
-            auto line_saved = GenerateLine2D3();
+            auto line_saved = GenerateLine2D3Test();
 
-            auto line_loaded = GenerateLine2D32();
+            auto line_loaded = GenerateLine2D3TestLoad();
 
             const std::string tag_string("LoadLine");
 
@@ -120,30 +119,24 @@ namespace Kratos {
         {
             StreamSerializer serializer;
 
-            //auto quadrature_saved = GenerateQuadraturePoint2();
+            auto quadrature_saved = GenerateQuadraturePoint2();
 
-            //auto quadrature_loaded = GenerateQuadraturePoint2();
+            auto quadrature_loaded = GenerateQuadraturePoint2();
 
-            //const std::string tag_string("LoadQuadraturePoint");
+            const std::string tag_string("LoadQuadraturePoint");
 
-            //serializer.save(tag_string, quadrature_saved);
-            //serializer.load(tag_string, quadrature_loaded);
+            serializer.save(tag_string, quadrature_saved);
+            serializer.load(tag_string, quadrature_loaded);
 
-            //KRATOS_CHECK_NEAR((*quadrature_saved)[0].X(), (*quadrature_loaded)[0].X(), 1e-6);
-            //KRATOS_CHECK_NEAR((*quadrature_saved)[0].Y(), (*quadrature_loaded)[0].Y(), 1e-6);
-            //KRATOS_CHECK_NEAR((*quadrature_saved)[0].Z(), (*quadrature_loaded)[0].Z(), 1e-6);
+            KRATOS_CHECK_NEAR((*quadrature_saved)[0].X(), (*quadrature_loaded)[0].X(), 1e-6);
+            KRATOS_CHECK_NEAR((*quadrature_saved)[0].Y(), (*quadrature_loaded)[0].Y(), 1e-6);
+            KRATOS_CHECK_NEAR((*quadrature_saved)[0].Z(), (*quadrature_loaded)[0].Z(), 1e-6);
 
-            //for (std::size_t i = 0; i < quadrature_saved->size(); ++i)
-            //{
-            //    for (std::size_t j = 0; j < quadrature_saved->IntegrationPointsNumber(); ++j)
-            //    {
-            //        KRATOS_CHECK_NEAR(quadrature_saved->ShapeFunctionValue(j, i), quadrature_loaded->ShapeFunctionValue(j, i), 1e-6);
-            //    }
-            //}
+            KRATOS_CHECK_MATRIX_NEAR(quadrature_saved->ShapeFunctionsValues(), quadrature_loaded->ShapeFunctionsValues(), 1e-6);
 
-            //KRATOS_CHECK_EQUAL(quadrature_saved->size(), quadrature_loaded->size());
-            //KRATOS_CHECK_EQUAL(quadrature_saved->WorkingSpaceDimension(), quadrature_loaded->WorkingSpaceDimension());
-            //KRATOS_CHECK_EQUAL(quadrature_saved->GetDefaultIntegrationMethod(), quadrature_loaded->GetDefaultIntegrationMethod());
+            KRATOS_CHECK_EQUAL(quadrature_saved->size(), quadrature_loaded->size());
+            KRATOS_CHECK_EQUAL(quadrature_saved->WorkingSpaceDimension(), quadrature_loaded->WorkingSpaceDimension());
+            KRATOS_CHECK_EQUAL(quadrature_saved->GetDefaultIntegrationMethod(), quadrature_loaded->GetDefaultIntegrationMethod());
         }
     } // namespace Testing
 }  // namespace Kratos.
