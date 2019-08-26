@@ -41,7 +41,7 @@ class CoSimulationInterface(object):
 
     def __add__(self, other):
         result = copy.deepcopy(self)
-        result.SetNumpyArray(self.GetNumpyArray() - other.GetNumpyArray())
+        result.SetNumpyArray(self.GetNumpyArray() + other.GetNumpyArray())
         return result
 
     def __sub__(self, other):
