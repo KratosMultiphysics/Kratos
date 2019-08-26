@@ -166,11 +166,11 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     std::stringstream ss;
     const std::string output_control = mOutputSettings["output_control_type"].GetString();
     if (output_control == "step") {
-        ss << std::setprecision(mDefaultPrecision)<< std::setfill('0')
+        ss << std::fixed << std::setprecision(mDefaultPrecision)<< std::setfill('0')
            << rModelPart.GetProcessInfo()[STEP];
         label = ss.str();
     } else if(output_control == "time") {
-        ss << std::setprecision(mDefaultPrecision) << std::setfill('0')
+        ss << std::fixed << std::setprecision(mDefaultPrecision) << std::setfill('0')
            << rModelPart.GetProcessInfo()[TIME];
         label = ss.str();
     } else {

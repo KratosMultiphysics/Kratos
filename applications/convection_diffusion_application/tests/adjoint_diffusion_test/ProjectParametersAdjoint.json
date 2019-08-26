@@ -75,7 +75,7 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["TEMPERATURE","ADJOINT_HEAT_TRANSFER","SHAPE_SENSITIVITY"],
+                        "nodal_results"       : ["TEMPERATURE","ADJOINT_HEAT_TRANSFER","SHAPE_SENSITIVITY","HEAT_FLUX","CONDUCTIVITY"],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []

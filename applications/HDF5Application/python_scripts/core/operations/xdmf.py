@@ -36,7 +36,7 @@ def Create(settings):
     This method is normally not used directly, but rather it is imported
     in core.operations.model_part.Create using the 'module_name' setting.
     '''
-    operation_type = settings['operation_type'].GetString()
+    operation_type = settings['operation_type']
     if operation_type == 'xdmf_output':
         return XdmfOutput()
     else:

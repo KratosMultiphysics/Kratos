@@ -173,12 +173,12 @@ public:
             }
 
             const TDataType float_size_residual = static_cast<TDataType>(size_residual);
-            const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
+            const TDataType absolute_norm = (mCurrentResidualNorm / float_size_residual);
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
-            if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm) {
+            if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm) { // Conevrged
                 if (rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] < 10) {
                     std::cout <<"|      " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << "      |  " 
                         << std::scientific << ratio << "  |  " 
@@ -188,8 +188,6 @@ public:
                         << std::scientific << ratio << "  |  " 
                         << absolute_norm << "  |" << "      TRUE       |"<< std::endl;  
                 }
-                KRATOS_INFO("") << "|_____________|________________|________________|_________________|" << std::endl;
-                KRATOS_INFO("") << "" << std::endl;
                 return true;
             } else {
                 if (rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] < 10) {
@@ -286,6 +284,8 @@ public:
         ) override
     {
         BaseType::FinalizeSolutionStep(rModelPart, rDofSet, rA, rDx, rb);
+        KRATOS_INFO("") << "|_____________|________________|________________|_________________|" << std::endl;
+        KRATOS_INFO("") << "" << std::endl;
     }
 
     ///@}
