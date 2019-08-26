@@ -312,9 +312,9 @@ void VariableUtilsSetNonHistoricalVariable(
     VariableUtils &rVariableUtils,
     const TVarType &rVariable,
     const TDataType &rValue,
-    NodesContainerType &rNodes)
+    TContainerType &rContainer)
 {
-    rVariableUtils.SetNonHistoricalVariable(rVariable, rValue, rNodes);
+    rVariableUtils.SetNonHistoricalVariable(rVariable, rValue, rContainer);
 }
 
 template <class TDataType, class TContainerType, class TVarType = Variable<TDataType>>
@@ -322,11 +322,11 @@ void VariableUtilsSetNonHistoricalVariableForFlag(
     VariableUtils &rVariableUtils,
     const TVarType &rVariable,
     const TDataType &rValue,
-    NodesContainerType &rNodes,
+    TContainerType &rContainer,
     const Flags Flag,
     const bool CheckValue = true)
 {
-    rVariableUtils.SetNonHistoricalVariable(rVariable, rValue, rNodes, Flag, CheckValue);
+    rVariableUtils.SetNonHistoricalVariable(rVariable, rValue, rContainer, Flag, CheckValue);
 }
 
 void PrintTimingInformation(Timer& rTimer)
