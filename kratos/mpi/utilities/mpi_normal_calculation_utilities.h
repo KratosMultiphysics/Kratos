@@ -184,18 +184,15 @@ private:
     void InitializeNormalData(ModelPart& rModelPart,
                               const Variable<double>& rVariable,
                               int MaxNeigh,
-                              double* pNormals,
-                              int* pActiveNeigh,
+                              std::vector<double>& rNormals,
+                              std::vector<int>& pActiveNeigh,
                               const int NumNodes);
-
-    void FreeNormalData(double* pNormals,
-                        int* pActiveNeigh);
 
     void DetectEdges(ModelPart& rModelPart,
                      unsigned int Dimension,
                      double MaxAngle,
-                     const double *pNormals,
-                     const int *pActiveNeigh,
+                     const std::vector<double>& rNormals,
+                     const std::vector<int>& rActiveNeigh,
                      const int NumNodes,
                      const int MaxNeighs);
 
