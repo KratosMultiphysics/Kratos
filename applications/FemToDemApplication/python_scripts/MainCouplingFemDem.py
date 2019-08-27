@@ -45,12 +45,13 @@ class MainCoupledFemDem_Solution:
         self.DEM_Solution.Initialize()
 
         nodes = self.FEM_Solution.main_model_part.Nodes
+        utils = KratosMultiphysics.VariableUtils()
         # Initialize the "flag" IS_DEM in all the nodes
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, nodes)
+        utils.SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, nodes)
         # Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, nodes)
+        utils.SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, nodes)
         # Initialize the "flag" RADIUS in all the nodes
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, 0.0, nodes)
+        utils.SetNonHistoricalVariable(KratosMultiphysics.RADIUS, 0.0, nodes)
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
@@ -61,6 +62,9 @@ class MainCoupledFemDem_Solution:
         self.ParticleCreatorDestructor = PCD.FemDemParticleCreatorDestructor(self.SpheresModelPart,
                                                                            self.DEMProperties,
                                                                            self.DEMParameters)
+
+        if self.domain_size == 3:
+            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
 
         if self.DoRemeshing:
             self.InitializeMMGvariables()
@@ -78,10 +82,10 @@ class MainCoupledFemDem_Solution:
         if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
 
-        if self.FEM_Solution.ProjectParameters.Has("displacement_perturbed_tangent") == False:
-            self.DisplacementPerturbedTangent = False
-        else:
-            self.DisplacementPerturbedTangent = self.FEM_Solution.ProjectParameters["displacement_perturbed_tangent"].GetBool()
+        # if self.FEM_Solution.ProjectParameters.Has("displacement_perturbed_tangent") == False:
+        #     self.DisplacementPerturbedTangent = False
+        # else:
+        #     self.DisplacementPerturbedTangent = self.FEM_Solution.ProjectParameters["displacement_perturbed_tangent"].GetBool()
 
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
         {
@@ -147,3 +151,35 @@ class MainCoupledFemDem_Solution:
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0], elements)
+
+#============================================================================================================================
+    def InitializeMMGvariables(self):
+
+        ZeroVector3 = KratosMultiphysics.Vector(3)
+        ZeroVector3[0] = 0.0
+        ZeroVector3[1] = 0.0
+        ZeroVector3[2] = 0.0
+
+        utils = KratosMultiphysics.VariableUtils()
+        nodes = self.FEM_Solution.main_model_part.Nodes
+        utils.SetNonHistoricalVariable(MeshingApplication.AUXILIAR_GRADIENT, ZeroVector3, nodes)
+
+#============================================================================================================================
+    def InitializeDummyNodalForces(self):
+        if self.echo_level > 0:
+            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeDummyNodalForces")
+
+        # we fill the submodel part with the nodes and dummy conditions
+        max_id = self.GetMaximumConditionId()
+        props = self.FEM_Solution.main_model_part.Properties[0]
+        self.FEM_Solution.main_model_part.CreateSubModelPart("ContactForcesDEMConditions")
+        for node in self.FEM_Solution.main_model_part.Nodes:
+            self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").AddNode(node, 0)
+            max_id += 1
+            cond = self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").CreateNewCondition(
+                                                                            "PointLoadCondition2D1N",
+                                                                            max_id,
+                                                                            [node.Id],
+                                                                            props)
+            self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").AddCondition(cond)
+            self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(Solid.FORCE_LOAD, [0.0,0.0,0.0])
