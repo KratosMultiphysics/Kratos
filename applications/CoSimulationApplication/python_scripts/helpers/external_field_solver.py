@@ -15,8 +15,11 @@ class ExternalFieldSolver(object):
     It can be used for testing and development of couplings to external solvers,
     without actually having to couple to an external solver
 
+    Note that this is only an example for an external solver, other configurations are
+    of course also possible
+
     TODO: For now it uses directly the EMPIRE_API
-    In the future this will be replaced by the CoSimIO (which is included in the external solvers)
+    In the future this will be replaced by a CoSim IO
     """
     def __init__(self, settings):
         default_settings = KM.Parameters("""{

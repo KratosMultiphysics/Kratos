@@ -15,6 +15,8 @@ def Create(settings, solver_name):
 class DummySolverWrapper(CoSimulationSolverWrapper):
     """This class serves as dummy for testing, it does not solve anything
     It only imports a mesh that can be used in the testing workflow
+
+    Note that this is only an example, other configurations are of course also possible
     """
     def __init__(self, settings, solver_name):
         super(DummySolverWrapper, self).__init__(settings, solver_name)
