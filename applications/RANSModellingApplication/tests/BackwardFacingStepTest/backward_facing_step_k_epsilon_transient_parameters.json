@@ -350,29 +350,21 @@
                 }
             },
             {
-                "python_module": "apply_custom_boundary_process",
+                "python_module": "apply_custom_process",
                 "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "help": [],
+                "process_name" : "ApplyKTurbulentIntensityInletProcess",
                 "Parameters": {
-                    "process_name": "k_turbulent_intensity",
                     "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
-                    "boundary_condition_type": "inlet",
-                    "process_settings": {
-                        "turbulent_intensity": 6.1e-4
-                    }
+                    "turbulent_intensity": 6.1e-4
                 }
             },
             {
-                "python_module": "apply_custom_boundary_process",
+                "python_module": "apply_custom_process",
                 "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "help": [],
+                "process_name" : "ApplyEpsilonTurbulentMixingLengthInletProcess",
                 "Parameters": {
-                    "process_name": "epsilon_turbulent_mixing_length",
                     "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
-                    "boundary_condition_type": "inlet",
-                    "process_settings": {
-                        "turbulent_mixing_length": 0.0588
-                    }
+                    "turbulent_mixing_length": 0.0588
                 }
             }
         ],
