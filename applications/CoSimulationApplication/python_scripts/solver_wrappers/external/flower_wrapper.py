@@ -10,13 +10,13 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver_name):
-    return ExternalSolverWrapper(settings, solver_name)
+    return FLOWerWrapper(settings, solver_name)
 
-class ExternalSolverWrapper(CoSimulationSolverWrapper):
+class FLOWerWrapper(CoSimulationSolverWrapper):
     """This class serves as wrapper for external solvers
     """
     def __init__(self, settings, solver_name):
-        super(ExternalSolverWrapper, self).__init__(settings, solver_name)
+        super(FLOWerWrapper, self).__init__(settings, solver_name)
 
         settings_defaults = KM.Parameters("""{
             "model_parts_read" : { },
@@ -30,7 +30,7 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
         cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
 
     def Initialize(self):
-        super(ExternalSolverWrapper, self).Initialize()
+        super(FLOWerWrapper, self).Initialize()
 
         for main_model_part_name, mdpa_file_name in self.settings["solver_wrapper_settings"]["model_parts_read"].items():
             KM.ModelPartIO(mdpa_file_name.GetString()).ReadModelPart(self.model[main_model_part_name])
