@@ -56,13 +56,13 @@
                     }
                 },
                 {
-                    "python_module": "apply_custom_process",
-                    "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "ApplyYPlusKCalculationProcess",
+                    "python_module": "process_factory",
+                    "kratos_module": "KratosMultiphysics",
+                    "process_name": "ApplyConstantScalarValueProcess",
                     "Parameters": {
                         "model_part_name": "FluidModelPart.Slip2D",
-                        "echo_level": 0,
-                        "min_y_plus": 17.25677
+                        "variable_name": "RANS_Y_PLUS",
+                        "value" : 17.25677
                     }
                 },
                 {

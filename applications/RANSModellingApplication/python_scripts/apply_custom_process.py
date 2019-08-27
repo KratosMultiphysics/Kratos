@@ -10,101 +10,98 @@ def Factory(settings, Model):
     if (type(Model) != Kratos.Model):
         raise Exception("expected input shall be a Model object")
 
-    allowed_process_names_list = [
-        "ApplyFlagProcess", "FindNodalNeighboursProcess",
-        "FindConditionParentProcess",
-        "ApplyScalarCellCenteredAveragingProcess",
-        "ApplyVectorCellCenteredAveragingProcess", "ApplyVectorAlignProcess",
-        "CalculateNormalsProcess", "WallDistanceCalculationProcess",
-        "LogarithmicYPlusCalculationProcess", "CheckScalarBoundsProcess",
-        "EpsilonWallFunctionProcess", "NuTKWallFunctionProcess",
-        "NuTHighReCalculationProcess", "ApplyKTurbulentIntensityInletProcess",
-        "ApplyEpsilonTurbulentMixingLengthInletProcess",
-        "ApplyKWallFrictionVelocityProcess",
-        "ApplyEpsilonWallFrictionVelocityProcess", "ClipScalarVariableProcess",
-        "ClipScalarVariableByNeighbourAveragingProcess",
-        "ApplyExactNodalPeriodicConditionProcess",
-        "ApplyYPlusKCalculationProcess", "ApplyNutYPlusWallFunctionProcess",
-        "NuTLowReCalculationProcess", "CheckScalarConditionBoundsProcess"
+    allowed_processes_list = [
+        ["ApplyFlagProcess", KratosRANS.RansApplyFlagProcess],
+        ["FindNodalNeighboursProcess", FindNodalNeighboursProcess],
+        [
+            "FindConditionParentProcess",
+            KratosRANS.RansFindConditionParentProcess
+        ],
+        [
+            "ApplyScalarCellCenteredAveragingProcess",
+            KratosRANS.RansScalarCellCenterAveragingProcess
+        ],
+        [
+            "ApplyVectorCellCenteredAveragingProcess",
+            KratosRANS.RansVectorCellCenterAveragingProcess
+        ], ["ApplyVectorAlignProcess", KratosRANS.RansVectorAlignProcess],
+        ["CalculateNormalsProcess", CalculateNormalsProcess],
+        [
+            "WallDistanceCalculationProcess",
+            KratosRANS.RansWallDistanceCalculationProcess
+        ],
+        [
+            "LogarithmicYPlusCalculationProcess",
+            KratosRANS.RansLogarithmicYPlusCalculationProcess
+        ],
+        ["CheckScalarBoundsProcess", KratosRANS.RansCheckScalarBoundsProcess],
+        [
+            "EpsilonWallFunctionProcess",
+            KratosRANS.RansEpsilonWallFunctionProcess
+        ], ["NuTKWallFunctionProcess", KratosRANS.RansNutKWallFunctionProcess],
+        [
+            "NuTHighReCalculationProcess",
+            KratosRANS.RansNutHighReCalculationProcess
+        ],
+        [
+            "ApplyKTurbulentIntensityInletProcess",
+            KratosRANS.RansKTurbulentIntensityInletProcess
+        ],
+        [
+            "ApplyEpsilonTurbulentMixingLengthInletProcess",
+            KratosRANS.RansEpsilonTurbulentMixingLengthInletProcess
+        ],
+        [
+            "ApplyKWallFrictionVelocityProcess",
+            KratosRANS.RansKWallFrictionVelocityProcess
+        ],
+        [
+            "ApplyEpsilonWallFrictionVelocityProcess",
+            KratosRANS.RansEpsilonWallFrictionVelocityProcess
+        ],
+        [
+            "ClipScalarVariableProcess",
+            KratosRANS.RansClipScalarVariableProcess
+        ],
+        [
+            "ApplyExactNodalPeriodicConditionProcess",
+            KratosRANS.RansApplyExactNodalPeriodicConditionProcess
+        ],
+        [
+            "ApplyNutYPlusWallFunctionProcess",
+            KratosRANS.RansNutYPlusWallFunctionProcess
+        ],
+        [
+            "NuTLowReCalculationProcess",
+            KratosRANS.RansNutLowReCalculationProcess
+        ],
+        [
+            "CheckScalarConditionBoundsProcess",
+            KratosRANS.RansCheckScalarConditionBoundsProcess
+        ]
     ]
 
     process_name = settings["process_name"].GetString()
-    if (process_name not in allowed_process_names_list):
-        msg = "Unknown process_name=\"" + process_name + "\". Following process names are allowed:\n    "
-        msg += "\n    ".join(allowed_process_names_list)
+
+    process_names_list = [
+        allowed_processes_list[i][0]
+        for i in range(len(allowed_processes_list))
+    ]
+    process_list = [
+        allowed_processes_list[i][1]
+        for i in range(len(allowed_processes_list))
+    ]
+
+    if (process_name not in process_names_list):
+        msg = "Unknown process_name=\"" + process_name + "\". \nFollowing process names are allowed:\n    "
+        msg += "\n    ".join(sorted(process_names_list))
         raise Exception(msg + "\n")
 
     Kratos.Logger.PrintInfo("RANSApplyCustomProcess",
                             "Creating " + process_name)
 
-    if (process_name == "ApplyFlagProcess"):
-        return KratosRANS.RansApplyFlagProcess(Model, settings["Parameters"])
-    elif (process_name == "FindNodalNeighboursProcess"):
-        return FindNodalNeighboursProcess(Model, settings["Parameters"])
-    elif (process_name == "FindConditionParentProcess"):
-        return KratosRANS.RansFindConditionParentProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ApplyScalarCellCenteredAveragingProcess"):
-        return KratosRANS.RansScalarCellCenterAveragingProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ApplyVectorCellCenteredAveragingProcess"):
-        return KratosRANS.RansVectorCellCenterAveragingProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ApplyVectorAlignProcess"):
-        return KratosRANS.RansVectorAlignProcess(Model, settings["Parameters"])
-    elif (process_name == "CalculateNormalsProcess"):
-        return CalculateNormalsProcess(Model, settings["Parameters"])
-    elif (process_name == "WallDistanceCalculationProcess"):
-        return KratosRANS.RansWallDistanceCalculationProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "LogarithmicYPlusCalculationProcess"):
-        return KratosRANS.RansLogarithmicYPlusCalculationProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "CheckScalarBoundsProcess"):
-        return KratosRANS.RansCheckScalarBoundsProcess(Model,
-                                                       settings["Parameters"])
-    elif (process_name == "EpsilonWallFunctionProcess"):
-        return KratosRANS.RansEpsilonWallFunctionProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "NuTKWallFunctionProcess"):
-        return KratosRANS.RansNutKWallFunctionProcess(Model,
-                                                      settings["Parameters"])
-    elif (process_name == "NuTHighReCalculationProcess"):
-        return KratosRANS.RansNutHighReCalculationProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ApplyKTurbulentIntensityInletProcess"):
-        return KratosRANS.RansKTurbulentIntensityInletProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ApplyEpsilonTurbulentMixingLengthInletProcess"):
-        return KratosRANS.RansEpsilonTurbulentMixingLengthInletProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ApplyKWallFrictionVelocityProcess"):
-        return KratosRANS.RansKWallFrictionVelocityProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ApplyEpsilonWallFrictionVelocityProcess"):
-        return KratosRANS.RansEpsilonWallFrictionVelocityProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ClipScalarVariableProcess"):
-        return KratosRANS.RansClipScalarVariableProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ClipScalarVariableByNeighbourAveragingProcess"):
-        return KratosRANS.RansClipScalarVariableByNeighbourAveragingProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ApplyExactNodalPeriodicConditionProcess"):
-        return KratosRANS.RansApplyExactNodalPeriodicConditionProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "ApplyYPlusKCalculationProcess"):
-        return KratosRANS.RansYPlusKCalculationProcess(Model,
-                                                       settings["Parameters"])
-    elif (process_name == "ApplyNutYPlusWallFunctionProcess"):
-        return KratosRANS.RansNutYPlusWallFunctionProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "NuTLowReCalculationProcess"):
-        return KratosRANS.RansNutLowReCalculationProcess(
-            Model, settings["Parameters"])
-    elif (process_name == "CheckScalarConditionBoundsProcess"):
-        return KratosRANS.RansCheckScalarConditionBoundsProcess(
-            Model, settings["Parameters"])
+    return process_list[process_names_list.index(process_name)](
+        Model, settings["Parameters"])
 
 
 class FindNodalNeighboursProcess(Kratos.Process):
