@@ -883,14 +883,21 @@ private:
 	MasterNode->FastGetSolutionStepValue(GRAIN_DENSITY)=SlaveNode->FastGetSolutionStepValue(GRAIN_DENSITY);
 	MasterNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT)=SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
 	
-	MasterNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT)=SlaveNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
-	MasterNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT)=SlaveNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT);
+	if(MasterNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT) && SlaveNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT)){
+		MasterNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT)=SlaveNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+		MasterNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT)=SlaveNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT);
+	}
 	
-    MasterNode->FastGetSolutionStepValue(YOUNG_MODULUS)=0;
-    MasterNode->FastGetSolutionStepValue(POISSON_RATIO)=0;
-    MasterNode->FastGetSolutionStepValue(SOLID_DENSITY)=0;
-	MasterNode->Reset(SOLID);
-	MasterNode->FastGetSolutionStepValue(INTERFACE_NODE)=false;
+	if(MasterNode->SolutionStepsDataHas(YOUNG_MODULUS) && SlaveNode->SolutionStepsDataHas(YOUNG_MODULUS)){
+		MasterNode->FastGetSolutionStepValue(YOUNG_MODULUS)=0;
+    	MasterNode->FastGetSolutionStepValue(POISSON_RATIO)=0;
+	}
+	if(MasterNode->SolutionStepsDataHas(SOLID_DENSITY) && SlaveNode->SolutionStepsDataHas(SOLID_DENSITY)){
+   		MasterNode->FastGetSolutionStepValue(SOLID_DENSITY)=0;
+		MasterNode->Reset(SOLID);
+		MasterNode->FastGetSolutionStepValue(INTERFACE_NODE)=false;
+	}
+
 
     KRATOS_CATCH( "" )
 
