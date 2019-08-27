@@ -12,6 +12,14 @@
 //
 
 
+/**
+ * @class EmpiricalSpringElementProcess
+ *
+ * @brief This process creates a spring element w.r.t. to given displacement/load data points
+ *
+ * @author Klaus B Sautter
+ */
+
 
 #ifndef EMPIRICAL_SPRING_ELEMENT_PROCESS_H
 #define EMPIRICAL_SPRING_ELEMENT_PROCESS_H
@@ -30,6 +38,7 @@
 #include "includes/kratos_parameters.h"
 #include "geometries/line_3d_2.h"
 #include "includes/model_part.h"
+#include "cable_net_application_variables.h"
 
 namespace Kratos
 {
@@ -55,7 +64,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EmpiricalSpringElementProcess
 
     /// Constructor.
     EmpiricalSpringElementProcess(ModelPart &rModelPart,
-     Parameters InputParameters, const DoubleVector &FittedPolynomial):mrModelPart(rModelPart),mParameters(InputParameters),mrFittedPoly(FittedPolynomial)
+     Parameters InputParameters, const DoubleVector FittedPolynomial):mrModelPart(rModelPart),mParameters(InputParameters),mrFittedPoly(FittedPolynomial)
     {
         KRATOS_TRY;
         Parameters default_parameters = Parameters(R"(
@@ -71,7 +80,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EmpiricalSpringElementProcess
         })" );
         default_parameters.ValidateAndAssignDefaults(InputParameters);
 
-        KRATOS_ERROR_IF(mParameters["node_ids"].size()!=2) << "only two nodes for each spring allowed !" << std::endl;
+        KRATOS_ERROR_IF(mParameters["node_ids"].size()!=2) << "exactly two nodes for each spring needed !" << std::endl;
         KRATOS_ERROR_IF(mParameters["displacement_data"].size()!=mParameters["force_data"].size()) << "only two nodes for each spring allowed !" << std::endl;
 
 
@@ -107,6 +116,33 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EmpiricalSpringElementProcess
     void CreateEmpiricalSpringElement() const
     {
         KRATOS_TRY;
+        Vector polynomial_order = ZeroVector(mrFittedPoly.size());
+        for (SizeType i=0;i<mrFittedPoly.size();++i) polynomial_order[i] = mrFittedPoly[i];
+        const int number_nodes = 2;
+
+        // get new element id
+        const ModelPart::IndexType new_element_id = mParameters["element_id"].GetInt();
+
+        // create geometric entitity
+        std::vector<NodeType::Pointer> element_nodes (number_nodes);
+        for (SizeType i=0; i<number_nodes; ++i)
+        {
+            element_nodes[i] = mrModelPart.pGetNode(mParameters["node_ids"][i].GetInt());
+        }
+        Line3D2 <NodeType> line_t ( PointerVector<NodeType>{element_nodes} );
+
+        // get properties
+        Properties::Pointer p_elem_prop = mrModelPart.pGetProperties(mParameters["property_id"].GetInt());
+
+
+        p_elem_prop->SetValue(SPRING_DEFORMATION_EMPIRICAL_POLYNOMIAL, polynomial_order);
+
+
+        const Element& rElem = KratosComponents<Element>::Get("EmpiricalSpringElement3D2N");
+        Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
+        mrModelPart.AddElement(pElem);
+
+
         KRATOS_CATCH("");
     }
 
@@ -117,7 +153,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EmpiricalSpringElementProcess
 
     ModelPart& mrModelPart;
     Parameters mParameters;
-    const DoubleVector& mrFittedPoly;
+    const DoubleVector mrFittedPoly;
 
 }; // Class
 

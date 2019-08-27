@@ -126,7 +126,6 @@ double EmpiricalSpringElement3D2N::EvaluatePolynomial(const Vector& rPolynomial)
 
 
 double EmpiricalSpringElement3D2N::EvaluatePolynomialFirstDerivative(const Vector& rPolynomial) const{
-    KRATOS_ERROR_IF(rPolynomial.size()<2) << "polynomial must be of order higher than 0" << std::endl;
     const double current_disp = GetElementElongation();
     double current_int_force_derivative(0.00);
     for (SizeType i=0;i<rPolynomial.size()-1;++i)
@@ -267,15 +266,30 @@ int EmpiricalSpringElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     if (GetProperties().Has(DENSITY) == false ||
             GetProperties()[DENSITY] <= numerical_limit) {
-        KRATOS_ERROR << "DENSITY not provided for this element" << Id()
+        KRATOS_ERROR << "DENSITY not provided for this element " << Id()
                      << std::endl;
     }
 
     if (GetProperties().Has(CROSS_AREA) == false ||
             GetProperties()[CROSS_AREA] <= numerical_limit) {
-        KRATOS_ERROR << "CROSS_AREA not provided for this element" << Id()
+        KRATOS_ERROR << "CROSS_AREA not provided for this element " << Id()
                      << std::endl;
     }
+
+
+    if (GetProperties().Has(SPRING_DEFORMATION_EMPIRICAL_POLYNOMIAL) == false) {
+        KRATOS_ERROR << "SPRING_DEFORMATION_EMPIRICAL_POLYNOMIAL not provided for this element " << Id()
+                     << std::endl;
+    }
+    else
+    {
+        KRATOS_ERROR_IF(GetProperties()[SPRING_DEFORMATION_EMPIRICAL_POLYNOMIAL].size()<2)
+        << "polynomial must be of order higher than 0 for element " << Id() << std::endl;
+    }
+
+
+
+
     return 0;
 
     KRATOS_CATCH("")

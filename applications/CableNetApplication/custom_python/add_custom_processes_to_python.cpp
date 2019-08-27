@@ -41,7 +41,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 
     py::class_<EmpiricalSpringElementProcess, EmpiricalSpringElementProcess::Pointer, Process>(m,"EmpiricalSpringElementProcess")
-        .def(py::init<ModelPart&,Parameters,std::vector<double>&>())
+        .def(py::init<ModelPart&,Parameters,std::vector<double>>())
         ;
 }
 

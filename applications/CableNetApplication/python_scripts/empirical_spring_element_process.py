@@ -6,6 +6,18 @@ from numpy import polyfit
 
 from KratosMultiphysics import Logger
 
+
+
+#/**
+# * @class EmpiricalSpringElementProcess
+# *
+# * @brief This process creates a spring element w.r.t. to given displacement/load data points
+# *
+# * @author Klaus B Sautter
+# */
+
+
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
