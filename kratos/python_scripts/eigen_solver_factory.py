@@ -1,9 +1,9 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics
-from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
-
 def ConstructSolver(settings):
+    import KratosMultiphysics
+    from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
