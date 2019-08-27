@@ -28,7 +28,6 @@
 #include "custom_utilities/trilinos_refine_mesh.h"
 #include "custom_utilities/trilinos_fractional_step_settings.h"
 #include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
-#include "custom_utilities/mpi_normal_calculation_utilities.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
 #include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
 
@@ -162,12 +161,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetStrategy",ThatSetStrategyOverload)
         .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
         .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
-        ;
-
-    py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils").def(py::init<>())
-        .def("Check",&MPINormalCalculationUtils::Check)
-        .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
-        .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
         ;
 
     typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, double, 2> BasePartitionedFSIUtilitiesDouble2DType;

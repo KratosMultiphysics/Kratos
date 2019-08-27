@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main author:     Jordi Cotela
+//
+
 #ifndef KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
 #define KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
 
@@ -172,18 +184,15 @@ private:
     void InitializeNormalData(ModelPart& rModelPart,
                               const Variable<double>& rVariable,
                               int MaxNeigh,
-                              double* pNormals,
-                              int* pActiveNeigh,
+                              std::vector<double>& rNormals,
+                              std::vector<int>& pActiveNeigh,
                               const int NumNodes);
-
-    void FreeNormalData(double* pNormals,
-                        int* pActiveNeigh);
 
     void DetectEdges(ModelPart& rModelPart,
                      unsigned int Dimension,
                      double MaxAngle,
-                     const double *pNormals,
-                     const int *pActiveNeigh,
+                     const std::vector<double>& rNormals,
+                     const std::vector<int>& rActiveNeigh,
                      const int NumNodes,
                      const int MaxNeighs);
 
