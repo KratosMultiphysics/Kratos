@@ -13,7 +13,7 @@ def Create(settings, solver_name):
     return FLOWerWrapper(settings, solver_name)
 
 class FLOWerWrapper(CoSimulationSolverWrapper):
-    """This class serves as wrapper for external solvers
+    """This class serves as wrapper for the CFD solver FLOWer
     """
     def __init__(self, settings, solver_name):
         super(FLOWerWrapper, self).__init__(settings, solver_name)
