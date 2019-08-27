@@ -30,7 +30,8 @@ namespace Kratos
     /**
      * @class EmpiricalSpringElement3D2N
      *
-     * @brief This spring reads a fitted polynomial as load-displacement curve
+     * @brief This spring reads a fitted polynomial as displacement-load curve
+     *          takes u and returns f
      *
      * @author Klaus B Sautter
      */
@@ -137,6 +138,14 @@ namespace Kratos
             Variable<double >& rDestinationVariable,
             const ProcessInfo& rCurrentProcessInfo) override;
 
+        void CalculateMassMatrix(
+            MatrixType& rMassMatrix,
+            ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateLumpedMassVector(VectorType& rMassVector);
+
+        void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+            ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function evaluates a given polynomial

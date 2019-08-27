@@ -109,8 +109,6 @@ EmpiricalSpringElement3D2N::CreateElementStiffnessMatrix(
     stiffness_matrix(msDimension,0) = current_spring_stiffness;
     stiffness_matrix(msDimension,msDimension) = current_spring_stiffness;
     GlobalizeMatrix(stiffness_matrix);
-
-    KRATOS_WATCH(stiffness_matrix);
     return stiffness_matrix;
 }
 
@@ -224,8 +222,6 @@ void EmpiricalSpringElement3D2N::CalculateRightHandSide(
 
     GlobalizeVector(internal_forces);
 
-    KRATOS_WATCH(internal_forces);
-
     noalias(rRightHandSideVector) -= internal_forces;
     KRATOS_CATCH("")
 }
@@ -282,47 +278,6 @@ int EmpiricalSpringElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
     }
     return 0;
 
-    KRATOS_CATCH("")
-}
-
-void EmpiricalSpringElement3D2N::AddExplicitContribution(
-    const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
-    const ProcessInfo& rCurrentProcessInfo
-)
-{
-    KRATOS_TRY;
-
-    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
-
-        BoundedVector<double, msLocalSize> damping_residual_contribution = ZeroVector(msLocalSize);
-        Vector current_nodal_velocities = ZeroVector(msLocalSize);
-        GetFirstDerivativesVector(current_nodal_velocities);
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-
-        for (size_t i = 0; i < msNumberOfNodes; ++i) {
-            size_t index = msDimension * i;
-            array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-            for (size_t j = 0; j < msDimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j];
-            }
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
-void EmpiricalSpringElement3D2N::AddExplicitContribution(
-    const VectorType& rRHSVector,
-    const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
-    const ProcessInfo& rCurrentProcessInfo
-)
-{
-    KRATOS_TRY;
-    // overwriting base class function to omit error msg
-    // this element does not contribute any mass or damping
     KRATOS_CATCH("")
 }
 
@@ -452,6 +407,147 @@ void EmpiricalSpringElement3D2N::WriteTransformationCoordinates(
     KRATOS_CATCH("");
 }
 
+
+void EmpiricalSpringElement3D2N::CalculateLumpedMassVector(VectorType& rMassVector)
+{
+    KRATOS_TRY
+
+    // Clear matrix
+    if (rMassVector.size() != msLocalSize) {
+        rMassVector.resize(msLocalSize, false);
+    }
+
+    const double A = GetProperties()[CROSS_AREA];
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double rho = GetProperties()[DENSITY];
+
+    const double total_mass = A * L * rho;
+
+    for (int i = 0; i < msNumberOfNodes; ++i) {
+        for (int j = 0; j < msDimension; ++j) {
+            int index = i * msDimension + j;
+
+            rMassVector[index] = total_mass * 0.50;
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+
+void EmpiricalSpringElement3D2N::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY
+
+    // Compute lumped mass matrix
+    VectorType temp_vector(msLocalSize);
+    CalculateLumpedMassVector(temp_vector);
+
+    // Clear matrix
+    if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize) {
+        rMassMatrix.resize(msLocalSize, msLocalSize, false);
+    }
+    rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+
+    // Fill the matrix
+    for (IndexType i = 0; i < msLocalSize; ++i) {
+        rMassMatrix(i, i) = temp_vector[i];
+    }
+
+    KRATOS_CATCH("")
+}
+
+void EmpiricalSpringElement3D2N::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        msLocalSize);
+}
+
+
+void EmpiricalSpringElement3D2N::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY;
+
+    auto& r_geom = GetGeometry();
+
+    if (rDestinationVariable == NODAL_MASS) {
+        VectorType element_mass_vector(msLocalSize);
+        CalculateLumpedMassVector(element_mass_vector);
+
+        for (SizeType i = 0; i < msNumberOfNodes; ++i) {
+            double& r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
+            int index = i * msDimension;
+
+            #pragma omp atomic
+            r_nodal_mass += element_mass_vector(index);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+void EmpiricalSpringElement3D2N::AddExplicitContribution(
+    const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY;
+
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+
+        BoundedVector<double, msLocalSize> damping_residual_contribution = ZeroVector(msLocalSize);
+        Vector current_nodal_velocities = ZeroVector(msLocalSize);
+        GetFirstDerivativesVector(current_nodal_velocities);
+        Matrix damping_matrix;
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        // current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+
+        for (size_t i = 0; i < msNumberOfNodes; ++i) {
+            size_t index = msDimension * i;
+            array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for (size_t j = 0; j < msDimension; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
+        }
+    } else if (rDestinationVariable == NODAL_INERTIA) {
+
+        // Getting the vector mass
+        VectorType mass_vector(msLocalSize);
+        CalculateLumpedMassVector(mass_vector);
+
+        for (int i = 0; i < msNumberOfNodes; ++i) {
+            double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
+            array_1d<double, msDimension>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
+            int index = i * msDimension;
+
+            #pragma omp atomic
+            r_nodal_mass += mass_vector[index];
+
+            for (int k = 0; k < msDimension; ++k) {
+                #pragma omp atomic
+                r_nodal_inertia[k] += 0.0;
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
 
 void EmpiricalSpringElement3D2N::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
