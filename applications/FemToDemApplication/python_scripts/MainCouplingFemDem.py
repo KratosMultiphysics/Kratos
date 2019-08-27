@@ -143,23 +143,75 @@ class MainCoupledFemDem_Solution:
 #============================================================================================================================
     def InitializeSolutionStep(self):
         # Modified for the remeshing
-		self.FEM_Solution.delta_time = self.ComputeDeltaTime()
-		self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
-		self.FEM_Solution.time = self.FEM_Solution.time + self.FEM_Solution.delta_time
-		self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
-		self.FEM_Solution.step = self.FEM_Solution.step + 1
-		self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
+        self.FEM_Solution.delta_time = self.ComputeDeltaTime()
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.FEM_Solution.delta_time
+        self.FEM_Solution.time = self.FEM_Solution.time + self.FEM_Solution.delta_time
+        self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
+        self.FEM_Solution.step = self.FEM_Solution.step + 1
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
 
-		self.FindNeighboursIfNecessary()	
-		self.PerformRemeshingIfNecessary()
+        self.FindNeighboursIfNecessary()	
+        self.PerformRemeshingIfNecessary()
 
-		if self.echo_level > 0:
-			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
+        if self.echo_level > 0:
+            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
 
-		self.FEM_Solution.InitializeSolutionStep()
+        self.FEM_Solution.InitializeSolutionStep()
 
+#============================================================================================================================
+    def SolveSolutionStep(self): # Method to perform the coupling FEM <-> DEM
 
+        self.FEM_Solution.clock_time = self.FEM_Solution.StartTimeMeasuring()
 
+        #### SOLVE FEM #########################################
+        self.FEM_Solution.solver.Solve()
+        ########################################################
+
+        self.ExpandWetNodes()
+        self.GenerateDEM() # we create the new DEM of this time step
+        self.ExtrapolatePressureLoad()
+
+        self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
+
+        # We update coordinates, displ and velocities of the DEM according to FEM
+        self.UpdateDEMVariables()
+
+        self.DEM_Solution.InitializeTimeStep()
+        self.DEM_Solution.time = self.FEM_Solution.time
+        self.DEM_Solution.step = self.FEM_Solution.step
+        self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
+                                                                   self.DEM_Solution.time,
+                                                                   self.DEM_Solution.solver.dt,
+                                                                   self.DEM_Solution.step,
+                                                                   self.DEM_Solution.IsTimeToPrintPostProcess())
+        self.DEM_Solution._BeforeSolveOperations(self.DEM_Solution.time)
+
+        #### SOLVE DEM #########################################
+        self.DEM_Solution.solver.Solve()
+        ########################################################
+
+        self.DEM_Solution.AfterSolveOperations()
+        self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
+
+        # to print DEM with the FEM coordinates
+        self.UpdateDEMVariables()
+
+        # DEM GiD print output
+        self.PrintDEMResults()
+
+        self.DEM_Solution.FinalizeTimeStep(self.DEM_Solution.time)
+
+        # Transfer the contact forces of the DEM to the FEM nodes
+        if self.TransferDEMContactForcesToFEM:
+            self.TransferNodalForcesToFEM()
+
+        self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
+
+        # Update Coupled Postprocess file for Gid (post.lst)
+        self.WritePostListFile()
+
+        # Print required info
+        self.PrintPlotsFiles()
 
 
 
@@ -332,3 +384,89 @@ class MainCoupledFemDem_Solution:
                                                                             skin_detection_process_param)    
         skin_detection_process.Execute()
         self.GenerateDemAfterRemeshing()
+
+
+#============================================================================================================================
+    def ComputeDeltaTime(self):
+        if self.FEM_Solution.ProjectParameters["problem_data"].Has("time_step"):
+            return self.FEM_Solution.ProjectParameters["problem_data"]["time_step"].GetDouble()
+
+        elif self.FEM_Solution.ProjectParameters["problem_data"].Has("variable_time_steps"):
+
+            current_time = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            for key in self.FEM_Solution.ProjectParameters["problem_data"]["variable_time_steps"].keys():
+                interval_settings = self.FEM_Solution.ProjectParameters["problem_data"]["variable_time_steps"][key]
+                interval = KratosMultiphysics.IntervalUtility(interval_settings)
+
+                 # Getting the time step of the interval
+                if interval.IsInInterval(current_time):
+                    return interval_settings["time_step"].GetDouble()
+            # If we arrive here we raise an error because the intervals are not well defined
+            raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+        else:
+            raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
+
+#============================================================================================================================
+    def ExpandWetNodes(self):
+        if self.echo_level > 0:
+            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ExpandWetNodes")
+
+        if self.PressureLoad:
+            # This must be called before Generating DEM
+            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] = 0 # It is modified inside
+            extend_wet_nodes_process = KratosFemDem.ExpandWetNodesProcess(self.FEM_Solution.main_model_part)
+            extend_wet_nodes_process.Execute()
+
+#============================================================================================================================
+    def GenerateDEM(self): # This method creates the DEM elements and remove the damaged FEM, Additionally remove the isolated elements
+        if self.echo_level > 0:
+            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: GenerateDEM")
+
+		# If we want to compute sand production
+		# self.CountErasedVolume()
+
+        if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
+            dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
+            dem_generator_process.Execute()
+
+            # We remove the inactive DEM associated to fem_nodes
+            self.RemoveAloneDEMElements()
+            # self.RemoveIsolatedFiniteElements()
+            element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
+            element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
+
+            if self.domain_size == 3:
+                # We assign the flag to recompute neighbours inside the 3D elements
+                utils = KratosMultiphysics.VariableUtils()
+                utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
+
+
+#============================================================================================================================
+    def RemoveIsolatedFiniteElements(self):
+
+        FEM_Elements = self.FEM_Solution.main_model_part.Elements
+        FEM_Nodes    = self.FEM_Solution.main_model_part.Nodes
+
+        for node in FEM_Nodes:
+            node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, 0)
+
+        for Element in FEM_Elements:
+            is_active = True
+            if Element.IsDefined(KratosMultiphysics.ACTIVE):
+                is_active = Element.Is(KratosMultiphysics.ACTIVE)
+
+            if is_active == True:
+                for i in range(0,3): # Loop over nodes of the element
+                    node = Element.GetNodes()[i]
+                    number_active_elements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
+                    number_active_elements += 1
+                    node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, number_active_elements)
+
+        for Element in FEM_Elements:
+            total_elements_on_nodes = 0
+            for i in range(0,3): # Loop over nodes of the element
+                node = Element.GetNodes()[i]
+                number_active_elements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
+                total_elements_on_nodes = total_elements_on_nodes + number_active_elements
+            if total_elements_on_nodes == 3:
+                Element.Set(KratosMultiphysics.TO_ERASE, True)
