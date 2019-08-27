@@ -297,6 +297,16 @@
                 }
             },
             {
+                "python_module": "process_factory",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "ApplyConstantScalarValueProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart",
+                    "variable_name": "KINEMATIC_VISCOSITY",
+                    "value": 1.51312e-5
+                }
+            },
+            {
                 "python_module": "apply_custom_process",
                 "kratos_module": "KratosMultiphysics.RANSModellingApplication",
                 "process_name": "CalculateNormalsProcess",
