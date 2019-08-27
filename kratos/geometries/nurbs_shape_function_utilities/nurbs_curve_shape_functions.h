@@ -128,9 +128,6 @@ public:
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
             ControlPointIndex, DerivativeRow);
 
-        if (index > mValues.size())
-            return 0.0;
-
         return mValues[index];
     }
 
