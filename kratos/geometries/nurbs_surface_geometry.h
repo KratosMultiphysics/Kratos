@@ -30,23 +30,25 @@
 
 namespace Kratos {
 
-template <int TWorkingSpaceDimension, class TPointType>
-class NurbsSurfaceGeometry : public Geometry<TPointType>
+template <int TWorkingSpaceDimension, class TPointContainerType>
+class NurbsSurfaceGeometry : public Geometry<typename TPointContainerType::value_type>
 {
 public:
     ///@name Type Definitions
     ///@{
+    typedef typename TPointContainerType::value_type PointType
+
     /// Geometry as base class.
-    typedef Geometry<TPointType> BaseType;
-    typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType> GeometryType;
+    typedef Geometry<PointType> BaseType;
+    typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointContainerType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
-    typedef typename TPointType::Pointer PointPointerType;
+    typedef typename PointType::Pointer PointPointerType;
     typedef const PointPointerType ConstPointPointerType;
-    typedef TPointType& PointReferenceType;
-    typedef const TPointType& ConstPointReferenceType;
+    typedef PointType& PointReferenceType;
+    typedef const PointType& ConstPointReferenceType;
 
     /** Array of counted pointers to point. This type used to hold
         geometry's points.*/
@@ -119,8 +121,8 @@ public:
     }
 
     /// Copy constructor from a geometry with different point type.
-    template<class TOtherPointType> NurbsSurfaceGeometry(
-        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherPointType> const& rOther)
+    template<class TOtherPointContainerType> NurbsSurfaceGeometry(
+        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherPointContainerType> const& rOther)
         : BaseType(rOther)
         , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
         , mPolynomialDegreeV(rOther.mPolynomialDegreeV)
@@ -166,9 +168,9 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    template<class TOtherPointType>
+    template<class TOtherPointContainerType>
     NurbsSurfaceGeometry& operator=(
-        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherPointType> const & rOther)
+        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherPointContainerType> const & rOther)
     {
         BaseType::operator=(rOther);
         return *this;
@@ -534,8 +536,8 @@ private:
 
 }; // class NurbsSurfaceGeometry
 
-template<int TWorkingSpaceDimension, class TPointType>
-const GeometryData NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType>::msGeometryData(
+template<int TWorkingSpaceDimension, class TPointContainerType>
+const GeometryData NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointContainerType>::msGeometryData(
     2,
     TWorkingSpaceDimension,
     2,

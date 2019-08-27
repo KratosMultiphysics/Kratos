@@ -24,15 +24,15 @@
 
 namespace Kratos {
 
-template <int TWorkingSpaceDimension, class TPointType>
-class NurbsCurveGeometry : public Geometry<TPointType>
+template <int TWorkingSpaceDimension, class TPointContainerType>
+class NurbsCurveGeometry : public Geometry<typename TPointContainerType::value_type>
 {
 public:
     ///@name Type Definitions
     ///@{
     /// Geometry as base class.
-    typedef Geometry<TPointType> BaseType;
-    typedef NurbsCurveGeometry<TWorkingSpaceDimension, TPointType> GeometryType;
+    typedef Geometry<typename TPointContainerType::value_type> BaseType;
+    typedef NurbsCurveGeometry<TWorkingSpaceDimension, TPointContainerType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
@@ -96,8 +96,8 @@ public:
     }
 
     /// Copy constructor from a geometry with different point type.
-    template<class TOtherPointType> NurbsCurveGeometry(
-        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointType> const& rOther)
+    template<class TOtherPointContainerType> NurbsCurveGeometry(
+        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointContainerType> const& rOther)
         : BaseType(rOther)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
@@ -140,9 +140,9 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    template<class TOtherPointType>
+    template<class TOtherPointContainerType>
     NurbsCurveGeometry& operator=(
-        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointType> const & rOther)
+        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointContainerType> const & rOther)
     {
         BaseType::operator=(rOther);
         return *this;
@@ -432,11 +432,7 @@ private:
     Vector mKnots;
     Vector mWeights;
 
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
+    /////@}
     ///@name Private Serialization
     ///@{
 
@@ -464,8 +460,8 @@ private:
 
 }; // class NurbsCurveGeometry
 
-template<int TWorkingSpaceDimension, class TPointType>
-const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TPointType>::msGeometryData(
+template<int TWorkingSpaceDimension, class TPointContainerType>
+const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TPointContainerType>::msGeometryData(
     1,
     TWorkingSpaceDimension,
     1,
