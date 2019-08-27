@@ -693,3 +693,15 @@ class MainCoupledFemDem_Solution:
                         "   "  + "{0:.4e}".format(damage).rjust(11) + "\n")
                     self.PlotFilesElementsList[iElem].close()
             self.TimePreviousPlotting = time
+
+#===================================================================================================================================
+	def CountErasedVolume(self):
+        count_erased_vol = True
+        if count_erased_vol:
+            erased_vol_process = KratosFemDem.ComputeSandProduction(self.FEM_Solution.main_model_part)
+            erased_vol_process.Execute()
+
+            self.ErasedVolume = open("ErasedVolume.txt","a")
+            erased_vol = self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME]
+            self.ErasedVolume.write("    " + "{0:.4e}".format(self.FEM_Solution.time).rjust(11) + "    " + "{0:.4e}".format(erased_vol).rjust(11) + "\n")
+            self.ErasedVolume.close()
