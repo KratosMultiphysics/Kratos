@@ -8,6 +8,7 @@ import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports
+from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 import sys, time
 
 class ExternalFieldSolver(object):
@@ -126,7 +127,7 @@ class ExternalFieldSolver(object):
             variables = GenerateVariableListFromInput(data_field_settings["variables"])
 
             if not self.dry_run:
-                KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(self.model["ExtSolver."+sub_model_part_name], data_field_name, *variables)
+                KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(self.model["ExtSolver."+sub_model_part_name], data_field_name, *variables) # passing all varibales from the list
             else:
                 self.__CustomPrint(2, colors.magenta('... skipped'))
 
@@ -155,7 +156,7 @@ class ExternalFieldSolver(object):
             variables = GenerateVariableListFromInput(data_field_settings["variables"])
 
             if not self.dry_run:
-                KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(self.model["ExtSolver."+sub_model_part_name], data_field_name, *variables)
+                KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(self.model["ExtSolver."+sub_model_part_name], data_field_name, *variables) # passing all varibales from the list
             else:
                 self.__CustomPrint(2, colors.magenta('... skipped'))
 
@@ -164,12 +165,6 @@ class ExternalFieldSolver(object):
     def __CustomPrint(self, echo_level, *args):
         if self.echo_level >= echo_level:
             KM.Logger.PrintInfo(self.name, (echo_level-1)*"   " + " ".join(map(str,args)))
-
-def GenerateVariableListFromInput(param):
-    """ Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-    """
-    from KratosMultiphysics import KratosGlobals
-    return [ KratosGlobals.GetVariable( var_name ) for var_name in param.GetStringArray() ]
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
