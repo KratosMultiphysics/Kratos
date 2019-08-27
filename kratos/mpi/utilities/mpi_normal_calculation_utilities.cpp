@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main author:     Jordi Cotela
+//
+
 #include "mpi.h"
 #include "mpi/utilities/mpi_normal_calculation_utilities.h"
 #include "utilities/math_utils.h"

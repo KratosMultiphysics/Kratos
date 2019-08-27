@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main author:     Jordi Cotela
+//
+
 #ifndef KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
 #define KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
 
