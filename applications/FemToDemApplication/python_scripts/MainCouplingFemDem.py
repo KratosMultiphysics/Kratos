@@ -435,7 +435,6 @@ class MainCoupledFemDem_Solution:
 
 #============================================================================================================================
     def RemoveIsolatedFiniteElements(self):
-
         FEM_Elements = self.FEM_Solution.main_model_part.Elements
         FEM_Nodes    = self.FEM_Solution.main_model_part.Nodes
 
@@ -543,3 +542,154 @@ class MainCoupledFemDem_Solution:
                 i_plot_file_elem.close()
                 self.plot_files_elements_list.append(i_plot_file_elem)
                 self.plot_files_elements_id_list.append(Id)
+
+#============================================================================================================================
+    def PrintPlotsFiles(self):
+        # Print the general file
+        time = self.FEM_Solution.time
+        total_reaction_x     = 0.0
+        total_displacement_x = 0.0
+        total_reaction_y     = 0.0
+        total_displacement_y = 0.0
+        total_displacement_z = 0.0
+        total_reaction_z     = 0.0
+        interval = self.FEM_Solution.ProjectParameters["interval_of_watching"].GetDouble()
+
+        if self.FEM_Solution.time - self.TimePreviousPlotting >= interval:
+            if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size() > 0:
+                if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][0].IsInt():
+                    for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
+                        IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetInt()
+                        node = self.FEM_Solution.main_model_part.GetNode(IdNode)
+                        total_displacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                        total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+                        total_displacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+                else:
+                    for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
+                        submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetString()
+                        for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
+                            total_displacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                            total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+                            total_displacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+
+                if self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][0].IsInt():
+                    for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
+                        IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetInt()
+                        node = self.FEM_Solution.main_model_part.GetNode(IdNode)
+                        total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
+                        total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
+                        total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
+                else:
+                    for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
+                        submodel_name = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetString()
+                        for node in self.FEM_Solution.main_model_part.GetSubModelPart(submodel_name).Nodes:
+                            total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
+                            total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
+                            total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
+
+                self.PlotFile = open("PlotFile.txt","a")
+                if self.domain_size == 2:
+                    self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(total_displacement_x).rjust(11) +
+                                        "    " + "{0:.4e}".format(total_displacement_y).rjust(11) + "    " + "{0:.4e}".format(total_reaction_x).rjust(11) +
+                                        "    " + "{0:.4e}".format(total_reaction_y).rjust(11) + "\n")
+                else:
+                    self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(total_displacement_x).rjust(11) +
+                        "    " + "{0:.4e}".format(total_displacement_y).rjust(11) + "    " + "{0:.4e}".format(total_displacement_z).rjust(11) +
+                        "    " + "{0:.4e}".format(total_reaction_x).rjust(11) + "    " + "{0:.4e}".format(total_reaction_y).rjust(11) + "    " +
+                        "{0:.4e}".format(total_reaction_z).rjust(11) + "\n")
+                self.PlotFile.close()
+
+
+            # Print the selected nodes files
+            if self.FEM_Solution.ProjectParameters["watch_nodes_list"].size() != 0:
+                NumNodes = self.FEM_Solution.ProjectParameters["watch_nodes_list"].size()
+                for inode in range(0, NumNodes):
+                    IdNode = self.PlotFilesNodesIdList[inode]
+                    node = self.FEM_Solution.main_model_part.GetNode(IdNode)
+                    self.PlotFilesNodesList[inode] = open("PlotNode_" + str(IdNode) + ".txt","a")
+
+                    displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+                    velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                    reaction = node.GetSolutionStepValue(KratosMultiphysics.REACTION)
+                    acceleration = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION)
+
+                    dx = displacement[0]
+                    dy = displacement[1]
+                    dz = displacement[2]
+                    Rx = reaction[0]
+                    Ry = reaction[1]
+                    Rz = reaction[2]
+                    vx = velocity[0]
+                    vy = velocity[1]
+                    vz = velocity[2]
+                    ax = acceleration[0]
+                    ay = acceleration[1]
+                    az = acceleration[2]
+
+                    if self.domain_size == 2:
+                        self.PlotFilesNodesList[inode].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
+                            "{0:.4e}".format(dx).rjust(11) + "    " + "{0:.4e}".format(dy).rjust(11) + "    " +
+                            "{0:.4e}".format(vx).rjust(11) + "    " + "{0:.4e}".format(vy).rjust(11) + "    " +
+                            "{0:.4e}".format(ax).rjust(11) + "    " + "{0:.4e}".format(ay).rjust(11) + "    " +
+                            "{0:.4e}".format(Rx).rjust(11) + "    " + "{0:.4e}".format(Ry).rjust(11) + "\n")
+                    else:
+                        self.PlotFilesNodesList[inode].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
+                            "{0:.4e}".format(dx).rjust(11) + "    " + "{0:.4e}".format(dy).rjust(11) + "    " + "{0:.4e}".format(dz).rjust(11) + "    " +
+                            "{0:.4e}".format(vx).rjust(11) + "    " + "{0:.4e}".format(vy).rjust(11) + "    " + "{0:.4e}".format(vz).rjust(11) + "    " +
+                            "{0:.4e}".format(ax).rjust(11) + "    " + "{0:.4e}".format(ay).rjust(11) + "    " + "{0:.4e}".format(az).rjust(11) + "    " +
+                            "{0:.4e}".format(Rx).rjust(11) + "    " + "{0:.4e}".format(Ry).rjust(11) + "    " + "{0:.4e}".format(Rz).rjust(11) + "\n")
+
+                    self.PlotFilesNodesList[inode].close()
+
+            # print the selected element files
+            if self.FEM_Solution.ProjectParameters["watch_elements_list"].size() != 0:
+                NumElem = self.FEM_Solution.ProjectParameters["watch_elements_list"].size()
+                for iElem in range(0, NumElem):
+                    Idelem = self.PlotFilesElementsIdList[iElem]
+                    Elem = self.FEM_Solution.main_model_part.GetElement(Idelem)
+                    self.PlotFilesElementsList[iElem] = open("PlotElement_" + str(Idelem) + ".txt","a")
+
+                    stress_tensor = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
+                    strain_vector = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)
+                    
+                    if self.domain_size == 2:
+                        Sxx = stress_tensor[0][0]
+                        Syy = stress_tensor[0][1]
+                        Sxy = stress_tensor[0][2]
+                        Exx = strain_vector[0]
+                        Eyy = strain_vector[1]
+                        Exy = strain_vector[2]
+                    else:
+                        Sxx = stress_tensor[0][0]
+                        Syy = stress_tensor[0][1]
+                        Szz = stress_tensor[0][2]
+                        Sxy = stress_tensor[0][3]
+                        Syz = stress_tensor[0][4]
+                        Sxz = stress_tensor[0][5]
+                        Exx = strain_tensor[0]
+                        Eyy = strain_tensor[1]
+                        Ezz = strain_tensor[2]
+                        Exy = strain_tensor[3]
+                        Eyz = strain_tensor[4]
+                        Exz = strain_tensor[5]
+
+                    damage = Elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)
+
+                    if self.domain_size == 2:
+                        self.PlotFilesElementsList[iElem].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
+                            "{0:.4e}".format(Sxx).rjust(11) + "    " + "{0:.4e}".format(Syy).rjust(11) + "    " +
+                            "{0:.4e}".format(Sxy).rjust(11) + "    " + "{0:.4e}".format(Exx).rjust(11) +
+                            "    " + "{0:.4e}".format(Eyy).rjust(11) + "    " + "{0:.4e}".format(Exy).rjust(11) +
+                            "   " + "{0:.4e}".format(damage).rjust(11) + "\n")
+                    else:
+                        self.PlotFilesElementsList[iElem].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
+                        "{0:.4e}".format(Sxx).rjust(11) + "    " + "{0:.4e}".format(Syy).rjust(11) + "    " +
+                        "{0:.4e}".format(Szz).rjust(11) + "    " + "{0:.4e}".format(Sxy).rjust(11) + "    " +
+                        "{0:.4e}".format(Syz).rjust(11) + "    " + "{0:.4e}".format(Sxz).rjust(11) + "    " +
+                        "{0:.4e}".format(Exx).rjust(11) +
+                        "    " + "{0:.4e}".format(Eyy).rjust(11) + "    " + "{0:.4e}".format(Ezz).rjust(11) +
+                        "    " + "{0:.4e}".format(Exy).rjust(11) + "    " + "{0:.4e}".format(Eyz).rjust(11) +
+                        "    " + "{0:.4e}".format(Exz).rjust(11) +
+                        "   "  + "{0:.4e}".format(damage).rjust(11) + "\n")
+                    self.PlotFilesElementsList[iElem].close()
+            self.TimePreviousPlotting = time
