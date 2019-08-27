@@ -1,0 +1,34 @@
+
+;   GENERAL SETTINGS
+file set-batch-options n n n
+file start-transcript "transcript.txt"
+(enable-dynamic-mesh-node-ids #t)
+;file binary-files n
+
+;   READ CASE
+file read-case |case|
+solve set expert y n y
+
+;   SAVE DATA FOR SURFACE IDS
+report summary y "report.sum"
+
+;   COMPILE AND LOAD UDF
+define user-defined compiled-functions compile "2019R1" y "2019R1.c" "" ""
+define user-defined compiled-functions load "2019R1"
+
+;   GET_THREAD_IDS IN UDF AND JOURNAL
+(define face_threads (list|face_threads|))
+def udef exe "get_thread_ids::2019R1"
+
+;   CREATE DYNAMIC MESH ZONES
+(do ((k 0 (+ k 1))) ((>= k (length face_threads)))
+    (ti-menu-load-string (format #f "define dynamic-mesh zones create ~a
+        user-defined \"move_nodes::2019R1\"" (list-ref face_threads k)))
+)
+
+
+
+
+;   SAVE CASE
+;file write-case "case_out.cas"
+;exit y

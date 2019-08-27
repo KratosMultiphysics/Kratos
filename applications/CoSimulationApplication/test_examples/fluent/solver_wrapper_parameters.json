@@ -1,0 +1,23 @@
+{
+    "settings": {
+        "data_structure": "pyKratos"
+    },
+    "solver_wrappers": [
+        {
+            "type": "solver_wrappers.fluent.2019R1",
+            "settings": {
+                "working_directory" : "CFD",
+                "face_threads": ["wall_top", "wall_bottom"],
+                "interface_input": {
+                    "wall_top": "ZCOORD"
+                },
+                "interface_output": {
+                    "wall_top": "PRESSURE"
+                },
+                "case_file" : "case.cas",
+                "cores" : 4,
+                "fluent_gui" : true
+            }
+        }
+    ]
+}
