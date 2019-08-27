@@ -78,8 +78,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(PointerVector);
 
     /// data type stores in this container.
-    typedef TDataType data_type;
-    typedef TPointerType value_type;
+    typedef TDataType value_type;
     typedef TPointerType pointer;
     typedef const TPointerType const_pointer;
     typedef TDataType& reference;
