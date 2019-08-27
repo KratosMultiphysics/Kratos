@@ -71,6 +71,5 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def PrintInfo(self):
         cs_tools.cs_print_info("KratosSolver", self._ClassName())
+        cs_tools.cs_print_info("KratosSolver", 'Using AnalysisStage "{}", defined in module "{}'.format(self._analysis_stage.__class__.__name__, self._analysis_stage.__class__.__module__))
         ## TODO print additional stuff with higher echo-level
-        # Print which analysis-stage is being used (class-name)
-        # Change default echo-level to 1 (...?) such that this is always printed
