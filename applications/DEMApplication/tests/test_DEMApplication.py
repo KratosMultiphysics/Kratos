@@ -7,6 +7,7 @@ import test_particle_creator_destructor
 import test_wall_creator_destructor
 import test_analytics
 import test_glued_particles
+import test_restart
 
 
 def AssembleTestSuites():
