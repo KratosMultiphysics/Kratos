@@ -227,7 +227,8 @@ public:
      * @param rNodes reference to the objective node set
      */
     template <class TVarType>
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable") void SetScalarVar(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
+    void SetScalarVar(
         const TVarType &rVariable,
         const double Value,
         NodesContainerType &rNodes)
@@ -252,7 +253,8 @@ public:
      * @param Check What is checked from the flag
      */
     template< class TVarType >
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable") void SetScalarVarForFlag(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
+    void SetScalarVarForFlag(
         const TVarType& rVariable,
         const double Value,
         NodesContainerType& rNodes,
@@ -277,7 +279,8 @@ public:
      * @param Value array containing the Value to be set
      * @param rNodes reference to the objective node set
      */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable") void SetVectorVar(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
+    void SetVectorVar(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
         NodesContainerType& rNodes
@@ -291,7 +294,8 @@ public:
      * @param Flag The flag to be considered in the assignation
      * @param Check What is checked from the flag
      */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable") void SetVectorVarForFlag(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetVariable")
+    void SetVectorVarForFlag(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
         NodesContainerType& rNodes,
@@ -395,7 +399,8 @@ public:
      * @param rNodes reference to the objective node set
      */
     template< class TVarType >
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable") void SetNonHistoricalScalarVar(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable")
+    void SetNonHistoricalScalarVar(
         const TVarType& rVariable,
         const double Value,
         NodesContainerType& rNodes
@@ -418,7 +423,8 @@ public:
      * @param Value array containing the Value to be set
      * @param rNodes reference to the objective node set
      */
-    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable") void SetNonHistoricalVectorVar(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable")
+    void SetNonHistoricalVectorVar(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
         NodesContainerType& rNodes
@@ -579,6 +585,7 @@ public:
      * @param SavedVariable reference to the destination vector variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveVariable")
     void SaveVectorVar(
         const ArrayVarType& OriginVariable,
         const ArrayVarType& SavedVariable,
@@ -591,11 +598,29 @@ public:
      * @param SavedVariable reference to the destination scalar variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveVariable")
     void SaveScalarVar(
         const DoubleVarType& OriginVariable,
         const DoubleVarType& SavedVariable,
         NodesContainerType& rNodes
         );
+
+    template< class TDataType, class TVariableType = Variable<TDataType> >
+    void SaveVariable(
+        const TVariableType &rOriginVariable,
+        const TVariableType &rSavedVariable,
+        NodesContainerType &rNodesContainer)
+    {
+        KRATOS_TRY
+
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rNodesContainer.size()); ++i_node) {
+            auto it_node = rNodesContainer.begin() + i_node;
+            it_node->SetValue(rSavedVariable, it_node->FastGetSolutionStepValue(rOriginVariable));
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief Takes the value of a non-historical vector variable and sets it in other non-historical variable
@@ -603,6 +628,7 @@ public:
      * @param SavedVariable reference to the destination vector variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveNonHistoricalVariable")
     void SaveVectorNonHistoricalVar(
         const ArrayVarType& OriginVariable,
         const ArrayVarType& SavedVariable,
@@ -615,11 +641,30 @@ public:
      * @param SavedVariable reference to the destination scalar variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SaveNonHistoricalVariable")
     void SaveScalarNonHistoricalVar(
         const DoubleVarType& OriginVariable,
         const DoubleVarType& SavedVariable,
         NodesContainerType& rNodes
         );
+
+    template< class TDataType, class TContainerType, class TVariableType = Variable<TDataType> >
+    void SaveNonHistoricalVariable(
+        const TVariableType &rOriginVariable,
+        const TVariableType &rSavedVariable,
+        TContainerType &rContainer
+        )
+    {
+        KRATOS_TRY
+
+#pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rContainer.size()); ++i) {
+            auto it_cont = rContainer.begin + i;
+            it_cont->SetValue(rSavedVariable, it_cont->GetValue(rOriginVariable));
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief Takes the value of an historical vector variable and sets it in other variable
@@ -627,6 +672,7 @@ public:
      * @param DestinationVariable reference to the destination vector variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
     void CopyVectorVar(
         const ArrayVarType& OriginVariable,
         const ArrayVarType& DestinationVariable,
@@ -639,6 +685,7 @@ public:
      * @param DestinationVariable reference to the destination component variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
     void CopyComponentVar(
         const ComponentVarType& OriginVariable,
         const ComponentVarType& DestinationVariable,
@@ -651,11 +698,29 @@ public:
      * @param DestinationVariable reference to the destination double variable
      * @param rNodes reference to the objective node set
      */
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use CopyVariable")
     void CopyScalarVar(
-        const DoubleVarType& OriginVariable,
-        const DoubleVarType& DestinationVariable,
-        NodesContainerType& rNodes
-        );
+        const DoubleVarType &OriginVariable,
+        const DoubleVarType &DestinationVariable,
+        NodesContainerType &rNodes);
+
+    template< class TDataType, class TVariableType = Variable<TDataType> >
+    void CopyVariable(
+        const TVariableType &rOriginVariable,
+        const TVariableType &rDestinationVariable,
+        NodesContainerType &rNodesContainer
+        )
+    {
+        KRATOS_TRY
+
+#pragma omp parallel for
+        for (int i_node = 0; i_node < static_cast<int>(rNodesContainer.size()); ++i_node) {
+            auto it_node = rNodesContainer.begin() + i_node;
+            it_node->FastGetSolutionStepValue(rDestinationVariable) = it_node->FastGetSolutionStepValue(rOriginVariable);
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief Returns a list of nodes filtered using the given double variable and value
