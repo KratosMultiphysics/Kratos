@@ -1,5 +1,5 @@
 #include "mpi.h"
-#include "custom_utilities/mpi_normal_calculation_utilities.h"
+#include "mpi/utilities/mpi_normal_calculation_utilities.h"
 #include "utilities/math_utils.h"
 #include "includes/deprecated_variables.h"
 
