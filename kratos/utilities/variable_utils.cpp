@@ -284,37 +284,37 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
-    const ArrayVarType& rVar,
-    const ModelPart& rModelPart,
-    const unsigned int rBuffStep
-    )
-{
-    KRATOS_TRY
+// array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
+//     const ArrayVarType& rVar,
+//     const ModelPart& rModelPart,
+//     const unsigned int rBuffStep
+//     )
+// {
+//     KRATOS_TRY
 
-    array_1d<double, 3> sum_value = ZeroVector(3);
-    auto& r_comm = rModelPart.GetCommunicator();
+//     array_1d<double, 3> sum_value = ZeroVector(3);
+//     auto& r_comm = rModelPart.GetCommunicator();
 
-    #pragma omp parallel
-    {
-        array_1d<double, 3> private_sum_value = ZeroVector(3);
+//     #pragma omp parallel
+//     {
+//         array_1d<double, 3> private_sum_value = ZeroVector(3);
 
-        #pragma omp for
-        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfNodes()); ++k) {
-            const auto it_node = r_comm.LocalMesh().NodesBegin() + k;
-            private_sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
-        }
+//         #pragma omp for
+//         for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfNodes()); ++k) {
+//             const auto it_node = r_comm.LocalMesh().NodesBegin() + k;
+//             private_sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
+//         }
 
-        for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-            #pragma omp atomic
-            sum_value[j] += private_sum_value[j];
-        }
-    }
+//         for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
+//             #pragma omp atomic
+//             sum_value[j] += private_sum_value[j];
+//         }
+//     }
 
-    return r_comm.GetDataCommunicator().SumAll(sum_value);
+//     return r_comm.GetDataCommunicator().SumAll(sum_value);
 
-    KRATOS_CATCH("")
-}
+//     KRATOS_CATCH("")
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -489,6 +489,34 @@ void VariableUtils::UpdateCurrentPosition(
     }
 
     KRATOS_CATCH("");
+}
+
+void VariableUtils::AuxiliaryInitializeValue(double &rValue)
+{
+    rValue = 0.0;
+}
+
+void VariableUtils::AuxiliaryInitializeValue(array_1d<double, 3> &rValue)
+{
+    rValue = ZeroVector(3);
+}
+
+void VariableUtils::AuxiliaryReduction(
+    const double &rPrivateValue,
+    double &rSumValue)
+{
+#pragma omp atomic
+        rSumValue += rPrivateValue;
+}
+
+void VariableUtils::AuxiliaryReduction(
+    const array_1d<double, 3> &rPrivateValue,
+    array_1d<double, 3> &rSumValue)
+{
+    for (int j = 0; j < static_cast<int>(rSumValue.size()); ++j) {
+#pragma omp atomic
+        rSumValue[j] += rPrivateValue[j];
+    }
 }
 
 } /* namespace Kratos.*/

@@ -871,45 +871,89 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-     * @brief Returns the nodal value summation of an historical vector variable.
-     * @param rVar reference to the vector variable to summed
-     * @param rModelPart reference to the model part that contains the objective node set
-     * @return sum_value summation vector result
-     */
-    array_1d<double, 3> SumHistoricalNodeVectorVariable(
-        const ArrayVarType& rVar,
-        const ModelPart& rModelPart,
-        const unsigned int rBuffStep = 0
-        );
+    // /**
+    //  * @brief Returns the nodal value summation of an historical vector variable.
+    //  * @param rVar reference to the vector variable to summed
+    //  * @param rModelPart reference to the model part that contains the objective node set
+    //  * @return sum_value summation vector result
+    //  */
+    // array_1d<double, 3> SumHistoricalNodeVectorVariable(
+    //     const ArrayVarType& rVar,
+    //     const ModelPart& rModelPart,
+    //     const unsigned int rBuffStep = 0
+    //     );
+
+    // /**
+    //  * @brief Returns the nodal value summation of an historical scalar variable.
+    //  * @param rVar reference to the scalar variable to be summed
+    //  * @param rModelPart reference to the model part that contains the objective node set
+    //  * @return sum_value: summation result
+    //  */
+    // template< class TVarType >
+    // double SumHistoricalNodeScalarVariable(
+    //     const TVarType& rVar,
+    //     const ModelPart& rModelPart,
+    //     const unsigned int rBuffStep = 0
+    //     )
+    // {
+    //     KRATOS_TRY
+
+    //     double sum_value = 0.0;
+
+    //     // Getting info
+    //     const auto& r_communicator = rModelPart.GetCommunicator();
+    //     const auto& r_local_mesh = r_communicator.LocalMesh();
+    //     const auto& r_nodes_array = r_local_mesh.Nodes();
+    //     const auto it_node_begin = r_nodes_array.begin();
+
+    //     #pragma omp parallel for reduction(+:sum_value)
+    //     for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
+    //         const auto it_node = it_node_begin + k;
+    //         sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
+    //     }
+
+    //     return r_communicator.GetDataCommunicator().SumAll(sum_value);
+
+    //     KRATOS_CATCH("")
+    // }
 
     /**
-     * @brief Returns the nodal value summation of an historical scalar variable.
-     * @param rVar reference to the scalar variable to be summed
-     * @param rModelPart reference to the model part that contains the objective node set
-     * @return sum_value: summation result
+     * @brief This method accumulates and return a variable value
+     * For a nodal historical variable, this method accumulates and
+     * returns the summation in a model part.
+     * @tparam TDataType Variable datatype
+     * @tparam Variable<TDataType> Variable type
+     * @param rVariable Nodal historical variable to be accumulated
+     * @param rModelPart Model part in where the summation is done
+     * @param BuffStep Buffer position
+     * @return TDataType Value of the summation
      */
-    template< class TVarType >
-    double SumHistoricalNodeScalarVariable(
-        const TVarType& rVar,
-        const ModelPart& rModelPart,
-        const unsigned int rBuffStep = 0
+    template< class TDataType, class TVarType = Variable<TDataType> >
+    TDataType SumHistoricalVariable(
+        const TVarType &rVariable,
+        const ModelPart &rModelPart,
+        const unsigned int BuffStep = 0
         )
     {
         KRATOS_TRY
 
-        double sum_value = 0.0;
+        TDataType sum_value;
+        AuxiliaryInitializeValue(sum_value);
 
-        // Getting info
-        const auto& r_communicator = rModelPart.GetCommunicator();
-        const auto& r_local_mesh = r_communicator.LocalMesh();
-        const auto& r_nodes_array = r_local_mesh.Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
+        auto &r_communicator = rModelPart.GetCommunicator();
 
-        #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
-            const auto it_node = it_node_begin + k;
-            sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
+#pragma omp parallel
+        {
+            TDataType private_sum_value;
+            AuxiliaryInitializeValue(private_sum_value);
+
+#pragma omp for
+            for (int i_node = 0; i_node < static_cast<int>(r_communicator.LocalMesh().NumberOfNodes()); ++i_node) {
+                const auto it_node = r_communicator.LocalMesh().NodesBegin() + i_node;
+                private_sum_value += it_node->GetSolutionStepValue(rVariable, BuffStep);
+            }
+
+            AuxiliaryReduction(private_sum_value, sum_value);
         }
 
         return r_communicator.GetDataCommunicator().SumAll(sum_value);
@@ -1134,6 +1178,52 @@ private:
     ///@name Member Variables
     ///@{
 
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief Auxiliary double initialize method
+     * Auxiliary method to initialize a double value
+     * @param rValue Variable to initialize
+     */
+    void AuxiliaryInitializeValue(double &rValue);
+
+    /**
+     * @brief Auxiliary array initialize method
+     * Auxiliary method to initialize an array value
+     * @param rValue Variable to initialize
+     */
+    void AuxiliaryInitializeValue(array_1d<double,3> &rValue);
+
+    /**
+     * @brief Auxiliary scalar reduce method
+     * Auxiliary method to perform the reduction of a scalar value
+     * @param rPrivateValue Private variable to reduce
+     * @param rSumValue Variable to save the reduction
+     */
+    void AuxiliaryReduction(
+        const double &rPrivateValue,
+        double &rSumValue
+        );
+
+    /**
+     * @brief Auxiliary array reduce method
+     * Auxiliary method to perform the reduction of an array value
+     * @param rPrivateValue Private variable to reduce
+     * @param rSumValue Variable to save the reduction
+     */
+    void AuxiliaryReduction(
+        const array_1d<double,3> &rPrivateValue,
+        array_1d<double,3> &rSumValue
+        );
+
     /**
      * @brief This is auxiliar method to check the keys
      * @return True if all the keys are OK
@@ -1158,16 +1248,6 @@ private:
         return true;
         KRATOS_CATCH("")
     }
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
 
     ///@}
     ///@name Private  Acces
