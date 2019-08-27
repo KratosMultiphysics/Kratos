@@ -134,7 +134,7 @@ class MorSecondOrderIRKAStrategy
         typename TLinearSolver::Pointer pNewLinearEigSolver,
         vector< double > samplingPoints,
         bool MoveMeshFlag = false)
-        : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)  //hier evtl. direkt LU solver //TODO:  
     {
         KRATOS_TRY;
 
@@ -352,7 +352,7 @@ class MorSecondOrderIRKAStrategy
 
             // for(size_t i = 0; i < reduced_system_size; ++i){
             //     r_L2(reduced_system_size+i,i) = -1;
-            // }
+            // }    
 
             subrange(r_L2, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*id_m;
 
@@ -440,18 +440,120 @@ class MorSecondOrderIRKAStrategy
 
 
             p_builder_and_solver_feast->GetLinearSystemSolver()->Solve(
-                //r_L1,
-                //r_L2,
-                r_L1_test,
-                r_L2_test,
+                r_L2,
+                r_L1,
+                //r_L1_test,
+                //r_L2_test,
                 //r_K_reduced,
                 //r_M_reduced,
                 Eigenvalues,
                 Eigenvectors);
 
+
+            Eigen::Matrix<double,8,8> r_L1_mtype;
+            /*r_L1_mtype << 1.02562,-0.479005,0.0595067,-0.111968,0,0,0,0,
+                          -0.479005,0.485658,-0.21239,0.0710417,0,0,0,0,
+                          0.0595067,-0.21239,0.251714,-0.106319,0,0,0,0,
+                          -0.111968,0.0710417,-0.106319,0.141759,0,0,0,0,
+                          0,0,0,0,1,0,0,0,
+                          0,0,0,0,0,1,0,0,
+                          0,0,0,0,0,0,1,0,
+                          0,0,0,0,0,0,0,1;
+                          */
+
+            // M in L1
+            r_L1_mtype(0,0) = 1.02562; r_L1_mtype(0,1) = -0.479005; r_L1_mtype(0,2) = 0.0595067; r_L1_mtype(0,3) = -0.111968;
+            r_L1_mtype(1,0) = -0.479005; r_L1_mtype(1,1) = 0.485658; r_L1_mtype(1,2) = -0.21239; r_L1_mtype(1,3) = 0.0710417;
+            r_L1_mtype(2,0) = 0.0595067; r_L1_mtype(2,1) = -0.21239; r_L1_mtype(2,2) = 0.251714; r_L1_mtype(2,3) = -0.106319;
+            r_L1_mtype(3,0) = -0.111968; r_L1_mtype(3,1) = 0.0710417; r_L1_mtype(3,2) = -0.106319; r_L1_mtype(3,3) = 0.141759;
+
+            // I in L1
+            r_L1_mtype(4,4) = 1.0; r_L1_mtype(4,5) = 0.0;  r_L1_mtype(4,6) = 0.0;  r_L1_mtype(4,7) = 0.0;
+            r_L1_mtype(5,4) = 0.0; r_L1_mtype(5,5) = 1.0;  r_L1_mtype(5,6) = 0.0;  r_L1_mtype(5,7) = 0.0;
+            r_L1_mtype(6,4) = 0.0; r_L1_mtype(6,5) = 0.0;  r_L1_mtype(6,6) = 1.0;  r_L1_mtype(6,7) = 0.0;
+            r_L1_mtype(7,4) = 0.0; r_L1_mtype(7,5) = 0.0;  r_L1_mtype(7,6) = 0.0;  r_L1_mtype(7,7) = 1.0;
+
+
+            // Rest 0
+            for(int i=4; i<8; i++){
+                for(int j=0; j<4; j++){
+                    r_L1_mtype(i,j) = 0.0;
+                }
+            }
+
+            for(int i=0; i<4; i++){
+                for(int j=4; j<8; j++){
+                    r_L1_mtype(i,j) = 0.0;
+                }
+            }
+
+
+
+            KRATOS_WATCH(r_L1_mtype);
+
+
+
+            Eigen::Matrix<double,8,8> r_L2_mtype;
+            /*r_L2_mtype << 0,0,0,0,-1,0,0,0,
+                          0,0,0,0,0,-1,0,0,
+                          0,0,0,0,0,0,-1,0,
+                          0,0,0,0,0,0,0,-1,
+                          -1,0,0,0,0,0,0,0,
+                          0,-1,0,0,0,0,0,0,
+                          0,0,-1,0,0,0,0,0,
+                          0,0,0,-1,0,0,0,0;*/
+
+            // K in L2
+            r_L2_mtype(0,4) = 7980.85; r_L2_mtype(0,5) = 5016.95; r_L2_mtype(0,6) = 1188.86; r_L2_mtype(0,7) = 226.714;
+            r_L2_mtype(1,4) = 5016.95; r_L2_mtype(1,5) = 105123; r_L2_mtype(1,6) = 60796.1; r_L2_mtype(1,7) = 16482.2;
+            r_L2_mtype(2,4) = 1188.86; r_L2_mtype(2,5) = 60796.1; r_L2_mtype(2,6) = 456395; r_L2_mtype(2,7) = 251600;
+            r_L2_mtype(3,4) = 226.714; r_L2_mtype(3,5) = 16482.2; r_L2_mtype(3,6) = 251600; r_L2_mtype(3,7) = 1.07785e+06;
+
+            // -I in L2
+            r_L2_mtype(4,0) = -1.0; r_L2_mtype(4,1) = 0.0; r_L2_mtype(4,2) = 0.0; r_L2_mtype(4,3) = 0.0;
+            r_L2_mtype(5,0) = 0.0; r_L2_mtype(5,1) = -1.0; r_L2_mtype(5,2) = 0.0; r_L2_mtype(5,3) = 0.0;
+            r_L2_mtype(6,0) = 0.0; r_L2_mtype(6,1) = 0.0; r_L2_mtype(6,2) = -1.0; r_L2_mtype(6,3) = 0.0;
+            r_L2_mtype(7,0) = 0.0; r_L2_mtype(7,1) = 0.0; r_L2_mtype(7,2) = 0.0; r_L2_mtype(7,3) = -1.0;
+
+
+
+            // Rest 0  (C)
+            for(int i=0; i<4; i++){
+                for(int j=0; j<4; j++){
+                    r_L2_mtype(i,j) = 0.0;
+                }
+            }
+
+            for(int i=4; i<8; i++){
+                for(int j=4; j<8; j++){
+                    r_L2_mtype(i,j) = 0.0;
+                }
+            }
+            
+            KRATOS_WATCH(r_L2_mtype);
+
+
+
+
+
+                Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> eig_test2;
+                //Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> eig_test2;
+            eig_test2.compute(r_L2_mtype,r_L1_mtype);
+            KRATOS_WATCH(eig_test2.eigenvalues());
+            //KRATOS_WATCH(eig_test2.alphas());
+            //KRATOS_WATCH(eig_test2.betas());
+            KRATOS_WATCH(eig_test2.eigenvectors());
+
             //this->AssignVariables(Eigenvalues,Eigenvectors);
             KRATOS_WATCH(Eigenvalues);
             KRATOS_WATCH(Eigenvectors);
+
+        KRATOS_WATCH(r_L1);
+        KRATOS_WATCH(r_L2);
+        KRATOS_WATCH(r_M_reduced)
+        KRATOS_WATCH(r_K_reduced)
+        KRATOS_WATCH(r_D_reduced)
+    
 
 
             // step 4 d) shift selection step
@@ -497,8 +599,9 @@ class MorSecondOrderIRKAStrategy
 
 
         
-        KRATOS_WATCH(r_M_reduced)
+        
 
+        
 
 
 
