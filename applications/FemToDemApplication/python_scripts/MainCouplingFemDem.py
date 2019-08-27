@@ -160,7 +160,6 @@ class MainCoupledFemDem_Solution:
 
 #============================================================================================================================
     def SolveSolutionStep(self): # Method to perform the coupling FEM <-> DEM
-
         self.FEM_Solution.clock_time = self.FEM_Solution.StartTimeMeasuring()
 
         #### SOLVE FEM #########################################
@@ -296,9 +295,7 @@ class MainCoupledFemDem_Solution:
                 self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = False
 
 #============================================================================================================================
-
     def PerformRemeshingIfNecessary(self):
-
         debug_metric = False
         if debug_metric:
             params = KratosMultiphysics.Parameters("""{}""")
@@ -470,3 +467,18 @@ class MainCoupledFemDem_Solution:
                 total_elements_on_nodes = total_elements_on_nodes + number_active_elements
             if total_elements_on_nodes == 3:
                 Element.Set(KratosMultiphysics.TO_ERASE, True)
+
+#============================================================================================================================
+    def ExtrapolatePressureLoad(self):
+        if self.echo_level > 0:
+            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ExtrapolatePressureLoad")
+
+        if self.PressureLoad:
+            # we reconstruct the pressure load if necessary
+            if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECONSTRUCT_PRESSURE_LOAD] == 1:
+                self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.INTERNAL_PRESSURE_ITERATION] = 1
+                while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.INTERNAL_PRESSURE_ITERATION] > 0:
+                    if self.domain_size == 2:
+                        KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
+                    else:
+                        KratosFemDem.ExtendPressureConditionProcess3D(self.FEM_Solution.main_model_part).Execute()
