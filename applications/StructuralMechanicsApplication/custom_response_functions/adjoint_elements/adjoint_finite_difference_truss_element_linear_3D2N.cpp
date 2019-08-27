@@ -88,6 +88,16 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnInteg
                 rOutput[i].clear();
         }*/
     }
+    else if (rVariable == ADJOINT_WORK_FORCE_CONTRIBUTION)
+    {
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
+        {
+            GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
+            my_extension.CalculateAdjointWorkContributionOnIntegrationPoints(*this->mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
+        }
+        else
+            KRATOS_ERROR << "'GeneralizedInfluenceFunctionsExtension' is necessary to compute " << rVariable.Name() << "!" << std::endl;
+    }
     else
         this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 

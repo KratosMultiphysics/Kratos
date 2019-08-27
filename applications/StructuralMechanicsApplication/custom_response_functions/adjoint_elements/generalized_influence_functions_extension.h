@@ -56,6 +56,10 @@ public:
     void CalculateSensitivityOnIntegrationPoints(Element& rPrimalElement, Element& rAdjointElement, std::vector<double>& rOutput,
                                                                     const ProcessInfo& rCurrentProcessInfo) const;
 
+    void CalculateAdjointWorkContributionOnIntegrationPoints(Element& rPrimalElement, Element& rAdjointElement, const Variable<array_1d<double, 3>>& rAdjointWorkVariable,
+                                                            std::vector< array_1d<double, 3> >& rOutput,
+                                                                    const ProcessInfo& rCurrentProcessInfo) const;
+
     void NormalizeAdjointFieldIfRequested(Element& rElement, std::vector< array_1d<double, 3> >& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
 
 private:

@@ -210,6 +210,44 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+    void GeneralizedInfluenceFunctionsExtension::CalculateAdjointWorkContributionOnIntegrationPoints(Element& rPrimalElement, Element& rAdjointElement,
+                                                                                                const Variable<array_1d<double, 3>>& rAdjointWorkVariable,
+                                                                                                std::vector< array_1d<double, 3> >& rOutput,
+                                                                                                const ProcessInfo& rCurrentProcessInfo) const
+    {
+        KRATOS_TRY;
+
+        const SizeType write_points_number = rAdjointElement.GetGeometry().IntegrationPointsNumber(rAdjointElement.GetIntegrationMethod());
+        if (rOutput.size() != write_points_number)
+            rOutput.resize(write_points_number);
+        std::vector< array_1d<double, 3> > pseudo_quantity;
+        pseudo_quantity.resize(write_points_number);
+        std::vector< array_1d<double, 3> > adjoint_quantity;
+        adjoint_quantity.resize(write_points_number);
+
+        if (rAdjointWorkVariable == ADJOINT_WORK_FORCE_CONTRIBUTION)
+        {
+            this->CalculatePseudoQuantityOnIntegrationPoints(rPrimalElement, PSEUDO_FORCE, pseudo_quantity, rCurrentProcessInfo);
+            rAdjointElement.CalculateOnIntegrationPoints(ADJOINT_STRAIN, adjoint_quantity, rCurrentProcessInfo);
+        }
+        else if (rAdjointWorkVariable == ADJOINT_WORK_MOMENT_CONTRIBUTION)
+        {
+            this->CalculatePseudoQuantityOnIntegrationPoints(rPrimalElement, PSEUDO_MOMENT, pseudo_quantity, rCurrentProcessInfo);
+            rAdjointElement.CalculateOnIntegrationPoints(ADJOINT_CURVATURE, adjoint_quantity, rCurrentProcessInfo);
+        }
+        else
+            KRATOS_ERROR << "CalculateAdjointWorkContributionOnIntegrationPoints not available for given variable!" << std::endl;
+
+        for(IndexType i = 0; i < write_points_number; ++i)
+        {
+            rOutput[i][0] = pseudo_quantity[i][0] * adjoint_quantity[i][0];
+            rOutput[i][1] = pseudo_quantity[i][1] * adjoint_quantity[i][1];
+            rOutput[i][2] = pseudo_quantity[i][2] * adjoint_quantity[i][2];
+        }
+
+        KRATOS_CATCH("");
+    }
+
     void GeneralizedInfluenceFunctionsExtension::NormalizeAdjointFieldIfRequested(Element& rElement, std::vector< array_1d<double, 3> >& rOutput,
                                                                                             const ProcessInfo& rCurrentProcessInfo) const
     {
