@@ -43,7 +43,7 @@ int MPINormalCalculationUtils::Check(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    const auto& r_node = *(rModelPart.NodesBegin())
+    const auto& r_node = *(rModelPart.NodesBegin());
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL, r_node);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PARTITION_INDEX, r_node);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUX_INDEX, r_node);
@@ -161,7 +161,7 @@ void MPINormalCalculationUtils::CalculateOnSimplex(ModelPart& rModelPart,
 
     KRATOS_ERROR_IF_NOT(Dimension == 3)
     << "MPINormalCalculationUtils::CalculateOnSimplex only implemented for 3D, but got Dimension ==  "
-    << Dimension << "." << std::endl
+    << Dimension << "." << std::endl;
 
     /*
      * Nodes that lie on marked surfaces will be identified with NODAL_PAUX > 0
