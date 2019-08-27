@@ -507,6 +507,7 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         else:
             raise RuntimeError('Unknown setting for z_stress_position!')
 
+        self.add_response_prefactors = False # MFusseder TODO This is no final solution!
         self.required_gen_iff_assistance = False
         self.gen_iff_settings = None
         if adjoint_parameters["processes"].Has("list_other_processes"):
@@ -597,6 +598,8 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
         # assist the method of generalized influence functions
         if self.required_gen_iff_assistance:
             ExecuteAssistanceForGeneralizedInfluenceFunctions(self.gen_iff_settings, self.element_domains, self.adjoint_model_part)
+        if self.add_response_prefactors:
+            self._AddResponsePrefactorDerivatives()
 
         self.adjoint_analysis.OutputSolutionStep()
 
@@ -785,6 +788,30 @@ class AdjointBeamNormalStressResponseFunction(ResponseFunctionBase):
                              part_sol_my / I22 * zp +
                              part_sol_mz / I33 * yp )
         elem_stress.SetValue(StructuralMechanicsApplication.ADJOINT_PARTICULAR_DISPLACEMENT, complete_part_sol)
+
+    def _AddResponsePrefactorDerivatives(self):
+        variable = KratosMultiphysics.KratosGlobals.GetVariable(self.gen_iff_settings["design_variable_name"].GetString())
+        element = self.adjoint_model_part.GetElement(self.traced_element_id)
+        yp, zp = self._GetStressPositionWithinCrossSection()
+        dA_dX = self.response_cross_section.ComputeCrossAreaDerivative(variable)
+        dI22_dX = self.response_cross_section.ComputeI22Derivative(variable)
+        dI33_dX = self.response_cross_section.ComputeI33Derivative(variable)
+        A = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.CROSS_AREA]
+        I22 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I22]
+        I33 = self.primal_model_part.GetElement(self.traced_element_id).Properties[StructuralMechanicsApplication.I33]
+
+        prefactor_FX = -1.0 / A * dA_dX
+        prefactor_MY = -1.0 / I22 * dI22_dX
+        prefactor_MZ = -1.0 / I33 * dI33_dX
+        if self.adaptive_y_coord and (variable.Name() == 'SECTION_WIDTH_SENSITIVITY'):
+            prefactor_MZ += self.stress_position_y / yp
+        if self.adaptive_z_coord and (variable.Name() == 'SECTION_HEIGTH_SENSITIVITY'):
+            prefactor_MY += self.stress_position_z / zp
+
+        prefactor_moment = [0.0, prefactor_MY, prefactor_MZ]
+        prefactor_force = [prefactor_FX, 0.0, 0.0]
+        element.SetValue(StructuralMechanicsApplication.RESPONSE_PREFACTOR_MOMENT_DERIVED, prefactor_moment)
+        element.SetValue(StructuralMechanicsApplication.RESPONSE_PREFACTOR_FORCE_DERIVED, prefactor_force)
 
 
     """

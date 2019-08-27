@@ -473,7 +473,11 @@ protected:
 
         Vector particular_solution = ZeroVector(num_dofs);
         if(this->Has(ADJOINT_PARTICULAR_DISPLACEMENT))
+        {
             particular_solution = this->GetValue(ADJOINT_PARTICULAR_DISPLACEMENT);
+            //KRATOS_WATCH(particular_solution)
+        }
+
 
         // Build vector of variables containing the DOF-variables of the primal problem
         std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;

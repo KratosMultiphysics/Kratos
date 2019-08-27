@@ -53,8 +53,10 @@ public:
     void CalculatePseudoQuantityOnIntegrationPoints(Element& rElement, const Variable<array_1d<double, 3>>& rPseudoQuantityVariable,
                                             std::vector< array_1d<double, 3> >& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
 
-    void CalculateSensitivityOnIntegrationPoints(Element& rPrimalElement, Element& rAdjointElement, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
+    void CalculateSensitivityOnIntegrationPoints(Element& rPrimalElement, Element& rAdjointElement, std::vector<double>& rOutput,
+                                                                    const ProcessInfo& rCurrentProcessInfo) const;
 
+    void NormalizeAdjointFieldIfRequested(Element& rElement, std::vector< array_1d<double, 3> >& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
 
 private:
     std::string mDesignVariableName;
@@ -71,6 +73,8 @@ private:
 
     void CalculatePseudoQuantityByModificationOfMaterialMatrix(Element& rElement, const Variable<array_1d<double, 3>>& rQuantityVariable,
                                             std::vector< array_1d<double, 3> >& rOutput, const ProcessInfo& rCurrentProcessInfo) const;
+
+    double GetVariableValue(Element& rElement, const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
 
     friend class Serializer;
 

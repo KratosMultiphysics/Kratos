@@ -50,7 +50,7 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
 {
     KRATOS_TRY
 
-    if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_STRAIN || ADJOINT_PARTICULAR_CURVATURE || ADJOINT_PARTICULAR_STRAIN)
+    if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_STRAIN || rVariable == ADJOINT_PARTICULAR_CURVATURE || rVariable == ADJOINT_PARTICULAR_STRAIN)
     {
         const double E = this->GetProperties()[YOUNG_MODULUS];
         const double nu = this->GetProperties()[POISSON_RATIO];
@@ -62,21 +62,18 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
 
         if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_PARTICULAR_CURVATURE)
         {
-            KRATOS_WATCH(rVariable)
             if (rVariable == ADJOINT_CURVATURE)
                 AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo);
             else
                 AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo, true);
 
-            double response_value = 1.0;
-            //if (rCurrentProcessInfo.Has(RESPONSE_VALUE)) {response_value = rCurrentProcessInfo.GetValue(RESPONSE_VALUE);}
-
             for (IndexType i = 0; i < rOutput.size(); ++i)
             {
-                rOutput[i][0] *=  1.0 / (G * J)  / response_value;
-                rOutput[i][1] *= -1.0 / (E * Iy) / response_value;
-                rOutput[i][2] *= -1.0 / (E * Iz) / response_value;
+                rOutput[i][0] *=  1.0 / (G * J);
+                rOutput[i][1] *= -1.0 / (E * Iy);
+                rOutput[i][2] *= -1.0 / (E * Iz);
             }
+
         }
         else if (rVariable == ADJOINT_STRAIN || rVariable == ADJOINT_PARTICULAR_STRAIN)
         {
@@ -88,15 +85,20 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
             KRATOS_WARNING_IF("ADJOINT_STRAIN", (this->GetProperties().Has(AREA_EFFECTIVE_Y) || this->GetProperties().Has(AREA_EFFECTIVE_Z)))
                         << "Not available for Timoschenko beam!" << std::endl;
 
-            double response_value = 1.0;
-            //if (rCurrentProcessInfo.Has(RESPONSE_VALUE)) {response_value = rCurrentProcessInfo.GetValue(RESPONSE_VALUE);}
-
             for (IndexType i = 0; i < rOutput.size(); ++i)
             {
-                rOutput[i][0] *= 1.0 / (E * A) / response_value;
+                rOutput[i][0] *= 1.0 / (E * A);
                 rOutput[i][1] *= 0.0;
                 rOutput[i][2] *= 0.0;
             }
+        }
+
+        // Here the adjoint fields are normalized if the extension is available and the flag for normalization is true.
+        // Note: the normalization flag is defined within the settings of the generalized influence functions process.
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
+        {
+            GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
+            my_extension.NormalizeAdjointFieldIfRequested(*this, rOutput, rCurrentProcessInfo);
         }
     }
     else if (rVariable == PSEUDO_MOMENT || rVariable == PSEUDO_FORCE)

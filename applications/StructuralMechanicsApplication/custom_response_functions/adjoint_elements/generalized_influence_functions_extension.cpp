@@ -31,23 +31,23 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mDesignVariableName))
             << "Chosen design variable " << mDesignVariableName << " is not available or no variable of type double!" << std::endl;
 
+        mNormalize = AnalysisSettings["normalize"].GetBool();
+
         const std::string differentiation_method = AnalysisSettings["differentiation_method"].GetString();
         if(differentiation_method == "finite_differences")
         {
             mDifferentiationMethod = 1;
             mDelta = AnalysisSettings["delta"].GetDouble();
             mAdaptStepSize = AnalysisSettings["adapt_step_size"].GetBool();
-            mNormalize = AnalysisSettings["normalize"].GetBool(); //normalization is only possible for this differentiation method
         }
         else if (differentiation_method == "modify_material_matrix")
         {
             mDifferentiationMethod = 2;
-            mNormalize = false;
         }
         else if (differentiation_method == "chain_rule")
         {
             mDifferentiationMethod = 3;
-            mNormalize = false;
+            mDelta = AnalysisSettings["delta"].GetDouble();
             mAdaptStepSize = AnalysisSettings["adapt_step_size"].GetBool();
         }
         else
@@ -64,11 +64,12 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        const Variable<double>& r_design_variable = KratosComponents<Variable<double>>::Get(mDesignVariableName);
+
         if (rPseudoQuantityVariable == PSEUDO_MOMENT)
         {
             if (mDifferentiationMethod == 1)
             {
-                const Variable<double>& r_design_variable = KratosComponents<Variable<double>>::Get(mDesignVariableName);
                 this->CalculatePseudoQuantityWithFiniteDifferences(rElement, MOMENT, r_design_variable, rOutput, rCurrentProcessInfo);
             }
             else if(mDifferentiationMethod == 2)
@@ -85,7 +86,6 @@ namespace Kratos
         {
             if (mDifferentiationMethod == 1)
             {
-                const Variable<double>& r_design_variable = KratosComponents<Variable<double>>::Get(mDesignVariableName);
                 this->CalculatePseudoQuantityWithFiniteDifferences(rElement, FORCE, r_design_variable, rOutput, rCurrentProcessInfo);
             }
             else if(mDifferentiationMethod == 2)
@@ -99,6 +99,14 @@ namespace Kratos
         }
         else
             KRATOS_ERROR << "It is not possible to provide a pseudo quantity for: " << rPseudoQuantityVariable.Name() << "!" << std::endl;
+
+        if(mNormalize)
+        {
+            const SizeType write_points_number = rElement.GetGeometry().IntegrationPointsNumber(rElement.GetIntegrationMethod());
+            const double variable_value = this->GetVariableValue(rElement, r_design_variable, rCurrentProcessInfo);
+            for(IndexType i = 0; i < write_points_number; ++i)
+                rOutput[i] *= variable_value;
+        }
 
         KRATOS_CATCH("");
     }
@@ -114,16 +122,6 @@ namespace Kratos
 
         std::string primal_element_name;
         CompareElementsAndConditionsUtility::GetRegisteredName(rPrimalElement, primal_element_name);
-
-        double response_value = 1.0;
-        double variable_value = 1.0;
-        if(mNormalize)
-        {
-            if (rCurrentProcessInfo.Has(RESPONSE_VALUE)) {response_value = std::abs(rCurrentProcessInfo.GetValue(RESPONSE_VALUE));}
-            else {KRATOS_ERROR << "Can't normalize variational sensitivity since no response value is provided!" << std::endl;}
-            const Variable<double>& r_design_variable = KratosComponents<Variable<double>>::Get(mDesignVariableName);
-            variable_value = rAdjointElement.GetProperties()[r_design_variable];
-        }
 
         if(primal_element_name == "CrLinearBeamElement3D2N")
         {
@@ -143,10 +141,51 @@ namespace Kratos
             // MFusseder TODO investigate signs!!
             for(IndexType i = 0; i < write_points_number; ++i)
             {
-                rOutput[i] = (pseudo_moment[i][0] * adjoint_curvature[i][0] - pseudo_force[i][0] * adjoint_strain[i][0] +
-                              pseudo_moment[i][1] * adjoint_curvature[i][1] + pseudo_force[i][1] * adjoint_strain[i][1] +
-                              pseudo_moment[i][2] * adjoint_curvature[i][2] + pseudo_force[i][2] * adjoint_strain[i][2])*
-                              variable_value / response_value;
+                rOutput[i] = pseudo_moment[i][0] * adjoint_curvature[i][0] - pseudo_force[i][0] * adjoint_strain[i][0] +
+                             pseudo_moment[i][1] * adjoint_curvature[i][1] + pseudo_force[i][1] * adjoint_strain[i][1] +
+                             pseudo_moment[i][2] * adjoint_curvature[i][2] + pseudo_force[i][2] * adjoint_strain[i][2];
+            }
+
+            // This is something special for normal stress response
+            if (rAdjointElement.Has(RESPONSE_PREFACTOR_MOMENT_DERIVED) || rAdjointElement.Has(RESPONSE_PREFACTOR_FORCE_DERIVED))
+            {
+                const auto prefactor_moment = rAdjointElement.GetValue(RESPONSE_PREFACTOR_MOMENT_DERIVED);
+                const auto prefactor_force = rAdjointElement.GetValue(RESPONSE_PREFACTOR_FORCE_DERIVED);
+
+                std::vector< array_1d<double, 3> > moment;
+                moment.resize(write_points_number);
+                std::vector< array_1d<double, 3> > force;
+                force.resize(write_points_number);
+                std::vector< array_1d<double, 3> > adjoint_particular_curvature;
+                adjoint_particular_curvature.resize(write_points_number);
+                std::vector< array_1d<double, 3> > adjoint_particular_strain;
+                adjoint_particular_strain.resize(write_points_number);
+
+                rPrimalElement.CalculateOnIntegrationPoints(MOMENT, moment, rCurrentProcessInfo);
+                rPrimalElement.CalculateOnIntegrationPoints(FORCE, force, rCurrentProcessInfo);
+                rAdjointElement.CalculateOnIntegrationPoints(ADJOINT_PARTICULAR_CURVATURE, adjoint_particular_curvature, rCurrentProcessInfo);
+                rAdjointElement.CalculateOnIntegrationPoints(ADJOINT_PARTICULAR_STRAIN, adjoint_particular_strain, rCurrentProcessInfo);
+
+                double response_value = 1.0;
+                double variable_value = 1.0;
+                if(mNormalize)
+                {
+                    if (rCurrentProcessInfo.Has(RESPONSE_VALUE)) {response_value = std::abs(rCurrentProcessInfo.GetValue(RESPONSE_VALUE));}
+                    else {KRATOS_ERROR << "Can't normalize variational sensitivity since no response value is provided!" << std::endl;}
+                    const Variable<double>& r_design_variable = KratosComponents<Variable<double>>::Get(mDesignVariableName);
+                    variable_value = this->GetVariableValue(rAdjointElement, r_design_variable, rCurrentProcessInfo);
+                }
+
+                for(IndexType i = 0; i < write_points_number; ++i)
+                { // TODO evaluate signs!
+                    rOutput[i] += (moment[i][0] * adjoint_particular_curvature[i][0] * prefactor_moment[0]
+                                + moment[i][1] * adjoint_particular_curvature[i][1] * prefactor_moment[1]
+                                + moment[i][2] * adjoint_particular_curvature[i][2] * prefactor_moment[2]
+                                - force[i][0] * adjoint_particular_strain[i][0] * prefactor_force[0]
+                                + force[i][1] * adjoint_particular_strain[i][1] * prefactor_force[1]
+                                + force[i][2] * adjoint_particular_strain[i][2] * prefactor_force[2])
+                                * variable_value / response_value;
+                }
             }
         }
         else if(primal_element_name == "TrussLinearElement3D2N")
@@ -160,16 +199,31 @@ namespace Kratos
 
             for(IndexType i = 0; i < write_points_number; ++i)
             {
-                rOutput[i] = (pseudo_force[i][0] * adjoint_strain[i][0] +
-                              pseudo_force[i][1] * adjoint_strain[i][1] +
-                              pseudo_force[i][2] * adjoint_strain[i][2])*
-                              variable_value / response_value;
+                rOutput[i] = pseudo_force[i][0] * adjoint_strain[i][0] +
+                             pseudo_force[i][1] * adjoint_strain[i][1] +
+                             pseudo_force[i][2] * adjoint_strain[i][2];
             }
         }
         else
             KRATOS_ERROR << "CalculateSensitivityOnIntegrationPoints not available for " << primal_element_name << "!" << std::endl;
 
         KRATOS_CATCH("");
+    }
+
+    void GeneralizedInfluenceFunctionsExtension::NormalizeAdjointFieldIfRequested(Element& rElement, std::vector< array_1d<double, 3> >& rOutput,
+                                                                                            const ProcessInfo& rCurrentProcessInfo) const
+    {
+        if(mNormalize)
+        {
+            if (rCurrentProcessInfo.Has(RESPONSE_VALUE))
+            {
+                const double response_value = std::abs(rCurrentProcessInfo.GetValue(RESPONSE_VALUE));
+                for(IndexType i = 0; i < rOutput.size(); ++i)
+                    rOutput[i] /= response_value;
+            }
+            else
+                KRATOS_ERROR << "Can't normalize adjoint field since no response value is provided!" << std::endl;
+        }
     }
 
     void GeneralizedInfluenceFunctionsExtension::CalculatePseudoQuantityWithFiniteDifferences(Element& rElement,
@@ -307,6 +361,27 @@ namespace Kratos
         rElement.SetProperties(p_global_properties);
 
         KRATOS_CATCH("");
+    }
+
+    double GeneralizedInfluenceFunctionsExtension::GetVariableValue(Element& rElement, const Variable<double>& rDesignVariable,
+                                                                    const ProcessInfo& rCurrentProcessInfo) const
+    {
+        double variable_value = 1.0;
+        if (rDesignVariable == SECTION_HEIGTH_SENSITIVITY)
+        {
+            if (rElement.GetProperties().Has(SECTION_HEIGTH))
+                variable_value = rElement.GetProperties()[SECTION_HEIGTH];
+        }
+        else if (rDesignVariable == SECTION_WIDTH_SENSITIVITY)
+        {
+            if (rElement.GetProperties().Has(SECTION_WIDTH))
+                variable_value = rElement.GetProperties()[SECTION_WIDTH];
+        }
+        else
+            variable_value = rElement.GetProperties()[rDesignVariable];
+
+        return variable_value;
+
     }
 
 };  // namespace Kratos.

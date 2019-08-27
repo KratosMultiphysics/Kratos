@@ -59,12 +59,17 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateOnInteg
 
         KRATOS_ERROR_IF(strain_vector[0].size() != 3) << "Dimension of strain vector not as expected!" << std::endl;
 
-        double response_value = 1.0;
-        //if (rCurrentProcessInfo.Has(RESPONSE_VALUE)) {response_value = rCurrentProcessInfo.GetValue(RESPONSE_VALUE);}
-
         for(IndexType i = 0; i < strain_vector.size(); ++i)
             for (IndexType j = 0; j < 3 ; ++j)
-                rOutput[i][j] = strain_vector[i][j] / response_value;
+                rOutput[i][j] = strain_vector[i][j];
+
+        // Here the adjoint strain is normalized if the extension is available and the flag for normalization is true.
+        // Note: the normalization flag is defined within the settings of the generalized influence functions process.
+        if(this->Has(INFLUENCE_FUNCTIONS_EXTENSIONS))
+        {
+            GeneralizedInfluenceFunctionsExtension my_extension = *(this->GetValue(INFLUENCE_FUNCTIONS_EXTENSIONS));
+            my_extension.NormalizeAdjointFieldIfRequested(*this, rOutput, rCurrentProcessInfo);
+        }
     }
     else if (rVariable == PSEUDO_FORCE)
     {
