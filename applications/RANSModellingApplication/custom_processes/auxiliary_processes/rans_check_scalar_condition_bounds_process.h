@@ -173,7 +173,8 @@ public:
         bool initialized = false;
 
         // #pragma omp parallel for
-        for (int i_cond = 0; i_cond < r_conditions.size(); ++i_cond)
+        const int number_of_conditions = r_conditions.size();
+        for (int i_cond = 0; i_cond < number_of_conditions; ++i_cond)
         {
             const ModelPart::ConditionType& r_condition = *(r_conditions.begin() + i_cond);
 
