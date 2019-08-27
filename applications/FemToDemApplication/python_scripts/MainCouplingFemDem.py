@@ -124,7 +124,25 @@ class MainCoupledFemDem_Solution:
             utils = KratosMultiphysics.VariableUtils()
             utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
 
+#============================================================================================================================
+    def RunMainTemporalLoop(self):
 
+        # Solving the problem (time integration)
+        self.DEM_Solution.step           = 0
+        self.DEM_Solution.time           = 0.0
+        self.DEM_Solution.time_old_print = 0.0
+
+        if self.DoRemeshing:
+            self.RemeshingProcessMMG.ExecuteBeforeSolutionLoop()
+
+        # Temporal loop
+        while self.FEM_Solution.time <= self.FEM_Solution.end_time:
+            self.InitializeSolutionStep()
+            self.SolveSolutionStep()
+            self.FinalizeSolutionStep()
+
+#============================================================================================================================
+    def InitializeSolutionStep(self):
 
 
 
