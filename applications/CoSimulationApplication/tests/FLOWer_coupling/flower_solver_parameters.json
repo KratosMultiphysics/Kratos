@@ -1,5 +1,5 @@
 {
-    "name"                : "External Solver",
+    "name"                : "FLOWer Solver",
     "num_steps"           : 5,
     "coupling_interfaces" : [
         {
