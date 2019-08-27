@@ -6,7 +6,7 @@ from co_simulation_test_factory import TestCoSimulationCases
 from test_coupling_interface_data import TestCouplingInterfaceData
 from test_data_transfer_operators import TestDataTransferOperators
 from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
-from test_external_solver_coupling import TestExternalSolverCoupling
+from test_flower_coupling import TestFLOWerCoupling
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
 using_pykratos = UsingPyKratos()
@@ -42,7 +42,7 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
-    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestExternalSolverCoupling]))
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
 
     ################################################################################
     # Create a test suit that contains all the tests:
