@@ -10,10 +10,12 @@
 //  Main author:     Jordi Cotela
 //
 
-#include "mpi.h"
 #include "mpi/utilities/mpi_normal_calculation_utilities.h"
-#include "utilities/math_utils.h"
+#include "includes/checks.h"
 #include "includes/deprecated_variables.h"
+#include "utilities/math_utils.h"
+
+#include "mpi.h"
 
 namespace Kratos
 {
@@ -41,26 +43,11 @@ int MPINormalCalculationUtils::Check(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    if(NORMAL.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"MPINormalCalculationUtils ERROR: NORMAL Key is 0. Kratos variables were not correctly registered.","");
-    if ( !rModelPart.GetNodalSolutionStepVariablesList().Has(NORMAL) )
-        KRATOS_THROW_ERROR(std::invalid_argument,"MPINormalCalculationUtils ERROR: ModelPart does not contain NORMAL as nodal solution step data.","");
-
-
-    if(PARTITION_INDEX.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"MPINormalCalculationUtils ERROR: PARTITION_INDEX Key is 0. Kratos variables were not correctly registered.","");
-    if ( !rModelPart.GetNodalSolutionStepVariablesList().Has(PARTITION_INDEX) )
-        KRATOS_THROW_ERROR(std::invalid_argument,"MPINormalCalculationUtils ERROR: ModelPart does not contain PARTITION_INDEX as nodal solution step data.","");
-
-    if(AUX_INDEX.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"MPINormalCalculationUtils ERROR: AUX_INDEX Key is 0. Kratos variables were not correctly registered.","");
-    if ( !rModelPart.GetNodalSolutionStepVariablesList().Has(AUX_INDEX) )
-        KRATOS_THROW_ERROR(std::invalid_argument,"MPINormalCalculationUtils ERROR: ModelPart does not contain AUX_INDEX as nodal solution step data.","");
-
-    if(NODAL_PAUX.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"MPINormalCalculationUtils ERROR: NODAL_PAUX Key is 0. Kratos variables were not correctly registered.","");
-    if ( !rModelPart.GetNodalSolutionStepVariablesList().Has(NODAL_PAUX) )
-        KRATOS_THROW_ERROR(std::invalid_argument,"MPINormalCalculationUtils ERROR: ModelPart does not contain NODAL_PAUX as nodal solution step data.","");
+    const auto& r_node = *(rModelPart.NodesBegin())
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL, r_node);
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PARTITION_INDEX, r_node);
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUX_INDEX, r_node);
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_PAUX, r_node);
 
     // If we reached this point without throwing an error, return 0
     return 0;
@@ -172,8 +159,9 @@ void MPINormalCalculationUtils::CalculateOnSimplex(ModelPart& rModelPart,
 {
     KRATOS_TRY;
 
-    if (Dimension != 3)
-        KRATOS_THROW_ERROR(std::invalid_argument,"MPINormalCalculationUtils::CalculateOnSimplex only implemented for 3D, but got Dimension ==  ",Dimension);
+    KRATOS_ERROR_IF_NOT(Dimension == 3)
+    << "MPINormalCalculationUtils::CalculateOnSimplex only implemented for 3D, but got Dimension ==  "
+    << Dimension << "." << std::endl
 
     /*
      * Nodes that lie on marked surfaces will be identified with NODAL_PAUX > 0
