@@ -27,7 +27,7 @@ class EmpireIO(CoSimulationIO):
 
         # delete and recreate communication folder to avoid leftover files
         # TODO implement this
-        self.communication_folder = self.settings["communication_folder"].GetString()
+        self.communication_folder = ".EmpireIO_" + self.solver_name
         kratos_utilities.DeleteDirectoryIfExisting(self.communication_folder)
         os.mkdir(self.communication_folder)
 
@@ -77,8 +77,7 @@ class EmpireIO(CoSimulationIO):
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
-            "api_configuration_file_name"  : "UNSPECIFIED",
-            "communication_folder"         : ".EMPIRE"
+            "api_configuration_file_name"  : "UNSPECIFIED"
         }""")
         this_defaults.AddMissingParameters(super(EmpireIO, cls)._GetDefaultSettings())
 
