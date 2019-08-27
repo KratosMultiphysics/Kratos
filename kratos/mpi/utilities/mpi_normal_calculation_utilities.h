@@ -47,7 +47,7 @@ namespace Kratos
 ///@{
 
 /// Some tools to calculate face and nodal normals on an MPI partitioned environment
-class MPINormalCalculationUtils
+class KRATOS_API(KRATOS_MPI_CORE) MPINormalCalculationUtils
 {
 public:
     ///@name Type Definitions
