@@ -74,8 +74,6 @@ public:
     typedef std::array<DenseVector<Matrix>, IntegrationMethod::NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
 
     typedef DenseVector<Matrix> ShapeFunctionsGradientsType;
-    typedef DenseVector<Matrix> ShapeFunctionsSecondDerivativesType;
-    typedef DenseVector<DenseVector<Matrix> > ShapeFunctionsThirdDerivativesType;
 
     ///@}
     ///@name Life Cycle
