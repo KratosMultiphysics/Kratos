@@ -12,10 +12,9 @@
 
 #include "mpi/utilities/mpi_normal_calculation_utilities.h"
 #include "includes/checks.h"
+#include "includes/data_communicator.h"
 #include "includes/deprecated_variables.h"
 #include "utilities/math_utils.h"
-
-#include "mpi.h"
 
 namespace Kratos
 {
