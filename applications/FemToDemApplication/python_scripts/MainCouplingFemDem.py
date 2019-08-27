@@ -213,11 +213,6 @@ class MainCoupledFemDem_Solution:
         self.PrintPlotsFiles()
 
 
-
-
-
-
-
 #============================================================================================================================
     def InitializeIntegrationPointsVariables(self):
         utils = KratosMultiphysics.VariableUtils()
@@ -482,3 +477,69 @@ class MainCoupledFemDem_Solution:
                         KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part).Execute()
                     else:
                         KratosFemDem.ExtendPressureConditionProcess3D(self.FEM_Solution.main_model_part).Execute()
+
+#============================================================================================================================
+    def UpdateDEMVariables(self):
+        update_de_kinematics_process = KratosFemDem.UpdateDemKinematicsProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
+        update_de_kinematics_process.Execute()
+
+#============================================================================================================================
+    def TransferNodalForcesToFEM(self):
+        tranfer_nodal_forces_process = KratosFemDem.TransferNodalForcesToFem(self.FEM_Solution.main_model_part, self.SpheresModelPart)
+        tranfer_nodal_forces_process.Execute()
+
+#============================================================================================================================
+    def WritePostListFile(self):
+        post_file_name = self.FEM_Solution.problem_name + ".post.lst"
+        time_label = round(self.FEM_Solution.step, 0)
+        PostListFile = open(post_file_name, "w")
+        PostListFile.write("Merge\n\n")
+        PostListFile.write(self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.res\n")
+        PostListFile.write(self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.msh\n")
+        PostListFile.write(os.path.join(self.FEM_Solution.problem_name + "_Post_Files", self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.bin"))
+        PostListFile.cl
+
+#============================================================================================================================
+    def InitializePlotsFiles(self):
+        # open general Displ/Reaction File
+        self.PlotFile = open("PlotFile.txt","w")
+        self.PlotFile.write("This File Plots the SUM of the displacement and reactions of the nodes selected in the lists!\n\n")
+        self.PlotFile.write("       time           displ_x        displ_y      Reaction_x     Reaction_y    \n")
+        self.PlotFile.close()
+        self.time_previous_plotting = 0.0
+        self.plot_files_nodes_list    = []
+        self.plot_files_elements_list = []
+        self.plot_files_nodes_id_list    = []
+        self.plot_files_elements_id_list = []
+
+        # open plots for nodes selected
+        if self.FEM_Solution.ProjectParameters["watch_nodes_list"].size() != 0:
+            number_nodes = self.FEM_Solution.ProjectParameters["watch_nodes_list"].size()
+            for node in range(0, number_nodes):
+
+                Id = self.FEM_Solution.ProjectParameters["watch_nodes_list"][node].GetInt()
+                i_plot_file_node = open("PlotNode_" + str(Id) + ".txt","w")
+                i_plot_file_node.write("\n")
+                if self.domain_size == 2
+                    i_plot_file_node.write("       time          displ_x        displ_y         vel_x           vel_y         acc_x          acc_y        Reaction_x     Reaction_y    \n")
+                else:
+                    i_plot_file_node.write("       time          displ_x        displ_y        displ_z         vel_x           vel_y         vel_z           acc_x          acc_y          acc_z       Reaction_x     Reaction_y     Reaction_Z    \n")
+                i_plot_file_node.close()
+                self.plot_files_nodes_list.append(i_plot_file_node)
+                self.plot_files_nodes_id_list.append(Id)
+
+        # open plots for elements selected
+        if self.FEM_Solution.ProjectParameters["watch_elements_list"].size() != 0:
+
+            number_elems = self.FEM_Solution.ProjectParameters["watch_elements_list"].size()
+            for elem in range(0, number_elems):
+                Id = self.FEM_Solution.ProjectParameters["watch_elements_list"][elem].GetInt()
+                i_plot_file_elem = open("PlotElement_" + str(Id) + ".txt","w")
+                i_plot_file_elem.write("\n")
+                if self.domain_size == 2:
+                    i_plot_file_elem.write("          time                       Sxx                   Syy                      Sxy                    Exx                     Eyy                   Exy                Damage  \n")
+                else:
+                    i_plot_file_elem.write("       time             Sxx           Syy             Szz           Sxy            Syz            Sxz            Exx            Eyy            Ezz             Exy           Eyz            Exz          Damage  \n")
+                i_plot_file_elem.close()
+                self.plot_files_elements_list.append(i_plot_file_elem)
+                self.plot_files_elements_id_list.append(Id)
