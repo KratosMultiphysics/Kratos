@@ -99,6 +99,8 @@ class MainCoupledFemDem_Solution:
 
         # Just to find neighbours the 1st time
         self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM] = True
+        if self.domain_size == 3:
+            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = True
 
         self.FEM_Solution.KratosPrintInfo(" /$$$$$$$$ /$$$$$$$$ /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$ /$$      /$$")
         self.FEM_Solution.KratosPrintInfo("| $$_____/| $$_____/| $$$    /$$$ /$$__  $$| $$__  $$| $$_____/| $$$    /$$$")
@@ -108,12 +110,20 @@ class MainCoupledFemDem_Solution:
         self.FEM_Solution.KratosPrintInfo("| $$      | $$      | $$\  $ | $$| $$      | $$  | $$| $$      | $$\  $ | $$")
         self.FEM_Solution.KratosPrintInfo("| $$      | $$$$$$$$| $$ \/  | $$| $$$$$$$$| $$$$$$$/| $$$$$$$$| $$ \/  | $$")
         self.FEM_Solution.KratosPrintInfo("|__/      |________/|__/     |__/|________/|_______/ |________/|__/     |__/ Application")
+        self.FEM_Solution.KratosPrintInfo("                                                    Developed by Alejandro Cornejo")
+        self.FEM_Solution.KratosPrintInfo("")
 
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM Solution initialized")
 
-        if self.echo_level > 0:
-            KratosMultiphysics.Logger.PrintInfo("FEM-DEM Solution initialized")
+        if self.domain_size == 3: # only in 3D
+            # We assign the flag to recompute neighbours inside the 3D elements the 1st time
+            utils = KratosMultiphysics.VariableUtils()
+            utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
+            # We assign the flag to recompute neighbours inside the 3D elements the 1st time
+            utils = KratosMultiphysics.VariableUtils()
+            utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
+
 
 
 
