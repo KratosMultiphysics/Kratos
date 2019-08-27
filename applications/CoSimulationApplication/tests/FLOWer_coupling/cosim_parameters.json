@@ -38,11 +38,6 @@
                         "to_solver_data" : "Interface_1_force",
                         "data_transfer_operator" : "mapper"
                     },{
-                        "data"           : "Interface_1_moment",
-                        "to_solver"      : "kratos_dummy",
-                        "to_solver_data" : "Interface_1_moment",
-                        "data_transfer_operator" : "mapper"
-                    },{
                         "data"           : "Interface_inlet_velocity",
                         "to_solver"      : "kratos_dummy",
                         "to_solver_data" : "Interface_velocity",
@@ -81,8 +76,7 @@
                     }
                 },
                 "io_settings" : {
-                    "type" : "empire_io",
-                    "communicate_as_double_vector" : {"FORCE":"MOMENT"}
+                    "type" : "empire_io"
                 },
                 "data" : {
                     "Interface_1_disp" : {
@@ -94,11 +88,6 @@
                         "model_part_name"   : "Fluid.NoSlip2D_FSI",
                         "dimension" : 2,
                         "variable_name" : "FORCE"
-                    },
-                    "Interface_1_moment" : {
-                        "model_part_name"   : "Fluid.NoSlip2D_FSI",
-                        "dimension" : 2,
-                        "variable_name" : "MOMENT"
                     },
                     "Interface_2_rot" : {
                         "model_part_name"   : "Fluid2.Outlet2D_Outlet",
@@ -132,11 +121,6 @@
                         "model_part_name"   : "Fluid.NoSlip2D_FSI",
                         "dimension" : 2,
                         "variable_name" : "FORCE"
-                    },
-                    "Interface_1_moment" : {
-                        "model_part_name"   : "Fluid.NoSlip2D_FSI",
-                        "dimension" : 2,
-                        "variable_name" : "MOMENT"
                     },
                     "Interface_2_rot" : {
                         "model_part_name"   : "Fluid.Outlet2D_Outlet",

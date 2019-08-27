@@ -11,7 +11,7 @@
             },
             "data_field_send" : {
                 "data_field_name" : "external_solver_Interface_1_force",
-                "variables"       : ["FORCE", "MOMENT"]
+                "variables"       : ["FORCE"]
             }
         },
         {

@@ -31,8 +31,6 @@ class EmpireIO(CoSimulationIO):
         kratos_utilities.DeleteDirectoryIfExisting(self.communication_folder)
         os.mkdir(self.communication_folder)
 
-        self.double_vector_var_map = {KM.KratosGlobals.GetVariable(k) : KM.KratosGlobals.GetVariable(v.GetString()) for (k,v) in self.settings["communicate_as_double_vector"].items()}
-
     def Finalize(self):
         kratos_utilities.DeleteDirectoryIfExisting(self.communication_folder)
 
@@ -56,10 +54,7 @@ class EmpireIO(CoSimulationIO):
         data_type = data_config["type"]
         if data_type == "coupling_interface_data":
             interface_data = data_config["interface_data"]
-            if interface_data.variable in self.double_vector_var_map.values():
-                return # this variable is communicated as a double-vector together with another variable
-            variables = self.__GetVariables(interface_data.variable)
-            KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(interface_data.GetModelPart(), self.solver_name+"_"+interface_data.name, *variables)
+            KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(interface_data.GetModelPart(), self.solver_name+"_"+interface_data.name, interface_data.variable)
         else:
             raise NotImplementedError('Importing interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
@@ -67,23 +62,11 @@ class EmpireIO(CoSimulationIO):
         data_type = data_config["type"]
         if data_type == "coupling_interface_data":
             interface_data = data_config["interface_data"]
-            if interface_data.variable in self.double_vector_var_map.values():
-                return # this variable is communicated as a double-vector together with another variable
-            variables = self.__GetVariables(interface_data.variable)
-            KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(interface_data.GetModelPart(), self.solver_name+"_"+interface_data.name, *variables)
+            KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField(interface_data.GetModelPart(), self.solver_name+"_"+interface_data.name, interface_data.variable)
         elif data_type == "convergence_signal":
             KratosCoSim.EMPIRE_API.EMPIRE_API_sendConvergenceSignal(data_config["is_converged"], self.solver_name)
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
-
-    def __GetVariables(self, main_var):
-        variables = [main_var]
-        double_vector_var = self.double_vector_var_map.get(main_var)
-
-        if double_vector_var is not None:
-            variables.append(double_vector_var)
-
-        return variables
 
     def PrintInfo(self):
         print("This is the EMPIRE-IO")
@@ -95,8 +78,7 @@ class EmpireIO(CoSimulationIO):
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
             "api_configuration_file_name"  : "UNSPECIFIED",
-            "communication_folder"         : ".EMPIRE",
-            "communicate_as_double_vector" : {}
+            "communication_folder"         : ".EMPIRE"
         }""")
         this_defaults.AddMissingParameters(super(EmpireIO, cls)._GetDefaultSettings())
 
