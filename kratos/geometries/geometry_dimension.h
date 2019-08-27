@@ -207,15 +207,15 @@ private:
     virtual void save( Serializer& rSerializer ) const
     {
         rSerializer.save( "Dimension", mDimension );
-        rSerializer.save( "Working Space Dimension", mWorkingSpaceDimension );
-        rSerializer.save( "Local Space Dimension", mLocalSpaceDimension );
+        rSerializer.save( "WorkingSpaceDimension", mWorkingSpaceDimension );
+        rSerializer.save( "LocalSpaceDimension", mLocalSpaceDimension );
     }
 
     virtual void load( Serializer& rSerializer )
     {
         rSerializer.load( "Dimension", mDimension );
-        rSerializer.load( "Working Space Dimension", mWorkingSpaceDimension );
-        rSerializer.load( "Local Space Dimension", mLocalSpaceDimension );
+        rSerializer.load( "WorkingSpaceDimension", mWorkingSpaceDimension );
+        rSerializer.load( "LocalSpaceDimension", mLocalSpaceDimension );
     }
 
     // Private default constructor for serialization
