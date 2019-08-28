@@ -10,6 +10,7 @@ import math
 import os
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 import KratosMultiphysics.SolidMechanicsApplication as Solid
+import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 
 def Wait():
     input("Press Something")
@@ -754,3 +755,50 @@ class MainCoupledFemDem_Solution:
             if self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.solver.dt:
                 self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
                 self.DEM_Solution.time_old_print = self.DEM_Solution.time
+
+#============================================================================================================================
+    def CheckIfHasRemeshed(self):
+        execute_remesh = False
+        step = self.RemeshingProcessMMG.step
+        if not self.RemeshingProcessMMG.remesh_executed:
+            if not self.RemeshingProcessMMG.initial_remeshing:
+                # We need to check if the model part has been modified recently
+                if self.RemeshingProcessMMG.main_model_part.Is(KratosMultiphysics.MODIFIED):
+                    step = 0  # Reset (just to be sure)
+                else:
+                    step += 1
+                    if self.RemeshingProcessMMG.step_frequency > 0:
+                        if self.RemeshingProcessMMG.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.RemeshingProcessMMG.initial_step:
+                            if not self.RemeshingProcessMMG.initial_step_done:
+                                    execute_remesh = True
+                            else:
+                                if step >= self.RemeshingProcessMMG.step_frequency:
+                                    execute_remesh = True
+        return execute_remesh
+
+#============================================================================================================================
+    def RemoveDummyNodalForces(self):
+        if self.echo_level > 0:
+            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: RemoveDummyNodalForces")
+
+        for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
+            condition.Set(KratosMultiphysics.TO_ERASE, True)
+
+        self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+        self.FEM_Solution.main_model_part.RemoveSubModelPart("ContactForcesDEMConditions")
+
+#============================================================================================================================
+    def GenerateDemAfterRemeshing(self):
+        # we extrapolate the damage to the nodes
+        KratosFemDem.DamageToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+
+        # we create a submodelpart containing the nodes and radius of the corresponding DEM
+        KratosFemDem.DemAfterRemeshIdentificatorProcess(self.FEM_Solution.main_model_part, 0.95).Execute()
+
+        # Loop over the elements of the Submodelpart to create the DEM
+        for node in self.FEM_Solution.main_model_part.GetSubModelPart("DemAfterRemeshingNodes").Nodes:
+            Id = node.Id
+            R = node.GetValue(KratosFemDem.DEM_RADIUS)
+            Coordinates = self.GetNodeCoordinates(node)
+            self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates, R, Id)
+            node.SetValue(KratosFemDem.IS_DEM, True)
