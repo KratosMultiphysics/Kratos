@@ -17,9 +17,6 @@ from Kratos import *
 
 # adding the scripts in "kratos/python_scripts" such that they are treated as a regular python-module
 __path__.append(KratosPaths.kratos_scripts)
-# To be purely pythonic, the following line should be removed
-# and all imports of files in python_scrips should be made relative to the KratosMultiphysics module.
-sys.path.append(KratosPaths.kratos_scripts)
 
 def __ModuleInitDetail():
     """
