@@ -186,7 +186,7 @@ private:
         Vector Da3_tilde_D2; // derivative of a3_tilde w.r.t. theta2
         double dA; //differential area
         Matrix H; //Hessian (second derivative of cartesian coordinates w.r.t. curvilinear coordinates)
-        Matrix Q; //Transformation matrix Q from contravariant to local Cartesian basis (only for strains!!!)
+        Matrix T_con_to_car; //Transformation matrix T_con_to_car from contravariant to local Cartesian basis (only for strains!!!)
         Matrix TransCartToCov; // Transformation matrix from local Cartesian to covariant basis
         Matrix TransCovToCart; // Transformation matrix from covariant to local Cartesian basis
 
@@ -220,7 +220,7 @@ private:
             dA = 1.0;
 
             H = ZeroMatrix(rWorkingSpaceDimension, rWorkingSpaceDimension);
-            Q = ZeroMatrix(rStrainSize, rStrainSize);
+            T_con_to_car = ZeroMatrix(rStrainSize, rStrainSize);
             TransCartToCov = ZeroMatrix(rStrainSize, rStrainSize);
             TransCovToCart = ZeroMatrix(rStrainSize, rStrainSize);
         }
@@ -248,8 +248,8 @@ private:
     };
 
     /**
-    * Internal variables used in the constitutive equations
-    */
+        * Internal variables used in the constitutive equations
+        */
     struct SecondVariations
     {
         Matrix B11;
@@ -339,6 +339,8 @@ private:
 
     // here the number of Gauss-Points over the thickness can be determined
     GaussQuadratureThickness mGaussQuadratureThickness = GaussQuadratureThickness(3);
+
+    unsigned int mcount = 0.0;
     ///@}
     ///@name Operations
     ///@{
@@ -429,7 +431,7 @@ private:
         SecondVariations& rSecondVariations,
         const MetricVariables& rMetric);
 
-    void CalculateVariationsRM(        
+    void CalculateVariations7p(        
         Matrix& rB,
         SecondVariations& rSecondVariations,
         const Vector& rw,
@@ -456,13 +458,6 @@ private:
         double& rValues,
         const ProcessInfo& rCurrentProcessInfo);
     ///@}
-
-    /**
-     * @brief Mathematical tool to calculate the crossproduct of two vector of size 3
-     */
-    array_1d<double, 3> CrossProduct(
-        const array_1d<double, 3>& rVector1,
-        const array_1d<double, 3>& rVector2);
 
     ///@}
     ///@name Serialization

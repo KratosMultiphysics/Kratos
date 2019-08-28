@@ -118,12 +118,23 @@ namespace Kratos
             ConstitutiveVariables constitutive_variables(5);
             CalculateConstitutiveVariables(actual_metric, w, Dw_D1, Dw_D2, constitutive_variables, Values, 
                 ConstitutiveLaw::StressMeasure_PK2);
+            if(Id()==1){
+                KRATOS_WATCH(constitutive_variables.E)
+                KRATOS_WATCH(constitutive_variables.S)
+                KRATOS_WATCH(constitutive_variables.D)
+            }
 
             // calculate B MATRICES
             CalculateB(B, actual_metric);
+            if(Id()==1){
+                KRATOS_WATCH(B)
+            }
             CalculateVariationsRM(B, second_variations, w, Dw_D1, Dw_D2, w_alpha, Dw_alpha_Dbeta, 
                 actual_metric, CalculateStiffnessMatrixFlag);
-            
+            if(Id()==1){
+                KRATOS_WATCH(B)
+            }
+
             double integration_weight = mGaussQuadratureThickness.integration_weight_thickness(Gauss_index) * 
                 GetValue(INTEGRATION_WEIGHT) * dV * thickness / 2.0;
 
@@ -135,8 +146,8 @@ namespace Kratos
                     second_variations,
                     actual_metric);
                 
-                // if(Id()==1)
-                //     KRATOS_WATCH(rLeftHandSideMatrix)
+                if(Id()==1)
+                    KRATOS_WATCH(integration_weight)
                 // adding linear contributions to the stiffness matrix
                 CalculateAndAddKm(rLeftHandSideMatrix, B, constitutive_variables.D, integration_weight);
                 // if(Id()==1)
@@ -153,11 +164,39 @@ namespace Kratos
                 // operation performed: rRightHandSideVector -= Weight*IntForce
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), constitutive_variables.S);
             }
+
+            if(Id()==1 && mcount==0 && mZeta < 0){
+                std::ofstream myfile;
+                myfile.open("B-5p.csv");
+                for(unsigned int i=0; i<6;i++){
+                    for(unsigned int j=0; j<mat_size;j++){
+                        myfile<<B(i,j)<<",";
+                    }
+                    myfile << "\n";
+                }
+                myfile.close();
+            }
         } // loop GP,t
 
         if(Id()==1 && rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
             KRATOS_WATCH(rCurrentProcessInfo.GetValue(NL_ITERATION_NUMBER))
 
+        // output file LHS // MLout
+        if(Id()==1 && mcount==0){
+            KRATOS_WATCH("here")
+            std::ofstream myfile1;
+            myfile1.open("LHS-5p.csv");
+            for (unsigned int i = 0; i<mat_size; i++){
+                for (unsigned int j=0; j<mat_size;j++){
+                    myfile1 << rLeftHandSideMatrix(i,j) << ",";
+                }
+                myfile1 << "\n";
+                
+            }
+            KRATOS_WATCH("here1")
+            myfile1.close();
+            mcount++;
+        }
         KRATOS_CATCH("");
     }
 
@@ -821,9 +860,9 @@ namespace Kratos
                     
                     // symmetric B matrices
                     if (r != s){
-                        second_variations_KL.B11(s, r) += second_variations_KL.B11(r, s);
-                        second_variations_KL.B22(s, r) += second_variations_KL.B22(r, s);
-                        second_variations_KL.B12(s, r) += second_variations_KL.B12(r, s);
+                        second_variations_KL.B11(s, r) = second_variations_KL.B11(r, s);
+                        second_variations_KL.B22(s, r) = second_variations_KL.B22(r, s);
+                        second_variations_KL.B12(s, r) = second_variations_KL.B12(r, s);
                     }
                 }
             }
@@ -994,8 +1033,8 @@ namespace Kratos
                     rSecondVariations.B23(r, s) += mInitialMetric.T_con_to_car(3, 3) * ddE_cu[0] + mInitialMetric.T_con_to_car(3, 4) * ddE_cu[1];
                     rSecondVariations.B13(r, s) += mInitialMetric.T_con_to_car(4, 4) * ddE_cu[1];
                     if (r != s){
-                        rSecondVariations.B23(s, r) += rSecondVariations.B23(r, s);
-                        rSecondVariations.B13(s, r) += rSecondVariations.B13(r, s);
+                        rSecondVariations.B23(s, r) = rSecondVariations.B23(r, s);
+                        rSecondVariations.B13(s, r) = rSecondVariations.B13(r, s);
                     }
                     // all other entries are (remain) zero
                     
@@ -1069,9 +1108,9 @@ namespace Kratos
                         + mInitialMetric.T_con_to_car(1, 2) * ddK_cu[2];
                     rSecondVariations.B12(r, s) += mInitialMetric.T_con_to_car(2, 0) * ddK_cu[0] + mInitialMetric.T_con_to_car(2, 2) * ddK_cu[2];
                     if (r != s){
-                        rSecondVariations.B11(s, r) += rSecondVariations.B11(r, s);
-                        rSecondVariations.B22(s, r) += rSecondVariations.B22(r, s);
-                        rSecondVariations.B12(s, r) += rSecondVariations.B12(r, s);
+                        rSecondVariations.B11(s, r) = rSecondVariations.B11(r, s);
+                        rSecondVariations.B22(s, r) = rSecondVariations.B22(r, s);
+                        rSecondVariations.B12(s, r) = rSecondVariations.B12(r, s);
                     }
                     // all other entries are (remain) zero
                     // if(Id()==5 && mcount==1)

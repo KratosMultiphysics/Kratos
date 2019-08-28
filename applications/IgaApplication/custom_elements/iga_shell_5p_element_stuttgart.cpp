@@ -132,20 +132,6 @@ namespace Kratos
                 // operation performed: rRightHandSideVector -= Weight*IntForce
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), constitutive_variables.S);
             }
-
-            // output file B // MLout
-            // if(Id()==5 && mcount==1 && Gauss_index==0){
-            //     KRATOS_WATCH(constitutive_variables.S)
-            //     std::ofstream myfile1;
-            //     myfile1.open("B-5pSt.csv");
-            //     for (unsigned int i = 0; i<5; i++){
-            //         for (unsigned int j=0; j<mat_size;j++){
-            //             myfile1 << B(i,j) << ",";
-            //         }
-            //         myfile1 << "\n";
-            //     }
-            //     myfile1.close();
-            // }
         }
 
         // if (Id() == 1){

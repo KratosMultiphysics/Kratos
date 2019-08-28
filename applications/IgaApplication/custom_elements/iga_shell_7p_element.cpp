@@ -16,6 +16,8 @@
 #include "utilities/math_utils.h"
 
 // External includes
+#include <iostream>     // MLout
+#include <fstream>      // MLout
 
 // Project includes
 #include "custom_elements/iga_shell_7p_element.h"
@@ -98,9 +100,8 @@ namespace Kratos
         MetricVariables actual_metric(3, 6);
         CalculateMetric(actual_metric);
         CalculateShearDifferenceVector(w, Dw_D1, Dw_D2, w_i, Dw_i_Dalpha, actual_metric);
-        const unsigned int pos = GetGeometry()[0].GetDofPosition(W_BAR);
         for (unsigned int i = 0; i < number_of_nodes; ++i){
-            w_bar += N(i) * GetGeometry()[i].GetDof(W_BAR, pos).GetSolutionStepValue();
+            w_bar += N(i) * GetGeometry()[i].GetDof(W_BAR).GetSolutionStepValue();
         }
 
         double thickness = GetProperties().GetValue(THICKNESS);
@@ -114,7 +115,7 @@ namespace Kratos
             array_1d<double, 3> G2 = mInitialMetric.a2 + mZeta * mInitialMetric.Da3_KL_D2;
             dV = inner_prod(CrossProduct(G1, G2), mInitialMetric.a3_KL);
             
-            Matrix B = ZeroMatrix(7, mat_size);
+            Matrix B = ZeroMatrix(6, mat_size);
             SecondVariations second_variations(mat_size);
             ConstitutiveVariables constitutive_variables(6);
             CalculateConstitutiveVariables(actual_metric, w, Dw_D1, Dw_D2, w_bar, constitutive_variables, Values, 
@@ -122,12 +123,9 @@ namespace Kratos
 
             // calculate B MATRICES
             CalculateB(B, actual_metric);
-            if(Id()==1)
-                KRATOS_WATCH(B)
-            CalculateVariationsRM(B, second_variations, w, Dw_D1, Dw_D2, w_i, Dw_i_Dalpha, w_bar,
+            CalculateVariations7p(B, second_variations, w, Dw_D1, Dw_D2, w_i, Dw_i_Dalpha, w_bar,
                 actual_metric, CalculateStiffnessMatrixFlag);
-            if(Id()==1)
-                KRATOS_WATCH(B)
+            
             double integration_weight = mGaussQuadratureThickness.integration_weight_thickness(Gauss_index) * 
                 GetValue(INTEGRATION_WEIGHT) * dV * thickness / 2.0;
 
@@ -153,14 +151,51 @@ namespace Kratos
                 // operation performed: rRightHandSideVector -= Weight*IntForce
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), constitutive_variables.S);
             }
-            if(Id()==4)
+            if(Id()==1){
                 KRATOS_WATCH(B)
-        }
+                KRATOS_WATCH(constitutive_variables.D)
+                KRATOS_WATCH(integration_weight)
+                KRATOS_WATCH(constitutive_variables.S)
+            }
+            
+            // MLout
+            if(Id()==1 && mcount==0 && mZeta < 0){
+                std::ofstream myfile;
+                myfile.open("B-7p.csv");
+                for(unsigned int i=0; i<6;i++){
+                    for(unsigned int j=0; j<mat_size;j++){
+                        myfile<<B(i,j)<<",";
+                    }
+                    myfile << "\n";
+                }
+                myfile.close();
+            }
+        } // GP,t loop
+        if(Id()==1 && rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+            KRATOS_WATCH(rCurrentProcessInfo.GetValue(NL_ITERATION_NUMBER))
 
-        // if (Id()==1){
-        //     KRATOS_WATCH(rLeftHandSideMatrix)
-        //     KRATOS_WATCH(rRightHandSideVector)
-        // }
+        if (Id()==1){
+            KRATOS_WATCH(rLeftHandSideMatrix)
+            KRATOS_WATCH(rRightHandSideVector)
+        }
+        
+        // output file LHS // MLout
+        if(Id()==1 && mcount == 0){
+            std::ofstream myfile1;
+            myfile1.open("LHS-7p.csv");
+            for (unsigned int i = 0; i<mat_size; i++){
+                unsigned int diri = i % 7;
+                for (unsigned int j=0; j<mat_size;j++){
+                    unsigned int dirj = j % 7;
+                    if(diri != 5 && diri!=6 && dirj!=5 && dirj!= 6)
+                        myfile1 << rLeftHandSideMatrix(i,j) << ",";
+                }
+                if(diri != 5 && diri!=6)
+                    myfile1 << "\n";
+            }
+            myfile1.close();
+            mcount++;
+        }
         // KRATOS_WATCH("end: CalculateAll")
         KRATOS_CATCH("");
     }
@@ -295,23 +330,23 @@ namespace Kratos
         array_1d<double, 3> e2 = g_con_2 / lg_con2;
         // e3 = a3_KL = g_con_3
 
-        // // transformation matrix Q from curvilinear to local cartesian coordinate system
-        // faster computation of transformation matrix Q taking into account that a lot of entries become zero (ML)
-        // this matrix Q is referring to a VoigtSize 6 with E11, E22, E33, E12, E23, E13
+        // // transformation matrix T_con_to_car from curvilinear to local cartesian coordinate system
+        // faster computation of transformation matrix T_con_to_car taking into account that a lot of entries become zero (ML)
+        // this matrix T_con_to_car is referring to a VoigtSize 6 with E11, E22, E33, E12, E23, E13
         double mG_00 = inner_prod(e1, g_con_1);
         double mG_10 = inner_prod(e2, g_con_1);
         double mG_11 = inner_prod(e2, g_con_2);
         
-        rMetric.Q(0, 0) = pow(mG_00, 2);
-        rMetric.Q(1, 0) = pow(mG_10, 2);
-        rMetric.Q(1, 1) = pow(mG_11, 2);
-        rMetric.Q(1, 3) = 2.00 * mG_10 * mG_11;
-        rMetric.Q(2, 2) = 1.00;
-        rMetric.Q(3, 0) = 2.00 * mG_00 * mG_10;
-        rMetric.Q(3, 3) = 2.00 * mG_00 * mG_11;
-        rMetric.Q(4, 4) = 2.00 * mG_11;
-        rMetric.Q(4, 5) = 2.00 * mG_10;
-        rMetric.Q(5, 5) = 2.00 * mG_00;
+        rMetric.T_con_to_car(0, 0) = pow(mG_00, 2);
+        rMetric.T_con_to_car(1, 0) = pow(mG_10, 2);
+        rMetric.T_con_to_car(1, 1) = pow(mG_11, 2);
+        rMetric.T_con_to_car(1, 3) = 2.00 * mG_10 * mG_11;
+        rMetric.T_con_to_car(2, 2) = 1.00;
+        rMetric.T_con_to_car(3, 0) = 2.00 * mG_00 * mG_10;
+        rMetric.T_con_to_car(3, 3) = 2.00 * mG_00 * mG_11;
+        rMetric.T_con_to_car(4, 4) = 2.00 * mG_11;
+        rMetric.T_con_to_car(4, 5) = 2.00 * mG_10;
+        rMetric.T_con_to_car(5, 5) = 2.00 * mG_00;
 
         // transformation matrix TransCartToCov from local Cartesian to covariant basis
         rMetric.TransCartToCov(0, 0) = pow(mG_00, 2);
@@ -354,7 +389,6 @@ namespace Kratos
         const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
         const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int pos = GetGeometry()[0].GetDofPosition(ROTATION_X);
         double w_1, w_2, w_3;
 
         for (unsigned int i = 0; i < number_of_nodes; ++i) 
@@ -362,9 +396,9 @@ namespace Kratos
             // only ROTATION_X and ROTATION_Y used preliminarily, to avoid new declarations
             // ROTATION_X = w_1 (first component of hierarchic shear difference vector)
             // ROTATION_Y = w_2 (second component of hierarchic shear difference vector) (ML)
-            w_1 = GetGeometry()[i].GetDof(ROTATION_X, pos).GetSolutionStepValue();
-            w_2 = GetGeometry()[i].GetDof(ROTATION_Y, pos + 1).GetSolutionStepValue();
-            w_3 = GetGeometry()[i].GetDof(ROTATION_Z, pos + 2).GetSolutionStepValue();
+            w_1 = GetGeometry()[i].GetDof(ROTATION_X).GetSolutionStepValue();
+            w_2 = GetGeometry()[i].GetDof(ROTATION_Y).GetSolutionStepValue();
+            w_3 = GetGeometry()[i].GetDof(ROTATION_Z).GetSolutionStepValue();
 
             rDw_i_Dalpha(0, 0) += DN_De(i, 0) * w_1;
             rDw_i_Dalpha(0, 1) += DN_De(i, 1) * w_1;
@@ -451,7 +485,12 @@ namespace Kratos
         CalculateStrain(strain_vector, rActualMetric.gab, rActualMetric.curvature);
         CalculateStrain7p(strain_vector_7p, rw, rDw_D1, rDw_D2, rw_bar, rActualMetric);
         rThisConstitutiveVariables.E = strain_vector + strain_vector_7p;
-
+        rThisConstitutiveVariables.E = prod(mInitialMetric.T_con_to_car, rThisConstitutiveVariables.E);
+        if(Id()==1){
+            KRATOS_WATCH(strain_vector)
+            KRATOS_WATCH(strain_vector_7p)
+            KRATOS_WATCH(rThisConstitutiveVariables.E)
+        }
         //Constitutive Matrix D
         rValues.SetStrainVector(rThisConstitutiveVariables.E); //this is the input parameter
         rValues.SetStressVector(rThisConstitutiveVariables.S);    //this is an ouput parameter
@@ -532,12 +571,12 @@ namespace Kratos
                 dE_curvilinear[1] = DN_De(kr, 1)*rMetric.a2(dirr);
                 dE_curvilinear[2] = 0.5*(DN_De(kr, 0)*rMetric.a2(dirr) + rMetric.a1(dirr)*DN_De(kr, 1));
             }
-            rB(0, r) += mInitialMetric.Q(0, 0) * dE_curvilinear[0] + mInitialMetric.Q(0, 1)*dE_curvilinear[1] 
-                + mInitialMetric.Q(0, 3)*dE_curvilinear[2] ;
-            rB(1, r) += mInitialMetric.Q(1, 0) * dE_curvilinear[0] + mInitialMetric.Q(1, 1) * dE_curvilinear[1] 
-                + mInitialMetric.Q(1, 3) * dE_curvilinear[2];
-            rB(3, r) += mInitialMetric.Q(3, 0)*dE_curvilinear[0] + mInitialMetric.Q(3, 1)*dE_curvilinear[1] 
-                + mInitialMetric.Q(3, 3)*dE_curvilinear[2];
+            rB(0, r) += mInitialMetric.T_con_to_car(0, 0) * dE_curvilinear[0] + mInitialMetric.T_con_to_car(0, 1)*dE_curvilinear[1] 
+                + mInitialMetric.T_con_to_car(0, 3)*dE_curvilinear[2] ;
+            rB(1, r) += mInitialMetric.T_con_to_car(1, 0) * dE_curvilinear[0] + mInitialMetric.T_con_to_car(1, 1) * dE_curvilinear[1] 
+                + mInitialMetric.T_con_to_car(1, 3) * dE_curvilinear[2];
+            rB(3, r) += mInitialMetric.T_con_to_car(3, 0)*dE_curvilinear[0] + mInitialMetric.T_con_to_car(3, 1)*dE_curvilinear[1] 
+                + mInitialMetric.T_con_to_car(3, 3)*dE_curvilinear[2];
 
             // all other entries of rB are (remain) zero
             
@@ -580,7 +619,7 @@ namespace Kratos
             }
 
             // b refers to curvilinear and rB to local cartesian coordinate system
-            // "index" guarantees that there are zero entries corresponding to the new parameters w_1 and w_2
+            // "index" guarantees that there are zero entries corresponding to the new parameters w_1, w_2, w_3 and w_bar
             for (unsigned int j = 0; j < 3; j++)
             {
                 for (unsigned int k = 0; k < 3; k++)
@@ -588,10 +627,10 @@ namespace Kratos
                     b(k, index_KL + j) = - mZeta * thickness / 2.0 * (DDN_DDe(i, k) * rMetric.a3_KL[j] + rMetric.H(0, k) * dn(j, 0) 
                     + rMetric.H(1, k) * dn(j, 1) + rMetric.H(2, k) * dn(j, 2));
                 }
-                rB(0, index + j) += mInitialMetric.Q(0, 0) * b(0, index_KL + j);
-                rB(1, index + j) += mInitialMetric.Q(1, 0) * b(0, index_KL + j) + mInitialMetric.Q(1, 1) * b(1, index_KL + j)
-                    + mInitialMetric.Q(1, 3) * b(2, index_KL + j);
-                rB(3, index + j) += mInitialMetric.Q(3, 0) * b(0, index_KL + j) + mInitialMetric.Q(3, 3) * b(2, index_KL + j);
+                rB(0, index + j) += mInitialMetric.T_con_to_car(0, 0) * b(0, index_KL + j);
+                rB(1, index + j) += mInitialMetric.T_con_to_car(1, 0) * b(0, index_KL + j) + mInitialMetric.T_con_to_car(1, 1) * b(1, index_KL + j)
+                    + mInitialMetric.T_con_to_car(1, 3) * b(2, index_KL + j);
+                rB(3, index + j) += mInitialMetric.T_con_to_car(3, 0) * b(0, index_KL + j) + mInitialMetric.T_con_to_car(3, 3) * b(2, index_KL + j);
             }
         }
     }
@@ -667,11 +706,11 @@ namespace Kratos
                         ddE_cu[1] = DN_De(kr, 1)*DN_De(ks, 1);
                         ddE_cu[2] = 0.5*(DN_De(kr, 0)*DN_De(ks, 1) + DN_De(kr, 1)*DN_De(ks, 0));
 
-                        // calculated with simplified Q (ML)
-                        second_variations_KL.B11(r, s) += mInitialMetric.Q(0, 0) * ddE_cu[0];
-                        second_variations_KL.B22(r, s) += mInitialMetric.Q(1, 0) * ddE_cu[0] + mInitialMetric.Q(1, 1) * ddE_cu[1]
-                            + mInitialMetric.Q(1, 2) * ddE_cu[2];
-                        second_variations_KL.B12(r, s) += mInitialMetric.Q(2, 0) * ddE_cu[0] + mInitialMetric.Q(2, 2) * ddE_cu[2];
+                        // calculated with simplified T_con_to_car (ML)
+                        second_variations_KL.B11(r, s) += mInitialMetric.T_con_to_car(0, 0) * ddE_cu[0];
+                        second_variations_KL.B22(r, s) += mInitialMetric.T_con_to_car(1, 0) * ddE_cu[0] + mInitialMetric.T_con_to_car(1, 1) * ddE_cu[1]
+                            + mInitialMetric.T_con_to_car(1, 2) * ddE_cu[2];
+                        second_variations_KL.B12(r, s) += mInitialMetric.T_con_to_car(2, 0) * ddE_cu[0] + mInitialMetric.T_con_to_car(2, 2) * ddE_cu[2];
                     }
 
                     // curvature
@@ -702,15 +741,15 @@ namespace Kratos
                     ddK_cu[2] = - mZeta * thickness / 2.0 * (DDN_DDe(kr, 2)*S_dn(dirr, s) + DDN_DDe(ks, 2)*S_dn(dirs, r)
                         + rMetric.H(0, 2)*ddn[0] + rMetric.H(1, 2)*ddn[1] + rMetric.H(2, 2)*ddn[2]);
 
-                    // calculated with simplified Q (ML)
-                    second_variations_KL.B11(r, s) += mInitialMetric.Q(0, 0) * ddK_cu[0];
-                    second_variations_KL.B22(r, s) += mInitialMetric.Q(1, 0) * ddK_cu[0] + mInitialMetric.Q(1, 1) * ddK_cu[1] 
-                        + mInitialMetric.Q(1, 2) * ddK_cu[2];
-                    second_variations_KL.B12(r, s) += mInitialMetric.Q(2, 0) * ddK_cu[0] + mInitialMetric.Q(2, 2) * ddK_cu[2];
+                    // calculated with simplified T_con_to_car (ML)
+                    second_variations_KL.B11(r, s) += mInitialMetric.T_con_to_car(0, 0) * ddK_cu[0];
+                    second_variations_KL.B22(r, s) += mInitialMetric.T_con_to_car(1, 0) * ddK_cu[0] + mInitialMetric.T_con_to_car(1, 1) * ddK_cu[1] 
+                        + mInitialMetric.T_con_to_car(1, 2) * ddK_cu[2];
+                    second_variations_KL.B12(r, s) += mInitialMetric.T_con_to_car(2, 0) * ddK_cu[0] + mInitialMetric.T_con_to_car(2, 2) * ddK_cu[2];
                     if (r != s){
-                        second_variations_KL.B11(s, r) += second_variations_KL.B11(r, s);
-                        second_variations_KL.B22(s, r) += second_variations_KL.B22(r, s);
-                        second_variations_KL.B12(s, r) += second_variations_KL.B12(r, s);
+                        second_variations_KL.B11(s, r) = second_variations_KL.B11(r, s);
+                        second_variations_KL.B22(s, r) = second_variations_KL.B22(r, s);
+                        second_variations_KL.B12(s, r) = second_variations_KL.B12(r, s);
                     }
                 }
             }
@@ -720,12 +759,12 @@ namespace Kratos
                 unsigned int kr = r / 7;
                 unsigned int dirr = r % 7;
                 unsigned int r_KL = kr * 3 + dirr;
-                if (dirr != 3 || dirr != 4 || dirr != 5 || dirr != 6){
+                if (dirr != 3 && dirr != 4 && dirr != 5 && dirr != 6){
                     for (unsigned int s = 0; s < mat_size; s++){
                         unsigned int ks = s / 7;
                         unsigned int dirs = s % 7;
                         unsigned int s_KL = ks * 3 + dirs;
-                        if (dirr != 3 || dirr != 4 || dirr != 5 || dirr != 6){
+                        if (dirr != 3 && dirr != 4 && dirr != 5 && dirr != 6){
                             rSecondVariations.B11(r, s) += second_variations_KL.B11(r_KL, s_KL);
                             rSecondVariations.B22(r, s) += second_variations_KL.B22(r_KL, s_KL);
                             rSecondVariations.B12(r, s) += second_variations_KL.B12(r_KL, s_KL);                
@@ -736,7 +775,7 @@ namespace Kratos
         }
     }
 
-    void IgaShell7pElement::CalculateVariationsRM(        
+    void IgaShell7pElement::CalculateVariations7p(        
         Matrix& rB,
         SecondVariations& rSecondVariations,
         const Vector& rw,
@@ -748,7 +787,7 @@ namespace Kratos
         const MetricVariables& rActualMetric,
         const bool& rCalculateStiffnessMatrixFlag)
     {
-        // KRATOS_WATCH("begin:CalculateVariationsRM")
+        // KRATOS_WATCH("begin:CalculateVariations7p")
         const Vector& N = GetValue(SHAPE_FUNCTION_VALUES);
         const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         const Matrix& DDN_DDe = GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
@@ -887,10 +926,6 @@ namespace Kratos
         da3_KL_dT1 = ZeroVector(3);
         da3_KL_dT2 = ZeroVector(3);
         w = ZeroVector(3);
-        da1norm_dT1 = ZeroVector(3);
-        da1norm_dT2 = ZeroVector(3);
-        da2norm_dT1 = ZeroVector(3);
-        da2norm_dT2 = ZeroVector(3);
 
         /* Einfuehrung eines global kartesischen Koordinatensystems*/
         e1 = ZeroVector(3);
@@ -919,24 +954,17 @@ namespace Kratos
         for (m = 0; m < 3; m++)
             a3_KL[m] = a1xa2[m] / hact;     // FML: bei Oesterle multipliziert mit t/2
 
-
-        /*  Normierte Basisvektoren in aktueller Konfiguration */
-        double              a1n = sqrt(a1[0]*a1[0] + a1[1]*a1[1] + a1[2]*a1[2]);
-        double              a2n = sqrt(a2[0]*a2[0] + a2[1]*a2[1] + a2[2]*a2[2]);
-        array_1d<double, 3> a1norm = (1.0/a1n)*a1;
-        array_1d<double, 3> a2norm = (1.0/a2n)*a2;
         double w1,w2,w3;
         w1=0.0;
         w2=0.0;
         w3=0.0;
         /* aktuelle Komponenten vom Schubdifferenzvektor w */
-        const unsigned int pos = GetGeometry()[0].GetDofPosition(ROTATION_X);
         for (k = 0; k < num_node; k++)
         {
-            w1   += funct[k] * GetGeometry()[k].GetDof(ROTATION_X, pos).GetSolutionStepValue();
-            w2   += funct[k] * GetGeometry()[k].GetDof(ROTATION_Y, pos + 1).GetSolutionStepValue();
-            w3   += funct[k] * GetGeometry()[k].GetDof(ROTATION_Z, pos + 2).GetSolutionStepValue();
-            wbar += funct[k] * GetGeometry()[k].GetDof(W_BAR, pos + 3).GetSolutionStepValue();
+            w1   += funct[k] * GetGeometry()[k].GetDof(ROTATION_X).GetSolutionStepValue();
+            w2   += funct[k] * GetGeometry()[k].GetDof(ROTATION_Y).GetSolutionStepValue();
+            w3   += funct[k] * GetGeometry()[k].GetDof(ROTATION_Z).GetSolutionStepValue();
+            wbar += funct[k] * GetGeometry()[k].GetDof(W_BAR).GetSolutionStepValue();
         }  
         w = w1*e1 + w2*e2 + w3*e3;
 
@@ -986,12 +1014,12 @@ namespace Kratos
 
         for (k = 0; k < num_node; k++)
         {
-            dw1dT1 += deriv(k, 0) * GetGeometry()[k].GetDof(ROTATION_X, pos).GetSolutionStepValue();
-            dw2dT1 += deriv(k, 0) * GetGeometry()[k].GetDof(ROTATION_Y, pos + 1).GetSolutionStepValue();
-            dw3dT1 += deriv(k, 0) * GetGeometry()[k].GetDof(ROTATION_Z, pos + 2).GetSolutionStepValue();
-            dw1dT2 += deriv(k, 1) * GetGeometry()[k].GetDof(ROTATION_X, pos).GetSolutionStepValue();
-            dw2dT2 += deriv(k, 1) * GetGeometry()[k].GetDof(ROTATION_Y, pos + 1).GetSolutionStepValue();
-            dw3dT2 += deriv(k, 1) * GetGeometry()[k].GetDof(ROTATION_Z, pos + 2).GetSolutionStepValue();
+            dw1dT1 += deriv(k, 0) * GetGeometry()[k].GetDof(ROTATION_X).GetSolutionStepValue();
+            dw2dT1 += deriv(k, 0) * GetGeometry()[k].GetDof(ROTATION_Y).GetSolutionStepValue();
+            dw3dT1 += deriv(k, 0) * GetGeometry()[k].GetDof(ROTATION_Z).GetSolutionStepValue();
+            dw1dT2 += deriv(k, 1) * GetGeometry()[k].GetDof(ROTATION_X).GetSolutionStepValue();
+            dw2dT2 += deriv(k, 1) * GetGeometry()[k].GetDof(ROTATION_Y).GetSolutionStepValue();
+            dw3dT2 += deriv(k, 1) * GetGeometry()[k].GetDof(ROTATION_Z).GetSolutionStepValue();
         }
 
         array_1d<double, 3>  dw_dT1 = dw1dT1*e1 + dw2dT1*e2 + dw3dT1*e3;
@@ -1396,12 +1424,12 @@ namespace Kratos
             dE_cur_help[2] = inner_prod(w, dw_dr) + inner_prod(a3_KL, dw_dr) + inner_prod(da3_KL_dr, w) + 4.0*mZeta * thickness / 2.0*wbar*(inner_prod(a3_KL, dw_dr) + inner_prod(da3_KL_dr, a3_KL) + inner_prod(w, da3_KL_dr) + inner_prod(w, dw_dr)) + 2.0*mZeta * thickness / 2.0*dwbar_dr*(inner_prod(a3_KL, a3_KL) + 2.0*inner_prod(w, a3_KL) + inner_prod(w, w)); // FML: bei Oesterle zusätzliche t/2
 
             // Commented terms multiplied with 'w' are moved to the other loop where the 'dda3_KL_dT1dr' and 'dda3_KL_dT2dr' are computed above.
-            rB(0, count1) += mInitialMetric.Q(0, 0) * dE_cur_help[0];
-            rB(1, count1) += mInitialMetric.Q(1, 0) * dE_cur_help[0] + mInitialMetric.Q(1, 1) * dE_cur_help[1] + mInitialMetric.Q(1, 3) * dE_cur_help[3];
+            rB(0, count1) += mInitialMetric.T_con_to_car(0, 0) * dE_cur_help[0];
+            rB(1, count1) += mInitialMetric.T_con_to_car(1, 0) * dE_cur_help[0] + mInitialMetric.T_con_to_car(1, 1) * dE_cur_help[1] + mInitialMetric.T_con_to_car(1, 3) * dE_cur_help[3];
             rB(2, count1) += dE_cur_help[2];
-            rB(3, count1) += mInitialMetric.Q(3, 0) * dE_cur_help[0] + mInitialMetric.Q(3, 3) * dE_cur_help[3];
-            rB(4, count1) += mInitialMetric.Q(4, 4) * dE_cur_help[4] + mInitialMetric.Q(4, 5) * dE_cur_help[5];
-            rB(5, count1) += mInitialMetric.Q(5, 5) * dE_cur_help[5];
+            rB(3, count1) += mInitialMetric.T_con_to_car(3, 0) * dE_cur_help[0] + mInitialMetric.T_con_to_car(3, 3) * dE_cur_help[3];
+            rB(4, count1) += mInitialMetric.T_con_to_car(4, 4) * dE_cur_help[4] + mInitialMetric.T_con_to_car(4, 5) * dE_cur_help[5];
+            rB(5, count1) += mInitialMetric.T_con_to_car(5, 5) * dE_cur_help[5];
 
 
             count1 ++;
@@ -1456,10 +1484,10 @@ namespace Kratos
                 dE_cur[2] += 0.5 * (Dw_Dr[0] * rActualMetric.a1(0) + Dw_Dr[1] * rActualMetric.a1(1) + Dw_Dr[2] * rActualMetric.a1(2));
             }
 
-            // calculated with the simplified Q (ML)
+            // calculated with the simplified T_con_to_car (ML)
             // rB(2, r) += dE_cur[0];
-            // rB(4, r) += mInitialMetric.Q(4, 4) * dE_cur[1] + mInitialMetric.Q(4, 5) * dE_cur[2];
-            // rB(5, r) += mInitialMetric.Q(5, 5) * dE_cur[2];
+            // rB(4, r) += mInitialMetric.T_con_to_car(4, 4) * dE_cur[1] + mInitialMetric.T_con_to_car(4, 5) * dE_cur[2];
+            // rB(5, r) += mInitialMetric.T_con_to_car(5, 5) * dE_cur[2];
             // the other entries are (remain) zero
         
             // 2. First curvature variation
@@ -1521,13 +1549,13 @@ namespace Kratos
                 dK_cu[5] = 0.5 * (inner_prod(rDw_D1, Da3_KL_Dr) + inner_prod(rw, DDa3_KL_DD1r)) + rw_bar * DN_De(kr, 0) * rw[dirr];
             }
             if (dirr == 3 || dirr == 4 || dirr == 5){
-                DDw_DD1r[dirr] = DN_De(kr, 0);
-                DDw_DD2r[dirr] = DN_De(kr, 0);
-                dK_cu[2] = 4.0 * rw_bar * (N[kr] * (rActualMetric.a3_KL[dirr] + rw[dirr]));
-                dK_cu[4] = 0.5 * (DN_De(kr, 1) * (rActualMetric.a3_KL[dirr] + rw[dirr]) 
-                    + N[kr] * (rActualMetric.Da3_KL_D2[dirr] + rDw_D2[dirr])) + rw_bar * N[kr] * rActualMetric.a2[dirr];
-                dK_cu[5] = 0.5 * (DN_De(kr, 0) * (rActualMetric.a3_KL[dirr] + rw[dirr]) 
-                    + N[kr] * (rActualMetric.Da3_KL_D1[dirr] + rDw_D1[dirr])) + rw_bar * N[kr] * rActualMetric.a1[dirr];
+                DDw_DD1r[dirr - 3] = DN_De(kr, 0);
+                DDw_DD2r[dirr - 3] = DN_De(kr, 0);
+                dK_cu[2] = 4.0 * rw_bar * (N[kr] * (rActualMetric.a3_KL[dirr - 3] + rw[dirr - 3]));
+                dK_cu[4] = 0.5 * (DN_De(kr, 1) * (rActualMetric.a3_KL[dirr - 3] + rw[dirr - 3]) 
+                    + N[kr] * (rActualMetric.Da3_KL_D2[dirr - 3] + rDw_D2[dirr - 3])) + rw_bar * N[kr] * rActualMetric.a2[dirr - 3];
+                dK_cu[5] = 0.5 * (DN_De(kr, 0) * (rActualMetric.a3_KL[dirr - 3] + rw[dirr - 3]) 
+                    + N[kr] * (rActualMetric.Da3_KL_D1[dirr - 3] + rDw_D1[dirr - 3])) + rw_bar * N[kr] * rActualMetric.a1[dirr - 3];
             }
             else if (dirr == 6){
                     dK_cu[2] = 2.0 * N[kr] * (inner_prod(rActualMetric.a3_KL, rActualMetric.a3_KL) 
@@ -1539,14 +1567,14 @@ namespace Kratos
             dK_cu[1] += inner_prod(DDw_DD2r, rActualMetric.a2);
             dK_cu[3] += 0.5 * (inner_prod(DDw_DD1r, rActualMetric.a2) + inner_prod(DDw_DD2r, rActualMetric.a1));
 
-            // calculated with simplified Q (ML)
-            // rB(0, r) += mZeta * thickness / 2.0 * mInitialMetric.Q(0, 0) * dK_cu[0];
-            // rB(1, r) += mZeta * thickness / 2.0 * (mInitialMetric.Q(1, 0) * dK_cu[0] + mInitialMetric.Q(1, 1) * dK_cu[1] 
-            //     + mInitialMetric.Q(1, 3) * dK_cu[3]);
+            // calculated with simplified T_con_to_car (ML)
+            // rB(0, r) += mZeta * thickness / 2.0 * mInitialMetric.T_con_to_car(0, 0) * dK_cu[0];
+            // rB(1, r) += mZeta * thickness / 2.0 * (mInitialMetric.T_con_to_car(1, 0) * dK_cu[0] + mInitialMetric.T_con_to_car(1, 1) * dK_cu[1] 
+            //     + mInitialMetric.T_con_to_car(1, 3) * dK_cu[3]);
             // rB(2, r) += mZeta * thickness / 2.0 * dK_cu[2];
-            // rB(3, r) += mZeta * thickness / 2.0 * (mInitialMetric.Q(3, 0) * dK_cu[0] + mInitialMetric.Q(3, 3) * dK_cu[3]);
-            // rB(4, r) += mZeta * thickness / 2.0 * (mInitialMetric.Q(4, 4) * dK_cu[4] + mInitialMetric.Q(4, 5) * dK_cu[5]);
-            // rB(5, r) += mZeta * thickness / 2.0 * (mInitialMetric.Q(5, 5) * dK_cu[5]);
+            // rB(3, r) += mZeta * thickness / 2.0 * (mInitialMetric.T_con_to_car(3, 0) * dK_cu[0] + mInitialMetric.T_con_to_car(3, 3) * dK_cu[3]);
+            // rB(4, r) += mZeta * thickness / 2.0 * (mInitialMetric.T_con_to_car(4, 4) * dK_cu[4] + mInitialMetric.T_con_to_car(4, 5) * dK_cu[5]);
+            // rB(5, r) += mZeta * thickness / 2.0 * (mInitialMetric.T_con_to_car(5, 5) * dK_cu[5]);
 
             // 3. Second Strain Variation
             if (rCalculateStiffnessMatrixFlag == true){
@@ -1601,7 +1629,7 @@ namespace Kratos
                             ddE_cu[0] += DdA_Ds * N[kr];
                     }
                     if (dirs == 3 || dirs == 4 || dirs == 5)
-                        Dw_Ds[dirs] = N(ks);
+                        Dw_Ds[dirs - 3] = N(ks);
                     if (dirr == 0 || dirr == 1 || dirr == 2){
                         DdA_Dr = inner_prod(rActualMetric.a3_tilde, Da3_tilde_Dr) / rActualMetric.dA;
                         DDa3_KL_DDrs += -DdA_Dr * Da3_tilde_Ds / (rActualMetric.dA * rActualMetric.dA);
@@ -1620,10 +1648,10 @@ namespace Kratos
                         ddE_cu[0] += N[kr] * N[ks];
                     ddE_cu[0] += inner_prod(DDa3_KL_DDrs, rw);
 
-                    // calculated with simplified Q (ML)
+                    // calculated with simplified T_con_to_car (ML)
                     rSecondVariations.B33(r, s) += ddE_cu[0];
-                    rSecondVariations.B23(r, s) += mInitialMetric.Q(4, 4) * ddE_cu[1] + mInitialMetric.Q(4, 5) * ddE_cu[2];
-                    rSecondVariations.B13(r, s) += mInitialMetric.Q(5, 5) * ddE_cu[2];
+                    rSecondVariations.B23(r, s) += mInitialMetric.T_con_to_car(4, 4) * ddE_cu[1] + mInitialMetric.T_con_to_car(4, 5) * ddE_cu[2];
+                    rSecondVariations.B13(r, s) += mInitialMetric.T_con_to_car(5, 5) * ddE_cu[2];
                     if (r != s){
                         rSecondVariations.B33(s, r) += rSecondVariations.B33(r, s);
                         rSecondVariations.B23(s, r) += rSecondVariations.B23(r, s);
@@ -1698,8 +1726,8 @@ namespace Kratos
                             inner_prod(rActualMetric.a3_tilde, Da3_tilde_Ds) / pow(rActualMetric.dA, 5);
                     }
                     else if (dirs == 3 || dirs == 4 || dirs == 5){
-                        DDw_DD1s[dirs] += DN_De(ks, 0);
-                        DDw_DD2s[dirs] += DN_De(ks, 0);
+                        DDw_DD1s[dirs - 3] += DN_De(ks, 0);
+                        DDw_DD2s[dirs - 3] += DN_De(ks, 0);
                     }
                     else if (dirs == 6){
                         Dwbar_Ds = N(ks);
@@ -1826,29 +1854,28 @@ namespace Kratos
                         Dwbar_Ds * (inner_prod(Da1_Dr, rw) + inner_prod(rActualMetric.a1, Dw_Dr)) +
                         rw_bar * (inner_prod(Da1_Dr, Dw_Ds) + inner_prod(Da1_Ds, Dw_Dr));
 
-                    // calculated with simplified Q (ML)
-                    rSecondVariations.B11(r, s) += mZeta * thickness /2.0 * mInitialMetric.Q(0, 0) * ddK_cu[0];
-                    rSecondVariations.B22(r, s) += mZeta * thickness /2.0 * (mInitialMetric.Q(1, 0) * ddK_cu[0] + 
-                        mInitialMetric.Q(1, 1) * ddK_cu[1] + mInitialMetric.Q(1, 3) * ddK_cu[3]);
+                    // calculated with simplified T_con_to_car (ML)
+                    rSecondVariations.B11(r, s) += mZeta * thickness /2.0 * mInitialMetric.T_con_to_car(0, 0) * ddK_cu[0];
+                    rSecondVariations.B22(r, s) += mZeta * thickness /2.0 * (mInitialMetric.T_con_to_car(1, 0) * ddK_cu[0] + 
+                        mInitialMetric.T_con_to_car(1, 1) * ddK_cu[1] + mInitialMetric.T_con_to_car(1, 3) * ddK_cu[3]);
                     rSecondVariations.B33(r, s) += ddK_cu[2];
-                    rSecondVariations.B12(r, s) += mZeta * thickness /2.0 * (mInitialMetric.Q(3, 0) * ddK_cu[0] + 
-                        mInitialMetric.Q(3, 3) * ddK_cu[3]);
-                    rSecondVariations.B23(r, s) += mZeta * thickness / 2.0 * (mInitialMetric.Q(4, 4) * ddK_cu[4] +
-                        mInitialMetric.Q(4, 5) * ddK_cu[5]);
-                    rSecondVariations.B13(r, s) += mZeta * thickness / 2.0 * mInitialMetric.Q(5, 5) * ddK_cu[5];
+                    rSecondVariations.B12(r, s) += mZeta * thickness /2.0 * (mInitialMetric.T_con_to_car(3, 0) * ddK_cu[0] + 
+                        mInitialMetric.T_con_to_car(3, 3) * ddK_cu[3]);
+                    rSecondVariations.B23(r, s) += mZeta * thickness / 2.0 * (mInitialMetric.T_con_to_car(4, 4) * ddK_cu[4] +
+                        mInitialMetric.T_con_to_car(4, 5) * ddK_cu[5]);
+                    rSecondVariations.B13(r, s) += mZeta * thickness / 2.0 * mInitialMetric.T_con_to_car(5, 5) * ddK_cu[5];
                     if (r != s){
-                        rSecondVariations.B11(s, r) += rSecondVariations.B11(r, s);
-                        rSecondVariations.B22(s, r) += rSecondVariations.B22(r, s);
-                        rSecondVariations.B33(s, r) += rSecondVariations.B33(r, s);
-                        rSecondVariations.B12(s, r) += rSecondVariations.B12(r, s);
-                        rSecondVariations.B23(s, r) += rSecondVariations.B23(r, s);
-                        rSecondVariations.B13(s, r) += rSecondVariations.B13(r, s);
+                        rSecondVariations.B11(s, r) = rSecondVariations.B11(r, s);
+                        rSecondVariations.B22(s, r) = rSecondVariations.B22(r, s);
+                        rSecondVariations.B33(s, r) = rSecondVariations.B33(r, s);
+                        rSecondVariations.B12(s, r) = rSecondVariations.B12(r, s);
+                        rSecondVariations.B23(s, r) = rSecondVariations.B23(r, s);
+                        rSecondVariations.B13(s, r) = rSecondVariations.B13(r, s);
                     }
                     // all other entries are (remain) zero
                 }   // 2nd for-loop s
             }   // if second variations
         }   //1st for-loop r
-        // KRATOS_WATCH("end:CalulateVariationsRM")
     }
 
     void IgaShell7pElement::CalculateDifferentialVolume(
@@ -2017,17 +2044,6 @@ namespace Kratos
         //     }
     }
 
-    array_1d<double, 3> IgaShell7pElement::CrossProduct(
-        const array_1d<double, 3>& rVector1,
-        const array_1d<double, 3>& rVector2)
-    {
-        array_1d<double, 3> result;
-        result[0] = rVector1[1] * rVector2[2] - rVector1[2] * rVector2[1];
-        result[1] = rVector1[2] * rVector2[0] - rVector1[0] * rVector1[2];
-        result[2] = rVector1[0] * rVector2[1] - rVector1[1] * rVector2[0];
-        return result;
-    }
-
     void IgaShell7pElement::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
@@ -2041,20 +2057,18 @@ namespace Kratos
         if (rResult.size() != 7 * number_of_nodes)
             rResult.resize(7 * number_of_nodes, false);
 
-        const unsigned int pos = GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-
         for (unsigned int i = 0; i < number_of_nodes; ++i) {
             const unsigned int index = i * 7;
-            rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos).EquationId();
-            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
-            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
+            rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
             // only ROTATION_X and ROTATION_Y used preliminarily, to avoid new declarations
             // ROTATION_X = w_1 (first component of hierarchic shear difference vector)
             // ROTATION_Y = w_2 (second component of hierarchic shear difference vector) (ML)
-            rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X, pos + 3).EquationId();
-            rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y, pos + 4).EquationId();
-            rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z, pos + 5).EquationId();
-            rResult[index + 6] = GetGeometry()[i].GetDof(W_BAR, pos + 6).EquationId();
+            rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
+            rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
+            rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
+            rResult[index + 6] = GetGeometry()[i].GetDof(W_BAR).EquationId();
         }
 
         KRATOS_CATCH("")
