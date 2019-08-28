@@ -16,6 +16,7 @@ import os
 
 # Check other applications dependency
 hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
+meshing_is_available = kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
 
 class WorkFolderScope:
     def __init__(self, work_folder):
@@ -73,6 +74,8 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
     def test_EmbeddedCircleNoWake(self):
+        if not meshing_is_available:
+            self.skipTest("Missing required application: MeshingApplication")
         settings_file_name = "embedded_circle_no_wake_parameters.json"
         work_folder = "embedded_test"
 
