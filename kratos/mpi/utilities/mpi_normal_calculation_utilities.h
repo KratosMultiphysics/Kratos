@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main author:     Jordi Cotela
+//
+
 #ifndef KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
 #define KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
 
@@ -8,7 +20,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "processes/process.h"
 
 
 namespace Kratos
@@ -36,7 +47,7 @@ namespace Kratos
 ///@{
 
 /// Some tools to calculate face and nodal normals on an MPI partitioned environment
-class KRATOS_API(TRILINOS_APPLICATION) MPINormalCalculationUtils : public Process
+class KRATOS_API(KRATOS_MPI_CORE) MPINormalCalculationUtils
 {
 public:
     ///@name Type Definitions
@@ -90,13 +101,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    std::string Info() const;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override;
+    void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -172,18 +183,15 @@ private:
     void InitializeNormalData(ModelPart& rModelPart,
                               const Variable<double>& rVariable,
                               int MaxNeigh,
-                              double* pNormals,
-                              int* pActiveNeigh,
+                              std::vector<double>& rNormals,
+                              std::vector<int>& pActiveNeigh,
                               const int NumNodes);
-
-    void FreeNormalData(double* pNormals,
-                        int* pActiveNeigh);
 
     void DetectEdges(ModelPart& rModelPart,
                      unsigned int Dimension,
                      double MaxAngle,
-                     const double *pNormals,
-                     const int *pActiveNeigh,
+                     const std::vector<double>& rNormals,
+                     const std::vector<int>& rActiveNeigh,
                      const int NumNodes,
                      const int MaxNeighs);
 

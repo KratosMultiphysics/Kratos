@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosConvectionDiffusionApplication import *
 application = KratosConvectionDiffusionApplication()
 application_name = "KratosConvectionDiffusionApplication"
-application_folder = "convection_diffusion_application"
+application_folder = "ConvectionDiffusionApplication"
 
 # The following lines are common for all applications
 from .. import application_importer
