@@ -8,6 +8,8 @@ import time as timer
 # Import system python
 import os
 
+from importlib import import_module
+
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
@@ -74,14 +76,16 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
     def _CreateSolver(self):
-
-        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
-        return solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        python_module_name = "KratosMultiphysics.PfemFluidDynamicsApplication"
+        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
+        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        return solver
 
     def AddNodalVariablesToModelPart(self):
 
         # Add PfemSolidMechanicsApplication Variables
-        import pfem_variables
+        from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_variables
         pfem_variables.AddVariables(self.main_model_part)
 
 
@@ -293,7 +297,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
     def SetGraphicalOutput(self):
         if( self.project_parameters.Has("output_configuration") ):
-            from pfem_fluid_gid_output_process import GiDOutputProcess
+            from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_gid_output_process import GiDOutputProcess
             self.output_settings = self.project_parameters["output_configuration"]
             self.post_process_model_part = self.model.CreateModelPart("output_model_part")
             #KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
