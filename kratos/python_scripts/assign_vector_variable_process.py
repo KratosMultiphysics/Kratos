@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics import assign_scalar_variable_process
 
 from math import *
 
@@ -66,7 +67,6 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
 
         self.aux_processes = []
 
-        import assign_scalar_variable_process
 
         # Loop over components X, Y and Z
         for indice,variable in enumerate(["_X", "_Y", "_Z"]):
