@@ -20,7 +20,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "processes/process.h"
 
 
 namespace Kratos
@@ -48,7 +47,7 @@ namespace Kratos
 ///@{
 
 /// Some tools to calculate face and nodal normals on an MPI partitioned environment
-class KRATOS_API(TRILINOS_APPLICATION) MPINormalCalculationUtils : public Process
+class KRATOS_API(KRATOS_MPI_CORE) MPINormalCalculationUtils
 {
 public:
     ///@name Type Definitions
@@ -102,13 +101,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    std::string Info() const;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override;
+    void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
