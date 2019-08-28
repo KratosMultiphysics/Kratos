@@ -228,6 +228,10 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         self._GetSolver().FinalizeSolutionStep()
 
+        self.time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.delta_time=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.step=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+
         self.GraphicalOutputExecuteFinalizeSolutionStep()
 
         # processes to be executed at the end of the solution step
