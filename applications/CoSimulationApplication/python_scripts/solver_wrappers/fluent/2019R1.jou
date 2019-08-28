@@ -18,7 +18,7 @@ define user-defined compiled-functions load "2019R1"
 
 ;   GET_THREAD_IDS IN UDF AND JOURNAL
 (define face_threads (list|face_threads|))
-def udef exe "get_thread_ids::2019R1"
+define user-defined execute-on-demand "get_thread_ids::2019R1"
 
 ;   CREATE DYNAMIC MESH ZONES
 (do ((k 0 (+ k 1))) ((>= k (length face_threads)))
@@ -26,9 +26,11 @@ def udef exe "get_thread_ids::2019R1"
         user-defined \"move_nodes::2019R1\"" (list-ref face_threads k)))
 )
 
+;   STORE NODES AND FACES
+define user-defined execute-on-demand "store_nodes::2019R1"
 
-
+(display "I GOT PAST THE UDF store_nodes")
 
 ;   SAVE CASE
-;file write-case "case_out.cas"
-;exit y
+file write-case "case_out.cas"
+exit y
