@@ -1,11 +1,15 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+import MainDEM_for_coupling as DEM
+import MainFEM_for_coupling as FEM
 import FEMDEMParticleCreatorDestructor as PCD
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import CouplingFemDem
 import math
+import os
 import KratosMultiphysics.MeshingApplication as MeshingApplication
+import KratosMultiphysics.SolidMechanicsApplication as Solid
 
 def Wait():
     input("Press Something")
@@ -212,6 +216,25 @@ class MainCoupledFemDem_Solution:
         # Print required info
         self.PrintPlotsFiles()
 
+#============================================================================================================================
+    def FinalizeSolutionStep(self):
+        # MODIFIED FOR THE REMESHING
+        self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
+
+        # processes to be executed at the end of the solution step
+        self.FEM_Solution.model_processes.ExecuteFinalizeSolutionStep()
+
+        # processes to be executed before witting the output
+        self.FEM_Solution.model_processes.ExecuteBeforeOutputStep()
+
+        # write output results GiD: (frequency writing is controlled internally)
+        self.FEM_Solution.GraphicalOutputPrintOutput()
+
+        # processes to be executed after writting the output
+        self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
+
+        if self.DoRemeshing:
+             self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
 
 #============================================================================================================================
     def InitializeIntegrationPointsVariables(self):
@@ -272,9 +295,9 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(Solid.FORCE_LOAD, [0.0,0.0,0.0])
 
 #===================================================================================================================================
-	def FindNeighboursIfNecessary(self):
-		if self.echo_level > 0:
-			self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNeighboursIfNecessary")
+    def FindNeighboursIfNecessary(self):
+        if self.echo_level > 0:
+            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNeighboursIfNecessary")
 
         if self.domain_size == 3:
             if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]: # The neighbours have changed
@@ -496,7 +519,7 @@ class MainCoupledFemDem_Solution:
         PostListFile.write(self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.res\n")
         PostListFile.write(self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.msh\n")
         PostListFile.write(os.path.join(self.FEM_Solution.problem_name + "_Post_Files", self.FEM_Solution.problem_name + "_" + str(time_label) + ".post.bin"))
-        PostListFile.cl
+        PostListFile.close()
 
 #============================================================================================================================
     def InitializePlotsFiles(self):
@@ -505,7 +528,7 @@ class MainCoupledFemDem_Solution:
         self.PlotFile.write("This File Plots the SUM of the displacement and reactions of the nodes selected in the lists!\n\n")
         self.PlotFile.write("       time           displ_x        displ_y      Reaction_x     Reaction_y    \n")
         self.PlotFile.close()
-        self.time_previous_plotting = 0.0
+        self.TimePreviousPlotting = 0.0
         self.plot_files_nodes_list    = []
         self.plot_files_elements_list = []
         self.plot_files_nodes_id_list    = []
@@ -519,7 +542,7 @@ class MainCoupledFemDem_Solution:
                 Id = self.FEM_Solution.ProjectParameters["watch_nodes_list"][node].GetInt()
                 i_plot_file_node = open("PlotNode_" + str(Id) + ".txt","w")
                 i_plot_file_node.write("\n")
-                if self.domain_size == 2
+                if self.domain_size == 2:
                     i_plot_file_node.write("       time          displ_x        displ_y         vel_x           vel_y         acc_x          acc_y        Reaction_x     Reaction_y    \n")
                 else:
                     i_plot_file_node.write("       time          displ_x        displ_y        displ_z         vel_x           vel_y         vel_z           acc_x          acc_y          acc_z       Reaction_x     Reaction_y     Reaction_Z    \n")
@@ -693,7 +716,7 @@ class MainCoupledFemDem_Solution:
             self.TimePreviousPlotting = time
 
 #===================================================================================================================================
-	def CountErasedVolume(self):
+    def CountErasedVolume(self):
         count_erased_vol = True
         if count_erased_vol:
             erased_vol_process = KratosFemDem.ComputeSandProduction(self.FEM_Solution.main_model_part)
@@ -703,3 +726,24 @@ class MainCoupledFemDem_Solution:
             erased_vol = self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME]
             self.ErasedVolume.write("    " + "{0:.4e}".format(self.FEM_Solution.time).rjust(11) + "    " + "{0:.4e}".format(erased_vol).rjust(11) + "\n")
             self.ErasedVolume.close()
+
+#============================================================================================================================
+    def GetMaximumConditionId(self):
+        max_id = 0
+        for condition in self.FEM_Solution.main_model_part.Conditions:
+            if condition.Id > max_id:
+                max_id = condition.Id
+        return max_id
+
+#============================================================================================================================
+    def PrintDEMResults(self):
+        if self.DEM_Solution.step == 1: # always print the 1st step
+            self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
+            self.DEM_Solution.time_old_print = self.DEM_Solution.time
+
+        else:
+            time_to_print = self.DEM_Solution.time - self.DEM_Solution.time_old_print
+
+            if (self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.solver.dt):
+                self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
+                self.DEM_Solution.time_old_print = self.DEM_Solution.time
