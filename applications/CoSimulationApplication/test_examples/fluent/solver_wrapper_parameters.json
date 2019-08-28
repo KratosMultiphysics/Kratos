@@ -7,7 +7,7 @@
             "type": "solver_wrappers.fluent.2019R1",
             "settings": {
                 "working_directory" : "CFD",
-                "face_threads": ["wall_top", "wall_bottom"],
+                "face_threads": ["wall_top"],
                 "interface_input": {
                     "wall_top": "ZCOORD"
                 },
@@ -15,8 +15,9 @@
                     "wall_top": "PRESSURE"
                 },
                 "case_file" : "case.cas",
-                "cores" : 4,
-                "fluent_gui" : true
+                "cores" : 1,
+                "fluent_gui" : false,
+                "max_nodes_per_face" : 2
             }
         }
     ]

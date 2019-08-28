@@ -27,7 +27,7 @@ define user-defined execute-on-demand "get_thread_ids::2019R1"
 )
 
 ;   STORE NODES AND FACES
-define user-defined execute-on-demand "store_nodes::2019R1"
+;define user-defined execute-on-demand "store_nodes::2019R1"
 define user-defined execute-on-demand "store_faces::2019R1"
 
 (display "I GOT PAST THE UDF store_faces")

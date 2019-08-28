@@ -23,6 +23,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         cores = self.settings['cores'].GetInt()
         case_file = self.settings['case_file'].GetString()
         face_threads = self.settings['face_threads'].parameters  # ***
+        max_nodes_per_face = self.settings['max_nodes_per_face'].GetInt()
 
         journal = '2019R1.jou'
         udf = '2019R1.c'
@@ -44,6 +45,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         with open(os.path.join(path_src, udf), 'r') as infile:
             with open(os.path.join(self.dir_cfd, udf), 'w') as outfile:
                 for line in infile:
+                    line = line.replace('|max_nodes_per_face|', str(max_nodes_per_face))
                     outfile.write(line)
 
         # *** Parameters file should be updated! can't extract boolean (nor list)

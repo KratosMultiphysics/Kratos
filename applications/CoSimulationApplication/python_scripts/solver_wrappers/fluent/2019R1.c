@@ -58,9 +58,9 @@ for (_d = 0; _d < dim; _d++) {                                      \
 }
 
 
-#define pi 3.1415926535
-#define e 2.7182818284
-
+/*#define pi 3.1415926535
+#define e 2.7182818284*/
+#define mnpf |max_nodes_per_face|
 
 /* Make UDF compatible with 2D and 3D cases, use ND_ND etc */
 
@@ -78,6 +78,9 @@ DECLARE_MEMORY(thread_ids, int);
   /*----------------*/
  /* get_thread_ids */
 /*----------------*/
+
+/*** IDEA: already calculate n_nodes and n_faces in this UDF?? */
+/*** or wait, n_nodes and n_faces depend on partitioning, so dangerous to make these global??*/
 
 DEFINE_ON_DEMAND(get_thread_ids) {
     /* read in thread thread ids, should be called early on; */
@@ -106,6 +109,7 @@ DEFINE_ON_DEMAND(get_thread_ids) {
 #if !RP_HOST
     ASSIGN_MEMORY(n_nodes, n_threads, int);
     ASSIGN_MEMORY(n_faces, n_threads, int);
+    /*** IDEA: already search for their values in this UDF?? */
 #endif /* !RP_HOST */
 
     /* test UDF
@@ -291,8 +295,9 @@ DEFINE_ON_DEMAND(store_faces) {
     /*** define a unique ID for face, probably based on node unique ids */
 
     int thread, n_tmp, i, d;
-    DECLARE_MEMORY(face_ids, int);
+
     DECLARE_MEMORY_N(face_coords, real, ND_ND);
+    DECLARE_MEMORY_N(face_ids, int, mnpf);
 
 #if !RP_HOST
 	Domain *domain;
@@ -336,36 +341,41 @@ DEFINE_ON_DEMAND(store_faces) {
 
 		n_faces[thread] = THREAD_N_ELEMENTS_INT(face_thread);
 
-        ASSIGN_MEMORY(face_ids, n_nodes[thread], int);
-        ASSIGN_MEMORY_N(face_coords, n_nodes[thread], real, ND_ND);
+        printf("\n\nmnpf = %i", mnpf); fflush(stdout);
 
-
-
-
-        /*
-        F_NNODES(face, face_thread)
+        ASSIGN_MEMORY_N(face_coords, n_faces[thread], real, ND_ND);
+        ASSIGN_MEMORY_N(face_ids, n_faces[thread], int, mnpf);
 
         i = 0;
         begin_f_loop(face, face_thread) {
+            if (i >= n_faces[thread]) {
+                Error("\nIndex %i larger than array size %i.", i, n_faces[thread]);
+            }
+
+            F_CENTROID(centroid, face, face_thread);
+            for (d = 0; d < ND_ND; d++) {
+                face_coords[d][i] = centroid[d];
+            }
+
             f_node_loop(face, face_thread, node_number) {
-                if (i >= n_nodes[thread]) {
-                    Error("\nIndex %i larger than array size %i.", i, n_nodes[thread]);
-                }
-                else {
-                    node = F_NODE(face, face_thread, node_number);
-                    node_ids[i] = NODE_DM_ID(node);
-                    for (d = 0; d < ND_ND; d++) {
-                        node_coords[d][i] = NODE_COORD(node)[d];
+                node = F_NODE(face, face_thread, node_number);
+                for (d = 0; d < mnpf; d++) {
+                    if (d < F_NNODES(face, face_thread)) {
+                        face_ids[d][i] = NODE_DM_ID(node);
+                    }
+                    else {
+                        face_ids[d][i] = -1;
                     }
                 }
-                i++;
             }
+
+            i++;
         } end_f_loop(face, face_thread);
-        */
 
 #endif /* !RP_HOST */
 
 
+/*** finished till here... */
 
 
 
