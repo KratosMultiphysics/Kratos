@@ -802,3 +802,32 @@ class MainCoupledFemDem_Solution:
             Coordinates = self.GetNodeCoordinates(node)
             self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates, R, Id)
             node.SetValue(KratosFemDem.IS_DEM, True)
+
+
+#============================================================================================================================
+    def RemoveAloneDEMElements(self):
+        if self.echo_level > 0:
+            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: RemoveAloneDEMElements")
+
+        # method to remove the dem corresponding to inactive nodes
+        FEM_Nodes = self.FEM_Solution.main_model_part.Nodes
+        FEM_Elements = self.FEM_Solution.main_model_part.Elements
+
+        for node in FEM_Nodes:
+            node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, 0)
+
+        for Element in FEM_Elements:
+            for i in range(0, self.number_of_nodes_element): # Loop over nodes of the element
+                if Element.IsNot(KratosMultiphysics.TO_ERASE):
+                    node = Element.GetNodes()[i]
+                    NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
+                    NumberOfActiveElements += 1
+                    node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, NumberOfActiveElements)
+
+        NumberOfActiveElements = 0
+        for node in FEM_Nodes:
+            NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
+            if NumberOfActiveElements == 0:
+                self.SpheresModelPart.GetNode(node.Id).Set(KratosMultiphysics.TO_ERASE, True)
+
+        self.SpheresModelPart.RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
