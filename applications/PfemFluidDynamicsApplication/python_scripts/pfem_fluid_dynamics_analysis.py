@@ -228,10 +228,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         self._GetSolver().FinalizeSolutionStep()
 
-        self.time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        self.delta_time=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        self.step=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-
         self.GraphicalOutputExecuteFinalizeSolutionStep()
 
         # processes to be executed at the end of the solution step
@@ -327,10 +323,13 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         if( self.project_parameters.Has("output_configuration") ):
             self.post_process_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if(self.graphical_output.IsOutputStep()):
+                time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+                delta_time=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                step=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
                 KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
                 print("")
                 print("**********************************************************")
-                print("---> Print Output at [STEP:",self.step," TIME:",self.time," DT:",self.delta_time,"]")
+                print("---> Print Output at [STEP:",step," TIME:",time," DT:",delta_time,"]")
                 print("**********************************************************")
                 print("")
                 self.graphical_output.PrintOutput()
