@@ -39,8 +39,8 @@ class DEMSaveRestartProcess(SaveRestartProcess):
         params = Kratos.Parameters(json.dumps(params_dict))
 
         params.RemoveValue("model_part_names")
-        
+
         self.restart_utility = DEM_restart_utility.DEMRestartUtility(model, params)
-        
+
         # already create the folder now to avoid problems on slow file-systems
         self.restart_utility.CreateOutputFolder()

@@ -14,7 +14,7 @@ class DEMRestartUtility(RestartUtility):
     It can either be integrated into python-solvers or used directly
     in the main-script
     """
-    def __init__(self, model, settings):
+    def __init__(self, model, settings, restart_save_location='', restart_load_location=''):
         default_settings = Kratos.Parameters("""
         {
             "input_filenames"                 : [],
@@ -27,7 +27,7 @@ class DEMRestartUtility(RestartUtility):
             "save_restart_files_in_folder"   : true,
             "set_mpi_communicator"           : true
         }
-        """)   
+        """)
 
         settings.ValidateAndAssignDefaults(default_settings)
         self.file_names = []
@@ -37,16 +37,23 @@ class DEMRestartUtility(RestartUtility):
             settings_copy.AddValue("input_filename", name)
             settings_copy.RemoveValue("input_filenames")
             settings_copy.RemoveValue("input_filenames")
-            super(DEMRestartUtility, self).__init__(model[name.GetString()], settings_copy)
-  
+            print('bbb'*200, name.GetString())
+            super(DEMRestartUtility, self).__init__(model.GetModelPart(name.GetString()), settings_copy)
+        self.restart_save_location = restart_save_location
+        # print('yyyy'*50,self.restart_save_location)
+        # self.restart_load_location = restart_load_location
+
     def SaveRestart(self):
         for name in self.file_names:
+            print('xdxd'*50,self.raw_path)
             self.raw_path, self.raw_file_name = os.path.split(name)
-            self.raw_path = os.path.join(os.getcwd(), self.raw_path)        
+            #self.raw_path = os.path.join(os.getcwd(), self.raw_path)
+            self.raw_path = self.restart_save_location
+            print('self.raw_file_name', self.raw_file_name)
             super(DEMRestartUtility, self).SaveRestart()
 
     def LoadRestart(self,  restart_file_name=""):
         for name in self.file_names:
             self.raw_path, self.raw_file_name = os.path.split(name)
-            self.raw_path = os.path.join(os.getcwd(), self.raw_path)               
+            self.raw_path = os.path.join(os.getcwd(), self.raw_path)
             super(DEMRestartUtility, self).LoadRestart()

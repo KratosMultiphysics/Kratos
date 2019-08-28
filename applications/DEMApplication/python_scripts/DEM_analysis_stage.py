@@ -347,21 +347,16 @@ class DEMAnalysisStage(AnalysisStage):
         return 'DEM_Clusters'
 
     def GetInputFilePath(self, file_name):
-        Logger.GetDefaultOutput().SetSeverity(Logger.Severity.INFO)
-        print('S'*200,self.GetProblemNameWithPath())
         return self.GetProblemNameWithPath() + file_name
 
     def GetProblemTypeFilename(self):
         return self.DEM_parameters["problem_name"].GetString()
 
     def ReadModelPartsFromRestartFile(self, model_part_import_settings):
-        Logger.PrintInfo('DEM', 'Loading model part ' + self.spheres_model_part.Name + ' from restart file...')
+        Logger.PrintInfo('DEM', 'Loading model parts from restart file...')
         from DEM_restart_utility import DEMRestartUtility
-        DEMRestartUtility(self.spheres_model_part, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
-        Logger.PrintInfo('DEM', 'Finished loading ' + self.spheres_model_part.Name + '.')
-        # DEMRestartUtility(self.rigid_face_model_part, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
-        # DEMRestartUtility(self.cluster_model_part, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
-        # DEMRestartUtility(self.dem_inlet_model_part, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
+        DEMRestartUtility(self.model, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
+        Logger.PrintInfo('DEM', 'Finished loading model parts from restart file.')
 
     def ReadModelPartsFromMdpaFile(self, max_node_id, max_elem_id, max_cond_id):
         def UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, model_part):
@@ -372,6 +367,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         def ReadModelPart(model_part, file_name, max_node_id, max_elem_id, max_cond_id):
             file_path = self.GetInputFilePath(file_name)
+            print('file_path', self.GetProblemNameWithPath())
             print('C'*100,file_path)
             if not os.path.isfile(file_path + '.mdpa'):
                 self.KratosPrintInfo('Input file ' + file_name + '.mdpa' + ' not found. Continuing.')
