@@ -564,6 +564,52 @@ namespace Kratos {
   }
 
 
+
+  template<>
+  void TwoStepUpdatedLagrangianElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  {
+
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 2*NumNodes;
+
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
+
+    SizeType Index = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+        rValues[Index++] = rGeom[i].X();
+        rValues[Index++] = rGeom[i].Y();
+        // rValues[Index++] = rGeom[i].X0();
+        // rValues[Index++] = rGeom[i].Y0();
+      }
+  }
+
+
+  template<>
+  void TwoStepUpdatedLagrangianElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
+
+    if (rValues.size() != LocalSize) rValues.resize(LocalSize);
+
+    SizeType Index = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+          rValues[Index++] = rGeom[i].X();
+          rValues[Index++] = rGeom[i].Y();
+          rValues[Index++] = rGeom[i].Z();
+          // rValues[Index++] = rGeom[i].X0();
+          // rValues[Index++] = rGeom[i].Y0();
+          // rValues[Index++] = rGeom[i].Z0();
+      }
+  }
+
+
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
 								    Matrix &NContainer,
@@ -927,7 +973,6 @@ namespace Kratos {
     return computeElement;
 
   }
-
 
 
 
@@ -1526,6 +1571,21 @@ namespace Kratos {
   }
 
 
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianElement<TDim>::GetPressureVelocityValues(Vector& rValues,
+										       const int Step)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+
+    if (rValues.size() != NumNodes) rValues.resize(NumNodes);
+
+    for (SizeType i = 0; i < NumNodes; ++i){
+      rValues[i] = rGeom[i].FastGetSolutionStepValue(PRESSURE_VELOCITY,Step);
+
+    }
+  }
+
   template < >
   void TwoStepUpdatedLagrangianElement<2>::CheckStrain2(MatrixType &SpatialVelocityGrad,
 							MatrixType &Fgrad,
@@ -1778,17 +1838,47 @@ namespace Kratos {
     array_1d<double,3> VolumeAcceleration(3,0.0);
 
     this->EvaluateInPoint(VolumeAcceleration,VOLUME_ACCELERATION,rN);
+    
 
     for (SizeType i = 0; i < NumNodes; ++i)
     {
         if( this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
 	  // Build RHS
+        // double posX=this->GetGeometry()[i].X();
+        // double posY=this->GetGeometry()[i].Y();
 
+
+        // double posX=(this->GetGeometry()[0].X() + this->GetGeometry()[1].X() + this->GetGeometry()[2].X())/3.0;
+
+        // double posY=(this->GetGeometry()[0].Y() + this->GetGeometry()[1].Y() + this->GetGeometry()[2].Y())/3.0;
+
+        // double coeffX =(12.0-24.0*posY)*pow(posX,4);
+
+        // coeffX += (-24.0+48.0*posY)*pow(posX,3);
+
+        // coeffX += (-48.0*posY+72.0*pow(posY,2)-48.0*pow(posY,3)+12.0)*pow(posX,2);
+
+        // coeffX += (-2.0+24.0*posY-72.0*pow(posY,2)+48.0*pow(posY,3))*posX;
+
+        // coeffX += 1.0-4.0*posY+12.0*pow(posY,2)-8.0*pow(posY,3);
+
+        // double coeffY =(8.0-48.0*posY+48.0*pow(posY,2))*pow(posX,3);
+
+        // coeffY += (-12.0+72.0*posY-72.0*pow(posY,2))*pow(posX,2);
+
+        // coeffY += (4.0-24.0*posY+48.0*pow(posY,2)-48.0*pow(posY,3)+24.0*pow(posY,4))*posX;
+
+        // coeffY += -12.0*pow(posY,2)+24.0*pow(posY,3)-12.0*pow(posY,4);
+
+        // rRHSVector[FirstRow] += Weight * Density * rN[i] * VolumeAcceleration[0]*coeffX;
+
+        // rRHSVector[FirstRow+1] += Weight * Density * rN[i] * VolumeAcceleration[1]*coeffY;
+        
 	        for (SizeType d = 0; d < TDim; ++d)
-	    {
-	      // Volume Acceleration
-	      rRHSVector[FirstRow+d] += Weight * Density * rN[i] * VolumeAcceleration[d];
-	    }
+        {
+          // Volume Acceleration
+          rRHSVector[FirstRow+d] += Weight * Density * rN[i] * VolumeAcceleration[d];
+        }
 
     }
         FirstRow += TDim;

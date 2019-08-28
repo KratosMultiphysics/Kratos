@@ -193,10 +193,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& r
     ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
     ConstitutiveParameters.SetDeterminantF(detF);
     ConstitutiveParameters.SetDeformationGradientF(F);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     if(rCurrentProcessInfo[NODAL_SMOOTHING] == true)
     {
-        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
         Matrix StressContainer(NumGPoints,VoigtSize);
 
         //Loop over integration points

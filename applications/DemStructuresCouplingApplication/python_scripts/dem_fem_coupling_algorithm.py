@@ -24,14 +24,14 @@ class Algorithm(object):
         self.dem_solution = dem_main_script_ready_for_coupling_with_fem.Solution(self.model)
         self.dem_solution.coupling_algorithm = weakref.proxy(self)
 
-        import structural_mechanics_analysis
+        from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
         structural_parameters_file_name = "ProjectParameters.json"
 
         with open(structural_parameters_file_name,'r') as parameter_file:
             parameters = Kratos.Parameters(parameter_file.read())
 
         # Create structural solver, main_model_part and added variables
-        self.structural_solution = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.model, parameters)
+        self.structural_solution = StructuralMechanicsAnalysis(self.model, parameters)
 
         self.AddDEMVariablesToStructural()
 
@@ -78,6 +78,12 @@ class Algorithm(object):
             import control_module_fem_dem_utility
             self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
             self.control_module_fem_dem_utility.ExecuteInitialize()
+
+        # Create Postprocess tool for SP
+        import sand_production_post_process_tool
+        self.sp_post_process_tool = sand_production_post_process_tool.SandProductionPostProcessTool(self.structural_solution._GetSolver().GetComputingModelPart(),
+                                                                                                    self.dem_solution.spheres_model_part,
+                                                                                                    self.test_number)
 
         from KratosMultiphysics.DemStructuresCouplingApplication import stress_failure_check_utility
         self.stress_failure_check_utility = stress_failure_check_utility.StressFailureCheckUtility(self.dem_solution.spheres_model_part, self.test_number)
@@ -277,6 +283,10 @@ class Algorithm(object):
             # TODO: Should control_module_fem_dem_utility.ExecuteFinalizeSolutionStep be done before or after RestoreStructuralSolution ?
             if not self.sandwich_simulation and self.test_number:
                 self.control_module_fem_dem_utility.ExecuteFinalizeSolutionStep()
+
+            # Write SP data
+            if self.test_number:
+                self.sp_post_process_tool.WriteData()
 
     def ReadDemModelParts(self,
                                     starting_node_Id=0,
