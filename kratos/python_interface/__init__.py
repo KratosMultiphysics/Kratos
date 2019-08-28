@@ -34,7 +34,7 @@ def __ModuleInitDetail():
 
     using_mpi = False
     if mpi_detected or mpi_requested:
-        from kratos_utilities import IsMPIAvailable
+        from KratosMultiphysics.kratos_utilities import IsMPIAvailable
         if IsMPIAvailable():
             import KratosMultiphysics.mpi
             mpi.InitializeMPIParallelRun()
