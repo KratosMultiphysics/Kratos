@@ -1,5 +1,7 @@
 from __future__ import print_function
-import os,subprocess,sys
+import os
+import subprocess
+import sys
 import multiprocessing as mp
 if sys.version_info >= (3, 0):
     import queue
@@ -77,8 +79,7 @@ def run(benchmark, file_for_output):
         subprocess.check_call(["python", "-3", path_to_callable_script, str(benchmark)], stdout=file_for_output, stderr=file_for_output)
 
 def worker(queue):
-    import os
-    """Process files from the queue."""
+
     for benchmark in iter(queue.get, None):
         out_file_name = '{0}.info'.format(benchmark)
         f = open(out_file_name, 'wb')
