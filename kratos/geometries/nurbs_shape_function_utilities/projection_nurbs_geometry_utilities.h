@@ -18,39 +18,60 @@
 
 // External includes
 
+// Project includes
+#include "containers/array_1d.h"
+// #include "geometries/nurbs_curve_geometry.h"
+// #include "geometries/nurbs_surface_geometry.h"
+
 namespace Kratos
 {
+    template<int TDimension, class TPointType> class NurbsCurveGeometry;
+    template<int TDimension, class TPointType> class NurbsSurfaceGeometry;
     namespace ProjectionNurbsGeometryUtilities
     {
         typedef array_1d<double, 3> CoordinatesArrayType;
 
-
-        template <int TDimension>
+        /*
+        * @brief Returns the projection of a point onto a Nurbs curve
+        *        geometry using the Newton-Rapshon iterative method
+        * @param rInitialGuessParameter Intial guess for the Newton-Rapshon 
+        *        algorithm
+        * @param rResult The projection onto the Nurbs curve geometry
+        * @param rNurbsCurve The Nurbs curve geometry onto which the point is 
+        *        to be projected
+        * @param MaxIterations Maximum number of iterations for the Newton-Rapshon 
+        *        algorithm
+        * @param ModelTolerance Tolerance of the CAD model
+        * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
+        */
+        template <int TDimension, class TPointType>
         static bool NewtonRaphsonCurve(
             const double rInitialGuessParameter,
-            const CoordinatesArrayType& rPoint
+            const CoordinatesArrayType& rPoint,
             CoordinatesArrayType& rResult,
-            const NurbsCurveGeometry<TDimension>& rNurbsCurve,
-            const int MaxIterations,
-            const double ModelTolerance,
-            const double Accuracy)
+            const NurbsCurveGeometry<TDimension, TPointType>& rNurbsCurve,
+            const int MaxIterations = 20,
+            const double ModelTolerance = 1e-6,
+            const double Accuracy = 1e-6)
         {
             rResult[0] = rInitialGuessParameter;
 
-            double min = rNurbsCurve.DomainInterval().Min();
-            double max = rNurbsCurve.DomainInterval().Max();
+            double min = rNurbsCurve.DomainInterval().MinParameter();
+            double max = rNurbsCurve.DomainInterval().MaxParameter();
 
             for (int i = 0; i < MaxIterations; i++) 
             {
-                auto derivatives = rNurbsCurve->GlobalDerivatives(
-                    rParameter,
+                auto derivatives = rNurbsCurve.GlobalDerivatives(
+                    rResult,
                     2);
 
                 array_1d<double, 3> distance_vector = derivatives[0] - rPoint;
+
                 double distance = norm_2(distance_vector);
 
                 double c2n = inner_prod(derivatives[1], distance_vector);
                 double c2d = norm_2(derivatives[1]) * distance;
+
                 double c2v = c2d != 0 
                     ? c2n / c2d
                     : 0;
@@ -63,42 +84,42 @@ namespace Kratos
                 double delta_t = inner_prod(derivatives[1], distance_vector)
                     / (inner_prod(derivatives[2], distance_vector) + pow(norm_2(derivatives[1]), 2));
 
-                rParameter -= delta_t;
+                rResult[0] -= delta_t;
 
                 //Alternative if (rNurbsCurve.DomainInterval().IsInside())
-                if (rParameter < min || rParameter > max)
+                rNurbsCurve.DomainInterval().IsInside(rResult[0]);
+                /*if (rResult[0] < min || rResult[0] > max)
                 {
                     return false;
-                }
+                }*/
             }
 
             return false;
-        }
     }
 
-    template <int TDimension>
+    template <int TDimension, class TPointType>
     static bool NewtonRaphsonSurface(
         const CoordinatesArrayType rInitialGuessParameter,
-        const CoordinatesArrayType& rPoint
+        const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
-        const NurbsSurfaceGeometry<TDimension>& rNurbsSurface,
+        const NurbsSurfaceGeometry<TDimension, TPointType>& rNurbsSurface,
         const int MaxIterations,
         const double ModelTolerance,
         const double Accuracy)
     {
-        double rPoint[0] = rInitialGuessParameter[0];
-        double rPoint[1] = rInitialGuessParameter[1];
+        rPoint[0] = rInitialGuessParameter[0];
+        rPoint[1] = rInitialGuessParameter[1];
 
         for (int i = 0; i < MaxIterations; i++) {
-            const auto s = pSurface->GlobalDerivatives(rPoint[0], rPoint[1], 2);
+            const auto s = rNurbsSurface->GlobalDerivatives(rPoint[0], rPoint[1], 2);
 
             const array_1d<double, 3> distance = s[0] - rPoint;
 
             const double c1v = norm_2(distance);
 
             if (c1v < Accuracy) {
-                rNewLocalCoordinates[0] = rPoint[0];
-                rNewLocalCoordinates[1] = rPoint[1];
+                rResult[0] = rPoint[0];
+                rResult[1] = rPoint[1];
 
                 return true;
             }
@@ -115,9 +136,9 @@ namespace Kratos
             double c2av = c2an / c2ad;
             double c2bv = c2bn / c2bd;
 
-            if (c2av < Tolerance && c2bv < Tolerance) {
-                rNewLocalCoordinates[0] = rPoint[0];
-                rNewLocalCoordinates[1] = rPoint[1];
+            if (c2av < Accuracy && c2bv < Accuracy) {
+                rResult[0] = rPoint[0];
+                rResult[1] = rPoint[1];
 
                 return true;
             }
@@ -134,16 +155,15 @@ namespace Kratos
             double d_u = (g * J_01 - f * J_11) / det_J;
             double d_v = (f * J_01 - g * J_00) / det_J;
 
-            rPoint[0] += d_u;
-            rPoint[1] += d_v;
+            rResult[0] += d_u;
+            rResult[1] += d_v;
         }
 
-        rNewLocalCoordinates[0] = rPoint[0];
-        rNewLocalCoordinates[1] = rPoint[1];
+        rResult[0] = rPoint[0];
+        rResult[1] = rPoint[1];
         return false;
     }
-}
-
+    }
 } // namespace Kratos
 
 #endif // KRATOS_PROJECTION_NURBS_GEOMETRY_UTILITIES_H_INCLUDED
