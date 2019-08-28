@@ -57,7 +57,7 @@ namespace Kratos
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 default_method,
                 integration_points[i],
-                N_i,
+                pGeometry->ShapeFunctionsValues(rLocalCoordinates),
                 pGeometry->ShapeFunctionLocalGradient(i));
 
             if (pGeometry->WorkingSpaceDimension() == 1
@@ -66,7 +66,7 @@ namespace Kratos
                     Kratos::make_shared<
                     QuadraturePoint<TPointType, 1>>(
                         pGeometry->Points(),
-                        pGeometry->ShapeFunctionsValues(rLocalCoordinates),
+                        data_container,
                         pGeometry.get()));
             if (pGeometry->WorkingSpaceDimension() == 2
                 && pGeometry->LocalSpaceDimension() == 2)
@@ -74,7 +74,7 @@ namespace Kratos
                     Kratos::make_shared<
                     QuadraturePoint<TPointType, 2>>(
                         pGeometry->Points(),
-                        pGeometry->ShapeFunctionsValues(rLocalCoordinates),
+                        data_container,
                         pGeometry.get()));
             else if (pGeometry->WorkingSpaceDimension() == 3
                 && pGeometry->LocalSpaceDimension() == 2)
@@ -82,7 +82,7 @@ namespace Kratos
                     Kratos::make_shared<
                     QuadraturePoint<TPointType, 3, 2>>(
                         pGeometry->Points(),
-                        pGeometry->ShapeFunctionsValues(rLocalCoordinates),
+                        data_container,
                         pGeometry.get()));
             else if (pGeometry->WorkingSpaceDimension() == 3
                 && pGeometry->LocalSpaceDimension() == 3)
@@ -90,7 +90,7 @@ namespace Kratos
                     Kratos::make_shared<
                     QuadraturePoint<TPointType, 3>>(
                         pGeometry->Points(),
-                        pGeometry->ShapeFunctionsValues(rLocalCoordinates),
+                        data_container,
                         pGeometry.get()));
 
             KRATOS_CATCH("");
