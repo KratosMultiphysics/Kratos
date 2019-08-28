@@ -184,14 +184,6 @@ public:
     */
     typedef DenseVector<Matrix> ShapeFunctionsGradientsType;
 
-    typedef DenseVector<Matrix> ShapeFunctionsSecondDerivativesType;
-
-    /**
-     * fourth order tensor to hold the third order derivatives of the
-     * shape functions
-     */
-    typedef DenseVector<DenseVector<Matrix> > ShapeFunctionsThirdDerivativesType;
-
     ///@}
     ///@name Life Cycle
     ///@{
