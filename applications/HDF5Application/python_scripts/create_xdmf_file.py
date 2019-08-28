@@ -24,6 +24,7 @@ def main():
                         default="/ModelData", help="internal HDF5 file path to the mesh")
     parser.add_argument("-r", "--results-path", dest="results_path", metavar="<results-path>",
                         default="/ResultsData", help="internal HDF5 file path to the results")
+    print('\nCreate XDMF:')
     args = parser.parse_args()
     if args.type == "multiple" and args.analysis == "temporal":
         WriteMultifileTemporalAnalysisToXdmf(

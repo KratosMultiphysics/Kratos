@@ -294,10 +294,10 @@ def WriteMultifileTemporalAnalysisToXdmf(ospath, h5path_to_mesh, h5path_to_resul
     h5path_to_mesh -- the internal HDF5 file path to the mesh
     h5path_to_results -- the internal HDF5 file path to the results
     """
-    # Strip any suffixes from the path.
-    pat = ospath.rstrip(".h5").rstrip(".xdmf")
+    pat = ospath
     # Strip any time label from the file name.
     time_label = TimeLabel(pat)
+    pat = pat.rstrip('.h5').rstrip('.xdmf')
     if time_label:
         pat = pat.rstrip(time_label).rstrip("-")
     # Generate the temporal grid.
