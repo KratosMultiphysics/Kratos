@@ -659,7 +659,7 @@ public:
 
 #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rContainer.size()); ++i) {
-            auto it_cont = rContainer.begin + i;
+            auto it_cont = rContainer.begin() + i;
             it_cont->SetValue(rSavedVariable, it_cont->GetValue(rOriginVariable));
         }
 
