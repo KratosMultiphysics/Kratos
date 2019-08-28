@@ -1083,6 +1083,25 @@ public:
         return normal_vector;
     }
 
+    ///@}
+    ///@name  Geometry Data
+    ///@{
+
+    /**
+    * @brief GeometryData contains all information about dimensions
+    *        and has a set of precomputed values for integration points
+    *        and shape functions, including derivatives.
+    * @return the geometry data of a certain geometry class.
+    */
+    GeometryData const& GetGeometryData() const
+    {
+        return *mpGeometryData;
+    }
+
+    ///@}
+    ///@name Quality
+    ///@{
+
     /** Calculates the quality of the geometry according to a given criteria.
      *
      * Calculates the quality of the geometry according to a given criteria. In General
