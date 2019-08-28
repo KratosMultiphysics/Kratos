@@ -5,7 +5,7 @@
 /* dynamic memory allocation */
 #define DECLARE_MEMORY(name, type) type *name = NULL
 
-#define DECLARE_MEMORY_ND(name, type) type *name[ND_ND] = {NULL}
+#define DECLARE_MEMORY_N(name, type, dim) type *name[dim] = {NULL}
 
 #define RELEASE_MEMORY(name)										\
 if (NNULLP(name)) {													\
@@ -13,8 +13,8 @@ if (NNULLP(name)) {													\
 	name = NULL;													\
 }
 
-#define RELEASE_MEMORY_ND(name)										\
-for (_d = 0; _d < ND_ND; _d++) {                                    \
+#define RELEASE_MEMORY_N(name, dim)							        \
+for (_d = 0; _d < dim; _d++) {                                      \
     RELEASE_MEMORY(name[_d]);                                       \
 }
 
@@ -31,30 +31,38 @@ if (size) {															\
 	}																\
 }
 
-#define ASSIGN_MEMORY_ND(name, size, type) 							\
-for (_d = 0; _d < ND_ND; _d++) {                                    \
-    ASSIGN_MEMORY(name[_d], size, type);                             \
+#define ASSIGN_MEMORY_N(name, size, type, dim)						\
+for (_d = 0; _d < dim; _d++) {                                      \
+    ASSIGN_MEMORY(name[_d], size, type);                            \
 }
 
 /* sending and receiving */
-#define PRF_CSEND_REAL_ND(to, name, n, tag)                         \
-for (_d = 0; _d < ND_ND; _d++) {                                    \
+#define PRF_CSEND_INT_N(to, name, n, tag, dim)                      \
+for (_d = 0; _d < dim; _d++) {                                      \
+    PRF_CSEND_INT(to, name[_d], n, tag);                            \
+}
+
+#define PRF_CSEND_REAL_N(to, name, n, tag, dim)                     \
+for (_d = 0; _d < dim; _d++) {                                      \
     PRF_CSEND_REAL(to, name[_d], n, tag);                           \
 }
 
-#define PRF_CRECV_REAL_ND(from, name, n, tag)                       \
-for (_d = 0; _d < ND_ND; _d++) {                                    \
+#define PRF_CRECV_INT_N(from, name, n, tag, dim)                    \
+for (_d = 0; _d < dim; _d++) {                                      \
+    PRF_CRECV_INT(from, name[_d], n, tag);                          \
+}
+
+#define PRF_CRECV_REAL_N(from, name, n, tag, dim)                   \
+for (_d = 0; _d < dim; _d++) {                                      \
     PRF_CRECV_REAL(from, name[_d], n, tag);                         \
 }
 
-
-/*** perhaps add fnction DECLARE_MEMORY for 2D? or specifically ND_ND? */
 
 #define pi 3.1415926535
 #define e 2.7182818284
 
 
-/* Make UDF compatible with 2D and 3D cases, use ND_ND etc. Start with only 2D. */
+/* Make UDF compatible with 2D and 3D cases, use ND_ND etc */
 
 int _d; /* don't use in UDFs! */
 
@@ -117,12 +125,12 @@ DEFINE_ON_DEMAND(get_thread_ids) {
 DEFINE_ON_DEMAND(store_nodes) {
 
     /*** annotate this function after it's finished */
-    /*** look which checks Joris built into his UDF */
 
-    /* printf("\nPOS 1, myid = %i", myid); fflush(stdout); */
+    /*** look which checks Joris built into his UDF, add those later */
 
-    /*** define a bunch of things, such as domain, thread, ints, reals, arrays... */
-    /*** check for warnings, some variables are not used on every node/host/... */
+    int thread, n_tmp, i, d;
+    DECLARE_MEMORY(node_ids, int);
+    DECLARE_MEMORY_N(node_coords, real, ND_ND);
 
 #if !RP_HOST
 	Domain *domain;
@@ -140,13 +148,6 @@ DEFINE_ON_DEMAND(store_nodes) {
 #if PARALLEL
 	int compute_node;
 #endif /* PARALLEL */
-
-    int i, d, n_tmp;
-    int thread;
-    DECLARE_MEMORY(node_ids, int);
-    DECLARE_MEMORY_ND(node_coords, real);
-
-	/*real *node_coords[ND_ND] = {NULL};*/
 
     for (thread=0; thread<n_threads; thread++) {
 
@@ -176,7 +177,7 @@ DEFINE_ON_DEMAND(store_nodes) {
 		} end_f_loop(face, face_thread)
 
         ASSIGN_MEMORY(node_ids, n_nodes[thread], int);
-        ASSIGN_MEMORY_ND(node_coords, n_nodes[thread], real);
+        ASSIGN_MEMORY_N(node_coords, n_nodes[thread], real, ND_ND);
 
         i = 0;
         begin_f_loop(face, face_thread) {
@@ -199,56 +200,44 @@ DEFINE_ON_DEMAND(store_nodes) {
 
 #if RP_NODE
         compute_node = (I_AM_NODE_ZERO_P) ? node_host : node_zero;
-        /*
-        - if compute_node = node_zero: node-zero sends data to the host
-        - if compute_node is not node_zero: the node sends data to node_zero
-        */
 
         PRF_CSEND_INT(compute_node, &n_nodes[thread], 1, myid); /* send pointer to n_faces */
         PRF_CSEND_INT(compute_node, node_ids, n_nodes[thread], myid);
-        PRF_CSEND_REAL_ND(compute_node, node_coords, n_nodes[thread], myid);
+        PRF_CSEND_REAL_N(compute_node, node_coords, n_nodes[thread], myid, ND_ND);
 
         RELEASE_MEMORY(node_ids);
-        RELEASE_MEMORY_ND(node_coords);
+        RELEASE_MEMORY_N(node_coords, ND_ND);
 
-        /*
-        Now node_zero has to receive the data from the other nodes, and
-        redirect it to the host. Therefore, node_zero loops over all other
-        nodes. First, the size of the p_face is stored in n_faces, so that
-        enough space can be allocated. Then the received data is stored in
-        p_face, and immediately send onward to the host. At the end, p_face
-        is freed.
-        */
         if(I_AM_NODE_ZERO_P){
             compute_node_loop_not_zero(compute_node) {
                 PRF_CRECV_INT(compute_node, &n_tmp, 1, compute_node);
 
                 ASSIGN_MEMORY(node_ids, n_tmp, int);
-                ASSIGN_MEMORY_ND(node_coords, n_tmp, real);
+                ASSIGN_MEMORY_N(node_coords, n_tmp, real, ND_ND);
 
                 PRF_CRECV_INT(compute_node, node_ids, n_tmp, compute_node);
-                PRF_CRECV_REAL_ND(compute_node, node_coords, n_tmp, compute_node);
+                PRF_CRECV_REAL_N(compute_node, node_coords, n_tmp, compute_node, ND_ND);
 
                 PRF_CSEND_INT(node_host, &n_tmp, 1, compute_node);
                 PRF_CSEND_INT(node_host, node_ids, n_tmp, compute_node);
-                PRF_CSEND_REAL_ND(node_host, node_coords, n_tmp, compute_node);
+                PRF_CSEND_REAL_N(node_host, node_coords, n_tmp, compute_node, ND_ND);
 
                 RELEASE_MEMORY(node_ids);
-                RELEASE_MEMORY_ND(node_coords);
+                RELEASE_MEMORY_N(node_coords, ND_ND);
             }
         }
 #endif /* RP_NODE */
 
 
-#if RP_HOST	/* Receive data on host before printing */
+#if RP_HOST
         compute_node_loop(compute_node) {
             PRF_CRECV_INT(node_zero, &n_tmp, 1, compute_node);
 
             ASSIGN_MEMORY(node_ids, n_tmp, int);
-            ASSIGN_MEMORY_ND(node_coords, n_tmp, real);
+            ASSIGN_MEMORY_N(node_coords, n_tmp, real, ND_ND);
 
             PRF_CRECV_INT(node_zero, node_ids, n_tmp, compute_node);
-            PRF_CRECV_REAL_ND(node_zero, node_coords, n_tmp, compute_node);
+            PRF_CRECV_REAL_N(node_zero, node_coords, n_tmp, compute_node, ND_ND);
 #endif /* RP_HOST */
 
 #if !PARALLEL
@@ -258,16 +247,14 @@ DEFINE_ON_DEMAND(store_nodes) {
 #if !RP_NODE
             for (i = 0; i < n_tmp; i++) {
                 fprintf(file, "%i", node_ids[i]);
-
                 for (d = 0; d < ND_ND; d++) {
                     fprintf(file, "\t%27.17e", node_coords[d][i]);
                 }
                 fprintf(file, "\n");
-
             }
 
             RELEASE_MEMORY(node_ids);
-            RELEASE_MEMORY_ND(node_coords);
+            RELEASE_MEMORY_N(node_coords, ND_ND);
 #endif /* !RP_NODE */
 
 #if RP_HOST
@@ -295,11 +282,101 @@ grep -r NODE_COORD /apps/SL6.3/ANSYS/2019R1/ansys_inc/v193/fluent/fluent19.3.0/s
 /*-------------*/
 
 DEFINE_ON_DEMAND(store_faces) {
-    /* write faces data (ID, nodes),
-    loop over all threads */
+    /*** annotate this function after it's finished */
+
+    /*** look which checks Joris built into his UDF, add those later */
+
+    /*** check for warnings, some variables are not used on every node/host/... */
+
+    /*** define a unique ID for face, probably based on node unique ids */
+
+    int thread, n_tmp, i, d;
+    DECLARE_MEMORY(face_ids, int);
+    DECLARE_MEMORY_N(face_coords, real, ND_ND);
+
+#if !RP_HOST
+	Domain *domain;
+	Thread *face_thread;
+	face_t face;
+	Node *node;
+	int node_number;
+	real centroid[ND_ND];
+#endif /* !RP_HOST */
+
+#if !RP_NODE
+	char file_name[256];
+	FILE *file = NULL;
+#endif /* !RP_NODE */
+
+#if PARALLEL
+	int compute_node;
+#endif /* PARALLEL */
+
+    for (thread=0; thread<n_threads; thread++) {
+
+#if !RP_NODE
+        sprintf(file_name, "faces_thread%i.dat", thread_ids[thread]); /*** temp name */
+
+        if (NULLP(file = fopen(file_name, "w"))) {
+			Error("\nUDF-error: Unable to open %s for writing\n", file_name);
+			exit(1);
+		}
+
+#if RP_2D
+		fprintf(file, "face-id\tx-coordinate\ty-coordinate\n");
+#else /* RP_2D */
+		fprintf(file, "face-id\tx-coordinate\ty-coordinate\tz-coordinate\n");
+#endif /* RP_2D */
+
+#endif /* !RP_NODE */
+
+#if !RP_HOST
+        domain = Get_Domain(1);
+		face_thread = Lookup_Thread(domain, thread_ids[thread]);
+
+		n_faces[thread] = THREAD_N_ELEMENTS_INT(face_thread);
+
+        ASSIGN_MEMORY(face_ids, n_nodes[thread], int);
+        ASSIGN_MEMORY_N(face_coords, n_nodes[thread], real, ND_ND);
 
 
-    /*** find a way to defina a unique ID for face, probably based on node unique ids */
+
+
+        /*
+        F_NNODES(face, face_thread)
+
+        i = 0;
+        begin_f_loop(face, face_thread) {
+            f_node_loop(face, face_thread, node_number) {
+                if (i >= n_nodes[thread]) {
+                    Error("\nIndex %i larger than array size %i.", i, n_nodes[thread]);
+                }
+                else {
+                    node = F_NODE(face, face_thread, node_number);
+                    node_ids[i] = NODE_DM_ID(node);
+                    for (d = 0; d < ND_ND; d++) {
+                        node_coords[d][i] = NODE_COORD(node)[d];
+                    }
+                }
+                i++;
+            }
+        } end_f_loop(face, face_thread);
+        */
+
+#endif /* !RP_HOST */
+
+
+
+
+
+#if !RP_NODE
+        fclose(file);
+#endif /* !RP_NODE */
+
+    } /* close loop over threads */
+
+    printf("\nNode %i: Finished UDF store_faces", myid); fflush(stdout);
+
 }
 
 
