@@ -72,7 +72,7 @@ namespace MPMParticleGeneratorUtility
             {
                 if(i->IsDefined(ACTIVE))
                 {
-                    Properties::Pointer properties = i->pGetProperties();
+                    Properties::Pointer p_properties = i->pGetProperties();
 
                     // Check number of particles per element to be created
                     unsigned int particles_per_element;
@@ -136,7 +136,7 @@ namespace MPMParticleGeneratorUtility
                     {
                         auto p_new_geometry = CreateQuadraturePointsUtility<NodeType>::CreateFromCoordinates(
                             rBackgroundGridModelPart.ElementsBegin()->GetGeometry(),
-                            integration_point_per_elements);
+                            integration_points[PointNumber]);
 
                         // Create new material point element
                         new_element_id = last_element_id + PointNumber;
@@ -144,7 +144,7 @@ namespace MPMParticleGeneratorUtility
                             ParticleElement(
                                 new_element_id,
                                 p_new_geometry,
-                                properties));
+                                p_properties));
 
                         const double MP_density  = density;
                         const int MP_material_id = material_id;
