@@ -66,6 +66,7 @@ class DEMRestartTestFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         # Within this location context:
+
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             model_save = Kratos.Model()
             model_load = Kratos.Model()
@@ -73,8 +74,28 @@ class DEMRestartTestFactory(KratosUnittest.TestCase):
             save_analysis.mdpas_folder_path = save_analysis.main_path + '/restart_files'
             load_analysis = DEM_analysis_stage.DEMAnalysisStage(model_load, self.project_parameters_load)
             load_analysis.mdpas_folder_path = save_analysis.main_path + '/restart_files'
+            def NullFunction():
+                pass
+            load_analysis.CleanUpOperations = NullFunction
+            save_analysis.CleanUpOperations = NullFunction
             save_analysis.Run()
             load_analysis.Run()
+            self.AssertEquality(model_save, model_load)
+
+    def AssertEquality(self, model_1, model_2):
+        mp_names_1 = [str(k) for k in model_1.GetModelPartNames()]
+        mp_names_2 = [str(k) for k in model_2.GetModelPartNames()]
+        print('N'*100, mp_names_1)
+        print('\n', mp_names_2)
+        self.assertEqual(list(mp_names_1), list(mp_names_2))
+
+        for mp_name in model_1.GetModelPartNames():
+            mp_save = model_1.GetModelPart(mp_name)
+            mp_load = model_2.GetModelPart(mp_name)
+            for node_save, node_load in zip(mp_save.Nodes, mp_load.Nodes):
+                displacement_save = node_save.GetSolutionStepValue(Kratos.DISPLACEMENT)
+                displacement_load = node_load.GetSolutionStepValue(Kratos.DISPLACEMENT)
+                self.assertEqual(list(displacement_save), list(displacement_load))
 
 class TestRestart(DEMRestartTestFactory):
     file_name = "restart_files/two_balls"
