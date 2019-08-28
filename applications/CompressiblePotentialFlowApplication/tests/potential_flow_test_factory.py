@@ -17,6 +17,11 @@ import os
 # Check other applications dependency
 hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
 meshing_is_available = kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
+try:
+    import stl
+    numpy_stl_is_available = True
+except:
+    numpy_stl_is_available = False
 
 class WorkFolderScope:
     def __init__(self, work_folder):
@@ -83,6 +88,8 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._runTest(settings_file_name)
 
     def test_WakeProcess3DSmall(self):
+        if not numpy_stl_is_available:
+            self.skipTest("Missing required dependency: numpy-stl.")
         # This tests a simple small 3D model
         settings_file_name = "small_3d_parameters.json"
         work_folder = "wake_process_3d_tests/15_elements_small_test"
@@ -95,6 +102,8 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
 
     def test_WakeProcess3DNodesOnWake(self):
+        if not numpy_stl_is_available:
+            self.skipTest("Missing required dependency: numpy-stl.")
         # This tests a model with nodes laying on the wake
         settings_file_name = "small_3d_parameters.json"
         work_folder = "wake_process_3d_tests/25_elements_nodes_on_wake_test"
@@ -107,6 +116,8 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
 
     def test_WakeProcess3DKuttaNodesAboveTheWake(self):
+        if not numpy_stl_is_available:
+            self.skipTest("Missing required dependency: numpy-stl.")
         # This tests a model with some kutta nodes above the wake
         settings_file_name = "small_3d_parameters.json"
         work_folder = "wake_process_3d_tests/24_elements_kutta_node_above_wake_test"
