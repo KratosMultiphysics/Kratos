@@ -7,8 +7,6 @@ license: HDF5Application/license.txt
 from argparse import ArgumentParser
 
 
-import KratosMultiphysics
-import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.HDF5Application.xdmf_utils import WriteMultifileTemporalAnalysisToXdmf
 
 

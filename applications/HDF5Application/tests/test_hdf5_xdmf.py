@@ -1,5 +1,3 @@
-from collections import namedtuple
-from unittest.mock import MagicMock
 from unittest.mock import patch
 
 
@@ -9,7 +7,6 @@ except ModuleNotFoundError:
     h5py = None
 
 
-import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.HDF5Application.xdmf_utils import TryOpenH5File
 from KratosMultiphysics.HDF5Application.xdmf_utils import CreateXdmfSpatialGrid
