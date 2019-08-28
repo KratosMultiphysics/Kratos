@@ -237,6 +237,15 @@ class MainCoupledFemDem_Solution:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
 
 #============================================================================================================================
+    def Finalize(self):
+        self.FEM_Solution.Finalize()
+        self.DEM_Solution.Finalize()
+        self.DEM_Solution.CleanUpOperations()
+
+        if self.DoRemeshing:
+            self.RemeshingProcessMMG.ExecuteFinalize()
+
+#============================================================================================================================
     def InitializeIntegrationPointsVariables(self):
         utils = KratosMultiphysics.VariableUtils()
         elements = self.FEM_Solution.main_model_part.Elements
