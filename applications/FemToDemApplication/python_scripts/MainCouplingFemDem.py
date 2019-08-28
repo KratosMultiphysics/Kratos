@@ -559,8 +559,8 @@ class MainCoupledFemDem_Solution:
             if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size() > 0:
                 if self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][0].IsInt():
                     for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
-                        IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetInt()
-                        node = self.FEM_Solution.main_model_part.GetNode(IdNode)
+                        id_node = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetInt()
+                        node = self.FEM_Solution.main_model_part.GetNode(id_node)
                         total_displacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
                         total_displacement_y += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
                         total_displacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
@@ -574,8 +574,8 @@ class MainCoupledFemDem_Solution:
 
                 if self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][0].IsInt():
                     for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
-                        IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetInt()
-                        node = self.FEM_Solution.main_model_part.GetNode(IdNode)
+                        id_node = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetInt()
+                        node = self.FEM_Solution.main_model_part.GetNode(id_node)
                         total_reaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
                         total_reaction_y += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
                         total_reaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
@@ -604,9 +604,9 @@ class MainCoupledFemDem_Solution:
             if self.FEM_Solution.ProjectParameters["watch_nodes_list"].size() != 0:
                 NumNodes = self.FEM_Solution.ProjectParameters["watch_nodes_list"].size()
                 for inode in range(0, NumNodes):
-                    IdNode = self.PlotFilesNodesIdList[inode]
-                    node = self.FEM_Solution.main_model_part.GetNode(IdNode)
-                    self.PlotFilesNodesList[inode] = open("PlotNode_" + str(IdNode) + ".txt","a")
+                    id_node = self.PlotFilesNodesIdList[inode]
+                    node = self.FEM_Solution.main_model_part.GetNode(id_node)
+                    self.PlotFilesNodesList[inode] = open("PlotNode_" + str(id_node) + ".txt","a")
 
                     displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
                     velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
@@ -651,6 +651,8 @@ class MainCoupledFemDem_Solution:
 
                     stress_tensor = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
                     strain_vector = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)
+
+                    damage = Elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)
                     
                     if self.domain_size == 2:
                         Sxx = stress_tensor[0][0]
@@ -659,6 +661,11 @@ class MainCoupledFemDem_Solution:
                         Exx = strain_vector[0]
                         Eyy = strain_vector[1]
                         Exy = strain_vector[2]
+                        self.PlotFilesElementsList[iElem].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
+                            "{0:.4e}".format(Sxx).rjust(11) + "    " + "{0:.4e}".format(Syy).rjust(11) + "    " +
+                            "{0:.4e}".format(Sxy).rjust(11) + "    " + "{0:.4e}".format(Exx).rjust(11) +
+                            "    " + "{0:.4e}".format(Eyy).rjust(11) + "    " + "{0:.4e}".format(Exy).rjust(11) +
+                            "   " + "{0:.4e}".format(damage).rjust(11) + "\n")
                     else:
                         Sxx = stress_tensor[0][0]
                         Syy = stress_tensor[0][1]
@@ -672,16 +679,6 @@ class MainCoupledFemDem_Solution:
                         Exy = strain_tensor[3]
                         Eyz = strain_tensor[4]
                         Exz = strain_tensor[5]
-
-                    damage = Elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)
-
-                    if self.domain_size == 2:
-                        self.PlotFilesElementsList[iElem].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
-                            "{0:.4e}".format(Sxx).rjust(11) + "    " + "{0:.4e}".format(Syy).rjust(11) + "    " +
-                            "{0:.4e}".format(Sxy).rjust(11) + "    " + "{0:.4e}".format(Exx).rjust(11) +
-                            "    " + "{0:.4e}".format(Eyy).rjust(11) + "    " + "{0:.4e}".format(Exy).rjust(11) +
-                            "   " + "{0:.4e}".format(damage).rjust(11) + "\n")
-                    else:
                         self.PlotFilesElementsList[iElem].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
                         "{0:.4e}".format(Sxx).rjust(11) + "    " + "{0:.4e}".format(Syy).rjust(11) + "    " +
                         "{0:.4e}".format(Szz).rjust(11) + "    " + "{0:.4e}".format(Sxy).rjust(11) + "    " +
@@ -691,6 +688,7 @@ class MainCoupledFemDem_Solution:
                         "    " + "{0:.4e}".format(Exy).rjust(11) + "    " + "{0:.4e}".format(Eyz).rjust(11) +
                         "    " + "{0:.4e}".format(Exz).rjust(11) +
                         "   "  + "{0:.4e}".format(damage).rjust(11) + "\n")
+
                     self.PlotFilesElementsList[iElem].close()
             self.TimePreviousPlotting = time
 
