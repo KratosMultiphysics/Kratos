@@ -102,7 +102,6 @@ public:
         {
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "echo_level"      : 0,
-            "step"            : 0,
             "max_iterations"  : 100,
             "tolerance"       : 1e-6,
             "constants": {
@@ -116,7 +115,6 @@ public:
         mModelPartName = mrParameters["model_part_name"].GetString();
 
         mEchoLevel = mrParameters["echo_level"].GetInt();
-        mStep = mrParameters["step"].GetInt();
 
         mMaxIterations = mrParameters["max_iterations"].GetInt();
         mTolerance = mrParameters["tolerance"].GetDouble();
@@ -264,7 +262,6 @@ private:
     std::string mModelPartName;
 
     unsigned int mEchoLevel;
-    unsigned int mStep;
 
     unsigned int mMaxIterations;
     double mTolerance;
@@ -287,10 +284,10 @@ private:
         KRATOS_TRY
 
         const double kinematic_viscosity =
-            rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY, mStep);
-        const double wall_distance = rNode.FastGetSolutionStepValue(DISTANCE, mStep);
+            rNode.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
+        const double wall_distance = rNode.FastGetSolutionStepValue(DISTANCE);
         const array_1d<double, 3>& velocity =
-            rNode.FastGetSolutionStepValue(rVelocityVariable, mStep);
+            rNode.FastGetSolutionStepValue(rVelocityVariable);
         const double velocity_magnitude = norm_2(velocity);
 
         if (velocity_magnitude < std::numeric_limits<double>::epsilon())
