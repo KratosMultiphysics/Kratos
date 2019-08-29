@@ -77,5 +77,3 @@ script.py
 
 # Auxiliar file (deprecated?)
 applications/python_scripts/beam_profiles\.csv
-
-*.idea
