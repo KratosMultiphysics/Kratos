@@ -147,6 +147,11 @@ public:
     NurbsSurfaceGeometry& operator=(const NurbsSurfaceGeometry& rOther)
     {
         BaseType::operator=(rOther);
+        mPolynomialDegreeU = rOther.mPolynomialDegreeU;
+        mPolynomialDegreeV = rOther.mPolynomialDegreeV;
+        mKnotsU = rOther.mKnotsU;
+        mKnotsV = rOther.mKnotsV;
+        mWeights = rOther.mWeights;
         return *this;
     }
 
@@ -166,6 +171,11 @@ public:
         NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
     {
         BaseType::operator=(rOther);
+        mPolynomialDegreeU = rOther.mPolynomialDegreeU;
+        mPolynomialDegreeV = rOther.mPolynomialDegreeV;
+        mKnotsU = rOther.mKnotsU;
+        mKnotsV = rOther.mKnotsV;
+        mWeights = rOther.mWeights;
         return *this;
     }
 
