@@ -30,16 +30,16 @@
 
 namespace Kratos {
 
-template <int TWorkingSpaceDimension, class TConatainerPointType>
-class NurbsSurfaceGeometry : public Geometry<typename TConatainerPointType::value_type>
+template <int TWorkingSpaceDimension, class TContainerPointType>
+class NurbsSurfaceGeometry : public Geometry<typename TContainerPointType::value_type>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Geometry as base class.
-    typedef Geometry<typename TConatainerPointType::value_type> BaseType;
-    typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TConatainerPointType> GeometryType;
+    typedef Geometry<typename TContainerPointType::value_type> BaseType;
+    typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
@@ -104,8 +104,8 @@ public:
     }
 
     /// Copy constructor.
-    NurbsSurfaceGeometry(NurbsSurfaceGeometry<TWorkingSpaceDimension, TConatainerPointType> const& rOther)
-        : BaseType(rOther, &msGeometryData)
+    NurbsSurfaceGeometry(NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> const& rOther)
+        : BaseType(rOther)
         , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
         , mPolynomialDegreeV(rOther.mPolynomialDegreeV)
         , mKnotsU(rOther.mKnotsU)

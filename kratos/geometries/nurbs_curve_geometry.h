@@ -88,8 +88,8 @@ public:
     }
 
     /// Copy constructor.
-    NurbsCurveGeometry(NurbsCurveGeometry const& rOther)
-        : BaseType(rOther, &msGeometryData)
+    NurbsCurveGeometry(NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>  const& rOther)
+        : BaseType(rOther)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
         , mWeights(rOther.mWeights)
