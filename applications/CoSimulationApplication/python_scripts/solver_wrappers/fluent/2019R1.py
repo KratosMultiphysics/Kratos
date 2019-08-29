@@ -21,33 +21,34 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.settings = parameters['settings']
         self.dir_cfd = os.path.join(os.getcwd(), self.settings['working_directory'].GetString())  # *** alternative for getcwd?
 
-        cores = self.settings['cores'].GetInt()
-        case_file = self.settings['case_file'].GetString()
-        thread_names = self.settings['face_threads'].parameters  # ***
-        n_threads = len(thread_names)
-        thread_ids = [-1] * n_threads
-        mnpf = self.settings['max_nodes_per_face'].GetInt()
+        self.cores = self.settings['cores'].GetInt()
+        self.case_file = self.settings['case_file'].GetString()
+        self.thread_names = self.settings['thread_names'].parameters  # ***
+        self.n_threads = len(self.thread_names)
+        self.thread_ids = [None] * self.n_threads
+        self.mnpf = self.settings['max_nodes_per_face'].GetInt()
+        self.dimensions = self.settings['dimensions'].GetInt()
 
-        journal = '2019R1.jou'
-        udf = '2019R1.c'
         path_src = os.path.realpath(os.path.dirname(__file__))
 
         # prepare Fluent input journal
+        journal = '2019R1.jou'
         thread_names_str = ''
-        for ft in thread_names:
+        for ft in self.thread_names:
             thread_names_str += ' "' + ft + '"'
         with open(os.path.join(path_src, journal), 'r') as infile:
             with open(os.path.join(self.dir_cfd, journal), 'w') as outfile:
                 for line in infile:
-                    line = line.replace('|case|', os.path.join(self.dir_cfd, case_file))
+                    line = line.replace('|case|', os.path.join(self.dir_cfd, self.case_file))
                     line = line.replace('|thread_names|', thread_names_str)
                     outfile.write(line)
 
         # prepare Fluent UDF
+        udf = '2019R1.c'
         with open(os.path.join(path_src, udf), 'r') as infile:
             with open(os.path.join(self.dir_cfd, udf), 'w') as outfile:
                 for line in infile:
-                    line = line.replace('|max_nodes_per_face|', str(mnpf))
+                    line = line.replace('|max_nodes_per_face|', str(self.mnpf))
                     outfile.write(line)
 
         # *** Parameters file should be updated! can't extract boolean (nor list)
@@ -57,11 +58,11 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         gui = ''
         if not fluent_gui:
             gui = ' -gu'
-        subprocess.Popen(f'fluent 2ddp{gui} -t{cores} -i {journal}',
-                             shell=True, executable='/bin/bash', cwd=self.dir_cfd)
+        # subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
+        #                      shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
 
         # get surface thread ID's from report.sum and write them to bcs.txt
-        self.wait_message('surface_info_exported')
+        # self.wait_message('surface_info_exported')  # *** ON/OFF
         report = os.path.join(self.dir_cfd, 'report.sum')
         check = 0
         info = []
@@ -69,9 +70,9 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             for line in file:
                 if check == 3 and line.islower():
                     name, id, _ = line.strip().split()
-                    if name in thread_names:
+                    if name in self.thread_names:
                         info.append(' '.join((name, id)))
-                        thread_ids[thread_names.index(name)] = id
+                        self.thread_ids[self.thread_names.index(name)] = id
                 if check == 3 and not line.islower():
                     break
                 if check == 2:  # skip 1 line
@@ -87,54 +88,95 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 file.write(line + '\n')
         self.send_message('thread_ids_written_to_file')
 
-        # import node and face information
-        self.wait_message('nodes_and_faces_stored')
+        # *** perhaps define number of dimensions in parameters,
+        # ***   and check if correct every now and then?
 
-        # import node data, sort unique on ID-string
-        node_coords = [None] * n_threads
-        node_ids = [None] * n_threads
-        for i in range(n_threads):
-            id = thread_ids[i]
+        # import node and face information
+        # self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
+
+        # import node data, unique sort on ID-string
+        self.node_coords = [None] * self.n_threads
+        self.node_ids = [None] * self.n_threads
+        for i in range(self.n_threads):
+            id = self.thread_ids[i]
             file = os.path.join(self.dir_cfd, f'nodes_thread{id}.dat')
             data = np.loadtxt(file, skiprows=1)
+            if data.shape[1] != self.dimensions + 1:
+                raise ValueError(f'given dimension does not match coordinates')
 
-            coords_tmp = data[:, :-1]
-            ids_tmp = data[:, -1:].astype(int).astype(str)
+            coords_tmp = np.zeros((data.shape[0], 3))
+            coords_tmp[:, :self.dimensions] = data[:, :-1]  # add column z if 2D
+            ids_tmp = data[:, -1].astype(int).astype(str)  # array is flattened
 
-            args = np.unique(ids_tmp.flatten(), return_index=True)[1].tolist()
+            args = np.unique(ids_tmp, return_index=True)[1].tolist()
+            self.node_coords[i] = coords_tmp[args, :]
+            self.node_ids[i] = ids_tmp[args]
 
-            node_coords[i] = coords_tmp[args, :]
-            node_ids[i] = ids_tmp[args, :]
-
-        # import face data, sort unique on ID-string
-        face_coords = [None] * n_threads
-        face_ids = [None] * n_threads
-        for i in range(n_threads):
-            id = thread_ids[i]
+        # import face data, unique sort on ID-string
+        self.face_coords = [None] * self.n_threads
+        self.face_ids = [None] * self.n_threads
+        for i in range(self.n_threads):
+            id = self.thread_ids[i]
             file = os.path.join(self.dir_cfd, f'faces_thread{id}.dat')
             data = np.loadtxt(file, skiprows=1)
+            if data.shape[1] != self.dimensions + self.mnpf:
+                raise ValueError(f'given dimension does not match coordinates')
 
-            coords_tmp = data[:, :-mnpf]
-            ids_tmp_all = data[:, -mnpf:].astype(int)
-            ids_tmp = np.zeros((ids_tmp_all.shape[0], 1), dtype='U256')
-
-            for j in range(ids_tmp_all.shape[0]):
+            coords_tmp = np.zeros((data.shape[0], 3))
+            coords_tmp[:, :self.dimensions] = data[:, :-self.mnpf]  # add column z if 2D
+            ids_tmp_all = data[:, -self.mnpf:].astype(int)
+            ids_tmp = np.zeros(data.shape[0], dtype='U256')  # array is flattened
+            for j in range(ids_tmp.size):
                 tmp = np.unique(ids_tmp_all[j, :])
                 if tmp[0] == -1:
                     tmp = tmp[1:]
                 ids_tmp[j] = '-'.join(tuple(tmp.astype(str)))
 
-            args = np.unique(ids_tmp.flatten(), return_index=True)[1].tolist()
-            face_coords[i] = coords_tmp[args, :]
-            face_ids[i] = ids_tmp[args, :]
+            args = np.unique(ids_tmp, return_index=True)[1].tolist()
+            self.face_coords[i] = coords_tmp[args, :]
+            self.face_ids[i] = ids_tmp[args]
+
+        # create Model and Modelparts
+        self.model = cs_data_structure.Model()
+        self.model_part_nodes = [None] * self.n_threads
+        self.model_part_faces = [None] * self.n_threads
+        for i in range(self.n_threads):
+            self.model_part_nodes[i] = self.model.CreateModelPart(f'nodes_{self.thread_ids[i]}')
+            self.model_part_faces[i] = self.model.CreateModelPart(f'faces_{self.thread_ids[i]}')
 
 
-        for i in range(n_threads):
-            print(f'\n\tTHREAD{i}')
-            print(node_coords[i][:10, :])
-            print(node_ids[i][:10, :])
-            print(face_coords[i][:10, :])
-            print(face_ids[i][:10, :])
+            # *** add the necessary variables for each modelpart has (e.g. pressure, traction vector)
+            # self.model_part.AddNodalSolutionStepVariable(self.variable_area)
+
+
+            for j in range(self.node_ids[i].size):
+                self.model_part_nodes[i].CreateNewNode(
+                    self.node_ids[i][j],
+                    self.node_coords[i][j, 0],
+                    self.node_coords[i][j, 1],
+                    self.node_coords[i][j, 2])
+
+            for j in range(self.face_ids[i].size):
+                self.model_part_faces[i].CreateNewNode(
+                    self.face_ids[i][j],
+                    self.face_coords[i][j, 0],
+                    self.face_coords[i][j, 1],
+                    self.face_coords[i][j, 2])
+
+            # *** can I ask for some data about ModelParts? perhaps print it?
+
+
+
+            # *** initialize the variables in the modelparts
+            # step = 0
+            # for node in self.model_part.Nodes:
+            #     node.SetSolutionStepValue(self.variable_area, step, self.a[0])
+
+
+        # *** so, what's next?
+
+        # *** when exporting data (pressure, traction),
+        # ***   the ID's of the faces also have to be exported always! (for sorting)
 
 
 
