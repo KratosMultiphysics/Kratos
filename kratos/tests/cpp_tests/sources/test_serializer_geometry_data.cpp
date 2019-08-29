@@ -113,6 +113,8 @@ namespace Kratos {
 
             KRATOS_CHECK_EQUAL(line_saved->size(), line_loaded->size());
             KRATOS_CHECK_EQUAL(line_saved->GetDefaultIntegrationMethod(), line_loaded->GetDefaultIntegrationMethod());
+
+            KRATOS_CHECK_EQUAL(&(line_saved->GetGeometryData()), &(line_loaded->GetGeometryData()));
         }
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerQuadraturePoint, KratosCoreFastSuite)
@@ -122,8 +124,6 @@ namespace Kratos {
             auto quadrature_saved = GenerateQuadraturePoint2();
 
             auto quadrature_loaded = GenerateQuadraturePoint2();
-
-            const std::string tag_string("LoadQuadraturePoint");
 
             serializer.save(tag_string, quadrature_saved);
             serializer.load(tag_string, quadrature_loaded);
@@ -137,6 +137,8 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(quadrature_saved->size(), quadrature_loaded->size());
             KRATOS_CHECK_EQUAL(quadrature_saved->WorkingSpaceDimension(), quadrature_loaded->WorkingSpaceDimension());
             KRATOS_CHECK_EQUAL(quadrature_saved->GetDefaultIntegrationMethod(), quadrature_loaded->GetDefaultIntegrationMethod());
+
+            KRATOS_CHECK_EQUAL(&(quadrature_saved->GetGeometryData()), &(quadrature_loaded->GetGeometryData()));
         }
     } // namespace Testing
 }  // namespace Kratos.
