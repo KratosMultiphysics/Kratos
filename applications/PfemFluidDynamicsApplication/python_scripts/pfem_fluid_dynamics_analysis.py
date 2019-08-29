@@ -48,11 +48,11 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         # defining the number of threads:
         num_threads = parameters["problem_data"]["threads"].GetInt()
         self.SetParallelSize(num_threads)
-        self.KratosPrintInfo("::[KPFEM Simulation]:: [OMP USING",num_threads,"THREADS ]")
+        self.KratosPrintInfo("::[KPFEM Simulation]:: [OMP USING" + str(num_threads) + "THREADS ]")
         #parallel.PrintOMPInfo()
 
         self.KratosPrintInfo(" ")
-        self.KratosPrintInfo("::[KPFEM Simulation]:: [Time Step:", parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()," echo:", self.echo_level,"]")
+        self.KratosPrintInfo("::[KPFEM Simulation]:: [Time Step:" + str(parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()) + " echo:" +  str(self.echo_level) + "]")
 
         #### Model_part settings start ####
         super(PfemFluidDynamicsAnalysis,self).__init__(model,parameters)
@@ -294,7 +294,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                 KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
                 self.KratosPrintInfo("")
                 self.KratosPrintInfo("**********************************************************")
-                self.KratosPrintInfo("---> Print Output at [STEP:",step," TIME:",time," DT:",delta_time,"]")
+                self.KratosPrintInfo("---> Print Output at [STEP:" + str(step) + " TIME:" + str(time) + " DT:" + str(delta_time) + "]")
                 self.KratosPrintInfo("**********************************************************")
                 self.KratosPrintInfo("")
                 self.graphical_output.PrintOutput()
