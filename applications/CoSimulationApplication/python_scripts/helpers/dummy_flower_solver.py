@@ -11,16 +11,9 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 import sys, time
 
-class ExternalFieldSolver(object):
-    """This class emulates the behavior of an external field solver (e.g. OpenFOAM)
-    It can be used for testing and development of couplings to external solvers,
-    without actually having to couple to an external solver
-
-    Note that this is only an example for an external solver, other configurations are
-    of course also possible
-
-    TODO: For now it uses directly the EMPIRE_API
-    In the future this will be replaced by a CoSim IO
+class DummyFLOWerSolver(object):
+    """This class emulates the behavior of an the CFD solver FLOWer
+    It can be used for testing and development of couplings without actually having to couple to FLOWer
     """
     def __init__(self, settings):
         default_settings = KM.Parameters("""{
@@ -178,5 +171,5 @@ if __name__ == '__main__':
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KM.Parameters(parameter_file.read())
 
-    simulation = ExternalFieldSolver(parameters)
+    simulation = DummyFLOWerSolver(parameters)
     simulation.Run()

@@ -16,7 +16,7 @@ class TestFLOWerCoupling(KratosUnittest.TestCase):
     '''
 
     def test_dummy_external_solver(self):
-        self._createTest("FLOWer_coupling", "cosim", "flower_solver")
+        self._createTest("FLOWer_coupling", "cosim", "dummy_flower_solver")
         self._runTest()
 
     def _createTest(self, problem_dir_name, parameter_file_name, ext_parameter_file_name):
@@ -38,7 +38,7 @@ class TestFLOWerCoupling(KratosUnittest.TestCase):
 
     def _runTest(self):
         p = subprocess.Popen(
-            ["python3", "../python_scripts/helpers/external_field_solver.py", self.ext_parameter_file_name],
+            ["python3", "../python_scripts/helpers/dummy_flower_solver.py", self.ext_parameter_file_name],
             cwd=os.path.dirname(os.path.abspath(__file__)))
 
         CoSimulationAnalysis(self.cosim_parameters).Run()
