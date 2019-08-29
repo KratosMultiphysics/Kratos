@@ -172,7 +172,7 @@ public:
         return indices;
     }
 
-    const double ShapeFunctionValue(
+    double ShapeFunctionValue(
         const IndexType ControlPointIndexU,
         const IndexType ControlPointIndexV,
         const SizeType DerivativeRow) const
@@ -185,7 +185,7 @@ public:
         return mShapeFunctionValues[index];
     }
 
-    const double ShapeFunctionValue(
+    double ShapeFunctionValue(
         const IndexType ControlPointIndex,
         const SizeType DerivativeOrder) const
     {
