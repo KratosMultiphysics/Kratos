@@ -36,6 +36,7 @@ class NurbsSurfaceGeometry : public Geometry<typename TConatainerPointType::valu
 public:
     ///@name Type Definitions
     ///@{
+
     /// Geometry as base class.
     typedef Geometry<typename TConatainerPointType::value_type> BaseType;
     typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TConatainerPointType> GeometryType;
@@ -116,7 +117,7 @@ public:
     /// Copy constructor from a geometry with different point type.
     template<class TOtherContainerPointType> NurbsSurfaceGeometry(
         NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const& rOther)
-        : BaseType(rOther)
+        : BaseType(rOther, &msGeometryData)
         , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
         , mPolynomialDegreeV(rOther.mPolynomialDegreeV)
         , mKnotsU(rOther.mKnotsU)
@@ -127,7 +128,6 @@ public:
 
     /// Destructor.
     ~NurbsSurfaceGeometry() override = default;
-
 
     ///@}
     ///@name Operators

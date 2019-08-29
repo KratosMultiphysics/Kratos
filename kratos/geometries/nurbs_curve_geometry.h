@@ -89,7 +89,7 @@ public:
 
     /// Copy constructor.
     NurbsCurveGeometry(NurbsCurveGeometry const& rOther)
-        : BaseType(rOther)
+        : BaseType(rOther, &msGeometryData)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
         , mWeights(rOther.mWeights)
@@ -99,7 +99,7 @@ public:
     /// Copy constructor from a geometry with different point type.
     template<class TOtherContainerPointType> NurbsCurveGeometry(
         NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const& rOther)
-        : BaseType(rOther)
+        : BaseType(rOther, &msGeometryData)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
         , mWeights(rOther.mWeights)
