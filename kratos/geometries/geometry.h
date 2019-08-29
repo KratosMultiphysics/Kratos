@@ -1273,14 +1273,6 @@ public:
     }
 
     /**
-    * @return the geometry data of a certain geometry class.
-    */
-    GeometryData const& GetGeometryData() const
-    {
-        return *mpGeometryData;
-    }
-
-    /**
      * Returns a matrix of the local coordinates of all points
      * @param rResult a Matrix that will be overwritten by the results
      * @return the coordinates of all points of the current geometry
