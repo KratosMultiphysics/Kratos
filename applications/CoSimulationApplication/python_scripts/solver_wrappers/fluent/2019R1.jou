@@ -48,7 +48,7 @@ define user-defined compiled-functions load "2019R1"
 ;   GET_THREAD_IDS IN UDF AND JOURNAL
 (wait_message "thread_ids_written_to_file")
 define user-defined execute-on-demand "get_thread_ids::2019R1"
-(define face_threads (list|face_threads|))
+(define face_threads (list|thread_names|))
 
 ;   CREATE DYNAMIC MESH ZONES
 (do ((k 0 (+ k 1))) ((>= k (length face_threads)))
