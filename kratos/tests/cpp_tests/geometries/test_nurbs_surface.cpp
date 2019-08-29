@@ -19,7 +19,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/nurbs_surface_geometry.h"
-#include "containers/pointer_vector.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
@@ -31,7 +30,7 @@ namespace Testing {
     /// Factory functions
     NurbsSurfaceGeometry<3, Point> GenerateReferencePointSurface()
     {
-        PointerVector<Point> points;
+        NurbsSurfaceGeometry<3, Point>::PointsArrayType points;
 
         points.push_back(Point::Pointer(new Point(-10.0, -5.0, -1.0)));
         points.push_back(Point::Pointer(new Point(-12.0, 3.0, 3.0)));
@@ -75,7 +74,7 @@ namespace Testing {
         weights[10] = 1.0;
         weights[11] = 1.0;
 
-        return NurbsSurfaceGeometry<3, PointerVector<Point>>(
+        return NurbsSurfaceGeometry<3, Point>(
                 points, p, q, knot_vector_u, knot_vector_v, weights);
     }
 
@@ -121,7 +120,7 @@ namespace Testing {
         weights[8] = 0.83146961230254524;
         weights[9] = 1.0;
 
-        return NurbsSurfaceGeometry<3, PointerVector<Point>>(
+        return NurbsSurfaceGeometry<3, Point>(
             points, p, q, knot_vector_u, knot_vector_v, weights);
     }
 
@@ -153,7 +152,7 @@ namespace Testing {
 
     NurbsSurfaceGeometry<3, Point> GenerateReferenceQuarterSphereGeometry()
     {
-        PointerVector<Point>::PointsArrayType points;
+        NurbsSurfaceGeometry<3, Point>::PointsArrayType points;
 
         points.push_back(Point::Pointer(new Point(000000000000000, -7.500000000000000e-02, 000000000000000)));
         points.push_back(Point::Pointer(new Point(1.260557702650798e-02, -7.500000000000000e-02, 000000000000000)));
@@ -264,7 +263,7 @@ namespace Testing {
         weights[34] = 9.349126180414551e-01;
         weights[35] = 1.0;
 
-        return NurbsSurfaceGeometry<3, PointerVector<Point>>(
+        return NurbsSurfaceGeometry<3, Point>(
             points, p, q, knot_vector_u, knot_vector_v, weights);
     }
 

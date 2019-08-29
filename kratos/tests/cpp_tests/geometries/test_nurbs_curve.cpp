@@ -18,7 +18,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/nurbs_curve_geometry.h"
-#include "containers/pointer_vector.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
@@ -27,10 +26,11 @@ namespace Testing {
 
 typedef Node<3> NodeType;
 
-    /// Factory functions
+// /// Factory functions
+//namespace {
     NurbsCurveGeometry<2, Point> GenerateReferenceCurve2d()
     {
-        PointerVector<Point> points;
+        NurbsCurveGeometry<2, Point>::PointsArrayType points;
 
         points.push_back(Point::Pointer(new Point(0, 0, 0)));
         points.push_back(Point::Pointer(new Point(3.3333333333333335, 1.6666666666666667, 0)));
@@ -47,14 +47,14 @@ typedef Node<3> NodeType;
 
         int p = 3;
 
-        auto curve = NurbsCurveGeometry<2, PointerVector<Point>>(points, p, knot_vector);
+        auto curve = NurbsCurveGeometry<2, Point>(points, p, knot_vector);
 
         return curve;
     }
 
     NurbsCurveGeometry<3, NodeType> GenerateReferenceCurve3d()
     {
-        PointerVector<NodeType> points;
+        NurbsCurveGeometry<3, NodeType>::PointsArrayType points;
 
         points.push_back(NodeType::Pointer(new NodeType(1, 0, -25, -5)));
         points.push_back(NodeType::Pointer(new NodeType(2, -15, -15, 0)));
@@ -90,7 +90,7 @@ typedef Node<3> NodeType;
         weights[6] = 1.0;
         weights[7] = 2.0;
 
-        auto curve = NurbsCurveGeometry<3, PointerVector<NodeType>>(points, p, knot_vector, weights);
+        auto curve = NurbsCurveGeometry<3, NodeType>(points, p, knot_vector, weights);
 
         return curve;
     }
