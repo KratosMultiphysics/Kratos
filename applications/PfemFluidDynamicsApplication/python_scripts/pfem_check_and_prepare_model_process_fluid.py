@@ -48,9 +48,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         self.main_model_part = main_model_part
 
         self.computing_model_part_name  = Parameters["computing_model_part_name"].GetString()
-        if( Parameters.Has("problem_domain_sub_model_part_list") ):
+        if Parameters.Has("problem_domain_sub_model_part_list"):
             self.sub_model_part_names     = Parameters["problem_domain_sub_model_part_list"]
-        if( Parameters.Has("processes_sub_model_part_list") ):
+        if Parameters.Has("processes_sub_model_part_list"):
             self.processes_model_part_names = Parameters["processes_sub_model_part_list"]
 
         self.bodies_parts_list = []
@@ -86,7 +86,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 #build body from their parts
                 body_parts_name_list = self.bodies_parts_list[i]["parts_list"]
                 body_parts_list = []
-                #for j in range(len(body_parts_name_list)):
                 for j in range(body_parts_name_list.size()):
 
                     body_parts_list.append(self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()))
@@ -94,7 +93,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 body_model_part_type = self.bodies_parts_list[i]["body_type"].GetString()
 
                 for part in body_parts_list:
-
                     entity_type = "Nodes"
                     clock_time = StartTimeMeasuring()
 
