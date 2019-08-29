@@ -256,8 +256,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             return (KratosMultiphysics.Process())
 
     def GraphicalOutputExecuteInitialize(self):
-        """This function sets the settings for the graphical
-        output
+        """This function performs the initialize of the graphical output
         """
         self.graphical_output.ExecuteInitialize()
 
