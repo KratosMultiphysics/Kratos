@@ -63,6 +63,8 @@ public:
     using EquationIdVectorType = typename PrimalCondition::EquationIdVectorType;
     using DofsVectorType = typename PrimalCondition::DofsVectorType;
 
+    constexpr static double StefanBoltzmann = PrimalCondition::StefanBoltzmann;
+
     ///@}
     ///@name Life Cycle
     ///@{

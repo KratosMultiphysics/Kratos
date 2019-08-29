@@ -221,6 +221,7 @@ void AdjointThermalFace<PrimalCondition>::CalculateSensitivityMatrix(
     const Properties& r_properties = this->GetProperties();
     const double ambient_temperature = r_properties.GetValue(AMBIENT_TEMPERATURE);
     const double convection_coefficient = r_properties.GetValue(CONVECTION_COEFFICIENT);
+    const double emissivity = r_properties.GetValue(EMISSIVITY);
 
     if (rDesignVariable == SHAPE_SENSITIVITY)
     {
@@ -239,6 +240,7 @@ void AdjointThermalFace<PrimalCondition>::CalculateSensitivityMatrix(
             double q_gauss = inner_prod(N,nodal_flux);
             double value_gauss = inner_prod(N, nodal_unknown);
             q_gauss -= convection_coefficient*(value_gauss - ambient_temperature); // add flux contribution from convection condition
+            q_gauss -= emissivity * StefanBoltzmann * (std::pow(value_gauss,4) - std::pow(ambient_temperature,4)); // flux contribution from radiation
 
             const double weight = integration_points[g].Weight();
 
