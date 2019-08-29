@@ -24,7 +24,7 @@
         "model_import_settings"           : {
             "input_type"     : "mdpa",
             "serializer_trace"             : "trace_all",
-            "input_filenames" : ["restart_files/two_balls"],
+            "input_filenames" : ["SpheresPart"],
             "restart_load_file_label" : "0.03001"
         }
     },
@@ -38,7 +38,7 @@
     "TranslationalIntegrationScheme" : "Symplectic_Euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
     "MaxTimeStep"                    : 1e-5,
-    "FinalTime"                      : 0.1,
+    "FinalTime"                      : 0.06,
     "GraphExportFreq"                : 0.001,
     "VelTrapGraphExportFreq"         : 0.001,
     "OutputTimeStep"                 : 0.01,
