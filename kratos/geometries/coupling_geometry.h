@@ -42,18 +42,14 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /**
-     * Geometry as base class.
-     */
+    /// Geometry as base class.
     typedef Geometry<TPointType> BaseType;
     typedef Geometry<TPointType> GeometryType;
 
     typedef typename GeometryType::Pointer GeometryPointer;
     typedef std::vector<GeometryPointer> GeometryPointerVector;
 
-    /**
-     * Pointer definition of CouplingGeometry
-     */
+    /// Pointer definition of CouplingGeometry
     KRATOS_CLASS_POINTER_DEFINITION( CouplingGeometry );
 
     typedef TPointType PointType;
