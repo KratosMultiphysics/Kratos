@@ -9,8 +9,8 @@
 //  Main authors:  Jordi Cotela
 //
 
-#if !defined(KRATOS_ADJOINT_THERMAL_FACE_CONDITION_H_INCLUDED )
-#define  KRATOS_ADJOINT_THERMAL_FACE_CONDITION_H_INCLUDED
+#if !defined(KRATOS_ADJOINT_THERMAL_FACE_H_INCLUDED )
+#define  KRATOS_ADJOINT_THERMAL_FACE_H_INCLUDED
 
 // System includes
 
@@ -46,14 +46,14 @@ namespace Kratos
 
 /// Heat flux Neumann condition for the ajdoint thermal diffusion problem.
 template< class PrimalCondition >
-class AdjointThermalFaceCondition: public PrimalCondition
+class AdjointThermalFace: public PrimalCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of AdjointThermalFaceCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointThermalFaceCondition);
+    /// Counted pointer of AdjointThermalFace
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointThermalFace);
 
     using IndexType = typename PrimalCondition::IndexType;
     using GeometryType = typename PrimalCondition::GeometryType;
@@ -67,12 +67,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    AdjointThermalFaceCondition(IndexType NewId, typename GeometryType::Pointer pGeometry);
+    AdjointThermalFace(IndexType NewId, typename GeometryType::Pointer pGeometry);
 
-    AdjointThermalFaceCondition(IndexType NewId, typename GeometryType::Pointer pGeometry,  Properties::Pointer pProperties);
+    AdjointThermalFace(IndexType NewId, typename GeometryType::Pointer pGeometry,  Properties::Pointer pProperties);
 
     /// Destructor.
-    ~AdjointThermalFaceCondition() override;
+    ~AdjointThermalFace() override;
 
     ///@}
     ///@name Operations
@@ -169,7 +169,7 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    AdjointThermalFaceCondition() : PrimalCondition()
+    AdjointThermalFace() : PrimalCondition()
     {
     }
 
@@ -212,14 +212,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    AdjointThermalFaceCondition& operator=(const AdjointThermalFaceCondition& rOther) = delete;
+    AdjointThermalFace& operator=(const AdjointThermalFace& rOther) = delete;
 
     /// Copy constructor.
-    AdjointThermalFaceCondition(const AdjointThermalFaceCondition& rOther) = delete;
+    AdjointThermalFace(const AdjointThermalFace& rOther) = delete;
 
     ///@}
 
-}; // Class AdjointThermalFaceCondition
+}; // Class AdjointThermalFace
 
 ///@}
 
@@ -234,14 +234,14 @@ private:
 
 /// input stream function
 template< class PrimalCondition >
-inline std::istream& operator >> (std::istream& rIStream, AdjointThermalFaceCondition<PrimalCondition>& rThis)
+inline std::istream& operator >> (std::istream& rIStream, AdjointThermalFace<PrimalCondition>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template< class PrimalCondition >
-inline std::ostream& operator << (std::ostream& rOStream, const AdjointThermalFaceCondition<PrimalCondition>& rThis)
+inline std::ostream& operator << (std::ostream& rOStream, const AdjointThermalFace<PrimalCondition>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -256,6 +256,6 @@ inline std::ostream& operator << (std::ostream& rOStream, const AdjointThermalFa
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADJOINT_THERMAL_FACE_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_ADJOINT_THERMAL_FACE_H_INCLUDED  defined
 
 
