@@ -20,6 +20,7 @@
 #include "mpi/utilities/model_part_communicator_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/gather_modelpart_utility.h"
+#include "mpi/utilities/mpi_normal_calculation_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -45,6 +46,14 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
         .def("ScatterFromMaster", &GatherModelPartUtility::ScatterFromMaster<double>)
         .def("ScatterFromMaster",
              &GatherModelPartUtility::ScatterFromMaster<array_1d<double, 3>>);
+
+    py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils")
+    .def(py::init<>())
+    .def("Check",&MPINormalCalculationUtils::Check)
+    .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
+    .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
+    ;
+
 }
 
 } // namespace Python

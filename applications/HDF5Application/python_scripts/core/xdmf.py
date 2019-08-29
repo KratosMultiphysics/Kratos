@@ -41,6 +41,7 @@ import xml.etree.ElementTree as ET
 class XdmfItem(metaclass=ABCMeta):
     """The base class for all XDMF XML elements."""
 
+    @property
     @abstractmethod
     def xml_tag(self):
         """Return the XML tag for the XDMF item as a string.
@@ -78,9 +79,11 @@ class DataItem(XdmfItem):
     HDF5 data set.
     """
 
+    @property
     def xml_tag(self):
         return "DataItem"
 
+    @property
     @abstractmethod
     def dimensions(self):
         """Return a shape tuple of the HDF5 data set.
@@ -94,9 +97,11 @@ class DataItem(XdmfItem):
 class Attribute(XdmfItem):
     """An abc for an XDMF Attribute (e.g., nodal or gauss point results)."""
 
+    @property
     def xml_tag(self):
         return "Attribute"
 
+    @property
     @abstractmethod
     def name(self):
         """A descriptive name of the results data.
@@ -105,6 +110,7 @@ class Attribute(XdmfItem):
         """
         pass
 
+    @property
     @abstractmethod
     def center(self):
         """Specifies where the data is centered.
@@ -113,6 +119,7 @@ class Attribute(XdmfItem):
         """
         pass
 
+    @property
     @abstractmethod
     def attribute_type(self):
         """Specifies the rank of the data.
@@ -128,6 +135,7 @@ class Topology(XdmfItem):
     The XDMF Topology describes the mesh connectivities.
     """
 
+    @property
     def xml_tag(self):
         return "Topology"
 
@@ -140,6 +148,7 @@ class Grid(XdmfItem):
     multiple grids together.
     """
 
+    @property
     def xml_tag(self):
         return "Grid"
 
@@ -159,48 +168,50 @@ class Time(XdmfItem):
     temporal grids.
     """
 
-    def __init__(self, time):
-        try:
-            self._time = str(time)
-        except Exception:
-            print('Invalid input argument!')
-
+    @property
     def xml_tag(self):
         return "Time"
 
-    def create_xml_element(self):
-        e = ET.Element(self.xml_tag(), self._attrib)
-        return e
-
     @property
-    def _attrib(self):
-        attribs = {"TimeType": "Single"}
-        attribs["Value"] = self._time
-        return attribs
+    def attrib(self):
+        attrib = {"TimeType": "Single"}
+        attrib["Value"] = self.time
+        return attrib
+
+    def __init__(self, time):
+        try:
+            self.time = str(time)
+        except Exception:
+            print('Invalid input argument!')
+
+    def create_xml_element(self):
+        e = ET.Element(self.xml_tag, self.attrib)
+        return e
 
 
 class Geometry(XdmfItem):
     """An XDMF Geometry (nodal coordinates)."""
 
-    def __init__(self, data):
-        """Construct the Geometry.
-
-        Keyword arguments:
-        data -- the DataItem for the nodal coordinates
-        """
-        self._data = data
-
+    @property
     def xml_tag(self):
         return "Geometry"
 
-    def create_xml_element(self):
-        e = ET.Element(self.xml_tag(), self._attrib)
-        e.append(self._data.create_xml_element())
-        return e
-
     @property
-    def _attrib(self):
+    def attrib(self):
         return {"GeometryType": "XYZ"}
+
+    def __init__(self, coords):
+        """Construct the Geometry.
+
+        Keyword arguments:
+        coords -- the DataItem for the nodal coordinates
+        """
+        self.coords = coords
+
+    def create_xml_element(self):
+        e = ET.Element(self.xml_tag, self.attrib)
+        e.append(self.coords.create_xml_element())
+        return e
 
 
 class TopologyCellType:
@@ -254,84 +265,66 @@ class UniformMeshTopology(Topology):
         data -- the connectivities (data[0:num_cells, 0:num_vertices_per_cell])
         """
         self._cell_type = cell_type
-        self._data = data
+        self.data = data
 
     def create_xml_element(self):
-        e = ET.Element(self.xml_tag(), self._cell_type.attrib)
-        e.set("NumberOfElements", str(self._data.dimensions()[0]))
-        e.append(self._data.create_xml_element())
+        e = ET.Element(self.xml_tag, self._cell_type.attrib)
+        e.set("NumberOfElements", str(self.data.dimensions[0]))
+        e.append(self.data.create_xml_element())
         return e
 
 
 class HDF5UniformDataItem(DataItem):
     """An XDMF DataItem for an HDF5 data set."""
 
-    def __init__(self, data_set):
-        self._file_name = data_set.file.filename
-        self._data_set_name = data_set.name
-        self._dtype = data_set.dtype
-        self._shape = data_set.shape
-
-    def create_xml_element(self):
-        e = ET.Element(self.xml_tag(), self._attrib)
-        e.text = self._file_name + ":" + self._data_set_name
-        return e
-
+    @property
     def dimensions(self):
-        return self._shape
+        return self._dimensions
 
     @property
-    def _attrib(self):
+    def attrib(self):
         attribs = {"Format": "HDF"}
-        if self._dtype == "int32":
+        if self.dtype == "int32":
             attribs["DataType"] = "Int"
-        elif self._dtype == "float64":
+        elif self.dtype == "float64":
             attribs["DataType"] = "Float"
             attribs["Precision"] = "8"
         else:
-            raise ValueError("Invalid data type %s." % self._dtype)
-        attribs["Dimensions"] = str(self.dimensions()).replace(',','').lstrip('(').rstrip(')')
+            raise ValueError("Invalid data type %s." % self.dtype)
+        attribs["Dimensions"] = str(self.dimensions).replace(',','').lstrip('(').rstrip(')')
         return attribs
+
+    def __init__(self, data_set):
+        self.file_name = data_set.file.filename
+        self.name = data_set.name
+        self.dtype = data_set.dtype
+        self._dimensions = data_set.shape
+
+    def create_xml_element(self):
+        e = ET.Element(self.xml_tag, self.attrib)
+        e.text = self.file_name + ":" + self.name
+        return e
 
 
 class NodalData(Attribute):
     """An XDMF Attribute for nodal solution step or data value container data."""
 
-    def __init__(self, name, data):
-        """Construct the object.
-
-        Keyword arguments:
-        name -- the name of the results data, e.g., "PRESSURE"
-        data -- the data item for the corresponding HDF5 data set
-        """
-        self._name = name
-        self._data = data
-
-    def create_xml_element(self):
-        e = ET.Element(self.xml_tag())
-        e.set("Name", self.name())
-        e.set("Center", "Node")
-        e.set("AttributeType", self.attribute_type())
-        e.append(self._data.create_xml_element())
-        return e
-
+    @property
     def name(self):
         return self._name
 
+    @property
     def center(self):
         return "Node"
 
+    @property
     def attribute_type(self):
-        if len(self._data.dimensions()) == 1:
+        if len(self.data.dimensions) == 1:
             return "Scalar"
-        elif len(self._data.dimensions()) == 2:
+        elif len(self.data.dimensions) == 2:
             return "Vector"
         else:
             raise Exception("Invalid dimensions.")
-
-
-class ElementSolutionStepData(Attribute):
-    """An XDMF Attribute for element data value container data."""
 
     def __init__(self, name, data):
         """Construct the object.
@@ -341,29 +334,54 @@ class ElementSolutionStepData(Attribute):
         data -- the data item for the corresponding HDF5 data set
         """
         self._name = name
-        self._data = data
+        self.data = data
 
     def create_xml_element(self):
-        e = ET.Element(self.xml_tag())
-        e.set("Name", self.name())
-        e.set("Center", "Cell")
-        e.set("AttributeType", self.attribute_type())
-        e.append(self._data.create_xml_element())
+        e = ET.Element(self.xml_tag)
+        e.set("Name", self.name)
+        e.set("Center", self.center)
+        e.set("AttributeType", self.attribute_type)
+        e.append(self.data.create_xml_element())
         return e
 
+
+class ElementData(Attribute):
+    """An XDMF Attribute for element data value container data."""
+
+    @property
     def name(self):
         return self._name
 
+    @property
     def center(self):
         return "Cell"
 
+    @property
     def attribute_type(self):
-        if len(self._data.dimensions()) == 1:
+        if len(self.data.dimensions) == 1:
             return "Scalar"
-        elif len(self._data.dimensions()) == 2:
+        elif len(self.data.dimensions) == 2:
             return "Vector"
         else:
             raise Exception("Invalid dimensions.")
+
+    def __init__(self, name, data):
+        """Construct the object.
+
+        Keyword arguments:
+        name -- the name of the results data, e.g., "PRESSURE"
+        data -- the data item for the corresponding HDF5 data set
+        """
+        self._name = name
+        self.data = data
+
+    def create_xml_element(self):
+        e = ET.Element(self.xml_tag)
+        e.set("Name", self.name)
+        e.set("Center", self.center)
+        e.set("AttributeType", self.attribute_type)
+        e.append(self.data.create_xml_element())
+        return e
 
 
 class SpatialGrid(Grid):
@@ -381,7 +399,7 @@ class SpatialGrid(Grid):
 
     def create_xml_element(self):
         # The "Name": "Mesh" is included here because VisIt seems to have problems otherwise -- mike.
-        e = ET.Element(self.xml_tag(), {"Name": "Mesh", "GridType": "Collection", "CollectionType": "Spatial"})
+        e = ET.Element(self.xml_tag, {"Name": "Mesh", "GridType": "Collection", "CollectionType": "Spatial"})
         for grid in self.grids:
             e.append(grid.create_xml_element())
         return e
@@ -403,12 +421,12 @@ class TemporalGrid(Grid):
     """
 
     def __init__(self):
-        self._times = []
-        self._grids = []
+        self.times = []
+        self.grids = []
 
     def create_xml_element(self):
-        e = ET.Element(self.xml_tag(), {"GridType": "Collection", "CollectionType": "Temporal"})
-        for time, grid in zip(self._times, self._grids):
+        e = ET.Element(self.xml_tag, {"GridType": "Collection", "CollectionType": "Temporal"})
+        for time, grid in zip(self.times, self.grids):
             tmp = grid.create_xml_element()
             tmp.append(time.create_xml_element())
             e.append(tmp)
@@ -416,7 +434,7 @@ class TemporalGrid(Grid):
 
     def add_attribute(self, attr):
         """Add an XDMF Attribute (results data set) to each child grid."""
-        for grid in self._grids:
+        for grid in self.grids:
             grid.add_attribute(attr)
 
     def add_grid(self, time, grid):
@@ -426,8 +444,8 @@ class TemporalGrid(Grid):
         time -- the XDMF time (see Time)
         grid -- the XDMF grid (see Grid)
         """
-        self._times.append(time)
-        self._grids.append(grid)
+        self.times.append(time)
+        self.grids.append(grid)
 
 
 class UniformGrid(Grid):
@@ -441,17 +459,17 @@ class UniformGrid(Grid):
         geom -- the XDMF Geometry (nodal coordinates, see Geometry)
         topology -- the XDMF Topology (mesh connectivities, see Topology)
         """
-        self._name = name
-        self._geometry = geom
-        self._topology = topology
-        self._attributes = []
+        self.name = name
+        self.geometry = geom
+        self.topology = topology
+        self.attributes = []
 
     def create_xml_element(self):
-        e = ET.Element(self.xml_tag())
-        e.set("Name", self._name)
-        e.append(self._topology.create_xml_element())
-        e.append(self._geometry.create_xml_element())
-        for attr in self._attributes:
+        e = ET.Element(self.xml_tag)
+        e.set("Name", self.name)
+        e.append(self.topology.create_xml_element())
+        e.append(self.geometry.create_xml_element())
+        for attr in self.attributes:
             e.append(attr.create_xml_element())
         return e
 
@@ -460,19 +478,7 @@ class UniformGrid(Grid):
 
         See class Attribute.
         """
-        self._attributes.append(attr)
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def geometry(self):
-        return self._geometry
-
-    @property
-    def topology(self):
-        return self._topology
+        self.attributes.append(attr)
 
 
 class Domain(XdmfItem):
@@ -480,6 +486,10 @@ class Domain(XdmfItem):
 
     Typically there is only one per simulation.
     """
+
+    @property
+    def xml_tag(self):
+        return "Domain"
 
     def __init__(self, grid):
         """Construct the object.
@@ -489,17 +499,18 @@ class Domain(XdmfItem):
         """
         self._grid = grid
 
-    def xml_tag(self):
-        return "Domain"
-
     def create_xml_element(self):
-        e = ET.Element(self.xml_tag())
+        e = ET.Element(self.xml_tag)
         e.append(self._grid.create_xml_element())
         return e
 
 
 class Xdmf(XdmfItem):
     """The XML root element of the XDMF model."""
+
+    @property
+    def xml_tag(self):
+        return "Xdmf"
 
     def __init__(self, domain):
         """Construct the object.
@@ -509,10 +520,7 @@ class Xdmf(XdmfItem):
         """
         self._domain = domain
 
-    def xml_tag(self):
-        return "Xdmf"
-
     def create_xml_element(self):
-        e = ET.Element(self.xml_tag(), {"Version": "3.0"})
+        e = ET.Element(self.xml_tag, {"Version": "3.0"})
         e.append(self._domain.create_xml_element())
         return e

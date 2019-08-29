@@ -4,7 +4,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
-import pfem_fluid_solver as BaseSolver
+from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_fluid_solver as BaseSolver
 
 def CreateSolver(model, parameters):
     return PfemFluidNodalIntegrationSolver(model, parameters)
