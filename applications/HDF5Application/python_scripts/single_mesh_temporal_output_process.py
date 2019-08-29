@@ -22,7 +22,7 @@ from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
 
 def Factory(settings, Model):
     """Return the process for single mesh temporal output with HDF5.
-    
+
     The input settings are given in the following table:
     +-------------------------------------+------------+------------------------------------+
     | Setting                             | Type       | Default Value                      |
@@ -59,7 +59,7 @@ def SingleMeshTemporalOutputProcessFactory(core_settings, Model):
 
 def CreateCoreSettings(user_settings):
     """Return the core settings.
-    
+
     The core setting "io_type" cannot be overwritten by the user. It is
     automatically set depending on whether or not MPI is used.
     """
@@ -128,4 +128,4 @@ def CreateCoreSettings(user_settings):
     ]
     for key in user_settings["output_time_settings"]:
         core_settings[1]["controller_settings"][key] = user_settings["output_time_settings"][key]
-    return core_settings.parameters
+    return core_settings
