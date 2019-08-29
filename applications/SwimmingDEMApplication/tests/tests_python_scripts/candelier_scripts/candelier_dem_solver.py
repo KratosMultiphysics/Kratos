@@ -1,7 +1,7 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_solver as swimming_DEM_solver
-import KratosMultiphysics.SwimmingDEMApplication.tests_python_scripts.candelier_scripts.candelier_parameters as candelier_pp
+import candelier_parameters as candelier_pp
 import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 
 BaseSolver = swimming_DEM_solver.SwimmingDEMSolver

@@ -105,7 +105,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
                 self.error_time = self.time
 
     def _CreateSolver(self):
-        import KratosMultiphysics.SwimmingDEMApplication.tests_python_scripts.candelier_scripts.candelier_dem_solver as swimming_dem_solver
+        import candelier_dem_solver as swimming_dem_solver
         return swimming_dem_solver.CandelierDEMSolver(self.model,
                                                      self.project_parameters,
                                                      self.GetFieldUtility(),
