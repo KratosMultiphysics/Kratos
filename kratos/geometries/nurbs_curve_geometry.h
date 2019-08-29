@@ -331,18 +331,21 @@ public:
 
     /**
      * @brief Returns the local coordinates of a given arbitrary point
+     * @param isConverged Flag on whether the projection was successful or not
+     * @param initialGuessParameter Initial guess for the Newton-Raphson iterations
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
     virtual CoordinatesArrayType& PointLocalCoordinates(
+        bool& isConverged,
+        const double initialGuessParameter,
         CoordinatesArrayType& rResult,
-        const CoordinatesArrayType& rPoint
+        CoordinatesArrayType& rPoint
     ) const
     {
-        double initial_guess_parameter = 0.0;
-        bool is_converged = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve<TWorkingSpaceDimension, TPointType>(
-            initial_guess_parameter,
+        isConverged = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve<TWorkingSpaceDimension, TPointType>(
+            initialGuessParameter,
             rPoint,
             rResult,
             *this

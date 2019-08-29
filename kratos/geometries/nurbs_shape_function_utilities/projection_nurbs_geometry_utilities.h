@@ -36,6 +36,9 @@ namespace Kratos
         *        geometry using the Newton-Rapshon iterative method
         * @param rInitialGuessParameter Intial guess for the Newton-Rapshon 
         *        algorithm
+        * @param rPoint The point to be projected onto the Nurbs curve geometry
+        *        This is overwritten by the Cartesian coordinates of the projected
+        *        point in case the projection is successful 
         * @param rResult The projection onto the Nurbs curve geometry
         * @param rNurbsCurve The Nurbs curve geometry onto which the point is 
         *        to be projected
@@ -47,7 +50,7 @@ namespace Kratos
         template <int TDimension, class TPointType>
         static bool NewtonRaphsonCurve(
             const double rInitialGuessParameter,
-            const CoordinatesArrayType& rPoint,
+            CoordinatesArrayType& rPoint,
             CoordinatesArrayType& rResult,
             const NurbsCurveGeometry<TDimension, TPointType>& rNurbsCurve,
             const int MaxIterations = 20,
@@ -56,44 +59,52 @@ namespace Kratos
         {
             rResult[0] = rInitialGuessParameter;
 
-            double min = rNurbsCurve.DomainInterval().MinParameter();
-            double max = rNurbsCurve.DomainInterval().MaxParameter();
-
+            // Loop over all Newton-Raphson iterations
             for (int i = 0; i < MaxIterations; i++) 
             {
+                // Compute the position, the base and the acceleration vector
                 auto derivatives = rNurbsCurve.GlobalDerivatives(
                     rResult,
                     2);
 
+                // Compute the distance vector between the point and its 
+                // projection on the curve
                 array_1d<double, 3> distance_vector = derivatives[0] - rPoint;
 
-                double distance = norm_2(distance_vector);
-
-                double c2n = inner_prod(derivatives[1], distance_vector);
-                double c2d = norm_2(derivatives[1]) * distance;
-
-                double c2v = c2d != 0 
-                    ? c2n / c2d
-                    : 0;
-
-                // Break condition
-                if (distance < ModelTolerance
-                    && std::abs(c2v) < Accuracy)
+                // Compute the distance between the point and its projection
+                // on the curve
+                if (norm_2(distance_vector) < std::max(ModelTolerance,Accuracy)) {
+                    KRATOS_WATCH("Inside the first check")
+                    rPoint = derivatives[0];
                     return true;
+                }
 
-                double delta_t = inner_prod(derivatives[1], distance_vector)
-                    / (inner_prod(derivatives[2], distance_vector) + pow(norm_2(derivatives[1]), 2));
+                // Compute the residual
+                double res = inner_prod(distance_vector, derivatives[1]);
+                if (std::abs(res) < Accuracy) {
+                    rPoint = derivatives[0];
+                    return true;
+                }
 
+                // Compute the increment
+                double delta_t = res / (inner_prod(derivatives[2], distance_vector) + pow(norm_2(derivatives[1]), 2));
+
+                // Increment the parametric coordinate
                 rResult[0] -= delta_t;
 
-                //Alternative if (rNurbsCurve.DomainInterval().IsInside())
+                // Check if the increment is too small and if yes return true
+                if (norm_2(delta_t*derivatives[1]) < Accuracy) {
+                    KRATOS_WATCH("Inside the third check")
+                    rPoint = derivatives[0];
+                    return true;
+                }
+
+                // Check if the parameter gets out of its interval of definition and if so clamp it 
+                // back to the boundaries
                 rNurbsCurve.DomainInterval().IsInside(rResult[0]);
-                /*if (rResult[0] < min || rResult[0] > max)
-                {
-                    return false;
-                }*/
             }
 
+            // Return false if the Newton-Raphson iterations did not converge
             return false;
     }
 

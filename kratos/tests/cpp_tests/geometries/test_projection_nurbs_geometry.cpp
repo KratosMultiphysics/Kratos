@@ -73,15 +73,45 @@ typedef Node<3> NodeType;
     KRATOS_TEST_CASE_IN_SUITE(NurbsGeometryProjection2d, KratosCoreNurbsGeometriesFastSuite) {
         auto curve = GenerateReferenceCurveForProjection2d();
 
-        array_1d<double, 3> parameter(0.0);
-        parameter[0] = -2.0;
-        parameter[1] = 1.0;
+        array_1d<double, 3> point(0.0);
+        point[0] = -2.0;
+        point[1] = 1.0;
+        point[2] = 0.0;
 
         array_1d<double, 3> result(0.0);
 
-        curve.PointLocalCoordinates(result, parameter);
+        // Try projection with initial guess at u = 0.0
+        const double initial_guess_parameter1 = 0.0;
+
+        bool isConverged1;
+
+        curve.PointLocalCoordinates(isConverged1, initial_guess_parameter1, result, point);
+
+        KRATOS_CHECK_EQUAL(isConverged1, true);
 
         KRATOS_CHECK_NEAR(result[0], 0.099395977882318, TOLERANCE);
+
+        std::vector<double> projected_point1 = {-0.129744540301921, -0.044240249340891, 0.0};
+
+        KRATOS_CHECK_VECTOR_NEAR(point, projected_point1, TOLERANCE);
+
+        // Try projection with initial guess at u = -1.0
+        const double initial_guess_parameter2 = curve.DomainInterval().MinParameter();
+        point[0] = -2.0;
+        point[1] = 1.0;
+        point[2] = 0.0;
+
+        bool isConverged2;
+
+        curve.PointLocalCoordinates(isConverged2, initial_guess_parameter2,result, point);
+
+        KRATOS_CHECK_EQUAL(isConverged2, true);
+
+        KRATOS_CHECK_NEAR(result[0], -0.788227217287371, TOLERANCE);
+
+        std::vector<double> projected_point2 = {-4.694701201131293, -3.571229085898834, 0.0};
+
+        KRATOS_CHECK_VECTOR_NEAR(point, projected_point2, TOLERANCE);
     }
 
 } // namespace Testing.
