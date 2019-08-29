@@ -1,5 +1,5 @@
 # Import Kratos core and apps
-import KratosMultiphysics as km
+import KratosMultiphysics as KM
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
@@ -10,9 +10,9 @@ import os, csv
 
 # Read parameters
 with open("optimization_parameters.json",'r') as parameter_file:
-    parameters = km.Parameters(parameter_file.read())
+    parameters = KM.Parameters(parameter_file.read())
 
-model = km.Model()
+model = KM.Model()
 
 # =======================================================================================================
 # Define external analyzer

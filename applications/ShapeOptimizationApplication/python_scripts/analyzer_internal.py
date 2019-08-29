@@ -17,9 +17,8 @@ import KratosMultiphysics as km
 
 # Additional imports
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory as csm_response_factory
-import time as timer
-
 from .analyzer_base import AnalyzerBaseClass
+import time as timer
 
 # ==============================================================================
 class KratosInternalAnalyzer( AnalyzerBaseClass ):

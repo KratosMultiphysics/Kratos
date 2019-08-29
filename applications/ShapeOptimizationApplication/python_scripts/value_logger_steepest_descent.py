@@ -9,8 +9,6 @@
 #
 # ==============================================================================
 
-# Kratos Core and Apps
-
 # Import logger base classes
 from .value_logger_base import ValueLogger
 

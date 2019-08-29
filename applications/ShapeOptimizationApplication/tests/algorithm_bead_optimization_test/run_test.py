@@ -1,8 +1,8 @@
 # Import Kratos core and apps
 import KratosMultiphysics as KM
-from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 
 # Additional imports
+from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, os

@@ -5,12 +5,10 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 
 # Additional imports
+from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, os
-from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
-
-
 
 # Read parameters
 with open("parameters.json",'r') as parameter_file:
