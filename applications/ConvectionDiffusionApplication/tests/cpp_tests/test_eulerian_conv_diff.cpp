@@ -86,6 +86,7 @@ namespace Testing
         // Set the nodal values
         for (auto &i_node : r_test_model_part.Nodes()) {
             i_node.FastGetSolutionStepValue(DENSITY) = 1.0;
+            i_node.FastGetSolutionStepValue(HEAT_FLUX) = 1.0;
             i_node.FastGetSolutionStepValue(CONDUCTIVITY) = 1.0;
             i_node.FastGetSolutionStepValue(SPECIFIC_HEAT) = 1.0;
         }
@@ -96,7 +97,7 @@ namespace Testing
         Matrix LHS = ZeroMatrix(3,3);
         p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
 
-        std::vector<double> expected_RHS = {0.0, 0.0, 0.0};
+        std::vector<double> expected_RHS = {0.166667, 0.166667, 0.166667};
         std::vector<double> expected_LHS = {1.83333, -0.0833333, -0.0833333,
                                             -0.0833333, 1.33333, 0.416667,
                                             -0.0833333, 0.416667, 1.33333};
