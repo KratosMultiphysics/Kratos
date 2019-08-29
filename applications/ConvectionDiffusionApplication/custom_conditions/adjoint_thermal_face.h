@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/condition.h"
+#include "custom_conditions/thermal_face.h"
 
 namespace Kratos
 {
@@ -45,8 +45,7 @@ namespace Kratos
 ///@{
 
 /// Heat flux Neumann condition for the ajdoint thermal diffusion problem.
-template< class PrimalCondition >
-class AdjointThermalFace: public PrimalCondition
+class AdjointThermalFace: public ThermalFace
 {
 public:
     ///@name Type Definitions
@@ -55,15 +54,15 @@ public:
     /// Counted pointer of AdjointThermalFace
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointThermalFace);
 
-    using IndexType = typename PrimalCondition::IndexType;
-    using GeometryType = typename PrimalCondition::GeometryType;
-    using NodesArrayType = typename PrimalCondition::NodesArrayType;
-    using MatrixType = typename PrimalCondition::MatrixType;
-    using VectorType = typename PrimalCondition::VectorType;
-    using EquationIdVectorType = typename PrimalCondition::EquationIdVectorType;
-    using DofsVectorType = typename PrimalCondition::DofsVectorType;
+    using IndexType = typename ThermalFace::IndexType;
+    using GeometryType = typename ThermalFace::GeometryType;
+    using NodesArrayType = typename ThermalFace::NodesArrayType;
+    using MatrixType = typename ThermalFace::MatrixType;
+    using VectorType = typename ThermalFace::VectorType;
+    using EquationIdVectorType = typename ThermalFace::EquationIdVectorType;
+    using DofsVectorType = typename ThermalFace::DofsVectorType;
 
-    constexpr static double StefanBoltzmann = PrimalCondition::StefanBoltzmann;
+    constexpr static double StefanBoltzmann = ThermalFace::StefanBoltzmann;
 
     ///@}
     ///@name Life Cycle
@@ -171,19 +170,19 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    AdjointThermalFace() : PrimalCondition()
+    AdjointThermalFace() : ThermalFace()
     {
     }
 
     void save(Serializer& rSerializer) const override
     {
-        using BaseType = PrimalCondition;
+        using BaseType = ThermalFace;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     }
 
     void load(Serializer& rSerializer) override
     {
-        using BaseType = PrimalCondition;
+        using BaseType = ThermalFace;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
 
@@ -235,15 +234,13 @@ private:
 
 
 /// input stream function
-template< class PrimalCondition >
-inline std::istream& operator >> (std::istream& rIStream, AdjointThermalFace<PrimalCondition>& rThis)
+inline std::istream& operator >> (std::istream& rIStream, AdjointThermalFace& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< class PrimalCondition >
-inline std::ostream& operator << (std::ostream& rOStream, const AdjointThermalFace<PrimalCondition>& rThis)
+inline std::ostream& operator << (std::ostream& rOStream, const AdjointThermalFace& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

@@ -10,7 +10,6 @@
 //
 
 #include "adjoint_thermal_face.h"
-#include "thermal_face.h"
 
 #include "convection_diffusion_application_variables.h"
 
@@ -22,53 +21,46 @@
 namespace Kratos
 {
 
-template<class PrimalCondition>
-AdjointThermalFace<PrimalCondition>::AdjointThermalFace(IndexType NewId, typename GeometryType::Pointer pGeometry):
-    PrimalCondition(NewId, pGeometry)
+AdjointThermalFace::AdjointThermalFace(IndexType NewId, typename GeometryType::Pointer pGeometry):
+    ThermalFace(NewId, pGeometry)
 {}
 
-template<class PrimalCondition>
-AdjointThermalFace<PrimalCondition>::AdjointThermalFace(
+AdjointThermalFace::AdjointThermalFace(
     IndexType NewId, typename GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
-    PrimalCondition(NewId, pGeometry, pProperties)
+    ThermalFace(NewId, pGeometry, pProperties)
 {}
 
-template<class PrimalCondition>
-AdjointThermalFace<PrimalCondition>::~AdjointThermalFace() {}
+AdjointThermalFace::~AdjointThermalFace() {}
 
-template<class PrimalCondition>
-Condition::Pointer AdjointThermalFace<PrimalCondition>::Create(
+Condition::Pointer AdjointThermalFace::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<AdjointThermalFace<PrimalCondition>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<AdjointThermalFace>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
-template<class PrimalCondition>
-Condition::Pointer AdjointThermalFace<PrimalCondition>::Create(
+Condition::Pointer AdjointThermalFace::Create(
     IndexType NewId,
     typename GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<AdjointThermalFace<PrimalCondition>>(NewId, pGeometry, pProperties);
+    return Kratos::make_intrusive<AdjointThermalFace>(NewId, pGeometry, pProperties);
 }
 
-template<class PrimalCondition>
-void AdjointThermalFace<PrimalCondition>::CalculateLocalSystem(
+void AdjointThermalFace::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
     // Delegating LHS matrix to base class
-    PrimalCondition::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    ThermalFace::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
     // Setting the RHS vector to zero
     noalias(rRightHandSideVector) = ZeroVector(rLeftHandSideMatrix.size2());
 }
 
-template<class PrimalCondition>
-void AdjointThermalFace<PrimalCondition>::CalculateRightHandSide(
+void AdjointThermalFace::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -83,8 +75,7 @@ void AdjointThermalFace<PrimalCondition>::CalculateRightHandSide(
     noalias(rRightHandSideVector) = ZeroVector(num_nodes);
 }
 
-template<class PrimalCondition>
-void AdjointThermalFace<PrimalCondition>::GetValuesVector(Vector& rValues, int Step)
+void AdjointThermalFace::GetValuesVector(Vector& rValues, int Step)
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -100,8 +91,7 @@ void AdjointThermalFace<PrimalCondition>::GetValuesVector(Vector& rValues, int S
     }
 }
 
-template<class PrimalCondition>
-void AdjointThermalFace<PrimalCondition>::EquationIdVector(
+void AdjointThermalFace::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -119,8 +109,7 @@ void AdjointThermalFace<PrimalCondition>::EquationIdVector(
     }
 }
 
-template<class PrimalCondition>
-void AdjointThermalFace<PrimalCondition>::GetDofList(
+void AdjointThermalFace::GetDofList(
     DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& r_geom = this->GetGeometry();
@@ -137,8 +126,7 @@ void AdjointThermalFace<PrimalCondition>::GetDofList(
     }
 }
 
-template<class PrimalCondition>
-int AdjointThermalFace<PrimalCondition>::Check(const ProcessInfo& rProcessInfo)
+int AdjointThermalFace::Check(const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
@@ -160,19 +148,17 @@ int AdjointThermalFace<PrimalCondition>::Check(const ProcessInfo& rProcessInfo)
     }
 
     KRATOS_CATCH("")
-    return PrimalCondition::Check(rProcessInfo);
+    return ThermalFace::Check(rProcessInfo);
 }
 
-template<class PrimalCondition>
-std::string AdjointThermalFace<PrimalCondition>::Info() const
+std::string AdjointThermalFace::Info() const
 {
     std::stringstream buffer;
     buffer << "AdjointThermalFace #" << this->Id();
     return buffer.str();
 }
 
-template<class PrimalCondition>
-void AdjointThermalFace<PrimalCondition>::PrintInfo(std::ostream& rOStream) const
+void AdjointThermalFace::PrintInfo(std::ostream& rOStream) const
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int dimension = r_geom.WorkingSpaceDimension();
@@ -180,8 +166,7 @@ void AdjointThermalFace<PrimalCondition>::PrintInfo(std::ostream& rOStream) cons
     rOStream << "AdjointThermalFace" << dimension << "D" << num_nodes << "N";
 }
 
-template<class PrimalCondition>
-void AdjointThermalFace<PrimalCondition>::CalculateSensitivityMatrix(
+void AdjointThermalFace::CalculateSensitivityMatrix(
     const Variable<array_1d<double, 3>>& rDesignVariable,
     Matrix& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -267,8 +252,7 @@ void AdjointThermalFace<PrimalCondition>::CalculateSensitivityMatrix(
     KRATOS_CATCH("")
 }
 
-template<class PrimalCondition>
-typename AdjointThermalFace<PrimalCondition>::MatrixType AdjointThermalFace<PrimalCondition>::GetJacobian(
+typename AdjointThermalFace::MatrixType AdjointThermalFace::GetJacobian(
     GeometryData::IntegrationMethod QuadratureOrder,
     unsigned int IntegrationPointIndex) const
 {
@@ -289,7 +273,5 @@ typename AdjointThermalFace<PrimalCondition>::MatrixType AdjointThermalFace<Prim
     noalias(jacobian) = prod(coordinates,rDN_De);
     return jacobian;
 }
-
-template class AdjointThermalFace<ThermalFace>;
 
 }
