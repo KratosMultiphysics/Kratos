@@ -24,12 +24,15 @@ class DEMSaveRestartProcess(SaveRestartProcess):
             "serializer_trace"             : "no_trace",
             "restart_save_frequency"       : 0.0,
             "restart_control_type"         : "time",
-            "save_restart_files_in_folder" : true
+            "save_restart_files_in_folder" : true,
+            "remove_restart_folder_after_reading" : false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
         params.ValidateAndAssignDefaults(default_settings)
+        self.remove_files = params["remove_restart_folder_after_reading"].GetBool()
         params.RemoveValue("help")
+        params.RemoveValue("remove_restart_folder_after_reading")
         model_parts = [model[mp.GetString()] for mp in params["model_part_names"]]
         import json
         params_dict = json.loads(params.PrettyPrintJsonString())

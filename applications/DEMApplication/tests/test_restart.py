@@ -34,7 +34,7 @@ class DEMRestartTestFactory():
             save_analysis = DEM_analysis_stage.DEMAnalysisStage(model_save, self.project_parameters_save)
             save_analysis.mdpas_folder_path = save_analysis.main_path + '/restart_files'
             load_analysis = DEM_analysis_stage.DEMAnalysisStage(model_load, self.project_parameters_load)
-
+            self.project_parameters_load["output_processes"].RemoveValue("restart_processes")
             def NullFunction():
                 pass
             load_analysis.CleanUpOperations = NullFunction

@@ -60,6 +60,7 @@
     "PostParticleMoment"             : false,
     "PostEulerAngles"                : false,
     "PostRollingResistanceMoment"    : false,
+    "do_print_results_option"        : false,
     "problem_name"                   : "two_balls",
 
     "output_processes" : {

@@ -99,7 +99,8 @@ class DEMAnalysisStage(AnalysisStage):
         # Prepare modelparts
         self.CreateModelParts()
 
-        self.SetGraphicalOutput()
+        if self.do_print_results_option:
+            self.SetGraphicalOutput()
         self.report = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.materialTest = DEM_procedures.MaterialTest()
@@ -438,7 +439,7 @@ class DEMAnalysisStage(AnalysisStage):
                 self.FaceAnalyzerClass.RemoveOldFile()
 
     def IsTimeToPrintPostProcess(self):
-        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
+        return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
 
     def PrintResults(self):
         #### GiD IO ##########################################
@@ -545,7 +546,8 @@ class DEMAnalysisStage(AnalysisStage):
     def Finalize(self):
 
         self.KratosPrintInfo("Finalizing execution...")
-        self.GraphicalOutputFinalize()
+        if self.do_print_results_option:
+            self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
@@ -594,8 +596,9 @@ class DEMAnalysisStage(AnalysisStage):
             self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):
-        self.demio.Initialize(self.DEM_parameters)
-        self.demio.InitializeMesh(self.all_model_parts)
+        if self.do_print_results_option:
+            self.demio.Initialize(self.DEM_parameters)
+            self.demio.InitializeMesh(self.all_model_parts)
 
     def PrintResultsForGid(self, time):
         if self._GetSolver().poisson_ratio_option:

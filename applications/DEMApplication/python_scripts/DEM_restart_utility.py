@@ -57,3 +57,6 @@ class DEMRestartUtility(RestartUtility):
             self.raw_path, self.raw_file_name = os.path.split(name)
             self.raw_path = os.path.join(os.getcwd(), self.raw_path)
             super(DEMRestartUtility, self).LoadRestart()
+
+            import shutil
+            shutil.rmtree(self._RestartUtility__GetFolderPathLoad())
