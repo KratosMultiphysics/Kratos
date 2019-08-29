@@ -60,28 +60,9 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             subprocess.Popen(f'fluent 2ddp{gui} -t{cores} -i {journal}',
                                  shell=True, executable='/bin/bash', cwd=self.dir_cfd)
 
-        time.sleep(10)
-        print('python start message checks')
-        self.send_message('python_1')
-        self.wait_message('fluent_2')
-        print('received fluent_2')
-        time.sleep(2)
-        self.send_message('python_3')
-        while True:
-            time.sleep(0.1)
-            b = self.check_message('fluent_4')
-            print(b)
-            if b:
-                break
-        print('python finished')
-
-
-
         # get surface thread ID's from report.sum and write them to bcs.txt
+        self.wait_message('surface_info_exported')
         report = os.path.join(self.dir_cfd, 'report.sum')
-        while not os.path.isfile(report):
-            time.sleep(0.01)
-
         check = 0
         info = []
         with open(report, 'r') as file:
@@ -103,10 +84,13 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             file.write(str(len(info)) + '\n')
             for line in info:
                 file.write(line + '\n')
+        self.send_message('thread_ids_written_to_file')
+
+        # import node and face information
+        self.wait_message('nodes_and_faces_stored')
+        print('\n\n\nPYTHON GOT SIGNAL THAT FLUENT IS READY\n\n\n')
 
 
-
-    # *** test these message functions, communicate a bit with journal
 
     def send_message(self, message):
         file = os.path.join(self.dir_cfd, message + ".msg")

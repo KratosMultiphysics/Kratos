@@ -32,52 +32,33 @@ file start-transcript "transcript.txt"
 	)
 )
 
-(newline)
-(display "fluent start message checks")
-(wait_message "python_1")
-(newline)
-(display "received python_1")
-(send_message "fluent_2")
-
-(do ((j 0 j)) ((= j 1))
-    (system "sleep 0.1")
-    (if
-        (check_message "python_3")
-        (set! j 1)
-    )
-    (display #f)
-    (newline)
-)
-(system "sleep 1")
-(send_message "fluent_4")
-(display "fluent finished")
-
 
 ;   READ CASE
-;file read-case |case|
-;solve set expert y n y
+file read-case |case|
+solve set expert y n y
 
 ;   SAVE DATA FOR SURFACE IDS
-;report summary y "report.sum"
+report summary y "report.sum"
+(send_message "surface_info_exported")
 
 ;   COMPILE AND LOAD UDF
-;define user-defined compiled-functions compile "2019R1" y "2019R1.c" "" ""
-;define user-defined compiled-functions load "2019R1"
+define user-defined compiled-functions compile "2019R1" y "2019R1.c" "" ""
+define user-defined compiled-functions load "2019R1"
 
 ;   GET_THREAD_IDS IN UDF AND JOURNAL
-;(define face_threads (list|face_threads|))
-; wair for signal from Python: write macro for this?
-;define user-defined execute-on-demand "get_thread_ids::2019R1"
+(wait_message "thread_ids_written_to_file")
+define user-defined execute-on-demand "get_thread_ids::2019R1"
+(define face_threads (list|face_threads|))
 
 ;   CREATE DYNAMIC MESH ZONES
-;(do ((k 0 (+ k 1))) ((>= k (length face_threads)))
-;    (ti-menu-load-string (format #f "define dynamic-mesh zones create ~a
-;        user-defined \"move_nodes::2019R1\"" (list-ref face_threads k)))
-;)
+(do ((k 0 (+ k 1))) ((>= k (length face_threads)))
+    (ti-menu-load-string (format #f "define dynamic-mesh zones create ~a
+        user-defined \"move_nodes::2019R1\"" (list-ref face_threads k)))
+)
 
 ;   STORE NODES AND FACES
-;define user-defined execute-on-demand "store_nodes_faces::2019R1"
-
+define user-defined execute-on-demand "store_nodes_faces::2019R1"
+(send_message "nodes_and_faces_stored")
 
 ;   SAVE CASE
 ;file write-case "case_out.cas"
