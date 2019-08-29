@@ -3,6 +3,8 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.RANSModellingApplication
 
+import run_cpp_unit_tests
+
 import subprocess
 
 # Import Kratos "wrapper" for unittests
@@ -39,6 +41,7 @@ def AssembleTestSuites():
     nightSuite.addTest(CustomProcessTest('testVectorAlignProcessNormal'))
     nightSuite.addTest(CustomProcessTest('testWallDistanceCalculationProcess'))
     nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusCalculationProcess'))
+    nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusVelocitySensitivitiesProcessFlow'))
     nightSuite.addTest(CustomProcessTest('testNuTHighReCalculationProcess'))
     nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
 
@@ -59,6 +62,7 @@ def AssembleTestSuites():
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")

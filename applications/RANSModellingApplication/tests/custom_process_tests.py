@@ -366,7 +366,6 @@ class CustomProcessTest(UnitTest.TestCase):
                 "Parameters" :             {
                     "model_part_name" : "test",
                     "echo_level"      : 0,
-                    "step"            : 0,
                     "max_iterations"  : 10,
                     "tolerance"       : 1e-6,
                     "constants": {
@@ -401,6 +400,72 @@ class CustomProcessTest(UnitTest.TestCase):
                     print("Checked linear region...")
             else:
                 self.assertAlmostEqual(y_plus, 0.0, 9)
+
+    def testLogarithmicYPlusVelocitySensitivitiesProcessFlow(self):
+        self.__CreateModel()
+
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "ApplyFlagProcess",
+                "Parameters" : {
+                    "model_part_name"                : "test.submodelpart_1",
+                    "echo_level"                     : 0,
+                    "flag_variable_name"             : "STRUCTURE",
+                    "flag_variable_value"            : true,
+                    "apply_to_model_part_conditions" : "all"
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "WallDistanceCalculationProcess",
+                "Parameters" :             {
+                    "model_part_name"          : "test",
+                    "max_iterations"           : 1000,
+                    "echo_level"               : 0,
+                    "wall_flag_variable_name"  : "STRUCTURE",
+                    "wall_flag_variable_value" : true,
+                    "linear_solver_settings" : {
+                        "solver_type"     : "amgcl"
+                    }
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "LogarithmicYPlusCalculationProcess",
+                "Parameters" :             {
+                    "model_part_name" : "test",
+                    "echo_level"      : 0,
+                    "max_iterations"  : 10,
+                    "tolerance"       : 1e-6,
+                    "constants": {
+                        "von_karman"  : 0.41,
+                        "beta"        : 5.2
+                    }
+                }
+            },
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "LogarithmicYPlusVelocitySensitivitiesProcess",
+                "Parameters" :             {
+                    "model_part_name" : "test",
+                    "echo_level"      : 0,
+                    "constants": {
+                        "von_karman"  : 0.41,
+                        "beta"        : 5.2
+                    }
+                }
+            }
+        ]''')
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(settings)
+        self.__ExecuteProcesses()
 
     def testNuTHighReCalculationProcess(self):
         self.__CreateModel()
