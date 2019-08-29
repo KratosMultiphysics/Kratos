@@ -72,9 +72,7 @@ def _ImportApplicationAsModule(application, application_name, application_folder
     # adding the scripts in "APP_NAME/python_scripts" such that they are treated as a regular python-module
     application_path = os.path.join(applications_root, application_folder)
     python_path = os.path.join(application_path, 'python_scripts')
-    #tests_path = os.path.join(application_path, 'tests')
     mod_path.append(python_path)
-    #mod_path.append(tests_path)
 
     # Add application to kernel
     Kernel.ImportApplication(application)
