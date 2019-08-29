@@ -11,14 +11,14 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 def Create(settings, solver_name):
-    return GaussSeidelStrong(settings, solver_name)
+    return GaussSeidelStrongCoupledSolver(settings, solver_name)
 
-class GaussSeidelStrong(CoSimulationCoupledSolver):
+class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
     def __init__(self, settings, solver_name):
         if not settings['coupling_sequence'].size() == 2:
             raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
-        super(GaussSeidelStrong, self).__init__(settings, solver_name)
+        super(GaussSeidelStrongCoupledSolver, self).__init__(settings, solver_name)
 
         self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],
@@ -33,7 +33,7 @@ class GaussSeidelStrong(CoSimulationCoupledSolver):
         self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
 
     def Initialize(self):
-        super(GaussSeidelStrong, self).Initialize()
+        super(GaussSeidelStrongCoupledSolver, self).Initialize()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Initialize()
@@ -42,7 +42,7 @@ class GaussSeidelStrong(CoSimulationCoupledSolver):
             conv_crit.Initialize()
 
     def Finalize(self):
-        super(GaussSeidelStrong, self).Finalize()
+        super(GaussSeidelStrongCoupledSolver, self).Finalize()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.Finalize()
@@ -51,7 +51,7 @@ class GaussSeidelStrong(CoSimulationCoupledSolver):
             conv_crit.Finalize()
 
     def InitializeSolutionStep(self):
-        super(GaussSeidelStrong, self).InitializeSolutionStep()
+        super(GaussSeidelStrongCoupledSolver, self).InitializeSolutionStep()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.InitializeSolutionStep()
@@ -60,7 +60,7 @@ class GaussSeidelStrong(CoSimulationCoupledSolver):
             conv_crit.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(GaussSeidelStrong, self).FinalizeSolutionStep()
+        super(GaussSeidelStrongCoupledSolver, self).FinalizeSolutionStep()
 
         for conv_acc in self.convergence_accelerators_list:
             conv_acc.FinalizeSolutionStep()
@@ -72,16 +72,16 @@ class GaussSeidelStrong(CoSimulationCoupledSolver):
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
             if self.echo_level > 0:
-                cs_tools.cs_print_info(self._Name(), colors.cyan("Coupling iteration:"), colors.bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
+                cs_tools.cs_print_info(self._ClassName(), colors.cyan("Coupling iteration:"), colors.bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
 
             for coupling_op in self.coupling_operations_dict.values():
                 coupling_op.InitializeCouplingIteration()
 
             for conv_acc in self.convergence_accelerators_list:
-                conv_acc.InitializeCouplingIteration()
+                conv_acc.InitializeNonLinearIteration()
 
             for conv_crit in self.convergence_criteria_list:
-                conv_crit.InitializeCouplingIteration()
+                conv_crit.InitializeNonLinearIteration()
 
             for solver_name, solver in self.solver_wrappers.items():
                 self._SynchronizeInputData(solver_name)
@@ -92,17 +92,17 @@ class GaussSeidelStrong(CoSimulationCoupledSolver):
                 coupling_op.FinalizeCouplingIteration()
 
             for conv_acc in self.convergence_accelerators_list:
-                conv_acc.FinalizeCouplingIteration()
+                conv_acc.FinalizeNonLinearIteration()
 
             for conv_crit in self.convergence_criteria_list:
-                conv_crit.FinalizeCouplingIteration()
+                conv_crit.FinalizeNonLinearIteration()
 
             is_converged = True
             for conv_crit in self.convergence_criteria_list:
                 is_converged = is_converged and conv_crit.IsConverged()
             if is_converged:
                 if self.echo_level > 0:
-                    cs_tools.cs_print_info(self._Name(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
+                    cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
                 return True
             else:
                 # TODO I think this should not be done in the last iterations if the solution does not converge in this timestep
@@ -110,11 +110,11 @@ class GaussSeidelStrong(CoSimulationCoupledSolver):
                     conv_acc.ComputeAndApplyUpdate()
 
             if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
-                cs_tools.cs_print_info(self._Name(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+                cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
                 return False
 
     def Check(self):
-        super(GaussSeidelStrong, self).Check()
+        super(GaussSeidelStrongCoupledSolver, self).Check()
 
         if len(self.convergence_criteria_list) == 0:
             raise Exception("At least one convergence criteria has to be specified")
@@ -134,6 +134,6 @@ class GaussSeidelStrong(CoSimulationCoupledSolver):
             "convergence_criteria"     : [],
             "num_coupling_iterations"  : 10
         }""")
-        this_defaults.AddMissingParameters(super(GaussSeidelStrong, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(GaussSeidelStrongCoupledSolver, cls)._GetDefaultSettings())
 
         return this_defaults

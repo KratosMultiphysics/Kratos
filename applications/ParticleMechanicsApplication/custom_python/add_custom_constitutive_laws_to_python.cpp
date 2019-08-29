@@ -37,7 +37,7 @@
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 
 //---flow rules
-#include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/particle_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.hpp"
@@ -69,9 +69,9 @@ namespace Python{
 
     namespace py = pybind11;
 
-    typedef MPMFlowRule::Pointer                  MPMFlowRulePointer;
-    typedef MPMYieldCriterion::Pointer      MPMYieldCriterionPointer;
-    typedef MPMHardeningLaw::Pointer          MPMHardeningLawPointer;
+    typedef ParticleFlowRule::Pointer                  MPMFlowRulePointer;
+    typedef ParticleYieldCriterion::Pointer      MPMYieldCriterionPointer;
+    typedef ParticleHardeningLaw::Pointer          MPMHardeningLawPointer;
     typedef Properties::Pointer                    PropertiesPointer;
     typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
 

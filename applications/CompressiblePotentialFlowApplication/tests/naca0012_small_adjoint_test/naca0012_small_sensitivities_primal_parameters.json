@@ -20,9 +20,10 @@
         "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
         "no_skin_parts"          : [],
         "linear_solver_settings"  : {
-            "solver_type"             : "skyline_lu_factorization",
+            "solver_type"             : "ExternalSolversApplication.super_lu",
             "verbosity"               : 0
-        }
+        },
+        "reference_chord": 1.0
     },
     "processes" : {
         "initial_conditions_process_list"  : [],
@@ -50,7 +51,8 @@
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
-                "moment_reference_point" : [0.0,0.0,0.0]
+                "moment_reference_point" : [0.0,0.0,0.0],
+                "far_field_model_part_name": "MainModelPart.PotentialWallCondition2D_Far_field_Auto1"
             }
         }],
         "list_other_processes" :[{

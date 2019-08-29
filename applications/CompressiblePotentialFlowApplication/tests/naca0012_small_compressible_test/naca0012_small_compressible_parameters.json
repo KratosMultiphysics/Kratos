@@ -22,7 +22,7 @@
         "relative_tolerance": 1e-12,
         "absolute_tolerance": 1e-12,
         "linear_solver_settings"  : {
-                "solver_type"             : "skyline_lu_factorization",
+                "solver_type"             : "ExternalSolversApplication.super_lu",
                 "verbosity"               : 0
         },
         "volume_model_part_name" : "Parts_Parts_Auto1",
@@ -53,7 +53,8 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body"
+                "model_part_name" : "MainModelPart.Body2D_Body",
+                "far_field_model_part_name": "MainModelPart.PotentialWallCondition2D_Far_field_Auto1"
             }
         }],
         "auxiliar_process_list" :[{

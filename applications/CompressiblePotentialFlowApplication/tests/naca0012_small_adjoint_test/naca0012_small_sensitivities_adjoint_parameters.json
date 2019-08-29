@@ -31,8 +31,9 @@
             },
         "echo_level"                   : 0,
         "linear_solver_settings"       : {
-            "solver_type"         : "skyline_lu_factorization"
-        }
+            "solver_type"         : "ExternalSolversApplication.super_lu"
+        },
+        "reference_chord": 1.0
     },
     "processes" : {
         "boundary_conditions_process_list" : [

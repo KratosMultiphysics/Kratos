@@ -8,6 +8,8 @@ import time as timer
 # Import system python
 import os
 
+from importlib import import_module
+
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
@@ -74,14 +76,16 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
     def _CreateSolver(self):
-
-        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
-        return solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        python_module_name = "KratosMultiphysics.PfemFluidDynamicsApplication"
+        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
+        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        return solver
 
     def AddNodalVariablesToModelPart(self):
 
         # Add PfemSolidMechanicsApplication Variables
-        import pfem_variables
+        from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_variables
         pfem_variables.AddVariables(self.main_model_part)
 
 
@@ -115,7 +119,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### Processes settings start ####
 
         #obtain the list of the processes to be applied
-        import process_handler
+        from KratosMultiphysics.SolidMechanicsApplication.process_handler import ProcessHandler
 
         process_parameters = KratosMultiphysics.Parameters("{}")
         process_parameters.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
@@ -130,7 +134,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         # if( self.project_parameters.Has("check_process_list") ):
         #     process_parameters.AddValue("check_process_list", self.project_parameters["check_process_list"])
 
-        self.model_processes = process_handler.ProcessHandler(self.model, process_parameters)
+        self.model_processes = ProcessHandler(self.model, process_parameters)
 
         self.model_processes.ExecuteInitialize()
 
@@ -293,7 +297,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
     def SetGraphicalOutput(self):
         if( self.project_parameters.Has("output_configuration") ):
-            from pfem_fluid_gid_output_process import GiDOutputProcess
+            from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_gid_output_process import GiDOutputProcess
             self.output_settings = self.project_parameters["output_configuration"]
             self.post_process_model_part = self.model.CreateModelPart("output_model_part")
             #KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
@@ -323,10 +327,13 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         if( self.project_parameters.Has("output_configuration") ):
             self.post_process_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if(self.graphical_output.IsOutputStep()):
+                time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+                delta_time=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                step=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
                 KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
                 print("")
                 print("**********************************************************")
-                print("---> Print Output at [STEP:",self.step," TIME:",self.time," DT:",self.delta_time,"]")
+                print("---> Print Output at [STEP:",step," TIME:",time," DT:",delta_time,"]")
                 print("**********************************************************")
                 print("")
                 self.graphical_output.PrintOutput()
@@ -362,8 +369,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
     #### Main internal methods ####
 
     def _import_project_parameters(self, input_file):
-        import input_manager
-        self.input_manager = input_manager.InputManager(input_file)
+        from KratosMultiphysics.SolidMechanicsApplication.input_manager import InputManager
+        self.input_manager = InputManager(input_file)
         return self.input_manager.Getparameters()
 
 

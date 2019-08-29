@@ -575,15 +575,18 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
-    if( rVariable == CAUCHY_STRESS_TENSOR || rVariable == TOTAL_STRESS_TENSOR || rVariable == GREEN_LAGRANGE_STRAIN_TENSOR || rVariable == PERMEABILITY_MATRIX )
-    {
+    if( rVariable == CAUCHY_STRESS_TENSOR ||
+        rVariable == TOTAL_STRESS_TENSOR ||
+        rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||
+        rVariable == PERMEABILITY_MATRIX ) {
+
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
 
         this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-    else
-    {
+
+    } else {
+
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize(mConstitutiveLawVector.size());
 
@@ -593,6 +596,7 @@ void UPwElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Matr
             noalias(rValues[i]) = ZeroMatrix(TDim,TDim);
             rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
         }
+
     }
 }
 

@@ -7,7 +7,7 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication
 
-from poromechanics_analysis import PoromechanicsAnalysis
+from KratosMultiphysics.PoromechanicsApplication.poromechanics_analysis import PoromechanicsAnalysis
 
 if __name__ == "__main__":
 

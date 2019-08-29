@@ -16,16 +16,16 @@ from numpy import linalg as la
 
 def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return RelativeNormPreviousResidual(settings, solver_wrapper)
+    return RelativeNormPreviousResidualConvergenceCriteria(settings, solver_wrapper)
 
-class RelativeNormPreviousResidual(CoSimulationConvergenceCriteria):
+class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
     def __init__(self, settings, solver_wrapper):
-        super(RelativeNormPreviousResidual, self).__init__( settings, solver_wrapper)
+        super(RelativeNormPreviousResidualConvergenceCriteria, self).__init__( settings, solver_wrapper)
 
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
 
-    def InitializeCouplingIteration(self):
+    def InitializeNonLinearIteration(self):
         # Saving the previous data (at beginning of iteration) for the computation of the residual
         self.prev_data = self.interface_data.GetData()
 
@@ -50,13 +50,13 @@ class RelativeNormPreviousResidual(CoSimulationConvergenceCriteria):
                 info_msg += colors.green("ACHIEVED")
             else:
                 info_msg += colors.red("NOT ACHIEVED")
-            cs_tools.cs_print_info(self._Name(), info_msg)
+            cs_tools.cs_print_info(self._ClassName(), info_msg)
         if self.echo_level > 2:
             info_msg  = colors.bold("abs_norm") + " = " + str(abs_norm) + " | "
             info_msg += colors.bold("abs_tol")  + " = " + str(self.abs_tolerance) + " || "
             info_msg += colors.bold("rel_norm") + " = " + str(rel_norm) + " | "
             info_msg += colors.bold("rel_tol")  + " = " + str(self.rel_tolerance)
-            cs_tools.cs_print_info(self._Name(), info_msg)
+            cs_tools.cs_print_info(self._ClassName(), info_msg)
 
         return is_converged
 
@@ -66,6 +66,6 @@ class RelativeNormPreviousResidual(CoSimulationConvergenceCriteria):
             "abs_tolerance" : 1e-5,
             "rel_tolerance" : 1e-5
         }""")
-        this_defaults.AddMissingParameters(super(RelativeNormPreviousResidual, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(RelativeNormPreviousResidualConvergenceCriteria, cls)._GetDefaultSettings())
         return this_defaults
 
