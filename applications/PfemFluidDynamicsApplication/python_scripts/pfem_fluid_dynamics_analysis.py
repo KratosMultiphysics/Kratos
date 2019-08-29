@@ -63,7 +63,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, parameters["solver_settings"]["domain_size"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, parameters["problem_data"]["start_time"].GetDouble())
-        if( parameters["problem_data"].Has("gravity_vector") ):
+        if parameters["problem_data"].Has("gravity_vector"):
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_X, parameters["problem_data"]["gravity_vector"][0].GetDouble())
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Y, parameters["problem_data"]["gravity_vector"][1].GetDouble())
              self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, parameters["problem_data"]["gravity_vector"][2].GetDouble())
@@ -72,6 +72,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
     def _CreateSolver(self):
+        """Create the solver
+        """
         python_module_name = "KratosMultiphysics.PfemFluidDynamicsApplication"
         full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
         solver_module = import_module(full_module_name)
@@ -79,11 +81,16 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         return solver
 
     def AddNodalVariablesToModelPart(self):
-        # Add PfemSolidMechanicsApplication Variables
+        """ Add PfemSolidMechanicsApplication Variables
+        """
         from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_variables
         pfem_variables.AddVariables(self.main_model_part)
 
     def Initialize(self):
+        """This function initializes the AnalysisStage
+        Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
+        This function has to be implemented in deriving classes!
+        """
         # Add variables (always before importing the model part)
         self.AddNodalVariablesToModelPart()
 
@@ -96,9 +103,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                 self._solver.AddDofs()
         else:
             self._solver.AddDofs()
-
-        #### Model_part settings end ####
-
 
         #print model_part and properties
         if (self.echo_level>1):
@@ -160,6 +164,9 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
 
     def InitializeSolutionStep(self):
+        """This function performs all the required operations that should be executed
+        (for each step) BEFORE solving the solution step.
+        """
         self.clock_time = self.StartTimeMeasuring()
         # processes to be executed at the begining of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
@@ -175,7 +182,9 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.StopTimeMeasuring(self.clock_time,"Initialize Step" , self.report)
 
     def FinalizeSolutionStep(self):
-
+        """This function performs all the required operations that should be executed
+        (for each step) AFTER solving the solution step.
+        """
         self.clock_time = self.StartTimeMeasuring();
         self._GetSolver().FinalizeSolutionStep()
         self.GraphicalOutputExecuteFinalizeSolutionStep()
@@ -202,9 +211,14 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
 
     def OutputSolutionStep(self):
+        """This function printed / writes output files after the solution of a step
+        """
         pass
 
     def Finalize(self):
+        """This function finalizes the AnalysisStage
+        Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
+        """
 
         # Ending the problem (time integration finished)
         self.GraphicalOutputExecuteFinalize()
