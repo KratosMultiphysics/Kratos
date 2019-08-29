@@ -331,7 +331,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         time_fp = timer.clock()
         if report:
             used_time = time_fp - time_ip
-            self.KratosPrintInfo("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
+            print("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
 
     def _GetOrderOfProcessesInitialization(self):
         """This function can be overridden in derived classes if the order of
