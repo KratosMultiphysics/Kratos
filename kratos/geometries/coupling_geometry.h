@@ -97,6 +97,7 @@ public:
      */
     CouplingGeometry( CouplingGeometry const& rOther )
         : BaseType( rOther )
+        , mpGeometries(rOther.mpGeometries)
     {
     }
 
@@ -115,6 +116,7 @@ public:
     template<class TOtherPointType> explicit CouplingGeometry(
         CouplingGeometry<TOtherPointType> const& rOther )
         : BaseType( rOther )
+        , mpGeometries( rOther.mpGeometries )
     {
     }
 
@@ -141,6 +143,7 @@ public:
     CouplingGeometry& operator=( const CouplingGeometry& rOther )
     {
         BaseType::operator=( rOther );
+        mpGeometries = rOther.mpGeometries;
         return *this;
     }
 
@@ -160,6 +163,7 @@ public:
         CouplingGeometry<TOtherPointType> const & rOther )
     {
         BaseType::operator=( rOther );
+        mpGeometries = rOther.mpGeometries;
         return *this;
     }
 
