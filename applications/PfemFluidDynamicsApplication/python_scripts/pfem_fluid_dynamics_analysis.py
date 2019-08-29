@@ -242,6 +242,9 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
 
     def SetGraphicalOutput(self):
+        """This function sets the settings for the graphical
+        output
+        """
         if( self.project_parameters.Has("output_configuration") ):
             from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_gid_output_process import GiDOutputProcess
             self.output_settings = self.project_parameters["output_configuration"]
@@ -253,21 +256,35 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             return (KratosMultiphysics.Process())
 
     def GraphicalOutputExecuteInitialize(self):
+        """This function sets the settings for the graphical
+        output
+        """
         self.graphical_output.ExecuteInitialize()
 
     def GraphicalOutputExecuteBeforeSolutionLoop(self):
+        """This function performs the ExecuteBeforeSolutionLoop
+        of the graphical_output
+        """
         # writing a initial state results file or single file (if no restart)
         if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
                 self.graphical_output.ExecuteBeforeSolutionLoop()
 
     def GraphicalOutputExecuteInitializeSolutionStep(self):
+        """This function performs the ExecuteInitializeSolutionStep
+        of the graphical_output
+        """
         self.graphical_output.ExecuteInitializeSolutionStep()
 
     def GraphicalOutputExecuteFinalizeSolutionStep(self):
+        """This function performs the ExecuteFinalizeSolutionStep
+        of the graphical_output
+        """
         self.graphical_output.ExecuteFinalizeSolutionStep()
 
     def GraphicalOutputPrintOutput(self):
+        """This function prints the output for this time step
+        """
         if( self.project_parameters.Has("output_configuration") ):
             self.post_process_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if(self.graphical_output.IsOutputStep()):
@@ -283,22 +300,33 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                 self.graphical_output.PrintOutput()
 
     def GraphicalOutputExecuteFinalize(self):
+        """This function performs the ExecuteFinalize
+        of the graphical_output
+        """
         self.graphical_output.ExecuteFinalize()
 
     def SetParallelSize(self, num_threads):
+        """This function sets the number of threads
+        """
         parallel = KratosMultiphysics.OpenMPUtils()
         parallel.SetNumThreads(int(num_threads))
 
     def GetParallelSize(self):
+        """This function returns the number of threads
+        """
         parallel = KratosMultiphysics.OpenMPUtils()
         return parallel.GetNumThreads()
 
     def StartTimeMeasuring(self):
+        """This function starts time calculation
+        """
         # Measure process time
         time_ip = timer.clock()
         return time_ip
 
     def StopTimeMeasuring(self, time_ip, process, report):
+        """This function ends time calculation
+        """
         # Measure process time
         time_fp = timer.clock()
         if report:
@@ -306,6 +334,9 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             self.KratosPrintInfo("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
 
     def _GetOrderOfProcessesInitialization(self):
+        """This function can be overridden in derived classes if the order of
+        initialization for the processes matters
+        """
         return ["constraints_process_list",
                 "loads_process_list",
                 "auxiliar_process_list"]
@@ -313,10 +344,17 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
     #### Main internal methods ####
 
     def _import_project_parameters(self, input_file):
+        """This function reads the ProjectsParameters.json
+        """
         from KratosMultiphysics.SolidMechanicsApplication.input_manager import InputManager
         self.input_manager = InputManager(input_file)
         return self.input_manager.Getparameters()
 
+    def KratosPrintInfo(self, message):
+        """This function prints info on screen
+        """
+        KratosMultiphysics.Logger.Print(message, label="")
+        KratosMultiphysics.Logger.Flush()
 
 if __name__ == "__main__":
     parameter_file_name = "ProjectParameters.json"
@@ -326,6 +364,3 @@ if __name__ == "__main__":
     simulation = PfemFluidDynamicsAnalysis(model,parameters)
     simulation.Run()
 
-    def KratosPrintInfo(self, message):
-        KratosMultiphysics.Logger.Print(message, label="")
-        KratosMultiphysics.Logger.Flush()
