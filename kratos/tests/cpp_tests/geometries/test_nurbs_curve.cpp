@@ -29,7 +29,7 @@ typedef Node<3> NodeType;
 
 // /// Factory functions
 //namespace {
-    NurbsCurveGeometry<2, Point> GenerateReferenceCurve2d()
+    NurbsCurveGeometry<2, PointerVector<Point>> GenerateReferenceCurve2d()
     {
         PointerVector<Point> points;
 
@@ -53,7 +53,7 @@ typedef Node<3> NodeType;
         return curve;
     }
 
-    NurbsCurveGeometry<3, NodeType> GenerateReferenceCurve3d()
+    NurbsCurveGeometry<3, PointerVector<NodeType>> GenerateReferenceCurve3d()
     {
         PointerVector<NodeType> points;
 
