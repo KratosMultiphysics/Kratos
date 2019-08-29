@@ -49,6 +49,7 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     typedef typename GeometryType::Pointer GeometryPointer;
+    typedef std::vector<GeometryPointer> GeometryPointerVector
 
     /**
      * Pointer definition of CouplingGeometry
@@ -79,6 +80,14 @@ public:
 
         mpGeometries[0] = pMasterGeometry;
         mpGeometries[1] = pSlaveGeometry;
+    }
+
+    /// Constructor for coupling multiple points.
+    CouplingGeometry(
+        GeometryPointerVector GeometryPointerVector)
+        : BaseType(PointsArrayType(), &(GeometryPointerVector[0]->GetGeometryData()))
+        , mpGeometries(GeometryPointerVector)
+    {
     }
 
     explicit CouplingGeometry(const PointsArrayType& ThisPoints)
@@ -120,9 +129,7 @@ public:
     {
     }
 
-    /**
-     * Destructor. Does nothing!!!
-     */
+    /// Destructor
     ~CouplingGeometry() override = default;
 
     ///@}
@@ -294,7 +301,7 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    std::vector<GeometryPointer> mpGeometries;
+    GeometryPointerVector mpGeometries;
 
     ///@}
     ///@name Serialization
