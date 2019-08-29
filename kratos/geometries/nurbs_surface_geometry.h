@@ -108,7 +108,7 @@ public:
     }
 
     /// Copy constructor.
-    NurbsSurfaceGeometry(NurbsSurfaceGeometry const& rOther)
+    NurbsSurfaceGeometry(NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType> const& rOther)
         : BaseType(rOther, &msGeometryData)
         , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
         , mPolynomialDegreeV(rOther.mPolynomialDegreeV)
