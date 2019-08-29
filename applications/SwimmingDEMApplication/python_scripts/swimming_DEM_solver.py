@@ -4,10 +4,10 @@ from KratosMultiphysics import Logger, Parameters
 from python_solver import PythonSolver
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import math
-import swimming_DEM_procedures as SDP
-import parameters_tools as PT
-import CFD_DEM_coupling
-import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
+import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
+import KratosMultiphysics.SwimmingDEMApplication.CFD_DEM_coupling as CFD_DEM_coupling
+import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
@@ -18,7 +18,7 @@ class SwimmingDEMSolver(PythonSolver):
 
         default_processes_settings = Parameters("""{
                 "python_module" : "calculate_nodal_area_process",
-                "kratos_module" : "KratosMultiphysics",
+                "kratos_module" : "KratosMultiphysics.SwimmingDEMApplication",
                 "process_name"  : "CalculateNodalAreaProcess",
                 "Parameters"    : {
                     "model_part_name" : "FluidModelPart",
@@ -245,6 +245,8 @@ class SwimmingDEMSolver(PythonSolver):
         # Solving the disperse-phase component
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')
         self.SolveDEM()
+
+        return True
 
     def SolveFluidSolutionStep(self):
         self.fluid_solver.SolveSolutionStep()
