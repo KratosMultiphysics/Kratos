@@ -49,7 +49,7 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     typedef typename GeometryType::Pointer GeometryPointer;
-    typedef std::vector<GeometryPointer> GeometryPointerVector
+    typedef std::vector<GeometryPointer> GeometryPointerVector;
 
     /**
      * Pointer definition of CouplingGeometry
@@ -62,6 +62,13 @@ public:
     typedef typename BaseType::SizeType SizeType;
 
     typedef typename BaseType::PointsArrayType PointsArrayType;
+
+    ///@}
+    ///@name Public Static Members
+    ///@{
+
+    static constexpr IndexType Master = 0;
+    static constexpr IndexType Slave = 1;
 
     ///@}
     ///@name Life Cycle
@@ -90,7 +97,7 @@ public:
     {
     }
 
-    explicit CouplingGeometry(const PointsArrayType& ThisPoints)
+    explicit CouplingGeometry()
         : BaseType()
     {
     }
@@ -181,7 +188,7 @@ public:
     typename BaseType::Pointer Create(
         PointsArrayType const& ThisPoints ) const override
     {
-        return Kratos::make_shared<CouplingGeometry>(ThisPoints);
+        return Kratos::make_shared<CouplingGeometry>();
     }
 
     ///@}
@@ -320,8 +327,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("Geometries", mpGeometries);
     }
-
-    CouplingGeometry() : BaseType() {}
 
     ///@}
     ///@name Private Friends
