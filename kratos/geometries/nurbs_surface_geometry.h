@@ -30,23 +30,18 @@
 
 namespace Kratos {
 
-template <int TWorkingSpaceDimension, class TPointType>
-class NurbsSurfaceGeometry : public Geometry<TPointType>
+template <int TWorkingSpaceDimension, class TConatainerPointType>
+class NurbsSurfaceGeometry : public Geometry<typename TConatainerPointType::value_type>
 {
 public:
     ///@name Type Definitions
     ///@{
     /// Geometry as base class.
-    typedef Geometry<TPointType> BaseType;
-    typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType> GeometryType;
+    typedef Geometry<typename TConatainerPointType::value_type> BaseType;
+    typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TConatainerPointType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
-
-    typedef typename TPointType::Pointer PointPointerType;
-    typedef const PointPointerType ConstPointPointerType;
-    typedef TPointType& PointReferenceType;
-    typedef const TPointType& ConstPointReferenceType;
 
     /** Array of counted pointers to point. This type used to hold
         geometry's points.*/
@@ -108,7 +103,7 @@ public:
     }
 
     /// Copy constructor.
-    NurbsSurfaceGeometry(NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType> const& rOther)
+    NurbsSurfaceGeometry(NurbsSurfaceGeometry<TWorkingSpaceDimension, TConatainerPointType> const& rOther)
         : BaseType(rOther, &msGeometryData)
         , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
         , mPolynomialDegreeV(rOther.mPolynomialDegreeV)
@@ -119,8 +114,8 @@ public:
     }
 
     /// Copy constructor from a geometry with different point type.
-    template<class TOtherPointType> NurbsSurfaceGeometry(
-        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherPointType> const& rOther)
+    template<class TOtherContainerPointType> NurbsSurfaceGeometry(
+        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const& rOther)
         : BaseType(rOther)
         , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
         , mPolynomialDegreeV(rOther.mPolynomialDegreeV)
@@ -166,9 +161,9 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    template<class TOtherPointType>
+    template<class TOtherContainerPointType>
     NurbsSurfaceGeometry& operator=(
-        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherPointType> const & rOther)
+        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
     {
         BaseType::operator=(rOther);
         return *this;
