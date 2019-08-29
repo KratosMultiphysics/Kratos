@@ -36,11 +36,16 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         thread_names_str = ''
         for ft in self.thread_names:
             thread_names_str += ' "' + ft + '"'
+        if self.settings['hybrid_initialization'].parameters['a_py_kratos']:  # ***
+            hybrid_initialization = '#t'
+        else:
+            hybrid_initialization = '#f'
         with open(os.path.join(path_src, journal), 'r') as infile:
             with open(os.path.join(self.dir_cfd, journal), 'w') as outfile:
                 for line in infile:
                     line = line.replace('|case|', os.path.join(self.dir_cfd, self.case_file))
                     line = line.replace('|thread_names|', thread_names_str)
+                    line = line.replace('|hybrid_initialization|', hybrid_initialization)
                     outfile.write(line)
 
         # prepare Fluent UDF
@@ -58,11 +63,11 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         gui = ''
         if not fluent_gui:
             gui = ' -gu'
-        # subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
-        #                      shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
+        subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
+                             shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
 
         # get surface thread ID's from report.sum and write them to bcs.txt
-        # self.wait_message('surface_info_exported')  # *** ON/OFF
+        self.wait_message('surface_info_exported')  # *** ON/OFF
         report = os.path.join(self.dir_cfd, 'report.sum')
         check = 0
         info = []
@@ -92,7 +97,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         # ***   and check if correct every now and then?
 
         # import node and face information
-        # self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
+        self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
 
         # import node data, unique sort on ID-string
         self.node_coords = [None] * self.n_threads
@@ -144,10 +149,10 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             self.model_part_nodes[i] = self.model.CreateModelPart(f'nodes_{self.thread_ids[i]}')
             self.model_part_faces[i] = self.model.CreateModelPart(f'faces_{self.thread_ids[i]}')
 
-
-            # *** add the necessary variables for each modelpart has (e.g. pressure, traction vector)
+            # *** add the necessary variables for each modelpart
+            # ***   faces: pressure, traction vector
+            # ***   displacement vector
             # self.model_part.AddNodalSolutionStepVariable(self.variable_area)
-
 
             for j in range(self.node_ids[i].size):
                 self.model_part_nodes[i].CreateNewNode(
@@ -163,7 +168,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                     self.face_coords[i][j, 1],
                     self.face_coords[i][j, 2])
 
-            # *** can I ask for some data about ModelParts? perhaps print it?
+            # *** can I ask for some data about ModelParts? perhaps print it? to check stuff...
 
 
 

@@ -1,4 +1,4 @@
-/ make mesh running following commands from this folder:
+/ make mesh by running following commands from this folder:
 /   ml GAMBIT/2.4.6
 /   gambit -inp gambit.jou
 vertex create coordinates 0 0 0
@@ -13,7 +13,8 @@ edge create straight "vertex.1" "vertex.4"
 
 face create wireframe "edge.1" "edge.2" "edge.3" "edge.4" real
 
-edge mesh "edge.1" "edge.2" "edge.3" "edge.4" size 0.01
+edge mesh "edge.2" "edge.4" intervals 3
+edge mesh "edge.1" "edge.3" intervals 10
 face mesh "face.1" map
 
 physics create "inlet" btype "VELOCITY_INLET" edge "edge.4"

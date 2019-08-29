@@ -16,5 +16,7 @@ def dyn dyn y n n
 def dyn controls smoothing n
 def dyn zones create default-interior deforming faceted n y n n ,,, n
 
+solve initialize compute-defaults velocity-inlet ,
+
 f wc "case.cas"
 e y

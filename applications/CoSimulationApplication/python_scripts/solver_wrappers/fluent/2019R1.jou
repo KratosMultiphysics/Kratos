@@ -56,10 +56,19 @@ define user-defined execute-on-demand "get_thread_ids::2019R1"
         user-defined \"move_nodes::2019R1\"" (list-ref face_threads k)))
 )
 
-;   STORE NODES AND FACES
-define user-defined execute-on-demand "store_nodes_faces::2019R1"
+;   STORE COORDINATES AND ID
+define user-defined execute-on-demand "store_coordinates_id::2019R1"
 (send_message "nodes_and_faces_stored")
 
+;   INITIALIZE SOLUTION
+(if |hybrid_initialization|
+    (ti-menu-load-string "solve initialize hyb-initialization y")
+    (ti-menu-load-string "solve initialize initialize-flow y")
+)
+
+;   STORE PRESSURE AND TRACTION
+
+
 ;   SAVE CASE
-;file write-case "case_out.cas"
+file write-case "case_out.cas"
 exit y
