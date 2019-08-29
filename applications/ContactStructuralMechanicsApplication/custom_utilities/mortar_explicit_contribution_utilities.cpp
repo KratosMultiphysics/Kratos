@@ -32,7 +32,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     KRATOS_TRY
 
     // The slave geometry
-    GeometryType& r_slave_geometry = pCondition->GetGeometry();
+    GeometryType& r_slave_geometry = pCondition->GetParentGeometry();
     const array_1d<double, 3>& r_normal_slave = pCondition->GetValue(NORMAL);
 
     // Create and initialize condition variables
@@ -177,7 +177,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     KRATOS_TRY;
 
     // The slave geometry
-    GeometryType& r_slave_geometry = pCondition->GetGeometry();
+    GeometryType& r_slave_geometry = pCondition->GetParentGeometry();
     const array_1d<double, 3>& r_normal_slave = pCondition->GetValue(NORMAL);
 
     // Create and initialize condition variables
@@ -372,7 +372,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 {
     // We "save" the mortar operator for the next step
     // The slave geometry
-    GeometryType& r_slave_geometry = pCondition->GetGeometry();
+    GeometryType& r_slave_geometry = pCondition->GetParentGeometry();
     const array_1d<double, 3>& r_normal_slave = pCondition->GetValue(NORMAL);
 
     // Create and initialize condition variables
@@ -541,7 +541,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 {
     /// SLAVE CONDITION ///
     /* SHAPE FUNCTIONS */
-    const auto& r_geometry = pCondition->GetGeometry();
+    const auto& r_geometry = pCondition->GetParentGeometry();
     r_geometry.ShapeFunctionsValues( rVariables.NSlave, rLocalPointParent.Coordinates() );
     rVariables.PhiLagrangeMultipliers = (DualLM) ? prod(rAe, rVariables.NSlave) : rVariables.NSlave;
 
@@ -575,7 +575,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 {
     /// SLAVE CONDITION ///
     /* SHAPE FUNCTIONS */
-    const auto& r_geometry = pCondition->GetGeometry();
+    const auto& r_geometry = pCondition->GetParentGeometry();
     r_geometry.ShapeFunctionsValues( rVariables.NSlave, rLocalPointParent.Coordinates() );
     rVariables.PhiLagrangeMultipliers = (DualLM) ? prod(rDerivativeData.Ae, rVariables.NSlave) : rVariables.NSlave;
 
@@ -603,7 +603,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     const PointType& rLocalPoint
     )
 {
-    GeometryType& r_slave_geometry = pCondition->GetGeometry();
+    GeometryType& r_slave_geometry = pCondition->GetParentGeometry();
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     PointType projected_gp_global;
@@ -651,7 +651,7 @@ double AuxiliarOperationsUtilities::CalculateRadius(
 
     double current_radius = 0.0;
 
-    const auto& r_geometry = pCondition->GetGeometry();
+    const auto& r_geometry = pCondition->GetParentGeometry();
     for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
         // Displacement from the reference to the current configuration
         const array_1d<double, 3 >& r_current_position = r_geometry[i_node].Coordinates();
