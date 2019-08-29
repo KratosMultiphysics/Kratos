@@ -9,6 +9,7 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/shallow_water_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/shallow_water_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shallow_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rv_swe.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/primitive_var_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conserved_var_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/euler_prim_var_element.cpp
