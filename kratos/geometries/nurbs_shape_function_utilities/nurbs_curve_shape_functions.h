@@ -193,7 +193,7 @@ public:
         ClearValues();
 
         const int polynominal_degree = static_cast<int>(PolynomialDegree());
-        const int number_of_control_points =
+        const int number_of_nonzero_control_points =
             static_cast<int>(NumberOfNonzeroControlPoints());
         const int number_of_shape_function_rows =
             static_cast<int>(NumberOfShapeFunctionRows());
@@ -203,7 +203,7 @@ public:
         // compute B-Spline shape
         Ndu(0, 0) = 1.0;
 
-        for (int j = 0; j < PolynomialDegree(); j++) {
+        for (int j = 0; j < polynominal_degree; j++) {
             mLeft[j] = ParameterT - rKnots[Span - j];
             mRight[j] = rKnots[Span + j + 1] - ParameterT;
 
@@ -221,21 +221,21 @@ public:
             Ndu(j + 1, j + 1) = saved;
         }
 
-        for (int j = 0; j < NumberOfNonzeroControlPoints(); j++) {
-            ShapeFunctionValue(j, 0) = Ndu(j, PolynomialDegree());
+        for (int j = 0; j < number_of_nonzero_control_points; j++) {
+            ShapeFunctionValue(j, 0) = Ndu(j, polynominal_degree);
         }
 
         auto& a = mA;
         auto& b = mB;
 
-        for (int r = 0; r < NumberOfNonzeroControlPoints(); r++) {
+        for (int r = 0; r < number_of_nonzero_control_points; r++) {
             a[0] = 1.0;
 
-            for (int k = 1; k < NumberOfShapeFunctionRows(); k++) {
+            for (int k = 1; k < number_of_shape_function_rows; k++) {
                 double& value = ShapeFunctionValue(r, k);
 
                 int rk = r - k;
-                int pk = PolynomialDegree() - k;
+                int pk = polynominal_degree - k;
 
                 if (r >= k) {
                     b[0] = a[0] / Ndu(pk + 1, rk);
@@ -243,7 +243,7 @@ public:
                 }
 
                 int j1 = r >= k - 1 ? 1 : k - r;
-                int j2 = r <= pk + 1 ? k : NumberOfNonzeroControlPoints() - r;
+                int j2 = r <= pk + 1 ? k : number_of_nonzero_control_points - r;
 
                 for (int j = j1; j < j2; j++) {
                     b[j] = (a[j] - a[j - 1]) / Ndu(pk + 1, rk + j);
@@ -259,13 +259,13 @@ public:
             }
         }
 
-        int s = PolynomialDegree();
+        int s = polynominal_degree;
 
-        for (int k = 1; k < NumberOfShapeFunctionRows(); k++) {
-            for (int j = 0; j < NumberOfNonzeroControlPoints(); j++) {
+        for (int k = 1; k < number_of_shape_function_rows; k++) {
+            for (int j = 0; j < number_of_nonzero_control_points; j++) {
                 ShapeFunctionValue(j, k) *= s;
             }
-            s *= PolynomialDegree() - k;
+            s *= polynominal_degree - k;
         }
     }
 
@@ -309,28 +309,28 @@ public:
         // apply weights
         std::vector<double> weightedSums(NumberOfShapeFunctionRows());
 
-        for (int k = 0; k < NumberOfShapeFunctionRows(); k++) {
+        for (IndexType k = 0; k < NumberOfShapeFunctionRows(); k++) {
             weightedSums[k] = 0;
 
-            for (int i = 0; i < NumberOfNonzeroControlPoints(); i++) {
-                const size_t poleIndex = GetFirstNonzeroControlPoint() + i;
+            for (IndexType i = 0; i < NumberOfNonzeroControlPoints(); i++) {
+                const IndexType poleIndex = GetFirstNonzeroControlPoint() + i;
                 ShapeFunctionValue(i, k) *= rWeights(poleIndex);
                 weightedSums[k] += ShapeFunctionValue(i, k);
             }
         }
 
-        for (int k = 0; k < NumberOfShapeFunctionRows(); k++) {
-            for (int i = 1; i <= k; i++) {
+        for (IndexType k = 0; k < NumberOfShapeFunctionRows(); k++) {
+            for (IndexType i = 1; i <= k; i++) {
                 const double a = NurbsUtilities::GetBinomCoefficient(k, i) *
                     weightedSums[i];
 
-                for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
+                for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
                     ShapeFunctionValue(p, k) -=
                         a * ShapeFunctionValue(p, k - i);
                 }
             }
 
-            for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
+            for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
                 ShapeFunctionValue(p, k) /= weightedSums[0];
             }
         }
