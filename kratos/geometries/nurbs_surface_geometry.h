@@ -25,6 +25,7 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
+#include "geometries/nurbs_shape_function_utilities/projection_nurbs_geometry_utilities.h"
 
 
 
@@ -408,6 +409,28 @@ public:
         }
 
         return rResult;
+    }
+
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+    ) const override
+    {
+        array_1d<double, 3> parameter = ZeroVector(3);
+        parameter[0] = ((*this).DomainIntervalU().MinParameter() + (*this).DomainIntervalU().MaxParameter())/2.0;
+        parameter[1] = ((*this).DomainIntervalV().MinParameter() + (*this).DomainIntervalV().MaxParameter())/2.0;
+        bool isConverged = ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface<TWorkingSpaceDimension, TPointType>(
+            parameter,
+            rPoint,
+            rResult,
+            *this
+            );
     }
 
     ///@}

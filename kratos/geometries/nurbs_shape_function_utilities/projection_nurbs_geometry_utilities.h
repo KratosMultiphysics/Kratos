@@ -34,8 +34,9 @@ namespace Kratos
         /*
         * @brief Returns the projection of a point onto a Nurbs curve
         *        geometry using the Newton-Rapshon iterative method
-        * @param rInitialGuessParameter Intial guess for the Newton-Rapshon 
-        *        algorithm
+        * @param rParameter Intial guess for the Newton-Rapshon algorithm
+        *        overwritten by the local coordinates of the projected point onto
+        *        the Nurbs curve geometry
         * @param rPoint The point to be projected onto the Nurbs curve geometry
         *        This is overwritten by the Cartesian coordinates of the projected
         *        point in case the projection is successful 
@@ -49,59 +50,50 @@ namespace Kratos
         */
         template <int TDimension, class TPointType>
         static bool NewtonRaphsonCurve(
-            const double rInitialGuessParameter,
-            CoordinatesArrayType& rPoint,
+            CoordinatesArrayType& rParameter,
+            const CoordinatesArrayType& rPoint,
             CoordinatesArrayType& rResult,
             const NurbsCurveGeometry<TDimension, TPointType>& rNurbsCurve,
             const int MaxIterations = 20,
             const double ModelTolerance = 1e-6,
             const double Accuracy = 1e-6)
         {
-            rResult[0] = rInitialGuessParameter;
+            // Intialize variables
+            double residual, delta_t;
 
             // Loop over all Newton-Raphson iterations
             for (int i = 0; i < MaxIterations; i++) 
             {
                 // Compute the position, the base and the acceleration vector
                 auto derivatives = rNurbsCurve.GlobalDerivatives(
-                    rResult,
+                    rParameter,
                     2);
+                rResult = derivatives[0];
 
                 // Compute the distance vector between the point and its 
                 // projection on the curve
-                array_1d<double, 3> distance_vector = derivatives[0] - rPoint;
-
-                // Compute the distance between the point and its projection
-                // on the curve
-                if (norm_2(distance_vector) < std::max(ModelTolerance,Accuracy)) {
-                    KRATOS_WATCH("Inside the first check")
-                    rPoint = derivatives[0];
+                array_1d<double, 3> distance_vector = rResult - rPoint;
+                if (norm_2(distance_vector) < std::max(ModelTolerance,Accuracy))
                     return true;
-                }
 
                 // Compute the residual
-                double res = inner_prod(distance_vector, derivatives[1]);
-                if (std::abs(res) < Accuracy) {
-                    rPoint = derivatives[0];
+                residual = inner_prod(distance_vector, derivatives[1]);
+                if (std::abs(residual) < Accuracy)
                     return true;
-                }
 
                 // Compute the increment
-                double delta_t = res / (inner_prod(derivatives[2], distance_vector) + pow(norm_2(derivatives[1]), 2));
+                delta_t = residual / (inner_prod(derivatives[2], distance_vector) + pow(norm_2(derivatives[1]), 2));
 
                 // Increment the parametric coordinate
-                rResult[0] -= delta_t;
+                rParameter[0] -= delta_t;
 
                 // Check if the increment is too small and if yes return true
-                if (norm_2(delta_t*derivatives[1]) < Accuracy) {
-                    KRATOS_WATCH("Inside the third check")
-                    rPoint = derivatives[0];
+                if (norm_2(delta_t*derivatives[1]) < Accuracy)
                     return true;
-                }
 
                 // Check if the parameter gets out of its interval of definition and if so clamp it 
                 // back to the boundaries
-                rNurbsCurve.DomainInterval().IsInside(rResult[0]);
+                rNurbsCurve.DomainInterval().IsInside(rParameter[0]);
             }
 
             // Return false if the Newton-Raphson iterations did not converge
@@ -110,68 +102,92 @@ namespace Kratos
 
     template <int TDimension, class TPointType>
     static bool NewtonRaphsonSurface(
-        const CoordinatesArrayType rInitialGuessParameter,
+        CoordinatesArrayType& rParameter,
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const NurbsSurfaceGeometry<TDimension, TPointType>& rNurbsSurface,
-        const int MaxIterations,
-        const double ModelTolerance,
-        const double Accuracy)
+        const int MaxIterations = 20,
+        const double ModelTolerance = 1e-6,
+        const double Accuracy = 1e-6)
     {
-        rPoint[0] = rInitialGuessParameter[0];
-        rPoint[1] = rInitialGuessParameter[1];
+        // Initialize variables
+        bool clampU = false;
+        bool clampV = false;
+        double d_u = 0.0;
+        double d_v = 0.0;
+        double A1_length, A2_length, A1_times_distance_vector, A1_length_times_distance, 
+            A2_times_distance_vector, A2_length_times_distance, A1_times_distance_normalized, A2_times_distance_normalized;
+        double residualU, residualV, J_00, J_01, J_11;
 
         for (int i = 0; i < MaxIterations; i++) {
-            const auto s = rNurbsSurface->GlobalDerivatives(rPoint[0], rPoint[1], 2);
+            // Compute the position, the base and the acceleration vectors
+            const auto s = rNurbsSurface.GlobalDerivatives(rParameter, 2);
+            rResult = s[0];
 
-            const array_1d<double, 3> distance = s[0] - rPoint;
+            // Compute the distance vector
+            const array_1d<double, 3> distance_vector = s[0] - rPoint;
 
-            const double c1v = norm_2(distance);
-
-            if (c1v < Accuracy) {
-                rResult[0] = rPoint[0];
-                rResult[1] = rPoint[1];
-
+            // Compute the distance
+            const double distance = norm_2(distance_vector);
+            if (distance < std::max(ModelTolerance,Accuracy))
                 return true;
+
+            // Compute the lengths of the base vectors
+            A1_length = norm_2(s[1]);
+            A2_length = norm_2(s[2]);
+
+            A1_times_distance_vector = std::abs(inner_prod(s[1], distance_vector));
+            A1_length_times_distance = A1_length * distance;
+
+            A2_times_distance_vector = std::abs(inner_prod(s[2], distance_vector));
+            A2_length_times_distance = A2_length * distance;
+
+            A1_times_distance_normalized = A1_times_distance_vector / A1_length_times_distance;
+            A2_times_distance_normalized = A2_times_distance_vector / A2_length_times_distance;
+
+            if (A1_times_distance_normalized < Accuracy && A2_times_distance_normalized < Accuracy)
+                return true;
+
+            // Compute the residuals along both parametric directions
+            residualU = inner_prod(s[1], distance_vector);
+            residualV = inner_prod(s[2], distance_vector);
+
+            // Compute the Jacobian of the nonlinear system
+            J_00 = inner_prod(s[1], s[1]) + inner_prod(s[3], distance_vector);
+            J_01 = inner_prod(s[1], s[2]) + inner_prod(s[4], distance_vector);
+            J_11 = inner_prod(s[2], s[2]) + inner_prod(s[5], distance_vector);
+            
+            // Check for singularities otherwise update the parametric coordinates as usual
+            if (std::abs(J_00) < Accuracy || clampU) {
+                d_u = 0.0;
+                d_v = residualV/J_11;
+                clampU = false;
+                clampV = true;
+            } else if (std::abs(J_11) < Accuracy || clampV) {
+                d_u = residualU/J_00;
+                d_v = 0.0;
+                clampU = true;
+                clampV = false;
+            } else {
+                double det_J = J_00 * J_11 - J_01 * J_01;
+                d_u = (residualV * J_01 - residualU * J_11) / det_J;
+                d_v = (residualU * J_01 - residualV * J_00) / det_J;
             }
 
-            double s1_l = norm_2(s[1]);
-            double s2_l = norm_2(s[2]);
-
-            double c2an = std::abs(inner_prod(s[1], distance));
-            double c2ad = s1_l * c1v;
-
-            double c2bn = std::abs(inner_prod(s[2], distance));
-            double c2bd = s2_l * c1v;
-
-            double c2av = c2an / c2ad;
-            double c2bv = c2bn / c2bd;
-
-            if (c2av < Accuracy && c2bv < Accuracy) {
-                rResult[0] = rPoint[0];
-                rResult[1] = rPoint[1];
-
+            // Check if the step size is too small
+            if (norm_2(d_u*s[1] + d_v*s[2]) < Accuracy)
                 return true;
-            }
 
-            double f = inner_prod(s[1], distance);
-            double g = inner_prod(s[2], distance);
+            // Update the parametric coordinates
+            rParameter[0] += d_u;
+            rParameter[1] += d_v;
 
-            double J_00 = inner_prod(s[1], s[1]) + inner_prod(s[3], distance);
-            double J_01 = inner_prod(s[1], s[2]) + inner_prod(s[4], distance);
-            double J_11 = inner_prod(s[2], s[2]) + inner_prod(s[5], distance);
-
-            double det_J = J_00 * J_11 - J_01 * J_01;
-
-            double d_u = (g * J_01 - f * J_11) / det_J;
-            double d_v = (f * J_01 - g * J_00) / det_J;
-
-            rResult[0] += d_u;
-            rResult[1] += d_v;
+            // Check if the parametric coordinates get out of their interval of definition 
+            // and if so clamp them back to their boundaries
+            rNurbsSurface.DomainIntervalU().IsInside(rParameter[0]);
+            rNurbsSurface.DomainIntervalV().IsInside(rParameter[1]);
         }
 
-        rResult[0] = rPoint[0];
-        rResult[1] = rPoint[1];
         return false;
     }
     }
