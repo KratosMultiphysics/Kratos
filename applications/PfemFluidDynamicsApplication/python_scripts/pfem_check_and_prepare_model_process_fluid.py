@@ -6,11 +6,15 @@ import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 import time as timer
 
 def StartTimeMeasuring():
+    """This function starts time calculation
+    """
     # Measure process time
     time_ip = timer.clock()
     return time_ip
 
 def StopTimeMeasuring(time_ip, process, report):
+    """This function ends time calculation
+    """
     # Measure process time
     time_fp = timer.clock()
     if( report ):
@@ -19,13 +23,28 @@ def StopTimeMeasuring(time_ip, process, report):
 
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    """This function creates the process
+    """
+    if type(settings) != KratosMultiphysics.Parameters:
+        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return CheckAndPrepareModelProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
 class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
+    """The class of the CheckAndPrepareModelProcess class
+    """
     def __init__(self, main_model_part, Parameters ):
+        """The constructor of the CheckAndPrepareModelProcess-Object.
+
+        It is intended to be called from the constructor
+        of deriving classes:
+        super(DerivedAnalysis, self).__init__(project_parameters)
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        main_model_part -- The ModelPart to be used
+        Parameters -- The settings for the process
+        """
         self.main_model_part = main_model_part
 
         self.computing_model_part_name  = Parameters["computing_model_part_name"].GetString()
@@ -36,7 +55,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
         self.bodies_parts_list = []
         self.bodies_list = False
-        if( Parameters.Has("bodies_list") ):
+        if Parameters.Has("bodies_list"):
             self.bodies_list = True
             self.bodies_parts_list = Parameters["bodies_list"]
 
