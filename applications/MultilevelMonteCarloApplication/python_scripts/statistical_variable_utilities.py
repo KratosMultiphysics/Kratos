@@ -22,6 +22,7 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 # TODO: check absolute third moment from scratch is correct
 # TODO: add computation of raw moments, only the mean is now computed
+# TODO: constructor without number levels!!
 # TODO: remove self.power_sum_3_absolute
 # TODO: check that number samples is updated only once using updateonepasscentralmoments and updateonepasspowersums (for now MC uses powersums and cmlmc uses centralmoments so it is fine)
 # TODO: in h_statistics_1 we have the unbiased first central raw moment (i.e. the mean)
@@ -48,7 +49,8 @@ output: new_mean:             updated mean
         new_central_moment_4: updated central_moment_4
         nsamples:             updated number of samples
 """
-@ExaquteTask(returns=7)
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
+@ExaquteTask(returns=7,priority=True)
 def UpdateOnePassCentralMomentsAux_Task(sample,old_mean,old_central_moment_1,compute_M1,old_central_moment_2,compute_M2,old_central_moment_3,compute_M3,old_central_moment_4,compute_M4,nsamples):
     old_M1 = old_central_moment_1 * nsamples
     old_M2 = old_central_moment_2 * nsamples
@@ -102,7 +104,8 @@ output: new_S1: updated first power sum
         new_S3: updated third power sum
         new_S4: updated fourth power sum
 """
-@ExaquteTask(returns=5)
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
+@ExaquteTask(returns=5,priority=True)
 def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S4,nsamples):
     nsamples = nsamples + 1
     if nsamples == 1:
@@ -117,6 +120,50 @@ def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S4,nsamples):
         new_S4 = old_S4 + sample**4
     return new_S1,new_S2,new_S3,new_S4,nsamples
 
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
+@ExaquteTask(returns=5,priority=True)
+def UpdateGlobalPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_level,add_S1,add_S2,add_S3,add_S4,add_number_samples_level):
+    new_S1 = old_S1 + add_S1
+    new_S2 = old_S2 + add_S2
+    new_S3 = old_S3 + add_S3
+    new_S4 = old_S4 + add_S4
+    number_samples_level = number_samples_level + add_number_samples_level
+    return new_S1,new_S2,new_S3,new_S4,number_samples_level
+
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
+@ExaquteTask(returns=4, priority=True)
+def UnfoldValuesAux_Task(sample):
+    return sample[0], sample[1], sample[2], sample[3]
+
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
+@ExaquteTask(returns=1,priority=True)
+def UpdateBatchesPassPowerSumsAux_Task(*samples):
+    samples_list = np.array(list(samples))
+    return np.sum(samples_list, axis = 0)
+    """
+    if nsamples == 0:
+        new_S1 = samples[0]
+        new_S2 = samples[0]**2
+        new_S3 = samples[0]**3
+        new_S4 = samples[0]**4
+        old_S1 = new_S1
+        old_S2 = new_S2
+        old_S3 = new_S3
+        old_S4 = new_S4
+        nsamples = 1
+        samples=samples[1:]
+    for sample in samples:
+        nsamples = nsamples + 1
+        new_S1 = old_S1 + sample
+        new_S2 = old_S2 + sample**2
+        new_S3 = old_S3 + sample**3
+        new_S4 = old_S4 + sample**4
+        old_S1 = new_S1
+        old_S2 = new_S2
+        old_S3 = new_S3
+        old_S4 = new_S4
+    return new_S1,new_S2,new_S3,new_S4,nsamples
+    """
 
 """
 auxiliary function of UpdateHStatistics of the StatisticalVariable class
@@ -130,7 +177,8 @@ output: h1_level: first h statistics for defined level
         h3_level: third h statistics for defined level
         h4_level: fourth h statistics for defined level
 """
-@ExaquteTask(returns=4)
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
+@ExaquteTask(returns=4,priority=True)
 def ComputeHStatisticsAux_Task(S1_level,S2_level,S3_level,S4_level,number_samples_level):
     h1_level = S1_level / number_samples_level
     h2_level = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
@@ -151,7 +199,8 @@ input:  h2_level: second h statistics for defined level
 output: skewness_level: skewness for defined level
         kurtosis_level: kurtosis for defined level
 """
-@ExaquteTask(returns=2)
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
+@ExaquteTask(returns=2,priority=True)
 def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
     skewness_level = h3_level / (np.sqrt(h2_level**3))
     kurtosis_level = h4_level / (h2_level**2)
@@ -161,7 +210,6 @@ def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
 """
 auxiliary function of ComputeSampleCentralMomentsFromScratch of the StatisticalVariable class
 input:  sample: new value that will update the statistics
-        curr_mean: current mean
         number_samples_level:                              number of samples for defined level
         central_moment_from_scratch_1_to_compute:          boolean setting if computation is needed
         central_moment_from_scratch_2_to_compute:          boolean setting if computation is needed
@@ -179,30 +227,39 @@ output: central_moment_from_scratch_1:          updated first central moment
         central_moment_from_scratch_3_absolute: updated third central moment absolute value
         central_moment_from_scratch_4:          update fourth central moment
 """
-@ExaquteTask(returns=5)
-def ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute,central_moment_from_scratch_2_to_compute, \
+@constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
+@ExaquteTask(returns=5,priority=True)
+def ComputeSampleCentralMomentsFromScratchAux_Task(number_samples_level,central_moment_from_scratch_1_to_compute,central_moment_from_scratch_2_to_compute, \
     central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
-    central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4):
-    if (central_moment_from_scratch_1_to_compute):
-        central_moment_from_scratch_1 = central_moment_from_scratch_1 + ((sample - curr_mean)**1) / number_samples_level
-    if (central_moment_from_scratch_2_to_compute):
-        central_moment_from_scratch_2 = central_moment_from_scratch_2 + ((sample - curr_mean)**2) / number_samples_level
-    if (central_moment_from_scratch_3_to_compute):
-        central_moment_from_scratch_3 = central_moment_from_scratch_3 + ((sample - curr_mean)**3) / number_samples_level
-    if (central_moment_from_scratch_3_absolute_to_compute):
-        central_moment_from_scratch_3_absolute = central_moment_from_scratch_3_absolute + (np.abs(sample - curr_mean)**3) / number_samples_level
-    if (central_moment_from_scratch_4_to_compute):
-        central_moment_from_scratch_4 = central_moment_from_scratch_4 + ((sample - curr_mean)**4) / number_samples_level
+    central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4, \
+    samples):
+    # generate a single list from a list of lists
+    samples = [item for sublist in samples for item in sublist]
+    # compute the mean
+    auxiliary_mean = 0.0
+    for sample in samples:
+        auxiliary_mean = auxiliary_mean + sample
+    curr_mean = auxiliary_mean / number_samples_level
+    for sample in samples:
+        if (central_moment_from_scratch_1_to_compute):
+            central_moment_from_scratch_1 = central_moment_from_scratch_1 + ((sample - curr_mean)**1) / number_samples_level
+        if (central_moment_from_scratch_2_to_compute):
+            central_moment_from_scratch_2 = central_moment_from_scratch_2 + ((sample - curr_mean)**2) / number_samples_level
+        if (central_moment_from_scratch_3_to_compute):
+            central_moment_from_scratch_3 = central_moment_from_scratch_3 + ((sample - curr_mean)**3) / number_samples_level
+        if (central_moment_from_scratch_3_absolute_to_compute):
+            central_moment_from_scratch_3_absolute = central_moment_from_scratch_3_absolute + (np.abs(sample - curr_mean)**3) / number_samples_level
+        if (central_moment_from_scratch_4_to_compute):
+            central_moment_from_scratch_4 = central_moment_from_scratch_4 + ((sample - curr_mean)**4) / number_samples_level
     return central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4
 
 
 class StatisticalVariable(object):
     """The base class for statistical variables"""
-    def __init__(self,number_levels):
+    def __init__(self):
         """constructor of the class
         Keyword arguments:
         self : an instance of a class
-        number_levels : number of levels
         """
 
         # values of the variable, organized per level
@@ -230,12 +287,19 @@ class StatisticalVariable(object):
         # type of variable: scalar or field
         self.type = None
         # number of samples of the variable
-        self.number_samples = [0 for _ in range(number_levels+1)]
-        # power sums S_p = \sum_{i=1}^{n} Q(sample_i)**p, organized per level
+        self.number_samples = None
+        self.batches_number_samples = []
+        # global power sums
+        # S_p = \sum_{i=1}^{n} Q(sample_i)**p, organized per level
         self.power_sum_1 = []
         self.power_sum_2 = []
         self.power_sum_3 = []
         self.power_sum_4 = []
+        # power sums batches
+        self.power_sum_batches_1 = []
+        self.power_sum_batches_2 = []
+        self.power_sum_batches_3 = []
+        self.power_sum_batches_4 = []
         # sample central moments \mu_p = \sum_{i=1}^{n} (Q(sample_i)-mean_n)**p / n, organized per level
         self.central_moment_from_scratch_1 = []
         self.central_moment_from_scratch_2 = []
@@ -265,18 +329,23 @@ class StatisticalVariable(object):
     input:  self:          an instance of the class
             number_levels: number of levels considered
     """
-    def InitializeLists(self,number_levels):
-        self.values = [[] for _ in range (number_levels)]
+    def InitializeLists(self,number_levels,number_initial_batches):
+        self.number_samples = [0 for _ in range (number_levels)]
+        self.values = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
         self.raw_moment_1 = [[] for _ in range (number_levels)]
         self.central_moment_1 = [[] for _ in range (number_levels)]
         self.central_moment_2 = [[] for _ in range (number_levels)]
         self.central_moment_3 = [[] for _ in range (number_levels)]
         self.central_moment_4 = [[] for _ in range (number_levels)]
         self.unbiased_central_moment_2 = [[] for _ in range (number_levels)]
-        self.power_sum_1 = [[] for _ in range (number_levels)]
-        self.power_sum_2 = [[] for _ in range (number_levels)]
-        self.power_sum_3 = [[] for _ in range (number_levels)]
-        self.power_sum_4 = [[] for _ in range (number_levels)]
+        self.power_sum_1 = [0 for _ in range (number_levels)]
+        self.power_sum_2 = [0 for _ in range (number_levels)]
+        self.power_sum_3 = [0 for _ in range (number_levels)]
+        self.power_sum_4 = [0 for _ in range (number_levels)]
+        self.power_sum_batches_1 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
+        self.power_sum_batches_2 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
+        self.power_sum_batches_3 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
+        self.power_sum_batches_4 = [[[] for _ in range (number_levels)] for _ in range (number_initial_batches)]
         self.h_statistics_1 = [[] for _ in range (number_levels)]
         self.h_statistics_2 = [[] for _ in range (number_levels)]
         self.h_statistics_3 = [[] for _ in range (number_levels)]
@@ -288,6 +357,7 @@ class StatisticalVariable(object):
         self.central_moment_from_scratch_3 = [[] for _ in range (number_levels)]
         self.central_moment_from_scratch_3_absolute = [[] for _ in range (number_levels)]
         self.central_moment_from_scratch_4 = [[] for _ in range (number_levels)]
+        self.batches_number_samples = [[0 for _ in range (number_levels)] for _ in range (number_initial_batches)]
 
     """
     function updating statistic moments and number of samples
@@ -341,6 +411,52 @@ class StatisticalVariable(object):
         self.power_sum_4[level] = new_S4
         self.number_samples[level] = number_samples_level
 
+    def UpdateGlobalPowerSums(self,level,batch_counter):
+        old_S1 = self.power_sum_1[level]
+        old_S2 = self.power_sum_2[level]
+        old_S3 = self.power_sum_3[level]
+        old_S4 = self.power_sum_4[level]
+        number_samples_level = self.number_samples[level]
+
+        add_S1 = self.power_sum_batches_1[batch_counter][level]
+        add_S2 = self.power_sum_batches_2[batch_counter][level]
+        add_S3 = self.power_sum_batches_3[batch_counter][level]
+        add_S4 = self.power_sum_batches_4[batch_counter][level]
+        add_number_samples_level = self.batches_number_samples[batch_counter][level]
+
+        new_S1,new_S2,new_S3,new_S4,number_samples_level = UpdateGlobalPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_level,add_S1,add_S2,add_S3,add_S4,add_number_samples_level)
+        self.power_sum_1[level] = new_S1
+        self.power_sum_2[level] = new_S2
+        self.power_sum_3[level] = new_S3
+        self.power_sum_4[level] = new_S4
+        self.number_samples[level] = number_samples_level
+
+    def UpdateBatchesPassPowerSum(self,level,batch_counter,mini_batch=50):
+        samples = self.values[batch_counter][level]
+        #for mini_batch in range (0,len(samples)):
+        while len(samples) > 1:
+            #old_S1 = self.power_sum_batches_1[batch_counter][level]
+            #old_S2 = self.power_sum_batches_2[batch_counter][level]
+            #old_S3 = self.power_sum_batches_3[batch_counter][level]
+            #old_S4 = self.power_sum_batches_4[batch_counter][level]
+            #number_samples_batches_level = self.batches_number_samples[batch_counter][level]
+
+            mini_batches_samples = samples[:mini_batch]
+            samples = samples[mini_batch:]
+            new_power_sums = UpdateBatchesPassPowerSumsAux_Task(*mini_batches_samples)
+            samples.append(new_power_sums)
+            #self.power_sum_batches_1[batch_counter][level] = new_S1
+            #self.power_sum_batches_2[batch_counter][level] = new_S2
+            #self.power_sum_batches_3[batch_counter][level] = new_S3
+            #self.power_sum_batches_4[batch_counter][level] = new_S4
+            #self.batches_number_samples[batch_counter][level] = number_samples_batches_level
+        new_S1, new_S2, new_S3, new_S4 = UnfoldValuesAux_Task(samples[0])
+        self.power_sum_batches_1[batch_counter][level] = new_S1
+        self.power_sum_batches_2[batch_counter][level] = new_S2
+        self.power_sum_batches_3[batch_counter][level] = new_S3
+        self.power_sum_batches_4[batch_counter][level] = new_S4
+
+
     """
     function computing the h statistics h_p from the power sums
     input:  self:  an instance of the class
@@ -365,8 +481,7 @@ class StatisticalVariable(object):
             level: defined level
     """
     def ComputeSampleCentralMomentsFromScratch(self,level,number_samples_level):
-        curr_mean = self.raw_moment_1[level]
-        # initialize central moements
+        # initialize central moments
         central_moment_from_scratch_1 = 0.0
         central_moment_from_scratch_2 = 0.0
         central_moment_from_scratch_3 = 0.0
@@ -377,13 +492,19 @@ class StatisticalVariable(object):
         central_moment_from_scratch_3_to_compute = self.central_moment_from_scratch_3_to_compute
         central_moment_from_scratch_3_absolute_to_compute = self.central_moment_from_scratch_3_absolute_to_compute
         central_moment_from_scratch_4_to_compute = self.central_moment_from_scratch_4_to_compute
-        for i in range(0,number_samples_level):
-            # compute only the central moements we need, since it is expensive their computation at large number_samples_level
-            sample = self.values[level][i]
-            central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4 = \
-                ComputeSampleCentralMomentsFromScratchAux_Task(sample,curr_mean,number_samples_level,central_moment_from_scratch_1_to_compute, \
-                central_moment_from_scratch_2_to_compute,central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
-                central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4)
+
+        samples = []
+        for batch in range (len(self.values)):
+            for mini_batch_samples in self.values[batch][level]:
+                samples.append(mini_batch_samples)
+        # samples = [<pycompss.runtime.binding.Future>, <pycompss.runtime.binding.Future>]
+        # samples = [[1.53, 1.51], [1.48]]
+        # problems: compss does not support list of lists, but the number of mini batches can change, no fix number
+
+        central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4 = \
+            ComputeSampleCentralMomentsFromScratchAux_Task(number_samples_level,central_moment_from_scratch_1_to_compute, \
+            central_moment_from_scratch_2_to_compute,central_moment_from_scratch_3_to_compute,central_moment_from_scratch_3_absolute_to_compute,central_moment_from_scratch_4_to_compute, \
+            central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4, samples)
         self.central_moment_from_scratch_1[level] = central_moment_from_scratch_1
         self.central_moment_from_scratch_2[level] = central_moment_from_scratch_2
         self.central_moment_from_scratch_3[level] = central_moment_from_scratch_3

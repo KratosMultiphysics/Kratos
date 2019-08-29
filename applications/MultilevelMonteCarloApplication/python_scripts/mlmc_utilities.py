@@ -16,13 +16,13 @@ from threadpoolctl import *
 from simulation_definition import SimulationScenario
 
 # Import the StatisticalVariable class
-from KratosMultiphysics.MultilevelMonteCarloApplication.compressible_statistical_variable_utilities import StatisticalVariable
+from KratosMultiphysics.MultilevelMonteCarloApplication.statistical_variable_utilities import StatisticalVariable
 
 # Import refinement library
-from KratosMultiphysics.MultilevelMonteCarloApplication.compressible_adaptive_refinement_utilities import AdaptiveRefinement
+from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
 
 # Import random variable generator
-import KratosMultiphysics.MultilevelMonteCarloApplication.compressible_generator_utilities as generator
+import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as generator
 
 # Import PyCOMPSs
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
