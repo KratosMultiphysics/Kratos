@@ -182,11 +182,11 @@ public:
     ///@{
 
     /**
-    * @brief This function returns the geometry part which is accessable with a
-    * certain index.
+    * @brief This function returns the geometry part which is accessable
+    *        with a certain index.
     * @details Here, 0 is the master, all above 0 is for the slaves
     * of the geometry. Checks if index is available only in debug mode.
-    * @param Index of the geometry part. 0->Master; 1->Slave
+    * @param Index of the geometry part. 0->Master; all bigger than 1->Slave
     * @return geometry, which is connected through the Index
      */
     GeometryType& GetGeometryPart(IndexType Index) const override
