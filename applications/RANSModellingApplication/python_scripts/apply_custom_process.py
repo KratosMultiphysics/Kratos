@@ -78,6 +78,10 @@ def Factory(settings, Model):
         [
             "CheckScalarConditionBoundsProcess",
             KratosRANS.RansCheckScalarConditionBoundsProcess
+        ],
+        [
+            "LogarithmicYPlusVelocitySensitivitiesProcess",
+            KratosRANS.RansLogarithmicYPlusVelocitySensitivitiesProcess
         ]
     ]
 

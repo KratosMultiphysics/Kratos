@@ -40,6 +40,9 @@
 #include "custom_processes/auxiliary_processes/rans_check_scalar_condition_bounds_process.h"
 #include "custom_processes/auxiliary_processes/rans_check_vector_bounds_process.h"
 
+// RANS auxiliary sensitivities processes
+#include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_velocity_sensitivities_process.h"
+
 namespace Kratos
 {
 namespace Python
@@ -171,6 +174,13 @@ void AddCustomProcessesToPython(pybind11::module& m)
     typedef RansNutLowReCalculationProcess RansNutLowReCalculationProcessType;
     py::class_<RansNutLowReCalculationProcessType, RansNutLowReCalculationProcessType::Pointer, Process>(
         m, "RansNutLowReCalculationProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    // Adding sensitivities auxiliary processes
+
+    typedef RansLogarithmicYPlusVelocitySensitivitiesProcess RansLogarithmicYPlusVelocitySensitivitiesProcessType;
+    py::class_<RansLogarithmicYPlusVelocitySensitivitiesProcessType, RansLogarithmicYPlusVelocitySensitivitiesProcessType::Pointer, Process>(
+        m, "RansLogarithmicYPlusVelocitySensitivitiesProcess")
         .def(py::init<Model&, Parameters&>());
 }
 
