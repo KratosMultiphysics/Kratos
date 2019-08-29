@@ -51,9 +51,6 @@ PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
     AddCustomProcessesToPython(m);
     AddCustomResponseFunctionsToPython(m);
 
-
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,AVERAGE_VELOCITY);
-
     //registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PATCH_INDEX);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TAUONE);

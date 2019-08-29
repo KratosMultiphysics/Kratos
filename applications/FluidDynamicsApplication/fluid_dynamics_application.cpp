@@ -123,9 +123,6 @@ void KratosFluidDynamicsApplication::Register() {
     KratosApplication::Register();
     KRATOS_INFO("") << "Initializing KratosFluidDynamicsApplication..." << std::endl;
 
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGE_VELOCITY);
-
-
     // Register Variables (defined in fluid_dynamics_application_variables.h)
     KRATOS_REGISTER_VARIABLE(PATCH_INDEX);
     KRATOS_REGISTER_VARIABLE(TAUONE);
