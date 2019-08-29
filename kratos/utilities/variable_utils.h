@@ -871,52 +871,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    // /**
-    //  * @brief Returns the nodal value summation of an historical vector variable.
-    //  * @param rVar reference to the vector variable to summed
-    //  * @param rModelPart reference to the model part that contains the objective node set
-    //  * @return sum_value summation vector result
-    //  */
-    // array_1d<double, 3> SumHistoricalNodeVectorVariable(
-    //     const ArrayVarType& rVar,
-    //     const ModelPart& rModelPart,
-    //     const unsigned int rBuffStep = 0
-    //     );
-
-    // /**
-    //  * @brief Returns the nodal value summation of an historical scalar variable.
-    //  * @param rVar reference to the scalar variable to be summed
-    //  * @param rModelPart reference to the model part that contains the objective node set
-    //  * @return sum_value: summation result
-    //  */
-    // template< class TVarType >
-    // double SumHistoricalNodeScalarVariable(
-    //     const TVarType& rVar,
-    //     const ModelPart& rModelPart,
-    //     const unsigned int rBuffStep = 0
-    //     )
-    // {
-    //     KRATOS_TRY
-
-    //     double sum_value = 0.0;
-
-    //     // Getting info
-    //     const auto& r_communicator = rModelPart.GetCommunicator();
-    //     const auto& r_local_mesh = r_communicator.LocalMesh();
-    //     const auto& r_nodes_array = r_local_mesh.Nodes();
-    //     const auto it_node_begin = r_nodes_array.begin();
-
-    //     #pragma omp parallel for reduction(+:sum_value)
-    //     for (int k = 0; k < static_cast<int>(r_nodes_array.size()); ++k) {
-    //         const auto it_node = it_node_begin + k;
-    //         sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
-    //     }
-
-    //     return r_communicator.GetDataCommunicator().SumAll(sum_value);
-
-    //     KRATOS_CATCH("")
-    // }
-
     /**
      * @brief This method accumulates and return a variable value
      * For a nodal historical variable, this method accumulates and
