@@ -36,6 +36,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef typename std::size_t IndexType;
+    typedef typename std::size_t SizeType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -50,8 +53,8 @@ public:
     *   This information is required to make an optimized memory management.
     */
     NurbsCurveShapeFunction(
-        const int PolynomialDegree,
-        const int DerivativeOrder)
+        const SizeType PolynomialDegree,
+        const SizeType DerivativeOrder)
     {
         ResizeDataContainers(PolynomialDegree, DerivativeOrder);
     }
@@ -60,7 +63,7 @@ public:
     ///@name Operators
     ///@{
 
-    double operator()(const int NonzeroControlPointIndex, const int DerivativeRow) const
+    double operator()(const IndexType NonzeroControlPointIndex, const IndexType DerivativeRow) const
     {
         return ShapeFunctionValue(NonzeroControlPointIndex, DerivativeRow);
     }
@@ -74,8 +77,8 @@ public:
     *        values of the shape functions.
     */
     void ResizeDataContainers(
-        const int PolynomialDegree,
-        const int DerivativeOrder)
+        const SizeType PolynomialDegree,
+        const SizeType DerivativeOrder)
     {
         mDerivativeOrder = DerivativeOrder;
 
@@ -92,7 +95,7 @@ public:
     /*
     * @return provides the polynomial degree of this shape function generator.
     */
-    int PolynomialDegree() const
+    SizeType PolynomialDegree() const
     {
         return mPolynomialDegree;
     }
@@ -102,7 +105,7 @@ public:
     *        given by polynomial degree + 1.
     * @return the number of nonzero control points of this shape function generator.
     */
-    int NumberOfNonzeroControlPoints() const
+    SizeType NumberOfNonzeroControlPoints() const
     {
         return PolynomialDegree() + 1;
     }
@@ -111,7 +114,7 @@ public:
     * @return the number of shape function rows. This is the derivative order + 1.
     *         rows are defined as: N | dN/de | dN^2/de^2 | ...
     */
-    int NumberOfShapeFunctionRows() const
+    SizeType NumberOfShapeFunctionRows() const
     {
         return mDerivativeOrder + 1;
     }
@@ -121,10 +124,10 @@ public:
     *        the index of the control point.
     */
     double ShapeFunctionValue(
-        const int ControlPointIndex,
-        const int DerivativeRow) const
+        const IndexType ControlPointIndex,
+        const IndexType DerivativeRow) const
     {
-        int index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+        IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
             ControlPointIndex, DerivativeRow);
 
@@ -135,7 +138,7 @@ public:
     * @brief the first nonzero control point index within the list.
     * @return the index of the first nonzero control point.
     */
-    int GetFirstNonzeroControlPoint() const
+    IndexType GetFirstNonzeroControlPoint() const
     {
         return mFirstNonzeroControlPoint;
     }
@@ -143,11 +146,11 @@ public:
     /*
     * @return the indices of all nonzero control points.
     */
-    std::vector<int> GetNonzeroControlPointIndices() const
+    std::vector<IndexType> GetNonzeroControlPointIndices() const
     {
-        std::vector<int> indices(NumberOfNonzeroControlPoints());
+        std::vector<IndexType> indices(NumberOfNonzeroControlPoints());
 
-        for (int i = 0; i < NumberOfNonzeroControlPoints(); i++) {
+        for (IndexType i = 0; i < NumberOfNonzeroControlPoints(); i++) {
             indices[i] = GetFirstNonzeroControlPoint() + i;
         }
 
@@ -168,7 +171,7 @@ public:
     */
     void ComputeBSplineShapeFunctionValues(const Vector& rKnots, const double ParameterT)
     {
-        const int span = NurbsUtilities::GetUpperSpan(
+        const IndexType span = NurbsUtilities::GetUpperSpan(
             PolynomialDegree(), rKnots, ParameterT);
 
         ComputeBSplineShapeFunctionValuesAtSpan(rKnots, span, ParameterT);
@@ -184,12 +187,18 @@ public:
     */
     void ComputeBSplineShapeFunctionValuesAtSpan(
         const Vector& rKnots,
-        const int Span,
+        const IndexType Span,
         const double ParameterT)
     {
         ClearValues();
 
-        mFirstNonzeroControlPoint = Span - PolynomialDegree() + 1;
+        const int polynominal_degree = static_cast<int>(PolynomialDegree());
+        const int number_of_control_points =
+            static_cast<int>(NumberOfNonzeroControlPoints());
+        const int number_of_shape_function_rows =
+            static_cast<int>(NumberOfShapeFunctionRows());
+
+        mFirstNonzeroControlPoint = Span - polynominal_degree + 1;
 
         // compute B-Spline shape
         Ndu(0, 0) = 1.0;
@@ -290,7 +299,7 @@ public:
     */
     void ComputeNurbsShapeFunctionValuesAtSpan(
         const Vector& rKnots,
-        const int Span,
+        const IndexType Span,
         const Vector& rWeights,
         const double ParameterT)
     {
@@ -339,18 +348,18 @@ private:
     *        For curves the indices for derivatives are as following:
     *        0-> N | 1-> dN/de | 2-> ddN/dde | ...
     */
-    double& ShapeFunctionValue(const int NonzeroControlPointIndex, const int DerivativeRow)
+    double& ShapeFunctionValue(const IndexType NonzeroControlPointIndex, const IndexType DerivativeRow)
     {
-        const int index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+        const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
             NonzeroControlPointIndex, DerivativeRow);
 
         return mValues[index];
     }
 
-    double& Ndu(const int DerivativeRow, const int NonzeroControlPointIndex)
+    double& Ndu(const IndexType DerivativeRow, const IndexType NonzeroControlPointIndex)
     {
-        const int index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+        const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(), NonzeroControlPointIndex, DerivativeRow);
 
         return mNdu[index];
@@ -361,7 +370,7 @@ private:
     */
     void ClearValues()
     {
-        const int number_of_values = NumberOfNonzeroControlPoints() * NumberOfShapeFunctionRows();
+        const SizeType number_of_values = NumberOfNonzeroControlPoints() * NumberOfShapeFunctionRows();
 
         mValues = ZeroVector(number_of_values);
     }
@@ -370,15 +379,15 @@ private:
     ///@name Member Variables
     ///@{
 
-    int mPolynomialDegree;
-    int mDerivativeOrder;
+    SizeType mPolynomialDegree;
+    SizeType mDerivativeOrder;
     Vector mValues;
     Vector mLeft;
     Vector mRight;
     Vector mNdu;
     Vector mA;
     Vector mB;
-    int mFirstNonzeroControlPoint;
+    IndexType mFirstNonzeroControlPoint;
 
     ///@}
 
