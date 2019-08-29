@@ -340,12 +340,32 @@ class ContactRemeshMmgProcess(MmgProcess):
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.GetSubModelPart("ComputingContact").Conditions)
         self.computing_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
 
+        # We clean the computing before remesh
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.Conditions)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.Elements)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.TO_ERASE, True, self.computing_model_part.MasterSlaveConstraints)
+
+        self.computing_model_part.RemoveNodes(KratosMultiphysics.TO_ERASE)
+        self.computing_model_part.RemoveConditions(KratosMultiphysics.TO_ERASE)
+        self.computing_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
+        self.computing_model_part.RemoveMasterSlaveConstraints(KratosMultiphysics.TO_ERASE)
+
+        # We remove the contact submodelparts
         self.computing_model_part.RemoveSubModelPart("Contact")
         self.computing_model_part.RemoveSubModelPart("ComputingContact")
 
         MeshingApplication.MeshingUtilities.EnsureModelPartOwnsProperties(self.computing_model_part)
         MeshingApplication.MeshingUtilities.EnsureModelPartOwnsProperties(self.computing_model_part.GetRootModelPart())
 
-        # We create the submodelpart
+        # We create the contact submodelparts
         self.computing_model_part.CreateSubModelPart("Contact")
         self.computing_model_part.CreateSubModelPart("ComputingContact")
+
+    def _AuxiliarCallsAfterRemesh(self):
+        """ This method is executed right after execute the remesh
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.computing_model_part, self.computing_model_part.GetParentModelPart()).Execute()

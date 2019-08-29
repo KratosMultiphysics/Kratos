@@ -33,7 +33,7 @@
 #include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
 
 // External includes
-#include "../FSIapplication/custom_utilities/aitken_convergence_accelerator.hpp"
+#include "../FSIApplication/custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
 {

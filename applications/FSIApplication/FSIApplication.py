@@ -3,6 +3,6 @@ import KratosMultiphysics as KM
 from KratosFSIApplication import *
 application = KratosFSIApplication()
 application_name = "KratosFSIApplication"
-application_folder = "FSIapplication"
+application_folder = "FSIApplication"
 
 KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
