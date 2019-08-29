@@ -9,7 +9,7 @@
 //  Main authors:  Jordi Cotela
 //
 
-#include "adjoint_flux_condition.h"
+#include "adjoint_thermal_face.h"
 #include "thermal_face.h"
 
 #include "convection_diffusion_application_variables.h"
@@ -23,39 +23,39 @@ namespace Kratos
 {
 
 template<class PrimalCondition>
-AdjointFluxCondition<PrimalCondition>::AdjointFluxCondition(IndexType NewId, typename GeometryType::Pointer pGeometry):
+AdjointThermalFace<PrimalCondition>::AdjointThermalFace(IndexType NewId, typename GeometryType::Pointer pGeometry):
     PrimalCondition(NewId, pGeometry)
 {}
 
 template<class PrimalCondition>
-AdjointFluxCondition<PrimalCondition>::AdjointFluxCondition(
+AdjointThermalFace<PrimalCondition>::AdjointThermalFace(
     IndexType NewId, typename GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
     PrimalCondition(NewId, pGeometry, pProperties)
 {}
 
 template<class PrimalCondition>
-AdjointFluxCondition<PrimalCondition>::~AdjointFluxCondition() {}
+AdjointThermalFace<PrimalCondition>::~AdjointThermalFace() {}
 
 template<class PrimalCondition>
-Condition::Pointer AdjointFluxCondition<PrimalCondition>::Create(
+Condition::Pointer AdjointThermalFace<PrimalCondition>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<AdjointFluxCondition<PrimalCondition>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<AdjointThermalFace<PrimalCondition>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template<class PrimalCondition>
-Condition::Pointer AdjointFluxCondition<PrimalCondition>::Create(
+Condition::Pointer AdjointThermalFace<PrimalCondition>::Create(
     IndexType NewId,
     typename GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<AdjointFluxCondition<PrimalCondition>>(NewId, pGeometry, pProperties);
+    return Kratos::make_intrusive<AdjointThermalFace<PrimalCondition>>(NewId, pGeometry, pProperties);
 }
 
 template<class PrimalCondition>
-void AdjointFluxCondition<PrimalCondition>::CalculateLocalSystem(
+void AdjointThermalFace<PrimalCondition>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
@@ -68,7 +68,7 @@ void AdjointFluxCondition<PrimalCondition>::CalculateLocalSystem(
 }
 
 template<class PrimalCondition>
-void AdjointFluxCondition<PrimalCondition>::CalculateRightHandSide(
+void AdjointThermalFace<PrimalCondition>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -84,7 +84,7 @@ void AdjointFluxCondition<PrimalCondition>::CalculateRightHandSide(
 }
 
 template<class PrimalCondition>
-void AdjointFluxCondition<PrimalCondition>::GetValuesVector(Vector& rValues, int Step)
+void AdjointThermalFace<PrimalCondition>::GetValuesVector(Vector& rValues, int Step)
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
@@ -101,7 +101,7 @@ void AdjointFluxCondition<PrimalCondition>::GetValuesVector(Vector& rValues, int
 }
 
 template<class PrimalCondition>
-void AdjointFluxCondition<PrimalCondition>::EquationIdVector(
+void AdjointThermalFace<PrimalCondition>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -120,7 +120,7 @@ void AdjointFluxCondition<PrimalCondition>::EquationIdVector(
 }
 
 template<class PrimalCondition>
-void AdjointFluxCondition<PrimalCondition>::GetDofList(
+void AdjointThermalFace<PrimalCondition>::GetDofList(
     DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& r_geom = this->GetGeometry();
@@ -138,7 +138,7 @@ void AdjointFluxCondition<PrimalCondition>::GetDofList(
 }
 
 template<class PrimalCondition>
-int AdjointFluxCondition<PrimalCondition>::Check(const ProcessInfo& rProcessInfo)
+int AdjointThermalFace<PrimalCondition>::Check(const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
     KRATOS_ERROR_IF_NOT(rProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
@@ -164,24 +164,24 @@ int AdjointFluxCondition<PrimalCondition>::Check(const ProcessInfo& rProcessInfo
 }
 
 template<class PrimalCondition>
-std::string AdjointFluxCondition<PrimalCondition>::Info() const
+std::string AdjointThermalFace<PrimalCondition>::Info() const
 {
     std::stringstream buffer;
-    buffer << "AdjointFluxCondition #" << this->Id();
+    buffer << "AdjointThermalFace #" << this->Id();
     return buffer.str();
 }
 
 template<class PrimalCondition>
-void AdjointFluxCondition<PrimalCondition>::PrintInfo(std::ostream& rOStream) const
+void AdjointThermalFace<PrimalCondition>::PrintInfo(std::ostream& rOStream) const
 {
     const GeometryType& r_geom = this->GetGeometry();
     const unsigned int dimension = r_geom.WorkingSpaceDimension();
     const unsigned int num_nodes = r_geom.PointsNumber();
-    rOStream << "AdjointFluxCondition" << dimension << "D" << num_nodes << "N";
+    rOStream << "AdjointThermalFace" << dimension << "D" << num_nodes << "N";
 }
 
 template<class PrimalCondition>
-void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
+void AdjointThermalFace<PrimalCondition>::CalculateSensitivityMatrix(
     const Variable<array_1d<double, 3>>& rDesignVariable,
     Matrix& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -266,7 +266,7 @@ void AdjointFluxCondition<PrimalCondition>::CalculateSensitivityMatrix(
 }
 
 template<class PrimalCondition>
-typename AdjointFluxCondition<PrimalCondition>::MatrixType AdjointFluxCondition<PrimalCondition>::GetJacobian(
+typename AdjointThermalFace<PrimalCondition>::MatrixType AdjointThermalFace<PrimalCondition>::GetJacobian(
     GeometryData::IntegrationMethod QuadratureOrder,
     unsigned int IntegrationPointIndex) const
 {
@@ -288,6 +288,6 @@ typename AdjointFluxCondition<PrimalCondition>::MatrixType AdjointFluxCondition<
     return jacobian;
 }
 
-template class AdjointFluxCondition<ThermalFace>;
+template class AdjointThermalFace<ThermalFace>;
 
 }
