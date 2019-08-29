@@ -24,7 +24,6 @@ from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteListToNodalVariable
 import copy
 
-
 # ==============================================================================
 class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------

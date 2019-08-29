@@ -23,7 +23,6 @@ from . import data_logger_factory
 from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
-
 # ==============================================================================
 class AlgorithmPenalizedProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
