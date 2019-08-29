@@ -13,19 +13,19 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.envi
     if "DO_NOT_PARTITION_DOMAIN" in os.environ:
         Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
-        import DEM_procedures_mpi_no_partitions as DEM_procedures
-        import DEM_material_test_script
+        import KratosMultiphysics.DEMApplication.DEM_procedures_mpi_no_partitions as DEM_procedures
+        import KratosMultiphysics.DEMApplication.DEM_material_test_script
     else:
         Logger.PrintInfo("DEM", "Running under OpenMP........")
         from KratosMultiphysics.MetisApplication import *
         from KratosMultiphysics.MPISearchApplication import *
         from KratosMultiphysics.mpi import *
-        import DEM_procedures_mpi as DEM_procedures
-        import DEM_material_test_script_mpi as DEM_material_test_script
+        import KratosMultiphysics.DEMApplication.DEM_procedures_mpi as DEM_procedures
+        import KratosMultiphysics.DEMApplication.DEM_material_test_script_mpi as DEM_material_test_script
 else:
     Logger.PrintInfo("DEM", "Running under OpenMP........")
-    import DEM_procedures
-    import DEM_material_test_script
+    import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
+    import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 class DEMAnalysisStage(AnalysisStage):
 
@@ -54,8 +54,8 @@ class DEMAnalysisStage(AnalysisStage):
 
     @classmethod
     def GetDefaultInputParameters(self):
-        import dem_default_input_parameters
-        return dem_default_input_parameters.GetDefaultInputParameters()
+        import KratosMultiphysics.DEMApplication.dem_default_input_parameters
+        return KratosMultiphysics.DEMApplication.dem_default_input_parameters.GetDefaultInputParameters()
 
     @classmethod
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
@@ -144,7 +144,7 @@ class DEMAnalysisStage(AnalysisStage):
         return False
 
     def SetAnalyticParticleWatcher(self):
-        from analytic_tools import analytic_data_procedures
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
 
         # is this being used? TODO
@@ -152,7 +152,7 @@ class DEMAnalysisStage(AnalysisStage):
 
 
     def SetAnalyticFaceWatcher(self):
-        from analytic_tools import analytic_data_procedures
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
         self.face_watcher_dict = dict()
         self.face_watcher_analysers = dict()
@@ -234,9 +234,9 @@ class DEMAnalysisStage(AnalysisStage):
 
     def _CreateSolver(self):
         def SetSolverStrategy():
-            strategy = self.DEM_parameters["solver_settings"]["strategy"].GetString()
-            filename = import_module(str(strategy))
-            return filename
+            strategy_file_name = self.DEM_parameters["solver_settings"]["strategy"].GetString()
+            imported_module = import_module("KratosMultiphysics.DEMApplication" + "." + strategy_file_name)
+            return imported_module
 
         return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,
                                                      self.creator_destructor,

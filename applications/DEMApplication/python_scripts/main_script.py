@@ -13,19 +13,19 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.envi
     if "DO_NOT_PARTITION_DOMAIN" in os.environ:
         Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
-        import DEM_procedures_mpi_no_partitions as DEM_procedures
-        import DEM_material_test_script
+        import KratosMultiphysics.DEMApplication.DEM_procedures_mpi_no_partitions as DEM_procedures
+        import KratosMultiphysics.DEMApplication.DEM_material_test_script
     else:
         Logger.PrintInfo("DEM", "Running under OpenMP........")
         from KratosMultiphysics.MetisApplication import *
         from KratosMultiphysics.MPISearchApplication import *
         from KratosMultiphysics.mpi import *
-        import DEM_procedures_mpi as DEM_procedures
-        import DEM_material_test_script_mpi as DEM_material_test_script
+        import KratosMultiphysics.DEMApplication.DEM_procedures_mpi as DEM_procedures
+        import KratosMultiphysics.DEMApplication.DEM_material_test_script_mpi as DEM_material_test_script
 else:
     Logger.PrintInfo("DEM", "Running under OpenMP........")
-    import DEM_procedures
-    import DEM_material_test_script
+    import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
+    import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 class Solution(object):
 
@@ -47,7 +47,7 @@ class Solution(object):
 
     @classmethod
     def GetDefaultInputParameters(self):
-        import dem_default_input_parameters
+        import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_default_input_parameters
         return dem_default_input_parameters.GetDefaultInputParameters()
 
     @classmethod
@@ -129,7 +129,7 @@ class Solution(object):
         return False
 
     def SetAnalyticParticleWatcher(self):
-        from analytic_tools import analytic_data_procedures
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
 
         # is this being used? TODO
@@ -137,7 +137,7 @@ class Solution(object):
 
 
     def SetAnalyticFaceWatcher(self):
-        from analytic_tools import analytic_data_procedures
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
         self.face_watcher_dict = dict()
         self.face_watcher_analysers = dict()
@@ -219,17 +219,17 @@ class Solution(object):
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
         if self.DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
-            import sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
-            import continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.continuum_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D":
-            import thermal_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_continuum_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericPartDEMElement3D":
-            import thermal_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "SinteringSphericConPartDEMElement3D":
-            import thermal_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_continuum_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "IceContPartDEMElement3D":
-            import ice_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.ice_continuum_sphere_strategy as SolverStrategy
         else:
             self.KratosPrintWarning('Error: Strategy unavailable. Select a different scheme-element')
 
@@ -592,7 +592,7 @@ class Solution(object):
     def SetGraphicalOutput(self):
         self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
         if self.DEM_parameters["post_vtk_option"].GetBool():
-            import dem_vtk_output
+            import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
             self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):

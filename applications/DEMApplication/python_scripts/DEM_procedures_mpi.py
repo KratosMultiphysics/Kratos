@@ -10,7 +10,7 @@ else:
     import DEM_material_test_script
 
 from KratosMultiphysics.mpi import *
-import DEM_procedures
+import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 
 from glob import glob
 
