@@ -60,12 +60,27 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             subprocess.Popen(f'fluent 2ddp{gui} -t{cores} -i {journal}',
                                  shell=True, executable='/bin/bash', cwd=self.dir_cfd)
 
+        time.sleep(10)
+        print('python start message checks')
+        self.send_message('python_1')
+        self.wait_message('fluent_2')
+        print('received fluent_2')
+        time.sleep(2)
+        self.send_message('python_3')
+        while True:
+            time.sleep(0.1)
+            b = self.check_message('fluent_4')
+            print(b)
+            if b:
+                break
+        print('python finished')
+
+
+
         # get surface thread ID's from report.sum and write them to bcs.txt
         report = os.path.join(self.dir_cfd, 'report.sum')
         while not os.path.isfile(report):
             time.sleep(0.01)
-
-
 
         check = 0
         info = []
@@ -91,12 +106,26 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
 
 
+    # *** test these message functions, communicate a bit with journal
 
-    def read_fluent_message(self, message):
-        path = os.path.join(self.dir_cfd, message)
-        while not os.path.isfile(path):
-            time.sleep(0.01)
-        os.remove(path)
+    def send_message(self, message):
+        file = os.path.join(self.dir_cfd, message + ".msg")
+        open(file, 'w').close()
         return
+
+    def wait_message(self, message):
+        file = os.path.join(self.dir_cfd, message + ".msg")
+        while not os.path.isfile(file):
+            time.sleep(0.01)
+        os.remove(file)
+        return
+
+    def check_message(self, message):
+        file = os.path.join(self.dir_cfd, message + ".msg")
+        if os.path.isfile(file):
+            os.remove(file)
+            return True
+        return False
+
 
 
