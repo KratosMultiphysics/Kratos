@@ -223,6 +223,9 @@ public:
             << Index << " composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
+        KRATOS_ERROR_IF(0.0 == Index) << "Cannot change master: "
+            << Index << std::endl;
+
         mpGeometries[Index] = pGeometry;
     }
 
