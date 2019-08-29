@@ -247,8 +247,7 @@ public:
 
         IndexType new_index = mpGeometries.size();
 
-        mpGeometries.resize(new_index + 1);
-        mpGeometries[new_index] = pGeometry;
+        mpGeometries.push_back(pGeometry);
 
         return new_index;
     }
