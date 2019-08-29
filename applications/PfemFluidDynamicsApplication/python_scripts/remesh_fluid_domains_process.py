@@ -107,7 +107,6 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                     domain.ComputeInitialAverageMeshParameters()
 
 
-
     def InitializeDomains(self):
         """This function Initializes the Domains
         """
@@ -143,70 +142,40 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
         # set the domain labels to nodes
         self.mesher_utils.SetModelPartNameToNodes(self.main_model_part)
-
         self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.INITIALIZED_DOMAINS, True)
-
         if self.echo_level>1:
             print(self.main_model_part)
 
     def BuildMeshBoundaryForFluids(self):
-
-        # set building options:
-
+        """This function Builds the mesh boundaries for the fluids
+        """
         # define building utility
         model_part_name = self.settings["model_part_name"].GetString()
 
-        ############ choose just one of the following two options: ############
-        ## use this if you want conditions
-        ## ATTENTION: this is slow, and must be used together with ModelMeshingWithConditionsForFluids and GenerateNewConditionsForFluids
-        #skin_build = KratosDelaunay.BuildModelPartBoundary(self.main_model_part, model_part_name, self.echo_level)
+        """
+        choose just one of the following two options: 
+        use this if you want conditions
+        ATTENTION: this is slow, and must be used together with ModelMeshingWithConditionsForFluids and GenerateNewConditionsForFluids
+        skin_build = KratosDelaunay.BuildModelPartBoundary(self.main_model_part, model_part_name, self.echo_level)
 
-        ## if you use the following, you will not use/build/compute conditions
-        ## ATTENTION: it must be used together with ModelMeshingForFluids and BuildMeshBoundaryForFluids
+        if you use the following, you will not use/build/compute conditions
+        ATTENTION: it must be used together with ModelMeshingForFluids and BuildMeshBoundaryForFluids
+        """
         skin_build = KratosPfemFluid.BuildModelPartBoundaryForFluids(self.main_model_part, model_part_name, self.echo_level)
-        #######################################################################
-
-        # execute building:
         skin_build.Execute()
 
-    ###
 
-    #
     def ExecuteInitializeSolutionStep(self):
-
+        """This function executes the Initialize solution step of the process
+        """
         self.step_count += 1
         currentTime=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         currentStep=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
 
         if currentStep >= 2 and self.fileTotalVolume is None and self.write_total_volume:
             self.fileTotalVolume = open("totalVolumeBeforeMeshing.txt",'w')
-            #self.probe1 = open("probe1.txt",'w')
-            #self.probe2 = open("probe2.txt",'w')
-            #self.probe3 = open("probe3.txt",'w')
 
         if(currentStep > 1 and self.fileTotalVolume is not None):
-            #maxYprobe1=0.1
-            #maxYprobe2=0.1
-            #maxYprobe3=0.1
-            #for node in self.main_model_part.Nodes:
-                #if(node.IsNot(KratosMultiphysics.ISOLATED)):
-                    #if(node.X>5.9 and node.X<6.1):
-                        #if(node.Y>maxYprobe1):
-                            #maxYprobe1=node.Y
-                    #if(node.X>8.9 and node.X<9.1):
-                        #if(node.Y>maxYprobe2):
-                            #maxYprobe2=node.Y
-                    #if(node.X>11.9 and node.X<12.1):
-                        #if(node.Y>maxYprobe3):
-                            #maxYprobe3=node.Y
-
-            #outstring = str(currentTime) + " " +  str(maxYprobe1) + "\n"
-            #self.probe1.write(outstring)
-            #outstring = str(currentTime) + " " +  str(maxYprobe2) + "\n"
-            #self.probe2.write(outstring)
-            #outstring = str(currentTime) + " " +  str(maxYprobe3) + "\n"
-            #self.probe3.write(outstring)
-
             for domain in self.meshing_domains:
                 if(domain.Active()):
                     domain.ComputeAverageMeshParameters()
@@ -214,73 +183,40 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                     totalVolumeBeforeMeshing=domain.GetTotalVolume()
                     outstring = str(currentTime) + " " +  str(totalVolumeBeforeMeshing) + " "
                     self.fileTotalVolume.write(outstring)
-                    #fileTotalVolume = open("totalVolumeBeforeMeshing.txt", 'a')
-                    #if(currentStep==2):
-                        #fileTotalVolume.seek(0)
-                        #fileTotalVolume.truncate()
-
-                    #fileTotalVolume.write(outstring)
-                    #fileTotalVolume.close
 
         volume_acceleration=self.main_model_part.ProcessInfo[KratosMultiphysics.GRAVITY]
         variable_utils = KratosMultiphysics.VariableUtils()
         if(currentStep == 1):
             variable_utils.SetVectorVar(KratosMultiphysics.VOLUME_ACCELERATION, volume_acceleration, self.main_model_part.Nodes)
-            #variable_utils.SetScalarVar(KratosMultiphysics.FLUID_FRACTION, 1.0, self.main_model_part.Nodes)
-            #variable_utils.SetScalarVar(KratosMultiphysics.FLUID_FRACTION_OLD, 1.0, self.main_model_part.Nodes)
-            #variable_utils.SetScalarVar(KratosMultiphysics.FLUID_FRACTION_RATE, 0.0, self.main_model_part.Nodes)
 
-       # if(currentStep == 2):
-         #   variable_utils.SetScalarVar(KratosMultiphysics.FLUID_FRACTION_RATE, 0.0, self.main_model_part.Nodes)
-
-        if(self.remesh_domains_active):
-            if( self.meshing_before_output ):
-                if(self.IsMeshingStep()):
-                    if(self.echo_level>1):
+        if self.remesh_domains_active:
+            if self.meshing_before_output:
+                if self.IsMeshingStep():
+                    if self.echo_level>1:
                         print("::[Remesh_Fluid_Domains_Process]:: RemeshFluidDomains ")
                     self.RemeshFluidDomains()
 
-        if(currentStep > 1 and self.fileTotalVolume is not None):
+        if currentStep > 1 and self.fileTotalVolume is not None:
             for domain in self.meshing_domains:
-                if(domain.Active()):
+                if domain.Active():
                     domain.ComputeAverageMeshParameters()
                     meanVolumeAfterMeshing=domain.GetMeanVolume()
                     totalVolumeAfterMeshing=domain.GetTotalVolume()
                     diffMeanVolume=meanVolumeAfterMeshing-meanVolumeBeforeMeshing
                     diffTotalVolume=totalVolumeAfterMeshing-totalVolumeBeforeMeshing
-                    #fileTotalVolume = open("totalVolumeBeforeMeshing.txt", 'a')
-
                     outstring =  str(totalVolumeAfterMeshing) + " " +  str(diffTotalVolume) + "\n"
-                    #fileTotalVolume.write(outstring)
-                    #fileTotalVolume.close
                     self.fileTotalVolume.write(outstring)
         if self.fileTotalVolume is not None:
             self.fileTotalVolume.flush()
-            #self.probe1.flush()
-            #self.probe2.flush()
-            #self.probe3.flush()
 
 
     def ExecuteFinalize(self):
+        """This function executes the Finalize of the process
+        """
         if self.fileTotalVolume is not None:
             self.fileTotalVolume.close()
-            #self.probe1.close()
-            #self.probe2.close()
-            #self.probe3.close()
 
 
-      #if(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1):
-          #  for node in self.main_model_part.Nodes:
-           #     if (node.Is(KratosMultiphysics.FLUID)):
-            #        if(node.IsNot(KratosMultiphysics.RIGID)):
-             #           volume_acceleration=node.GetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION)
-             #           break
-          #  for node in self.main_model_part.Nodes:
-            #    if (node.Is(KratosMultiphysics.RIGID)):
-             #       node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION,volume_acceleration)
-
-
-    #
     def ExecuteBeforeOutputStep(self):
 
         pass
