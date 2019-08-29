@@ -219,8 +219,13 @@ public:
             << Index << " composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
-        KRATOS_ERROR_IF(0.0 == Index) << "Cannot change master: "
+        KRATOS_ERROR_IF(0 == Index) << "Cannot change master: "
             << Index << std::endl;
+
+        KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[0]->Dimension())
+            << "Dimension of new entity does not coincide with this coupling geometry. "
+            << "Dimension of new geometry: " << pGeometry->Dimension()
+            << ", dimension of coupling geometry: " << (*this)->Dimension() << std::endl;
 
         mpGeometries[Index] = pGeometry;
     }
@@ -234,6 +239,11 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometries[0]->Dimension() != pGeometry->Dimension())
             << "Geometries of different dimensional size!" << std::endl;
+
+        KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[0]->Dimension())
+            << "Dimension of new entity does not coincide with this coupling geometry. "
+            << "Dimension of new geometry: " << pGeometry->Dimension()
+            << ", dimension of coupling geometry: " << (*this)->Dimension() << std::endl;
 
         IndexType new_index = mpGeometries.size();
 
