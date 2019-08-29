@@ -162,7 +162,14 @@ private:
     ///@name Member Variables
     ///@{
 
+    /*
+    * @brief Lower bound of the Interval.
+    */
     double mT0;
+
+    /*
+    * @brief Upper bound of the Interval.
+    */
     double mT1;
 
     ///@}
