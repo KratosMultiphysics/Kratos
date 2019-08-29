@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Logger
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
-import parameters_tools as PT
+import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
@@ -415,7 +415,7 @@ class VariablesManager:
             self.coupling_dem_vars += [Kratos.POWER_LAW_K]
             self.coupling_dem_vars += [Kratos.YIELD_STRESS]
 
-        if PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters'):
+        if PT.RecursiveFindParametersWithCondition(parameters["properties"], 'vorticity_induced_lift_parameters', condition=lambda value: not (value['name'].GetString()=='default')):
             self.coupling_dem_vars += [Kratos.FLUID_VORTICITY_PROJECTED]
             self.coupling_dem_vars += [Kratos.SHEAR_RATE_PROJECTED]
 

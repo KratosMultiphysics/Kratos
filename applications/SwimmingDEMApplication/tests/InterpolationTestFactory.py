@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from tests_python_scripts.interpolation_scripts.interpolation_test_analysis import InterpolationTestAnalysis
+from KratosMultiphysics.SwimmingDEMApplication.tests_python_scripts.interpolation_scripts.interpolation_test_analysis import InterpolationTestAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:

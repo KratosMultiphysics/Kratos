@@ -14,11 +14,11 @@ import KratosMultiphysics.DEMApplication as DEM
 
 from analysis_stage import AnalysisStage
 
-import CFD_DEM_coupling
-import swimming_DEM_procedures as SDP
-import swimming_DEM_gid_output
-import embedded
-import variables_management
+import KratosMultiphysics.SwimmingDEMApplication.CFD_DEM_coupling as CFD_DEM_coupling
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_gid_output as swimming_DEM_gid_output
+import KratosMultiphysics.SwimmingDEMApplication.embedded as embedded
+import KratosMultiphysics.SwimmingDEMApplication.variables_management as variables_management
 
 def Say(*args):
     Logger.PrintInfo("SwimmingDEM", *args)
@@ -27,7 +27,7 @@ def Say(*args):
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI.
 # For other implementations of MPI it will not work.
 
-import DEM_procedures as DP
+import KratosMultiphysics.DEMApplication.DEM_procedures as DP
 
 class SDEMLogger(object):
     def __init__(self, do_print_file=False):
@@ -105,7 +105,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.fluid_parameters = self.project_parameters['fluid_parameters']
 
         # First, read the parameters generated from the interface
-        import swimming_dem_default_input_parameters as only_swimming_defaults
+        import KratosMultiphysics.SwimmingDEMApplication.swimming_dem_default_input_parameters as only_swimming_defaults
         import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_defaults
 
 
@@ -378,7 +378,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             Say(gauge.variables)
         # ANALYTICS END
 
-        import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
+        import KratosMultiphysics.SwimmingDEMApplication.derivative_recovery.derivative_recovery_strategy as derivative_recoverer
 
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
             self.project_parameters,
@@ -726,21 +726,21 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def _GetDEMAnalysis(self):
         if not hasattr(self, '_disperse_phase_analysis'):
-            import fluid_coupled_DEM_analysis as DEM_analysis
+            import KratosMultiphysics.SwimmingDEMApplication.fluid_coupled_DEM_analysis as DEM_analysis
             self._disperse_phase_analysis = DEM_analysis.FluidCoupledDEMAnalysisStage(self.model, self.project_parameters)
 
         return self._disperse_phase_analysis
 
     def _GetFluidAnalysis(self):
         if not hasattr(self, '_fluid_phase_analysis'):
-            import DEM_coupled_fluid_dynamics_analysis as fluid_analysis
+            import KratosMultiphysics.SwimmingDEMApplication.DEM_coupled_fluid_dynamics_analysis as fluid_analysis
             self._fluid_phase_analysis = fluid_analysis.DEMCoupledFluidDynamicsAnalysis(self.model, self.project_parameters, self.vars_man)
             self._fluid_phase_analysis.main_path = self.main_path
         return self._fluid_phase_analysis
 
     # To-do: for the moment, provided for compatibility
     def _CreateSolver(self):
-        import swimming_DEM_solver
+        import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_solver as swimming_DEM_solver
         return swimming_DEM_solver.SwimmingDEMSolver(self.model,
                                                      self.project_parameters,
                                                      self.GetFieldUtility(),
