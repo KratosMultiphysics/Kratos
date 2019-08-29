@@ -121,7 +121,7 @@ DEFINE_ON_DEMAND(store_nodes_faces) {
 	Thread *face_thread;
 	face_t face;
 	Node *node;
-	int node_number;
+	int node_number, j;
 	real centroid[ND_ND];
 #endif /* !RP_HOST */
 
@@ -185,22 +185,22 @@ DEFINE_ON_DEMAND(store_nodes_faces) {
                 face_coords[d][i_f] = centroid[d];
             }
 
+            for (j = 0; j < mnpf; j++) {
+                face_ids[j][i_f] = -1;
+            }
+
+            j = 0;
             f_node_loop(face, face_thread, node_number) {
-                if (i_n >= n_nodes) {Error("\nIndex %i >= array size %i.", i_n, n_nodes);}
-
                 node = F_NODE(face, face_thread, node_number);
-                node_ids[i_n] = NODE_DM_ID(node);
 
+                if (j >= mnpf) {Error("\nIndex %i >= array size %i.", j, mnpf);}
+                face_ids[j][i_f] = NODE_DM_ID(node);
+                j++;
+
+                if (i_n >= n_nodes) {Error("\nIndex %i >= array size %i.", i_n, n_nodes);}
+                node_ids[i_n] = NODE_DM_ID(node);
                 for (d = 0; d < ND_ND; d++) {
                     node_coords[d][i_n] = NODE_COORD(node)[d];
-                }
-                for (d = 0; d < mnpf; d++) {
-                    if (d < F_NNODES(face, face_thread)) {
-                        face_ids[d][i_f] = NODE_DM_ID(node);
-                    }
-                    else {
-                        face_ids[d][i_f] = -1;
-                    }
                 }
                 i_n++;
             }
