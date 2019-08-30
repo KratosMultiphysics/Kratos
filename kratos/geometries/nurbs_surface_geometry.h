@@ -425,7 +425,7 @@ public:
         array_1d<double, 3> parameter = ZeroVector(3);
         parameter[0] = ((*this).DomainIntervalU().MinParameter() + (*this).DomainIntervalU().MaxParameter())/2.0;
         parameter[1] = ((*this).DomainIntervalV().MinParameter() + (*this).DomainIntervalV().MaxParameter())/2.0;
-        bool isConverged = ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface<TWorkingSpaceDimension, TPointType>(
+        ProjectionNurbsGeometryUtilities::NewtonRaphsonSurface<TWorkingSpaceDimension, TPointType>(
             parameter,
             rPoint,
             rResult,
