@@ -2,13 +2,15 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
+from KratosMultiphysics import kratos_utilities as kratos_utils
 
-import os, filecmp
+import os
 from shutil import copyfile
 
-conv_signal_file_name = "EMPIRE_convergence_signal.dat" # this is hardcoded in C++
+conv_signal_file_name = "EMPIRE_convergence_signal_default.dat"
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -75,38 +77,23 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
         KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(model_part)
 
-        # can directly use filecmp because there are no decimal-number issues
-        self.assertTrue(filecmp.cmp(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), "EMPIRE_mesh_For_Sending.vtk"))
+        params = KM.Parameters("""{
+            "comparison_type"     : "vtk",
+            "reference_file_name" : "",
+            "output_file_name"    : ""
+        }""")
+        params["reference_file_name"].SetString(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"))
+        params["output_file_name"].SetString("EMPIRE_mesh_For_Sending.vtk")
 
-    def test_EMPIRE_API_recvMesh(self):
-        mp_name = "For_Receiving"
-        mesh_file_name = GetMeshFileName(mp_name)
-        model = KM.Model()
-        model_part = model.CreateModelPart(mp_name)
-        model_part_ref = model.CreateModelPart("For_Checking")
+        CompareTwoFilesCheckProcess(params).Execute()
 
-        copyfile(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), mesh_file_name)
+        kratos_utils.DeleteFileIfExisting("EMPIRE_mesh_For_Sending.vtk")
 
-        KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part)
+    def test_EMPIRE_API_recvMesh_std_vector(self):
+        self.__TestReceiveMesh(False)
 
-        # make sure that the file was deleted
-        self.assertFalse(os.path.isfile(mesh_file_name))
-
-        # reading reference ModelPart (with which the ref-vtk was created)
-        severity = KM.Logger.GetDefaultOutput().GetSeverity()
-        KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING) # mute MP-IO
-        model_part_io = KM.ModelPartIO(GetFilePath("generic_mdpa_files/Mok_CFD"))
-        model_part_io.ReadModelPart(model_part_ref)
-        KM.Logger.GetDefaultOutput().SetSeverity(severity)
-
-        self.assertEqual(model_part.NumberOfNodes(), model_part_ref.NumberOfNodes())
-        self.assertEqual(model_part.NumberOfElements(), model_part_ref.NumberOfElements())
-
-        self.__CompareNodes(model_part.Nodes, model_part_ref.Nodes)
-
-        for elem, elem_ref in zip(model_part.Elements, model_part_ref.Elements):
-            self.assertEqual(elem.Id, elem_ref.Id)
-            self.__CompareNodes(elem.GetNodes(), elem_ref.GetNodes())
+    def test_EMPIRE_API_recvMesh_raw_pointers(self):
+        self.__TestReceiveMesh(True)
 
     def test_EMPIRE_API_sendDataField(self):
         fct_to_test = KratosCoSim.EMPIRE_API.EMPIRE_API_sendDataField
@@ -188,14 +175,19 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
     def __TestArraySend(self, fct_ptr_to_test, file_name_fct_ptr, array_to_test):
         array_name = "dummy_array_send"
         array_file_name = file_name_fct_ptr(array_name)
+        array_size = len(array_to_test)
 
-        fct_ptr_to_test(array_name, len(array_to_test), array_to_test)
+        fct_ptr_to_test(array_name, array_size, array_to_test)
 
         self.assertTrue(os.path.isfile(array_file_name))
 
         with open(array_file_name, 'r') as array_file:
-            content = array_file.read()
-            vals = [float(v) for v in content.split(' ')]
+            content = array_file.readlines()
+            self.assertEqual(len(content), 2) # file should contain 2 lines
+            written_array_size = int(content[0])
+            self.assertEqual(array_size, written_array_size)
+            vals = [float(v) for v in content[1].split(' ')]
+            self.assertEqual(array_size, len(vals))
             for v, v_exp in zip(vals, array_to_test):
                 self.assertAlmostEqual(v, v_exp, 10)
 
@@ -205,15 +197,16 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         array_name = "dummy_array_recv"
         array_file_name = file_name_fct_ptr(array_name)
 
+        array_size = len(array_to_test)
         with open(array_file_name, 'w') as array_file:
+            array_file.write(str(array_size)+"\n")
             for i_v, v in enumerate(array_to_test):
                 array_file.write(str(v))
                 # doing this extra to not have a trailing whitespace in the file
-                if i_v < len(array_to_test)-1:
+                if i_v < array_size-1:
                     array_file.write(" ")
 
-        array_to_receive = [0.0] * len(array_to_test)
-
+        array_to_receive = [0.0] * array_size
         fct_ptr_to_test(array_name, len(array_to_receive), array_to_receive)
 
         # check the received signal
@@ -223,8 +216,48 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
         # make sure that the file was deleted
         self.assertFalse(os.path.isfile(array_file_name))
 
-        with self.assertRaisesRegex(RuntimeError, "The size of the list has to be specified before, expected size of {}, current size: {}".format(len(array_to_test)+2, len(array_to_test))):
-            fct_ptr_to_test(array_name, len(array_to_test)+2, array_to_test)
+        # writting a file with the wrong size, this should throw a proper error
+        with open(array_file_name, 'w') as array_file:
+            array_file.write(str(array_size+2)+"\n")
+        with self.assertRaisesRegex(RuntimeError, 'The received size for array "{}" is different from what is expected:\n    Expected size: {}\n    Received size: {}'.format(array_file_name, array_size, array_size+2)):
+            fct_ptr_to_test(array_name, len(array_to_receive), array_to_receive)
+
+        # manually remove file since the call above throws
+        os.remove(array_file_name)
+
+        # check if the py-exposure works correctly
+        with self.assertRaisesRegex(RuntimeError, "The size of the list has to be specified before, expected size of {}, current size: {}".format(array_size+2, array_size)):
+            fct_ptr_to_test(array_name, array_size+2, array_to_test)
+
+    def __TestReceiveMesh(self, use_raw_pointers):
+        mp_name = "For_Receiving"
+        mesh_file_name = GetMeshFileName(mp_name)
+        model = KM.Model()
+        model_part = model.CreateModelPart(mp_name)
+        model_part_ref = model.CreateModelPart("For_Checking")
+
+        copyfile(GetFilePath("reference_files/EMPIRE_mesh_For_Sending.vtk_ref"), mesh_file_name)
+
+        KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part, False, use_raw_pointers)
+
+        # make sure that the file was deleted
+        self.assertFalse(os.path.isfile(mesh_file_name))
+
+        # reading reference ModelPart (with which the ref-vtk was created)
+        severity = KM.Logger.GetDefaultOutput().GetSeverity()
+        KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING) # mute MP-IO
+        model_part_io = KM.ModelPartIO(GetFilePath("generic_mdpa_files/Mok_CFD"))
+        model_part_io.ReadModelPart(model_part_ref)
+        KM.Logger.GetDefaultOutput().SetSeverity(severity)
+
+        self.assertEqual(model_part.NumberOfNodes(), model_part_ref.NumberOfNodes())
+        self.assertEqual(model_part.NumberOfElements(), model_part_ref.NumberOfElements())
+
+        self.__CompareNodes(model_part.Nodes, model_part_ref.Nodes)
+
+        for elem, elem_ref in zip(model_part.Elements, model_part_ref.Elements):
+            self.assertEqual(elem.Id, elem_ref.Id)
+            self.__CompareNodes(elem.GetNodes(), elem_ref.GetNodes())
 
     def __CompareNodes(self, nodes, nodes_ref):
         for node, node_ref in zip(nodes, nodes_ref):
@@ -240,14 +273,14 @@ class TestCoSim_EMPIRE_API(KratosUnittest.TestCase):
 
     def __CompareScalarNodalValues(self, nodes, nodes_ref, var):
         for node, node_ref in zip(nodes, nodes_ref):
-            self.assertAlmostEqual(node.GetSolutionStepValue(var), node_ref.GetSolutionStepValue(var), 10)
+            self.assertAlmostEqual(node.GetSolutionStepValue(var), node_ref.GetSolutionStepValue(var), 12)
 
     def __CompareVectorNodalValues(self, nodes, nodes_ref, var):
         for node, node_ref in zip(nodes, nodes_ref):
             val = node.GetSolutionStepValue(var)
             val_ref = node_ref.GetSolutionStepValue(var)
             for v, v_ref in zip(val, val_ref):
-                self.assertAlmostEqual(v, v_ref, 10)
+                self.assertAlmostEqual(v, v_ref, 12)
 
 
 def GetPRESUREValue(node_id):

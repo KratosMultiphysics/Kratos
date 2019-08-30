@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-namespace {
+namespace Internals {
 
 template<class TDataType> struct MPIDataType;
 
@@ -173,17 +173,16 @@ public:
 
 template<class TDataType> class MPIMessage;
 
-template<> class MPIMessage<int>: public ValueMessage<int>, public MPIDataType<int> {};
-template<> class MPIMessage<Flags::BlockType>: public ValueMessage<Flags::BlockType>, public MPIDataType<Flags::BlockType> {};
-template<> class MPIMessage<unsigned int>: public ValueMessage<unsigned int>, public MPIDataType<unsigned int> {};
-template<> class MPIMessage<long unsigned int>: public ValueMessage<long unsigned int>, public MPIDataType<long unsigned int> {};
-template<> class MPIMessage<double>: public ValueMessage<double>, public MPIDataType<double> {};
+template<> class MPIMessage<int>: public Internals::ValueMessage<int>, public Internals::MPIDataType<int> {};
+template<> class MPIMessage<Flags::BlockType>: public Internals::ValueMessage<Flags::BlockType>, public Internals::MPIDataType<Flags::BlockType> {};
+template<> class MPIMessage<unsigned int>: public Internals::ValueMessage<unsigned int>, public Internals::MPIDataType<unsigned int> {};
+template<> class MPIMessage<long unsigned int>: public Internals::ValueMessage<long unsigned int>, public Internals::MPIDataType<long unsigned int> {};
+template<> class MPIMessage<double>: public Internals::ValueMessage<double>, public Internals::MPIDataType<double> {};
 
-template<> class MPIMessage<std::string>: public StringMessage, public MPIDataType<std::string> {};
+template<> class MPIMessage<std::string>: public Internals::StringMessage, public Internals::MPIDataType<std::string> {};
 
-template<class ValueType> class MPIMessage< std::vector<ValueType> >: public VectorMessage<ValueType>, public MPIDataType<ValueType> {};
-template<class ValueType, std::size_t Dimension> class MPIMessage<array_1d<ValueType,Dimension>>: public ArrayMessage<ValueType,Dimension>, public MPIDataType<ValueType> {};
-
+template<class ValueType> class MPIMessage< std::vector<ValueType> >: public Internals::VectorMessage<ValueType>, public Internals::MPIDataType<ValueType> {};
+template<class ValueType, std::size_t Dimension> class MPIMessage<array_1d<ValueType,Dimension>>: public Internals::ArrayMessage<ValueType,Dimension>, public Internals::MPIDataType<ValueType> {};
 
 } // namespace Kratos
 

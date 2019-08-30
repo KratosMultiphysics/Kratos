@@ -361,7 +361,15 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Execute method is used to execute the Process algorithms.
+     */
     void Execute() override;
+
+    /**
+     * @details This function will be executed at every time step BEFORE performing the solve phase
+     */
+    void ExecuteInitializeSolutionStep() override;
 
     /**
      * @brief This method is a direct map between the origin and destination modelpart with custom variables
@@ -910,6 +918,11 @@ private:
         const SizeType number_points_found = rTreePoints.SearchInRadius(center, search_radius, points_found.begin(), AllocationSize);
 
         if (number_points_found > 0) {
+            // In case of missing is created
+            if (!pGeometricalObject->Has(INDEX_SET))
+                pGeometricalObject->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
+
+            // Accessing to the index set
             IndexSet::Pointer indexes_set = pGeometricalObject->GetValue(INDEX_SET);
 
             for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {

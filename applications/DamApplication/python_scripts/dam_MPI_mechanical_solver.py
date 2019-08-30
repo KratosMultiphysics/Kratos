@@ -7,8 +7,9 @@ import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
-import dam_mechanical_solver
+from KratosMultiphysics.DamApplication import dam_mechanical_solver
 from KratosMultiphysics.mpi import distributed_import_model_part_utility
 
 
@@ -85,7 +86,6 @@ class DamMPIMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Construct the linear solver
-        import trilinos_linear_solver_factory
         self.linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
 
         print("Construction of Dam_MPI_MechanicalSolver finished")

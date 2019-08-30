@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_processes/build_model_part_boundary_process.hpp"
+//#include <boost/timer.hpp>
 
 ///VARIABLES used:
 //Data:     MASTER_ELEMENTS(set), MASTER_NODES(set)
@@ -107,7 +108,7 @@ namespace Kratos
 
       bool success=false;
 
-      boost::timer auxiliary;
+      //boost::timer auxiliary;
 
       if( mEchoLevel > 0 )
 	std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
@@ -118,12 +119,12 @@ namespace Kratos
 	{
           std::cout<<"  ERROR:  BOUNDARY BUILD FAILED ModelPart : ["<<mrModelPart<<"] "<<std::endl;
         }
-      else
-	{
-          if( mEchoLevel >= 1 )
-	    std::cout<<" [ Search performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
-            //PrintSkin(mrModelPart);
-        }
+  //     else
+	// {
+  //         if( mEchoLevel >= 1 )
+	//     std::cout<<" [ Search performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
+  //           //PrintSkin(mrModelPart);
+  //       }
 
 
       KRATOS_CATCH(" ")
