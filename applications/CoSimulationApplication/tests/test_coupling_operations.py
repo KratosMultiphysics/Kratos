@@ -6,6 +6,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 from KratosMultiphysics.CoSimulationApplication.factories import coupling_operation_factory
 
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
+using_pykratos = UsingPyKratos()
+
 from math import sqrt, pi
 
 class SolverWrapper(object):
@@ -28,7 +31,7 @@ class TestScalingOperation(KratosUnittest.TestCase):
 
         for i in range(5):
             new_node = self.model_part.CreateNewNode(i+1, i*0.1, 0.0, 0.0)
-            new_node.SetSolutionStepValue(KM.PRESSURE, i+1.3)
+            new_node.SetSolutionStepValue(KM.PRESSURE, 0, i+1.3)
 
         data_settings = KM.Parameters("""{
             "model_part_name" : "default",
@@ -100,6 +103,9 @@ class TestScalingOperation(KratosUnittest.TestCase):
         self.__ExecuteTest(scaling_op, factors)
 
     def test_scaling_in_interval(self):
+        if using_pykratos:
+            self.skipTest("This test can only be run with pyKratos after the IntervalUtility is implemented!")
+
         scaling_op_settings = KM.Parameters("""{
             "type"           : "scaling",
             "solver"         : "dummy_solver",
@@ -116,6 +122,9 @@ class TestScalingOperation(KratosUnittest.TestCase):
         self.__ExecuteTest(scaling_op, factors)
 
     def test_scaling_in_interval_2(self):
+        if using_pykratos:
+            self.skipTest("This test can only be run with pyKratos after the IntervalUtility is implemented!")
+
         scaling_op_settings = KM.Parameters("""{
             "type"           : "scaling",
             "solver"         : "dummy_solver",
