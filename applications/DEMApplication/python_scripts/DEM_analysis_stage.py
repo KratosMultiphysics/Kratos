@@ -4,12 +4,10 @@ import os
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-sys.path.insert(0, '')
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 from importlib import import_module
 
-# Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
-if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
+if IsDistributedRun():
     if "DO_NOT_PARTITION_DOMAIN" in os.environ:
         Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
