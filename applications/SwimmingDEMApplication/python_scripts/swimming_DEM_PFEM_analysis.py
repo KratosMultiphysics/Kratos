@@ -7,7 +7,6 @@ import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis as swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
-sys.path.insert(0,'')
 
 class SDEMPFEMAnalysis(BaseAnalysis):
 
