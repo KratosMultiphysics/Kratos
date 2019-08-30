@@ -131,6 +131,13 @@ class ContactRemeshMmgProcess(MmgProcess):
         }
         """)
 
+        # Time stepping settings
+        self.time_stepping = KratosMultiphysics.Parameters("""{}""")
+        if settings.Has("time_stepping"):
+            self.time_stepping = settings["time_stepping"].Clone()
+            settings.RemoveValue("time_stepping")
+
+        # Validate the settings
         settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
         # Parameters of the process

@@ -196,11 +196,12 @@ class MmgProcess(KratosMultiphysics.Process):
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
-        # Time stepping settings
-        self.time_stepping = KratosMultiphysics.Parameters("""{}""")
-        if settings.Has("time_stepping"):
-            self.time_stepping = settings["time_stepping"]
-            settings.RemoveValue("time_stepping")
+        # Time stepping
+        if not hasattr(self, 'time_stepping'):
+            self.time_stepping = KratosMultiphysics.Parameters("""{}""")
+            if settings.Has("time_stepping"):
+                self.time_stepping = settings["time_stepping"].Clone()
+                settings.RemoveValue("time_stepping")
 
         # Overwrite the default settings with user-provided parameters
         self.settings = settings
