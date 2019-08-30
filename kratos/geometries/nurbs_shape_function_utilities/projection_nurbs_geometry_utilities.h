@@ -49,7 +49,7 @@ namespace Kratos
         * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
         */
         template <int TDimension, class TPointType>
-        static bool NewtonRaphsonCurve(
+        bool NewtonRaphsonCurve(
             CoordinatesArrayType& rParameter,
             const CoordinatesArrayType& rPoint,
             CoordinatesArrayType& rResult,
@@ -101,7 +101,7 @@ namespace Kratos
     }
 
     template <int TDimension, class TPointType>
-    static bool NewtonRaphsonSurface(
+    bool NewtonRaphsonSurface(
         CoordinatesArrayType& rParameter,
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
