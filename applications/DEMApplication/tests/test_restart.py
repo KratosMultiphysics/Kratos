@@ -17,8 +17,8 @@ class controlledExecutionScope:
 # Defining a generic Test, that is not actually KratosUnittest
 class DEMRestartTestFactory():
 
-    def setUp(self):
-        with open("restart_files/ProjectParametersDEM.json", 'r') as parameter_file:
+    def setUp(self, case_name=""):
+        with open('restart_files/' + case_name + 'ProjectParametersDEM.json', 'r') as parameter_file:
             self.project_parameters_save = Kratos.Parameters(parameter_file.read())
 
         # Now clone the settings after the common settings are set
@@ -57,13 +57,24 @@ class DEMRestartTestFactory():
                 for d1, d2 in zip(displacement_save, displacement_load):
                     self.assertAlmostEqual(d1, d2)
 
-class TestRestart(DEMRestartTestFactory, KratosUnittest.TestCase):
-    file_name = "restart_files/two_balls"
+class TestRestartOneBall(DEMRestartTestFactory, KratosUnittest.TestCase):
+    case_name = "one_ball"
+    def setUp(self):
+        super().setUp(TestRestartOneBall.case_name)
+
+class TestRestartTwoBalls(DEMRestartTestFactory, KratosUnittest.TestCase):
+    case_name = "two_balls"
+    def setUp(self):
+        super().setUp(TestRestartTwoBalls.case_name)
 
 if __name__ == '__main__':
     suites = KratosUnittest.KratosSuites
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRestart]))
+    test_list = [
+        TestRestartOneBall,
+        TestRestartTwoBalls
+    ]
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(test_list))
     allSuite = suites['all']
     allSuite.addTests(smallSuite)
     KratosUnittest.main()
