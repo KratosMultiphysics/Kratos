@@ -10,7 +10,7 @@ Logger.PrintInfo("DEM", "WARNING: Please use DEM_analysis_stage.py")
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
-    if Kratos.IsDistributedRun():
+    if IsDistributedRun():
         Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
         import KratosMultiphysics.DEMApplication.DEM_procedures_mpi_no_partitions as DEM_procedures

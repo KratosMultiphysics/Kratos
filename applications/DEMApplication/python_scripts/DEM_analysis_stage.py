@@ -5,12 +5,12 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 sys.path.insert(0, '')
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 from importlib import import_module
 
-# Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
+# Import MPI modules if needed. This way to do this is only valid when using OpenMPI or Intel MPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
-    if "DO_NOT_PARTITION_DOMAIN" in os.environ:
+    if IsDistributedRun():
         Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
         import KratosMultiphysics.DEMApplication.DEM_procedures_mpi_no_partitions as DEM_procedures
@@ -557,7 +557,7 @@ class DEMAnalysisStage(AnalysisStage):
     def SetGraphicalOutput(self):
         self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
         if self.DEM_parameters["post_vtk_option"].GetBool():
-            import dem_vtk_output
+            import KratosMultiphysics.DEMApplication.dem_vtk_output
             self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):
