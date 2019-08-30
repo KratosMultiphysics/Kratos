@@ -14,7 +14,7 @@ def GetGlobalVariableByName(variable_name):
     modules = [Kratos, DEM, SDEM]
     for mod in modules:
         try:
-            return getattr(mod, variable_name)
+            return getattr(mod, variable_name) # this could use KratosMultiphysics.KratosGlobals.GetVariable(var_name)
         except Exception:
             pass
     names = [mod.__name__ for mod in modules]
