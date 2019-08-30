@@ -55,10 +55,9 @@ class ScalingOperation(CoSimulationCouplingOperation):
         else:
             current_scaling_factor = self.scaling_factor
 
-        if abs(current_scaling_factor-1.0) > 1E-15:
-            if self.echo_level > 0:
-                cs_tools.cs_print_info("ScalingOperation", "Scaling-Factor", current_scaling_factor)
-            self.interface_data.SetData(current_scaling_factor*self.interface_data.GetData()) # setting the scaled data
+        if self.echo_level > 0:
+            cs_tools.cs_print_info("ScalingOperation", "Scaling-Factor", current_scaling_factor)
+        self.interface_data.SetData(current_scaling_factor*self.interface_data.GetData()) # setting the scaled data
 
     def Check(self):
         if isinstance(self.scaling_factor, str):
