@@ -113,7 +113,7 @@ namespace MPMParticleGeneratorUtility
                         break;
                     }
 
-                    GeometryType::IntegrationPointsArrayType integration_points = r_geometry->IntegrationPoints(this_integration_method);
+                    GeometryType::IntegrationPointsArrayType integration_points = r_geometry.IntegrationPoints(this_integration_method);
 
                     // Number of MP per elements
                     const unsigned int integration_point_per_elements = integration_points.size();
@@ -135,19 +135,16 @@ namespace MPMParticleGeneratorUtility
                     for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
                     {
                         auto p_new_geometry = CreateQuadraturePointsUtility<NodeType>::CreateFromCoordinates(
-                            rBackgroundGridModelPart.ElementsBegin()->GetGeometry(),
+                            rBackgroundGridModelPart.ElementsBegin()->pGetGeometry(),
                             integration_points[PointNumber]);
 
                         // Create new material point element
                         new_element_id = last_element_id + PointNumber;
-                        Element::Pointer p_element = Kratos::make_share<ParticleElement>(
-                            ParticleElement(
+                        Element::Pointer p_element = Kratos::make_shared<UpdatedLagrangian>(
+                            UpdatedLagrangian(
                                 new_element_id,
                                 p_new_geometry,
                                 p_properties));
-
-                        const double MP_density  = density;
-                        const int MP_material_id = material_id;
 
                         // Setting particle element's initial condition
                         p_element->SetValue(MP_DISPLACEMENT, mp_displacement);
