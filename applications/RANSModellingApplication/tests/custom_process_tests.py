@@ -484,7 +484,6 @@ class CustomProcessTest(UnitTest.TestCase):
             }
         ]''')
 
-
         factory = KratosProcessFactory(self.model)
         self.process_list = factory.ConstructListOfProcesses(settings)
         self.__ExecuteProcesses()
@@ -492,10 +491,76 @@ class CustomProcessTest(UnitTest.TestCase):
         c_mu = 0.09
         for node in self.model_part.Nodes:
             k = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY)
-            epsilon = node.GetSolutionStepValue(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
+            epsilon = node.GetSolutionStepValue(
+                KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
             node_value = node.GetSolutionStepValue(Kratos.TURBULENT_VISCOSITY)
-            print(node_value, k, epsilon)
             self.assertAlmostEqual(node_value, c_mu * k * k / epsilon, 9)
+
+    def testNutKEpsilonHighReSensitivitiesProcess(self):
+        self.__CreateModel()
+
+        adjoint_settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "NutKEpsilonHighReSensitivitiesProcess",
+                "Parameters" :             {
+                    "model_part_name" : "test"
+                }
+            }
+        ]''')
+
+        primal_settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
+                "python_module" : "apply_custom_process",
+                "process_name"  : "NutKEpsilonHighReCalculationProcess",
+                "Parameters" :             {
+                    "model_part_name" : "test"
+                }
+            }
+        ]''')
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(adjoint_settings)
+        self.__ExecuteProcesses()
+
+        factory = KratosProcessFactory(self.model)
+        self.process_list = factory.ConstructListOfProcesses(primal_settings)
+        self.__ExecuteProcesses()
+
+        delta = 1e-9
+        variable_list = [
+            Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE,
+            KratosRANS.TURBULENT_KINETIC_ENERGY,
+            KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE
+        ]
+        check_variable = Kratos.TURBULENT_VISCOSITY
+        sensitivity_variable = KratosRANS.RANS_NUT_PARTIAL_DERIVATIVES
+
+        for node in self.model_part.Nodes:
+            for (variable, index) in zip(variable_list,
+                                         range(len(variable_list))):
+                self.__ExecuteProcesses()
+                current_check_value = node.GetSolutionStepValue(check_variable)
+
+                current_value = node.GetSolutionStepValue(variable)
+                node.SetSolutionStepValue(variable, 0, current_value + delta)
+
+                self.__ExecuteProcesses()
+                perturbed_check_value = node.GetSolutionStepValue(
+                    check_variable)
+
+                node.SetSolutionStepValue(variable, 0, current_value)
+
+                check_value_sensitivity = (
+                    perturbed_check_value - current_check_value) / delta
+                adjoint_sensitivity = node.GetValue(
+                    sensitivity_variable)[index]
+
+                self.assertTrue(UnitTest.isclose(adjoint_sensitivity, check_value_sensitivity, rel_tol=1e-6))
 
 
 # test model part is as follows
@@ -511,15 +576,20 @@ class CustomProcessTest(UnitTest.TestCase):
         self.model = Kratos.Model()
         self.model_part = self.model.CreateModelPart("test")
         self.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        self.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         self.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
+        self.model_part.AddNodalSolutionStepVariable(
+            Kratos.KINEMATIC_VISCOSITY)
         self.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
+        self.model_part.AddNodalSolutionStepVariable(
+            Kratos.TURBULENT_VISCOSITY)
         self.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
-        self.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
-        self.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
+        self.model_part.AddNodalSolutionStepVariable(
+            KratosRANS.TURBULENT_KINETIC_ENERGY)
+        self.model_part.AddNodalSolutionStepVariable(
+            KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
         self.model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
@@ -577,15 +647,20 @@ class CustomProcessTest(UnitTest.TestCase):
             vector = node.SetSolutionStepValue(Kratos.NORMAL, 0, vector)
 
             scalar = random.random()
+            node.SetSolutionStepValue(Kratos.PRESSURE, 0, scalar)
+
+            scalar = random.random()
             node.SetSolutionStepValue(Kratos.DENSITY, 0, scalar)
 
             scalar = random.random() * 1e-3
             node.SetSolutionStepValue(Kratos.KINEMATIC_VISCOSITY, 0, scalar)
 
             scalar = random.random()
-            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY, 0, scalar)
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY, 0,
+                                      scalar)
             scalar = random.random()
-            node.SetSolutionStepValue(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 0, scalar)
+            node.SetSolutionStepValue(
+                KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 0, scalar)
 
     def __ExecuteProcesses(self):
         for process in self.process_list:
