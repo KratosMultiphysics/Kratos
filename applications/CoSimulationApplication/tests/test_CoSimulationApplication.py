@@ -7,6 +7,7 @@ from test_coupling_interface_data import TestCouplingInterfaceData
 from test_data_transfer_operators import TestDataTransferOperators
 from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
 from test_flower_coupling import TestFLOWerCoupling
+from test_coupling_operations import TestScalingOperation
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
 using_pykratos = UsingPyKratos()
@@ -28,6 +29,7 @@ def AssembleTestSuites():
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
 
