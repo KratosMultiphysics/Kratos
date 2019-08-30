@@ -60,6 +60,10 @@ class ExplicitStrategy(object):
         #self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
         self.clean_init_indentation_option = DEM_parameters["CleanIndentationsOption"].GetBool()
+
+        if self.solver_settings["model_import_settings"]["input_type"].GetString() == 'rest':
+            Logger.PrintWarning("DEM", '\nWARNING!: \'clean_indentations_option\' is set to true in a restarted simulation. The particles\' radii could be modified before the first time step.\n' * 50)
+
         self.contact_mesh_option           = 0
         if "ContactMeshOption" in DEM_parameters.keys():
             self.contact_mesh_option      = DEM_parameters["ContactMeshOption"].GetBool()
