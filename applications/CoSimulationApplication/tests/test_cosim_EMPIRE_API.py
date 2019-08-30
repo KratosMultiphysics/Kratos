@@ -10,7 +10,7 @@ from KratosMultiphysics import kratos_utilities as kratos_utils
 import os
 from shutil import copyfile
 
-conv_signal_file_name = "EMPIRE_convergence_signal.dat" # this is hardcoded in C++
+conv_signal_file_name = "EMPIRE_convergence_signal_default.dat"
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)

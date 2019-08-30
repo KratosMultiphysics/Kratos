@@ -34,7 +34,7 @@ The HDF5 C libraries are used with the *HDF5Application*. If Kratos is configure
 3. Build Kratos
 
 ## Installing h5py
-This package is needed to use some of the python-files, e.g. `create_xdmf_file.py`
+This package is needed to use some of the python-files, e.g. `xdmf_utils.py`
 ```
     sudo apt-get install python-h5py / python3-h5py
 ```

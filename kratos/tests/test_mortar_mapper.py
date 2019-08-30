@@ -3,8 +3,13 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics import from_json_check_result_process
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.vtk_output_process import VtkOutputProcess
+
 import os
 import math
+from decimal import Decimal
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -84,8 +89,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         # Debug postprocess file
         #self.__post_process()
 
-        import from_json_check_result_process
-
         check_parameters = KratosMultiphysics.Parameters("""
         {
             "check_variables"      : ["TEMPERATURE","DISPLACEMENT"],
@@ -162,7 +165,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
     def __post_process(self, debug = "GiD"):
 
         if debug == "GiD":
-            from gid_output_process import GiDOutputProcess
             self.gid_output = GiDOutputProcess(self.main_model_part,
                                         "gid_output",
                                         KratosMultiphysics.Parameters("""
@@ -188,7 +190,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
             self.gid_output.ExecuteFinalizeSolutionStep()
             self.gid_output.ExecuteFinalize()
         elif debug == "VTK":
-            from vtk_output_process import VtkOutputProcess
             self.vtk_output_process = VtkOutputProcess(self.model,
                                         KratosMultiphysics.Parameters("""{
                                                 "model_part_name"                    : "Main",
@@ -245,7 +246,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         model_part_io.WriteModelPart(self.main_model_part)
 
     def __sci_str(self, x):
-        from decimal import Decimal
         s = 10*Decimal(str(x))
         s = ('{:.' + str(len(s.normalize().as_tuple().digits) - 1) + 'E}').format(s)
         s = s.replace('E+','D0')

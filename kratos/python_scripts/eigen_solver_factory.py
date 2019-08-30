@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 def ConstructSolver(settings):
     import KratosMultiphysics
+    from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Input is expected to be provided as a Kratos Parameters object")
@@ -13,7 +14,6 @@ def ConstructSolver(settings):
         eigen_solver = KratosMultiphysics.EigenSolversApplication.EigensystemSolver(settings)
         return eigen_solver
 
-    from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
     linear_solver = linear_solver_factory.ConstructSolver(settings["linear_solver_settings"])
 
     if(solver_type == "power_iteration_eigenvalue_solver"):
