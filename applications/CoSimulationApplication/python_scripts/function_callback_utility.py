@@ -15,19 +15,25 @@ safe_dict = {}
 for k in safe_methods_list:
     safe_dict[k] = locals()[k]
 
-def GenericCallFunction(func_string, scope_vars, check=True):
+def GetWordsFromString(string):
+    words = [""]
+    new_word = False
+    for letter in string:
+        if letter.isalpha():
+            if new_word:
+                words.append("")
+                new_word = False
+            words[-1]+=letter
+        else:
+            new_word = (words[-1]!="")
+
+    return words
+
+def GenericCallFunction(func_string, scope_vars={}, check=True):
     safe_dict.update(scope_vars)
 
     if check: # can be disabled to improve performance
-        splitted_func_args = [""]
-        cur_idx = 0
-        for letter in func_string: # extracting the arguments from the function string
-            if letter.isalpha():
-                splitted_func_args[cur_idx]+=letter
-            else:
-                if len(splitted_func_args[cur_idx]) > cur_idx: # if multiple numeric characters are consecutive
-                    cur_idx += 1
-                    splitted_func_args.append("")
+        splitted_func_args = GetWordsFromString(func_string)
 
         for func_arg in splitted_func_args:
             if not func_arg == "" and not func_arg in safe_dict:
