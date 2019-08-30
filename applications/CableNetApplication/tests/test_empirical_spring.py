@@ -9,7 +9,18 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CableNetApplication import empirical_spring_element_process
 
 
-import numpy as np
+numpy_available = False
+numpy_polyfit_available = False
+
+try:
+    import numpy as np
+    numpy_available = True
+    try:
+        from numpy import polyfit
+        numpy_polyfit_available = True
+    except: pass
+except: pass
+
 import sys
 
 class EmpiricalSpringTests(KratosUnittest.TestCase):
@@ -181,6 +192,7 @@ class EmpiricalSpringTests(KratosUnittest.TestCase):
         return current_model,mp,bcs_neumann
 
     def test_quasi_static(self):
+        if not numpy_available: self.skipTest("python package \"numpy\" not available")
         mp,bcs_neumann = self._set_up_standard_test(is_process_test=False)
 
         #apply boundary conditions
@@ -208,51 +220,52 @@ class EmpiricalSpringTests(KratosUnittest.TestCase):
 
             self.assertAlmostEqual(force_solution, force_x*time_i)
     def test_quasi_static_process(self):
-            model,mp,bcs_neumann = self._set_up_standard_test(is_process_test=True)
+        if not numpy_polyfit_available: self.skipTest("python package \"numpy.polyfit\" not available")
+        model,mp,bcs_neumann = self._set_up_standard_test(is_process_test=True)
 
-            #apply boundary conditions
-            force_x = 100.0
-            #createfunction
-            f = [-9.52380952e+01  ,1.16190476e+03 ,-5.34761905e+03  ,1.23952381e+04 ,1.30156287e-11]
+        #apply boundary conditions
+        force_x = 100.0
+        #createfunction
+        f = [-9.52380952e+01  ,1.16190476e+03 ,-5.34761905e+03  ,1.23952381e+04 ,1.30156287e-11]
 
-            #loop over time
-            time_end = 140.0
-            time_delta = 10.0
-            time_i = 0.0
-            self._set_and_fill_buffer(mp,2,time_delta)
+        #loop over time
+        time_end = 140.0
+        time_delta = 10.0
+        time_i = 0.0
+        self._set_and_fill_buffer(mp,2,time_delta)
 
-            custom_settings = KratosMultiphysics.Parameters("""
-            {
-                "model_part_name"           : "solid_part.element_mp",
-                "computing_model_part_name" : "solid_part",
-                "node_ids"                  : [1,2],
-                "element_id"                : 1,
-                "property_id"               : 0,
-                "displacement_data"         : [0.0,0.5,1.5,2.5,5.0],
-                "force_data"                : [0.0,5000.0,10000.0,12000.0,14000.0],
-                "polynomial_order"          : 4
-            }
-            """)
+        custom_settings = KratosMultiphysics.Parameters("""
+        {
+            "model_part_name"           : "solid_part.element_mp",
+            "computing_model_part_name" : "solid_part",
+            "node_ids"                  : [1,2],
+            "element_id"                : 1,
+            "property_id"               : 0,
+            "displacement_data"         : [0.0,0.5,1.5,2.5,5.0],
+            "force_data"                : [0.0,5000.0,10000.0,12000.0,14000.0],
+            "polynomial_order"          : 4
+        }
+        """)
 
-            element_mp = mp.CreateSubModelPart("element_mp")
-            element_mp.AddNodes([1,2])
+        element_mp = mp.CreateSubModelPart("element_mp")
+        element_mp.AddNodes([1,2])
 
-            test_process = empirical_spring_element_process.EmpiricalSpringElementProcess(model,custom_settings)
-            test_process.ExecuteInitialize()
+        test_process = empirical_spring_element_process.EmpiricalSpringElementProcess(model,custom_settings)
+        test_process.ExecuteInitialize()
 
 
-            strategy = self._create_nonlinear_static_strategy(mp)
-            while (time_i < time_end):
-                time_i += time_delta
-                mp.CloneTimeStep(time_i)
+        strategy = self._create_nonlinear_static_strategy(mp)
+        while (time_i < time_end):
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)
 
-                self._apply_Neumann_BCs(bcs_neumann,'x',force_x*time_i)
-                #solve + compare
-                strategy.Solve()
+            self._apply_Neumann_BCs(bcs_neumann,'x',force_x*time_i)
+            #solve + compare
+            strategy.Solve()
 
-                disp_solution = bcs_neumann.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-                force_solution = self._evaluate_function(disp_solution,f)
-                self.assertAlmostEqual(force_solution, force_x*time_i, 2)
+            disp_solution = bcs_neumann.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+            force_solution = self._evaluate_function(disp_solution,f)
+            self.assertAlmostEqual(force_solution, force_x*time_i, 2)
     def test_implicit_dynamic(self):
         mp,bcs_neumann = self._set_up_standard_test(is_process_test=False)
 
