@@ -40,8 +40,8 @@ def Factory(settings, Model):
             KratosRANS.RansEpsilonWallFunctionProcess
         ], ["NuTKWallFunctionProcess", KratosRANS.RansNutKWallFunctionProcess],
         [
-            "NuTHighReCalculationProcess",
-            KratosRANS.RansNutHighReCalculationProcess
+            "NutKEpsilonHighReCalculationProcess",
+            KratosRANS.RansNutKEpsilonHighReCalculationProcess
         ],
         [
             "ApplyKTurbulentIntensityInletProcess",

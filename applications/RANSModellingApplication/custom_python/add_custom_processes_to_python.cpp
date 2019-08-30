@@ -30,7 +30,7 @@
 #include "custom_processes/auxiliary_processes/rans_k_turbulent_intensity_inlet_process.h"
 #include "custom_processes/auxiliary_processes/rans_k_wall_friction_velocity_process.h"
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_calculation_process.h"
-#include "custom_processes/auxiliary_processes/rans_nut_high_re_calculation_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_low_re_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_process.h"
 #include "custom_processes/auxiliary_processes/rans_scalar_cell_center_averaging_process.h"
@@ -129,9 +129,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
         m, "RansLogarithmicYPlusCalculationProcess")
         .def(py::init<Model&, Parameters&>());
 
-    typedef RansNutHighReCalculationProcess RansNutHighReCalculationProcessType;
-    py::class_<RansNutHighReCalculationProcessType, RansNutHighReCalculationProcessType::Pointer, Process>(
-        m, "RansNutHighReCalculationProcess")
+    typedef RansNutKEpsilonHighReCalculationProcess RansNutKEpsilonHighReCalculationProcessType;
+    py::class_<RansNutKEpsilonHighReCalculationProcessType, RansNutKEpsilonHighReCalculationProcessType::Pointer, Process>(
+        m, "RansNutKEpsilonHighReCalculationProcess")
         .def(py::init<Model&, Parameters&>());
 
     typedef RansKTurbulentIntensityInletProcess RansKTurbulentIntensityInletProcessType;

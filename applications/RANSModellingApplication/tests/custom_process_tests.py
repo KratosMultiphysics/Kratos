@@ -467,7 +467,7 @@ class CustomProcessTest(UnitTest.TestCase):
         self.process_list = factory.ConstructListOfProcesses(settings)
         self.__ExecuteProcesses()
 
-    def testNuTHighReCalculationProcess(self):
+    def testNutKEpsilonHighReCalculationProcess(self):
         self.__CreateModel()
 
         settings = Kratos.Parameters(r'''
@@ -475,7 +475,7 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
                 "python_module" : "apply_custom_process",
-                "process_name"  : "NuTHighReCalculationProcess",
+                "process_name"  : "NutKEpsilonHighReCalculationProcess",
                 "Parameters" :             {
                     "model_part_name" : "test",
                     "echo_level"      : 0,
