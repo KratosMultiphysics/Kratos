@@ -51,8 +51,7 @@ VtkOutput::VtkOutput(
     }
 
     // Adding GP variables to nodal data variables list
-    if(mOutputSettings["gauss_point_variables"].size() > 0 &&
-       mOutputSettings["extrapolate_gauss_points"].GetBool()) {
+    if(mOutputSettings["gauss_point_variables"].size() > 0) {
         Parameters gauss_intergration_param_non_hist = Parameters(R"(
         {
             "echo_level"                 : 0,
@@ -85,8 +84,7 @@ VtkOutput::VtkOutput(
 
 void VtkOutput::PrepareGaussPointResults()
 {
-    if(mOutputSettings["gauss_point_variables"].size() > 0 &&
-       mOutputSettings["extrapolate_gauss_points"].GetBool()){
+    if(mOutputSettings["gauss_point_variables"].size() > 0){
         mpGaussToNodesProcess->Execute();
     }
 }
@@ -444,10 +442,9 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
         // write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfElements() << "\n";
         const bool write_properties_id = mOutputSettings["write_properties_id"].GetBool();
-        const bool extrapolate_gauss_points = mOutputSettings["extrapolate_gauss_points"].GetBool();
-        Parameters gauss_point_variables = mOutputSettings["gauss_point_variables"];
+        Parameters gauss_point_variables = mOutputSettings["gauss_point_variables_in_elements"];
         const SizeType number_gauss_points_variables = gauss_point_variables.size();
-        rFileStream << "FIELD FieldData " << element_data_value_variables.size() + element_flags.size() + (write_properties_id ? 1 : 0) + (extrapolate_gauss_points ? 0 : number_gauss_points_variables) << "\n";
+        rFileStream << "FIELD FieldData " << element_data_value_variables.size() + element_flags.size() + (write_properties_id ? 1 : 0) + number_gauss_points_variables << "\n";
         for (IndexType entry = 0; entry < element_data_value_variables.size(); ++entry) {
             const std::string& r_element_result_name = element_data_value_variables[entry].GetString();
             WriteGeometricalContainerResults(r_element_result_name,r_local_mesh.Elements(),rFileStream);
@@ -470,11 +467,9 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
         }
 
         // Direct write GP values
-        if (!extrapolate_gauss_points) {
-            for (IndexType entry = 0; entry < gauss_point_variables.size(); ++entry) {
-                const std::string& r_condition_result_name = gauss_point_variables[entry].GetString();
-                WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Elements(),rFileStream);
-            }
+        for (IndexType entry = 0; entry < gauss_point_variables.size(); ++entry) {
+            const std::string& r_condition_result_name = gauss_point_variables[entry].GetString();
+            WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Elements(),rFileStream);
         }
     }
 }
@@ -495,10 +490,9 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
         // Write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfConditions() << "\n";
         const bool write_properties_id = mOutputSettings["write_properties_id"].GetBool();
-        const bool extrapolate_gauss_points = mOutputSettings["extrapolate_gauss_points"].GetBool();
-        Parameters gauss_point_variables = mOutputSettings["gauss_point_variables"];
+        Parameters gauss_point_variables = mOutputSettings["gauss_point_variables_in_elements"];
         const SizeType number_gauss_points_variables = gauss_point_variables.size();
-        rFileStream << "FIELD FieldData " << condition_results.size() + condition_flags.size() + (write_properties_id ? 1 : 0) + (extrapolate_gauss_points ? 0 : number_gauss_points_variables) << "\n";
+        rFileStream << "FIELD FieldData " << condition_results.size() + condition_flags.size() + (write_properties_id ? 1 : 0) + number_gauss_points_variables << "\n";
         for (IndexType entry = 0; entry < condition_results.size(); ++entry) {
             const std::string& r_condition_result_name = condition_results[entry].GetString();
             WriteGeometricalContainerResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
@@ -521,11 +515,9 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
         }
 
         // Direct write GP values
-        if (!extrapolate_gauss_points) {
-            for (IndexType entry = 0; entry < gauss_point_variables.size(); ++entry) {
-                const std::string& r_condition_result_name = gauss_point_variables[entry].GetString();
-                WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
-            }
+        for (IndexType entry = 0; entry < gauss_point_variables.size(); ++entry) {
+            const std::string& r_condition_result_name = gauss_point_variables[entry].GetString();
+            WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
         }
     }
 }
@@ -994,7 +986,6 @@ Parameters VtkOutput::GetDefaultParameters()
         "folder_name"                        : "VTK_Output",
         "custom_name_prefix"                 : "",
         "save_output_files_in_folder"        : true,
-        "extrapolate_gauss_points"           : true,
         "write_deformed_configuration"       : false,
         "write_properties_id"                : false,
         "nodal_solution_step_data_variables" : [],
@@ -1004,7 +995,8 @@ Parameters VtkOutput::GetDefaultParameters()
         "element_flags"                      : [],
         "condition_data_value_variables"     : [],
         "condition_flags"                    : [],
-        "gauss_point_variables"              : []
+        "gauss_point_variables"              : [],
+        "gauss_point_variables_in_elements"  : []
     })" );
 
     return default_parameters;
