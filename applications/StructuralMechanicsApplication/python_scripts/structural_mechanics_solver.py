@@ -14,6 +14,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import check_and_prepare_
 from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 from KratosMultiphysics import auxiliary_solver_utilities
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
@@ -396,7 +397,6 @@ class MechanicalSolver(PythonSolver):
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
             # using a default linear solver (selecting the fastest one available)
-            import KratosMultiphysics.kratos_utilities as kratos_utils
             if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
                 from KratosMultiphysics import EigenSolversApplication
             elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):

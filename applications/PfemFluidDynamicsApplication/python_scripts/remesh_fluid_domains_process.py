@@ -4,6 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
+from importlib import import_module
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -54,7 +55,9 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.number_of_domains = domains_list.size()
         for i in range(0,self.number_of_domains):
             item = domains_list[i]
-            domain_module = __import__(item["python_module"].GetString())
+            python_module_name = "KratosMultiphysics.PfemFluidDynamicsApplication"
+            full_module_name = python_module_name + "." + item["python_module"].GetString()
+            domain_module = import_module(full_module_name)
             domain = domain_module.CreateMeshingDomain(self.main_model_part,item)
             self.meshing_domains.append(domain)
 
@@ -114,7 +117,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         if(self.echo_level>1):
             print("::[Remesh_Fluid_Domains]:: Initialize Domains ")
 
-        import domain_utilities
+        from KratosMultiphysics.DelaunayMeshingApplication import domain_utilities
         domain_utils = domain_utilities.DomainUtilities()
 
         # find node neighbours
