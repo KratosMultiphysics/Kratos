@@ -20,7 +20,7 @@ class EmpiricalSpringTests(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-    def _add_explicit_variables(mp):
+    def _add_explicit_variables(self,mp):
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ACCELERATION)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ANGULAR_ACCELERATION)
@@ -37,6 +37,8 @@ class EmpiricalSpringTests(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        self._add_explicit_variables(mp)
+
     def _add_constitutive_law(self,mp):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,StructuralMechanicsApplication.TrussConstitutiveLaw())
     def _apply_material_properties(self,mp,dim,is_process_test):
@@ -251,9 +253,55 @@ class EmpiricalSpringTests(KratosUnittest.TestCase):
                 disp_solution = bcs_neumann.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
                 force_solution = self._evaluate_function(disp_solution,f)
                 self.assertAlmostEqual(force_solution, force_x*time_i, 2)
+    def test_implicit_dynamic(self):
+        mp,bcs_neumann = self._set_up_standard_test(is_process_test=False)
+
+        #apply boundary conditions
+        force_x = 14000.0
+        displacement_expected = 4.0
+
+        #loop over time
+        time_end = 140.0
+        time_delta = 6.0
+        time_i = 0.0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        strategy = self._create_dynamic_implicit_strategy(mp)
+        while (time_i < time_end):
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)
+
+            self._apply_Neumann_BCs(bcs_neumann,'x',force_x)
+            #solve + compare
+            strategy.Solve()
+
+        disp_solution = bcs_neumann.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        self.assertAlmostEqual(disp_solution, displacement_expected, 1)
+    def test_explicit_dynamic(self):
+        mp,bcs_neumann = self._set_up_standard_test(is_process_test=False)
 
 
+        #apply boundary conditions
+        force_x = 14000.0
+        displacement_expected = 4.0
 
+        #loop over time
+        time_end = 140.0
+        time_delta = 6.0
+        time_i = 0.0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        strategy = self._create_dynamic_explicit_strategy(mp)
+        while (time_i < time_end):
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)
+
+            self._apply_Neumann_BCs(bcs_neumann,'x',force_x)
+            #solve + compare
+            strategy.Solve()
+
+        disp_solution = bcs_neumann.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        self.assertAlmostEqual(disp_solution, displacement_expected, 1)
 
 
 if __name__ == '__main__':
