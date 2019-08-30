@@ -12,7 +12,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Logger, Parameters
 import KratosMultiphysics.DEMApplication as DEM
 
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 import KratosMultiphysics.SwimmingDEMApplication.CFD_DEM_coupling as CFD_DEM_coupling
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
