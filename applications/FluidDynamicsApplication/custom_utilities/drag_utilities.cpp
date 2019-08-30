@@ -32,7 +32,7 @@ namespace Kratos
         // Sum the reactions in the model part of interest.
         // Note that the reactions are assumed to be already computed.
         VariableUtils variable_utils;
-        const auto drag_force = variable_utils.SumHistoricalVariable<array_1d<double,3>>(REACTION, rModelPart, 0);
+        auto drag_force = variable_utils.SumHistoricalVariable<array_1d<double,3>>(REACTION, rModelPart, 0);
         drag_force *= -1.0;
 
         return drag_force;
