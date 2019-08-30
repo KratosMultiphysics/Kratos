@@ -20,6 +20,8 @@
 
 #include "testing/testing.h"
 
+#include "input_output/logger.h"
+
 namespace Kratos {
 
 namespace Testing {
@@ -2436,6 +2438,34 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorErrorBroadcasting, Krat
         false_on_any_rank_test(size-1),
         error_on_any_rank_message.str()
     );
+}
+
+// MPI Communicator splitting /////////////////////////////////////////////////
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSplit, KratosMPICoreFastSuite)
+{
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const int global_rank = r_comm.Rank();
+    const int global_size = r_comm.Size();
+
+    for (int i = 1; i < global_size; i++)
+    {
+        int color = global_rank < i ? 0 : 1;
+        int key = global_rank < i ? global_rank : global_size - global_rank;
+        std::stringstream name;
+        name << "split_communicator_step_" << i;
+
+        const DataCommunicator& r_split_comm = MPIDataCommunicator::SplitDataCommunicator(r_comm, color, key, name.str());
+
+        int expected_size = global_rank < i ? i : global_size - i;
+        int expected_rank = global_rank < i ? key : key - 1;
+        // MPI_Comm_split assigns rank by order of increasing key.
+        // Here keys in the global_rank >= i side of the split range between 1 and (global_size-i)
+        //KRATOS_INFO_ALL_RANKS("TestMPIDataCommunicatorSplit") << "split step " << i << ": size " << r_split_comm.Size() << " (expected " << expected_size << ")." << std::endl;
+        //KRATOS_INFO_ALL_RANKS("TestMPIDataCommunicatorSplit") << "split step " << i << ": rank " << r_split_comm.Rank() << " (expected " << expected_rank << ")." << std::endl;
+        KRATOS_CHECK_EQUAL(r_split_comm.Size(), expected_size);
+        KRATOS_CHECK_EQUAL(r_split_comm.Rank(), expected_rank);
+    }
 }
 
 }
