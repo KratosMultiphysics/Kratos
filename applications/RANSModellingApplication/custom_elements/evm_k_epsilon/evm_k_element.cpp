@@ -406,7 +406,7 @@ void EvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
     // const double gamma = tke / (epsilon + std::numeric_limits<double>::epsilon());
     const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
     const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
-    rData.WallNormal = this->EvaluateInPoint(NORMAL, rShapeFunctions);
+    // rData.WallNormal = this->EvaluateInPoint(NORMAL, rShapeFunctions);
     rData.TurbulentEnergyDissipationRate =
         this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
 
