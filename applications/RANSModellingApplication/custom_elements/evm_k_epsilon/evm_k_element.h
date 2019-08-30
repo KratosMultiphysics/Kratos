@@ -50,19 +50,16 @@ namespace Kratos
 
 struct EvmKElementData
 {
-    double KinematicViscosity;
     double Gamma;
 
     double TurbulentKineticEnergy;
-    double TurbulentEnergyDissipationRate;
     double TurbulentKinematicViscosity;
-    double WallDistance;
+    //double WallDistance;
     double VelocityDivergence;
 
     Matrix ShapeFunctionDerivatives;
-    array_1d<double, 3> WallNormal;
-    double WallVelocity;
-    double YPlus;
+    // double WallVelocity;
+    // double YPlus;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>

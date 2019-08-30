@@ -192,11 +192,11 @@ void CalculateStreamlineAndCrossWindDiffusionParameters(double& rChi,
 
 void EvmKElement2D3N_SetUp(ModelPart& rModelPart)
 {
-    rModelPart.AddNodalSolutionStepVariable(DISTANCE);
+    // rModelPart.AddNodalSolutionStepVariable(DISTANCE);
     rModelPart.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(RANS_AUXILIARY_VARIABLE_1); // relaxed turb kin energy rate
-    rModelPart.AddNodalSolutionStepVariable(RANS_Y_PLUS);
-    rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE);
+    // rModelPart.AddNodalSolutionStepVariable(RANS_Y_PLUS);
+    // rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
@@ -206,11 +206,11 @@ void EvmKElement2D3N_SetUp(ModelPart& rModelPart)
 
 void EvmEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
 {
-    rModelPart.AddNodalSolutionStepVariable(DISTANCE);
+    // rModelPart.AddNodalSolutionStepVariable(DISTANCE);
     rModelPart.AddNodalSolutionStepVariable(KINEMATIC_VISCOSITY);
-    rModelPart.AddNodalSolutionStepVariable(NORMAL);
+    // rModelPart.AddNodalSolutionStepVariable(NORMAL);
     rModelPart.AddNodalSolutionStepVariable(RANS_AUXILIARY_VARIABLE_2); // relaxed turb kin energy diss. rate 2
-    rModelPart.AddNodalSolutionStepVariable(RANS_Y_PLUS);
+    // rModelPart.AddNodalSolutionStepVariable(RANS_Y_PLUS);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE_2);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);

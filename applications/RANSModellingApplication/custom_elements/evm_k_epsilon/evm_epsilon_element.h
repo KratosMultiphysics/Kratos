@@ -53,16 +53,15 @@ struct EvmEpsilonElementData
     double C1;
     double C2;
     double Gamma;
-    double KinematicViscosity;
     double TurbulentKineticEnergy;
     double TurbulentKinematicViscosity;
-    double WallDistance;
+    // double WallDistance;
 
     Matrix ShapeFunctionDerivatives;
-    array_1d<double, 3> WallNormal;
+    // array_1d<double, 3> WallNormal;
     double VelocityDivergence;
-    double WallVelocity;
-    double YPlus;
+    // double WallVelocity;
+    // double YPlus;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>

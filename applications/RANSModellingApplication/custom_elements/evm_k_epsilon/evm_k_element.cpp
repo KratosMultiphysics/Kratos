@@ -270,8 +270,8 @@ int EvmKElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(KINEMATIC_VISCOSITY);
     KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
     KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY_RATE);
-    KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
-    KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
+    // KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
+    // KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
     KRATOS_CHECK_VARIABLE_KEY(RANS_AUXILIARY_VARIABLE_1);
 
     for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
@@ -281,8 +281,8 @@ int EvmKElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_RATE, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
+        // KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+        // KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_1, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(TURBULENT_KINETIC_ENERGY, r_node);
@@ -400,27 +400,23 @@ void EvmKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
     const double& nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
     const double& tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
     const double& nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
-    const double& epsilon =
-        this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
+    // const double& epsilon =
+    //     this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
     const double& gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
     // const double gamma = tke / (epsilon + std::numeric_limits<double>::epsilon());
-    const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
-    const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
-    rData.WallNormal = this->EvaluateInPoint(NORMAL, rShapeFunctions);
-    rData.TurbulentEnergyDissipationRate =
-        this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
+    // const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
+    // const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
 
     rData.TurbulentKinematicViscosity = nu_t;
     rData.TurbulentKineticEnergy = tke;
-    rData.KinematicViscosity = nu;
     rData.Gamma = gamma;
-    rData.WallDistance = wall_distance;
+    // rData.WallDistance = wall_distance;
     rData.VelocityDivergence =
         this->GetDivergenceOperator(VELOCITY, rShapeFunctionDerivatives);
     rEffectiveKinematicViscosity = nu + nu_t / tke_sigma;
 
-    rData.YPlus = y_plus;
-    rData.WallVelocity = norm_2(this->EvaluateInPoint(VELOCITY, rShapeFunctions));
+    // rData.YPlus = y_plus;
+    // rData.WallVelocity = norm_2(this->EvaluateInPoint(VELOCITY, rShapeFunctions));
 
     KRATOS_CATCH("");
 }
@@ -465,9 +461,9 @@ double EvmKElement<TDim, TNumNodes>::CalculateSourceTerm(const EvmKElementData& 
                                                          const int Step) const
 {
     double production = 0.0;
-    const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    const double von_karman = rCurrentProcessInfo[WALL_VON_KARMAN];
-    const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
+    // const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    // const double von_karman = rCurrentProcessInfo[WALL_VON_KARMAN];
+    // const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
     this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);
 
