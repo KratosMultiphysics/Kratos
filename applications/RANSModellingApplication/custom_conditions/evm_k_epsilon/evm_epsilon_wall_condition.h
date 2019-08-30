@@ -292,14 +292,16 @@ public:
         RansCalculationUtilities rans_calculation_utilities;
 
         // Get Shape function data
-        Vector gauss_weights;
-        Matrix shape_functions;
-        ShapeFunctionDerivativesArrayType shape_derivatives;
-        rans_calculation_utilities.CalculateGeometryData(
-            r_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2,
-            gauss_weights, shape_functions, shape_derivatives);
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+            r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const std::size_t num_gauss_points = integration_points.size();
+        MatrixType shape_functions =
+            r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
-        const unsigned int num_gauss_points = gauss_weights.size();
+        const double area = r_geometry.DomainSize();
+
+        // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
+        double J = (TNumNodes == 2) ? 0.5 * area : 2.0 * area;
 
         const double epsilon_sigma =
             rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
@@ -308,6 +310,7 @@ public:
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
             const Vector& gauss_shape_functions = row(shape_functions, g);
+            const double weight = J * integration_points[g].Weight();
 
             const double nu = rans_calculation_utilities.EvaluateInPoint(
                 r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
@@ -324,8 +327,8 @@ public:
 
             if (y_plus > eps)
             {
-                const double value = gauss_weights[g] * (nu + nu_t / epsilon_sigma) *
-                                     u_tau / (y_plus * nu);
+                const double value =
+                    weight * (nu + nu_t / epsilon_sigma) * u_tau / (y_plus * nu);
 
                 for (unsigned int a = 0; a < TNumNodes; ++a)
                 {
