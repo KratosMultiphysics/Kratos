@@ -82,6 +82,10 @@ def Factory(settings, Model):
         [
             "LogarithmicYPlusVelocitySensitivitiesProcess",
             KratosRANS.RansLogarithmicYPlusVelocitySensitivitiesProcess
+        ],
+        [
+            "NutKEpsilonHighReSensitivitiesProcess",
+            KratosRANS.RansNutKEpsilonHighReSensitivitiesProcess
         ]
     ]
 
