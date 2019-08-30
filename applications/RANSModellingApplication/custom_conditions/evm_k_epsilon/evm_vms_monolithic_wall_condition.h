@@ -300,12 +300,18 @@ protected:
 
         GeometryType& r_geometry = this->GetGeometry();
 
-        Vector gauss_weights;
-        Matrix shape_functions;
-        GeometryType::ShapeFunctionsGradientsType shape_derivatives;
-        rans_calculation_utilities.CalculateGeometryData(
-            r_geometry, GeometryData::GI_GAUSS_1, gauss_weights,
-            shape_functions, shape_derivatives);
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+            r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const std::size_t number_of_gauss_points = integration_points.size();
+        MatrixType shape_functions =
+            r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+        array_1d<double, 3> normal;
+        this->CalculateNormal(normal); // this already contains the area
+        double A = norm_2(normal);
+
+        // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
+        double J = (TDim == 2) ? 0.5 * A : 2.0 * A;
 
         const size_t block_size = TDim + 1;
 
@@ -315,9 +321,10 @@ protected:
 
         const double eps = std::numeric_limits<double>::epsilon();
 
-        for (size_t g = 0; g < gauss_weights.size(); ++g)
+        for (size_t g = 0; g < number_of_gauss_points; ++g)
         {
             const Vector& gauss_shape_functions = row(shape_functions, g);
+            const double weight = J * integration_points[g].Weight();
 
             const array_1d<double, 3>& r_wall_velocity =
                 rans_calculation_utilities.EvaluateInPoint(
@@ -336,8 +343,7 @@ protected:
                 const double u_tau = std::max(
                     c_mu_25 * std::sqrt(std::max(tke, 0.0)),
                     wall_velocity_magnitude / (inv_von_karman * std::log(y_plus) + beta));
-                const double value = rho * std::pow(u_tau, 2) *
-                                     gauss_weights[g] / wall_velocity_magnitude;
+                const double value = rho * std::pow(u_tau, 2) * weight / wall_velocity_magnitude;
 
                 for (size_t a = 0; a < r_geometry.PointsNumber(); ++a)
                 {
