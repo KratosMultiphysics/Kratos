@@ -237,7 +237,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         # Measure wall time
         tfw = timer.time()
 
-        self.KratosPrintInfo("::[KPFEM Simulation]:: [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
+        print("::[KPFEM Simulation]:: [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
         self.KratosPrintInfo(timer.ctime())
 
 
