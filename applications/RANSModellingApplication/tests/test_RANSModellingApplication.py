@@ -39,7 +39,7 @@ def AssembleTestSuites():
     nightSuite.addTest(CustomProcessTest('testVectorAlignProcessNormal'))
     nightSuite.addTest(CustomProcessTest('testWallDistanceCalculationProcess'))
     nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusCalculationProcess'))
-    nightSuite.addTest(CustomProcessTest('testNuTHighReCalculationProcess'))
+    nightSuite.addTest(CustomProcessTest('testNutKEpsilonHighReCalculationProcess'))
     nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
 
     # nightSuite.addTest(EvmKEpsilonTest('testCylinderTransient')) #TODO: Has a convergence problem, therefore gives a race condition

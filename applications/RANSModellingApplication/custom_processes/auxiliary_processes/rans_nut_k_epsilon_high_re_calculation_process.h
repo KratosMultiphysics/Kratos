@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_RANS_NUT_HIGH_RE_CALCULATION_PROCESS_H_INCLUDED)
-#define KRATOS_RANS_NUT_HIGH_RE_CALCULATION_PROCESS_H_INCLUDED
+#if !defined(KRATOS_RANS_NUT_K_EPSILON_HIGH_RE_CALCULATION_PROCESS_H_INCLUDED)
+#define KRATOS_RANS_NUT_K_EPSILON_HIGH_RE_CALCULATION_PROCESS_H_INCLUDED
 
 // System includes
 #include <string>
@@ -66,7 +66,7 @@ namespace Kratos
  * $k$ is the turbulent kinetic energy, $\epsilon$ is the turbulent energy dissipation rate
  */
 
-class RansNutHighReCalculationProcess : public Process
+class RansNutKEpsilonHighReCalculationProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -74,8 +74,8 @@ public:
 
     typedef Node<3> NodeType;
 
-    /// Pointer definition of RansNutHighReCalculationProcess
-    KRATOS_CLASS_POINTER_DEFINITION(RansNutHighReCalculationProcess);
+    /// Pointer definition of RansNutKEpsilonHighReCalculationProcess
+    KRATOS_CLASS_POINTER_DEFINITION(RansNutKEpsilonHighReCalculationProcess);
 
     ///@}
     ///@name Life Cycle
@@ -83,7 +83,7 @@ public:
 
     /// Constructor
 
-    RansNutHighReCalculationProcess(Model& rModel, Parameters& rParameters)
+    RansNutKEpsilonHighReCalculationProcess(Model& rModel, Parameters& rParameters)
         : mrModel(rModel), mrParameters(rParameters)
     {
         KRATOS_TRY
@@ -105,7 +105,7 @@ public:
     }
 
     /// Destructor.
-    ~RansNutHighReCalculationProcess() override
+    ~RansNutKEpsilonHighReCalculationProcess() override
     {
     }
 
@@ -187,7 +187,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return std::string("RansNutHighReCalculationProcess");
+        return std::string("RansNutKEpsilonHighReCalculationProcess");
     }
 
     /// Print information about this object.
@@ -274,14 +274,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    RansNutHighReCalculationProcess& operator=(RansNutHighReCalculationProcess const& rOther);
+    RansNutKEpsilonHighReCalculationProcess& operator=(RansNutKEpsilonHighReCalculationProcess const& rOther);
 
     /// Copy constructor.
-    RansNutHighReCalculationProcess(RansNutHighReCalculationProcess const& rOther);
+    RansNutKEpsilonHighReCalculationProcess(RansNutKEpsilonHighReCalculationProcess const& rOther);
 
     ///@}
 
-}; // Class RansNutHighReCalculationProcess
+}; // Class RansNutKEpsilonHighReCalculationProcess
 
 ///@}
 
@@ -294,7 +294,7 @@ private:
 
 /// output stream function
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RansNutHighReCalculationProcess& rThis);
+                                const RansNutKEpsilonHighReCalculationProcess& rThis);
 
 ///@}
 
@@ -302,4 +302,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_RANS_NUT_HIGH_RE_CALCULATION_PROCESS_H_INCLUDED defined
+#endif // KRATOS_RANS_NUT_K_EPSILON_HIGH_RE_CALCULATION_PROCESS_H_INCLUDED defined
