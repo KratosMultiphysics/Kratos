@@ -69,7 +69,7 @@ namespace Testing
         r_process_info.SetValue(DYNAMIC_TAU, 1.0);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(EulerianConvDiff2D3NWithoutConvection, KratosConvectionDiffusionFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(EulerianConvDiff2D3NNullConvection, KratosConvectionDiffusionFastSuite)
     {
         // Create the test element
         Model model;
