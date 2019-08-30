@@ -349,3 +349,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         gid_output.PrintOutput()
         gid_output.ExecuteFinalizeSolutionStep()
         gid_output.ExecuteFinalize()
+
+    def ExecuteFinalize(self):
+        CPFApp.CheckWakeConditionProcess3D(self.wake_sub_model_part, 1e-2, 0).Execute()
