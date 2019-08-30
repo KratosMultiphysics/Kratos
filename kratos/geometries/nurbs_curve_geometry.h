@@ -40,7 +40,7 @@ public:
 
     /** Array of counted pointers to point. This type used to hold
         geometry's points.*/
-    typedef  typename TContainerPointType PointsArrayType;
+    typedef  typename BaseType::PointsArrayType PointsArrayType;
 
     typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
@@ -88,7 +88,7 @@ public:
     }
 
     /// Copy constructor.
-    NurbsCurveGeometry(NurbsCurveGeometry const& rOther)
+    NurbsCurveGeometry(NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>  const& rOther)
         : BaseType(rOther)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
@@ -99,7 +99,7 @@ public:
     /// Copy constructor from a geometry with different point type.
     template<class TOtherContainerPointType> NurbsCurveGeometry(
         NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const& rOther)
-        : BaseType(rOther)
+        : BaseType(rOther, &msGeometryData)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
         , mWeights(rOther.mWeights)
@@ -127,6 +127,9 @@ public:
     NurbsCurveGeometry& operator=(const NurbsCurveGeometry& rOther)
     {
         BaseType::operator=(rOther);
+        mPolynomialDegree = rOther.mPolynomialDegree;
+        mKnots = rOther.mKnots;
+        mWeights = rOther.mWeights;
         return *this;
     }
 
@@ -146,6 +149,9 @@ public:
         NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
     {
         BaseType::operator=(rOther);
+        mPolynomialDegree = rOther.mPolynomialDegree;
+        mKnots = rOther.mKnots;
+        mWeights = rOther.mWeights;
         return *this;
     }
 
