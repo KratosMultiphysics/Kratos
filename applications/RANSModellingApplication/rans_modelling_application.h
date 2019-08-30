@@ -34,6 +34,7 @@
 #include "custom_elements/evm_k_epsilon/evm_epsilon_adjoint_element.h"
 #include "custom_elements/evm_k_epsilon/evm_k_adjoint_element.h"
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_vms_adjoint_element.h"
+#include "custom_elements/evm_k_epsilon/evm_monolithic_k_epsilon_vms_adjoint_element.h"
 
 namespace Kratos
 {
@@ -206,6 +207,9 @@ private:
 
     const EvmKEpsilonVMSAdjointElement<2> mRANSEVMKEpsilonVMSAdjoint2D;
     const EvmKEpsilonVMSAdjointElement<3> mRANSEVMKEpsilonVMSAdjoint3D;
+
+    const EvmMonolithicKEpsilonVMSAdjointElement<2> mRANSEVMMonolithicKEpsilonVMSAdjoint2D;
+    const EvmMonolithicKEpsilonVMSAdjointElement<3> mRANSEVMMonolithicKEpsilonVMSAdjoint3D;
     ///@}
     ///@name Private Operators
     ///@{
