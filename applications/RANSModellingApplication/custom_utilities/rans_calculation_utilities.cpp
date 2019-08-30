@@ -236,6 +236,7 @@ double RansCalculationUtilities::CalculateLogarithmicYPlusLimit(const double Kap
         << "Logarithmic y_plus limit reached max iterations with dx > "
            "Tolerance [ "
         << dx << " > " << Tolerance << ", MaxIterations = " << MaxIterations << " ].\n";
+    return y_plus;
 }
 
 // template instantiations
