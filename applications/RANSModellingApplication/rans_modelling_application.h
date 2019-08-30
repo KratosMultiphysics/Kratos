@@ -20,15 +20,18 @@
 // Project includes
 #include "includes/kratos_application.h"
 
-// Element includes
+// Primal element includes
 #include "custom_elements/evm_k_epsilon/evm_epsilon_element.h"
 #include "custom_elements/evm_k_epsilon/evm_k_element.h"
 #include "custom_elements/evm_k_epsilon/evm_low_re_epsilon_element.h"
 #include "custom_elements/evm_k_epsilon/evm_low_re_k_element.h"
 
-// Condition includes
+// Primal condition includes
 #include "custom_conditions/evm_k_epsilon/evm_epsilon_wall_condition.h"
 #include "custom_conditions/evm_k_epsilon/evm_vms_monolithic_wall_condition.h"
+
+// Adjoint element includes
+#include "custom_elements/evm_k_epsilon/evm_epsilon_adjoint_element.h"
 
 namespace Kratos
 {
@@ -191,6 +194,10 @@ private:
 
     const EVMVMSMonolithicWallCondition<2> mRansEVMVMSMonolithicWallCondition2D2N;
     const EVMVMSMonolithicWallCondition<3> mRansEVMVMSMonolithicWallCondition3D3N;
+
+    // k-epsilon adjoint elements
+    const EvmEpsilonAdjointElement<2, 3> mRANSEVMEpsilonAdjoint2D;
+    const EvmEpsilonAdjointElement<3, 4> mRANSEVMEpsilonAdjoint3D;
 
 
     ///@}
