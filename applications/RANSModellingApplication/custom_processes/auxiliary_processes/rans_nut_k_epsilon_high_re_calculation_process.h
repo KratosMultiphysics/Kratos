@@ -167,7 +167,7 @@ public:
         }
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << "Calculated nu_t for nodes in" << mModelPartName << "\n";
+            << "Calculated k-epsilon high Re nu_t for nodes in" << mModelPartName << "\n";
 
         KRATOS_CATCH("");
     }
