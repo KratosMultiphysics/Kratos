@@ -10,6 +10,8 @@
 //  Main author:     Jordi Cotela
 //
 
+#include "includes/parallel_environment.h"
+
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/includes/mpi_message.h"
 
@@ -371,6 +373,20 @@ MPI_Comm MPIDataCommunicator::GetMPICommunicator(const DataCommunicator& rDataCo
     {
         return MPI_COMM_SELF;
     }
+}
+
+const DataCommunicator& MPIDataCommunicator::SplitDataCommunicator(
+    const DataCommunicator& rOriginalCommunicator,
+    int Color, int Key,
+    const std::string& rNewCommunicatorName)
+{
+    MPI_Comm origin_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rOriginalCommunicator);
+    MPI_Comm split_mpi_comm;
+    MPI_Comm_split(origin_mpi_comm, Color, Key, &split_mpi_comm);
+
+    ParallelEnvironment::RegisterDataCommunicator(
+        rNewCommunicatorName, MPIDataCommunicator(split_mpi_comm), ParallelEnvironment::DoNotMakeDefault);
+    return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
 }
 
 // Inquiry
