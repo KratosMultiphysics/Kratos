@@ -420,7 +420,7 @@ void EvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionDat
     rData.TurbulentKinematicViscosity = nu_t;
     rData.TurbulentKineticEnergy = tke;
     rData.WallDistance = wall_distance;
-    rData.WallNormal = this->EvaluateInPoint(NORMAL, rShapeFunctions);
+    // rData.WallNormal = this->EvaluateInPoint(NORMAL, rShapeFunctions);
     rData.VelocityDivergence =
         this->GetDivergenceOperator(VELOCITY, rShapeFunctionDerivatives);
     rData.YPlus = y_plus;
