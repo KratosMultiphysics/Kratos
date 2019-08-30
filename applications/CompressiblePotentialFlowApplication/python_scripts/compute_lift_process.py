@@ -25,7 +25,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             "model_part_name": "please specify the model part that contains the surface nodes",
             "far_field_model_part_name": "please specify the model part that contains the surface nodes",
             "trailing_edge_model_part_name": "",
-            "moment_reference_point" : [0.0,0.0,0.0]
+            "moment_reference_point" : [0.0,0.0,0.0],
+            "is_infinite_wing": false
         }''')
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -44,6 +45,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
         self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
+        self.is_infinite_wing = settings["is_infinite_wing"].GetBool()
 
         if not self.reference_area > 0.0:
             raise Exception('The reference area should be larger than 0.')
@@ -166,17 +168,21 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         for cond in self.far_field_model_part.Conditions:
             surface_normal = cond.GetGeometry().Normal()
+            norm = surface_normal.norm_2()
+            surface_normal_normalized = surface_normal/norm
+            span_projection = _DotProduct(surface_normal_normalized, self.span_direction)
 
-            # Computing contribution due to pressure
-            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
-            force_coefficient_pres -= surface_normal*pressure_coefficient
+            if not self.is_infinite_wing or abs(span_projection) < 0.1:
+                # Computing contribution due to pressure
+                pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+                force_coefficient_pres -= surface_normal*pressure_coefficient
 
-            # Computing contribution due to convection
-            velocity = cond.GetValue(KratosMultiphysics.VELOCITY)
-            velocity_projection = _DotProduct(velocity, surface_normal)
-            disturbance = velocity - free_stream_velocity
-            density = cond.GetValue(KratosMultiphysics.DENSITY)
-            force_coefficient_vel -= velocity_projection * disturbance * density
+                # Computing contribution due to convection
+                velocity = cond.GetValue(KratosMultiphysics.VELOCITY)
+                velocity_projection = _DotProduct(velocity, surface_normal)
+                disturbance = velocity - free_stream_velocity
+                density = cond.GetValue(KratosMultiphysics.DENSITY)
+                force_coefficient_vel -= velocity_projection * disturbance * density
 
         # Normalizing with reference area
         force_coefficient_pres /= self.reference_area
