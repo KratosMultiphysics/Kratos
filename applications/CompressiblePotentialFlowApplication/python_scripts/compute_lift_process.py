@@ -40,7 +40,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         trailing_edge_model_part_name = settings["trailing_edge_model_part_name"].GetString()
         if(trailing_edge_model_part_name != ""):
             self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
-            self.compute_lift_from_jump = True
+            self.compute_lift_from_jump_3d = True
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
         self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
@@ -149,6 +149,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.lift_coefficient_jump = 2*potential_integral/(self.free_stream_velocity_norm*self.reference_area)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ', self.lift_coefficient_jump, 'Potential Jump')
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_JUMP, self.lift_coefficient_jump)
 
     def __GetTrailingEdgeNode(self):
         # Find the Trailing Edge node
