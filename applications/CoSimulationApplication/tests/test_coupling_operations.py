@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 from KratosMultiphysics.CoSimulationApplication.factories import coupling_operation_factory

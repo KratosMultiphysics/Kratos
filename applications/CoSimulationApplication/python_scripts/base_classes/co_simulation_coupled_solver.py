@@ -10,7 +10,6 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
-from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 
 # Other imports
 from collections import OrderedDict
