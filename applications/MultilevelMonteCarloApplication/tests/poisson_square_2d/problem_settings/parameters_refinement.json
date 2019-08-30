@@ -3,20 +3,22 @@
 		"hessian_strategy_parameters"              :{
 				"metric_variable"		: ["TEMPERATURE"],
 				"estimate_interpolation_error"  : false,
-				"interpolation_error"   	: 0.004
+				"interpolation_error"   	: 0.01,
+				"coefficient_interpolation_error"  : 2.0
 		},
-		"enforce_current"                   : true,
+		"enforce_current"                   : false,
 		"anisotropy_remeshing"              : true,
 		"enforced_anisotropy_parameters":{
 			"reference_variable_name"          : "TEMPERATURE",
 			"hmin_over_hmax_anisotropic_ratio" : 0.01,
 			"boundary_layer_max_distance"      : 10.0,
 			"interpolation"                    : "Linear"
-		},
-        "local_gradient_variable"              : "TEMPERATURE"
+		}
     },
     "refinement_mmg" : {
         "initialize_entities"              : false,
-        "echo_level"                       : 0
-    }
+		"save_external_files"			   : false,
+		"echo_level"                       : 0
+	}
 }
+krato
