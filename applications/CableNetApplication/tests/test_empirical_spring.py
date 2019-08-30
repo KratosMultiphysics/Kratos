@@ -6,10 +6,11 @@ import KratosMultiphysics.CableNetApplication as CableNetApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.CableNetApplication import empirical_spring_element_process
+
+
 import numpy as np
 import sys
-
-import matplotlib.pyplot as plt
 
 class EmpiricalSpringTests(KratosUnittest.TestCase):
     def setUp(self):
@@ -142,16 +143,14 @@ class EmpiricalSpringTests(KratosUnittest.TestCase):
         for i,num in enumerate(func):
             res += num*np.power(x,len(func)-i-1)
         return res
-
-    def test_quasi_static(self):
+    def _set_up_standard_test(self,is_process_test):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dim)
         self._add_variables(mp)
-        self._apply_material_properties(mp,dim,is_process_test=False)
+        self._apply_material_properties(mp,dim,is_process_test)
         self._add_constitutive_law(mp)
-
         #create nodes
         mp.CreateNewNode(1,1.2,0.0,0.0)
         mp.CreateNewNode(2,0.0,0.0,0.0)
@@ -168,14 +167,22 @@ class EmpiricalSpringTests(KratosUnittest.TestCase):
         bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
         bcs_neumann.AddNodes([1])
         bcs_neumann.AddConditions([1])
-        #create Element
-        mp.CreateNewElement("EmpiricalSpringElement3D2N", 1, [2,1], mp.GetProperties()[0])
-
+        if not is_process_test:
+            #create Element
+            mp.CreateNewElement("EmpiricalSpringElement3D2N", 1, [2,1], mp.GetProperties()[0])
         #apply boundary conditions
-        force_x = 100.0
         self._apply_BCs(bcs_xyz,'xyz')
         self._apply_BCs(bcs_xz,'xz')
 
+        if not is_process_test:
+            return mp,bcs_neumann
+        return current_model,mp,bcs_neumann
+
+    def test_quasi_static(self):
+        mp,bcs_neumann = self._set_up_standard_test(is_process_test=False)
+
+        #apply boundary conditions
+        force_x = 100.0
         #createfunction
         f = [-9.52380952e+01  ,1.16190476e+03 ,-5.34761905e+03  ,1.23952381e+04 ,1.30156287e-11]
 
@@ -198,6 +205,56 @@ class EmpiricalSpringTests(KratosUnittest.TestCase):
             force_solution = self._evaluate_function(disp_solution,f)
 
             self.assertAlmostEqual(force_solution, force_x*time_i)
+    def test_quasi_static_process(self):
+            model,mp,bcs_neumann = self._set_up_standard_test(is_process_test=True)
+
+            #apply boundary conditions
+            force_x = 100.0
+            #createfunction
+            f = [-9.52380952e+01  ,1.16190476e+03 ,-5.34761905e+03  ,1.23952381e+04 ,1.30156287e-11]
+
+            #loop over time
+            time_end = 140.0
+            time_delta = 10.0
+            time_i = 0.0
+            self._set_and_fill_buffer(mp,2,time_delta)
+
+            custom_settings = KratosMultiphysics.Parameters("""
+            {
+                "model_part_name"           : "solid_part.element_mp",
+                "computing_model_part_name" : "solid_part",
+                "node_ids"                  : [1,2],
+                "element_id"                : 1,
+                "property_id"               : 0,
+                "displacement_data"         : [0.0,0.5,1.5,2.5,5.0],
+                "force_data"                : [0.0,5000.0,10000.0,12000.0,14000.0],
+                "polynomial_order"          : 4
+            }
+            """)
+
+            element_mp = mp.CreateSubModelPart("element_mp")
+            element_mp.AddNodes([1,2])
+
+            test_process = empirical_spring_element_process.EmpiricalSpringElementProcess(model,custom_settings)
+            test_process.ExecuteInitialize()
+
+
+            strategy = self._create_nonlinear_static_strategy(mp)
+            while (time_i < time_end):
+                time_i += time_delta
+                mp.CloneTimeStep(time_i)
+
+                self._apply_Neumann_BCs(bcs_neumann,'x',force_x*time_i)
+                #solve + compare
+                strategy.Solve()
+
+                disp_solution = bcs_neumann.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                force_solution = self._evaluate_function(disp_solution,f)
+                self.assertAlmostEqual(force_solution, force_x*time_i, 2)
+
+
+
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
