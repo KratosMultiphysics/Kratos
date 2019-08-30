@@ -107,7 +107,7 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    EVMVMSMonolithicWallCondition(IndexType NewId = 0) : BaseType(NewId)
+    explicit EVMVMSMonolithicWallCondition(IndexType NewId = 0) : BaseType(NewId)
     {
     }
 

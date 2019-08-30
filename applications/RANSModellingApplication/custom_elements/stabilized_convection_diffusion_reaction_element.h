@@ -106,7 +106,7 @@ public:
     /**
      * Constructor.
      */
-    StabilizedConvectionDiffusionReactionElement(IndexType NewId = 0)
+    explicit StabilizedConvectionDiffusionReactionElement(IndexType NewId = 0)
         : Element(NewId)
     {
     }

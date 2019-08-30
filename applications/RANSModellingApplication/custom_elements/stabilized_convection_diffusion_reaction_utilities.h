@@ -114,9 +114,7 @@ inline void CalculateCrossWindDiffusionParameters(double& rChi,
     const double psi_one = CalculatePsiOne(VelocityMagnitude, Tau, reaction_dynamics);
     const double psi_two = CalculatePsiTwo(reaction_dynamics, Tau, ElementLength);
 
-    double value = 0.0;
-
-    value = 0.5 * std::abs(psi_one - Tau * VelocityMagnitude * reaction_dynamics) * ElementLength;
+    double value = 0.5 * std::abs(psi_one - Tau * VelocityMagnitude * reaction_dynamics) * ElementLength;
     value -= (EffectiveKinematicViscosity + Tau * std::pow(VelocityMagnitude, 2));
     value += psi_two;
 

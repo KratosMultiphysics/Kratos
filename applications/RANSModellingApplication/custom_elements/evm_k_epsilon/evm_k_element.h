@@ -124,7 +124,7 @@ public:
     /**
      * Constructor.
      */
-    EvmKElement(IndexType NewId = 0);
+    explicit EvmKElement(IndexType NewId = 0);
 
     /**
      * Constructor using an array of nodes

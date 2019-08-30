@@ -126,7 +126,7 @@ public:
     /**
      * Constructor.
      */
-    EvmEpsilonElement(IndexType NewId = 0);
+    explicit EvmEpsilonElement(IndexType NewId = 0);
 
     /**
      * Constructor using an array of nodes

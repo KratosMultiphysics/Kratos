@@ -125,7 +125,7 @@ public:
     /**
      * Constructor.
      */
-    EvmLowReEpsilonElement(IndexType NewId = 0);
+    explicit EvmLowReEpsilonElement(IndexType NewId = 0);
 
     /**
      * Constructor using an array of nodes

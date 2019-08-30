@@ -105,7 +105,7 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    EvmEpsilonWallCondition(IndexType NewId = 0) : Condition(NewId)
+    explicit EvmEpsilonWallCondition(IndexType NewId = 0) : Condition(NewId)
     {
     }
 
