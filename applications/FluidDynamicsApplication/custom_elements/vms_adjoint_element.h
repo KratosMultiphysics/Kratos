@@ -3,7 +3,7 @@
 //  License:		 BSD License
 //					 license: FluidDynamicsApplication/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_VMS_ADJOINT_ELEMENT_H_INCLUDED)
@@ -43,9 +43,9 @@ namespace Kratos {
  *
  * @see VMS monolithic fluid element
  */
-template< unsigned int TDim >
+template< unsigned int TDim, unsigned int TNumNodes = TDim + 1, unsigned int TMonolithicAssemblyNodalDofSize = TDim + 1 >
 class VMSAdjointElement: public Element {
-    
+
     class ThisExtensions : public AdjointExtensions
     {
         Element* mpElement;
@@ -60,11 +60,11 @@ class VMSAdjointElement: public Element {
                                        std::size_t Step) override
         {
             auto& r_node = mpElement->GetGeometry()[NodeId];
-            rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() + 1);
+            rVector.resize(TMonolithicAssemblyNodalDofSize);
             std::size_t index = 0;
             rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_X, Step);
             rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_Y, Step);
-            if (mpElement->GetGeometry().WorkingSpaceDimension() == 3)
+            if (TDim == 3)
             {
                 rVector[index++] =
                     MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_2_Z, Step);
@@ -77,11 +77,11 @@ class VMSAdjointElement: public Element {
                                         std::size_t Step) override
         {
             auto& r_node = mpElement->GetGeometry()[NodeId];
-            rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() + 1);
+            rVector.resize(TMonolithicAssemblyNodalDofSize);
             std::size_t index = 0;
             rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_X, Step);
             rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_Y, Step);
-            if (mpElement->GetGeometry().WorkingSpaceDimension() == 3)
+            if (TDim == 3)
             {
                 rVector[index++] =
                     MakeIndirectScalar(r_node, ADJOINT_FLUID_VECTOR_3_Z, Step);
@@ -94,13 +94,13 @@ class VMSAdjointElement: public Element {
                                 std::size_t Step) override
         {
             auto& r_node = mpElement->GetGeometry()[NodeId];
-            rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() + 1);
+            rVector.resize(TMonolithicAssemblyNodalDofSize);
             std::size_t index = 0;
             rVector[index++] =
                 MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_X, Step);
             rVector[index++] =
                 MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_Y, Step);
-            if (mpElement->GetGeometry().WorkingSpaceDimension() == 3)
+            if (TDim == 3)
             {
                 rVector[index++] =
                     MakeIndirectScalar(r_node, AUX_ADJOINT_FLUID_VECTOR_1_Z, Step);
@@ -135,13 +135,13 @@ public:
     /// Pointer definition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VMSAdjointElement);
 
-    constexpr static unsigned int TNumNodes = TDim + 1;
-
-    constexpr static unsigned int TBlockSize = TDim + 1;
+    constexpr static unsigned int TBlockSize = TMonolithicAssemblyNodalDofSize;
 
     constexpr static unsigned int TFluidLocalSize = TBlockSize * TNumNodes;
 
     constexpr static unsigned int TCoordLocalSize = TDim * TNumNodes;
+
+    constexpr static bool TMonolithicMatrixConstruction = (TMonolithicAssemblyNodalDofSize != (TDim + 1));
 
     typedef Element::IndexType IndexType;
 
@@ -329,6 +329,7 @@ public:
                 rValues[LocalIndex++] = rVel[d];
             rValues[LocalIndex++] =
                 rGeom[iNode].FastGetSolutionStepValue(ADJOINT_FLUID_SCALAR_1, Step);
+            LocalIndex += (TBlockSize - TDim - 1);
         }
     }
 
@@ -356,6 +357,7 @@ public:
             for (IndexType d = 0; d < TDim; d++)
                 rValues[LocalIndex++] = rAccel[d];
             rValues[LocalIndex++] = 0.0; // pressure dof
+            LocalIndex += (TBlockSize - TDim - 1);
         }
     }
 
@@ -374,11 +376,14 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                ProcessInfo& /*rCurrentProcessInfo*/) override
     {
-        if (rLeftHandSideMatrix.size1() != TFluidLocalSize ||
-            rLeftHandSideMatrix.size2() != TFluidLocalSize)
-            rLeftHandSideMatrix.resize(TFluidLocalSize, TFluidLocalSize, false);
+        if (!TMonolithicMatrixConstruction)
+        {
+            if (rLeftHandSideMatrix.size1() != TFluidLocalSize ||
+                rLeftHandSideMatrix.size2() != TFluidLocalSize)
+                rLeftHandSideMatrix.resize(TFluidLocalSize, TFluidLocalSize, false);
 
-        rLeftHandSideMatrix.clear();
+            rLeftHandSideMatrix.clear();
+        }
     }
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -415,7 +420,6 @@ public:
         this->CalculatePrimalGradientOfVMSSteadyTerm(rLeftHandSideMatrix, rCurrentProcessInfo);
         this->AddPrimalGradientOfVMSMassTerm(rLeftHandSideMatrix, ACCELERATION,
                                              -1.0, rCurrentProcessInfo);
-        rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
     }
 
     /**
@@ -433,7 +437,6 @@ public:
                                        ProcessInfo& rCurrentProcessInfo) override
     {
         this->CalculateVMSMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
-        rLeftHandSideMatrix = -trans(rLeftHandSideMatrix); // transpose
     }
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& /*rCurrentProcessInfo*/) override
@@ -522,7 +525,7 @@ public:
     ///@}
 
 protected:
-    
+
     ///@name Protected Operations
     ///@{
 
@@ -531,10 +534,13 @@ protected:
     {
         KRATOS_TRY
 
-        if (rMassMatrix.size1() != TFluidLocalSize || rMassMatrix.size2() != TFluidLocalSize)
-            rMassMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
+        if (!TMonolithicMatrixConstruction)
+        {
+            if (rMassMatrix.size1() != TFluidLocalSize || rMassMatrix.size2() != TFluidLocalSize)
+                rMassMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
-        rMassMatrix.clear();
+            rMassMatrix.clear();
+        }
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -582,10 +588,11 @@ protected:
         {
             for (IndexType d = 0; d < TDim; ++d)
             {
-                rMassMatrix(DofIndex, DofIndex) += LumpedMass;
+                rMassMatrix(DofIndex, DofIndex) -= LumpedMass;
                 ++DofIndex;
             }
             ++DofIndex; // Skip pressure Dof
+            DofIndex += (TBlockSize - TDim - 1);
         }
 
         // Stabilization, convection-acceleration
@@ -598,8 +605,8 @@ protected:
 
                 for (IndexType d = 0; d < TDim; ++d)
                 {
-                    rMassMatrix(FirstRow+d,FirstCol+d) += Volume * diag;
-                    rMassMatrix(FirstRow+TDim,FirstCol+d) +=
+                    rMassMatrix(FirstCol+d,FirstRow+d) -= Volume * diag;
+                    rMassMatrix(FirstCol+d,FirstRow+TDim) -=
                             Volume * DN_DX(i,d) * TauOne * Density * N[j];
                 }
 
@@ -733,10 +740,10 @@ protected:
 
                         valmn += Density * N[j] * DN_DX(i,n) * TauOne * Density * X[m];
 
-                        rOutputMatrix(FirstRow+m,FirstCol+n) += alpha * Volume * valmn;
+                        rOutputMatrix(FirstCol+n, FirstRow+m) += alpha * Volume * valmn;
                     }
 
-                    rOutputMatrix(FirstRow+TDim,FirstCol+m) +=
+                    rOutputMatrix(FirstCol+m, FirstRow+TDim) +=
                     alpha * Volume * DensityXGradN[i] * TauOneDeriv(j,m);
                 }
 
@@ -827,6 +834,7 @@ protected:
                 X[DofIndex++] = rValue[d];
             }
             X[DofIndex++] = 0.0; // pressure dof
+            DofIndex += (TBlockSize - TDim - 1);
         }
 
         array_1d< double, TFluidLocalSize > Derivative;
@@ -881,6 +889,7 @@ protected:
                     ++DofIndex;
                 }
                 ++DofIndex; // Skip pressure Dof
+                DofIndex += (TBlockSize - TDim - 1);
             }
 
             // Stabilization, convection-acceleration
@@ -944,10 +953,13 @@ protected:
     {
         KRATOS_TRY
 
-        if (rAdjointMatrix.size1() != TFluidLocalSize || rAdjointMatrix.size2() != TFluidLocalSize)
-            rAdjointMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
+        if (!TMonolithicMatrixConstruction)
+        {
+            if (rAdjointMatrix.size1() != TFluidLocalSize || rAdjointMatrix.size2() != TFluidLocalSize)
+                rAdjointMatrix.resize(TFluidLocalSize,TFluidLocalSize,false);
 
-        rAdjointMatrix.clear();
+            rAdjointMatrix.clear();
+        }
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -1095,10 +1107,10 @@ protected:
                         valmn -= N[j] * DN_DX(i,n) * TauOne * Density * BodyForce[m];
                         valmn -= DensityVelGradN[i] * TauOneDeriv(j,n) * BodyForce[m];
 
-                        rAdjointMatrix(FirstRow+m,FirstCol+n) += Volume * valmn;
+                        rAdjointMatrix(FirstCol+n, FirstRow+m) -= Volume * valmn;
                     }
 
-                    rAdjointMatrix(FirstRow+m,FirstCol+m) += Volume * diag;
+                    rAdjointMatrix(FirstCol+m, FirstRow+m) -= Volume * diag;
 
                     double valmp = 0.0;
                     double valpn = 0.0;
@@ -1129,8 +1141,8 @@ protected:
                     // Grad(q) * TauOne * f
                     valpn -= DN_DX_BodyForce[i] * TauOneDeriv(j,m);
 
-                    rAdjointMatrix(FirstRow+m,FirstCol+TDim) += Volume * valmp;
-                    rAdjointMatrix(FirstRow+TDim,FirstCol+m) += Volume * valpn;
+                    rAdjointMatrix(FirstCol+TDim, FirstRow+m) -= Volume * valmp;
+                    rAdjointMatrix(FirstCol+m, FirstRow+TDim) -= Volume * valpn;
                 }
 
                 // Stabilization, lsq pressure
@@ -1142,7 +1154,7 @@ protected:
                 }
                 valpp *= TauOne;
 
-                rAdjointMatrix(FirstRow+TDim,FirstCol+TDim) += Volume * valpp;
+                rAdjointMatrix(FirstCol+TDim, FirstRow+TDim) -= Volume * valpp;
 
                 FirstCol += TBlockSize;
             }  // Node block columns
@@ -1152,10 +1164,7 @@ protected:
         }  // Node block rows
 
         // Viscous term
-        this->AddViscousTerm(rAdjointMatrix,DN_DX,Viscosity * Volume);
-
-        // change the sign for consistency with definition
-        noalias(rAdjointMatrix) = -rAdjointMatrix;
+        this->AddViscousTerm(rAdjointMatrix,DN_DX,Viscosity * Volume * -1.0);
 
         KRATOS_CATCH("")
     }
@@ -1179,10 +1188,14 @@ protected:
     {
         KRATOS_TRY
 
-        if (rShapeDerivativesMatrix.size1() != TCoordLocalSize
-                || rShapeDerivativesMatrix.size2() != TFluidLocalSize)
+        if (!TMonolithicMatrixConstruction)
         {
-            rShapeDerivativesMatrix.resize(TCoordLocalSize,TFluidLocalSize,false);
+            if (rShapeDerivativesMatrix.size1() != TCoordLocalSize
+                    || rShapeDerivativesMatrix.size2() != TFluidLocalSize)
+            {
+                rShapeDerivativesMatrix.resize(TCoordLocalSize,TFluidLocalSize,false);
+            }
+            rShapeDerivativesMatrix.clear();
         }
 
         // Get shape functions, shape function gradients and element volume (area in
@@ -1228,6 +1241,7 @@ protected:
         BodyForce *= Density;
 
         array_1d< double, TFluidLocalSize > FluidValues;
+        FluidValues.clear();
 
         IndexType DofIndex = 0;
         for (IndexType iNode = 0; iNode < TNumNodes; iNode++)
@@ -1236,6 +1250,7 @@ protected:
             for (IndexType d = 0; d < TDim; d++)
                 FluidValues[DofIndex++] = rVelocity[d];
             FluidValues[DofIndex++] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE);
+            DofIndex += (TBlockSize - TDim - 1);
         }
 
         // We compute the derivative of the residual w.r.t each coordinate of each
@@ -1401,7 +1416,7 @@ protected:
             array_1d< double, TFluidLocalSize > ResidualDerivative;
             noalias(ResidualDerivative) = RHS - prod(LHS,FluidValues);
             for (IndexType k = 0; k < TFluidLocalSize; ++k)
-                rShapeDerivativesMatrix(iCoord,k) = ResidualDerivative[k];
+                rShapeDerivativesMatrix(iCoord,k) += ResidualDerivative[k];
         }
 
         KRATOS_CATCH("")

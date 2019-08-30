@@ -144,17 +144,17 @@ void VMSAdjointElement<3>::CalculateDeterminantOfJacobianDerivatives(
   const double x1 = this->GetGeometry()[1].X();
   const double x2 = this->GetGeometry()[2].X();
   const double x3 = this->GetGeometry()[3].X();
-  
+
   const double y0 = this->GetGeometry()[0].Y();
   const double y1 = this->GetGeometry()[1].Y();
   const double y2 = this->GetGeometry()[2].Y();
   const double y3 = this->GetGeometry()[3].Y();
-  
+
   const double z0 = this->GetGeometry()[0].Z();
   const double z1 = this->GetGeometry()[1].Z();
   const double z2 = this->GetGeometry()[2].Z();
   const double z3 = this->GetGeometry()[3].Z();
-        
+
   rDetJDerivatives[0] =-z1*y3 + z1*y2 + y3*z2 - y2*z3 + y1*z3 - y1*z2;
   rDetJDerivatives[1] =-z1*x2 + z1*x3 + x1*z2 - z2*x3 + x2*z3 - x1*z3;
   rDetJDerivatives[2] =-x2*y3 + y2*x3 - y1*x3 + x1*y3 + y1*x2 - x1*y2;
@@ -228,22 +228,22 @@ void VMSAdjointElement<2>::AddViscousTerm(
     for (IndexType i = 0; i < NumNodes; ++i)
     {
       // First Row
-      rResult(FirstRow,FirstCol) += Weight
+      rResult(FirstCol, FirstRow) += Weight
           * (FourThirds * rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1));
-      rResult(FirstRow,FirstCol+1) += Weight
+      rResult(FirstCol+1, FirstRow) += Weight
           * (nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0));
 
       // Second Row
-      rResult(FirstRow+1,FirstCol) += Weight
+      rResult(FirstCol, FirstRow+1) += Weight
           * (nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1));
-      rResult(FirstRow+1,FirstCol+1) += Weight
+      rResult(FirstCol+1, FirstRow+1) += Weight
           * (FourThirds * rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,0) * rDN_DX(j,0));
 
       // Update Counter
-      FirstRow += 3;
+      FirstRow += TBlockSize;
     }
     FirstRow = 0;
-    FirstCol += 3;
+    FirstCol += TBlockSize;
   }
 }
 
@@ -269,34 +269,34 @@ void VMSAdjointElement<3>::AddViscousTerm(
           + rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,2) * rDN_DX(j,2);
 
       // First Row
-      rResult(FirstRow,FirstCol) += Weight
+      rResult(FirstCol, FirstRow) += Weight
           * (OneThird * rDN_DX(i,0) * rDN_DX(j,0) + Diag);
-      rResult(FirstRow,FirstCol+1) += Weight
+      rResult(FirstCol+1, FirstRow) += Weight
           * (nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0));
-      rResult(FirstRow,FirstCol+2) += Weight
+      rResult(FirstCol+2, FirstRow) += Weight
           * (nTwoThirds * rDN_DX(i,0) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,0));
 
       // Second Row
-      rResult(FirstRow+1,FirstCol) += Weight
+      rResult(FirstCol, FirstRow+1) += Weight
           * (nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1));
-      rResult(FirstRow + 1, FirstCol + 1) += Weight
+      rResult(FirstCol + 1, FirstRow + 1) += Weight
           * (OneThird * rDN_DX(i,1) * rDN_DX(j,1) + Diag);
-      rResult(FirstRow + 1, FirstCol + 2) += Weight
+      rResult(FirstCol + 2, FirstRow + 1) += Weight
           * (nTwoThirds * rDN_DX(i,1) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,1));
 
       // Third Row
-      rResult(FirstRow+2,FirstCol) += Weight
+      rResult(FirstCol, FirstRow+2) += Weight
           * (nTwoThirds * rDN_DX(i,2) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,2));
-      rResult(FirstRow+2,FirstCol+1) += Weight
+      rResult(FirstCol+1, FirstRow+2) += Weight
           * (nTwoThirds * rDN_DX(i,2) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,2));
-      rResult(FirstRow+2,FirstCol+2) += Weight
+      rResult(FirstCol+2, FirstRow+2) += Weight
           * (OneThird * rDN_DX(i,2) * rDN_DX(j,2) + Diag);
 
       // Update Counter
-      FirstRow += 4;
+      FirstRow += TBlockSize;
     }
     FirstRow = 0;
-    FirstCol += 4;
+    FirstCol += TBlockSize;
   }
 }
 
@@ -352,10 +352,10 @@ void VMSAdjointElement<2>::AddViscousTermDerivative(
                       + rDN_DX(i,0) * rDN_DX_Deriv(j,0));
 
       // Update Counter
-      FirstRow += 3;
+      FirstRow += TBlockSize;
     }
     FirstRow = 0;
-    FirstCol += 3;
+    FirstCol += TBlockSize;
   }
 }
 
@@ -447,10 +447,10 @@ void VMSAdjointElement<3>::AddViscousTermDerivative(
           + Weight * (OneThird * rDN_DX(i,2) * rDN_DX_Deriv(j,2) + DiagDerivNj);
 
       // Update Counter
-      FirstRow += 4;
+      FirstRow += TBlockSize;
     }
     FirstRow = 0;
-    FirstCol += 4;
+    FirstCol += TBlockSize;
   }
 }
 
