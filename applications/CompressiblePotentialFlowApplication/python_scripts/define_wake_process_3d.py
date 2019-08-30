@@ -109,7 +109,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             # The surface normal points outisde the domain
             surface_normal = cond.GetGeometry().Normal()
             norm = math.sqrt(surface_normal[0]**2 + surface_normal[1]**2 + surface_normal[2]**2)
-            if not abs(norm) > 0.0:
+            if abs(norm) < self.epsilon:
                 raise Exception('The norm of the condition ', cond.Id , ' should be larger than 0.')
             # Normalizing normal vector
             surface_normal /= norm
