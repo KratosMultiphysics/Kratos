@@ -69,8 +69,11 @@ class ContactRemeshMmgProcess(MmgProcess):
                 "mesh_dependent_constant"          : 0.28125
             },
             "enforce_current"                  : true,
+            "remesh_control_type"              : "step",
             "initial_step"                     : 1,
             "step_frequency"                   : 0,
+            "interval"                         : [0.0, 1e30],
+            "time_stepping"                    : {},
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      :{
                 "automatic_remesh_type"            : "Ratio",
