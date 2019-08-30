@@ -330,6 +330,8 @@ class ExplicitStrategy(object):
         self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
 
+        return True
+
     def AdvanceInTime(self, time):
         """This function updates and return the current simulation time
         """
