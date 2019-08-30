@@ -335,7 +335,7 @@ public:
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
-            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const Vector gauss_shape_functions = row(shape_functions, g);
 
             const Matrix& r_parameter_derivatives_g = r_parameter_derivatives[g];
             Matrix contravariant_metric_tensor(r_parameter_derivatives_g.size1(),
@@ -530,7 +530,7 @@ public:
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
-            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const Vector gauss_shape_functions = row(shape_functions, g);
 
             const Matrix& r_parameter_derivatives_g = r_parameter_derivatives[g];
             Matrix contravariant_metric_tensor(r_parameter_derivatives_g.size1(),
@@ -538,7 +538,7 @@ public:
             noalias(contravariant_metric_tensor) =
                 prod(trans(r_parameter_derivatives_g), r_parameter_derivatives_g);
 
-            const double mass = gauss_weights[g] / TNumNodes;
+            const double mass = gauss_weights[g] * (1.0 / TNumNodes);
             this->AddLumpedMassMatrix(rMassMatrix, mass);
 
             const array_1d<double, 3>& velocity =
@@ -607,7 +607,7 @@ public:
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
-            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const Vector gauss_shape_functions = row(shape_functions, g);
 
             const Matrix& r_parameter_derivatives_g = r_parameter_derivatives[g];
             Matrix contravariant_metric_tensor(r_parameter_derivatives_g.size1(),
@@ -663,8 +663,8 @@ public:
                     chi, k1, k2, velocity_magnitude, tau, effective_kinematic_viscosity,
                     reaction, bossak_alpha, bossak_gamma, delta_time, element_length, dynamic_tau);
 
-                stream_line_diffusion = residual * chi * k1 / velocity_magnitude_square;
-                cross_wind_diffusion = residual * chi * k2 / velocity_magnitude_square;
+                stream_line_diffusion = residual * chi * k1 * (1.0 / velocity_magnitude_square);
+                cross_wind_diffusion = residual * chi * k2 * (1.0 / velocity_magnitude_square);
             }
 
             const double s = std::abs(reaction);

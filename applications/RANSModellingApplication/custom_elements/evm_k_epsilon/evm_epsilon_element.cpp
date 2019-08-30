@@ -396,18 +396,18 @@ void EvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionDat
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
-    const double& c1 = rCurrentProcessInfo[TURBULENCE_RANS_C1];
-    const double& c2 = rCurrentProcessInfo[TURBULENCE_RANS_C2];
-    const double& c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    const double& epsilon_sigma =
+    const double c1 = rCurrentProcessInfo[TURBULENCE_RANS_C1];
+    const double c2 = rCurrentProcessInfo[TURBULENCE_RANS_C2];
+    const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    const double epsilon_sigma =
         rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
 
-    const double& nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
-    const double& nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
-    const double& tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
-    // const double& epsilon =
+    const double nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
+    const double nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
+    const double tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
+    // const double epsilon =
     //     this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
-    const double& gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
+    const double gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
     // const double gamma = tke / (epsilon + std::numeric_limits<double>::epsilon());
     // const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
     // const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
