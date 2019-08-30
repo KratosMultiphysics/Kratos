@@ -36,11 +36,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         if far_field_model_part_name != "":
             self.far_field_model_part = Model[far_field_model_part_name]
             self.compute_far_field_forces = True
-        self.compute_lift_from_jump = False
+        self.compute_lift_from_jump_3d = False
         trailing_edge_model_part_name = settings["trailing_edge_model_part_name"].GetString()
-        if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.compute_lift_from_jump = True
-        elif(trailing_edge_model_part_name != ""):
+        if(trailing_edge_model_part_name != ""):
             self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
             self.compute_lift_from_jump = True
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
@@ -57,11 +55,11 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self._ComputeLiftFromPressure()
         if self.compute_far_field_forces:
             self._ComputeLiftFromFarField()
-        if self.compute_lift_from_jump:
-            self._ComputeLiftFromJumpCondition3D()
         if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self._ComputeMomentFromPressure()
             self._ComputeLiftFromJumpCondition()
+        elif(self.compute_lift_from_jump_3d):
+            self._ComputeLiftFromJumpCondition3D()
 
     def _CalculateWakeTangentAndNormalDirections(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
