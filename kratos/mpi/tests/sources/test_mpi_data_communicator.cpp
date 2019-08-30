@@ -20,8 +20,6 @@
 
 #include "testing/testing.h"
 
-#include "input_output/logger.h"
-
 namespace Kratos {
 
 namespace Testing {
@@ -2461,8 +2459,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSplit, KratosMPICoreFas
         int expected_rank = global_rank < i ? key : key - 1;
         // MPI_Comm_split assigns rank by order of increasing key.
         // Here keys in the global_rank >= i side of the split range between 1 and (global_size-i)
-        //KRATOS_INFO_ALL_RANKS("TestMPIDataCommunicatorSplit") << "split step " << i << ": size " << r_split_comm.Size() << " (expected " << expected_size << ")." << std::endl;
-        //KRATOS_INFO_ALL_RANKS("TestMPIDataCommunicatorSplit") << "split step " << i << ": rank " << r_split_comm.Rank() << " (expected " << expected_rank << ")." << std::endl;
         KRATOS_CHECK_EQUAL(r_split_comm.Size(), expected_size);
         KRATOS_CHECK_EQUAL(r_split_comm.Rank(), expected_rank);
     }
