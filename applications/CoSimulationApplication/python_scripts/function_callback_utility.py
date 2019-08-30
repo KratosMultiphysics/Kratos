@@ -30,7 +30,7 @@ def GenericCallFunction(func_string, scope_vars, check=True):
                     splitted_func_args.append("")
 
         for func_arg in splitted_func_args:
-            if not func_arg in safe_dict:
+            if not func_arg == "" and not func_arg in safe_dict:
                 raise Exception('Argument "{}" in function string "{}" was not recognized!\nOnly the following expressions can be used:\n\t{}'.format(func_arg, func_string, "\n\t".join(sorted(safe_dict.keys()))))
 
     return eval(func_string, {"__builtins__" : None}, safe_dict)
