@@ -139,6 +139,10 @@ namespace Kratos
 			std::vector<bool> y_cell_coarse(mNumberOfDivisions[1],false);
 			std::vector<bool> z_cell_coarse(mNumberOfDivisions[2],false);
 
+			x_cell_coarse[0]=true;
+			y_cell_coarse[0]=true;
+			z_cell_coarse[0]=true;
+
 			for (std::size_t k = 1; k < mNumberOfDivisions[2]; k++) {
 				for (std::size_t j = 1; j < mNumberOfDivisions[1]; j++) {
 					for (std::size_t i = 1; i < mNumberOfDivisions[0]; i++) {
@@ -172,16 +176,6 @@ namespace Kratos
 					z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
 			}
 			
-			KRATOS_WATCH(x_cell_coarse);
-			KRATOS_WATCH(y_cell_coarse);
-			KRATOS_WATCH(z_cell_coarse);
-			KRATOS_WATCH(x_key_planes);
-			KRATOS_WATCH(y_key_planes);
-			KRATOS_WATCH(z_key_planes);
-			KRATOS_WATCH(x_key_planes.size());
-			KRATOS_WATCH(y_key_planes.size());
-			KRATOS_WATCH(z_key_planes.size());
-
 			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
 				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
 					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
