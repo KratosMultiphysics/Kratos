@@ -342,7 +342,7 @@ public:
     {
         array_1d<double, 3> parameter = ZeroVector(3);
         parameter[0] = ((*this).DomainInterval().MinParameter() + (*this).DomainInterval().MaxParameter())/2.0;
-        bool isConverged = ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve<TWorkingSpaceDimension, TPointType>(
+        ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve<TWorkingSpaceDimension, TPointType>(
             parameter,
             rPoint,
             rResult,
