@@ -64,11 +64,11 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         gui = ''
         if not fluent_gui:
             gui = ' -gu'
-        # subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
-        #                      shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
+        subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
+                             shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
 
         # get surface thread ID's from report.sum and write them to bcs.txt
-        # self.wait_message('surface_info_exported')  # *** ON/OFF
+        self.wait_message('surface_info_exported')  # *** ON/OFF
         report = os.path.join(self.dir_cfd, 'report.sum')
         check = 0
         info = []
@@ -95,7 +95,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.send_message('thread_ids_written_to_file')
 
         # import node and face information
-        # self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
+        self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
 
         # import node data, unique sort on ID-string
         self.node_coords = [None] * self.n_threads
@@ -199,20 +199,21 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
 
         # create and write test data to deform threads in Fluent
-        test_displacement = copy.deepcopy(self.node_coords)
+        node_coords_new = copy.deepcopy(self.node_coords)
         for t in range(self.n_threads):
-            x = test_displacement[t][:, 0].copy()
-            test_displacement[t][:, 1] = x * 0.01
-            test_displacement[t][:, 0] = np.zeros_like(x)
+            print(node_coords_new[t])
+            node_coords_new[t][:, 1] += self.node_coords[t][:, 0] * 0.02
+            print(node_coords_new[t])
 
-            with open(os.path.join(self.dir_cfd, f'displacement_thread{self.thread_ids[t]}.dat'), 'w') as file:
+            with open(os.path.join(self.dir_cfd, f'new_node_coords_thread{self.thread_ids[t]}.dat'), 'w') as file:
+                file.write(f'{self.node_ids[t].size}\n')
                 for i in range(self.node_ids[t].size):
                     for d in range(self.dimensions):
-                        file.write(f'{test_displacement[t][i, d]}\t')
+                        file.write(f'{node_coords_new[t][i, d]}\t')
                     file.write(self.node_ids[t][i] + '\n')
+        self.send_message('test_position_updates')
 
-
-        print('FINISHED KRATOS')
+        print('FINISHED TEST')
 
 
 

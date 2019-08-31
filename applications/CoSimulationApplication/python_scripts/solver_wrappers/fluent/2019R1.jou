@@ -73,7 +73,10 @@ solve iterate 100
 ;   STORE PRESSURE AND TRACTION
 define user-defined execute-on-demand "store_pressure_traction::2019R1"
 
+;   TEST POSTION UPDATES
+wait_message("test_position_updates")
+solve mesh y
 
 ;   SAVE CASE
 file write-case-data "case_out.cas"
-exit y
+;exit y

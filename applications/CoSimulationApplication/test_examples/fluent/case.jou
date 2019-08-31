@@ -19,6 +19,8 @@ def bc vel inlet n y y n , n 1 n 0
 def dyn dyn y n n
 def dyn controls smoothing n
 def dyn zones create default-interior deforming faceted n y n n ,,, n
+def dyn zones create inlet deforming faceted n y n n ,,, n
+def dyn zones create outlet deforming faceted n y n n ,,, n
 
 solve initialize compute-defaults velocity-inlet ,
 

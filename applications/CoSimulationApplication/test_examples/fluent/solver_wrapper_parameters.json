@@ -10,17 +10,12 @@
                 "thread_names": ["wall_top", "wall_bottom"],
                 "case_file": "case.cas",
                 "cores": 2,
-                "fluent_gui": false,
+                "fluent_gui": true,
                 "max_nodes_per_face": 4,
                 "dimensions": 2,
                 "hybrid_initialization": true,
                 "interface_input": {
-                    "wall_top": "DISPLACEMENT_X",
-                    "wall_top": "DISPLACEMENT_Y",
-                    "wall_top": "DISPLACEMENT_Z",
-                    "wall_bottom": "DISPLACEMENT_X",
-                    "wall_bottom": "DISPLACEMENT_Y",
-                    "wall_bottom": "DISPLACEMENT_Z"
+                    "wall_top": "DISPLACEMENT_X"
                 },
                 "interface_output":
                 {

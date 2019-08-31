@@ -474,8 +474,72 @@ DEFINE_ON_DEMAND(store_pressure_traction) {
  /* move_nodes */
 /*------------*/
 
-DEFINE_GRID_MOTION(move_nodes, domain, thread, time, dtime) {
-    /* moves the nodes on the given thread */
+DEFINE_GRID_MOTION(move_nodes, domain, dynamic_thread, time, dtime) {
 
+    /*** add checks and stuff from Joris */
+
+    char file_name[256];
+    Thread *face_thread = DT_THREAD(dynamic_thread);
+    int thread_id = THREAD_ID(face_thread);
+
+#if !RP_HOST
+	face_t face;
+	Node *node;
+    int i, d, n, node_number;
+	DECLARE_MEMORY_N(coords, real, ND_ND);
+    DECLARE_MEMORY(ids, int);
+    FILE *file = NULL;
+#endif /* !RP_HOST */
+
+#if !RP_NODE
+    sprintf(file_name, "new_node_coords_thread%i.dat", thread_id); /*** temp name */
+#else
+    sprintf(file_name, "/tmp/new_node_coords_thread%i.dat", thread_id); /*** temp name */
+    host_to_node_sync_file("/tmp");
+#endif /* !RP_NODE */
+
+#if RP_HOST
+    host_to_node_sync_file(file_name);
+#endif /* RP_HOST */
+
+#if !RP_HOST
+    if (NULLP(file = fopen(file_name, "r"))) {
+        Error("\nUDF-error: Unable to open %s for reading\n", file_name);
+        exit(1);
+    }
+
+    fscanf(file, "%i", &n);
+
+    ASSIGN_MEMORY_N(coords, n, real, ND_ND);
+    ASSIGN_MEMORY(ids, n, int);
+
+    for (i=0; i < n; i++) {
+        for (d = 0; d < ND_ND; d++) {
+            fscanf(file, "%lf", &coords[d][i]);
+        }
+        fscanf(file, "%i", &ids[i]);
+    }
+
+    fclose(file);
+
+    begin_f_loop(face, face_thread) {
+        f_node_loop(face, face_thread, node_number) {
+            node = F_NODE(face, face_thread, node_number);
+            if NODE_POS_NEED_UPDATE(node) {
+                for (i=0; i < n; i++) {
+                    if (NODE_DM_ID(node) == ids[i]) {
+                        for (d = 0; d < ND_ND; d++) {
+                            NODE_COORD(node)[d] = coords[d][i];
+                        }
+                        NODE_POS_UPDATED(node);
+                        break;
+                    }
+                }
+            }
+        }
+    } end_f_loop(face, face_thread);
+#endif /* !RP_HOST */
+
+    printf("\n\nNode %i: Finished UDF move_nodes", myid); fflush(stdout);
 }
 
