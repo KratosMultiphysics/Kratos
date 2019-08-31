@@ -49,14 +49,13 @@ class ModelPart(DataValueContainer):
         return False
 
     def GetCommunicator(self):
-        # TODO improve this, maybe the fct-call can be redirected? (yield/lambda?)
-        # Or maybe a real communicator Object? => should not be necessary though
-
         class Communicator(object):
             def __init__(self, model_part):
                 self.__model_part = model_part
             def LocalMesh(self):
                 return self.__model_part
+            def MyPID(self):
+                return 0
         return Communicator(self)
 
 
