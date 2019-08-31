@@ -2,6 +2,7 @@ import os
 import subprocess
 import time
 import numpy as np
+import copy
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
 from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
@@ -63,11 +64,11 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         gui = ''
         if not fluent_gui:
             gui = ' -gu'
-        subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
-                             shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
+        # subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
+        #                      shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
 
         # get surface thread ID's from report.sum and write them to bcs.txt
-        self.wait_message('surface_info_exported')  # *** ON/OFF
+        # self.wait_message('surface_info_exported')  # *** ON/OFF
         report = os.path.join(self.dir_cfd, 'report.sum')
         check = 0
         info = []
@@ -94,13 +95,13 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.send_message('thread_ids_written_to_file')
 
         # import node and face information
-        self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
+        # self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
 
         # import node data, unique sort on ID-string
         self.node_coords = [None] * self.n_threads
         self.node_ids = [None] * self.n_threads
-        for i in range(self.n_threads):
-            id = self.thread_ids[i]
+        for t in range(self.n_threads):
+            id = self.thread_ids[t]
             file = os.path.join(self.dir_cfd, f'nodes_thread{id}.dat')
             data = np.loadtxt(file, skiprows=1)
             if data.shape[1] != self.dimensions + 1:
@@ -111,14 +112,14 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             ids_tmp = data[:, -1].astype(int).astype(str)  # array is flattened
 
             args = np.unique(ids_tmp, return_index=True)[1].tolist()
-            self.node_coords[i] = coords_tmp[args, :]
-            self.node_ids[i] = ids_tmp[args]
+            self.node_coords[t] = coords_tmp[args, :]
+            self.node_ids[t] = ids_tmp[args]
 
         # import face data, unique sort on ID-string
         self.face_coords = [None] * self.n_threads
         self.face_ids = [None] * self.n_threads
-        for i in range(self.n_threads):
-            id = self.thread_ids[i]
+        for t in range(self.n_threads):
+            id = self.thread_ids[t]
             file = os.path.join(self.dir_cfd, f'faces_thread{id}.dat')
             data = np.loadtxt(file, skiprows=1)
             if data.shape[1] != self.dimensions + self.mnpf:
@@ -135,67 +136,83 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 ids_tmp[j] = '-'.join(tuple(tmp.astype(str)))
 
             args = np.unique(ids_tmp, return_index=True)[1].tolist()
-            self.face_coords[i] = coords_tmp[args, :]
-            self.face_ids[i] = ids_tmp[args]
+            self.face_coords[t] = coords_tmp[args, :]
+            self.face_ids[t] = ids_tmp[args]
 
         # create Model, Modelparts, Interfaces
         self.model = cs_data_structure.Model()
         self.model_part_nodes = [None] * self.n_threads
         self.model_part_faces = [None] * self.n_threads
-        for i in range(self.n_threads):
-            self.model_part_nodes[i] = self.model.CreateModelPart(f'nodes_{self.thread_ids[i]}')
-            self.model_part_faces[i] = self.model.CreateModelPart(f'faces_{self.thread_ids[i]}')
+        for t in range(self.n_threads):
+            self.model_part_nodes[t] = self.model.CreateModelPart(f'nodes_{self.thread_ids[t]}')
+            self.model_part_faces[t] = self.model.CreateModelPart(f'faces_{self.thread_ids[t]}')
 
             # *** can I use vectors as NodalSolutionStepVariable?? not that I see...
 
-            self.model_part_nodes[i].AddNodalSolutionStepVariable("displacement_x")
-            self.model_part_nodes[i].AddNodalSolutionStepVariable("displacement_y")
-            self.model_part_nodes[i].AddNodalSolutionStepVariable("displacement_z")
+            self.model_part_nodes[t].AddNodalSolutionStepVariable("DISPLACEMENT_X")
+            self.model_part_nodes[t].AddNodalSolutionStepVariable("DISPLACEMENT_Y")
+            self.model_part_nodes[t].AddNodalSolutionStepVariable("DISPLACEMENT_Z")
 
-            self.model_part_faces[i].AddNodalSolutionStepVariable("traction_x")
-            self.model_part_faces[i].AddNodalSolutionStepVariable("traction_y")
-            self.model_part_faces[i].AddNodalSolutionStepVariable("traction_z")
+            self.model_part_faces[t].AddNodalSolutionStepVariable("TRACTION_X")
+            self.model_part_faces[t].AddNodalSolutionStepVariable("TRACTION_Y")
+            self.model_part_faces[t].AddNodalSolutionStepVariable("TRACTION_Z")
 
-            self.model_part_faces[i].AddNodalSolutionStepVariable("pressure")
+            self.model_part_faces[t].AddNodalSolutionStepVariable("pressure")
 
-            for j in range(self.node_ids[i].size):
-                self.model_part_nodes[i].CreateNewNode(
-                    self.node_ids[i][j],
-                    self.node_coords[i][j, 0],
-                    self.node_coords[i][j, 1],
-                    self.node_coords[i][j, 2])
+            for j in range(self.node_ids[t].size):
+                self.model_part_nodes[t].CreateNewNode(
+                    self.node_ids[t][j],
+                    self.node_coords[t][j, 0],
+                    self.node_coords[t][j, 1],
+                    self.node_coords[t][j, 2])
 
-            for j in range(self.face_ids[i].size):
-                self.model_part_faces[i].CreateNewNode(
-                    self.face_ids[i][j],
-                    self.face_coords[i][j, 0],
-                    self.face_coords[i][j, 1],
-                    self.face_coords[i][j, 2])
+            for j in range(self.face_ids[t].size):
+                self.model_part_faces[t].CreateNewNode(
+                    self.face_ids[t][j],
+                    self.face_coords[t][j, 0],
+                    self.face_coords[t][j, 1],
+                    self.face_coords[t][j, 2])
 
-            for node in self.model_part_nodes[i].Nodes:
+            for node in self.model_part_nodes[t].Nodes:
                 node.SetSolutionStepValue("DISPLACEMENT_X", 0, 0.0)  # *** init values??
                 node.SetSolutionStepValue("DISPLACEMENT_Y", 0, 0.0)
                 node.SetSolutionStepValue("DISPLACEMENT_Z", 0, 0.0)
 
-            for node in self.model_part_faces[i].Nodes:
+            for node in self.model_part_faces[t].Nodes:
                 node.SetSolutionStepValue("TRACTION_X", 0, 0.0)
                 node.SetSolutionStepValue("TRACTION_Y", 0, 0.0)
                 node.SetSolutionStepValue("TRACTION_Z", 0, 0.0)
                 node.SetSolutionStepValue("PRESSURE", 0, 0.0)
 
-        print('FINISHED KRATOS')
 
             # self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
             # self.interface_output = CoSimulationInterface(self.model, self.settings["interface_output"])
 
             # *** can I ask for some data about ModelParts? perhaps print it? to check stuff...
 
+            # *** TO DO: define CoSimulationInterfaces... not sure how
 
 
-        # *** so, what's next?
+        # *** reading in pressure and traction data: analogous to reading in face data
+        # *** perhaps put the overlapping code in some kind of read-function??
 
-        # *** when exporting data (pressure, traction),
-        # ***   the ID's of the faces also have to be exported always! (for sorting)
+
+
+        # create and write test data to deform threads in Fluent
+        test_displacement = copy.deepcopy(self.node_coords)
+        for t in range(self.n_threads):
+            x = test_displacement[t][:, 0].copy()
+            test_displacement[t][:, 1] = x * 0.01
+            test_displacement[t][:, 0] = np.zeros_like(x)
+
+            with open(os.path.join(self.dir_cfd, f'displacement_thread{self.thread_ids[t]}.dat'), 'w') as file:
+                for i in range(self.node_ids[t].size):
+                    for d in range(self.dimensions):
+                        file.write(f'{test_displacement[t][i, d]}\t')
+                    file.write(self.node_ids[t][i] + '\n')
+
+
+        print('FINISHED KRATOS')
 
 
 
