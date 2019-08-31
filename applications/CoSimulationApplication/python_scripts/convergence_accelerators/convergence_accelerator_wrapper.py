@@ -41,8 +41,8 @@ class ConvergenceAcceleratorWrapper(object):
         self.conv_acc.FinalizeNonLinearIteration()
 
     def ComputeAndApplyUpdate(self):
-        executing_rank = self.conv_acc.SupportsMPI() or (self.interface_data.GetModelPart().GetCommunicator().MyPID() == 0)
-        gather_scatter_required = self.interface_data.IsDistributed() and not self.conv_acc.SupportsMPI()
+        executing_rank = self.conv_acc.SupportsDistributedData() or (self.interface_data.GetModelPart().GetCommunicator().MyPID() == 0)
+        gather_scatter_required = self.interface_data.IsDistributed() and not self.conv_acc.SupportsDistributedData()
 
         current_data = self.interface_data.GetData()
         residual = current_data - self.input_data

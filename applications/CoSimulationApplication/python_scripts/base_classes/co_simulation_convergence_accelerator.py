@@ -53,12 +53,12 @@ class CoSimulationConvergenceAccelerator(object):
         raise NotImplementedError('"UpdateSolution" has to be implemented in the derived class!')
 
     @classmethod
-    def _ClassName(cls):
-        return cls.__name__
+    def SupportsDistributedData(cls):
+        return False
 
     @classmethod
-    def SupportsMPI(cls):
-        return False
+    def _ClassName(cls):
+        return cls.__name__
 
     @classmethod
     def _GetDefaultSettings(cls):
