@@ -66,9 +66,14 @@ define user-defined execute-on-demand "store_coordinates_id::2019R1"
     (ti-menu-load-string "solve initialize initialize-flow y")
 )
 
+;   TEST-RUN
+solve monitors residual check-convergence n n n
+solve iterate 100
+
 ;   STORE PRESSURE AND TRACTION
+define user-defined execute-on-demand "store_pressure_traction::2019R1"
 
 
 ;   SAVE CASE
-file write-case "case_out.cas"
+file write-case-data "case_out.cas"
 exit y

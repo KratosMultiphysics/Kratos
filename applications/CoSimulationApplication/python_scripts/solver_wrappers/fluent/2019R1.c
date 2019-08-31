@@ -100,15 +100,17 @@ DEFINE_ON_DEMAND(get_thread_ids) {
 }
 
 
-  /*-------------------*/
- /* store_nodes_faces */
-/*-------------------*/
+  /*----------------------*/
+ /* store_coordinates_id */
+/*----------------------*/
 
-DEFINE_ON_DEMAND(store_nodes_faces) {
+DEFINE_ON_DEMAND(store_coordinates_id) {
 
     /*** annotate this function after it's finished */
 
     /*** look which checks Joris built into his UDF, add those later */
+
+    /*** principle faces?? */
 
     int thread, n_nodes, n_faces, i_n, i_f, d;
     DECLARE_MEMORY_N(node_coords, real, ND_ND);
@@ -292,7 +294,7 @@ DEFINE_ON_DEMAND(store_nodes_faces) {
             RELEASE_MEMORY_N(node_coords, ND_ND);
             RELEASE_MEMORY(node_ids);
             RELEASE_MEMORY_N(face_coords, ND_ND);
-            RELEASE_MEMORY_N(face_ids, ND_ND);
+            RELEASE_MEMORY_N(face_ids, mnpf);
 #endif /* !RP_NODE */
 
 #if RP_HOST
@@ -306,30 +308,30 @@ DEFINE_ON_DEMAND(store_nodes_faces) {
 
     } /* close loop over threads */
 
-    printf("\n\nNode %i: Finished UDF store_nodes_faces", myid); fflush(stdout);
+    printf("\n\nNode %i: Finished UDF store_coordinates_id", myid); fflush(stdout);
 }
 
 
   /*-------------------------*/
- /* store_nodes --> OLD UDF */
+ /* store_pressure_traction */
 /*-------------------------*/
 
-DEFINE_ON_DEMAND(store_nodes) {
 
-    /*** annotate this function after it's finished */
+DEFINE_ON_DEMAND(store_pressure_traction) {
 
-    /*** look which checks Joris built into his UDF, add those later */
+    /*** add inviscid option? */
 
-    int thread, n_nodes, i, d;
-    DECLARE_MEMORY_N(node_coords, real, ND_ND);
-    DECLARE_MEMORY(node_ids, int);
+    int thread, n, i, d;
+    DECLARE_MEMORY_N(array, real, ND_ND + 1);
+    DECLARE_MEMORY_N(ids, int, mnpf);
 
 #if !RP_HOST
 	Domain *domain;
 	Thread *face_thread;
 	face_t face;
 	Node *node;
-	int node_number;
+	int node_number, j;
+	real pressure, traction[ND_ND], area[ND_ND];
 #endif /* !RP_HOST */
 
 #if !RP_NODE
@@ -344,7 +346,7 @@ DEFINE_ON_DEMAND(store_nodes) {
     for (thread=0; thread<n_threads; thread++) {
 
 #if !RP_NODE
-        sprintf(file_name, "nodes_thread%i.dat", thread_ids[thread]); /*** temp name */
+        sprintf(file_name, "pressure_traction_thread%i.dat", thread_ids[thread]); /*** temp name */
 
         if (NULLP(file = fopen(file_name, "w"))) {
 			Error("\nUDF-error: Unable to open %s for writing\n", file_name);
@@ -352,252 +354,106 @@ DEFINE_ON_DEMAND(store_nodes) {
 		}
 
 #if RP_2D
-		fprintf(file, "%27s %27s  %10s\n", "x-coordinate", "y-coordinate", "unique-ids");
+		fprintf(file, "%27s %27s %27s  %10s\n",
+		    "x-shear", "y-shear", "pressure", "unique-ids");
 #else /* RP_2D */
-		fprintf(file, "%27s %27s %27s %10s\n",
-		        "x-coordinate", "y-coordinate", "z-coordinate", "unique-ids");
-#endif /* RP_2D */
+        fprintf(file, "%27s %27s %27s %27s  %10s\n",
+            "x-shear", "y-shear", "z-shear", "pressure", "unique-ids");
 
+#endif /* RP_2D */
 #endif /* !RP_NODE */
 
 #if !RP_HOST
         domain = Get_Domain(1);
 		face_thread = Lookup_Thread(domain, thread_ids[thread]);
 
-		n_nodes = 0;
-		begin_f_loop(face, face_thread) {
-			n_nodes += F_NNODES(face, face_thread);
-		} end_f_loop(face, face_thread)
+		n = THREAD_N_ELEMENTS_INT(face_thread);
 
-        ASSIGN_MEMORY_N(node_coords, n_nodes, real, ND_ND);
-        ASSIGN_MEMORY(node_ids, n_nodes, int);
+        ASSIGN_MEMORY_N(array, n, real, ND_ND + 1);
+        ASSIGN_MEMORY_N(ids, n, int, mnpf);
 
         i = 0;
         begin_f_loop(face, face_thread) {
-            f_node_loop(face, face_thread, node_number) {
-                if (i >= n_nodes) {
-                    Error("\nIndex %i larger than array size %i.", i, n_nodes);
-                }
-                else {
-                    node = F_NODE(face, face_thread, node_number);
-                    node_ids[i] = NODE_DM_ID(node);
-                    for (d = 0; d < ND_ND; d++) {
-                        node_coords[d][i] = NODE_COORD(node)[d];
-                    }
-                }
-                i++;
-            }
-        } end_f_loop(face, face_thread);
-#endif /* !RP_HOST */
+            if (i >= n) {Error("\nIndex %i >= array size %i.", i, n);}
 
-#if RP_NODE
-        compute_node = (I_AM_NODE_ZERO_P) ? node_host : node_zero;
-
-        PRF_CSEND_INT(compute_node, &n_nodes, 1, myid);
-        PRF_CSEND_REAL_N(compute_node, node_coords, n_nodes, myid, ND_ND);
-        PRF_CSEND_INT(compute_node, node_ids, n_nodes, myid);
-
-        RELEASE_MEMORY_N(node_coords, ND_ND);
-        RELEASE_MEMORY(node_ids);
-
-        if(I_AM_NODE_ZERO_P){
-            compute_node_loop_not_zero(compute_node) {
-                PRF_CRECV_INT(compute_node, &n_nodes, 1, compute_node);
-
-                ASSIGN_MEMORY_N(node_coords, n_nodes, real, ND_ND);
-                ASSIGN_MEMORY(node_ids, n_nodes, int);
-
-                PRF_CRECV_REAL_N(compute_node, node_coords, n_nodes, compute_node, ND_ND);
-                PRF_CRECV_INT(compute_node, node_ids, n_nodes, compute_node);
-
-                PRF_CSEND_INT(node_host, &n_nodes, 1, compute_node);
-                PRF_CSEND_REAL_N(node_host, node_coords, n_nodes, compute_node, ND_ND);
-                PRF_CSEND_INT(node_host, node_ids, n_nodes, compute_node);
-
-                RELEASE_MEMORY_N(node_coords, ND_ND);
-                RELEASE_MEMORY(node_ids);
-            }
-        }
-#endif /* RP_NODE */
-
-#if RP_HOST
-        compute_node_loop(compute_node) {
-            PRF_CRECV_INT(node_zero, &n_nodes, 1, compute_node);
-
-            ASSIGN_MEMORY_N(node_coords, n_nodes, real, ND_ND);
-            ASSIGN_MEMORY(node_ids, n_nodes, int);
-
-            PRF_CRECV_REAL_N(node_zero, node_coords, n_nodes, compute_node, ND_ND);
-            PRF_CRECV_INT(node_zero, node_ids, n_nodes, compute_node);
-#endif /* RP_HOST */
-
-#if !RP_NODE
-            for (i = 0; i < n_nodes; i++) {
-                for (d = 0; d < ND_ND; d++) {
-                    fprintf(file, "%27.17e ", node_coords[d][i]);
-                }
-                fprintf(file, "%10d\n", node_ids[i]);
-            }
-
-            RELEASE_MEMORY_N(node_coords, ND_ND);
-            RELEASE_MEMORY(node_ids);
-#endif /* !RP_NODE */
-
-#if RP_HOST
-        } /* close compute_node_loop */
-#endif /* RP_HOST */
-
-#if !RP_NODE
-        fclose(file);
-#endif /* !RP_NODE */
-
-    } /* close loop over threads */
-
-    printf("\nNode %i: Finished UDF store_nodes", myid); fflush(stdout);
-}
-
-
-  /*------------------------*/
- /* store_faces --> OLD UDF*/
-/*------------------------*/
-
-DEFINE_ON_DEMAND(store_faces) {
-    /*** annotate this function after it's finished */
-
-    /*** look which checks Joris built into his UDF, add those later */
-
-    int thread, n_faces, i, d;
-    DECLARE_MEMORY_N(face_coords, real, ND_ND);
-    DECLARE_MEMORY_N(face_ids, int, mnpf);
-
-#if !RP_HOST
-	Domain *domain;
-	Thread *face_thread;
-	face_t face;
-	Node *node;
-	int node_number;
-	real centroid[ND_ND];
-#endif /* !RP_HOST */
-
-#if !RP_NODE
-	char file_name[256];
-	FILE *file = NULL;
-#endif /* !RP_NODE */
-
-#if PARALLEL
-	int compute_node;
-#endif /* PARALLEL */
-
-    for (thread=0; thread<n_threads; thread++) {
-
-#if !RP_NODE
-        sprintf(file_name, "faces_thread%i.dat", thread_ids[thread]); /*** temp name */
-
-        if (NULLP(file = fopen(file_name, "w"))) {
-			Error("\nUDF-error: Unable to open %s for writing\n", file_name);
-			exit(1);
-		}
-
-#if RP_2D
-		fprintf(file, "%27s %27s  %10s\n", "x-coordinate", "y-coordinate", "unique-ids");
-#else /* RP_2D */
-		fprintf(file, "%27s %27s %27s %10s\n",
-		        "x-coordinate", "y-coordinate", "z-coordinate", "unique-ids");
-#endif /* RP_2D */
-
-#endif /* !RP_NODE */
-
-#if !RP_HOST
-        domain = Get_Domain(1);
-		face_thread = Lookup_Thread(domain, thread_ids[thread]);
-
-		n_faces = THREAD_N_ELEMENTS_INT(face_thread);
-
-        ASSIGN_MEMORY_N(face_coords, n_faces, real, ND_ND);
-        ASSIGN_MEMORY_N(face_ids, n_faces, int, mnpf);
-
-        i = 0;
-        begin_f_loop(face, face_thread) {
-            if (i >= n_faces) {
-                Error("\nIndex %i larger than array size %i.", i, n_faces);
-            }
-
-            F_CENTROID(centroid, face, face_thread);
+            F_AREA(area, face, face_thread);
+		    NV_VS(traction, =, F_STORAGE_R_N3V(face, face_thread, SV_WALL_SHEAR), *, -1.0 / NV_MAG(area));
             for (d = 0; d < ND_ND; d++) {
-                face_coords[d][i] = centroid[d];
+                array[d][i] = traction[d];
+            }
+            array[ND_ND][i] = F_P(face, face_thread);
+
+            for (j = 0; j < mnpf; j++) {
+                ids[j][i] = -1;
             }
 
+            j = 0;
             f_node_loop(face, face_thread, node_number) {
+                if (j >= mnpf) {Error("\nIndex %i >= array size %i.", j, mnpf);}
                 node = F_NODE(face, face_thread, node_number);
-                for (d = 0; d < mnpf; d++) {
-                    if (d < F_NNODES(face, face_thread)) {
-                        face_ids[d][i] = NODE_DM_ID(node);
-                    }
-                    else {
-                        face_ids[d][i] = -1;
-                    }
-                }
+                ids[j][i] = NODE_DM_ID(node);
+                j++;
             }
-
             i++;
         } end_f_loop(face, face_thread);
-
 #endif /* !RP_HOST */
 
 #if RP_NODE
         compute_node = (I_AM_NODE_ZERO_P) ? node_host : node_zero;
 
-        PRF_CSEND_INT(compute_node, &n_faces, 1, myid); /* send pointer to n_faces */
-        PRF_CSEND_REAL_N(compute_node, face_coords, n_faces, myid, ND_ND);
-        PRF_CSEND_INT_N(compute_node, face_ids, n_faces, myid, mnpf);
+        PRF_CSEND_INT(compute_node, &n, 1, myid);
 
-        RELEASE_MEMORY_N(face_coords, ND_ND);
-        RELEASE_MEMORY_N(face_ids, mnpf);
+        PRF_CSEND_REAL_N(compute_node, array, n, myid, ND_ND + 1);
+        PRF_CSEND_INT_N(compute_node, ids, n, myid, mnpf);
+
+        RELEASE_MEMORY_N(array, ND_ND + 1);
+        RELEASE_MEMORY_N(ids, mnpf);
 
         if(I_AM_NODE_ZERO_P){
             compute_node_loop_not_zero(compute_node) {
-                PRF_CRECV_INT(compute_node, &n_faces, 1, compute_node);
+                PRF_CRECV_INT(compute_node, &n, 1, compute_node);
 
-                ASSIGN_MEMORY_N(face_coords, n_faces, real, ND_ND);
-                ASSIGN_MEMORY_N(face_ids, n_faces, int, mnpf);
+                ASSIGN_MEMORY_N(array, n, real, ND_ND + 1);
+                ASSIGN_MEMORY_N(ids, n, int, mnpf);
 
-                PRF_CRECV_REAL_N(compute_node, face_coords, n_faces, compute_node, ND_ND);
-                PRF_CRECV_INT_N(compute_node, face_ids, n_faces, compute_node, mnpf);
+                PRF_CRECV_REAL_N(compute_node, array, n, compute_node, ND_ND + 1);
+                PRF_CRECV_INT_N(compute_node, ids, n, compute_node, mnpf);
 
-                PRF_CSEND_INT(node_host, &n_faces, 1, compute_node);
-                PRF_CSEND_REAL_N(node_host, face_coords, n_faces, compute_node, ND_ND);
-                PRF_CSEND_INT_N(node_host, face_ids, n_faces, compute_node, mnpf);
+                PRF_CSEND_INT(node_host, &n, 1, compute_node);
 
-                RELEASE_MEMORY_N(face_coords, ND_ND);
-                RELEASE_MEMORY_N(face_ids, mnpf);
+                PRF_CSEND_REAL_N(node_host, array, n, compute_node, ND_ND + 1);
+                PRF_CSEND_INT_N(node_host, ids, n, compute_node, mnpf);
+
+                RELEASE_MEMORY_N(array, ND_ND + 1);
+                RELEASE_MEMORY_N(ids, mnpf);
             }
         }
 #endif /* RP_NODE */
 
 #if RP_HOST
         compute_node_loop(compute_node) {
-            PRF_CRECV_INT(node_zero, &n_faces, 1, compute_node);
+            PRF_CRECV_INT(node_zero, &n, 1, compute_node);
 
-            ASSIGN_MEMORY_N(face_coords, n_faces, real, ND_ND);
-            ASSIGN_MEMORY_N(face_ids, n_faces, int, mnpf);
+            ASSIGN_MEMORY_N(array, n, real, ND_ND + 1);
+            ASSIGN_MEMORY_N(ids, n, int, mnpf);
 
-            PRF_CRECV_REAL_N(node_zero, face_coords, n_faces, compute_node, ND_ND);
-            PRF_CRECV_INT_N(node_zero, face_ids, n_faces, compute_node, mnpf);
+            PRF_CRECV_REAL_N(node_zero, array, n, compute_node, ND_ND + 1);
+            PRF_CRECV_INT_N(node_zero, ids, n, compute_node, mnpf);
 #endif /* RP_HOST */
 
 #if !RP_NODE
-            for (i = 0; i < n_faces; i++) {
-                for (d = 0; d < ND_ND; d++) {
-                    fprintf(file, "%27.17e ", face_coords[d][i]);
+            for (i = 0; i < n; i++) {
+                for (d = 0; d < ND_ND + 1; d++) {
+                    fprintf(file, "%27.17e ", array[d][i]);
                 }
                 for (d = 0; d < mnpf; d++) {
-                    fprintf(file, " %10d", face_ids[d][i]);
+                    fprintf(file, " %10d", ids[d][i]);
                 }
                 fprintf(file, "\n");
             }
 
-            RELEASE_MEMORY_N(face_coords, ND_ND);
-            RELEASE_MEMORY_N(face_ids, ND_ND);
+            RELEASE_MEMORY_N(array, ND_ND + 1);
+            RELEASE_MEMORY_N(ids, mnpf);
 #endif /* !RP_NODE */
 
 #if RP_HOST
@@ -610,8 +466,7 @@ DEFINE_ON_DEMAND(store_faces) {
 
     } /* close loop over threads */
 
-    printf("\nNode %i: Finished UDF store_faces", myid); fflush(stdout);
-
+    printf("\n\nNode %i: Finished UDF store_pressure_traction", myid); fflush(stdout);
 }
 
 

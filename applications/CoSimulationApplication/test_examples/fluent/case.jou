@@ -4,11 +4,15 @@ file set-batch-options n n n
 f rc "mesh.msh"
 solve set expert y n y
 
+def models steady y
+;def models unsteady-1 y
+
 def materials copy fluid water-liquid
 def bc fluid , y water-liquid ,,, ,,, ,,,,
 def materials delete air
 
-def models viscous inviscid y
+;def models viscous inviscid y
+def models viscous laminar y
 
 def bc vel inlet n y y n , n 1 n 0
 

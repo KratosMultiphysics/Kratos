@@ -93,9 +93,6 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 file.write(line + '\n')
         self.send_message('thread_ids_written_to_file')
 
-        # *** perhaps define number of dimensions in parameters,
-        # ***   and check if correct every now and then?
-
         # import node and face information
         self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
 
@@ -141,7 +138,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             self.face_coords[i] = coords_tmp[args, :]
             self.face_ids[i] = ids_tmp[args]
 
-        # create Model and Modelparts
+        # create Model, Modelparts, Interfaces
         self.model = cs_data_structure.Model()
         self.model_part_nodes = [None] * self.n_threads
         self.model_part_faces = [None] * self.n_threads
@@ -149,10 +146,17 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             self.model_part_nodes[i] = self.model.CreateModelPart(f'nodes_{self.thread_ids[i]}')
             self.model_part_faces[i] = self.model.CreateModelPart(f'faces_{self.thread_ids[i]}')
 
-            # *** add the necessary variables for each modelpart
-            # ***   faces: pressure, traction vector
-            # ***   displacement vector
-            # self.model_part.AddNodalSolutionStepVariable(self.variable_area)
+            # *** can I use vectors as NodalSolutionStepVariable?? not that I see...
+
+            self.model_part_nodes[i].AddNodalSolutionStepVariable("displacement_x")
+            self.model_part_nodes[i].AddNodalSolutionStepVariable("displacement_y")
+            self.model_part_nodes[i].AddNodalSolutionStepVariable("displacement_z")
+
+            self.model_part_faces[i].AddNodalSolutionStepVariable("traction_x")
+            self.model_part_faces[i].AddNodalSolutionStepVariable("traction_y")
+            self.model_part_faces[i].AddNodalSolutionStepVariable("traction_z")
+
+            self.model_part_faces[i].AddNodalSolutionStepVariable("pressure")
 
             for j in range(self.node_ids[i].size):
                 self.model_part_nodes[i].CreateNewNode(
@@ -168,14 +172,24 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                     self.face_coords[i][j, 1],
                     self.face_coords[i][j, 2])
 
+            for node in self.model_part_nodes[i].Nodes:
+                node.SetSolutionStepValue("DISPLACEMENT_X", 0, 0.0)  # *** init values??
+                node.SetSolutionStepValue("DISPLACEMENT_Y", 0, 0.0)
+                node.SetSolutionStepValue("DISPLACEMENT_Z", 0, 0.0)
+
+            for node in self.model_part_faces[i].Nodes:
+                node.SetSolutionStepValue("TRACTION_X", 0, 0.0)
+                node.SetSolutionStepValue("TRACTION_Y", 0, 0.0)
+                node.SetSolutionStepValue("TRACTION_Z", 0, 0.0)
+                node.SetSolutionStepValue("PRESSURE", 0, 0.0)
+
+        print('FINISHED KRATOS')
+
+            # self.interface_input = CoSimulationInterface(self.model, self.settings["interface_input"])
+            # self.interface_output = CoSimulationInterface(self.model, self.settings["interface_output"])
+
             # *** can I ask for some data about ModelParts? perhaps print it? to check stuff...
 
-
-
-            # *** initialize the variables in the modelparts
-            # step = 0
-            # for node in self.model_part.Nodes:
-            #     node.SetSolutionStepValue(self.variable_area, step, self.a[0])
 
 
         # *** so, what's next?
