@@ -98,16 +98,19 @@ namespace Testing
         p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
 
         std::vector<double> expected_RHS = {0.166667, 0.166667, 0.166667};
-        std::vector<double> expected_LHS = {1.83333, -0.0833333, -0.0833333,
-                                            -0.0833333, 1.33333, 0.416667,
-                                            -0.0833333, 0.416667, 1.33333};
+        Matrix expected_LHS(3,3);
+        expected_LHS(0,0) = 1.83333;
+        expected_LHS(0,1) = -0.0833333;
+        expected_LHS(0,2) = -0.0833333;
+        expected_LHS(1, 0) = -0.0833333;
+        expected_LHS(1, 1) = 1.33333;
+        expected_LHS(1, 2) = 0.416667;
+        expected_LHS(2, 0) = -0.0833333;
+        expected_LHS(2, 1) = 0.416667;
+        expected_LHS(2, 2) = 1.33333;
 
-        for (unsigned int i = 0; i < 3; ++i) {
-            KRATOS_CHECK_NEAR(RHS(i), expected_RHS[i], 1.0e-4);
-            for (unsigned int j = 0; j < 3; ++j) {
-                KRATOS_CHECK_NEAR(LHS(i,j), expected_LHS[i*3+j], 1.0e-4);
-            }
-        }
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EulerianConvDiff2D3N, KratosConvectionDiffusionFastSuite)
@@ -142,16 +145,20 @@ namespace Testing
         p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
 
         std::vector<double> expected_RHS = {0.0, 0.0, 0.0};
-        std::vector<double> expected_LHS = {1.72752,-0.0928335,-0.0928335,
-                                            -0.197093,1.45074,0.475432,
-                                            -0.197093,0.475432,1.45074};
+        Matrix expected_LHS(3, 3);
+        expected_LHS(0, 0) = 1.72752;
+        expected_LHS(0, 1) = -0.0928335;
+        expected_LHS(0, 2) = -0.0928335;
+        expected_LHS(1, 0) = -0.197093;
+        expected_LHS(1, 1) = 1.45074;
+        expected_LHS(1, 2) = 0.475432;
+        expected_LHS(2, 0) = -0.197093;
+        expected_LHS(2, 1) = 0.475432;
+        expected_LHS(2, 2) = 1.45074;
 
-        for (unsigned int i = 0; i < 3; ++i) {
-            KRATOS_CHECK_NEAR(RHS(i), expected_RHS[i], 1.0e-4);
-            for (unsigned int j = 0; j < 3; ++j) {
-                KRATOS_CHECK_NEAR(LHS(i,j), expected_LHS[i*3+j], 1.0e-4);
-            }
-        }
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EulerianConvDiff2D4N, KratosConvectionDiffusionFastSuite)
@@ -187,17 +194,26 @@ namespace Testing
         p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
 
         std::vector<double> expected_RHS = {0.0, 0.0, 0.0, 0.0};
-        std::vector<double> expected_LHS = {1.49976, 0.494317, -0.232728, 0.494317,
-                                            0.430556, 1.67535, 0.680556, -0.286456,
-                                            -0.360871, 0.616794, 1.87162, 0.616794,
-                                            0.430556,-0.286456,0.680556,1.67535};
+        Matrix expected_LHS(4, 4);
+        expected_LHS(0, 0) = 1.49976;
+        expected_LHS(0, 1) = 0.494317;
+        expected_LHS(0, 2) = -0.232728;
+        expected_LHS(0, 3) = 0.494317;
+        expected_LHS(1, 0) = 0.430556;
+        expected_LHS(1, 1) = 1.67535;
+        expected_LHS(1, 2) = 0.680556;
+        expected_LHS(1, 3) = -0.286456;
+        expected_LHS(2, 0) = -0.360871;
+        expected_LHS(2, 1) = 0.616794;
+        expected_LHS(2, 2) = 1.87162;
+        expected_LHS(2, 3) = 0.616794;
+        expected_LHS(3, 0) = 0.430556;
+        expected_LHS(3, 1) = -0.286456;
+        expected_LHS(3, 2) = 0.680556;
+        expected_LHS(3, 3) = 1.67535;
 
-        for (unsigned int i = 0; i < 3; ++i) {
-            KRATOS_CHECK_NEAR(RHS(i), expected_RHS[i], 1.0e-4);
-            for (unsigned int j = 0; j < 3; ++j) {
-                KRATOS_CHECK_NEAR(LHS(i,j), expected_LHS[i*4+j], 1.0e-4);
-            }
-        }
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EulerianConvDiff3D4N, KratosConvectionDiffusionFastSuite)
@@ -233,17 +249,26 @@ namespace Testing
         p_element->CalculateLocalSystem(LHS, RHS, r_test_model_part.GetProcessInfo());
 
         std::vector<double> expected_RHS = {0.0, 0.0, 0.0, 0.0};
-        std::vector<double> expected_LHS = {0.646192,-0.0837032,-0.0837032,-0.0887235,
-                                            -0.106429,0.355791,0.0945786,0.0860284,
-                                            -0.106429,0.0945786,0.355791,0.0860284,
-                                            -0.1,0.0916667,0.0916667,0.333333};
+        Matrix expected_LHS(4, 4);
+        expected_LHS(0, 0) = 0.646192;
+        expected_LHS(0, 1) = -0.0837032;
+        expected_LHS(0, 2) = -0.0837032;
+        expected_LHS(0, 3) = -0.0887235;
+        expected_LHS(1, 0) = -0.106429;
+        expected_LHS(1, 1) = 0.355791;
+        expected_LHS(1, 2) = 0.0945786;
+        expected_LHS(1, 3) = 0.0860284;
+        expected_LHS(2, 0) = -0.106429;
+        expected_LHS(2, 1) = 0.0945786;
+        expected_LHS(2, 2) = 0.355791;
+        expected_LHS(2, 3) = 0.0860284;
+        expected_LHS(3, 0) = -0.1;
+        expected_LHS(3, 1) = 0.0916667;
+        expected_LHS(3, 2) = 0.0916667;
+        expected_LHS(3, 3) = 0.333333;
 
-        for (unsigned int i = 0; i < 3; ++i) {
-            KRATOS_CHECK_NEAR(RHS(i), expected_RHS[i], 1.0e-4);
-            for (unsigned int j = 0; j < 3; ++j) {
-                KRATOS_CHECK_NEAR(LHS(i,j), expected_LHS[i*4+j], 1.0e-4);
-            }
-        }
+        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
     }
 
 } // namespace Testing
