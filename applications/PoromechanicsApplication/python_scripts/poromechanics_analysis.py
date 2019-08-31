@@ -31,19 +31,29 @@ class PoromechanicsAnalysis(AnalysisStage):
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
         else:
-            import poromechanics_cleaning_utility
+            from KratosMultiphysics.PoromechanicsApplication import poromechanics_cleaning_utility
             poromechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
 
         # Initialize Fracture Propagation Utility if necessary
         if parameters["problem_data"]["fracture_utility"].GetBool():
-            import poromechanics_fracture_propagation_utility
-            self.fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(model,
-                                                                                                        self._GetOrderOfProcessesInitialization())
+            from KratosMultiphysics.PoromechanicsApplication.poromechanics_fracture_propagation_utility import FracturePropagationUtility
+            self.fracture_utility = FracturePropagationUtility(model,
+                                                                self._GetOrderOfProcessesInitialization())
             parameters = self.fracture_utility.Initialize(parameters)
 
         # Creating solver and model part and adding variables
         super(PoromechanicsAnalysis,self).__init__(model,parameters)
+
+        if parameters["problem_data"].Has("initial_stress_utility_settings"):
+            from KratosMultiphysics.PoromechanicsApplication.poromechanics_initial_stress_utility import InitialStressUtility
+            self.initial_stress_utility = InitialStressUtility(model,parameters)
+
+    def Initialize(self):
+        super(PoromechanicsAnalysis,self).Initialize()
+
+        if self.project_parameters["problem_data"].Has("initial_stress_utility_settings"):
+            self.initial_stress_utility.Load()
 
     def OutputSolutionStep(self):
         super(PoromechanicsAnalysis,self).OutputSolutionStep()
@@ -61,6 +71,9 @@ class PoromechanicsAnalysis(AnalysisStage):
         # Finalize Fracture Propagation Utility
         if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
             self.fracture_utility.Finalize()
+
+        if self.project_parameters["problem_data"].Has("initial_stress_utility_settings"):
+            self.initial_stress_utility.Save()
 
         # Finalizing strategy
         if self.parallel_type == "OpenMP":
