@@ -41,10 +41,32 @@ class ConvergenceAcceleratorWrapper(object):
         self.conv_acc.FinalizeNonLinearIteration()
 
     def ComputeAndApplyUpdate(self):
+        executing_rank = self.conv_acc.SupportsMPI() or (self.interface_data.GetModelPart().GetCommunicator().MyPID() == 0)
+        gather_scatter_required = self.interface_data.IsDistributed() and not self.conv_acc.SupportsMPI()
+
         current_data = self.interface_data.GetData()
         residual = current_data - self.input_data
-        updated_data = self.input_data + self.conv_acc.UpdateSolution(residual, self.input_data)
-        self.interface_data.SetData(updated_data)
+
+        if gather_scatter_required:
+            raise NotImplementedError
+            # TODO use the DataComm here
+            residual_to_use = gather(residual)
+            input_data_to_use = gather(self.input_data)
+        else:
+            residual_to_use = residual
+            input_data_to_use = self.input_data
+
+        if executing_rank:
+            updated_data = input_data_to_use + self.conv_acc.UpdateSolution(residual_to_use, input_data_to_use)
+
+        if gather_scatter_required:
+            raise NotImplementedError
+            # TODO use the DataComm here
+            updated_data_to_use = scatter(updated_data)
+        else:
+            updated_data_to_use = updated_data
+
+        self.interface_data.SetData(updated_data_to_use)
 
     def PrintInfo(self):
         self.conv_acc.PrintInfo()
