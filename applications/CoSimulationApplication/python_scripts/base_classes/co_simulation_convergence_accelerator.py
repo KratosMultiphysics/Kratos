@@ -57,6 +57,10 @@ class CoSimulationConvergenceAccelerator(object):
         return cls.__name__
 
     @classmethod
+    def SupportsMPI(cls):
+        return False
+
+    @classmethod
     def _GetDefaultSettings(cls):
         return KM.Parameters("""{
             "type"       : "UNSPECIFIED",
