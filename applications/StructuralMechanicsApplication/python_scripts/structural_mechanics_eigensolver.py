@@ -9,6 +9,8 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 # Import base class file
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
+from KratosMultiphysics import eigen_solver_factory
+
 def CreateSolver(main_model_part, custom_settings):
     return EigenSolver(main_model_part, custom_settings)
 
@@ -64,7 +66,6 @@ class EigenSolver(MechanicalSolver):
         This overrides the base class method and replaces the usual linear solver
         with an eigenvalue problem solver.
         """
-        import eigen_solver_factory
         return eigen_solver_factory.ConstructSolver(self.settings["eigensolver_settings"])
 
     def _create_mechanical_solution_strategy(self):

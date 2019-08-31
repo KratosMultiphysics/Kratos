@@ -24,6 +24,7 @@
 #endif /* MMG_INCLUDES defined */
 
 // Project includes
+#include "containers/model.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "custom_utilities/mmg_utilities.h"
 
@@ -793,7 +794,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeCondition(
     Condition::Pointer p_base_condition = nullptr;
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
+            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
             return p_condition;
         } else {
             p_prop = rModelPart.pGetProperties(0);
@@ -850,7 +851,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
 
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
-            KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
+            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
             return p_condition;
         } else {
             p_prop = rModelPart.pGetProperties(0);
@@ -877,7 +878,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeCondition(
         p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
         if (p_base_condition->Is(MARKER)) p_condition->Set(MARKER);
     } else if (mEchoLevel > 2)
-        KRATOS_WARNING("MmgUtilities") << "Condition creation avoided" << std::endl;
+        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition creation avoided" << std::endl;
 
     if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area condition" << std::endl;
     return p_condition;
@@ -905,7 +906,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeCondition(
 
     // Sometimes MMG creates conditions where there are not, then we skip
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
-        KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
+        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
         return p_condition;
     }
 
@@ -963,7 +964,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
 
     // Sometimes MMG creates conditions where there are not, then we skip
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
-        KRATOS_WARNING("MmgUtilities") << "Condition. Null pointer returned" << std::endl;
+        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition. Null pointer returned" << std::endl;
         return p_condition;
     }
 
@@ -982,7 +983,7 @@ Condition::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeCondition(
 
         p_condition = rMapPointersRefCondition[Ref]->Create(CondId, PointerVector<NodeType>{condition_nodes}, rMapPointersRefCondition[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
-        KRATOS_WARNING("MmgUtilities") << "Condition creation avoided" << std::endl;
+        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Condition creation avoided" << std::endl;
 
     if (p_condition != nullptr) KRATOS_ERROR_IF(p_condition->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area condition" << std::endl;
     return p_condition;
@@ -1056,7 +1057,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
 
         // Sometimes MMG creates elements where there are not, then we skip
         if (rMapPointersRefElement[Ref].get() == nullptr) {
-            KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
+            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element. Null pointer returned" << std::endl;
             return p_element;
         } else {
             p_base_element = rMapPointersRefElement[Ref];
@@ -1076,7 +1077,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateFirstTypeElement(
 
             p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
         } else if (mEchoLevel > 2)
-            KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
+            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
     }
 
     if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area element" << std::endl;
@@ -1136,7 +1137,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
 
         // Sometimes MMG creates elements where there are not, then we skip
         if (rMapPointersRefElement[Ref].get() == nullptr) {
-            KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
+            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element. Null pointer returned" << std::endl;
             return p_element;
         } else {
             p_base_element = rMapPointersRefElement[Ref];
@@ -1158,7 +1159,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateFirstTypeElement(
 
             p_element = p_base_element->Create(ElemId, PointerVector<NodeType>{element_nodes}, p_prop);
         } else if (mEchoLevel > 2)
-            KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
+            KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
     }
 
     if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Volume() < ZeroTolerance) << "Creating a almost zero or negative volume element" << std::endl;
@@ -1186,7 +1187,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
 
     // Sometimes MMG creates elements where there are not, then we skip
     if (rMapPointersRefElement[Ref].get() == nullptr) {
-        KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
+        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element. Null pointer returned" << std::endl;
         return p_element;
     }
 
@@ -1203,7 +1204,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateFirstTypeElement(
 
         p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
-        KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
+        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
 
     if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Area() < ZeroTolerance) << "Creating a almost zero or negative area element" << std::endl;
     return p_element;
@@ -1246,7 +1247,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
 
     // Sometimes MMG creates elements where there are not, then we skip
     if (rMapPointersRefElement[Ref].get() == nullptr) {
-        KRATOS_WARNING("MmgUtilities") << "Element. Null pointer returned" << std::endl;
+        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element. Null pointer returned" << std::endl;
         return p_element;
     }
 
@@ -1269,7 +1270,7 @@ Element::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateSecondTypeElement(
 
         p_element = rMapPointersRefElement[Ref]->Create(ElemId, PointerVector<NodeType>{element_nodes}, rMapPointersRefElement[Ref]->pGetProperties());
     } else if (mEchoLevel > 2)
-        KRATOS_WARNING("MmgUtilities") << "Element creation avoided" << std::endl;
+        KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "Element creation avoided" << std::endl;
 
     if (p_element!= nullptr) KRATOS_ERROR_IF(p_element->GetGeometry().Volume() < ZeroTolerance) << "Creating a almost zero or negative volume element" << std::endl;
     return p_element;
@@ -2839,7 +2840,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 num_lines += 1;
             } else {
                 it_cond->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS A CONDITION WITH " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "WARNING:: YOUR GEOMETRY CONTAINS A CONDITION WITH " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
             }
         }
 
@@ -2854,7 +2855,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 num_tri += 1;
             } else {
                 it_elem->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS AN ELEMENT WITH " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "WARNING:: YOUR GEOMETRY CONTAINS AN ELEMENT WITH " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
             }
         }
 
@@ -2876,7 +2877,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 num_quad += 1;
             } else {
                 it_cond->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS A CONDITION WITH " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "WARNING:: YOUR GEOMETRY CONTAINS A CONDITION WITH " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
             }
         }
 
@@ -2905,7 +2906,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 }
             } else {
                 it_elem->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS AN ELEMENT WITH " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "WARNING:: YOUR GEOMETRY CONTAINS AN ELEMENT WITH " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
             }
         }
 
@@ -2926,7 +2927,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 num_lines += 1;
             } else {
                 it_cond->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "WARNING:: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
             }
         }
 
@@ -2943,7 +2944,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
                 KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 1) << "Prismatic element " << it_elem->Id() << " will be collapsed to a triangle" << std::endl;
             } else {
                 it_elem->Set(OLD_ENTITY, true);
-                KRATOS_WARNING("MmgUtilities") << "WARNING:: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING_IF("MmgUtilities", mEchoLevel > 1) << "WARNING:: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
             }
         }
 
@@ -3225,15 +3226,38 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         auto it_cond = it_cond_begin + i;
         const IndexType cond_id = it_cond->Id();
         const IndexType color = cond_colors[cond_id];
-        if (!(rColorMapCondition.find(color) != rColorMapCondition.end()))
+        if ((rColorMapCondition.find(color) == rColorMapCondition.end()))
             rColorMapCondition.insert (IndexPairType(color,cond_id));
     }
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
         const IndexType elem_id = it_elem->Id();
         const IndexType color = elem_colors[elem_id];
-        if (!(rColorMapElement.find(color) != rColorMapElement.end()))
+        if ((rColorMapElement.find(color) == rColorMapElement.end()))
             rColorMapElement.insert (IndexPairType(color,elem_id));
+    }
+
+    // Add missing entities
+    Model& r_model = rModelPart.GetModel();
+    for (auto& r_color : rColors) {
+        const IndexType color = r_color.first;
+        if (color != 0 && r_color.second.size() == 1) { // Not including main model part, and adding only simple model parts
+            for (auto& r_sub_model_part_name : r_color.second) {
+                ModelPart& r_sub_model_part = r_model.GetModelPart(rModelPart.Name() + "." + r_sub_model_part_name);
+                if ((rColorMapCondition.find(color) == rColorMapCondition.end())) {
+                    if (r_sub_model_part.NumberOfConditions() > 0) {
+                        const IndexType cond_id = r_sub_model_part.Conditions().begin()->Id();
+                        rColorMapCondition.insert (IndexPairType(color,cond_id));
+                    }
+                }
+                if ((rColorMapElement.find(color) == rColorMapElement.end())) {
+                    if (r_sub_model_part.NumberOfElements() > 0) {
+                        const IndexType elem_id = r_sub_model_part.Elements().begin()->Id();
+                        rColorMapElement.insert (IndexPairType(color,elem_id));
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -3259,7 +3283,7 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     if (r_conditions_array.size() > 0) {
         const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
     }
     if (r_elements_array.size() > 0) {
         rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
@@ -3279,7 +3303,7 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // Boundary conditions
         Condition const& r_clone_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
-        rRefCondition[10] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[10] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
 
         // Inside outside elements
         rRefElement[2] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
@@ -3598,7 +3622,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
-        rRefElement[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+        rRefElement[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
     }
 
     /* Conditions */
@@ -3610,7 +3634,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
-        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
     }
 }
 

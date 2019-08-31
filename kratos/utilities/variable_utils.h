@@ -1031,8 +1031,10 @@ public:
      * @param rUpdateVariable variable to retrieve the updating values from
      */
     void UpdateCurrentPosition(
-        const ModelPart::NodesContainerType &rNodes,
-        const ArrayVarType &rUpdateVariable = DISPLACEMENT);
+        const ModelPart::NodesContainerType& rNodes,
+        const ArrayVarType& rUpdateVariable = DISPLACEMENT,
+        const IndexType BufferPosition = 0
+        );
 
     ///@}
     ///@name Acces
