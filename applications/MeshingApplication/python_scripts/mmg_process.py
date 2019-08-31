@@ -63,7 +63,9 @@ class MmgProcess(KratosMultiphysics.Process):
             "error_strategy_parameters"              :{
                 "compute_error_extra_parameters":
                 {
-                    "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR"
+                    "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
+                    "penalty_normal"                      : 1.0e4,
+                    "penalty_tangential"                  : 1.0e4
                 },
                 "error_metric_parameters"                 :
                 {
@@ -246,7 +248,7 @@ class MmgProcess(KratosMultiphysics.Process):
             # We deactivate, so it doesn't recalculate each initialization
             self.settings["automatic_remesh"].SetBool(False)
 
-        # We print the parameters considered
+        ## We print the parameters considered
         KratosMultiphysics.Logger.PrintInfo("MINIMAL SIZE: ", "{:.2e}".format(self.settings["minimal_size"].GetDouble()))
         KratosMultiphysics.Logger.PrintInfo("MAXIMAL SIZE: ", "{:.2e}".format(self.settings["maximal_size"].GetDouble()))
 
@@ -460,17 +462,8 @@ class MmgProcess(KratosMultiphysics.Process):
                 hessian_parameters["hessian_strategy_parameters"]["normalization_factor"].SetDouble(normalization_factor)
                 self.metric_processes.append(MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, current_metric_variable, hessian_parameters))
         elif self.strategy == "superconvergent_patch_recovery":
-            if not structural_dependencies:
-                raise Exception("You need to compile the StructuralMechanicsApplication in order to use this criteria")
-
-            # We compute the error
-            error_compute_parameters = KratosMultiphysics.Parameters("""{}""")
-            error_compute_parameters.AddValue("stress_vector_variable", self.settings["compute_error_extra_parameters"]["stress_vector_variable"])
-            error_compute_parameters.AddValue("echo_level", self.settings["echo_level"])
-            if self.domain_size == 2:
-                self.error_compute = StructuralMechanicsApplication.SPRErrorProcess2D(self.main_model_part, error_compute_parameters)
-            else:
-                self.error_compute = StructuralMechanicsApplication.SPRErrorProcess3D(self.main_model_part, error_compute_parameters)
+            # Generate SPR process
+            self.error_compute = self._GenerateErrorProcess()
 
             # Now we compute the metric
             error_metric_parameters = KratosMultiphysics.Parameters("""{}""")
@@ -588,6 +581,25 @@ class MmgProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         pass
+
+    def _GenerateErrorProcess(self):
+        """ This method creates an erro process to compute the metric
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # Check dependencies
+        if not structural_dependencies:
+            raise Exception("You need to compile the StructuralMechanicsApplication in order to use this criteria")
+
+        # We compute the error
+        error_compute_parameters = KratosMultiphysics.Parameters("""{}""")
+        error_compute_parameters.AddValue("stress_vector_variable", self.settings["compute_error_extra_parameters"]["stress_vector_variable"])
+        error_compute_parameters.AddValue("echo_level", self.settings["echo_level"])
+        if self.domain_size == 2:
+            return StructuralMechanicsApplication.SPRErrorProcess2D(self.main_model_part, error_compute_parameters)
+        else:
+            return StructuralMechanicsApplication.SPRErrorProcess3D(self.main_model_part, error_compute_parameters)
 
     def __generate_boolean_list_from_input(self,param):
       '''Parse a list of booleans from input.'''
