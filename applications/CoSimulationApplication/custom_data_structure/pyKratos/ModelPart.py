@@ -49,6 +49,8 @@ class ModelPart(DataValueContainer):
         return False
 
     def GetCommunicator(self):
+        # This is a dummy implementation, since those features should not be necessary
+        # If this becomes necessary, then the ModelPart should hold an instance of the Communicator
         class Communicator(object):
             def __init__(self, model_part):
                 self.__model_part = model_part
