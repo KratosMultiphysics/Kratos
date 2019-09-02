@@ -42,7 +42,7 @@ public:
     ///@{
 
     /// Constructor
-    Define2DWakeProcess(ModelPart& rBodyModelPart,const double Tolerance, const int EchoLevel);
+    Define2DWakeProcess(ModelPart& rBodyModelPart,const double Tolerance);
 
     /// Copy constructor.
     Define2DWakeProcess(Define2DWakeProcess const& rOther) = delete;
@@ -99,7 +99,6 @@ private:
     BoundedVector<double, 3> mWakeNormal;
     // Vector to store the trailing edge elements ids
     std::vector<std::size_t> mTrailingEdgeElementsOrderedIds;
-    const int mEchoLevel;
     ///@}
     ///@name Private Operators
     ///@{

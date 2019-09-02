@@ -16,12 +16,9 @@
 #include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos {
-
 // Constructor for Define2DWakeProcess Process
-Define2DWakeProcess::Define2DWakeProcess(ModelPart& rBodyModelPart,
-                                         const double Tolerance,
-                                         const int EchoLevel)
-    : Process(), mrBodyModelPart(rBodyModelPart), mTolerance(Tolerance), mEchoLevel(EchoLevel)
+Define2DWakeProcess::Define2DWakeProcess(ModelPart& rBodyModelPart, const double Tolerance)
+    : Process(), mrBodyModelPart(rBodyModelPart), mTolerance(Tolerance)
 {}
 
 void Define2DWakeProcess::ExecuteInitialize()
@@ -326,4 +323,5 @@ const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingE
 
     return distance_to_point;
 }
+
 } // namespace Kratos.

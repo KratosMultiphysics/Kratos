@@ -41,8 +41,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        self.wake_process = CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon, self.echo_level)
-        self.wake_process.ExecuteInitialize()
+        CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
         #self.__FindWakeElements()
 
@@ -51,7 +50,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             raise Exception("Fluid model part does have a wake_sub_model_part")
         else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_sub_model_part")
 
-        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled2D(self.wake_sub_model_part, 1e-9, 1)
+        absolute_tolerance = 1e-9
+        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled2D(self.wake_sub_model_part, absolute_tolerance, self.echo_level)
 
 
     def __FindWakeElements(self):
