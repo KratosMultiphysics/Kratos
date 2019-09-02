@@ -899,7 +899,7 @@ class MultilevelMonteCarlo(object):
                 self.batches_execution_finished[batch] = True
 
     """
-    function executing an instance of the MLMC algorithm, i.e. a single MC simulation and eventually the refinement (that occurs before the simulation run), with conurrent adaptive refinement strategy
+    function executing an instance of the MLMC algorithm, i.e. a single MC simulation and eventually the refinement (that occurs before the simulation run), with concurrent adaptive refinement strategy
     input:  self : an instance of the class
     output: mlmc_results       : instance of the MultilevelMonteCarloResult class
             current_MLMC_level : level of the current MLMC simulation
