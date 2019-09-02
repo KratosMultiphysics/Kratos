@@ -713,7 +713,7 @@ Properties::Pointer ModelPart::pGetSubPropertiesByAddress(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Properties::Pointer ModelPart::pGetSubPropertiesByAddress(
+const Properties::Pointer ModelPart::pGetSubPropertiesByAddress(
     const std::string& rAddress,
     IndexType MeshIndex
     ) const
@@ -739,7 +739,7 @@ Properties& ModelPart::GetSubPropertiesByAddress(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Properties& ModelPart::GetSubPropertiesByAddress(
+const Properties& ModelPart::GetSubPropertiesByAddress(
     const std::string& rAddress,
     IndexType MeshIndex
     ) const
