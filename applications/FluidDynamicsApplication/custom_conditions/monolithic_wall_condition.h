@@ -61,9 +61,8 @@ namespace Kratos
   It is intended to be used in combination with ASGS and VMS elements or their derived classes
   and the ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent time scheme, which supports
   slip conditions.
-  This condition will add a wall stress term to all nodes identified with IS_STRUCTURE!=0.0 (in the
-  non-historic database, that is, assigned using Node.SetValue()). This stress term is determined
-  according to the wall distance provided as Y_WALL.
+  This condition will add a wall stress term to all nodes identified with SLIP==true (in the
+  nodal flags). This stress term is determined according to the wall distance provided as Y_WALL.
   @see ASGS2D,ASGS3D,VMS,ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
  */
 template< unsigned int TDim, unsigned int TNumNodes = TDim >
@@ -272,7 +271,7 @@ public:
 
 
 
-    /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
+    /// Calculate wall stress term for all nodes with SLIP set.
     /**
       @param rDampingMatrix Left-hand side matrix
       @param rRightHandSideVector Right-hand side vector
@@ -309,8 +308,6 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
             if(VISCOSITY.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-            if(IS_STRUCTURE.Key() == 0)
-                KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
             if(Y_WALL.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","");
             if(EXTERNAL_PRESSURE.Key() == 0)
@@ -516,7 +513,7 @@ protected:
         {
             const NodeType& rConstNode = rGeometry[itNode];
             const double y = rConstNode.FastGetSolutionStepValue(DISTANCE); // wall distance to use in stress calculation
-            if( y > 0.0 && rConstNode.GetValue(IS_STRUCTURE) != 0.0 )
+            if( y > 0.0 && rConstNode.Is(SLIP) )
             {
                 array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
                 const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);

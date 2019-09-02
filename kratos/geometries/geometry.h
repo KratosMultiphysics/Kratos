@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -66,7 +66,7 @@ namespace Kratos
  * @see GeometryAndFormulationElement
  */
 template<class TPointType>
-class Geometry : public PointerVector<TPointType>
+class Geometry
 {
 public:
     ///@}
@@ -111,14 +111,6 @@ public:
         QUADRATURE_ON_NODES
     };
 
-
-    /** Base type for geometry.
-    */
-    typedef PointerVector<TPointType> BaseType;
-
-
-    /** The bounding box */
-    /*typedef BoundingBox<TPointType, GeometryType>  BoundingBoxType; */
 
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
@@ -209,16 +201,21 @@ public:
      */
     typedef DenseVector<double> NormalType;
 
+    /// data type stores in this container.
+    typedef typename PointType::Pointer PointPointerType;
+    typedef const PointPointerType ConstPointPointerType;
+    typedef TPointType& PointReferenceType;
+    typedef const TPointType& ConstPointReferenceType;
+    typedef std::vector<PointPointerType> PointPointerContainerType;
 
-    typedef typename BaseType::iterator              iterator;
-    typedef typename BaseType::const_iterator          const_iterator;
-    typedef typename BaseType::reverse_iterator        reverse_iterator;
-    typedef typename BaseType::const_reverse_iterator  const_reverse_iterator;
+    /// PointsArrayType typedefs
+    typedef typename PointsArrayType::iterator iterator;
+    typedef typename PointsArrayType::const_iterator const_iterator;
 
-    typedef typename BaseType::ptr_iterator ptr_iterator;
-    typedef typename BaseType::ptr_const_iterator ptr_const_iterator;
-    typedef typename BaseType::ptr_reverse_iterator ptr_reverse_iterator;
-    typedef typename BaseType::ptr_const_reverse_iterator ptr_const_reverse_iterator;
+    typedef typename PointsArrayType::ptr_iterator ptr_iterator;
+    typedef typename PointsArrayType::ptr_const_iterator ptr_const_iterator;
+    typedef typename PointsArrayType::difference_type difference_type;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -288,16 +285,10 @@ public:
     */
     Geometry(const PointsArrayType &ThisPoints,
              GeometryData const *pThisGeometryData = &GeometryDataInstance())
-        : BaseType(ThisPoints), mpGeometryData(pThisGeometryData)
+        :  mpGeometryData(pThisGeometryData),
+           mPoints(ThisPoints)
     {
     }
-
-//       Geometry(const PointsArrayType& ThisPoints,
-//         GeometryData const& ThisGeometryData= msEmptyGeometryData)
-//  : BaseType(ThisPoints)
-//  , mGeometryData(ThisGeometryData)
-//  {
-//  }
 
     /** Copy constructor.
     Construct this geometry as a copy of given geometry.
@@ -308,8 +299,8 @@ public:
     source geometry's points too.
     */
     Geometry( const Geometry& rOther )
-        : BaseType( rOther )
-        , mpGeometryData( rOther.mpGeometryData )
+        : mpGeometryData( rOther.mpGeometryData ),
+          mPoints( rOther.mPoints)
     {
     }
 
@@ -326,13 +317,13 @@ public:
     source geometry's points too.
     */
     template<class TOtherPointType> Geometry( Geometry<TOtherPointType> const & rOther )
-        : BaseType( rOther.begin(), rOther.end() )
-        , mpGeometryData( rOther.mpGeometryData )
+        : mpGeometryData(rOther.mpGeometryData)
     {
+        mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
 
     /// Destructor. Do nothing!!!
-    ~Geometry() override {}
+    virtual ~Geometry() {}
 
     virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
     {
@@ -360,8 +351,8 @@ public:
     */
     Geometry& operator=( const Geometry& rOther )
     {
-        BaseType::operator=( rOther );
         mpGeometryData = rOther.mpGeometryData;
+        mPoints = rOther.mPoints;
 
         return *this;
     }
@@ -389,6 +380,151 @@ public:
         return *this;
     }
 
+     operator PointsArrayType&()
+    {
+        return mPoints;
+    }
+
+    ///@}
+    ///@name PointerVector Operators
+    ///@{
+
+     virtual TPointType& operator[](const SizeType& i)
+    {
+        return mPoints[i];
+    }
+
+    virtual TPointType const& operator[](const SizeType& i) const
+    {
+        return mPoints[i];
+    }
+
+    virtual PointPointerType& operator()(const SizeType& i)
+    {
+        return mPoints(i);
+    }
+
+    virtual ConstPointPointerType& operator()(const SizeType& i) const
+    {
+        return mPoints(i);
+    }
+
+    ///@}
+    ///@name PointerVector Operations
+    ///@{
+
+    virtual iterator                   begin()
+    {
+        return iterator(mPoints.begin());
+    }
+    virtual const_iterator             begin() const
+    {
+        return const_iterator(mPoints.begin());
+    }
+    virtual iterator                   end()
+    {
+        return iterator(mPoints.end());
+    }
+    virtual const_iterator             end() const
+    {
+        return const_iterator(mPoints.end());
+    }
+    virtual ptr_iterator               ptr_begin()
+    {
+        return mPoints.ptr_begin();
+    }
+    virtual ptr_const_iterator         ptr_begin() const
+    {
+        return mPoints.ptr_begin();
+    }
+    virtual ptr_iterator               ptr_end()
+    {
+        return mPoints.ptr_end();
+    }
+    virtual ptr_const_iterator         ptr_end() const
+    {
+        return mPoints.ptr_end();
+    }
+    virtual PointReferenceType        front()       /* nothrow */
+    {
+        assert(!empty());
+        return mPoints.front();
+    }
+    virtual ConstPointReferenceType  front() const /* nothrow */
+    {
+        assert(!empty());
+        return mPoints.front();
+    }
+    virtual PointReferenceType        back()        /* nothrow */
+    {
+        assert(!empty());
+        return mPoints.back();
+    }
+    virtual ConstPointReferenceType  back() const  /* nothrow */
+    {
+        assert(!empty());
+        return mPoints.back();
+    }
+
+    virtual SizeType size() const
+    {
+        return mPoints.size();
+    }
+    virtual SizeType max_size() const
+    {
+        return mPoints.max_size();
+    }
+
+    virtual void swap(GeometryType& rOther)
+    {
+        mPoints.swap(rOther.mPoints);
+    }
+
+    virtual void push_back(PointPointerType x)
+    {
+        mPoints.push_back(x);
+    }
+
+    virtual void clear()
+    {
+        mPoints.clear();
+    }
+
+    virtual void reserve(int dim)
+    {
+        mPoints.reserve(dim);
+    }
+
+    virtual int capacity()
+    {
+        return mPoints.capacity();
+    }
+
+    /////@}
+    /////@name Access
+    /////@{
+
+    ///** Gives a reference to underly normal container. */
+    virtual PointPointerContainerType& GetContainer()
+    {
+        return mPoints.GetContainer();
+    }
+
+    /** Gives a constant reference to underly normal container. */
+    virtual const PointPointerContainerType& GetContainer() const
+    {
+        return mPoints.GetContainer();
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    virtual bool empty() const
+    {
+        return mPoints.empty();
+    }
+
     ///@}
     ///@name Operations
     ///@{
@@ -406,26 +542,26 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-    // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
-    // {
-    //     Geometry< Point >::PointsArrayType NewPoints;
+     // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
+     // {
+     //     Geometry< Point >::PointsArrayType NewPoints;
 
-    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
 
-    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-    //     {
-    //         NewPoints.push_back(Kratos::make_shared< Point >((*this)[i]));
-    //     }
+     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+     //     {
+     //        NewPoints.push_back(Kratos::make_shared< Point >((*mpPointVector)[i]));
+     //     }
 
-    //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
+     //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
 
-    //     //creating a geometry with the new points
-    //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
+     //     //creating a geometry with the new points
+     //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
 
-    //     p_clone->ClonePoints();
+     //     p_clone->ClonePoints();
 
-    //     return p_clone;
-    // }
+     //     return p_clone;
+     // }
 
     /**
      * @brief Lumping factors for the calculation of the lumped mass matrix
@@ -806,14 +942,14 @@ public:
      */
     virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
-        const unsigned int local_space_dimension = this->LocalSpaceDimension();
-        const unsigned int dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        const SizeType dimension = this->WorkingSpaceDimension();
 
         KRATOS_ERROR_IF(dimension == local_space_dimension) << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
 
         // We define the normal and tangents
-        array_1d<double,3> tangent_xi(3, 0.0);
-        array_1d<double,3> tangent_eta(3, 0.0);
+        array_1d<double,3> tangent_xi = ZeroVector(3);
+        array_1d<double,3> tangent_eta = ZeroVector(3);
 
         Matrix j_node = ZeroMatrix( dimension, local_space_dimension );
         this->Jacobian( j_node, rPointLocalCoordinates);
@@ -837,17 +973,114 @@ public:
     }
 
     /**
+     * @brief It returns the vector, which is normal to its corresponding
+     *        geometry in the given integration point for the default
+     *        integration method.
+     * @param IntegrationPointIndex index in internal integration point list
+     * @return The normal in the given integration point
+     */
+    virtual array_1d<double, 3> Normal(
+        IndexType IntegrationPointIndex) const
+    {
+        return Normal(IntegrationPointIndex, mpGeometryData->DefaultIntegrationMethod());
+    }
+
+    /**
+     * @brief It returns the vector, which is normal to its corresponding
+     *        geometry in the given integration point.
+     * @param IntegrationPointIndex index in internal integration point list
+     * @param ThisMethod the integration point is dependent on the used
+     *        integration method
+     * @return The normal in the given integration point
+     */
+    virtual array_1d<double, 3> Normal(
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        const SizeType dimension = this->WorkingSpaceDimension();
+
+        KRATOS_DEBUG_ERROR_IF(dimension == local_space_dimension)
+            << "Remember the normal can be computed just in geometries with a local dimension: "
+            << this->LocalSpaceDimension() << "smaller than the spatial dimension: "
+            << this->WorkingSpaceDimension() << std::endl;
+
+        // We define the normal and tangents
+        array_1d<double, 3> tangent_xi = ZeroVector(3);
+        array_1d<double, 3> tangent_eta = ZeroVector(3);
+
+        Matrix j_node = ZeroMatrix(dimension, local_space_dimension);
+        this->Jacobian(j_node, IntegrationPointIndex, ThisMethod);
+
+        // Using the Jacobian tangent directions
+        if (dimension == 2) {
+            tangent_eta[2] = 1.0;
+            for (IndexType i_dim = 0; i_dim < dimension; i_dim++) {
+                tangent_xi[i_dim] = j_node(i_dim, 0);
+            }
+        }
+        else {
+            for (IndexType i_dim = 0; i_dim < dimension; i_dim++) {
+                tangent_xi[i_dim] = j_node(i_dim, 0);
+                tangent_eta[i_dim] = j_node(i_dim, 1);
+            }
+        }
+
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+        return normal;
+    }
+
+    /**
      * @brief It computes the unit normal of the geometry in the given local point
      * @param rPointLocalCoordinates Refernce to the local coordinates of the point in where the unit normal is to be computed
      * @return The unit normal in the given point
      */
-    virtual array_1d<double, 3> UnitNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
+    virtual array_1d<double, 3> UnitNormal(
+        const CoordinatesArrayType& rPointLocalCoordinates) const
     {
         array_1d<double, 3> normal = Normal(rPointLocalCoordinates);
         const double norm_normal = norm_2(normal);
         if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
         else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
         return normal;
+    }
+
+    /**
+     * @brief It returns the normalized normal vector
+     *        in the given integration point.
+     * @param IntegrationPointIndex index in internal integration point list
+     * @param ThisMethod the integration point is dependent on the used
+     *        integration method
+     * @return The normal in the given integration point
+     */
+    virtual array_1d<double, 3> UnitNormal(
+        IndexType IntegrationPointIndex) const
+    {
+        return UnitNormal(IntegrationPointIndex, mpGeometryData->DefaultIntegrationMethod());
+    }
+
+    /**
+     * @brief It returns the normalized normal vector
+     *        in the given integration point.
+     * @param IntegrationPointIndex index in internal integration point list
+     * @param ThisMethod the integration point is dependent on the used
+     *        integration method
+     * @return The normal in the given integration point
+     */
+    virtual array_1d<double, 3> UnitNormal(
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex);
+        const double norm_normal = norm_2(normal_vector);
+        if (norm_normal > std::numeric_limits<double>::epsilon())
+            normal_vector /= norm_normal;
+        else
+            KRATOS_ERROR
+            << "ERROR: The normal norm is zero or almost zero: "
+            << norm_normal << std::endl;
+        return normal_vector;
     }
 
     /** Calculates the quality of the geometry according to a given criteria.
@@ -930,7 +1163,7 @@ public:
     */
     const PointsArrayType& Points() const
     {
-        return *this;
+        return mPoints;
     }
 
     /** An access method to the Vector of the points stored in
@@ -941,7 +1174,7 @@ public:
     */
     PointsArrayType& Points()
     {
-        return *this;
+        return mPoints;
     }
 
     /** A constant access method to the i'th points stored in
@@ -953,8 +1186,8 @@ public:
     const typename TPointType::Pointer pGetPoint( const int Index ) const
     {
         KRATOS_TRY
-        return ( *this )( Index );
-        KRATOS_CATCH( *this )
+        return mPoints( Index );
+        KRATOS_CATCH(mPoints)
     }
 
     /** An access method to the i'th points stored in
@@ -966,8 +1199,8 @@ public:
     typename TPointType::Pointer pGetPoint( const int Index )
     {
         KRATOS_TRY
-        return ( *this )( Index );
-        KRATOS_CATCH( *this );
+        return mPoints( Index );
+        KRATOS_CATCH(mPoints);
     }
 
     /** A constant access method to the i'th points stored in
@@ -979,8 +1212,8 @@ public:
     TPointType const& GetPoint( const int Index ) const
     {
         KRATOS_TRY
-        return ( *this )[Index];
-        KRATOS_CATCH( *this );
+        return mPoints[Index];
+        KRATOS_CATCH( mPoints);
     }
 
 
@@ -993,8 +1226,8 @@ public:
     TPointType& GetPoint( const int Index )
     {
         KRATOS_TRY
-        return ( *this )[Index];
-        KRATOS_CATCH( *this );
+        return mPoints[Index];
+        KRATOS_CATCH(mPoints);
     }
 
     /**
@@ -2325,7 +2558,7 @@ public:
      *
      * @see Name()
      */
-    std::string Info() const override {
+    virtual std::string Info() const {
       std::stringstream buffer;
       buffer << Dimension() << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
 
@@ -2355,7 +2588,7 @@ public:
      * @see PrintName()
      * @see PrintData()
      */
-    void PrintInfo(std::ostream& rOStream) const override {
+    virtual void PrintInfo(std::ostream& rOStream) const {
       rOStream << Dimension()  << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
     }
 
@@ -2380,7 +2613,7 @@ public:
      * @see PrintInfo()
      * @see PrintName()
      */
-    void PrintData( std::ostream& rOStream ) const override {
+    virtual void PrintData( std::ostream& rOStream ) const {
       if(mpGeometryData) {
         mpGeometryData->PrintData( rOStream );
       }
@@ -2390,7 +2623,7 @@ public:
 
       for (unsigned int i = 0; i < this->size(); ++i) {
         rOStream << "\tPoint " << i + 1 << "\t : ";
-        (*this)[i].PrintData(rOStream);
+        mPoints[i].PrintData(rOStream);
         rOStream << std::endl;
       }
 
@@ -2679,6 +2912,7 @@ private:
 
     GeometryData const* mpGeometryData;
 
+    PointsArrayType mPoints;
 
     ///@}
     ///@name Serialization
@@ -2686,16 +2920,14 @@ private:
 
     friend class Serializer;
 
-    void save( Serializer& rSerializer ) const override
+    virtual void save( Serializer& rSerializer ) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
-//                 rSerializer.save( "Geometry Data", mpGeometryData );
+        rSerializer.save( "Points", mPoints);
     }
 
-    void load( Serializer& rSerializer ) override
+    virtual void load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
-        //rSerializer.load( "Geometry Data", const_cast<GeometryData*>( mpGeometryData ) );
+        rSerializer.load( "Points", mPoints );
     }
 
 

@@ -62,7 +62,7 @@ public:
       : Scheme<TSparseSpace, TDenseSpace>(),
         mVelocityRelaxationFactor(VelocityRelaxationFactor),
         mPressureRelaxationFactor(PressureRelaxationFactor),
-        mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0)
+        mRotationTool(DomainSize,DomainSize+1,SLIP)
   {}
 
   ResidualBasedSimpleSteadyScheme(
@@ -73,7 +73,7 @@ public:
       : Scheme<TSparseSpace, TDenseSpace>(),
         mVelocityRelaxationFactor(VelocityRelaxationFactor),
         mPressureRelaxationFactor(PressureRelaxationFactor),
-        mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0),
+        mRotationTool(DomainSize,DomainSize+1,SLIP),
         mpTurbulenceModel(pTurbulenceModel)
 
   {}

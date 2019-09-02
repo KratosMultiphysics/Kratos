@@ -44,11 +44,6 @@
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
 
-// Incompressible fluid
-#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
-#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
-#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
-
 // Response function
 #include "response_functions/adjoint_response_function.h"
 
@@ -121,14 +116,6 @@ void  AddSchemes(pybind11::module& m)
            );
 
     py::class_ <
-        ResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >
-           (
-               m,"TrilinosResidualBasedLagrangianMonolithicScheme").def(py::init<int >()
-           );
-
-    py::class_ <
         TrilinosResidualBasedNewmarkScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename TrilinosResidualBasedNewmarkScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >
@@ -160,17 +147,7 @@ void  AddSchemes(pybind11::module& m)
         .def(py::init <const std::size_t, Parameters>())
         ;
 
-    typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedPredictorCorrectorVelocityBossak;
-
     typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TurbulentBossakBaseType;
-
-    py::class_ <
-        TrilinosResidualBasedPredictorCorrectorVelocityBossak,
-        typename TrilinosResidualBasedPredictorCorrectorVelocityBossak::Pointer,
-        TrilinosBaseSchemeType >
-           (
-               m,"TrilinosPredictorCorrectorVelocityBossakScheme").def(py::init<double, double >()
-           );
 
     py::class_ < TurbulentBossakBaseType, typename TurbulentBossakBaseType::Pointer,TrilinosBaseSchemeType >
         (m,"TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent")
@@ -183,14 +160,7 @@ void  AddSchemes(pybind11::module& m)
         ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >(m,"TrilinosResidualBasedPredictorCorrectorBDFScheme")
-        .def(py::init<unsigned int, Variable<double>& >() );
-
-    py::class_ <
-        ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >
-        (m,"TrilinosResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched")
-        .def(py::init<double, double, unsigned int>() );
+        .def(py::init<unsigned int, Kratos::Flags& >() );
 
     py::class_ <
         TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,

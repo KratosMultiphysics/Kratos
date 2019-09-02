@@ -8,7 +8,9 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 from kratos_utilities import CheckIfApplicationsAvailable
 
 # Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
@@ -45,9 +47,31 @@ class StabilizedFormulation(object):
             "dynamic_tau": 0.01
         }""")
 
+        default_non_newtonian_settings = KratosMultiphysics.Parameters(r"""{
+            "power_law_k": 1e-6,
+            "power_law_n": 1.0,
+            "yield_stress": 0.0,
+            "regularization_coefficient" : 100.0
+        }""")
+
+        # if non-newtonian, there are some extra options
+        if settings.Has("non_newtonian_fluid_parameters"):
+            self.non_newtonian_option = True
+            default_settings.AddValue("non_newtonian_fluid_parameters", default_non_newtonian_settings)
+            self.element_name = 'HerschelBulkleyVMS'
+        else:
+            self.non_newtonian_option = False
+            self.element_name = 'VMS'
+
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "VMS"
+        # validate the non-newtonian parameters if necessary
+        if self.non_newtonian_option:
+            settings["non_newtonian_fluid_parameters"].ValidateAndAssignDefaults(default_non_newtonian_settings)
+            self.process_data[KratosMultiphysics.POWER_LAW_K] = settings["non_newtonian_fluid_parameters"]["power_law_k"].GetDouble()
+            self.process_data[KratosMultiphysics.POWER_LAW_N] = settings["non_newtonian_fluid_parameters"]["power_law_n"].GetDouble()
+            self.process_data[KratosMultiphysics.YIELD_STRESS] = settings["non_newtonian_fluid_parameters"]["yield_stress"].GetDouble()
+            self.process_data[KratosCFD.REGULARIZATION_COEFFICIENT] = settings["non_newtonian_fluid_parameters"]["regularization_coefficient"].GetDouble()
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -57,11 +81,17 @@ class StabilizedFormulation(object):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "qsvms",
             "use_orthogonal_subscales": false,
-            "dynamic_tau": 0.0
+            "dynamic_tau": 0.0,
+            "element_manages_time_integration": false
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "QSVMS"
+        if settings["element_manages_time_integration"].GetBool() == False:
+            self.element_name = "QSVMS"
+            self.element_integrates_in_time = False
+        else:
+            self.element_name = "TimeIntegratedQSVMS"
+            self.element_integrates_in_time = True
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -70,7 +100,7 @@ class StabilizedFormulation(object):
     def _SetUpDVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "dvms",
-            "use_orthogonal_subscales": false,
+            "use_orthogonal_subscales": false
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -117,7 +147,8 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesSolverMonolithic(FluidSolver):
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -168,9 +199,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "turbulence_model": {}
         }""")
 
-        settings = self._BackwardsCompatibilityHelper(settings)
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultSettings())
+        return default_settings
 
     def _BackwardsCompatibilityHelper(self,settings):
         ## Backwards compatibility -- deprecation warnings
@@ -214,6 +244,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
+        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
 
         # There is only a single rank in OpenMP, we always print
@@ -239,7 +271,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
             raise Exception(msg)
 
         ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         if not self.settings["turbulence_model"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
@@ -332,10 +363,10 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1)
-            # In case the BDF2 scheme is used inside the element, the BDF process is required to update the BDF coefficients
+            # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
                 time_order = 2
-                self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part, time_order)
+                self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
             else:
                 err_msg = "Requested elemental time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
                 err_msg += "Available options are: \"bdf2\""
@@ -411,8 +442,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # If required, compute the BDF coefficients
-            if hasattr(self, 'bdf_process'):
-                (self.bdf_process).Execute()
+            if hasattr(self, 'time_discretization'):
+                (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
             # Perform the solver InitializeSolutionStep
             (self.solver).InitializeSolutionStep()
 

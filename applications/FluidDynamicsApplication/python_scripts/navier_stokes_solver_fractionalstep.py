@@ -2,19 +2,21 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverFractionalStep(model, custom_settings)
 
 class NavierStokesSolverFractionalStep(FluidSolver):
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -77,10 +79,11 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "use_slip_conditions": true
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(NavierStokesSolverFractionalStep, cls).GetDefaultSettings())
+        return default_settings
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
 
         self.element_name = "FractionalStep"
@@ -88,7 +91,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self.min_buffer_size = 3
 
         ## Construct the linear solvers
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
         self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
@@ -103,7 +105,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)

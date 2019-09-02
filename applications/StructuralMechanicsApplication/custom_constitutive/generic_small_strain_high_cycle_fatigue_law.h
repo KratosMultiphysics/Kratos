@@ -95,11 +95,8 @@ public:
                                             const double PreviousStress1,
                                             const double MaxStress,
                                             const double MinStress,
-                                            const double PreviousMaxStress,
-                                            const double PreviousMinStress,
-                                            const unsigned int NumberOfCycles,
-                                            const double FatigueReductionParameter,
-                                            const bool HasCountedCycle)
+                                            const unsigned int NumberOfCyclesGlobal,
+                                            const double FatigueReductionParameter)
     {
         mFatigueReductionFactor = FatigueReductionFactor;
         Vector PreviousStresses = ZeroVector(2);
@@ -108,10 +105,8 @@ public:
         mPreviousStresses = PreviousStresses;
         mMaxStress = MaxStress;
         mMinStress = MinStress;
-        mPreviousMinStress = PreviousMinStress;
-        mNumberOfCycles = NumberOfCycles;
+        mNumberOfCyclesGlobal = NumberOfCyclesGlobal;
         mFatigueReductionParameter = FatigueReductionParameter;
-        mHasCountedCycle = HasCountedCycle;
     }
     /**
     * Clone.
@@ -129,13 +124,16 @@ public:
             mFatigueReductionFactor(rOther.mFatigueReductionFactor),
             mPreviousStresses(rOther.mPreviousStresses), 
             mMaxStress(rOther.mMaxStress), 
-            mMinStress(rOther.mMinStress), 
-            mPreviousMaxStress(rOther.mPreviousMaxStress), 
-            mPreviousMinStress(rOther.mPreviousMinStress), 
-            mNumberOfCycles(rOther.mNumberOfCycles), 
+            mMinStress(rOther.mMinStress),  
+            mPreviousMaxStress(rOther.mPreviousMaxStress),  
+            mPreviousMinStress(rOther.mPreviousMinStress),  
+            mNumberOfCyclesGlobal(rOther.mNumberOfCyclesGlobal), 
+            mNumberOfCyclesLocal(rOther.mNumberOfCyclesLocal), 
             mFatigueReductionParameter(rOther.mFatigueReductionParameter), 
             mStressVector(rOther.mStressVector), 
-            mHasCountedCycle(rOther.mHasCountedCycle)
+            mMaxDetected(rOther.mMaxDetected),
+            mMinDetected(rOther.mMinDetected),
+            mWohlerStress(rOther.mWohlerStress)
     {
     }
 
@@ -321,9 +319,11 @@ private:
     double GetPreviousMinStress() {return mPreviousMinStress;}
     void SetPreviousMinStress(const double toPreviousMinStress) {mPreviousMinStress = toPreviousMinStress;}
 
-    unsigned int GetNumberOfCycles() {return mNumberOfCycles;}
-    void AddCycle() {mNumberOfCycles++;}
-    void SetNumberOfCycles(const unsigned int toCycles) {mNumberOfCycles = toCycles;}
+    unsigned int GetNumberOfCyclesGlobal() {return mNumberOfCyclesGlobal;}
+    void SetNumberOfCyclesGlobal(const unsigned int toCyclesGlobal) {mNumberOfCyclesGlobal = toCyclesGlobal;}
+
+    unsigned int GetNumberOfCyclesLocal() {return mNumberOfCyclesLocal;}
+    void SetNumberOfCyclesLocal(const unsigned int toCyclesLocal) {mNumberOfCyclesLocal = toCyclesLocal;}
 
     double GetFatigueReductionParameter() {return mFatigueReductionParameter;}
     void SetFatigueReductionParameter(const double toFatigueReductionParameter) {mFatigueReductionParameter = toFatigueReductionParameter;}
@@ -331,9 +331,14 @@ private:
     Vector GetStressVector() {return mStressVector;}
     void SetStressVector(const Vector toStressVector) {mStressVector = toStressVector;}
 
-    void ResetCycleCounter(){mHasCountedCycle = false;}
-    void SetCycleCounter(const bool tocycle){mHasCountedCycle = tocycle;}
-    bool GetCycleCounter() {return mHasCountedCycle;}
+    bool GetMaxDetected() {return mMaxDetected;}
+    void SetMaxDetected(const bool toMaxDetected){mMaxDetected = toMaxDetected;}
+
+    bool GetMinDetected() {return mMinDetected;}
+    void SetMinDetected(const bool toMinDetected){mMinDetected = toMinDetected;}
+
+    double GetWohlerStress() {return mWohlerStress;}
+    void SetWohlerStress(const double toWohlerStress) {mWohlerStress = toWohlerStress;}
     
     ///@}
     ///@name Member Variables
@@ -344,10 +349,13 @@ private:
     double mMinStress = 0.0;
     double mPreviousMaxStress = 0.0;
     double mPreviousMinStress = 0.0;
-    unsigned int mNumberOfCycles = 1;
+    unsigned int mNumberOfCyclesGlobal = 1; // Total number of cycles in the whole analysis
+    unsigned int mNumberOfCyclesLocal = 1; // Equivalent number of cycles for the current cyclic load
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
-    bool mHasCountedCycle = false;
+    bool mMaxDetected = false; // Maximum's indicator in the current cycle
+    bool mMinDetected = false; // Minimum's indicator in the current cycle
+    double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
 
     ///@}
     ///@name Private Operators
@@ -374,10 +382,13 @@ private:
         rSerializer.save("MinStress", mMinStress);
         rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
         rSerializer.save("PreviousMinStress", mPreviousMinStress);
-        rSerializer.save("NumberOfCycles", mNumberOfCycles);
+        rSerializer.save("NumberOfCyclesGlobal", mNumberOfCyclesGlobal);
+        rSerializer.save("NumberOfCyclesLocal", mNumberOfCyclesLocal);
         rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.save("StressVector", mStressVector);
-        rSerializer.save("HasCountedCycle", mHasCountedCycle);
+        rSerializer.save("MaxDetected", mMaxDetected);
+        rSerializer.save("MinDetected", mMinDetected);
+        rSerializer.save("WohlerStress", mWohlerStress);
     }
 
     void load(Serializer &rSerializer) override
@@ -389,12 +400,14 @@ private:
         rSerializer.load("MinStress", mMinStress);
         rSerializer.load("PreviousMaxStress", mPreviousMaxStress);
         rSerializer.load("PreviousMinStress", mPreviousMinStress);
-        rSerializer.load("NumberOfCycles", mNumberOfCycles);
+        rSerializer.load("NumberOfCyclesGlobal", mNumberOfCyclesGlobal);
+        rSerializer.load("NumberOfCyclesLocal", mNumberOfCyclesLocal);
         rSerializer.load("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.load("StressVector", mStressVector);
-        rSerializer.load("HasCountedCycle", mHasCountedCycle);
+        rSerializer.load("MaxDetected", mMaxDetected);
+        rSerializer.load("MinDetected", mMinDetected);
+        rSerializer.load("WohlerStress", mWohlerStress);
     }
-
     ///@}
 
 }; // Class GenericYieldSurface

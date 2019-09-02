@@ -31,7 +31,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
 #include "processes/node_erase_process.h"
@@ -751,7 +751,7 @@ namespace Kratos
 
 	    iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY) = iparticle->FastGetSolutionStepValue(VELOCITY,1);  //AUX_VEL
 
-	    if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 1.0) do_move = false;
+	    if(iparticle->Is(SLIP)) do_move = false;
 
 	    //iparticle->FastGetSolutionStepValue(TEMPERATURE) = 298.0;
 	    if( do_move == true  ) //note that we suppose the velocity components to be all fixed
@@ -800,7 +800,7 @@ namespace Kratos
 			acc[0] =  0.0;
 			acc[1] = -10.0;
 			acc[2] =  0.0;
-			if( first_time == false /*&& iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0*/ )
+			if( first_time == false /*&& iparticle->Is(SLIP) == false*/ )
 			  {
 			    noalias(current_position) += small_dt *iparticle->FastGetSolutionStepValue(EMBEDDED_VELOCITY);
 			    //noalias(current_position) += small_dt * small_dt * acc;
@@ -843,7 +843,7 @@ namespace Kratos
 	    i != ThisModelPart.NodesEnd() ; ++i)
 	  {
 	    if(
-	       (i)->FastGetSolutionStepValue(IS_STRUCTURE) == 0 &&
+	       (i)->Is(SLIP) == false &&
 	       (i)->GetValue(NEIGHBOUR_ELEMENTS).size() == 0 &&
 	       ((i)->GetDof(VELOCITY_X).IsFixed() == false || (i)->GetDof(VELOCITY_Y).IsFixed() == false || (i)->GetDof(VELOCITY_Z).IsFixed() == false)
 	       )

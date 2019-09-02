@@ -1271,54 +1271,55 @@ void SphericParticle::ComputeWear(double LocalRelVel[3],
                                   double LocalElasticContactForce,
                                   DEMWall* wall) {
 
-    array_1d<double, 3>& node_coor_array = this->GetGeometry()[0].Coordinates();
+    array_1d<double, 3>& sphere_center = this->GetGeometry()[0].Coordinates();
     double volume_wear = 0.0;
-    double WallSeverityOfWear           = wall->GetProperties()[SEVERITY_OF_WEAR];
-    double WallImpactSeverityOfWear     = wall->GetProperties()[IMPACT_WEAR_SEVERITY];
-    double InverseOfWallBrinellHardness = 1.0 / (wall->GetProperties()[BRINELL_HARDNESS]);
-    double Sliding_0 = LocalRelVel[0] * mTimeStep;
-    double Sliding_1 = LocalRelVel[1] * mTimeStep;
+    const double WallSeverityOfWear       = wall->GetProperties()[SEVERITY_OF_WEAR];
+    const double WallImpactSeverityOfWear = wall->GetProperties()[IMPACT_WEAR_SEVERITY];
+    const double WallBrinellHardness      = wall->GetProperties()[BRINELL_HARDNESS];
+    double InverseOfWallBrinellHardness;
+
+    if (WallBrinellHardness) InverseOfWallBrinellHardness = 1.0 / WallBrinellHardness;
+    else KRATOS_ERROR << "Brinell hardness cannot be zero!";
+
+    const double Sliding_0 = LocalRelVel[0] * mTimeStep;
+    const double Sliding_1 = LocalRelVel[1] * mTimeStep;
 
     double impact_wear = WallImpactSeverityOfWear * InverseOfWallBrinellHardness * GetDensity() * mRadius * std::abs(LocalRelVel[2]);
     if (sliding) volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * std::abs(LocalElasticContactForce) * sqrt(Sliding_0 * Sliding_0 + Sliding_1 * Sliding_1);
 
-    double element_area = wall->GetGeometry().Area();
+    const double element_area = wall->GetGeometry().Area();
 
     if (element_area) {
         impact_wear /= element_area;
         volume_wear /= element_area;
-    }
+    } else KRATOS_ERROR << "A wall element with zero area was found!";
 
-    //COMPUTING THE PROJECTED POINT
+    //Computing the projected point
     array_1d<double, 3> inner_point = ZeroVector(3);
-    array_1d<double, 3> relative_vector = wall->GetGeometry()[0].Coordinates() - node_coor_array; //We could have chosen [1] or [2], also.
+    array_1d<double, 3> relative_vector = wall->GetGeometry()[0].Coordinates() - sphere_center; //We could have chosen also [1] or [2].
+    const unsigned int line_dimension = 2;
 
-    if (wall->GetGeometry().size()>2){
+    if (wall->GetGeometry().size() > line_dimension) {
+
         array_1d<double, 3> normal_to_wall;
-
         wall->CalculateNormal(normal_to_wall);
+        const double dot_product = DEM_INNER_PRODUCT_3(relative_vector, normal_to_wall);
+        DEM_MULTIPLY_BY_SCALAR_3(normal_to_wall, dot_product);
 
-        double dot_prod = DEM_INNER_PRODUCT_3(relative_vector, normal_to_wall);
+        inner_point = sphere_center + normal_to_wall;
 
-        DEM_MULTIPLY_BY_SCALAR_3(normal_to_wall, dot_prod);
-
-        inner_point = node_coor_array + normal_to_wall;
-    }
-    else{
-        // projection on a line element
+    } else {
+        // Projection on a line element
         const double numerical_limit = std::numeric_limits<double>::epsilon();
-
         array_1d<double, 3> line_vector = wall->GetGeometry()[1].Coordinates()-wall->GetGeometry()[0].Coordinates();
         KRATOS_ERROR_IF(wall->GetGeometry().Length()<=numerical_limit) << "Line element has zero length" << std::endl;
         line_vector/=wall->GetGeometry().Length();
 
         DEM_COPY_SECOND_TO_FIRST_3(inner_point,line_vector);
-        double dot_prod = DEM_INNER_PRODUCT_3(relative_vector, line_vector);
-        DEM_MULTIPLY_BY_SCALAR_3(inner_point, dot_prod);
+        const double dot_product = DEM_INNER_PRODUCT_3(relative_vector, line_vector);
+        DEM_MULTIPLY_BY_SCALAR_3(inner_point, dot_product);
         DEM_ADD_SECOND_TO_FIRST(inner_point,wall->GetGeometry()[0].Coordinates());
     }
-
-
 
     array_1d<double, 3> point_local_coordinates;
     Vector shape_functions_coefs(3);

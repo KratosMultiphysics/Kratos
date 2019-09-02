@@ -23,6 +23,9 @@ class TestModelPartIO(KratosUnittest.TestCase):
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
         KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
+        KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write_mesh_only.out.mdpa"))
+        KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write_mesh_only.out.time"))
+        KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write_mesh_only.time"))
 
     def test_model_part_io_read_model_part(self):
         current_model = KratosMultiphysics.Model()
@@ -237,7 +240,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2,2], 0)
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
-    def test_model_part_io_write_model_part(self):
+    def test_model_part_io_write_model_part_mesh_only(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -249,6 +252,21 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
         import filecmp
         value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
+        self.assertEqual(value, True)
+
+    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
+    def test_model_part_io_write_model_part(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_write"))
+        model_part_io.ReadModelPart(model_part)
+
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write_mesh_only.out"), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
+        model_part_io.WriteModelPart(model_part)
+
+        import filecmp
+        value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_write_mesh_only.mdpa"), GetFilePath("test_model_part_io_write_mesh_only.out.mdpa"))
         self.assertEqual(value, True)
 
     @KratosUnittest.expectedFailure

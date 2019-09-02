@@ -71,7 +71,7 @@ class WaveGeneratorProcess(KM.Process):
             velocity_parameters.AddEmptyValue("phase_shift").SetDouble(0.0)
 
         self.free_surface_process = SW.ApplySinusoidalFunctionToScalar(self.model_part, SW.FREE_SURFACE_ELEVATION, free_surface_parameters)
-        self.velocity_process = SW.ApplySinusoidalFunctionToScalar(self.model_part, SW.FREE_SURFACE_ELEVATION, velocity_parameters)
+        self.velocity_process = SW.ApplySinusoidalFunctionToVector(self.model_part, KM.VELOCITY, velocity_parameters)
 
     def ExecuteInitializeSolutionStep(self):
         if self._IsInInterval():

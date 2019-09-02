@@ -60,9 +60,8 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
     const Variable<TValueType>& rPointVariable)
 {
     // Check if there is any condition in the current partition
-    const unsigned int n_loc_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-    int n_tot_conds = n_loc_conds;
-    rModelPart.GetCommunicator().SumAll(n_tot_conds);
+    const int n_loc_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
+    int n_tot_conds = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_conds);
 
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_tot_conds != 0){
@@ -102,9 +101,8 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
     unsigned int MaximumIterations)
 {
     // Check if there is any condition in the current partition
-    const unsigned int n_loc_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-    int n_tot_conds = n_loc_conds;
-    rModelPart.GetCommunicator().SumAll(n_tot_conds);
+    const int n_loc_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
+    int n_tot_conds = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(n_loc_conds);
 
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_tot_conds != 0){
@@ -240,7 +238,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
         UpdateDistributionRHS<TPointNumber,TValueType>(rModelPart,rPointVariable, rDistributedVariable, mass_matrix);
 
         error_l2_norm = SolveDistributionIteration(rModelPart,rDistributedVariable);
-        rModelPart.GetCommunicator().SumAll(error_l2_norm);
+        error_l2_norm = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(error_l2_norm);
 
         // Check convergence
         iteration++;
@@ -270,7 +268,7 @@ void VariableRedistributionUtility::DummySpecializedDistributePointValues(
         DummyUpdateDistributionRHS<TValueType>(rModelPart, rDistributedVariable);
 
         error_l2_norm = DummySolveDistributionIteration(rModelPart,rDistributedVariable);;
-        rModelPart.GetCommunicator().SumAll(error_l2_norm);
+        error_l2_norm = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(error_l2_norm);
 
         // Check convergence
         iteration++;

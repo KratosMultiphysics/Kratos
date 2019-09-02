@@ -171,7 +171,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     r_fluid_1_inlet.AddConditions( index_cond_fluid1 );
     r_fluid_2_inlet.AddConditions( index_cond_fluid2 );
 
-    r_root_model_part.GetCommunicator().Barrier();
+    r_root_model_part.GetCommunicator().GetDataCommunicator().Barrier();
 }
 
 

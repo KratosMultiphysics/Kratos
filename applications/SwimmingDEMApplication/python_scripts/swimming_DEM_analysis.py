@@ -302,12 +302,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         fluid_domain_dimension = self.project_parameters["fluid_parameters"]["solver_settings"]["domain_size"].GetInt()
         self.custom_functions_tool = SDP.FunctionsCalculator(fluid_domain_dimension)
 
-        # creating a stationarity assessment tool
-        self.stationarity_tool = SDP.StationarityAssessmentTool(
-            self.project_parameters["stationarity"]["max_pressure_variation_rate_tol"].GetDouble(),
-            self.custom_functions_tool
-            )
-
         # creating a debug tool
         self.dem_volume_tool = self.GetVolumeDebugTool()
 
@@ -491,8 +485,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def _Print(self):
         os.chdir(self.post_path)
-        import define_output
-        self.drag_list = define_output.DefineDragList()
+        #TODO: review this lines
+        # import define_output
+        # self.drag_list = define_output.DefineDragList()
         self.drag_file_output_list = []
 
         if self.particles_results_counter.Tick():
@@ -515,7 +510,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.fluid_model_part.CloneTimeStep(self.time)
 
     def DEMSolve(self, time='None'): # time is passed in case it is needed
-        self._GetDEMAnalysis().solver.Solve()
+        self._GetDEMAnalysis().solver.SolveSolutionStep()
 
     def UpdateALEMeshMovement(self, time):
         pass
@@ -547,8 +542,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             embedded.ApplyEmbeddedBCsToBalls(self.spheres_model_part, self.project_parameters)
 
     def AssessStationarity(self):
-        Say("Assessing Stationarity...\n")
-        self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
+        self.stationarity = self._GetSolver().AssessStationarity()
         self.stationarity_counter.Deactivate(self.stationarity)
 
     def SetInlet(self):

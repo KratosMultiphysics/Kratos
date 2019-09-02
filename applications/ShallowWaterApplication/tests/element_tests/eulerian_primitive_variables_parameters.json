@@ -29,13 +29,7 @@
         "reform_dofs_at_each_step" : false,
         "move_mesh_flag"           : false,
         "linear_solver_settings"   : {
-            "solver_type"      : "AMGCL",
-            "smoother_type"    : "ilu0",
-            "krylov_type"      : "gmres",
-            "coarsening_type"  : "aggregation",
-            "max_iteration"    : 100,
-            "tolerance"        : 1.0e-6,
-            "scaling"          : false
+            "solver_type"      : "amgcl"
         },
         "time_stepping"            : {
             "automatic_time_step"      : false,

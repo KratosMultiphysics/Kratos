@@ -67,7 +67,6 @@ void CrBeamElementLinear3D2N::CalculateLocalSystem(
 
     // add bodyforces
     rRightHandSideVector += CalculateBodyForces();
-    IncrementIterationCounter();
     KRATOS_CATCH("")
 }
 

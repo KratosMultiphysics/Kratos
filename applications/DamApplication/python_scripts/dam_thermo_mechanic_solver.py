@@ -47,12 +47,12 @@ class DamThermoMechanicSolver(object):
                 "theta_scheme": 1.0,
                 "block_builder": true,
                 "linear_solver_settings":{
-                    "solver_type": "AMGCL",
+                    "solver_type": "amgcl",
                     "tolerance": 1.0e-6,
                     "max_iteration": 100,
                     "scaling": false,
                     "verbosity": 0,
-                    "preconditioner_type": "ILU0Preconditioner",
+                    "preconditioner_type": "ilu0",
                     "smoother_type": "ilu0",
                     "krylov_type": "gmres",
                     "coarsening_type": "aggregation"
@@ -85,12 +85,12 @@ class DamThermoMechanicSolver(object):
                 "characteristic_length": 0.05,
                 "search_neighbours_step": false,
                 "linear_solver_settings":{
-                    "solver_type": "AMGCL",
+                    "solver_type": "amgcl",
                     "tolerance": 1.0e-6,
                     "max_iteration": 100,
                     "scaling": false,
                     "verbosity": 0,
-                    "preconditioner_type": "ILU0Preconditioner",
+                    "preconditioner_type": "ilu0",
                     "smoother_type": "ilu0",
                     "krylov_type": "gmres",
                     "coarsening_type": "aggregation"
@@ -327,10 +327,15 @@ class DamThermoMechanicSolver(object):
         self.mechanical_model_part_name = "mechanical_computing_domain"
 
         # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
-        thermal_loads_sub_sub_model_part_list = []
+        self.thermal_domain_sub_sub_model_part_list = []
         for i in range(self.settings["thermal_solver_settings"]["problem_domain_sub_model_part_list"].size()):
-            thermal_loads_sub_sub_model_part_list.append("sub_"+self.settings["thermal_solver_settings"]["problem_domain_sub_model_part_list"][i].GetString())
-        thermal_loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(thermal_loads_sub_sub_model_part_list))
+            self.thermal_domain_sub_sub_model_part_list.append("sub_"+self.settings["thermal_solver_settings"]["problem_domain_sub_model_part_list"][i].GetString())
+        self.thermal_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.thermal_domain_sub_sub_model_part_list))
+
+        self.thermal_loads_sub_sub_model_part_list = []
+        for i in range(self.settings["thermal_solver_settings"]["thermal_loads_sub_model_part_list"].size()):
+            self.thermal_loads_sub_sub_model_part_list.append("sub_"+self.settings["thermal_solver_settings"]["thermal_loads_sub_model_part_list"][i].GetString())
+        self.thermal_loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.thermal_loads_sub_sub_model_part_list))
 
         self.body_domain_sub_sub_model_part_list = []
         for i in range(self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"].size()):
@@ -346,8 +351,9 @@ class DamThermoMechanicSolver(object):
         aux_params = KratosMultiphysics.Parameters("{}")
         aux_params.AddEmptyValue("thermal_model_part_name").SetString(self.thermal_model_part_name)
         aux_params.AddValue("thermal_domain_sub_model_part_list",self.settings["thermal_solver_settings"]["problem_domain_sub_model_part_list"])
+        aux_params.AddValue("thermal_domain_sub_sub_model_part_list",self.thermal_domain_sub_sub_model_part_list)
         aux_params.AddValue("thermal_loads_sub_model_part_list",self.settings["thermal_solver_settings"]["thermal_loads_sub_model_part_list"])
-        aux_params.AddValue("thermal_domain_sub_sub_model_part_list",thermal_loads_sub_sub_model_part_list)
+        aux_params.AddValue("thermal_loads_sub_sub_model_part_list",self.thermal_loads_sub_sub_model_part_list)
 
         aux_params.AddEmptyValue("mechanical_model_part_name").SetString(self.mechanical_model_part_name)
         aux_params.AddValue("mechanical_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["problem_domain_sub_model_part_list"])
@@ -358,11 +364,11 @@ class DamThermoMechanicSolver(object):
         aux_params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
 
         # CheckAndPrepareModelProcessDamMechanical creates the solid_computational_model_part
-        import check_and_prepare_model_process_dam_thermal
+        from KratosMultiphysics.DamApplication import check_and_prepare_model_process_dam_thermal
         check_and_prepare_model_process_dam_thermal.CheckAndPrepareModelProcessDamThermal(self.main_model_part, aux_params).Execute()
 
         # Constitutive law import
-        import dam_constitutive_law_utility
+        from KratosMultiphysics.DamApplication import dam_constitutive_law_utility
         dam_constitutive_law_utility.SetConstitutiveLaw(self.main_model_part)
 
         self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )

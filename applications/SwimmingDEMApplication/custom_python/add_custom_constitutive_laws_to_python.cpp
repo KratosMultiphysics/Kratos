@@ -57,6 +57,7 @@ namespace Python {
 
 namespace py = pybind11;
 
+typedef HydrodynamicInteractionLaw BaseHydrodynamicInteractionLawType;
 typedef BuoyancyLaw BaseBuoyancyLawType;
 typedef DragLaw BaseDragLawType;
 typedef InviscidForceLaw BaseInviscidForceLawType;
@@ -80,6 +81,13 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("SetVorticityInducedLiftLaw", &HydrodynamicInteractionLaw::SetVorticityInducedLiftLaw)
         .def("SetRotationInducedLiftLaw", &HydrodynamicInteractionLaw::SetRotationInducedLiftLaw)
         .def("SetSteadyViscousTorqueLaw", &HydrodynamicInteractionLaw::SetSteadyViscousTorqueLaw)
+        ;
+
+     py::class_<PowerLawFluidHydrodynamicInteractionLaw,
+                PowerLawFluidHydrodynamicInteractionLaw::Pointer,
+                BaseHydrodynamicInteractionLawType>(m, "PowerLawFluidHydrodynamicInteractionLaw")
+        .def(py::init<>())
+        .def(py::init<Properties::Pointer, Parameters&>())
         ;
 
     // Buoyancy laws
