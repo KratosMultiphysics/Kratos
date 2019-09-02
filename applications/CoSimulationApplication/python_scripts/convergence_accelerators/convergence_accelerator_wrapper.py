@@ -1,8 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-# Importing the Kratos Library
-import KratosMultiphysics as KM
-
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory import CreateConvergenceAccelerator
 
