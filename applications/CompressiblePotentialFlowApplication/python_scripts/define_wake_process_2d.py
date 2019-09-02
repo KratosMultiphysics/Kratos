@@ -47,7 +47,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         if not self.fluid_model_part.HasSubModelPart("wake_sub_model_part"):
-            raise Exception("Fluid model part does have a wake_sub_model_part")
+            raise Exception("Fluid model part does not have a wake_sub_model_part")
         else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_sub_model_part")
 
         absolute_tolerance = 1e-9

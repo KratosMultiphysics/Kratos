@@ -16,6 +16,7 @@
 #include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos {
+
 // Constructor for Define2DWakeProcess Process
 Define2DWakeProcess::Define2DWakeProcess(ModelPart& rBodyModelPart, const double Tolerance)
     : Process(), mrBodyModelPart(rBodyModelPart), mTolerance(Tolerance)
