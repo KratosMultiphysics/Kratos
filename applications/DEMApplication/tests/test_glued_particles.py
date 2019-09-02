@@ -4,7 +4,7 @@ from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import DEM_analysis_stage
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 

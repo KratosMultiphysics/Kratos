@@ -21,7 +21,7 @@
 #include "linear_solvers/linear_solver.h"
 
 // Utilities
-#include "custom_utilities/process_factory_utility.h"
+#include "custom_python/process_factory_utility.h"
 #include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/active_set_utilities.h"
 #include "custom_utilities/interface_preprocess.h"

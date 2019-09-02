@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/process_factory_utility.h"
+#include "custom_python/process_factory_utility.h"
 
 namespace Kratos
 {

@@ -66,7 +66,7 @@ class AdjointDiffusionSolver(PythonSolver):
             "sensitivity_settings" : {},
             "element_replace_settings" : {
                 "element_name" : "AdjointDiffusionElement",
-                "condition_name" : "AdjointFluxCondition"
+                "condition_name" : "AdjointThermalFace"
             },
             "time_stepping" : {
                 "time_step" : 0.0
@@ -247,7 +247,7 @@ class AdjointDiffusionSolver(PythonSolver):
             break
         num_nodes_conditions = comm.MaxAll(num_nodes_conditions)
 
-        if condition_name == "AdjointFluxCondition":
+        if condition_name == "AdjointThermalFace":
             name_string = "{0}{1}D{2}N".format(condition_name,domain_size, num_nodes_conditions)
             self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
 
