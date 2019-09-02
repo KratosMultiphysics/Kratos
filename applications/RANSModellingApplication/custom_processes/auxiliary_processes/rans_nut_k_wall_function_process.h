@@ -26,7 +26,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
-#include "includes/linear_solver_factory.h"
+#include "factories/linear_solver_factory.h"
 #include "includes/model_part.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/process.h"

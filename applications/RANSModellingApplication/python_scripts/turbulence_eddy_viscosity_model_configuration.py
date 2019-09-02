@@ -7,7 +7,7 @@ from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
     import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-    from turbulence_model_configuration import TurbulenceModelConfiguration
+    from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_configuration import TurbulenceModelConfiguration
 else:
     msg = "RANSModellingApplication requires FluidDynamicsApplication which is not found."
     msg += " Please install/compile it and try again."

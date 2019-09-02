@@ -279,7 +279,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 import KratosMultiphysics.RANSModellingApplication as KratosRANS
             else:
                 raise Exception("Please install/compile RANSModellingApplication to use turbulence_model properties")
-            from turbulence_model_configuration import CreateTurbulenceModel
+            from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_configuration import CreateTurbulenceModel
             self.turbulence_model_configuration = CreateTurbulenceModel(model, self.settings["turbulence_model"])
             self.condition_name = self.turbulence_model_configuration.GetFluidVelocityPressureConditionName()
             KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Using " + self.condition_name)
