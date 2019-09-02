@@ -29,8 +29,9 @@ def GetWordsFromString(string):
 
     return words
 
-def GenericCallFunction(func_string, scope_vars={}, check=True):
-    safe_dict.update(scope_vars)
+def GenericCallFunction(func_string, scope_vars=None, check=True):
+    if scope_vars is not None:
+        safe_dict.update(scope_vars)
 
     if check: # can be disabled to improve performance
         splitted_func_args = GetWordsFromString(func_string)
