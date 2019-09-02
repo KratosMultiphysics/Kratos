@@ -326,26 +326,4 @@ const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingE
 
     return distance_to_point;
 }
-
-// This function checks that the wake condition is fulfilled up to a certain tolerance
-void Define2DWakeProcess::ExecuteFinalizeSolutionStep()
-{
-    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
-    ModelPart& wake_sub_model_part =
-        root_model_part.GetSubModelPart("wake_sub_model_part");
-
-    unsigned int number_of_unfulfilled_wake_conditions = 0;
-    for (auto& r_element : wake_sub_model_part.Elements()){
-        const bool wake_condition_is_fulfilled =
-            PotentialFlowUtilities::CheckIfWakeConditionIsFulfilled<2, 3>(
-                r_element, mTolerance, mEchoLevel);
-        if (!wake_condition_is_fulfilled){
-            number_of_unfulfilled_wake_conditions += 1;
-        }
-    }
-
-    KRATOS_WARNING_IF("CheckIfWakeConditionIsFulfilled", number_of_unfulfilled_wake_conditions > 0)
-            << "THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions << " ELEMENTS" << std::endl;
-}
-
 } // namespace Kratos.

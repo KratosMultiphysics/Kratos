@@ -47,11 +47,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         #self.__FindWakeElements()
 
     def ExecuteFinalizeSolutionStep(self):
-        self.wake_process.ExecuteFinalizeSolutionStep()
         if not self.fluid_model_part.HasSubModelPart("wake_sub_model_part"):
             raise Exception("Fluid model part does have a wake_sub_model_part")
         else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_sub_model_part")
-        CPFApp.CheckWakeConditionProcess2D(self.wake_sub_model_part, 1e-9, 1).Execute()
 
         CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled2D(self.wake_sub_model_part, 1e-9, 1)
 

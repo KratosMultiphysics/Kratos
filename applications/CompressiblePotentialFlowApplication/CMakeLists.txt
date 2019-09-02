@@ -28,7 +28,6 @@ set( KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_incompressible_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/incompressible_potential_flow_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_far_field_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/check_wake_condition_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/define_2d_wake_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/move_model_part_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function.cpp

@@ -64,9 +64,6 @@ public:
     /// ExecuteInitialize method is used to execute the Define2DWakeProcess algorithms.
     void ExecuteInitialize() override;
 
-    /// ExecuteFinalizeSolutionStep method is used to check that the wake condition is fulfilled.
-    void ExecuteFinalizeSolutionStep() override;
-
     ///@}
     ///@name Input and output
     ///@{
