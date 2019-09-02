@@ -72,7 +72,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
                 node.SetSolutionStepValue(Kratos.FLUID_VORTICITY_PROJECTED, vorticity)
 
     def _CreateSolver(self):
-        import candelier_dem_solver as sdem_solver
+        import tests_python_scripts.candelier_scripts.candelier_dem_solver as sdem_solver
         return sdem_solver.CandelierDEMSolver(self.model,
                                               self.project_parameters,
                                               self.GetFieldUtility(),
@@ -104,11 +104,3 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
                 self.radial_error = self.results_database.CalculateError(self.time, coor_calculated)
                 self.error_time = self.time
 
-    def _CreateSolver(self):
-        import candelier_dem_solver as swimming_dem_solver
-        return swimming_dem_solver.CandelierDEMSolver(self.model,
-                                                     self.project_parameters,
-                                                     self.GetFieldUtility(),
-                                                     self._GetFluidAnalysis()._GetSolver(),
-                                                     self._GetDEMAnalysis()._GetSolver(),
-                                                     self.vars_man)
