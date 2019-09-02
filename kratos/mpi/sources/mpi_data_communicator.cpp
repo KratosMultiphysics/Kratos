@@ -389,6 +389,26 @@ const DataCommunicator& MPIDataCommunicator::SplitDataCommunicator(
     return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
 }
 
+const DataCommunicator& MPIDataCommunicator::CreateDataCommunicatorFromRanks(
+        const DataCommunicator& rOriginalCommunicator,
+        const std::vector<int>& rRanks,
+        const std::string& rNewCommunicatorName)
+{
+    MPI_Comm origin_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rOriginalCommunicator);
+    MPI_Group all_ranks, selected_ranks;
+
+    MPI_Comm_group(origin_mpi_comm, &all_ranks);
+    MPI_Group_incl(all_ranks, rRanks.size(), rRanks.data(), &selected_ranks);
+
+    MPI_Comm comm_from_ranks;
+    int tag = 0;
+    MPI_Comm_create_group(origin_mpi_comm, selected_ranks, tag, &comm_from_ranks);
+
+    ParallelEnvironment::RegisterDataCommunicator(
+        rNewCommunicatorName, MPIDataCommunicator(comm_from_ranks), ParallelEnvironment::DoNotMakeDefault);
+    return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
+}
+
 const DataCommunicator& MPIDataCommunicator::CreateUnionDataCommunicator(
     const DataCommunicator& rFirstDataCommunicator,
     const DataCommunicator& rSecondDataCommunicator,
