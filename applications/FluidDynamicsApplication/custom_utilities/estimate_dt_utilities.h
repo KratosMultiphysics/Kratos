@@ -273,7 +273,7 @@ private:
         double Proj = 0.0;
 
         // Get the element's geometric parameters
-        const Geometry<Node<3>>& r_geometry = rElement.GetGeometry();
+        const auto& r_geometry = rElement.GetGeometry();
         GeometryUtils::CalculateGeometryData(r_geometry, rGeometryInfo.DN_DX, rGeometryInfo.N, rGeometryInfo.Area);
 
         // Elemental Velocity
