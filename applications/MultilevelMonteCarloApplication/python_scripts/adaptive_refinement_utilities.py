@@ -19,12 +19,12 @@ Kratos wiki: https://github.com/KratosMultiphysics/Kratos/wiki/MMG-Process
 
 class AdaptiveRefinement(object):
     """
-    input:  model_coarse:       Kratos model class before refinement
-            parameters_coarse:  Kratos parameters class before refinement
-            minimal_size_value: minimal size after remeshing
-            maximal_size_value: maximal size after remeshing
-            metric_param:       Kratos parameters class containing metric custom settings
-            remesh_param:       Kratos parameters class containing remeshing custom settings
+    input:  model_coarse       : Kratos model class before refinement
+            parameters_coarse  : Kratos parameters class before refinement
+            minimal_size_value : minimal size after remeshing
+            maximal_size_value : maximal size after remeshing
+            metric_param       : Kratos parameters class containing metric custom settings
+            remesh_param       : Kratos parameters class containing remeshing custom settings
     """
     def __init__(self,current_level,model_coarse,parameters_coarse,metric_param,remesh_param,metric_name="hessian"):
         self.model_coarse = model_coarse
@@ -39,8 +39,8 @@ class AdaptiveRefinement(object):
     function computing the refinement of the model based on the solution on the coarse mesh,
     exploiting the hessian metric of the solution
     input:  self: an instance of the class
-    output: current_model_refined:      Kratos model class after refinement
-            current_parameters_refined: Kratos parameters class after refinement
+    output: current_model_refined      : Kratos model class after refinement
+            current_parameters_refined : Kratos parameters class after refinement
     """
     def ComputeAdaptiveRefinement(self):
         parameters_coarse = self.parameters_coarse
@@ -159,7 +159,7 @@ class AdaptiveRefinement(object):
 
     """
     method computing the mesh size of coarsest level, estimated as minimum nodal_h
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ComputeMeshSizeCoarsestLevel(self):
         model_coarse = self.model_coarse
@@ -181,7 +181,7 @@ class AdaptiveRefinement(object):
 
     """
     method estimating the mesh size of current level
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def EstimateMeshSizeCurrentLevel(self):
         self.ComputeMeshSizeCoarsestLevel()

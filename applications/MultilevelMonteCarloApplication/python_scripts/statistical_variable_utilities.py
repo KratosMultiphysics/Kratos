@@ -7,10 +7,6 @@ import numpy as np
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
-"""
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-"""
 
 """
 This utility contains the statistics class
@@ -19,35 +15,26 @@ P. Pébay, T. B. Terriberry, H. Kolla, J. Bennett; Stable, Scalable Formulas for
 M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation; available at MATHICSE technical report no. 23.2017
 """
 
-
-# TODO: check absolute third moment from scratch is correct
-# TODO: add computation of raw moments, only the mean is now computed
-# TODO: constructor without number levels!!
-# TODO: remove self.power_sum_3_absolute
-# TODO: check that number samples is updated only once using updateonepasscentralmoments and updateonepasspowersums (for now MC uses powersums and cmlmc uses centralmoments so it is fine)
-# TODO: in h_statistics_1 we have the unbiased first central raw moment (i.e. the mean)
-
-
 """
 auxiliary function of UpdateOnePassCentralMoments of the StatisticalVariable class
 input:  sample: new value that will update the statistics
-        old_mean:             old mean
-        old_central_moment_1: old first central moment
-        compute_M1:           boolean setting if computation is needed
-        old_central_moment_2: old second central moment
-        compute_M2:           boolean setting if computation is needed
-        old_central_moment_3: old third central moment
-        compute_M3:           boolean setting if computation is needed
-        old_central_moment_1: old fourth central moment
-        compute_M4:           boolean settings if computation is needed
-        nsamples:             old number of samples computed, starts from 1
-output: new_mean:             updated mean
-        new_sample_variance:  updated sample variance
-        new_central_moment_1: updated central_moment_1
-        new_central_moment_2: updated central_moment_2
-        new_central_moment_3: updated central_moment_3
-        new_central_moment_4: updated central_moment_4
-        nsamples:             updated number of samples
+        old_mean             : old mean
+        old_central_moment_1 : old first central moment
+        compute_M1           : boolean setting if computation is needed
+        old_central_moment_2 : old second central moment
+        compute_M2           : boolean setting if computation is needed
+        old_central_moment_3 : old third central moment
+        compute_M3           : boolean setting if computation is needed
+        old_central_moment_1 : old fourth central moment
+        compute_M4           : boolean settings if computation is needed
+        nsamples             : old number of samples computed, starts from 1
+output: new_mean             : updated mean
+        new_sample_variance  : updated sample variance
+        new_central_moment_1 : updated central_moment_1
+        new_central_moment_2 : updated central_moment_2
+        new_central_moment_3 : updated central_moment_3
+        new_central_moment_4 : updated central_moment_4
+        nsamples             : updated number of samples
 """
 @constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=7,priority=True)
@@ -92,17 +79,17 @@ def UpdateOnePassCentralMomentsAux_Task(sample,old_mean,old_central_moment_1,com
 
 
 """
-auxiliary function of UpdateOnepassPowerSums of the StatisticalVariable class
-input:  sample: new value that will update the statistics
-        old_S1: old first power sum
-        old_S2: old second power sum
-        old_S3: old third power sum
-        old_S4: old fourth power sum
-        nsamples: number of samples, it has already been updated in UpdateOnePassCentralMomentsAux_Task
-output: new_S1: updated first power sum
-        new_s2: updated second power sum
-        new_S3: updated third power sum
-        new_S4: updated fourth power sum
+auxiliary function of UpdateOnePassPowerSums of the StatisticalVariable class
+input:  sample   : new value that will update the statistics
+        old_S1   : old first power sum
+        old_S2   : old second power sum
+        old_S3   : old third power sum
+        old_S4   : old fourth power sum
+        nsamples : number of samples, it has already been updated in UpdateOnePassCentralMomentsAux_Task
+output: new_S1 : updated first power sum
+        new_s2 : updated second power sum
+        new_S3 : updated third power sum
+        new_S4 : updated fourth power sum
 """
 @constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=5,priority=True)
@@ -120,6 +107,25 @@ def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S4,nsamples):
         new_S4 = old_S4 + sample**4
     return new_S1,new_S2,new_S3,new_S4,nsamples
 
+
+"""
+auxiliary function of UpdateGlobalPowerSums of the StatisticalVariable class
+input:  old_S1                   : old first power sum
+        old_S2                   : old second power sum
+        old_S3                   : old third power sum
+        old_S4                   : old fourth power sum
+        number_samples_level     : number of samples, it has already been updated in UpdateOnePassCentralMomentsAux_Task
+        add_S1                   : power sum order one to add
+        add_S2                   : power sum order two to add
+        add_S3                   : power sum order three to add
+        add_S4                   : power sum order four to add
+        add_number_samples_level : number of samples to add
+output: new_S1               : updated first power sum
+        new_s2               : updated second power sum
+        new_S3               : updated third power sum
+        new_S4               : updated fourth power sum
+        number_samples_level : number of samples of current level
+"""
 @constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=5,priority=True)
 def UpdateGlobalPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_level,add_S1,add_S2,add_S3,add_S4,add_number_samples_level):
@@ -130,11 +136,23 @@ def UpdateGlobalPowerSumsAux_Task(old_S1,old_S2,old_S3,old_S4,number_samples_lev
     number_samples_level = number_samples_level + add_number_samples_level
     return new_S1,new_S2,new_S3,new_S4,number_samples_level
 
+
+"""
+function unfolding values from a list, needed by PyCOMPSs for list of lists
+input:  sample  : the list of lists
+output: sample[*] : list position * of the list of lists
+"""
 @constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=4, priority=True)
 def UnfoldValuesAux_Task(sample):
     return sample[0], sample[1], sample[2], sample[3]
 
+
+"""
+auxiliary function of UpdateBatchesPassPowerSums
+input:  samples : list of samples
+output: return the sum, done in mini_batch_size batches, of the samples components
+"""
 @constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=1,priority=True)
 def UpdateBatchesPassPowerSumsAux_Task(*samples):
@@ -167,15 +185,15 @@ def UpdateBatchesPassPowerSumsAux_Task(*samples):
 
 """
 auxiliary function of UpdateHStatistics of the StatisticalVariable class
-input:  S1_level:             first power sum at defined level
-        S2_level:             second power sum at defined level
-        S3_level:             third power sum at defined level
-        S4_level:             fourth power sum at defined level
-        number_samples_level: number of samples (already update) for defined level
-output: h1_level: first h statistics for defined level
-        h2_level: second h statistics for defined level
-        h3_level: third h statistics for defined level
-        h4_level: fourth h statistics for defined level
+input:  S1_level             : first power sum at defined level
+        S2_level             : second power sum at defined level
+        S3_level             : third power sum at defined level
+        S4_level             : fourth power sum at defined level
+        number_samples_level : number of samples (already update) for defined level
+output: h1_level : first h statistics for defined level
+        h2_level : second h statistics for defined level
+        h3_level : third h statistics for defined level
+        h4_level : fourth h statistics for defined level
 """
 @constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=4,priority=True)
@@ -193,11 +211,11 @@ def ComputeHStatisticsAux_Task(S1_level,S2_level,S3_level,S4_level,number_sample
 
 """
 auxiliary function of ComputeSkewnessKurtosis of the StatisticalVariable class
-input:  h2_level: second h statistics for defined level
-        h3_level: third h statistics for defined level
-        h4_level: fourth h statistics for defined level
-output: skewness_level: skewness for defined level
-        kurtosis_level: kurtosis for defined level
+input:  h2_level : second h statistics for defined level
+        h3_level : third h statistics for defined level
+        h4_level : fourth h statistics for defined level
+output: skewness_level : skewness for defined level
+        kurtosis_level : kurtosis for defined level
 """
 @constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=2,priority=True)
@@ -210,22 +228,22 @@ def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
 """
 auxiliary function of ComputeSampleCentralMomentsFromScratch of the StatisticalVariable class
 input:  sample: new value that will update the statistics
-        number_samples_level:                              number of samples for defined level
-        central_moment_from_scratch_1_to_compute:          boolean setting if computation is needed
-        central_moment_from_scratch_2_to_compute:          boolean setting if computation is needed
-        central_moment_from_scratch_3_to_compute:          boolean setting if computation is needed
-        central_moment_from_scratch_3_absolute_to_compute: boolean setting if computation is needed
-        central_moment_from_scratch_4_to_compute:          boolean setting if computation is needed
-        central_moment_from_scratch_1:                     old first central moment
-        central_moment_from_scratch_2:                     old second central moment
-        central_moment_from_scratch_3:                     old third central moment
-        central_moment_from_scratch_3_absolute:            old third central moment absolute value
-        central_moment_from_scratch_4:                     old fourth central moment
-output: central_moment_from_scratch_1:          updated first central moment
-        central_moment_from_scratch_2:          updated second central moment
-        central_moment_from_scratch_3:          updated third central moment
-        central_moment_from_scratch_3_absolute: updated third central moment absolute value
-        central_moment_from_scratch_4:          update fourth central moment
+        number_samples_level                              : number of samples for defined level
+        central_moment_from_scratch_1_to_compute          : boolean setting if computation is needed
+        central_moment_from_scratch_2_to_compute          : boolean setting if computation is needed
+        central_moment_from_scratch_3_to_compute          : boolean setting if computation is needed
+        central_moment_from_scratch_3_absolute_to_compute : boolean setting if computation is needed
+        central_moment_from_scratch_4_to_compute          : boolean setting if computation is needed
+        central_moment_from_scratch_1                     : old first central moment
+        central_moment_from_scratch_2                     : old second central moment
+        central_moment_from_scratch_3                     : old third central moment
+        central_moment_from_scratch_3_absolute            : old third central moment absolute value
+        central_moment_from_scratch_4                     : old fourth central moment
+output: central_moment_from_scratch_1          : updated first central moment
+        central_moment_from_scratch_2          : updated second central moment
+        central_moment_from_scratch_3          : updated third central moment
+        central_moment_from_scratch_3_absolute : updated third central moment absolute value
+        central_moment_from_scratch_4          : update fourth central moment
 """
 @constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=5,priority=True)
@@ -326,8 +344,9 @@ class StatisticalVariable(object):
 
     """
     function initializing variables of the Statistical Variable class in lists given number of levels
-    input:  self:          an instance of the class
-            number_levels: number of levels considered
+    input:  self                   : an instance of the class
+            number_levels          : number of levels considered
+            number_initial_batches : number of batches of iteration zero
     """
     def InitializeLists(self,number_levels,number_initial_batches):
         self.number_samples = [0 for _ in range (number_levels)]
@@ -361,9 +380,9 @@ class StatisticalVariable(object):
 
     """
     function updating statistic moments and number of samples
-    input:  self:     an instance of the class
-            level:    defined level
-            i_sample: defined level in level
+    input:  self     : an instance of the class
+            level    : defined level
+            i_sample : defined sample in level
     """
     def UpdateOnePassCentralMoments(self,level,i_sample):
         number_samples_level = self.number_samples[level]
@@ -393,9 +412,9 @@ class StatisticalVariable(object):
 
     """
     function updating the power sums S_p
-    input:  self:     an instance of the class
-            level:    defined level
-            i_sample: defined level in level
+    input:  self     : an instance of the class
+            level    : defined level
+            i_sample : defined sample in level
     """
     def UpdateOnePassPowerSums(self,level,i_sample):
         sample = self.values[level][i_sample]
@@ -411,6 +430,12 @@ class StatisticalVariable(object):
         self.power_sum_4[level] = new_S4
         self.number_samples[level] = number_samples_level
 
+    """
+    function updating the global power sums
+    input:  self          : an instance of the class
+            level         : current level
+            batch_counter : current batch
+    """
     def UpdateGlobalPowerSums(self,level,batch_counter):
         old_S1 = self.power_sum_1[level]
         old_S2 = self.power_sum_2[level]
@@ -431,25 +456,21 @@ class StatisticalVariable(object):
         self.power_sum_4[level] = new_S4
         self.number_samples[level] = number_samples_level
 
+    """
+    function updating the in-batch power sums
+    input:  self          : an instance of the class
+            level         : current level
+            batch_counter : current batch
+            mini_batch    : size such that we update the in-batch power sums with mini_batch samples
+    """
     def UpdateBatchesPassPowerSum(self,level,batch_counter,mini_batch=50):
         samples = self.values[batch_counter][level]
         #for mini_batch in range (0,len(samples)):
         while len(samples) > 1:
-            #old_S1 = self.power_sum_batches_1[batch_counter][level]
-            #old_S2 = self.power_sum_batches_2[batch_counter][level]
-            #old_S3 = self.power_sum_batches_3[batch_counter][level]
-            #old_S4 = self.power_sum_batches_4[batch_counter][level]
-            #number_samples_batches_level = self.batches_number_samples[batch_counter][level]
-
             mini_batches_samples = samples[:mini_batch]
             samples = samples[mini_batch:]
             new_power_sums = UpdateBatchesPassPowerSumsAux_Task(*mini_batches_samples)
             samples.append(new_power_sums)
-            #self.power_sum_batches_1[batch_counter][level] = new_S1
-            #self.power_sum_batches_2[batch_counter][level] = new_S2
-            #self.power_sum_batches_3[batch_counter][level] = new_S3
-            #self.power_sum_batches_4[batch_counter][level] = new_S4
-            #self.batches_number_samples[batch_counter][level] = number_samples_batches_level
         new_S1, new_S2, new_S3, new_S4 = UnfoldValuesAux_Task(samples[0])
         self.power_sum_batches_1[batch_counter][level] = new_S1
         self.power_sum_batches_2[batch_counter][level] = new_S2
@@ -459,8 +480,8 @@ class StatisticalVariable(object):
 
     """
     function computing the h statistics h_p from the power sums
-    input:  self:  an instance of the class
-            level: defined level
+    input:  self  : an instance of the class
+            level : defined level
     """
     def ComputeHStatistics(self,level):
         number_samples_level = self.number_samples[level]
@@ -477,8 +498,8 @@ class StatisticalVariable(object):
 
     """
     function computing from scratch the central moments and the absolute third central moment
-    input:  self:  an instance of the class
-            level: defined level
+    input:  self  : an instance of the class
+            level : defined level
     """
     def ComputeSampleCentralMomentsFromScratch(self,level,number_samples_level):
         # initialize central moments
@@ -497,9 +518,6 @@ class StatisticalVariable(object):
         for batch in range (len(self.values)):
             for mini_batch_samples in self.values[batch][level]:
                 samples.append(mini_batch_samples)
-        # samples = [<pycompss.runtime.binding.Future>, <pycompss.runtime.binding.Future>]
-        # samples = [[1.53, 1.51], [1.48]]
-        # problems: compss does not support list of lists, but the number of mini batches can change, no fix number
 
         central_moment_from_scratch_1,central_moment_from_scratch_2,central_moment_from_scratch_3,central_moment_from_scratch_3_absolute,central_moment_from_scratch_4 = \
             ComputeSampleCentralMomentsFromScratchAux_Task(number_samples_level,central_moment_from_scratch_1_to_compute, \
@@ -515,8 +533,8 @@ class StatisticalVariable(object):
     function computing the skewness and the kurtosis from the h statistics
     skewness = \mu_3 / \sqrt(\mu_2^3)
     kurtosis = \mu_4 / \mu_2^2
-    input:  self:  an instance of the class
-            level: defined level
+    input:  self  : an instance of the class
+            level : defined level
     """
     def ComputeSkewnessKurtosis(self,level):
         if (self.h_statistics_computed):
