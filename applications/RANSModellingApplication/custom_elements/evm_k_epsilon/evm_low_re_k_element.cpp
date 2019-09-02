@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    , KratosAppGenerator
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
 // System includes
@@ -391,16 +391,16 @@ void EvmLowReKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData
 {
     rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
 
-    const double& c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    const double& tke_sigma = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
+    const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    const double tke_sigma = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
 
-    const double& nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
-    const double& tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
-    const double& nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
-    const double& wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
-    const double& y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
-    const double& f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
-    const double& gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, f_mu, tke, nu_t);
+    const double nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
+    const double tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
+    const double nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
+    const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
+    const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
+    const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
+    const double gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, f_mu, tke, nu_t);
 
     rData.TurbulentKinematicViscosity = nu_t;
     rData.TurbulentKineticEnergy = tke;

@@ -92,6 +92,8 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
+    typedef TConvectionDiffusionReactionData ConvectionDiffusionReactionDataType;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of StabilizedConvectionDiffusionReactionElement
@@ -104,7 +106,7 @@ public:
     /**
      * Constructor.
      */
-    StabilizedConvectionDiffusionReactionElement(IndexType NewId = 0)
+    explicit StabilizedConvectionDiffusionReactionElement(IndexType NewId = 0)
         : Element(NewId)
     {
     }
@@ -333,7 +335,7 @@ public:
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
-            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const Vector gauss_shape_functions = row(shape_functions, g);
 
             const Matrix& r_parameter_derivatives_g = r_parameter_derivatives[g];
             Matrix contravariant_metric_tensor(r_parameter_derivatives_g.size1(),
@@ -528,7 +530,7 @@ public:
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
-            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const Vector gauss_shape_functions = row(shape_functions, g);
 
             const Matrix& r_parameter_derivatives_g = r_parameter_derivatives[g];
             Matrix contravariant_metric_tensor(r_parameter_derivatives_g.size1(),
@@ -536,7 +538,7 @@ public:
             noalias(contravariant_metric_tensor) =
                 prod(trans(r_parameter_derivatives_g), r_parameter_derivatives_g);
 
-            const double mass = gauss_weights[g] / TNumNodes;
+            const double mass = gauss_weights[g] * (1.0 / TNumNodes);
             this->AddLumpedMassMatrix(rMassMatrix, mass);
 
             const array_1d<double, 3>& velocity =
@@ -605,7 +607,7 @@ public:
         for (unsigned int g = 0; g < num_gauss_points; g++)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
-            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const Vector gauss_shape_functions = row(shape_functions, g);
 
             const Matrix& r_parameter_derivatives_g = r_parameter_derivatives[g];
             Matrix contravariant_metric_tensor(r_parameter_derivatives_g.size1(),
@@ -661,8 +663,8 @@ public:
                     chi, k1, k2, velocity_magnitude, tau, effective_kinematic_viscosity,
                     reaction, bossak_alpha, bossak_gamma, delta_time, element_length, dynamic_tau);
 
-                stream_line_diffusion = residual * chi * k1 / velocity_magnitude_square;
-                cross_wind_diffusion = residual * chi * k2 / velocity_magnitude_square;
+                stream_line_diffusion = residual * chi * k1 * (1.0 / velocity_magnitude_square);
+                cross_wind_diffusion = residual * chi * k2 * (1.0 / velocity_magnitude_square);
             }
 
             const double s = std::abs(reaction);
@@ -778,6 +780,111 @@ public:
         KRATOS_CATCH("");
     }
 
+    double EvaluateInPoint(const Variable<double>& rVariable,
+                           const Vector& rShapeFunction,
+                           const int Step = 0) const
+    {
+        return RansCalculationUtilities().EvaluateInPoint(
+            this->GetGeometry(), rVariable, rShapeFunction, Step);
+    }
+
+    array_1d<double, 3> EvaluateInPoint(const Variable<array_1d<double, 3>>& rVariable,
+                                        const Vector& rShapeFunction,
+                                        const int Step = 0) const
+    {
+        return RansCalculationUtilities().EvaluateInPoint(
+            this->GetGeometry(), rVariable, rShapeFunction, Step);
+    }
+
+    double GetDivergenceOperator(const Variable<array_1d<double, 3>>& rVariable,
+                                 const Matrix& rShapeDerivatives,
+                                 const int Step = 0) const
+    {
+        double value = 0.0;
+        const GeometryType& r_geometry = this->GetGeometry();
+
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
+            const array_1d<double, 3>& r_value =
+                r_geometry[i].FastGetSolutionStepValue(rVariable, Step);
+            for (unsigned int j = 0; j < TDim; ++j)
+            {
+                value += r_value[j] * rShapeDerivatives(i, j);
+            }
+        }
+
+        return value;
+    }
+
+    virtual void CalculateConvectionDiffusionReactionData(
+        TConvectionDiffusionReactionData& rData,
+        double& rEffectiveKinematicViscosity,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo,
+        const int Step = 0) const
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Attempting to call base "
+                        "StabilizedConvectionDiffusionReactionElement "
+                        "CalculateConvectionDiffusionReactionData method. "
+                        "Please implement it in the derrived class."
+                     << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    virtual void CalculateConvectionDiffusionReactionData(
+        TConvectionDiffusionReactionData& rData,
+        double& rEffectiveKinematicViscosity,
+        double& rVariableGradientNorm,
+        double& rVariableRelaxedAcceleration,
+        const Vector& rShapeFunctions,
+        const Matrix& rShapeFunctionDerivatives,
+        const ProcessInfo& rCurrentProcessInfo,
+        const int Step = 0) const
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Attempting to call base "
+                        "StabilizedConvectionDiffusionReactionElement "
+                        "CalculateConvectionDiffusionReactionData method. "
+                        "Please implement it in the derrived class."
+                     << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    ShapeFunctionDerivativesArrayType GetGeometryParameterDerivatives() const
+    {
+        const GeometryType& r_geometry = this->GetGeometry();
+        return RansCalculationUtilities().CalculateGeometryParameterDerivatives(
+            r_geometry, this->GetIntegrationMethod());
+    }
+
+    virtual double CalculateReactionTerm(const TConvectionDiffusionReactionData& rData,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const int Step = 0) const
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Attempting to call base "
+                        "StabilizedConvectionDiffusionReactionElement "
+                        "CalculateReactionTerm method. Please implement it in "
+                        "the derrived class."
+                     << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    virtual double CalculateSourceTerm(const TConvectionDiffusionReactionData& rData,
+                                       const ProcessInfo& rCurrentProcessInfo,
+                                       const int Step = 0) const
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Attempting to call base "
+                        "StabilizedConvectionDiffusionReactionElement "
+                        "CalculateSourceTerm method. Please implement it in "
+                        "the derrived class."
+                     << std::endl;
+        KRATOS_CATCH("");
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -825,68 +932,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void CalculateConvectionDiffusionReactionData(
-        TConvectionDiffusionReactionData& rData,
-        double& rEffectiveKinematicViscosity,
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo,
-        const int Step = 0) const
-    {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to call base "
-                        "StabilizedConvectionDiffusionReactionElement "
-                        "CalculateConvectionDiffusionReactionData method. "
-                        "Please implement it in the derrived class."
-                     << std::endl;
-        KRATOS_CATCH("");
-    }
-
-    virtual void CalculateConvectionDiffusionReactionData(
-        TConvectionDiffusionReactionData& rData,
-        double& rEffectiveKinematicViscosity,
-        double& rVariableGradientNorm,
-        double& rVariableRelaxedAcceleration,
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo,
-        const int Step = 0) const
-    {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to call base "
-                        "StabilizedConvectionDiffusionReactionElement "
-                        "CalculateConvectionDiffusionReactionData method. "
-                        "Please implement it in the derrived class."
-                     << std::endl;
-        KRATOS_CATCH("");
-    }
-
-    virtual double CalculateSourceTerm(const TConvectionDiffusionReactionData& rData,
-                                       const ProcessInfo& rCurrentProcessInfo,
-                                       const int Step = 0) const
-    {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to call base "
-                        "StabilizedConvectionDiffusionReactionElement "
-                        "CalculateSourceTerm method. Please implement it in "
-                        "the derrived class."
-                     << std::endl;
-        KRATOS_CATCH("");
-    }
-
-    virtual double CalculateReactionTerm(const TConvectionDiffusionReactionData& rData,
-                                         const ProcessInfo& rCurrentProcessInfo,
-                                         const int Step = 0) const
-    {
-        KRATOS_TRY;
-        KRATOS_ERROR << "Attempting to call base "
-                        "StabilizedConvectionDiffusionReactionElement "
-                        "CalculateReactionTerm method. Please implement it in "
-                        "the derrived class."
-                     << std::endl;
-        KRATOS_CATCH("");
-    }
-
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
     virtual void CalculateGeometryData(Vector& rGaussWeights,
                                        Matrix& rNContainer,
@@ -896,29 +941,6 @@ protected:
 
         RansCalculationUtilities().CalculateGeometryData(
             r_geometry, this->GetIntegrationMethod(), rGaussWeights, rNContainer, rDN_DX);
-    }
-
-    ShapeFunctionDerivativesArrayType GetGeometryParameterDerivatives() const
-    {
-        const GeometryType& r_geometry = this->GetGeometry();
-        return RansCalculationUtilities().CalculateGeometryParameterDerivatives(
-            r_geometry, this->GetIntegrationMethod());
-    }
-
-    double EvaluateInPoint(const Variable<double>& rVariable,
-                           const Vector& rShapeFunction,
-                           const int Step = 0) const
-    {
-        return RansCalculationUtilities().EvaluateInPoint(
-            this->GetGeometry(), rVariable, rShapeFunction, Step);
-    }
-
-    array_1d<double, 3> EvaluateInPoint(const Variable<array_1d<double, 3>>& rVariable,
-                                        const Vector& rShapeFunction,
-                                        const int Step = 0) const
-    {
-        return RansCalculationUtilities().EvaluateInPoint(
-            this->GetGeometry(), rVariable, rShapeFunction, Step);
     }
 
     void GetConvectionOperator(BoundedVector<double, TNumNodes>& rOutput,
@@ -931,26 +953,6 @@ protected:
             {
                 rOutput[i] += rVector[j] * rShapeDerivatives(i, j);
             }
-    }
-
-    double GetDivergenceOperator(const Variable<array_1d<double, 3>>& rVariable,
-                                 const Matrix& rShapeDerivatives,
-                                 const int Step = 0) const
-    {
-        double value = 0.0;
-        const GeometryType& r_geometry = this->GetGeometry();
-
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
-            const array_1d<double, 3>& r_value =
-                r_geometry[i].FastGetSolutionStepValue(rVariable, Step);
-            for (unsigned int j = 0; j < TDim; ++j)
-            {
-                value += r_value[j] * rShapeDerivatives(i, j);
-            }
-        }
-
-        return value;
     }
 
     void CalculateGradient(BoundedMatrix<double, TDim, TDim>& rOutput,
