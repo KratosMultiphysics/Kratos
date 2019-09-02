@@ -23,10 +23,6 @@ import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
-"""
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-"""
 
 # Import cpickle to pickle the serializer
 try:
@@ -52,9 +48,9 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 
 """
 auxiliary function of AddResults of the MonteCarlo class
-input:  simulation_results: an instance of the monte carlo result class
-        level:              working level
-output: QoI_value: qoi value to be added
+input:  level              : working level
+        simulation_results : an instance of the monte carlo result class
+output: new_values : power sums up to power 4
 """
 @ExaquteTask(returns=1,priority=True)
 def AddResultsAux_Task(level,*simulation_results):
@@ -69,16 +65,17 @@ def AddResultsAux_Task(level,*simulation_results):
 
 """
 auxiliary function of CheckConvergence of the MonteCarlo class
-input:  current_number_samples:                   current number of samples computed
-        current_mean:                             current mean
-        current_h2:                               current h2 statistics
-        current_h3:                               current h3 statistics
-        current_sample_central_moment_3_absolute: current third absolute central moment
-        current_h4:                               current h4 statistics
-        current_tol:                              current tolerance
-        current_delta:                            current error probability (1 - confidence)
-        convergence_criteria:                     convergence criteria exploited to check convergence
-output: convergence_boolean: boolean setting if convergence is achieved
+input:  current_number_samples                   : current number of samples computed
+        current_mean                             : current mean
+        current_h2                               : current h2 statistics
+        current_h3                               : current h3 statistics
+        current_sample_central_moment_3_absolute : current third absolute central moment
+        current_h4                               : current h4 statistics
+        current_tol                              : current tolerance
+        current_tol_absolute                     : current absolute tolerance
+        current_delta                            : current error probability (1 - confidence)
+        convergence_criteria                     : convergence criteria exploited to check convergence
+output : convergence_boolean: boolean setting if convergence is achieved
 """
 @ExaquteTask(returns=1,priority=True)
 def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,current_h3,current_sample_central_moment_3_absolute,current_h4,current_tol,current_tol_absolute,current_delta,convergence_criteria):
@@ -134,9 +131,12 @@ def CheckConvergenceAux_Task(current_number_samples,current_mean,current_h2,curr
 
 """
 auxiliary function of ExecuteInstance of the MonteCarlo class
-input:  model:      serialization of the model
-        parameters: serialization of the Project Parameters
-output: QoI: Quantity of Interest
+input:  pickled_model : pickled model
+        pickled_project_parameters : pickled project parameters
+        sample                     : current instance random variable(s)
+        current_analysis_stage     : analysis stage of the problem
+        current_level              : current level of the execution (= 0 for Monte Carlo)
+output: mc_results_class : instance of MonteCarloResults class
 """
 @constraint(ComputingUnits="${computing_units_mc_execute}")
 @ExaquteTask(returns=1)
@@ -181,12 +181,13 @@ def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,sample,curr
 class MonteCarlo(object):
     """The base class for the MonteCarlo-classes"""
     def __init__(self,custom_parameters_path,project_parameters_path,custom_analysis):
-        """constructor of the MonteCarlo-Object
+        """
+        constructor of the MonteCarlo-Object
         Keyword arguments:
-        self:                    an instance of the class
-        custom_parameters_path:  path of the Monte Carlo simulation
-        project_parameters_path: path of the project parameters file
-        custom_analysis:         analysis stage of the problem
+        self                    : an instance of the class
+        custom_parameters_path  : path of the Monte Carlo simulation
+        project_parameters_path : path of the project parameters file
+        custom_analysis         : analysis stage of the problem
         """
 
         # analysis: analysis stage of the current problem
@@ -200,11 +201,14 @@ class MonteCarlo(object):
         else:
             raise Exception ("Please provide the path of the project parameters json file")
         # default settings of the Monte Carlo algorithm
-        # tolerance:            relative tolerance
-        # tolerance_absolute:   safety tolerance (absolute). Useful if expected value (qoi) is zero
-        # confidence:           confidence on tolerance
-        # batch_size:           number of samples per batch size
-        # convergence_criteria: convergence criteria to compute convergence
+        # run_monte_carlo           : boolean setting if run or not the algorithm
+        # tolerance                 :  relative tolerance
+        # tolerance_absolute        : safety tolerance (absolute). Useful if expected value (qoi) is zero
+        # confidence                : confidence on tolerance
+        # batch_size                : number of samples per batch size
+        # initial_number_batches    : the starting number of batches
+        # maximum_number_iterations : maximum number of iterations to run
+        # convergence_criteria      : convergence criteria to compute convergence
         default_settings = KratosMultiphysics.Parameters("""
         {
             "run_monte_carlo" : true,
@@ -279,7 +283,7 @@ class MonteCarlo(object):
 
     """
     function executing the Monte Carlo algorithm
-    input: self: an instance of the class
+    input: self : an instance of the class
     """
     def Run(self):
         if (self.settings["run_monte_carlo"].GetBool()):
@@ -302,7 +306,7 @@ class MonteCarlo(object):
 
     """
     function running one Monte Carlo epoch
-    input: self: an instance of the class
+    input: self : an instance of the class
     """
     def LaunchEpoch(self):
         for batch in range (len(self.batches_number_samples)):
@@ -319,12 +323,12 @@ class MonteCarlo(object):
 
     """
     function executing an instance of the Monte Carlo algorithm
-    requires:  self.pickled_model:              pickled model
-               self.pickled_project_parameters: pickled parameters
-               self.current_analysis_stage:     analysis stage of the problem
+    requires:  self.pickled_model              : pickled model
+               self.pickled_project_parameters : pickled parameters
+               self.current_analysis_stage     : analysis stage of the problem
     input:  self: an instance of the class
-    output: MonteCarloResults class: an instance og the MonteCarloResults class
-            current_level:           level of the current MC simulation (= 0)
+    output: MonteCarloResults class : an instance og the MonteCarloResults class
+            current_level           : level of the current MC simulation (= 0)
     """
     def ExecuteInstance(self):
         # ensure working level is level 0
@@ -337,7 +341,7 @@ class MonteCarlo(object):
 
     """
     function initializing the MC phase
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def InitializeMCPhase(self):
         current_level = self.current_level
@@ -379,19 +383,19 @@ class MonteCarlo(object):
 
     """
     function updating number of batches and batch size
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def UpdateBatches(self):
         # set here number of batches to append
         new_number_batches = 1
         # update batch size
         self.UpdateBatchSize()
-        for new_batch in range (new_number_batches):
+        for _ in range (new_number_batches):
             self.batches_launched.append(False)
 
     """
     function updating batch size
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     TODO: for now batch_size = batch_size, in future flags can be added to have different behaviours
     """
     def UpdateBatchSize(self):
@@ -399,7 +403,7 @@ class MonteCarlo(object):
 
     """
     function finalizing the MC phase
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def FinalizeMCPhase(self):
         current_level = self.current_level
@@ -444,10 +448,10 @@ class MonteCarlo(object):
 
     """
     function adding QoI values to the corresponding level
-    input:  self:               an instance of the class
-            simulation_results: tuple=(instance of MonteCarloResults class, working level)
-            batch_number      : number of working batch
-            batch_size        : compute add result for with this size
+    input:  self               : an instance of the class
+            simulation_results : tuple=(instance of MonteCarloResults class, working level)
+            batch_number       : number of working batch
+            mini_batch_size    : compute add result grouping results with this size
     """
     def AddResults(self,simulation_results,batch_number,mini_batch_size=50):
         current_level = simulation_results[0][1]  # not compss future object, it is working level
@@ -471,9 +475,9 @@ class MonteCarlo(object):
     iii) from pickle string to StreamSerializer Kratos object
     iv)  from StreamSerializer Kratos object to Model/Parameters Kratos object
     requires: self.project_parameters_path: path of the Project Parameters file
-    builds: self.pickled_model:              pickled model
-            self.pickled_project_parameters: pickled project parameters
-    input:  self: an instance of the class
+    builds: self.pickled_model              : pickled model
+            self.pickled_project_parameters : pickled project parameters
+    input:  self : an instance of the class
     """
     def SerializeModelParameters(self):
         with open(self.project_parameters_path,'r') as parameter_file:
@@ -509,8 +513,8 @@ class MonteCarlo(object):
         print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
 
     """
-    function reading the XMC parameters passed from json file
-    input:  self: an instance of the class
+    function reading the xmc parameters passed from json file
+    input:  self : an instance of the class
     """
     def SetXMCParameters(self):
         with open(self.custom_parameters_path,'r') as parameter_file:
@@ -519,16 +523,16 @@ class MonteCarlo(object):
 
     """
     function defining the Kratos specific application analysis stage of the problem
-    input:  self: an instance of the class
-            application_analysis_stage: working analysis stage Kratos class
+    input:  self                       : an instance of the class
+            application_analysis_stage : working analysis stage Kratos class
     """
     def SetAnalysis(self,application_analysis_stage):
         self.analysis = application_analysis_stage
 
     """
-    function getting the Kratos specific application analysis stage of the problem previously defined
-    input:  self: an instance of the class
-    output: self.analysis: working analysis stage Kratos class
+    function returning the Kratos specific application analysis stage of the problem previously defined
+    input:  self          : an instance of the class
+    output: self.analysis : working analysis stage Kratos class
     """
     def GetAnalysis(self):
         if (self.analysis is not None):
@@ -538,8 +542,8 @@ class MonteCarlo(object):
 
     """
     function checking the convergence of the MC algorithm, with respect to the selected convergence criteria
-    input:  self:  an instance of the class
-            level: working level
+    input:  self  : an instance of the class
+            level : working level
     """
     def CheckConvergence(self,level):
         current_number_samples = self.QoI.number_samples[level]
@@ -558,14 +562,14 @@ class MonteCarlo(object):
 
     """
     function printing informations about initializing MLMC phase
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ScreeningInfoInitializeMCPhase(self):
         print("\n","#"*50," MC iter =  ",self.iteration_counter,"#"*50,"\n")
 
     """
     function printing informations about finalizing MC phase
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ScreeningInfoFinalizeMCPhase(self):
         print("current convergence batch =",self.current_convergence_batch)
@@ -578,7 +582,7 @@ class MonteCarlo(object):
 
     """
     function setting the convergence criteria the algorithm will exploit
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def SetConvergenceCriteria(self):
         convergence_criteria = self.settings["convergence_criteria"].GetString()
@@ -588,9 +592,9 @@ class MonteCarlo(object):
 
 
 """
-auxiliary function of CheckConvergence for the MC_higher_moments_sequential_stopping_rule criteria
-input:  x:    parameter of the function
-        beta: parameter of the function
+auxiliary function of CheckConvergence for the MC_higher_moments_sequential_stopping_rule criteria, see [3] for details
+input:  x    : parameter of the function
+        beta : parameter of the function
 """
 def _ComputeBoundFunction(x,beta):
     return np.minimum(0.3328 * (beta + 0.429), 18.1139 * beta / (1 + (np.abs(x)**3)))
@@ -598,7 +602,7 @@ def _ComputeBoundFunction(x,beta):
 
 """
 function computing the cumulative distribution function of the standard normal distribution
-input:  x: probability that real-valued random variable X, or just distribution function of X, will take a value less than or equal to x
+input:  x : probability that real-valued random variable X, or just distribution function of X, will take a value less than or equal to x
 """
 def _ComputeCDFStandardNormalDistribution(x):
     # cumulative distribution function (CDF) for the standard normal distribution
