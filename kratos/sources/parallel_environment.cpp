@@ -22,15 +22,6 @@ namespace Kratos {
 
 // Public interface of ParallelEnvironment ////////////////////////////////////
 
-void ParallelEnvironment::RegisterDataCommunicator(
-    const std::string& Name,
-    const DataCommunicator& rPrototype,
-    const bool Default)
-{
-    ParallelEnvironment& env = GetInstance();
-    env.RegisterDataCommunicatorDetail(Name, rPrototype, Default);
-}
-
 DataCommunicator& ParallelEnvironment::GetDataCommunicator(const std::string& rName)
 {
     const ParallelEnvironment& env = GetInstance();
@@ -49,10 +40,37 @@ void ParallelEnvironment::SetDefaultDataCommunicator(const std::string& rName)
     env.SetDefaultDataCommunicatorDetail(rName);
 }
 
+int ParallelEnvironment::GetDefaultRank()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.mDefaultRank;
+}
+
+int ParallelEnvironment::GetDefaultSize()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.mDefaultSize;
+}
+
+void ParallelEnvironment::RegisterDataCommunicator(
+    const std::string& Name,
+    const DataCommunicator& rPrototype,
+    const bool Default)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.RegisterDataCommunicatorDetail(Name, rPrototype, Default);
+}
+
 bool ParallelEnvironment::HasDataCommunicator(const std::string& rName)
 {
     const ParallelEnvironment& env = GetInstance();
     return env.HasDataCommunicatorDetail(rName);
+}
+
+std::string ParallelEnvironment::GetDefaultDataCommunicatorName()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.mDefaultCommunicator->first;
 }
 
 std::string ParallelEnvironment::Info()
@@ -106,6 +124,15 @@ ParallelEnvironment& ParallelEnvironment::GetInstance()
     return *mpInstance;
 }
 
+void ParallelEnvironment::SetAsDefault(
+    std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator& rThisCommunicator)
+{
+    mDefaultCommunicator = rThisCommunicator;
+    const auto& r_comm = *(rThisCommunicator->second);
+    mDefaultRank = r_comm.Rank();
+    mDefaultSize = r_comm.Size();
+}
+
 void ParallelEnvironment::Create()
 {
     static ParallelEnvironment parallel_environment;
@@ -127,7 +154,7 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
 
         if (Default == MakeDefault)
         {
-            mDefaultCommunicator = pair_iterator;
+            SetAsDefault(pair_iterator);
         }
     }
     else {
@@ -135,7 +162,7 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
         << "Trying to register a new DataCommunicator with name " << Name
         << " but a DataCommunicator with the same name already exists: "
         << *(found->second)
-        << " The second object has not been added." << std::endl;
+        << " The provided DataCommunicator has not been added." << std::endl;
     }
 }
 
@@ -159,7 +186,7 @@ void ParallelEnvironment::SetDefaultDataCommunicatorDetail(const std::string& rN
     << "Trying to set \"" << rName << "\" as the default DataCommunicator,"
     << " but no registered DataCommunicator with that name has been found." << std::endl;
 
-    mDefaultCommunicator = found;
+    SetAsDefault(found);
 }
 
 bool ParallelEnvironment::HasDataCommunicatorDetail(const std::string& rName) const
