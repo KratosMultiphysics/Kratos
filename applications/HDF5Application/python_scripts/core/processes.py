@@ -15,7 +15,7 @@ import KratosMultiphysics
 
 class OrderedOperationProcess(KratosMultiphysics.Process):
     """A process for grouping operations.
-    
+
     This implements a whole-part structural decomposition. The members are
     operations or function objects with no arguments. They may be attached
     to any of the process steps during construction and are called in the same
@@ -93,7 +93,7 @@ class OrderedOperationProcess(KratosMultiphysics.Process):
 
 class ControllerProcess(OrderedOperationProcess):
     """A process for grouping controllers.
-    
+
     This adds a shorter more specific name for the process that groups
     controllers.
     """
