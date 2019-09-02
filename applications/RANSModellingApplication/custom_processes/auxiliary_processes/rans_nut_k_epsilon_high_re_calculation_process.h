@@ -150,7 +150,7 @@ public:
 
         ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        NodesContainerType& r_nodes = r_model_part.Nodes();
+        ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
         int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for

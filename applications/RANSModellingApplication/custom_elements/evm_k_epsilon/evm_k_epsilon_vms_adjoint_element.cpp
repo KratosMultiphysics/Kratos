@@ -284,6 +284,20 @@ void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSi
     rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
     rData.ShapeFunctions = rShapeFunctions;
 
+    rData.TurbulentKinematicViscositySensitivitiesK.resize(TNumNodes);
+    rData.TurbulentKinematicViscositySensitivitiesEpsilon.resize(TNumNodes);
+
+    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+    {
+        const NodeType& r_node = this->GetGeometry()[i_node];
+        const Vector& turbulent_kinematic_viscosity_sensitivities =
+            r_node.GetValue(RANS_NUT_PARTIAL_DERIVATIVES);
+        rData.TurbulentKinematicViscositySensitivitiesK[i_node] =
+            turbulent_kinematic_viscosity_sensitivities[0];
+        rData.TurbulentKinematicViscositySensitivitiesEpsilon[i_node] =
+            turbulent_kinematic_viscosity_sensitivities[1];
+    }
+
     RansVariableUtils rans_variable_utils;
 
     rans_variable_utils.GetNodalArray(rData.NodalTurbulentKineticEnergy, *this,
@@ -315,23 +329,13 @@ void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSi
 
     if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY)
     {
-        const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-
-        EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityTKESensitivities(
-            rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-            rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rOutput, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK, rCurrentData.ShapeFunctions);
     }
     else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE)
     {
-        const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-
-        EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityEpsilonSensitivities(
-            rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-            rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rOutput, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon, rCurrentData.ShapeFunctions);
     }
     else
     {

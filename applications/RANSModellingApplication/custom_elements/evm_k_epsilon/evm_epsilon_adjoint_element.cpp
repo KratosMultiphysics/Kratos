@@ -377,6 +377,20 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     const double& y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
     const double& gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
 
+    rData.TurbulentKinematicViscositySensitivitiesK.resize(TNumNodes);
+    rData.TurbulentKinematicViscositySensitivitiesEpsilon.resize(TNumNodes);
+
+    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+    {
+        const NodeType& r_node = this->GetGeometry()[i_node];
+        const Vector& turbulent_kinematic_viscosity_sensitivities =
+            r_node.GetValue(RANS_NUT_PARTIAL_DERIVATIVES);
+        rData.TurbulentKinematicViscositySensitivitiesK[i_node] =
+            turbulent_kinematic_viscosity_sensitivities[0];
+        rData.TurbulentKinematicViscositySensitivitiesEpsilon[i_node] =
+            turbulent_kinematic_viscosity_sensitivities[1];
+    }
+
     rData.TurbulentKinematicViscosity = nu_t;
     rData.TurbulentKineticEnergy = tke;
     rData.TurbulentEnergyDissipationRate = epsilon;
@@ -459,13 +473,11 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     {
         const double epsilon_sigma =
             rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
-        const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-
-        EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityTKESensitivities(
-            rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-            rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
+        // EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityTKESensitivities(
+        //     rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
+        //     rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rOutput, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK, rCurrentData.ShapeFunctions);
 
         noalias(rOutput) = rOutput / epsilon_sigma;
     }
@@ -473,13 +485,13 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     {
         const double epsilon_sigma =
             rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
-        const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+        // const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
 
-        EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityEpsilonSensitivities(
-            rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-            rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
+        // EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityEpsilonSensitivities(
+        //     rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
+        //     rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rOutput, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon, rCurrentData.ShapeFunctions);
 
         noalias(rOutput) = rOutput / epsilon_sigma;
     }
@@ -504,12 +516,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
         const double c2 = rCurrentData.C2;
 
-        EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityTKESensitivities(
-            rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-            rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
-
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rOutput, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK, rCurrentData.ShapeFunctions);
 
         Vector theta_sensitivities(rOutput.size());
         EvmKepsilonModelAdjointUtilities::CalculateThetaTKESensitivity(
@@ -523,11 +531,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
         const double c2 = rCurrentData.C2;
 
-        EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityEpsilonSensitivities(
-            rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-            rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rOutput, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon, rCurrentData.ShapeFunctions);
 
         Vector theta_sensitivities(rOutput.size());
         EvmKepsilonModelAdjointUtilities::CalculateThetaEpsilonSensitivity(
@@ -555,11 +560,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
         const double c1 = rCurrentData.C1;
 
-        EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityTKESensitivities(
-            rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-            rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rOutput, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK, rCurrentData.ShapeFunctions);
 
         BoundedMatrix<double, TDim, TDim> velocity_gradient;
         this->CalculateGradient(velocity_gradient, VELOCITY,
@@ -586,11 +588,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
         const double c1 = rCurrentData.C1;
 
-        EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityEpsilonSensitivities(
-            rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-            rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rOutput, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon, rCurrentData.ShapeFunctions);
 
         BoundedMatrix<double, TDim, TDim> velocity_gradient;
         this->CalculateGradient(velocity_gradient, VELOCITY,
@@ -653,7 +652,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     const EvmEpsilonAdjointElementData& rCurrentData,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    noalias(rOutput) = rCurrentData.ShapeFunctionDerivatives * ((2.0 / 3.0 ) * rCurrentData.C1);
+    noalias(rOutput) =
+        rCurrentData.ShapeFunctionDerivatives * ((2.0 / 3.0) * rCurrentData.C1);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
@@ -668,8 +668,9 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     this->CalculateGradient(velocity_gradient, VELOCITY, rCurrentData.ShapeFunctionDerivatives);
 
     EvmKepsilonModelAdjointUtilities::CalculateProductionVelocitySensitivities<TDim>(
-        rOutput, rCurrentData.TurbulentKinematicViscosity, ZeroMatrix(rOutput.size1(), rOutput.size2()),
-        velocity_gradient, rCurrentData.ShapeFunctionDerivatives);
+        rOutput, rCurrentData.TurbulentKinematicViscosity,
+        ZeroMatrix(rOutput.size1(), rOutput.size2()), velocity_gradient,
+        rCurrentData.ShapeFunctionDerivatives);
 
     noalias(rOutput) = rOutput * (c1 * rCurrentData.Gamma);
 }
@@ -693,7 +694,7 @@ double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize
     const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    return (2.0 * rCurrentData.C1 / 3.0)  * this->GetDivergenceOperator(VELOCITY, rDN_Dx_deriv);
+    return (2.0 * rCurrentData.C1 / 3.0) * this->GetDivergenceOperator(VELOCITY, rDN_Dx_deriv);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>

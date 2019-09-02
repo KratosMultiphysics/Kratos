@@ -73,14 +73,11 @@ namespace Kratos
  * $u_x$, $u_y$, $u_z$, $P$ are velocity componenets and pressure.
  *
  * RANS_NUT_PARTIAL_DERIVATIVES vector variable is filled with partial derivatives of each node in following order
- *      Index 0: partial derivative of \nu_t w.r.t. $u_x$
- *      Index 1: partial derivative of \nu_t w.r.t. $u_y$
- *      Index 2: partial derivative of \nu_t w.r.t. $u_z$
- *      Index 3: partial derivative of \nu_t w.r.t. $P$
- *      Index 4: partial derivative of \nu_t w.r.t. $k$
- *      Index 5: partial derivative of \nu_t w.r.t. $\epsilon$
+ *      Index 0: partial derivative of \nu_t w.r.t. $k$
+ *      Index 1: partial derivative of \nu_t w.r.t. $\epsilon$
  *
- * This variable is only stored in nodal data value container (not in the historical data value container)
+ * This variable is only stored in nodal data value container (not in the historical data value container). The velocity
+ * and pressure derivatives are not stored since n the $k-\epsilon$ high $Re$ implementation, they are always zero.
  *
  * @see RansNutKEpsilonHighReCalculationProcess
  */
@@ -171,30 +168,28 @@ public:
 
         ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-        const int domain_size = r_model_part.GetProcessInfo()[DOMAIN_SIZE];
-
-        NodesContainerType& r_nodes = r_model_part.Nodes();
+        ModelPart::NodesContainerType& r_nodes = r_model_part.Nodes();
         int number_of_nodes = r_nodes.size();
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
         {
             NodeType& r_node = *(r_nodes.begin() + i_node);
-            Vector nut_partial_derivatives = ZeroVector(domain_size + 3);
+            Vector nut_partial_derivatives(2);
 
             const double& tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
             const double& epsilon =
                 r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
 
-            nut_partial_derivatives[domain_size + 1] = 2.0 * mCmu * tke / epsilon;
-            nut_partial_derivatives[domain_size + 2] =
-                -1.0 * mCmu * std::pow(tke / epsilon, 2);
+            nut_partial_derivatives[0] = 2.0 * mCmu * tke / epsilon;
+            nut_partial_derivatives[1] = -1.0 * mCmu * std::pow(tke / epsilon, 2);
 
             r_node.SetValue(RANS_NUT_PARTIAL_DERIVATIVES, nut_partial_derivatives);
         }
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
-            << "Calculated k-epsilon high Re nu_t sensitivities for nodes in" << mModelPartName << "\n";
+            << "Calculated k-epsilon high Re nu_t sensitivities for nodes in"
+            << mModelPartName << "\n";
 
         KRATOS_CATCH("");
     }

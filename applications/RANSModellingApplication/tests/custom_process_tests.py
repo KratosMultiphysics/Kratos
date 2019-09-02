@@ -533,7 +533,6 @@ class CustomProcessTest(UnitTest.TestCase):
 
         delta = 1e-9
         variable_list = [
-            Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE,
             KratosRANS.TURBULENT_KINETIC_ENERGY,
             KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE
         ]

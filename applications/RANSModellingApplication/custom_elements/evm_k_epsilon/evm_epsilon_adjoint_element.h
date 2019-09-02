@@ -71,6 +71,9 @@ struct EvmEpsilonAdjointElementData
     Vector NodalFmu;
     Vector NodalYPlus;
     Matrix NodalVelocity;
+
+    Vector TurbulentKinematicViscositySensitivitiesK;
+    Vector TurbulentKinematicViscositySensitivitiesEpsilon;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize = 1, unsigned int TMonolithicNodalEquationIndex = 0>

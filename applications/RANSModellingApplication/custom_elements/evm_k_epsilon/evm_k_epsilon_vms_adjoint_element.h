@@ -53,6 +53,9 @@ struct RANSEvmVMSAdjointElementData
     Vector NodalTurbulentEnergyDissipationRate;
     Vector NodalYPlus;
     Vector NodalFmu;
+
+    Vector TurbulentKinematicViscositySensitivitiesK;
+    Vector TurbulentKinematicViscositySensitivitiesEpsilon;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes = TDim + 1, unsigned int TMonolithicAssemblyNodalDofSize = TDim + 1>
