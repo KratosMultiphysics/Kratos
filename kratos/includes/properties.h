@@ -317,16 +317,6 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return True if there is such subproperty, false otherwise
      */
-    bool HasSubPropertiesById(const IndexType SubPropertyIndex)
-    {
-        return mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end();
-    }
-
-    /**
-     * @brief This method checks if the subproperty exists from the index corresponding to the property id  (constant version)
-     * @param SubPropertyIndex The index of the subproperty to be get
-     * @return True if there is such subproperty, false otherwise
-     */
     bool HasSubPropertiesById(const IndexType SubPropertyIndex) const
     {
         return mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end();
@@ -400,39 +390,6 @@ public:
 
     /**
      * @brief This method checks if the subproperty exists from the address corresponding to the proper structure of indexes
-     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
-     * @return True if there is such subproperty, false otherwise
-     */
-    bool HasSubPropertiesByAddress(const std::string& rAddress)
-    {
-        const auto indexes = TrimComponentName(rAddress);
-        const std::size_t number_indexes = indexes.size();
-        if (indexes[0] == this->Id()) {
-            if (number_indexes > 1) {
-                if (this->HasSubPropertiesById(indexes[1])) {
-                    Properties::Pointer p_property_interest = pGetSubPropertiesById(indexes[1]);
-                    for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
-                        if ( !p_property_interest->HasSubPropertiesById(indexes[i_index])) {
-                            return false;
-                        } else {
-                            p_property_interest = pGetSubPropertiesById(indexes[i_index]);
-                        }
-                    }
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                KRATOS_WARNING("Properties") << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @brief This method checks if the subproperty exists from the address corresponding to the proper structure of indexes  (constant version)
      * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @return True if there is such subproperty, false otherwise
      */
