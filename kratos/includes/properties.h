@@ -308,6 +308,7 @@ public:
      */
     void AddSubProperties(Properties::Pointer pNewSubProperty)
     {
+        KRATOS_DEBUG_ERROR_IF(this->HasSubPropertiesById(pNewSubProperty->Id())) << "SubProperties with ID: " << pNewSubProperty->Id() << " already defined" << std::endl;
         mSubPropertiesList.insert(mSubPropertiesList.begin(), pNewSubProperty);
     }
 
