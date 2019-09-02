@@ -63,7 +63,9 @@ class MmgProcess(KratosMultiphysics.Process):
             "error_strategy_parameters"              :{
                 "compute_error_extra_parameters":
                 {
-                    "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR"
+                    "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
+                    "penalty_normal"                      : 1.0e4,
+                    "penalty_tangential"                  : 1.0e4
                 },
                 "error_metric_parameters"                 :
                 {
@@ -100,8 +102,11 @@ class MmgProcess(KratosMultiphysics.Process):
                 "mesh_dependent_constant"          : 0.28125
             },
             "enforce_current"                  : true,
+            "remesh_control_type"              : "step",
             "initial_step"                     : 1,
             "step_frequency"                   : 0,
+            "interval"                         : [0.0, 1e30],
+            "time_stepping"                    : {},
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      :{
                 "automatic_remesh_type"            : "Ratio",
@@ -188,6 +193,16 @@ class MmgProcess(KratosMultiphysics.Process):
         else:
             default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(9.0/32.0)
 
+        # Assign this here since it will change the "interval" prior to validation
+        self.interval = KratosMultiphysics.IntervalUtility(settings)
+
+        # Time stepping
+        if not hasattr(self, 'time_stepping'):
+            self.time_stepping = KratosMultiphysics.Parameters("""{}""")
+            if settings.Has("time_stepping"):
+                self.time_stepping = settings["time_stepping"].Clone()
+                settings.RemoveValue("time_stepping")
+
         # Overwrite the default settings with user-provided parameters
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(default_parameters)
@@ -195,6 +210,7 @@ class MmgProcess(KratosMultiphysics.Process):
         # Getting some settings
         self.enforce_current = self.settings["enforce_current"].GetBool()
         self.initial_remeshing = self.settings["initial_remeshing"].GetBool()
+        self.remesh_control_type = self.settings["remesh_control_type"].GetString()
         self.initial_step = self.settings["initial_step"].GetInt()
         self.step_frequency = self.settings["step_frequency"].GetInt()
         self.settings["surface_elements"].SetBool(self.is_surface)
@@ -246,7 +262,7 @@ class MmgProcess(KratosMultiphysics.Process):
             # We deactivate, so it doesn't recalculate each initialization
             self.settings["automatic_remesh"].SetBool(False)
 
-        # We print the parameters considered
+        ## We print the parameters considered
         KratosMultiphysics.Logger.PrintInfo("MINIMAL SIZE: ", "{:.2e}".format(self.settings["minimal_size"].GetDouble()))
         KratosMultiphysics.Logger.PrintInfo("MAXIMAL SIZE: ", "{:.2e}".format(self.settings["maximal_size"].GetDouble()))
 
@@ -352,8 +368,9 @@ class MmgProcess(KratosMultiphysics.Process):
             else:
                 self.mmg_process = MeshingApplication.MmgProcess3D(self.main_model_part, mmg_parameters)
 
-        # We reset the step
+        # We reset the step and time
         self.step = 0
+        self.time = 0.0
 
         # We compute initial remeshing is desired
         if self.initial_remeshing:
@@ -377,15 +394,32 @@ class MmgProcess(KratosMultiphysics.Process):
                 if self.main_model_part.Is(KratosMultiphysics.MODIFIED):
                     self.main_model_part.Set(KratosMultiphysics.MODIFIED, False)
                     self.step = 0  # Reset (just to be sure)
+                    self.time = 0.0  # Reset (just to be sure)
                 else:
-                    self.step += 1
-                    if self.step_frequency > 0:
-                        if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
-                            if not self.initial_step_done:
+                    current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+                    if self.interval.IsInInterval(current_time):
+                        if self.remesh_control_type == "step":
+                            self.step += 1
+                            if self.step_frequency > 0:
+                                if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
+                                    if not self.initial_step_done:
+                                        execute_remesh = True
+                                    else:
+                                        if self.step >= self.step_frequency:
+                                            execute_remesh = True
+                        elif self.remesh_control_type == "time":
+                            delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                            self.time += delta_time
+                            remesh_delta_time = self.__get_delta_time()
+                            if remesh_delta_time > 0:
+                                if not self.initial_step_done:
                                     execute_remesh = True
-                            else:
-                                if self.step >= self.step_frequency:
-                                    execute_remesh = True
+                                else:
+                                    if self.time >= remesh_delta_time:
+                                        execute_remesh = True
+                        else:
+                            raise Exception("{0} Error: remesh_control_type is unreadable".format(self.remesh_control_type))
+
                         # We remesh if needed
                         if execute_remesh:
                             if self.settings["blocking_threshold_size"].GetBool():
@@ -393,6 +427,7 @@ class MmgProcess(KratosMultiphysics.Process):
                             self._ExecuteRefinement()
                             self.initial_step_done = True
                             self.step = 0  # Reset
+                            self.time = 0.0  # Reset
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -460,17 +495,8 @@ class MmgProcess(KratosMultiphysics.Process):
                 hessian_parameters["hessian_strategy_parameters"]["normalization_factor"].SetDouble(normalization_factor)
                 self.metric_processes.append(MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, current_metric_variable, hessian_parameters))
         elif self.strategy == "superconvergent_patch_recovery":
-            if not structural_dependencies:
-                raise Exception("You need to compile the StructuralMechanicsApplication in order to use this criteria")
-
-            # We compute the error
-            error_compute_parameters = KratosMultiphysics.Parameters("""{}""")
-            error_compute_parameters.AddValue("stress_vector_variable", self.settings["compute_error_extra_parameters"]["stress_vector_variable"])
-            error_compute_parameters.AddValue("echo_level", self.settings["echo_level"])
-            if self.domain_size == 2:
-                self.error_compute = StructuralMechanicsApplication.SPRErrorProcess2D(self.main_model_part, error_compute_parameters)
-            else:
-                self.error_compute = StructuralMechanicsApplication.SPRErrorProcess3D(self.main_model_part, error_compute_parameters)
+            # Generate SPR process
+            self.error_compute = self._GenerateErrorProcess()
 
             # Now we compute the metric
             error_metric_parameters = KratosMultiphysics.Parameters("""{}""")
@@ -522,9 +548,9 @@ class MmgProcess(KratosMultiphysics.Process):
 
         # Debug before remesh
         if self.settings["debug_mode"].GetString() == "GiD": # GiD
-            self._debug_output_gid(self.step, "", "BEFORE_")
+            self._debug_output_gid(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP], "", "BEFORE_")
         elif self.settings["debug_mode"].GetString() == "VTK": # VTK
-            self._debug_output_vtk(self.step, "", "BEFORE_")
+            self._debug_output_vtk(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP], "", "BEFORE_")
 
         # Execute before remesh
         self._AuxiliarCallsBeforeRemesh()
@@ -533,11 +559,14 @@ class MmgProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Remeshing")
         self.mmg_process.Execute()
 
+        # Execute after remesh
+        self._AuxiliarCallsAfterRemesh()
+
         # Debug after remesh
         if self.settings["debug_mode"].GetString() == "GiD": # GiD
-            self._debug_output_gid(self.step, "", "AFTER_")
+            self._debug_output_gid(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP], "", "AFTER_")
         elif self.settings["debug_mode"].GetString() == "VTK": # VTK
-            self._debug_output_vtk(self.step, "", "AFTER_")
+            self._debug_output_vtk(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP], "", "AFTER_")
 
         if self.strategy == "LevelSet":
             self.local_gradient.Execute() # Recalculate gradient after remeshing
@@ -577,6 +606,56 @@ class MmgProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         pass
+
+    def _AuxiliarCallsAfterRemesh(self):
+        """ This method is executed right after execute the remesh
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        pass
+
+    def _GenerateErrorProcess(self):
+        """ This method creates an erro process to compute the metric
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # Check dependencies
+        if not structural_dependencies:
+            raise Exception("You need to compile the StructuralMechanicsApplication in order to use this criteria")
+
+        # We compute the error
+        error_compute_parameters = KratosMultiphysics.Parameters("""{}""")
+        error_compute_parameters.AddValue("stress_vector_variable", self.settings["compute_error_extra_parameters"]["stress_vector_variable"])
+        error_compute_parameters.AddValue("echo_level", self.settings["echo_level"])
+        if self.domain_size == 2:
+            return StructuralMechanicsApplication.SPRErrorProcess2D(self.main_model_part, error_compute_parameters)
+        else:
+            return StructuralMechanicsApplication.SPRErrorProcess3D(self.main_model_part, error_compute_parameters)
+
+    def __get_delta_time(self):
+        """ This method returns the delta time for time managed remeshing
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        if self.time_stepping.Has("time_step"):
+            delta_time = self.time_stepping["time_step"].GetDouble()
+            return delta_time
+        elif self.time_stepping.Has("time_step_intervals"):
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            for key in self.time_stepping["time_step_intervals"].keys():
+                interval_settings = self.time_stepping["time_step_intervals"][key]
+                interval = KratosMultiphysics.IntervalUtility(interval_settings)
+
+                # Getting the time step of the interval
+                if interval.IsInInterval(current_time):
+                    return interval_settings["time_step"].GetDouble()
+            # If we arrive here we raise an error because the intervals are not well defined
+            raise Exception("::[MmgProcess]:: Time stepping not well defined!")
+        else:
+            raise Exception("::[MmgProcess]:: Time stepping not defined!")
 
     def __generate_boolean_list_from_input(self,param):
       '''Parse a list of booleans from input.'''

@@ -10,7 +10,7 @@ from glob import glob
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import DEM_material_test_script
+import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 def Flush(a):
     a.flush()

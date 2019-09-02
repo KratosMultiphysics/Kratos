@@ -37,7 +37,6 @@ Note:
 namespace EMPIRE_API_helpers {
 
 // Some options that can be configured
-static const std::string ConvergenceSignalFileName = "EMPIRE_convergence_signal.dat";
 static const std::string TempFilePreString = ".";
 static int VtkUseBinary = 0;
 static int PrintTiming = 0;
@@ -487,12 +486,14 @@ static void EMPIRE_API_recvSignal_double(const char *name, const int sizeOfArray
  * \brief Receive the convergence signal of an loop
  * \return 1 means convergence, 0 means non-convergence
  ***********/
-static int EMPIRE_API_recvConvergenceSignal()
+static int EMPIRE_API_recvConvergenceSignal(const std::string& rFileNameExtension="default")
 {
-    EMPIRE_API_helpers::WaitForFile(EMPIRE_API_helpers::ConvergenceSignalFileName);
+    const std::string file_name("EMPIRE_convergence_signal_" + std::string(rFileNameExtension) + ".dat");
 
-    std::ifstream input_file(EMPIRE_API_helpers::ConvergenceSignalFileName);
-    EMPIRE_API_helpers::CheckStream(input_file, EMPIRE_API_helpers::ConvergenceSignalFileName);
+    EMPIRE_API_helpers::WaitForFile(file_name);
+
+    std::ifstream input_file(file_name);
+    EMPIRE_API_helpers::CheckStream(input_file, file_name);
 
     int signal;
     input_file >> signal;
@@ -503,7 +504,7 @@ static int EMPIRE_API_recvConvergenceSignal()
         throw std::runtime_error(err_msg.str());
     }
 
-    EMPIRE_API_helpers::RemoveFile(EMPIRE_API_helpers::ConvergenceSignalFileName);
+    EMPIRE_API_helpers::RemoveFile(file_name);
 
     return signal;
 }
@@ -512,8 +513,10 @@ static int EMPIRE_API_recvConvergenceSignal()
  * \brief Send the convergence signal of an loop
  * \param[in] signal 1 means convergence, 0 means non-convergence
  ***********/
-static void EMPIRE_API_sendConvergenceSignal(const int signal)
+static void EMPIRE_API_sendConvergenceSignal(const int signal, const std::string& rFileNameExtension="default")
 {
+    const std::string file_name("EMPIRE_convergence_signal_" + std::string(rFileNameExtension) + ".dat");
+
     if (!(signal == 0 || signal == 1)) {
         std::stringstream err_msg;
         err_msg << "Input can only be 0 for non-convergence or 1 for convergence, called with: " << signal;
@@ -521,13 +524,13 @@ static void EMPIRE_API_sendConvergenceSignal(const int signal)
     }
 
     std::ofstream output_file;
-    output_file.open(EMPIRE_API_helpers::GetTempFileName(EMPIRE_API_helpers::ConvergenceSignalFileName));
-    EMPIRE_API_helpers::CheckStream(output_file, EMPIRE_API_helpers::ConvergenceSignalFileName);
+    output_file.open(EMPIRE_API_helpers::GetTempFileName(file_name));
+    EMPIRE_API_helpers::CheckStream(output_file, file_name);
 
     output_file << signal;
 
     output_file.close();
-    EMPIRE_API_helpers::MakeFileVisible(EMPIRE_API_helpers::ConvergenceSignalFileName);
+    EMPIRE_API_helpers::MakeFileVisible(file_name);
 }
 
 /***********************************************************************************************

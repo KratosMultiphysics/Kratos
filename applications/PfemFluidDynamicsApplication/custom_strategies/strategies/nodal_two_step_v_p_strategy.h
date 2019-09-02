@@ -1002,8 +1002,9 @@ void ComputeAndStoreNodalDeformationGradient(ModelPart::NodeIterator itNode, dou
 	        dNdYi=rNodalSFDneigh[firstRow+1];
           unsigned int neigh_nodes_id= neighb_nodes[i].Id(); 
           unsigned int other_neigh_nodes_id=nodalSFDneighboursId[i+1];
-          if(neigh_nodes_id!=other_neigh_nodes_id)
-            std::cout<<"neigh_nodes_id "<<neigh_nodes_id<<"   other_neigh_nodes_id "<<other_neigh_nodes_id<< std::endl;
+          if(neigh_nodes_id!=other_neigh_nodes_id){
+            std::cout<<"node (x,y)=("<<itNode->X()<<","<<itNode->Y()<<") with neigh_nodes_id "<<neigh_nodes_id<<" different than  other_neigh_nodes_id "<<other_neigh_nodes_id<< std::endl;
+		  }
 	        Fgrad(0,0)+=dNdXi*neighb_nodes[i].X();
 	        Fgrad(0,1)+=dNdYi*neighb_nodes[i].X();
 	        Fgrad(1,0)+=dNdXi*neighb_nodes[i].Y();
@@ -1462,13 +1463,16 @@ protected:
 
       double DvErrorNorm = 0;
       ConvergedMomentum = this->CheckVelocityConvergence(NormDv,DvErrorNorm);
+     
+	  unsigned int iterationForCheck=3;
+        KRATOS_INFO("TwoStepVPStrategy") << "iteration("<<it<<") Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
 
       // Check convergence
       if(it==maxIt-1){
 	      std::cout<<"         iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
 	      fixedTimeStep=this->FixTimeStepMomentum(DvErrorNorm);
-      }else{
-      	std::cout<<"iteration("<<it<<")  Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
+      }else if(it>iterationForCheck){
+	      fixedTimeStep=this->CheckMomentumConvergence(DvErrorNorm);
       }
 			// 	    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 	    // double currentTime = rCurrentProcessInfo[TIME];
@@ -1688,39 +1692,39 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
         double errorL2TauXY     = sqrt(sumErrorL2TauXY);
 
 
-				std::ofstream myfileVelocity;
+		std::ofstream myfileVelocity;
   	    myfileVelocity.open ("errorL2VelocityFile.txt",std::ios::app);
-				myfileVelocity << currentTime << "\t" << errorL2Velocity << "\n";
+		myfileVelocity << currentTime << "\t" << errorL2Velocity << "\n";
         myfileVelocity.close();
 
-				std::ofstream myfileVelocityX;
+		std::ofstream myfileVelocityX;
   	    myfileVelocityX.open ("errorL2VelocityXFile.txt",std::ios::app);
-				myfileVelocityX << currentTime << "\t" << errorL2VelocityX << "\n";
+		myfileVelocityX << currentTime << "\t" << errorL2VelocityX << "\n";
         myfileVelocityX.close();
 
-				std::ofstream myfileVelocityY;
+		std::ofstream myfileVelocityY;
   	    myfileVelocityY.open ("errorL2VelocityYFile.txt",std::ios::app);
-				myfileVelocityY << currentTime << "\t" << errorL2VelocityY << "\n";
+		myfileVelocityY << currentTime << "\t" << errorL2VelocityY << "\n";
         myfileVelocityY.close();
 
-				std::ofstream myfilePressure;
+		std::ofstream myfilePressure;
   	    myfilePressure.open ("errorL2PressureFile.txt",std::ios::app);
-				myfilePressure << currentTime << "\t" << errorL2Pressure << "\n";
+		myfilePressure << currentTime << "\t" << errorL2Pressure << "\n";
         myfilePressure.close();
 
-				std::ofstream myfileTauXX;
+		std::ofstream myfileTauXX;
   	    myfileTauXX.open ("errorL2TauXXFile.txt",std::ios::app);
-				myfileTauXX << currentTime << "\t" << errorL2TauXX << "\n";
+		myfileTauXX << currentTime << "\t" << errorL2TauXX << "\n";
         myfileTauXX.close();
 
-				std::ofstream myfileTauYY;
+		std::ofstream myfileTauYY;
   	    myfileTauYY.open ("errorL2TauYYFile.txt",std::ios::app);
-				myfileTauYY << currentTime << "\t" << errorL2TauYY << "\n";
+		myfileTauYY << currentTime << "\t" << errorL2TauYY << "\n";
         myfileTauYY.close();
 
-				std::ofstream myfileTauXY;
+		std::ofstream myfileTauXY;
   	    myfileTauXY.open ("errorL2TauXYFile.txt",std::ios::app);
-				myfileTauXY << currentTime << "\t" << errorL2TauXY << "\n";
+		myfileTauXY << currentTime << "\t" << errorL2TauXY << "\n";
         myfileTauXY.close();
     }
 
@@ -1892,6 +1896,44 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
       }
       return fixedTimeStep;
     }
+
+
+
+    bool CheckMomentumConvergence(const double DvErrorNorm)
+    {
+      ModelPart& rModelPart = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      double minTolerance=0.99999;
+      bool fixedTimeStep=false;
+
+      bool isItNan=false;
+      isItNan=std::isnan(DvErrorNorm);
+      bool isItInf=false;
+      isItInf=std::isinf(DvErrorNorm);
+      if((DvErrorNorm>minTolerance || (DvErrorNorm<0 && DvErrorNorm>0) || (DvErrorNorm!=DvErrorNorm) || isItNan==true || isItInf==true) && DvErrorNorm!=0 && DvErrorNorm!=1){
+      	rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,true);
+	      std::cout<< "           BAD CONVERGENCE DETECTED DURING THE ITERATIVE LOOP!!! error: "<<DvErrorNorm<<" higher than 0.9999"<< std::endl;
+	      std::cout<< "      I GO AHEAD WITH THE PREVIOUS VELOCITY AND PRESSURE FIELDS"<< std::endl;
+	      fixedTimeStep=true;
+#pragma omp parallel
+	  {
+	      ModelPart::NodeIterator NodeBegin;
+	      ModelPart::NodeIterator NodeEnd;
+	      OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodeBegin,NodeEnd);
+	      for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
+	      {
+	      	itNode->FastGetSolutionStepValue(VELOCITY,0)=itNode->FastGetSolutionStepValue(VELOCITY,1);
+	      	itNode->FastGetSolutionStepValue(PRESSURE,0)=itNode->FastGetSolutionStepValue(PRESSURE,1);
+		      itNode->FastGetSolutionStepValue(ACCELERATION,0)=itNode->FastGetSolutionStepValue(ACCELERATION,1);
+	      }
+	  }
+      }else{
+	rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
+      }
+      return fixedTimeStep;
+    }
+
+
 
    bool FixTimeStepContinuity(const double DvErrorNorm)
     {

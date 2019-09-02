@@ -11,11 +11,11 @@ import KratosMultiphysics
 # in case the h5py-module is not installed (e.g. on clusters) we don't want it to crash the simulation!
 # => in such a case the xdmf can be created manually afterwards locally
 try:
-    import KratosMultiphysics.HDF5Application.create_xdmf_file
-    from KratosMultiphysics.HDF5Application.create_xdmf_file import WriteXdmfFile
+    import KratosMultiphysics.HDF5Application.xdmf_utils
+    from KratosMultiphysics.HDF5Application.xdmf_utils import WriteMultifileTemporalAnalysisToXdmf
 except ImportError:
     # if we failed to import, then assign a dummy function that does nothing.
-    WriteXdmfFile = lambda *args: None
+    WriteMultifileTemporalAnalysisToXdmf = lambda *args: None
     warn_msg = "XDMF-Writing is not available,\nOnly HDF5 files are written"
     KratosMultiphysics.Logger.PrintWarning(__name__, warn_msg)
 
@@ -27,7 +27,8 @@ class XdmfOutput(object):
         model_part.GetCommunicator().GetDataCommunicator().Barrier()
         # write xdmf only on one rank!
         if model_part.GetCommunicator().MyPID() == 0:
-            WriteXdmfFile(hdf5_file.GetFileName())
+            WriteMultifileTemporalAnalysisToXdmf(
+                hdf5_file.GetFileName(), "/ModelData", "/ResultsData")
 
 
 def Create(settings):

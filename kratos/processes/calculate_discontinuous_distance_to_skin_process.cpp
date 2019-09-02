@@ -91,6 +91,7 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Execute()
 	{
+		this->Clear();
 		this->Initialize();
 		this->FindIntersections();
 		this->CalculateDistances(this->GetIntersections());

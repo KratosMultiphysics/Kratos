@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
+from  KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:

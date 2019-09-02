@@ -2,6 +2,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
+from KratosMultiphysics.process_factory import KratosProcessFactory
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -278,7 +280,6 @@ class AnalysisStage(object):
         """
         list_of_processes = []
 
-        from process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
 
         if self.project_parameters.Has(parameter_name):
@@ -333,7 +334,6 @@ class AnalysisStage(object):
             # used to only print the deprecation-warning once
             if not solver_class_name in self._map_ret_val_depr_warnings:
                 self._map_ret_val_depr_warnings.append(solver_class_name)
-                from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
                 warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
                 warn_msg += 'the state of convergence from "SolveSolutionStep"'
                 IssueDeprecationWarning("AnalysisStage", warn_msg)
