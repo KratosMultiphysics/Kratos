@@ -510,7 +510,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.fluid_model_part.CloneTimeStep(self.time)
 
     def DEMSolve(self, time='None'): # time is passed in case it is needed
-        self._GetDEMAnalysis().solver.Solve()
+        self._GetDEMAnalysis().solver.SolveSolutionStep()
 
     def UpdateALEMeshMovement(self, time):
         pass

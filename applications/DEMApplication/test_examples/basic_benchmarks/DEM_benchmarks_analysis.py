@@ -82,7 +82,7 @@ def partial_delete_archives():
     #         pass
 
 
-class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
+class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
 
     def __init__(self, model, DEM_parameters):
         self.DEM_parameters = DEM_parameters
@@ -95,7 +95,7 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
 
-        super(DEMBenchamarksAnalysisStage, self).__init__(model, DEM_parameters)
+        super(DEMBenchmarksAnalysisStage, self).__init__(model, DEM_parameters)
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
@@ -108,7 +108,7 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
         #self.end_time = slt.end_time
         #self.dt = slt.dt
         #self.graph_print_interval = slt.graph_print_interval
-        super(DEMBenchamarksAnalysisStage, self).Initialize()
+        super(DEMBenchmarksAnalysisStage, self).Initialize()
 
         Logger.PrintInfo("DEM","Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
         list_of_nodes_ids = [1]
@@ -118,7 +118,7 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
             self.tang_plotter = plot_variables.tangential_force_plotter(self.spheres_model_part, list_of_nodes_ids, self.iteration)
 
     def ReadModelParts(self):
-        super(DEMBenchamarksAnalysisStage, self).ReadModelParts()
+        super(DEMBenchmarksAnalysisStage, self).ReadModelParts()
         benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, self.iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)
 
     def GetInputFilePath(self, file_name):
@@ -127,12 +127,12 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
         else:
             return 'benchmark' + str(benchmark_number) + file_name
 
-    def _BeforeSolveOperations(self, time):
-        super(DEMBenchamarksAnalysisStage, self)._BeforeSolveOperations(time)
-        benchmark.ApplyNodalRotation(time, self._GetSolver().dt, self.spheres_model_part)
+    def InitializeSolutionStep(self):
+        super(DEMBenchmarksAnalysisStage, self).InitializeSolutionStep()
+        benchmark.ApplyNodalRotation(self.time, self._GetSolver().dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
-        super(DEMBenchamarksAnalysisStage, self).BeforePrintingOperations(time)
+        super(DEMBenchmarksAnalysisStage, self).BeforePrintingOperations(time)
         self.SetDt()
         benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self._GetSolver().dt)
 
@@ -144,10 +144,10 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
             self.tang_plotter.close_files()
 
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
-        super(DEMBenchamarksAnalysisStage, self).Finalize()
+        super(DEMBenchmarksAnalysisStage, self).Finalize()
 
     def FinalizeTimeStep(self, time):
-        super(DEMBenchamarksAnalysisStage, self).FinalizeTimeStep(time)
+        super(DEMBenchmarksAnalysisStage, self).FinalizeTimeStep(time)
         if self.nodeplotter:
             os.chdir(self.main_path)
             self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
@@ -155,14 +155,14 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
     def CleanUpOperations(self):
         Logger.PrintInfo("DEM","running CleanUpOperations")
-        super(DEMBenchamarksAnalysisStage, self).CleanUpOperations()
+        super(DEMBenchmarksAnalysisStage, self).CleanUpOperations()
 
 end_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution + 1):
     for iteration in range(1, number_of_points_in_the_graphic + 1):
         model = Model()
         parameters = GetInputParameters()
-        slt = DEMBenchamarksAnalysisStage(model, parameters)
+        slt = DEMBenchmarksAnalysisStage(model, parameters)
         slt.iteration = iteration
         slt.dt = dt
         slt.graph_print_interval = graph_print_interval
@@ -175,6 +175,6 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         del slt
     end = timer.time()
     benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
-    partial_delete_archives()
+    #partial_delete_archives()
 
 
