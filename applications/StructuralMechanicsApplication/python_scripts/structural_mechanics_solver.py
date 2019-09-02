@@ -63,8 +63,10 @@ class MechanicalSolver(PythonSolver):
             warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
             KratosMultiphysics.Logger.PrintWarning("Time integration method", warning)
 
-        # legacy for explicitly constructing the computing modelpart as a submodelpart of the mainmodelpart
-        self.use_computing_model_part = custom_settings.Has("problem_domain_sub_model_part_list") or custom_settings.Has("processes_sub_model_part_list")
+        # for explicitly constructing the computing modelpart as a submodelpart of the mainmodelpart
+        self.use_computing_model_part = custom_settings["use_computing_model_part"].GetBool()
+        if not self.use_computing_model_part and (custom_settings.Has("problem_domain_sub_model_part_list") or "processes_sub_model_part_list"):
+            raise Exception('"{}" and "{}" can only be specified when NOT using a ComputingModelPart! It is recommended Not to use a ComputingModelPart, then the entire Modelpart is used for the computation. At some point always the entire Modelpart will be used!'.format("problem_domain_sub_model_part_list", "processes_sub_model_part_list"))
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
@@ -104,6 +106,7 @@ class MechanicalSolver(PythonSolver):
                 "input_filename": "unknown_name"
             },
             "computing_model_part_name" : "computing_domain",
+            "use_computing_model_part" : true
             "material_import_settings" :{
                 "materials_filename": ""
             },
@@ -312,7 +315,7 @@ class MechanicalSolver(PythonSolver):
     def _execute_after_reading(self):
         """Prepare computing model part and import constitutive laws. """
         if self.use_computing_model_part:
-            # construct the computing-modelpart (legacy)
+            # construct the computing-modelpart
             # Auxiliary parameters object for the CheckAndPepareModelProcess
             params = KratosMultiphysics.Parameters("{}")
             params.AddValue("model_part_name",self.settings["model_part_name"])
