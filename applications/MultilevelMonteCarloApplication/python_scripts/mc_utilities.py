@@ -49,7 +49,7 @@ C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stoppin
 """
 auxiliary function of AddResults of the MonteCarlo class
 input:  level              : working level
-        simulation_results : an instance of the monte carlo result class
+        simulation_results : instances of the MonteCarloResults class
 output: new_values : power sums up to power 4
 """
 @ExaquteTask(returns=1,priority=True)

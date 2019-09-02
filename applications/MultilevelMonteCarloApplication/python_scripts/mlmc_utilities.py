@@ -10,7 +10,10 @@ import copy
 import time
 import sys
 import os
-from threadpoolctl import *
+try:
+    from threadpoolctl import *
+except:
+    pass
 
 # Importing the analysis stage classes of the different problems
 from simulation_definition import SimulationScenario
@@ -28,10 +31,6 @@ import KratosMultiphysics.MultilevelMonteCarloApplication.generator_utilities as
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
-"""
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-"""
 
 # Import cpickle to pickle the serializer
 try:
@@ -47,17 +46,12 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 """
 
 
-# TODO: insert distinction between scalar and field Quantity of Interests
-# TODO: create function updating lists
-# TODO: run cmlmc without refinement, i.e. adaptive_refinement setting
-
-
 """
 auxiliary function of AddResults of the MultilevelMonteCarlo class
-input:  simulation_results: an instance of the multilevel monte carlo result class
-        level:              working level
-output: difference_QoI_value:              difference QoIvalue to be added
-        simulation_results.time_ML[level]: time value to be added
+input:  level              : working level
+        simulation_results : instances of the MultilevelMonteCarloResults class
+output: new_difference_QoI_power_sum_batches : power sums up to level 4 of difference QoI
+        new_time_ML_power_sum_batches        : power sums up to level 4 of time MLMC instance
 """
 @constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=2,priority=True)
@@ -78,18 +72,18 @@ def AddResultsAux_Task(level,*simulation_results):
 
 """
 auxiliary function finalizing the screening phase and the MLMC phase of the MultilevelMonteCarlo class
-input:  ConstructorCallback:       an instance of the MultilevelMonteCarlo class
-        aux_settings_serialized:   StreamSerializer Kratos class containing the settings of the MultilevelMonteCarlo class
-        aux_mesh_parameters:       mesh parameters of the MltilevelMOnteCarlo class
-        aux_current_number_levels: current number of levels of the MultilevelMonteCarlo class
-        aux_current_iteration:     current iteration of the MultilevelMonteCarlo class
-        aux_number_samples:        number of samples of the Multilevel Monte Carlo class
-        *args:                     list containing difference_QoI.raw_moment_1, difference_QoI.unbiased_central_moment_2 and time_ML.raw_moment_1
-output: auxiliary_MLMC_object.rates_error:       rates error of the MultilevelMonteCarlo class
-        auxiliary_MLMC_object.bayesian_variance: bayesian variance of the MultilevelMonteCarlo class
-        auxiliary_MLMC_object.mean_mlmc_QoI:     multilevel monte carlo mean estimator of the MultilevelMonteCarlo class
-        auxiliary_MLMC_object.total_error:       total error of the MultilevelMonteCarlo class
-        auxiliary_MLMC_object.number_samples:    number of samples of the MultilevelMonteCarlo class
+input:  ConstructorCallback       : an instance of the MultilevelMonteCarlo class
+        aux_settings_serialized   : StreamSerializer Kratos class containing the settings of the MultilevelMonteCarlo class
+        aux_mesh_parameters       : mesh parameters of the MltilevelMOnteCarlo class
+        aux_current_number_levels : current number of levels of the MultilevelMonteCarlo class
+        aux_current_iteration     : current iteration of the MultilevelMonteCarlo class
+        aux_number_samples        : number of samples of the Multilevel Monte Carlo class
+        *args                     : list containing difference_QoI.raw_moment_1, difference_QoI.unbiased_central_moment_2 and time_ML.raw_moment_1
+output: auxiliary_MLMC_object.rates_error       : rates error of the MultilevelMonteCarlo class
+        auxiliary_MLMC_object.bayesian_variance : bayesian variance of the MultilevelMonteCarlo class
+        auxiliary_MLMC_object.mean_mlmc_QoI     : multilevel monte carlo mean estimator of the MultilevelMonteCarlo class
+        auxiliary_MLMC_object.total_error       :  total error of the MultilevelMonteCarlo class
+        auxiliary_MLMC_object.number_samples    : number of samples of the MultilevelMonteCarlo class
 """
 @constraint(ComputingUnits="${computing_units_auxiliar_utilities}")
 @ExaquteTask(returns=5,priority=True)
@@ -137,7 +131,9 @@ aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
     auxiliary_MLMC_object.bayesian_variance,auxiliary_MLMC_object.mean_mlmc_QoI,\
     auxiliary_MLMC_object.total_error,auxiliary_MLMC_object.number_samples
 
-
+"""
+function wrapper of all the different tasks for the concurrent adaptive refinement all at once strategy
+"""
 def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnce_Wrapper(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results):
     if (current_MLMC_level == 0):
         mlmc_results = ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_analysis,mlmc_results)
@@ -149,6 +145,9 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnce_Wrapper(current_MLMC_le
         raise Exception("Level not supported")
     return mlmc_results
 
+"""
+function wrapper of all the different tasks for the concurrent adaptive refinement multiple tasks strategy
+"""
 def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasks_Wrapper(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results):
     if (current_MLMC_level == 0):
         mlmc_results,pickled_current_model = ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev0_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis,mlmc_results)
@@ -160,6 +159,9 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasks_Wrapper(current_MLM
         raise Exception("Level not supported")
     return mlmc_results,pickled_current_model
 
+"""
+function wrapper of all the different tasks for computing adaptive refinement
+"""
 def ExecuteInstanceOnlyAdaptiveRefinement_Wrapper(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_level,current_analysis,mlmc_results):
     if (current_level == 0):
         pickled_model,mlmc_results = executeInstanceOnlyAdaptiveRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_level,current_analysis,mlmc_results)
@@ -177,8 +179,28 @@ def ExecuteInstanceOnlyAdaptiveRefinement_Wrapper(pickled_model,pickled_project_
         raise Exception("Level not supported")
     return mlmc_results,pickled_model
 
+"""
+function wrapper of all the different tasks for the single adaptive refinement strategy
+"""
+def ExecuteInstanceSingleRefinement_Wrapper(current_MLMC_level,pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    if (current_MLMC_level == 0):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 1):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 2):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 3):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 4):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    elif (current_MLMC_level == 5):
+        mlmc_results = ExecuteInstanceSingleRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    else:
+        raise Exception("Level not supported")
+    return mlmc_results
 
-    ############################### ConcurrentAdaptiveRefinementAllAtOnce ##############################
+
+############################### ConcurrentAdaptiveRefinementAllAtOnce ##############################
 
 @constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
 @ExaquteTask(returns=1)
@@ -229,7 +251,7 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAllAtOnceAuxLev2_Task(current_MLM
     return mlmc_results
 
 
-    ############################# ConcurrentAdaptiveRefinementMultipleTasks ############################
+############################# ConcurrentAdaptiveRefinementMultipleTasks ############################
 
 @constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
 @ExaquteTask(returns=2)
@@ -268,7 +290,7 @@ def ExecuteInstanceConcurrentAdaptiveRefinementMultipleTasksAuxLev2_Task(current
     return mlmc_results,pickled_current_model
 
 
-    ################################### OnlySingleAdaptiveRefinement ###################################
+################################### OnlySingleAdaptiveRefinement ###################################
 
 @constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
 @ExaquteTask(returns=2)
@@ -343,6 +365,99 @@ def executeInstanceOnlyAdaptiveRefinementAuxLev5_Task(pickled_model,pickled_proj
     return pickled_model,mlmc_results
 
 
+################################### SingleAdaptiveRefinement ###################################
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_3"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_4"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+@constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
+@ExaquteTask(returns=1)
+def ExecuteInstanceSingleRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
+    try:
+        open_mp_threads = int(os.environ["computing_units_mlmc_execute_5"])
+        threadpool_limits(limits=open_mp_threads)
+    except:
+        pass
+    mlmc_results = \
+        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
+    return mlmc_results
+
+
+################################### Functionalities ###################################
+
+"""
+function executing an instance with concurrent adaptive refinement strategy
+input:  current_MLMC_level :instance MLMC level
+        pickled_coarse_model : pickled model of level (current_level-1)
+        pickled_coarse_project_parameters : pickled parameters
+        pickled_custom_metric_refinement_parameters : pickled metric parameters
+        pickled_custom_remesh_refinement_parameters : pickled remeshing parameters
+        sample                                      : random variable(s) of current instance
+        current_level                               : current working level, \in [0,current_MLMC_level]
+        current_analysis_stage                      : analysis stage of the problem
+        mlmc_results                                : instance of MultilevelMonteCarloResults class
+output: mlmc_results        : instance of MultilevelMonteCarloResults class
+        pickled_finer_model : pickled model of level current_level
+
+"""
 def ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis_stage,mlmc_results):
     time_0 = time.time()
     # unpickle model and build Kratos Model object
@@ -426,7 +541,20 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_le
     sys.stdout.flush()
     return mlmc_results,pickled_finer_model
 
+"""
+function executing adaptive refinement from a given model
+input:  pickled_coarse_model : pickled model of level (current_level-1)
+        pickled_coarse_project_parameters : pickled parameters
+        pickled_custom_metric_refinement_parameters : pickled metric parameters
+        pickled_custom_remesh_refinement_parameters : pickled remeshing parameters
+        random_variable                             : random variable(s) of current instance
+        current_index                               : current working level
+        current_analysis_stage                      : analysis stage of the problem
+        mlmc_results                                : instance of MultilevelMonteCarloResults class
+output: pickled_finer_model : pickled model of level current_level
+        mlmc_results        : instance of MultilevelMonteCarloResults class
 
+"""
 def ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_index,current_analysis_stage,mlmc_results):
     # unpickle model and build Kratos Model object
     serialized_model = pickle.loads(pickled_coarse_model)
@@ -465,199 +593,16 @@ def ExecuteInstanceOnlyAdaptiveRefinementAux_Functionality(pickled_coarse_model,
     pickled_finer_model = pickle.dumps(serialized_finer_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     return pickled_finer_model,mlmc_results
 
-
-# """
-# function evaluating the QoI and the cost of the simulation, computing the mesh of current level (current_MLMC_level)
-# refining recursively from the coarsest mesh
-# input:
-#         current_MLMC_level:                current Multilevel Monte Carlo level we are solving
-#         pickled_coarse_model:              pickled model
-#         pickled_coarse_project_parameters: pickled parameters
-#         mesh_sizes:                        mesh sizes for all levels
-# output:
-#         mlmc_results: QoI:                list of QoI for all levels computed in the current simulation
-#                       finer_level:        finest level
-#                       time_ML:            list of MLMC time for all levels computed in the current simulation
-#         pickled_finer_model:              pickled finer model
-#         pickled_finer_project_parameters: pickled finer parameters
-# """
-# @constraint(ComputingUnits="${computing_units_mc_execute}")
-# @ExaquteTask(returns=2)
-# def ExecuteInstanceConcurrentAdaptiveRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,sample,current_level,current_analysis_stage,mlmc_results):
-#     time_0 = time.time()
-#     # unpickle model and build Kratos Model object
-#     serialized_model = pickle.loads(pickled_coarse_model)
-#     current_model = KratosMultiphysics.Model()
-#     serialized_model.Load("ModelSerialization",current_model)
-#     del(serialized_model)
-#     # unpickle parameters and build Kratos Parameters object
-#     serialized_project_parameters = pickle.loads(pickled_coarse_project_parameters)
-#     current_project_parameters = KratosMultiphysics.Parameters()
-#     serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
-#     del(serialized_project_parameters)
-#     time_1 = time.time()
-#     # start time
-#     start_MLMC_time = time.time()
-#     # refine if current current_level > 0, adaptive refinement based on the solution of previous level
-#     if (current_level > 0):
-#         time_2 = time.time()
-#         # unpickle metric and remesh refinement parameters and build Kratos Parameters objects
-#         serialized_custom_metric_refinement_parameters = pickle.loads(pickled_custom_metric_refinement_parameters)
-#         serialized_custom_remesh_refinement_parameters = pickle.loads(pickled_custom_remesh_refinement_parameters)
-#         current_custom_metric_refinement_parameters = KratosMultiphysics.Parameters()
-#         current_custom_remesh_refinement_parameters = KratosMultiphysics.Parameters()
-#         serialized_custom_metric_refinement_parameters.Load("MetricRefinementParametersSerialization",current_custom_metric_refinement_parameters)
-#         serialized_custom_remesh_refinement_parameters.Load("RemeshRefinementParametersSerialization",current_custom_remesh_refinement_parameters)
-#         del(serialized_custom_metric_refinement_parameters,serialized_custom_remesh_refinement_parameters)
-#         time_3 = time.time()
-#         # refine the model Kratos object
-#         adaptive_refinement_manager = AdaptiveRefinement(current_level,current_model,current_project_parameters,current_custom_metric_refinement_parameters,current_custom_remesh_refinement_parameters)
-#         refined_model,refined_project_parameters = adaptive_refinement_manager.ComputeAdaptiveRefinement()
-#         current_model = refined_model
-#         del(refined_project_parameters,refined_model)
-#         time_4 = time.time()
-#         time_5 = time.time()
-#     time_6 = time.time()
-#     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
-#     print("[CHECK OUTPUT]: sample value:", str(sample))
-#     sys.stdout.flush()
-#     simulation.Run()
-#     QoI = simulation.EvaluateQuantityOfInterest()
-#     print("[CHECK OUTPUT]: simulation qoi:", str(QoI))
-#     sys.stdout.flush()
-#     time_7 = time.time()
-#     # save model and parameters as StreamSerializer Kratos objects
-#     serialized_finer_model = KratosMultiphysics.StreamSerializer()
-#     serialized_finer_model.Save("ModelSerialization",simulation.model)
-#     # pickle model and parameters
-#     pickled_finer_model = pickle.dumps(serialized_finer_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
-#     del(simulation)
-#     time_8 = time.time()
-#     end_MLMC_time = time.time()
-#     # register results of the current level in the MultilevelMonteCarloResults class
-#     mlmc_results.time_ML[current_level].append(end_MLMC_time-start_MLMC_time) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
-#     mlmc_results.QoI[current_level].append(QoI) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
-
-#     # post process times of the task
-#     print("\n","#"*50," TIMES EXECUTE TASK ","#"*50,"\n")
-#     deserialization_time = time_1 - time_0
-#     if (current_level > 0):
-#         mmg_refinement_time = time_4 - time_3
-#     refinement_time = time_6 - time_1
-#     Kratos_run_time = time_7 - time_6
-#     serialization_time = time_8 - time_7
-#     total_task_time = time_8 - time_0
-#     print("[LEVEL] current level:",current_level)
-#     print("[TIMER] total task time:", total_task_time)
-#     print("[TIMER] Kratos Run time:",Kratos_run_time)
-#     print("[TIMER] Deserialization time:",deserialization_time)
-#     print("[TIMER] Serialization time:",serialization_time)
-#     print("[TIMER] Refinement time:",refinement_time)
-#     if (current_level > 0):
-#         print("[TIMER] mmg refinement time",mmg_refinement_time)
-#     print("RATIOs: time of interest / total task time")
-#     print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
-#     print("[RATIO] Relative serialization time:",(serialization_time)/total_task_time)
-#     print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
-#     print("[RATIO] Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
-#     if (current_level > 0):
-#         print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
-#     print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
-#     sys.stdout.flush()
-#     return mlmc_results,pickled_finer_model
-
-
-def ExecuteInstanceSingleRefinement_Wrapper(current_MLMC_level,pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
-    if (current_MLMC_level == 0):
-        mlmc_results = ExecuteInstanceSingleRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    elif (current_MLMC_level == 1):
-        mlmc_results = ExecuteInstanceSingleRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    elif (current_MLMC_level == 2):
-        mlmc_results = ExecuteInstanceSingleRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    elif (current_MLMC_level == 3):
-        mlmc_results = ExecuteInstanceSingleRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    elif (current_MLMC_level == 4):
-        mlmc_results = ExecuteInstanceSingleRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    elif (current_MLMC_level == 5):
-        mlmc_results = ExecuteInstanceSingleRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    else:
-        raise Exception("Level not supported")
-    return mlmc_results
-
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
-@ExaquteTask(returns=1)
-def ExecuteInstanceSingleRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
-    try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
-        threadpool_limits(limits=open_mp_threads)
-    except:
-        pass
-    mlmc_results = \
-        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    return mlmc_results
-
-
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
-@ExaquteTask(returns=1)
-def ExecuteInstanceSingleRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
-    try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
-        threadpool_limits(limits=open_mp_threads)
-    except:
-        pass
-    mlmc_results = \
-        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    return mlmc_results
-
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
-@ExaquteTask(returns=1)
-def ExecuteInstanceSingleRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
-    try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
-        threadpool_limits(limits=open_mp_threads)
-    except:
-        pass
-    mlmc_results = \
-        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    return mlmc_results
-
-@constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
-@ExaquteTask(returns=1)
-def ExecuteInstanceSingleRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
-    try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_3"])
-        threadpool_limits(limits=open_mp_threads)
-    except:
-        pass
-    mlmc_results = \
-        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    return mlmc_results
-
-@constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
-@ExaquteTask(returns=1)
-def ExecuteInstanceSingleRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
-    try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_4"])
-        threadpool_limits(limits=open_mp_threads)
-    except:
-        pass
-    mlmc_results = \
-        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    return mlmc_results
-
-@constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
-@ExaquteTask(returns=1)
-def ExecuteInstanceSingleRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results):
-    try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_5"])
-        threadpool_limits(limits=open_mp_threads)
-    except:
-        pass
-    mlmc_results = \
-        ExecuteInstanceSingleRefinementAux_Functionality(pickled_model,pickled_project_parameters,random_variable,current_level,current_analysis,mlmc_results)
-    return mlmc_results
-
-
+"""
+function executing an instance of single adaptive refinement strategy
+input:  pickled_coarse_model              : pickled model of level current_level
+        pickled_coarse_project_parameters : pickled parameters
+        sample                            : random variable(s) of current instance
+        current_level                     : current working level
+        current_analysis_stage            : analysis stage of the problem
+        mlmc_results                      : instance of MultilevelMonteCarloResults class
+output: mlmc_results : instance of MultilevelMonteCarloResults class
+"""
 def ExecuteInstanceSingleRefinementAux_Functionality(pickled_coarse_model,pickled_coarse_project_parameters,sample,current_level,current_analysis_stage,mlmc_results):
     time_0 = time.time()
     # unpickle model and build Kratos Model object
@@ -706,70 +651,16 @@ def ExecuteInstanceSingleRefinementAux_Functionality(pickled_coarse_model,pickle
     return mlmc_results
 
 
-# @constraint(ComputingUnits="${computing_units_mc_execute}")
-# @ExaquteTask(returns=1)
-# def ExecuteInstanceSingleRefinementAux_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_project_parameters,sample,current_level,current_analysis_stage,mlmc_results):
-#     try:
-#         open_mp_threads = int(os.environ["computing_units_mc_execute"])
-#         threadpool_limits(limits=open_mp_threads)
-#     except:
-#         pass
-#     time_0 = time.time()
-#     # unpickle model and build Kratos Model object
-#     serialized_model = pickle.loads(pickled_coarse_model)
-#     current_model = KratosMultiphysics.Model()
-#     serialized_model.Load("ModelSerialization",current_model)
-#     del(serialized_model)
-#     # unpickle parameters and build Kratos Parameters object
-#     serialized_project_parameters = pickle.loads(pickled_coarse_project_parameters)
-#     current_project_parameters = KratosMultiphysics.Parameters()
-#     serialized_project_parameters.Load("ParametersSerialization",current_project_parameters)
-#     del(serialized_project_parameters)
-#     time_1 = time.time()
-#     # start time
-#     start_MLMC_time = time.time()
-#     time_6 = time.time()
-#     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
-#     print("[CHECK OUTPUT]: sample value:", str(sample))
-#     sys.stdout.flush()
-#     simulation.Run()
-#     QoI = simulation.EvaluateQuantityOfInterest()
-#     print("[CHECK OUTPUT]: simulation qoi:", str(QoI))
-#     sys.stdout.flush()
-#     time_7 = time.time()
-#     del(simulation)
-#     time_8 = time.time()
-#     end_MLMC_time = time.time()
-#     # register results of the current level in the MultilevelMonteCarloResults class
-#     mlmc_results.time_ML[current_level].append(end_MLMC_time-start_MLMC_time) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
-#     mlmc_results.QoI[current_level].append(QoI) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
-
-#     # post process times of the task
-#     print("\n","#"*50," TIMES EXECUTE TASK ","#"*50,"\n")
-#     deserialization_time = time_1 - time_0
-#     Kratos_run_time = time_7 - time_6
-#     total_task_time = time_8 - time_0
-#     print("[LEVEL] current level:",current_level)
-#     print("[TIMER] total task time:", total_task_time)
-#     print("[TIMER] Kratos Run time:",Kratos_run_time)
-#     print("[TIMER] Deserialization time:",deserialization_time)
-#     print("RATIOs: time of interest / total task time")
-#     print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
-#     print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
-#     print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
-
-#     return mlmc_results
-
 class MultilevelMonteCarlo(object):
     """The base class for the MultilevelMonteCarlo-classes"""
     def __init__(self,custom_parameters_path,project_parameters_path,refinement_parameters_path,custom_analysis):
         """constructor of the MultilevelMonteCarlo-Object
         Keyword arguments:
-        self:                              an instance of the class
-        custom_parameters_path:            path of settings of the Multilevel Monte Carlo simulation
-        project_parameters_path:           path of the project parameters file
-        refinement_parameters_path:        path of settings of the metric for the refinement and settings of the remeshing
-        custom_analysis:                   analysis stage of the problem
+        self                       : an instance of the class
+        custom_parameters_path     : path of settings of the Multilevel Monte Carlo simulation
+        project_parameters_path    : path of the project parameters file
+        refinement_parameters_path : path of settings of the metric for the refinement and settings of the remeshing
+        custom_analysis            : analysis stage of the problem
         """
 
         # analysis: analysis stage of the current problem
@@ -802,51 +693,51 @@ class MultilevelMonteCarlo(object):
 
         # default settings of the Continuation Multilevel Monte Carlo (CMLMC) algorithm
         # run_multilevel_monte_carlo: flag to run or not the algorithm
-        # adaptive_number_samples: if False, each level is number_samples_screening and increased multiplying by 2. Add one level per iteration, if possible. If True, automatic computation of number of levels and number of samples per level
-        # refinement_strategy: set how to perform refinement for MLMC algorithms. Options: concurrent_adaptive_refinement: refine each time at task level
-        #                                                                                  single_refinement:              refine once in SerializeModelParameters()
         # use_lower_levels_samples: flag to store also lower level values of QoI to compute statistics, if avaiable from adaptive refinement --> produces a BIAS in the results
-        # initial_tolerance: tolerance iter 0
-        # tolerance: tolerance final
-        # tolerance_absolute: safety tolerance (absolute). Useful if expected value (qoi) is zero
-        # confidence: confidence on tolerance
-        # cphi_confidence: CDF**-1 (confidence) where CDF**-1 is the inverse of the CDF of the standard normal distribution, the default value is computed for confidence = 0.9
-        # number_samples_screening: number of samples for screening phase
-        # maximum_number_levels: maximum number of levels
-        # mesh_refinement_coefficient: coefficient of mesh refinement
-        # initial_mesh_size: size of coarsest/initial mesh
-        # recursive_maximal_size : flag to set as maximal mesh size the minimal mesh size of the previous coarser level, otherwise maximal mesh size default equal to 10.0 (directly set into ExecuteInstanceConcurrentAdaptiveRefinementAux_Task)
-        # minimum_samples_add: minimum number of samples to add if at least one is going to be added
+        # adaptive_number_samples: if False, each level is number_samples_screening and increased multiplying by 2. Add one level per iteration, if possible. If True, automatic computation of number of levels and number of samples per level
+        # refinement_strategy: set how to perform refinement for MLMC algorithms. Options: concurrent_adaptive_refinement : refine each time at task level
+        #                                                                                  single_refinement              : refine once in SerializeModelParameters()
+        # convergence_criteria: convergence criteria exploited to check convergence
         # k0: certainty Parameter 0 rates (confidence in the variance models)
         # k1: certainty Parameter 1 rates (confidence in the weak convergence model)
         # r1: cost increase first iterations CMLMC
         # r2: cost increase final iterations CMLMC
+        # initial_tolerance: tolerance iteration 0
+        # tolerance: final tolerance
+        # tolerance_absolute: safety tolerance (absolute). Useful if expected value (qoi) is zero
+        # confidence: confidence on tolerance
+        # cphi_confidence: CDF**-1 (confidence) where CDF**-1 is the inverse of the CDF of the standard normal distribution, the default value is computed for confidence = 0.9
+        # number_samples_screening: number of samples for screening phase
+        # initial_number_batches: number of batches for iteration 0
+        # maximum_number_levels: maximum number of levels
+        # maximum_number_iterations: maximum number of MLMC iterations
+        # minimum_samples_add: minimum number of samples to add if at least one is going to be added
         # splitting_parameter_max : max value parameter splitting discretization and statistical errors
         # splitting_parameter_min : min value parameter splitting discretization and statistical errors
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "run_multilevel_monte_carlo" : true,
-            "use_lower_levels_samples"   : false,
-            "adaptive_number_samples"    : false,
-            "refinement_strategy"        : "concurrent_adaptive_refinement",
-            "convergence_criteria"       : "total_error_stopping_rule",
+            "run_multilevel_monte_carlo"          : true,
+            "use_lower_levels_samples"            : false,
+            "adaptive_number_samples"             : false,
+            "refinement_strategy"                 : "concurrent_adaptive_refinement",
+            "convergence_criteria"                : "total_error_stopping_rule",
             "tasks_refinement_sample_all_at_once" : false,
-            "k0" : 0.1,
-            "k1" : 0.1,
-            "r1" : 1.25,
-            "r2" : 1.15,
-            "initial_tolerance" : 0.25,
-            "tolerance" : 0.1,
-            "tolerance_absolute" : 1e-6,
-            "confidence" : 0.9,
-            "cphi_confidence" : 1.28155156554,
-            "number_samples_screening" : [25,25,25],
-            "initial_number_batches" : 1,
-            "maximum_number_levels" : 4,
-            "maximum_number_iterations" : 5,
-            "minimum_samples_add_level" : 6.0,
-            "splitting_parameter_max" : 0.9,
-            "splitting_parameter_min" : 0.1
+            "k0"                                  : 0.1,
+            "k1"                                  : 0.1,
+            "r1"                                  : 1.25,
+            "r2"                                  : 1.15,
+            "initial_tolerance"                   : 0.25,
+            "tolerance"                           : 0.1,
+            "tolerance_absolute"                  : 1e-6,
+            "confidence"                          : 0.9,
+            "cphi_confidence"                     : 1.28155156554,
+            "number_samples_screening"            : [25,25,25],
+            "initial_number_batches"              : 1,
+            "maximum_number_levels"               : 4,
+            "maximum_number_iterations"           : 5,
+            "minimum_samples_add_level"           : 6.0,
+            "splitting_parameter_max"             : 0.9,
+            "splitting_parameter_min"             : 0.1
         }
         """)
         if (type(custom_parameters_path) == KratosMultiphysics.Parameters):
@@ -960,8 +851,8 @@ class MultilevelMonteCarlo(object):
         # self.SerializeRefinementParameters()
 
     """
-    function executing the CMLMC algorithm
-    input:  self: an instance of the class
+    function executing the MLMC algorithm
+    input:  self : an instance of the class
     """
     def Run(self):
         if (self.settings["run_multilevel_monte_carlo"].GetBool()):
@@ -983,8 +874,8 @@ class MultilevelMonteCarlo(object):
             pass
 
     """
-    function running one Monte Carlo epoch
-    input:  self: an instance of the class
+    function running one Multilevel Monte Carlo epoch
+    input:  self : an instance of the class
     """
     def LaunchEpoch(self):
         for batch in range (len(self.batches_number_samples)):
@@ -1008,10 +899,10 @@ class MultilevelMonteCarlo(object):
                 self.batches_execution_finished[batch] = True
 
     """
-    function executing an instance of the CMLMC algorithm, i.e. a single MC simulation and eventually the refinement (that occurs before the simulation run)
-    input:  self: an instance of the class
-    output: mlmc_results:       instance of the MultilevelMonteCarloResult class
-            current_MLMC_level: level of the current MLMC simulation
+    function executing an instance of the MLMC algorithm, i.e. a single MC simulation and eventually the refinement (that occurs before the simulation run), with conurrent adaptive refinement strategy
+    input:  self : an instance of the class
+    output: mlmc_results       : instance of the MultilevelMonteCarloResult class
+            current_MLMC_level : level of the current MLMC simulation
     """
     def ExecuteInstanceConcurrentAdaptiveRefinement(self,current_MLMC_level):
         # local variables
@@ -1050,6 +941,12 @@ class MultilevelMonteCarlo(object):
                 raise Exception ("boolean variable different task is not a boolean, instead is equal to",different_tasks)
         return mlmc_results,current_MLMC_level
 
+    """
+    function executing an instance of the MLMC algorithm, i.e. a single MC simulation and eventually the refinement (that occurs before the simulation run), with single adaptive refinement strategy
+    input:  self : an instance of the class
+    output: mlmc_results       : instance of the MultilevelMonteCarloResult class
+            current_MLMC_level : level of the current MLMC simulation
+    """
     def ExecuteInstanceSingleRefinement(self,current_MLMC_level):
         current_analysis = self.analysis
         # generate the sample
@@ -1067,6 +964,10 @@ class MultilevelMonteCarlo(object):
         mlmc_results = get_value_from_remote(mlmc_results)
         return mlmc_results,current_MLMC_level
 
+    """
+    function initializing the screening phase (MLMC phase iteration zero)
+    input:  self : an instance of the class
+    """
     def InitializeScreeningPhase(self):
         if (self.iteration_counter == 0):
             self.batch_size = [self.settings["number_samples_screening"][level].GetInt() for level in range (self.current_number_levels+1)]
@@ -1081,8 +982,6 @@ class MultilevelMonteCarlo(object):
             # estimate the mesh sizes
             self.ComputeMeshParameters()
 
-
-
     """
     function serializing and pickling the model and the project parameters of the problem
     the serialization-pickling process is the following:
@@ -1090,10 +989,10 @@ class MultilevelMonteCarlo(object):
     ii)  from StreamSerializer Kratos object to pickle string
     iii) from pickle string to StreamSerializer Kratos object
     iv)  from StreamSerializer Kratos object to Model/Parameters Kratos object
-    requires: self.project_parameters_path: path of the Project Parameters file
-    builds: self.pickled_model:              pickled model
-            self.pickled_project_parameters: pickled project parameters
-    input:  self: an instance of the class
+    requires: self.project_parameters_path : path of the Project Parameters file
+    builds: self.pickled_model              : pickled model
+            self.pickled_project_parameters : pickled project parameters
+    input:  self : an instance of the class
     """
     def SerializeModelParameters(self):
         if (self.to_pickle_model_parameters):
@@ -1175,7 +1074,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function reading the XMC parameters passed from json file
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def SetXMCParameters(self):
         with open(self.custom_parameters_path,'r') as parameter_file:
@@ -1184,7 +1083,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function reading the refinement parameters passed from json file
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def SetRefinementParameters(self):
         with open(self.refinement_parameters_path,'r') as parameter_file:
@@ -1198,7 +1097,7 @@ class MultilevelMonteCarlo(object):
               self.custom_remesh_refinement_parameters
     builds: self.pickled_custom_metric_refinement_parameters
             self.pickled_custom_remesh_refinement_parameters
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def SerializeRefinementParameters(self):
         if (self.to_pickle_custom_metric_remesh_refinement_parameters):
@@ -1218,16 +1117,16 @@ class MultilevelMonteCarlo(object):
 
     """
     function setting the Kratos analysis stage
-    input:  self:                       an instance of the class
-            application_analysis_stage: analysis stage of the problem
+    input:  self                       : an instance of the class
+            application_analysis_stage : analysis stage of the problem
     """
     def SetAnalysis(self,application_analysis_stage):
         self.analysis = application_analysis_stage
 
     """
     function returning the Kratos analysis stage of the problem
-    input:  self: an instance of the class
-    output: self.analysis: analysis stage of the problem
+    input:  self : an instance of the class
+    output: self.analysis : analysis stage of the problem
     """
     def GetAnalysis(self):
         if (self.analysis is not None):
@@ -1238,7 +1137,7 @@ class MultilevelMonteCarlo(object):
     """
     function finalizing the screening phase of MLMC algorithm
     usage: designed to be called ONCE, AFTER the screening phase
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def FinalizeScreeningPhase(self):
         # compute number of iterations of CMLMC algorithm
@@ -1308,7 +1207,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function performing all the required operations BEFORE the MLMC solution step
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def InitializeMLMCPhase(self):
         # add new batches in case convergence = False
@@ -1341,7 +1240,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function updating number of batches and batch size
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def UpdateBatches(self):
         # set here number of batches to append
@@ -1370,7 +1269,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function performing all the required operations AFTER the MLMC solution step
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def FinalizeMLMCPhase(self):
         # update power sums batches
@@ -1451,7 +1350,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function printing informations about screening phase
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ScreeningInfoScreeningPhase(self):
         print("\n","#"*50," SCREENING PHASE ","#"*50,"\n")
@@ -1468,7 +1367,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function printing informations about initializing MLMC phase
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ScreeningInfoInitializeMLMCPhase(self):
         print("\n","#"*50," MLMC iter =  ",self.iteration_counter,"#"*50,"\n")
@@ -1481,7 +1380,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function printing informations about finalizing MLMC phase
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ScreeningInfoFinalizeMLMCPhase(self):
         # print("values computed of QoI = ",self.difference_QoI.values)
@@ -1502,10 +1401,10 @@ class MultilevelMonteCarlo(object):
 
     """
     function adding QoI and MLMC time values to the corresponding level
-    input:  self:               an instance of the class
-            simulation_results: tuple=(instance of MultilevelMonteCarloResults class, working level)
-            batch_number      : number of working batch
-            batch_size        : compute add result for with this size
+    input:  self : an instance of the class
+            simulation_results : tuple=(instance of MultilevelMonteCarloResults class, working level)
+            batch_number       : number of working batch
+            batch_size         : compute add result for with this size
     """
     def AddResults(self,simulation_results,batch_number,mini_batch_size=30):
         # store MLMC level of working batch in a list
@@ -1545,7 +1444,7 @@ class MultilevelMonteCarlo(object):
     """
     function giving as output the mesh discretization parameter
     the mesh parameter is the reciprocal of the minimum mesh size of the grid
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ComputeMeshParameters(self):
         # unpickle and unserialize model and build Kratos Model object
@@ -1571,7 +1470,7 @@ class MultilevelMonteCarlo(object):
     """
     function computing the problem parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma] using least squares fit
     we consider level > 0 to compute calpha,alpha,cbeta,beta for robustness reasons [see [1] for details]
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ComputeRatesLS(self):
         if (self.difference_QoI.h_statistics_1[-1] == []):
@@ -1609,8 +1508,8 @@ class MultilevelMonteCarlo(object):
     """
     function performing the Bayesian update of the variance
     using samples generated on all levels in order to locally improve the estimation of variance[difference_QoI]
-    input:  self:   an instance of the class
-            levels: number of levels for which we want to estimate the Bayesian variance
+    input:  self   : an instance of the class
+            levels : number of levels for which we want to estimate the Bayesian variance
     """
     def EstimateBayesianVariance(self,levels): # need to keep levels because in ComputeLevels I use the maximum number of levels
         # use local variables
@@ -1651,13 +1550,13 @@ class MultilevelMonteCarlo(object):
         del(bayesian_variance)
 
     """
-    function computing the minimum number of iterations of MLMC algorithm
+    function computing the minimum number of iterations of MLMC algorithm, from [1]:
     iteration < number_iterations_iE : iterations needed to obtain increasingly accurate estimates of the
                                        problem dependent parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma]
     iteration > number_iterations_iE : iterations preventing redundant computations due to fluctuations
                                        in the estimate of P=[calpha,alpha,cbeta,beta,cgamma,gamma]
                                        by solving the problem for a slightly smaller tolerance than the desired one
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ComputeNumberIterationsMLMC(self):
         tolF = self.settings["tolerance"].GetDouble()
@@ -1668,7 +1567,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function computing the tolerance for the i^th iteration
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ComputeTolerancei(self):
         tol0 = self.settings["initial_tolerance"].GetDouble()
@@ -1683,7 +1582,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function computing the number of levels for i^th iteration of the algorithm
-    input:  self:   an instance of the class
+    input:  self :   an instance of the class
     """
     def ComputeLevels(self):
         tol = self.tolerance_i
@@ -1730,8 +1629,8 @@ class MultilevelMonteCarlo(object):
 
     """
     function computing the splitting parameter theta \in (0,1)
-    input:  self:  an instance of the class
-            level: working level
+    input:  self  : an instance of the class
+            level : working level
     """
     def ComputeTheta(self,level):
         calpha = self.rates_error["calpha"]
@@ -1747,7 +1646,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function computing the updated number of samples
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ComputeNumberSamples(self):
         current_number_levels = self.current_number_levels
@@ -1810,7 +1709,7 @@ class MultilevelMonteCarlo(object):
 
     """
     function computing the mlmc estimator for the mean of the Quantity of Interest
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ComputeMeanMLMCQoI(self):
         if (self.difference_QoI.h_statistics_1[-1] == []):
@@ -1822,7 +1721,7 @@ class MultilevelMonteCarlo(object):
     """
     function computing the total error:
     total_error = bias contrinution + statistical error contribution
-    input:  self: an instance of the class
+    input:  self : an instance of the class
     """
     def ComputeTotalErrorMLMC(self):
         if (self.difference_QoI.h_statistics_1[-1] == []):
