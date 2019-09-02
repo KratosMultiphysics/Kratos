@@ -48,6 +48,13 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         self.wake_process.ExecuteFinalizeSolutionStep()
+        if not self.fluid_model_part.HasSubModelPart("wake_sub_model_part"):
+            raise Exception("Fluid model part does have a wake_sub_model_part")
+        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_sub_model_part")
+        CPFApp.CheckWakeConditionProcess2D(self.wake_sub_model_part, 1e-9, 1).Execute()
+
+        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled2D(self.wake_sub_model_part, 1e-9, 1)
+
 
     def __FindWakeElements(self):
 
@@ -55,9 +62,9 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         else: self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
 
-        if not self.fluid_model_part.HasSubModelPart("wake__elements"):
-            self.wake_sub_model_part = self.fluid_model_part.CreateSubModelPart("wake__elements")
-        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake__elements")
+        if not self.fluid_model_part.HasSubModelPart("wake_sub_model_part"):
+            self.wake_sub_model_part = self.fluid_model_part.CreateSubModelPart("wake_sub_model_part")
+        else: self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_sub_model_part")
         #List to store trailing edge elements id and wake elements id
         self.trailing_edge_element_id_list = []
         self.wake_element_id_list = []
@@ -245,6 +252,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                     elem.SetValue(CPFApp.KUTTA, False)
                 else: #Rest of elements touching the trailing edge but not part of the wake
                     elem.SetValue(CPFApp.WAKE, False)
+                    self.wake_sub_model_part.RemoveElement(elem)
 
     def _CleanMarking(self):
         # This function removes all the markers set by _FindWakeElements()

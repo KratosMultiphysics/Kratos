@@ -10,11 +10,15 @@
 //  Main authors:    Inigo Lopez
 
 // Project includes
-#include "custom_elements/incompressible_potential_flow_element.h"
-#include "compressible_potential_flow_application_variables.h"
+#include "containers/array_1d.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
+    class Element; // forward-declaring to not having to include it here
+    class ProcessInfo; // forward-declaring to not having to include it here
+    class ModelPart; // forward-declaring to not having to include it here
+
 namespace PotentialFlowUtilities
 {
 template <int Dim, int NumNodes>
@@ -53,8 +57,11 @@ double ComputeIncompressiblePressureCoefficient(const Element& rElement, const P
 template <int Dim, int NumNodes>
 const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
 
+template <int Dim>
+void CheckIfWakeConditionsAreFulfilled(ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
+
 template <int Dim, int NumNodes>
-const bool CheckIfWakeConditionIsFulfilled(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+const bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 } // namespace PotentialFlow
 } // namespace Kratos
