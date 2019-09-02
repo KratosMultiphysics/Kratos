@@ -9,7 +9,7 @@ import sys
 class TimeStepTester(object):
     def __init__(self):
         #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
-        self.schemes_list = ["Runge_Kutta"]
+        self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Runge_Kutta"]
         #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme","Gear_Scheme", "Beeman_Scheme"]
         #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme","Gear_Scheme"]
         self.stable_time_steps_list = []
@@ -52,7 +52,7 @@ class TimeStepTester(object):
     def RunForACertainScheme(self, scheme):
         print("Computing stable time step for scheme: "+ scheme)
         tolerance = 0.5e-7
-        dt = 0.004    # changing the initial dt will change the number of iterations required to find a stable time step
+        dt = 1e-4    # changing the initial dt will change the number of iterations required to find a stable time step
         previous_dt = 0.0
 
         gnuplot_data = open("gnuplot_file.dem", 'a')
@@ -70,20 +70,20 @@ class TimeStepTester(object):
 
         self.RunTestCaseWithCustomizedDtAndScheme(dt, scheme)
 
-        # while dt > previous_dt + tolerance:
-        #     try:
-        #         print("current dt: " + str(dt))
-        #         self.RunTestCaseWithCustomizedDtAndScheme(dt, scheme)
+        while dt > previous_dt + tolerance:
+            try:
+                print("current dt: " + str(dt))
+                self.RunTestCaseWithCustomizedDtAndScheme(dt, scheme)
 
-        #     except SystemExit:
-        #         factor = min(0.2, 0.2*(dt-previous_dt))
-        #         dt = factor * dt
-        #         print("decreasing dt by " + str(factor))
-        #         continue
+            except SystemExit:
+                factor = min(0.15, 0.15*(dt-previous_dt))
+                dt = factor * dt
+                print("decreasing dt by " + str(factor))
+                continue
 
-        #     previous_dt = dt
-        #     dt = dt * 1.2
-        #     print("increasing dt by 1.2")
+            previous_dt = dt
+            dt = dt * 1.15
+            print("increasing dt by 1.15")
 
         self.stable_time_steps_list.append(previous_dt)
 
@@ -150,7 +150,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
                 "BoundingBoxMinZ"                  : -1e3,
                 "dem_inlet_option"                 : false,
                 "GravityX"                         : 0.0,
-                "GravityY"                         : 0.0,
+                "GravityY"                         : -10.0,
                 "GravityZ"                         : 0.0,
                 "VelocityTrapOption"               : false,
                 "RotationOption"                   : true,
@@ -252,15 +252,9 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
         coordinates = KratosMultiphysics.Array3()
         coordinates[0] = 0.0
-        coordinates[1] = -0.1
+        coordinates[1] = 0.0
         coordinates[2] = 0.0
-        radius = 0.1
-        self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)
-
-        coordinates[0] = 0.0
-        coordinates[1] = 0.2
-        coordinates[2] = 0.0
-        radius = 0.1
+        radius = 1
         self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)
 
 
@@ -270,31 +264,31 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0.0)
 
 
-        self.rigid_face_model_part.CreateNewNode(11, -0.4, -0.5, -0.5)
-        self.rigid_face_model_part.CreateNewNode(12, -0.4, -0.5, 0.5)
+        self.rigid_face_model_part.CreateNewNode(11, 8.0, 8.0, -0.5)
+        self.rigid_face_model_part.CreateNewNode(12, 8.0, 0.0, 0.5)
 
-        self.rigid_face_model_part.CreateNewNode(13, 0.4, -0.5, -0.5)
-        self.rigid_face_model_part.CreateNewNode(14, 0.4, -0.5, 0.5)
+        self.rigid_face_model_part.CreateNewNode(13, 8.0, 8.0, 0.5)
+        self.rigid_face_model_part.CreateNewNode(14, 8.0, 0.0, -0.5)
 
 
-        self.rigid_face_model_part.CreateNewNode(15, 0.4, 0.5, -0.5)
-        self.rigid_face_model_part.CreateNewNode(16, 0.4, 0.5, 0.5)
+        # self.rigid_face_model_part.CreateNewNode(15, 0.4, 0.5, -0.5)
+        # self.rigid_face_model_part.CreateNewNode(16, 0.4, 0.5, 0.5)
 
-        self.rigid_face_model_part.CreateNewNode(17, -0.4, 0.5, -0.5)
-        self.rigid_face_model_part.CreateNewNode(18, -0.4, 0.5, 0.5)
+        # self.rigid_face_model_part.CreateNewNode(17, -0.4, 0.5, -0.5)
+        # self.rigid_face_model_part.CreateNewNode(18, -0.4, 0.5, 0.5)
 
         condition_name = "RigidFace3D3N"
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 1, [11, 12, 13], self.rigid_face_model_part.GetProperties()[0])
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 2, [12, 13, 14], self.rigid_face_model_part.GetProperties()[0])
+        self.rigid_face_model_part.CreateNewCondition(condition_name, 1, [11, 13, 12], self.rigid_face_model_part.GetProperties()[0])
+        self.rigid_face_model_part.CreateNewCondition(condition_name, 2, [12, 14, 13], self.rigid_face_model_part.GetProperties()[0])
 
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 3, [13, 14, 15], self.rigid_face_model_part.GetProperties()[0])
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 4, [14, 15, 16], self.rigid_face_model_part.GetProperties()[0])
+        # self.rigid_face_model_part.CreateNewCondition(condition_name, 3, [13, 14, 15], self.rigid_face_model_part.GetProperties()[0])
+        # self.rigid_face_model_part.CreateNewCondition(condition_name, 4, [14, 15, 16], self.rigid_face_model_part.GetProperties()[0])
 
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 5, [15, 16, 17], self.rigid_face_model_part.GetProperties()[0])
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 6, [16, 17, 18], self.rigid_face_model_part.GetProperties()[0])
+        # self.rigid_face_model_part.CreateNewCondition(condition_name, 5, [15, 16, 17], self.rigid_face_model_part.GetProperties()[0])
+        # self.rigid_face_model_part.CreateNewCondition(condition_name, 6, [16, 17, 18], self.rigid_face_model_part.GetProperties()[0])
 
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [17, 18, 11], self.rigid_face_model_part.GetProperties()[0])
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 8, [18, 11, 12], self.rigid_face_model_part.GetProperties()[0])
+        # self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [17, 18, 11], self.rigid_face_model_part.GetProperties()[0])
+        # self.rigid_face_model_part.CreateNewCondition(condition_name, 8, [18, 11, 12], self.rigid_face_model_part.GetProperties()[0])
 
         self.initial_test_energy = self.ComputeEnergy()
         print("initial_energy: ", self.initial_test_energy)
@@ -349,11 +343,11 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
     def FinalizeTimeStep(self, time):
         super(CustomizedSolutionForTimeStepTesting, self).FinalizeTimeStep(time)
         self.energy_delta = self.ComputeEnergyVariation()
-        # if abs(self.energy_delta) > 0.5:
-        #     print("ENERGY VARIATION OVER 50%")
-        #     print("time step is:" + str(self.customized_time_step))
-        #     import sys
-        #     sys.exit()
+        if abs(self.energy_delta) > 0.5:
+            print("ENERGY VARIATION OVER 50%")
+            print("time step is:" + str(self.customized_time_step))
+            import sys
+            sys.exit()
 
         # self.current_test_energy = self.ComputeEnergy()
         # if self.current_test_energy/self.initial_test_energy > 1.4:
@@ -364,18 +358,13 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         stime = self.spheres_model_part.ProcessInfo[KratosMultiphysics.TIME]
         for node in self.spheres_model_part.Nodes:
             if node.Id == 1:
-                self.vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                self.disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                self.vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+                self.disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
                 self.graph_export.write(str("%.8g"%stime).rjust(13) +"  "+str("%.6g"%self.disp).rjust(12) +"  "+str("%.6g"%self.vel).rjust(12) +"  "+str("%.6g"%self.energy_delta).rjust(12)+'\n')
 
 
         #if not self.step%200:
         #    print("Energy: "+str(current_test_energy))
-
-        #elif self.initial_test_energy/current_test_energy > 1.5:
-        #    print("LOSING ENERGY!!")
-        #    print("time step is:" + str(self.customized_time_step))
-        #    sys.exit()
 
     def Finalize(self):
         # total = self.disp_ + self.energy_ + self.vel_

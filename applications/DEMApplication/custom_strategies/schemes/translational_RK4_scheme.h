@@ -61,54 +61,6 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_vel[3]) override;
 
-        void CalculateNewRotationalVariablesOfSpheres(
-                int StepFlag,
-                Node < 3 >& i,
-                const double moment_of_inertia,
-                array_1d<double, 3 >& angular_velocity,
-                array_1d<double, 3 >& torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
-
-        void CalculateNewRotationalVariablesOfRigidBodyElements(
-                int StepFlag,
-                Node < 3 >& i,
-                const array_1d<double, 3 > moments_of_inertia,
-                array_1d<double, 3 >& angular_velocity,
-                array_1d<double, 3 >& torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                Quaternion<double  >& Orientation,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
-
-        void UpdateRotationalVariables(
-                int StepFlag,
-                Node < 3 >& i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                array_1d<double, 3 >& angular_velocity,
-                array_1d<double, 3 >& angular_acceleration,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) override;
-
-        void CalculateLocalAngularAcceleration(
-                const double moment_of_inertia,
-                const array_1d<double, 3 >& torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& angular_acceleration) override;
-
-        void CalculateLocalAngularAccelerationByEulerEquations(
-                const array_1d<double, 3 >& local_angular_velocity,
-                const array_1d<double, 3 >& moments_of_inertia,
-                const array_1d<double, 3 >& local_torque,
-                const double moment_reduction_factor,
-                array_1d<double, 3 >& local_angular_acceleration) override;
-
         /// Turn back information as a string.
 
         virtual std::string Info() const override{
