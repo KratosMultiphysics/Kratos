@@ -32,7 +32,7 @@
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
         },
-        "use_computing_model_part" : "false"
+        "use_computing_model_part" : false
     },
     "processes" : {
     "constraints_process_list" : [{

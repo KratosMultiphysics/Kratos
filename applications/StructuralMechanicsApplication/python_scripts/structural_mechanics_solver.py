@@ -63,10 +63,7 @@ class MechanicalSolver(PythonSolver):
             warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
             KratosMultiphysics.Logger.PrintWarning("Time integration method", warning)
 
-        # for explicitly constructing the computing modelpart as a submodelpart of the mainmodelpart
-        self.use_computing_model_part = custom_settings["use_computing_model_part"].GetBool()
-        if not self.use_computing_model_part and (custom_settings.Has("problem_domain_sub_model_part_list") or custom_settings.Has("processes_sub_model_part_list"))):
-            raise Exception('"{}" and "{}" can only be specified when NOT using a ComputingModelPart! It is recommended Not to use a ComputingModelPart, then the entire Modelpart is used for the computation. At some point always the entire Modelpart will be used!'.format("problem_domain_sub_model_part_list", "processes_sub_model_part_list"))
+        settings_have_smps_for_comp_mp = custom_settings.Has("problem_domain_sub_model_part_list") or custom_settings.Has("processes_sub_model_part_list")
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
@@ -75,6 +72,11 @@ class MechanicalSolver(PythonSolver):
 
         if model_part_name == "":
             raise Exception('Please specify a model_part name!')
+
+        # for explicitly constructing the computing modelpart as a submodelpart of the mainmodelpart
+        self.use_computing_model_part = custom_settings["use_computing_model_part"].GetBool()
+        if not self.use_computing_model_part and settings_have_smps_for_comp_mp:
+            raise Exception('"{}" and "{}" can only be specified when NOT using a ComputingModelPart! It is recommended Not to use a ComputingModelPart, then the entire Modelpart is used for the computation. At some point always the entire Modelpart will be used!'.format("problem_domain_sub_model_part_list", "processes_sub_model_part_list"))
 
         # Only needed during the transition of removing the ComputingModelPart
         if self.settings["problem_domain_sub_model_part_list"].size() == 0:
@@ -112,7 +114,7 @@ class MechanicalSolver(PythonSolver):
                 "input_filename": "unknown_name"
             },
             "computing_model_part_name" : "computing_domain",
-            "use_computing_model_part" : true
+            "use_computing_model_part" : true,
             "material_import_settings" :{
                 "materials_filename": ""
             },
