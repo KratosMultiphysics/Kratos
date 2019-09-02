@@ -194,6 +194,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Proce
     ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
     ConstitutiveParameters.SetDeterminantF(detF);
     ConstitutiveParameters.SetDeformationGradientF(F);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     // Auxiliar output variables
     unsigned int NumGPoints = mConstitutiveLawVector.size();

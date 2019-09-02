@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import Model, Parameters
 import KratosMultiphysics.PfemFluidDynamicsApplication
 
-from pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
+from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
 
 class DEMCoupledPFEMFluidDynamicsAnalysis(PfemFluidDynamicsAnalysis):
 

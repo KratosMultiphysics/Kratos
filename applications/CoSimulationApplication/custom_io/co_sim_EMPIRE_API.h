@@ -37,7 +37,6 @@ Note:
 namespace EMPIRE_API_helpers {
 
 // Some options that can be configured
-static const std::string ConvergenceSignalFileName = "EMPIRE_convergence_signal.dat";
 static const std::string TempFilePreString = ".";
 static int VtkUseBinary = 0;
 static int PrintTiming = 0;
@@ -99,15 +98,17 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
 
 static void SendArray(const std::string& rFileName, const int sizeOfArray, const double *data)
 {
+    EMPIRE_API_LOG(2) << "Attempting to send array \"" << rFileName << "\" with size: " << sizeOfArray << " ..." << std::endl;
+
     const auto start_time(std::chrono::steady_clock::now());
 
     std::ofstream output_file;
     output_file.open(GetTempFileName(rFileName));
     CheckStream(output_file, rFileName);
 
-    output_file << std::scientific << std::setprecision(12); // TODO maybe this should be configurable
+    output_file << std::scientific << std::setprecision(14); // TODO maybe this should be configurable
 
-    // TODO write size in first line?
+    output_file << sizeOfArray << "\n";
 
     for (int i=0; i<sizeOfArray-1; ++i) {
         output_file << data[i] << " ";
@@ -117,6 +118,8 @@ static void SendArray(const std::string& rFileName, const int sizeOfArray, const
     output_file.close();
     MakeFileVisible(rFileName);
 
+    EMPIRE_API_LOG(2) << "Finished sending array" << std::endl;
+
     if (PrintTiming) {
         EMPIRE_API_LOG(0) << "Sending Array \"" << rFileName << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
@@ -124,6 +127,8 @@ static void SendArray(const std::string& rFileName, const int sizeOfArray, const
 
 static void ReceiveArray(const std::string& rFileName, const int sizeOfArray, double *data)
 {
+    EMPIRE_API_LOG(2) << "Attempting to receive array \"" << rFileName << "\" with size: " << sizeOfArray << " ..." << std::endl;
+
     WaitForFile(rFileName);
 
     const auto start_time(std::chrono::steady_clock::now());
@@ -131,11 +136,26 @@ static void ReceiveArray(const std::string& rFileName, const int sizeOfArray, do
     std::ifstream input_file(rFileName);
     CheckStream(input_file, rFileName);
 
+    input_file >> std::setprecision(14); // TODO maybe this should be configurable
+
+    int size_read;
+    input_file >> size_read; // the first number in the file is the size of the array
+
+    if (size_read != sizeOfArray) {
+        std::stringstream err_msg;
+        err_msg << "The received size for array \"" << rFileName << "\" is different from what is expected:";
+        err_msg << "\n    Expected size: " << sizeOfArray;
+        err_msg << "\n    Received size: " << size_read;
+        throw std::runtime_error(err_msg.str());
+    }
+
     for (int i=0; i<sizeOfArray; ++i) {
         input_file >> data[i];
     }
 
     RemoveFile(rFileName);
+
+    EMPIRE_API_LOG(2) << "Finished receiving array" << std::endl;
 
     if (PrintTiming) {
         EMPIRE_API_LOG(0) << "Receiving Array \"" << rFileName << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
@@ -251,6 +271,8 @@ static char *EMPIRE_API_getUserDefinedText(char *elementName)
  ***********/
 static void EMPIRE_API_sendMesh(const char *name, const int numNodes, const int numElems, const double *nodes, const int *nodeIDs, const int *numNodesPerElem, const int *elems)
 {
+    EMPIRE_API_LOG(2) << "Attempting to send mesh \"" << std::string(name) << "\" with " << numNodes << " Nodes | " << numElems << " Elements ..." << std::endl;
+
     const auto start_time(std::chrono::steady_clock::now());
 
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
@@ -310,6 +332,8 @@ static void EMPIRE_API_sendMesh(const char *name, const int numNodes, const int 
     output_file.close();
     EMPIRE_API_helpers::MakeFileVisible(file_name);
 
+    EMPIRE_API_LOG(2) << "Finished sending mesh" << std::endl;
+
     if (EMPIRE_API_helpers::PrintTiming) {
         EMPIRE_API_LOG(0) << "Sending Mesh \"" << file_name << "\" took: " << EMPIRE_API_helpers::ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
@@ -328,6 +352,8 @@ static void EMPIRE_API_sendMesh(const char *name, const int numNodes, const int 
 template <typename TDouble, typename TInt>
 static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, TDouble* nodes, TInt* nodeIDs, TInt* numNodesPerElem, TInt* elem)
 {
+    EMPIRE_API_LOG(2) << "Attempting to receive mesh \"" << std::string(name) << "\" ..." << std::endl;
+
     const std::string file_name("EMPIRE_mesh_" + std::string(name) + ".vtk");
 
     EMPIRE_API_helpers::WaitForFile(file_name);
@@ -348,6 +374,8 @@ static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, 
             nodes_read = true;
 
             EMPIRE_API_helpers::ReadNumberAfterKeyword("POINTS", current_line, *numNodes);
+
+            EMPIRE_API_LOG(2) << "Mesh contains " << *numNodes << " Nodes" << std::endl;
 
             // allocating memory for nodes
             // note that this has to be deleted by the client!
@@ -373,6 +401,8 @@ static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, 
             line_stream >> *numElems;
             line_stream >> cell_list_size;
 
+            EMPIRE_API_LOG(2) << "Mesh contains " << *numElems << " Elements" << std::endl;
+
             // allocating memory for elements
             // note that this has to be deleted by the client!
             EMPIRE_API_helpers::AllocateMemory(numNodesPerElem, *numElems); // *numNodesPerElem = new int[*numElems];
@@ -392,6 +422,8 @@ static void EMPIRE_API_recvMesh(const char *name, int *numNodes, int *numElems, 
     }
 
     EMPIRE_API_helpers::RemoveFile(file_name);
+
+    EMPIRE_API_LOG(2) << "Finished receiving mesh" << std::endl;
 
     if (EMPIRE_API_helpers::PrintTiming) {
         EMPIRE_API_LOG(0) << "Receiving Mesh \"" << file_name << "\" took: " << EMPIRE_API_helpers::ElapsedSeconds(start_time) << " [sec]" << std::endl;
@@ -454,12 +486,14 @@ static void EMPIRE_API_recvSignal_double(const char *name, const int sizeOfArray
  * \brief Receive the convergence signal of an loop
  * \return 1 means convergence, 0 means non-convergence
  ***********/
-static int EMPIRE_API_recvConvergenceSignal()
+static int EMPIRE_API_recvConvergenceSignal(const std::string& rFileNameExtension="default")
 {
-    EMPIRE_API_helpers::WaitForFile(EMPIRE_API_helpers::ConvergenceSignalFileName);
+    const std::string file_name("EMPIRE_convergence_signal_" + std::string(rFileNameExtension) + ".dat");
 
-    std::ifstream input_file(EMPIRE_API_helpers::ConvergenceSignalFileName);
-    EMPIRE_API_helpers::CheckStream(input_file, EMPIRE_API_helpers::ConvergenceSignalFileName);
+    EMPIRE_API_helpers::WaitForFile(file_name);
+
+    std::ifstream input_file(file_name);
+    EMPIRE_API_helpers::CheckStream(input_file, file_name);
 
     int signal;
     input_file >> signal;
@@ -470,7 +504,7 @@ static int EMPIRE_API_recvConvergenceSignal()
         throw std::runtime_error(err_msg.str());
     }
 
-    EMPIRE_API_helpers::RemoveFile(EMPIRE_API_helpers::ConvergenceSignalFileName);
+    EMPIRE_API_helpers::RemoveFile(file_name);
 
     return signal;
 }
@@ -479,8 +513,10 @@ static int EMPIRE_API_recvConvergenceSignal()
  * \brief Send the convergence signal of an loop
  * \param[in] signal 1 means convergence, 0 means non-convergence
  ***********/
-static void EMPIRE_API_sendConvergenceSignal(const int signal)
+static void EMPIRE_API_sendConvergenceSignal(const int signal, const std::string& rFileNameExtension="default")
 {
+    const std::string file_name("EMPIRE_convergence_signal_" + std::string(rFileNameExtension) + ".dat");
+
     if (!(signal == 0 || signal == 1)) {
         std::stringstream err_msg;
         err_msg << "Input can only be 0 for non-convergence or 1 for convergence, called with: " << signal;
@@ -488,13 +524,13 @@ static void EMPIRE_API_sendConvergenceSignal(const int signal)
     }
 
     std::ofstream output_file;
-    output_file.open(EMPIRE_API_helpers::GetTempFileName(EMPIRE_API_helpers::ConvergenceSignalFileName));
-    EMPIRE_API_helpers::CheckStream(output_file, EMPIRE_API_helpers::ConvergenceSignalFileName);
+    output_file.open(EMPIRE_API_helpers::GetTempFileName(file_name));
+    EMPIRE_API_helpers::CheckStream(output_file, file_name);
 
     output_file << signal;
 
     output_file.close();
-    EMPIRE_API_helpers::MakeFileVisible(EMPIRE_API_helpers::ConvergenceSignalFileName);
+    EMPIRE_API_helpers::MakeFileVisible(file_name);
 }
 
 /***********************************************************************************************

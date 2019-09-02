@@ -141,9 +141,9 @@ class Solution(main_script.Solution):
     def GetProblemTypeFilename(self):
         return 'benchmark' + str(benchmark_number)
 
-    def _BeforeSolveOperations(self, time):
-        super(Solution, self)._BeforeSolveOperations(time)
-        benchmark.ApplyNodalRotation(time, self.dt, self.spheres_model_part)
+    def InitializeSolutionStep(self):
+        super(Solution, self).InitializeSolutionStep()
+        benchmark.ApplyNodalRotation(self.time, self.dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
         super(Solution, self).BeforePrintingOperations(time)

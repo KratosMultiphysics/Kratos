@@ -214,7 +214,8 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
 
 void VariableUtilsUpdateCurrentPosition(
     VariableUtils &rVariableUtils,
-    const ModelPart::NodesContainerType &rNodes)
+    const ModelPart::NodesContainerType &rNodes
+    )
 {
     rVariableUtils.UpdateCurrentPosition(rNodes);
 }
@@ -222,9 +223,20 @@ void VariableUtilsUpdateCurrentPosition(
 void VariableUtilsUpdateCurrentPositionWithVariable(
     VariableUtils &rVariableUtils,
     const ModelPart::NodesContainerType &rNodes,
-    const VariableUtils::ArrayVarType &rUpdateVariable)
+    const VariableUtils::ArrayVarType &rUpdateVariable
+    )
 {
     rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable);
+}
+
+void VariableUtilsUpdateCurrentPositionWithVariableAndPosition(
+    VariableUtils &rVariableUtils,
+    const ModelPart::NodesContainerType &rNodes,
+    const VariableUtils::ArrayVarType &rUpdateVariable,
+    const IndexType BufferPosition
+    )
+{
+    rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable, BufferPosition);
 }
 
 template<class TVarType>
@@ -409,6 +421,18 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::ConditionsContainerType>)
         .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 3>, ModelPart::MasterSlaveConstraintContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 4>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 4>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 4>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 4>, ModelPart::MasterSlaveConstraintContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 6>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 6>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 6>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 6>, ModelPart::MasterSlaveConstraintContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariableToZero", &VariableUtils::SetNonHistoricalVariableToZero<array_1d<double, 9>, ModelPart::MasterSlaveConstraintContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
@@ -539,6 +563,7 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition)
         ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
@@ -926,10 +951,12 @@ void AddUtilitiesToPython(pybind11::module &m)
 
     py::class_<TimeDiscretization::BDF>(mod_time_discretization, "BDF")
         .def(py::init<const unsigned int>())
-        .def("GetTimeOrder", (const unsigned int (TimeDiscretization::BDF::*)() const) & TimeDiscretization::BDF::GetTimeOrder)
+        .def("GetTimeOrder", (unsigned int (TimeDiscretization::BDF::*)() const) & TimeDiscretization::BDF::GetTimeOrder)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(double) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(double, double) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
-        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(const ProcessInfo &) const) & TimeDiscretization::BDF::ComputeBDFCoefficients);
+        .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(const ProcessInfo &) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
+        .def("ComputeAndSaveBDFCoefficients", (void (TimeDiscretization::BDF::*)(ProcessInfo &) const) & TimeDiscretization::BDF::ComputeAndSaveBDFCoefficients)
+        ;
     py::class_<TimeDiscretization::BDF1>(mod_time_discretization, "BDF1")
         .def(py::init<>())
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF1::*)(double) const) &TimeDiscretization::BDF1::ComputeBDFCoefficients)
