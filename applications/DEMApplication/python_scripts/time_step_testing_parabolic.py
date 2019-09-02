@@ -9,7 +9,7 @@ import sys
 class TimeStepTester(object):
     def __init__(self):
         #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
-        self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Runge_Kutta"]
+        self.schemes_list = ["Runge_Kutta"]
         #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme","Gear_Scheme", "Beeman_Scheme"]
         #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme","Gear_Scheme"]
         self.stable_time_steps_list = []
@@ -278,8 +278,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         # self.rigid_face_model_part.CreateNewNode(18, -0.4, 0.5, 0.5)
 
         condition_name = "RigidFace3D3N"
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 1, [11, 13, 12], self.rigid_face_model_part.GetProperties()[0])
-        self.rigid_face_model_part.CreateNewCondition(condition_name, 2, [12, 14, 13], self.rigid_face_model_part.GetProperties()[0])
+        self.rigid_face_model_part.CreateNewCondition(condition_name, 1, [12, 13, 14], self.rigid_face_model_part.GetProperties()[0])
+        self.rigid_face_model_part.CreateNewCondition(condition_name, 2, [11, 13, 14], self.rigid_face_model_part.GetProperties()[0])
 
         # self.rigid_face_model_part.CreateNewCondition(condition_name, 3, [13, 14, 15], self.rigid_face_model_part.GetProperties()[0])
         # self.rigid_face_model_part.CreateNewCondition(condition_name, 4, [14, 15, 16], self.rigid_face_model_part.GetProperties()[0])
