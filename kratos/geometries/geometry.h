@@ -191,16 +191,6 @@ public:
     */
     typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
-    /** A third order tensor to hold shape functions' local second derivatives.
-    ShapefunctionsLocalGradients function return this
-    type as its result.
-    */
-    typedef GeometryData::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
-
-    /** A fourth order tensor to hold shape functions' local third order derivatives
-     */
-    typedef GeometryData::ShapeFunctionsThirdDerivativesType ShapeFunctionsThirdDerivativesType;
-
     /** Type of the normal vector used for normal to edges in geomety.
      */
     typedef DenseVector<double> NormalType;
@@ -2206,33 +2196,6 @@ public:
         KRATOS_ERROR << "Calling base class ShapeFunctionsLocalGradients method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return rResult;
     }
-
-    /** This method gives second order derivatives of all shape
-     * functions evaluated in given point.
-     *
-     * @param rResult the given container will be overwritten by the results
-     * @param rPoint the given local coordinates the derivatives will be evaluated for.
-     * @return a third order tensor containing the second order derivatives for each shape function
-     */
-    virtual ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
-    {
-        KRATOS_ERROR << "Calling base class ShapeFunctionsSecondDerivatives method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-        return rResult;
-    }
-
-    /** This method gives third order derivatives of all shape
-     * functions evaluated in given point.
-     *
-     * @param rResult the given container will be overwritten by the results
-     * @param rPoint the given local coordinates the derivatives will be evaluated for.
-     * @return a fourth order tensor containing the second order derivatives for each shape function
-     */
-    virtual ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
-    {
-        KRATOS_ERROR << "Calling base class ShapeFunctionsThirdDerivatives method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-        return rResult;
-    }
-
 
     ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult ) const
     {
