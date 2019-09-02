@@ -75,7 +75,7 @@ namespace Kratos
           PerformTimeIntegrationOfMotion(3);
       }
 
-      virtual double Solve() override {
+      virtual double SolveSolutionStep() override {
 
         KRATOS_TRY
 
