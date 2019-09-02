@@ -119,16 +119,20 @@ void Define2DWakeProcess::SetWakeDirectionAndNormal()
 // This function finds and saves the trailing edge for further computations
 void Define2DWakeProcess::SaveTrailingEdgeNode()
 {
+    KRATOS_ERROR_IF(mrBodyModelPart.NumberOfNodes() == 0) << "There are no nodes in the body_model_part!"<< std::endl;
+
     double max_x_coordinate = std::numeric_limits<double>::lowest();
-    NodeType* trailing_edge_node;
+    auto p_trailing_edge_node = &*mrBodyModelPart.NodesBegin();
+
     for (auto& r_node : mrBodyModelPart.Nodes()) {
         if (r_node.X() > max_x_coordinate) {
             max_x_coordinate = r_node.X();
-            trailing_edge_node = &r_node;
+            p_trailing_edge_node = &r_node;
         }
     }
-    trailing_edge_node->SetValue(TRAILING_EDGE, true);
-    mpTrailingEdgeNode = trailing_edge_node;
+
+    p_trailing_edge_node->SetValue(TRAILING_EDGE, true);
+    mpTrailingEdgeNode = p_trailing_edge_node;
 }
 
 // This function checks which elements are cut by the wake and marks them as

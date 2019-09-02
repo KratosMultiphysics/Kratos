@@ -108,11 +108,20 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         for cond in self.body_model_part.Conditions:
             # The surface normal points outisde the domain
             surface_normal = cond.GetGeometry().Normal()
+            norm = math.sqrt(surface_normal[0]**2 + surface_normal[1]**2 + surface_normal[2]**2)
+            if abs(norm) < self.epsilon:
+                raise Exception('The norm of the condition ', cond.Id , ' should be larger than 0.')
+            # Normalizing normal vector
+            surface_normal /= norm
             projection = DotProduct(surface_normal, self.wake_normal)
             # The surface normal in the same direction as the wake normal belongs to the lower_surface
             if(projection > 0.0):
                 for node in cond.GetNodes():
                     node.SetValue(KratosMultiphysics.NORMAL,surface_normal)
+                    node.SetValue(CPFApp.LOWER_SURFACE, True)
+            else:
+                for node in cond.GetNodes():
+                    node.SetValue(CPFApp.UPPER_SURFACE, True)
 
     # This function imports the stl file containing the wake and creates the wake model part out of it.
     # TODO: implement an automatic generation of the wake
@@ -242,8 +251,12 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 # Compute the distance in the free stream direction
                 free_stream_direction_distance = DotProduct(distance_vector, self.wake_direction)
 
+                if(elnode.GetValue(CPFApp.UPPER_SURFACE)):
+                    distance = self.epsilon
+                elif(elnode.GetValue(CPFApp.LOWER_SURFACE)):
+                    distance = -self.epsilon
                 # Node laying either above or below the lower surface
-                if(free_stream_direction_distance < 0.0):
+                elif(free_stream_direction_distance < 0.0):
                     # Compute the distance in the lower surface normal direction
                     distance = DotProduct(distance_vector, trailing_edge_node.GetValue(KratosMultiphysics.NORMAL))
                 # Node laying either above or below the wake
@@ -275,6 +288,26 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             # Wake elements touching the trailing edge are marked as structure
             # TODO: change STRUCTURE to a more meaningful variable name
             elem.Set(KratosMultiphysics.STRUCTURE)
+            # Updating distance values
+            if(elem.GetValue(CPFApp.WAKE)):
+                wake_elemental_distances = elem.GetValue(CPFApp.WAKE_ELEMENTAL_DISTANCES)
+            else:
+                KratosMultiphysics.Logger.PrintInfo('...Setting non cut element to structure...', elem.Id)
+                elem.SetValue(CPFApp.WAKE, True)
+                wake_elemental_distances = KratosMultiphysics.Vector(4)
+            counter = 0
+            counter2 = 0
+            for elnode in elem.GetNodes():
+                if elnode.GetValue(CPFApp.TRAILING_EDGE):
+                    # Setting the distance at the trailing edge to positive
+                    elnode.SetValue(CPFApp.WAKE_DISTANCE,self.epsilon)
+                    wake_elemental_distances[counter] = self.epsilon
+                else:
+                    elnode.SetValue(CPFApp.WAKE_DISTANCE,nodal_distances[counter2])
+                    wake_elemental_distances[counter] = nodal_distances[counter2]
+                    counter2 +=1
+                counter +=1
+            elem.SetValue(CPFApp.WAKE_ELEMENTAL_DISTANCES,wake_elemental_distances)
             pass
         # Elements with all non trailing edge nodes above the wake and the lower surface are normal
         elif(number_of_nodes_with_positive_distance > number_of_non_te_nodes - 1):
