@@ -235,6 +235,16 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         int Key,
         const std::string& rNewCommunicatorName);
 
+    static const DataCommunicator& CreateUnionDataCommunicator(
+        const DataCommunicator& rFirstDataCommunicator,
+        const DataCommunicator& rSecondDataCommunicator,
+        const std::string& rNewCommunicatorName);
+
+    static const DataCommunicator& CreateIntersectionDataCommunicator(
+        const DataCommunicator& rFirstDataCommunicator,
+        const DataCommunicator& rSecondDataCommunicator,
+        const std::string& rNewCommunicatorName);
+
     ///@}
     ///@name Inquiry
     ///@{

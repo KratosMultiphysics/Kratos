@@ -389,6 +389,56 @@ const DataCommunicator& MPIDataCommunicator::SplitDataCommunicator(
     return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
 }
 
+const DataCommunicator& MPIDataCommunicator::CreateUnionDataCommunicator(
+    const DataCommunicator& rFirstDataCommunicator,
+    const DataCommunicator& rSecondDataCommunicator,
+    const std::string& rNewCommunicatorName)
+{
+    MPI_Comm first_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rFirstDataCommunicator);
+    MPI_Group first_mpi_group;
+    MPI_Comm_group(first_mpi_comm, &first_mpi_group);
+
+    MPI_Comm second_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rSecondDataCommunicator);
+    MPI_Group second_mpi_group;
+    MPI_Comm_group(second_mpi_comm, &second_mpi_group);
+
+    MPI_Group union_mpi_group;
+    MPI_Group_union(first_mpi_group, second_mpi_group, &union_mpi_group);
+
+    MPI_Comm combined_mpi_comm;
+    int tag = 0;
+    MPI_Comm_create_group(MPI_COMM_WORLD, union_mpi_group, tag, &combined_mpi_comm);
+
+    ParallelEnvironment::RegisterDataCommunicator(
+        rNewCommunicatorName, MPIDataCommunicator(combined_mpi_comm), ParallelEnvironment::DoNotMakeDefault);
+    return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
+}
+
+const DataCommunicator& MPIDataCommunicator::CreateIntersectionDataCommunicator(
+    const DataCommunicator& rFirstDataCommunicator,
+    const DataCommunicator& rSecondDataCommunicator,
+    const std::string& rNewCommunicatorName)
+{
+    MPI_Comm first_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rFirstDataCommunicator);
+    MPI_Group first_mpi_group;
+    MPI_Comm_group(first_mpi_comm, &first_mpi_group);
+
+    MPI_Comm second_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rSecondDataCommunicator);
+    MPI_Group second_mpi_group;
+    MPI_Comm_group(second_mpi_comm, &second_mpi_group);
+
+    MPI_Group intersection_mpi_group;
+    MPI_Group_intersection(first_mpi_group, second_mpi_group, &intersection_mpi_group);
+
+    MPI_Comm combined_mpi_comm;
+    int tag = 0;
+    MPI_Comm_create_group(MPI_COMM_WORLD, intersection_mpi_group, tag, &combined_mpi_comm);
+
+    ParallelEnvironment::RegisterDataCommunicator(
+        rNewCommunicatorName, MPIDataCommunicator(combined_mpi_comm), ParallelEnvironment::DoNotMakeDefault);
+    return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
+}
+
 // Inquiry
 
 int MPIDataCommunicator::Rank() const
