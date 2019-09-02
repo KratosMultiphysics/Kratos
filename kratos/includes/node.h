@@ -1152,9 +1152,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        NodalData* p_nodal_data = nullptr; 
+        NodalData* p_nodal_data = &mNodalData; 
         rSerializer.load("NodalData", p_nodal_data);
-        mNodalData=*p_nodal_data;
         rSerializer.load("Data", mData);
         rSerializer.load("Initial Position", mInitialPosition);
         rSerializer.load("Data", mDofs);
