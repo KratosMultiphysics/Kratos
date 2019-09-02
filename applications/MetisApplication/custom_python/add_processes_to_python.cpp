@@ -22,6 +22,7 @@
 
 #include "custom_processes/metis_divide_heterogeneous_input_process.h"
 #include "custom_processes/metis_divide_heterogeneous_input_in_memory_process.h"
+#include "custom_processes/morton_divide_input_to_partitions_process.h"
 
 #ifndef KRATOS_USE_METIS_5
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
@@ -56,6 +57,12 @@ void AddProcessesToPython(pybind11::module& m)
         .def(py::init<IO&, ModelPartIO&, unsigned int, int>())
         .def(py::init<IO&, ModelPartIO&, unsigned int, int, int>())
         .def(py::init<IO&, ModelPartIO&, unsigned int, int, int, bool>())
+        ;
+
+    py::class_<MortonDivideInputToPartitionsProcess, MortonDivideInputToPartitionsProcess::Pointer, Process>(
+        m,"MetisDivideNodalInputToPartitionsProcess")
+        .def(py::init<IO&, std::size_t, int>())
+        .def(py::init<IO&, std::size_t>())
         ;
 
 }
