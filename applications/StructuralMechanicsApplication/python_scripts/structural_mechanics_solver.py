@@ -65,7 +65,7 @@ class MechanicalSolver(PythonSolver):
 
         # for explicitly constructing the computing modelpart as a submodelpart of the mainmodelpart
         self.use_computing_model_part = custom_settings["use_computing_model_part"].GetBool()
-        if not self.use_computing_model_part and (custom_settings.Has("problem_domain_sub_model_part_list") or "processes_sub_model_part_list"):
+        if not self.use_computing_model_part and (custom_settings.Has("problem_domain_sub_model_part_list") or custom_settings.Has("processes_sub_model_part_list"))):
             raise Exception('"{}" and "{}" can only be specified when NOT using a ComputingModelPart! It is recommended Not to use a ComputingModelPart, then the entire Modelpart is used for the computation. At some point always the entire Modelpart will be used!'.format("problem_domain_sub_model_part_list", "processes_sub_model_part_list"))
 
         self._validate_settings_in_baseclass=True # To be removed eventually
