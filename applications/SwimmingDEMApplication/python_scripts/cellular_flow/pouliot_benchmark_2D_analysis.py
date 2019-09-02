@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Parameters
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
-import cellular_flow.ethier_benchmark_analysis as ethier_benchmark_analysis
+import KratosMultiphysics.SwimmingDEMApplication.cellular_flow.ethier_benchmark_analysis as ethier_benchmark_analysis
 BaseAnalysis = ethier_benchmark_analysis.EthierBenchmarkAnalysis
 import os
 
