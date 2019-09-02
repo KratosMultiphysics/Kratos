@@ -14,7 +14,6 @@ import KratosMultiphysics.DEMApplication as DEM
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
-import KratosMultiphysics.SwimmingDEMApplication.CFD_DEM_coupling as CFD_DEM_coupling
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_gid_output as swimming_DEM_gid_output
 import KratosMultiphysics.SwimmingDEMApplication.embedded as embedded

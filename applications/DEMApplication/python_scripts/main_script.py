@@ -12,18 +12,15 @@ if IsDistributedRun():
         Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
         import KratosMultiphysics.DEMApplication.DEM_procedures_mpi_no_partitions as DEM_procedures
-        import KratosMultiphysics.DEMApplication.DEM_material_test_script
     else:
         Logger.PrintInfo("DEM", "Running under OpenMP........")
         from KratosMultiphysics.MetisApplication import *
         from KratosMultiphysics.MPISearchApplication import *
         from KratosMultiphysics.mpi import *
         import KratosMultiphysics.DEMApplication.DEM_procedures_mpi as DEM_procedures
-        import KratosMultiphysics.DEMApplication.DEM_material_test_script_mpi as DEM_material_test_script
 else:
     Logger.PrintInfo("DEM", "Running under OpenMP........")
     import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
-    import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 class Solution(object):
 

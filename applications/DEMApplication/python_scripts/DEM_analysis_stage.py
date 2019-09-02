@@ -12,18 +12,15 @@ if IsDistributedRun():
         Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
         import KratosMultiphysics.DEMApplication.DEM_procedures_mpi_no_partitions as DEM_procedures
-        import KratosMultiphysics.DEMApplication.DEM_material_test_script
     else:
         Logger.PrintInfo("DEM", "Running under OpenMP........")
         from KratosMultiphysics.MetisApplication import *
         from KratosMultiphysics.MPISearchApplication import *
         from KratosMultiphysics.mpi import *
         import KratosMultiphysics.DEMApplication.DEM_procedures_mpi as DEM_procedures
-        import KratosMultiphysics.DEMApplication.DEM_material_test_script_mpi as DEM_material_test_script
 else:
     Logger.PrintInfo("DEM", "Running under OpenMP........")
     import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
-    import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 class DEMAnalysisStage(AnalysisStage):
 
@@ -555,7 +552,7 @@ class DEMAnalysisStage(AnalysisStage):
     def SetGraphicalOutput(self):
         self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
         if self.DEM_parameters["post_vtk_option"].GetBool():
-            import KratosMultiphysics.DEMApplication.dem_vtk_output
+            import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
             self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):
