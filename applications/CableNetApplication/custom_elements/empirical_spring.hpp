@@ -104,8 +104,6 @@ namespace Kratos
             DofsVectorType& rElementalDofList,
             ProcessInfo& rCurrentProcessInfo) override;
 
-        void Initialize() override;
-
         /**
          * @brief This function calculates the total stiffness matrix for the element
          */

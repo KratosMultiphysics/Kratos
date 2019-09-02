@@ -87,12 +87,6 @@ void EmpiricalSpringElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void EmpiricalSpringElement3D2N::Initialize()
-{
-    KRATOS_TRY
-    KRATOS_CATCH("")
-}
-
 BoundedMatrix<double, EmpiricalSpringElement3D2N::msLocalSize,
 EmpiricalSpringElement3D2N::msLocalSize>
 EmpiricalSpringElement3D2N::CreateElementStiffnessMatrix(
@@ -246,7 +240,7 @@ int EmpiricalSpringElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     if (dimension != msDimension ||number_of_nodes != msNumberOfNodes) {
-        KRATOS_ERROR << "The element works only in 3D and with 3 nodes" << std::endl;
+        KRATOS_ERROR << "The element works only in 3D and with 2 nodes" << std::endl;
     }
     // verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);

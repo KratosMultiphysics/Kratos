@@ -97,21 +97,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EmpiricalSpringElementProcess
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override
-    {
-        KRATOS_TRY;
-        KRATOS_CATCH("");
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override
-    {
-        KRATOS_TRY;
-
-        KRATOS_CATCH("");
-    }
-
-
 
     void CreateEmpiricalSpringElement() const
     {
@@ -121,7 +106,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EmpiricalSpringElementProcess
         const int number_nodes = 2;
 
         // get new element id
-        const ModelPart::IndexType new_element_id = mParameters["element_id"].GetInt();
+        const std::size_t new_element_id = mParameters["element_id"].GetInt();
 
         // create geometric entitity
         std::vector<NodeType::Pointer> element_nodes (number_nodes);
