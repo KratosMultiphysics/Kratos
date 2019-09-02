@@ -33,7 +33,6 @@ void TriangleModelPartForDistanceModification(
     ModelPart& rModelPart) {
 
     rModelPart.SetBufferSize(3);
-    rModelPart.AddNodalSolutionStepVariable(NODAL_H);
     rModelPart.AddNodalSolutionStepVariable(DISTANCE);
     Properties::Pointer p_properties = rModelPart.CreateNewProperties(0);
 
