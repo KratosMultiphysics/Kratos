@@ -355,7 +355,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.project_parameters.AddEmptyValue("perform_analytics_option").SetBool(False)
 
         if self.project_parameters["perform_analytics_option"].GetBool():
-            import KratosMultiphysics.SwimmingDEMApplication.analytics
+            import KratosMultiphysics.SwimmingDEMApplication.analytics as analytics
             variables_to_measure = [Kratos.PRESSURE]
             steps_between_measurements = 100
             gauge = analytics.Gauge(
