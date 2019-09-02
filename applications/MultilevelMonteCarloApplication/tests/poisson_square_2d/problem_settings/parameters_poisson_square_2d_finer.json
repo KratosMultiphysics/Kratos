@@ -17,6 +17,9 @@
                 "input_type": "mdpa",
                 "input_filename": "problem_settings/square_finer_2d"
             },
+            "material_import_settings"           : {
+                "materials_filename" : "problem_settings/materials_poisson_square_2d.json"
+            },
             "time_stepping" : {
                 "time_step": 1.1
             },

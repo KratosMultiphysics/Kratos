@@ -1,9 +1,9 @@
 {
 	"hessian_metric": {
 		"hessian_strategy_parameters" :{
-			"metric_variable"		            	: ["TEMPERATURE"],
-			"estimate_interpolation_error"  	: false,
-			"interpolation_error"   					: 0.01,
+			"metric_variable"                 : "TEMPERATURE",
+			"estimate_interpolation_error"    : false,
+			"interpolation_error"             : 0.01,
 			"coefficient_interpolation_error" : 2.0
 		},
 		"enforce_current"      : false,
@@ -16,8 +16,8 @@
 		}
   },
   "refinement_mmg" : {
-    "initialize_entities" : false,
-		"save_external_files"	: false,
+    "initialize_entities"     : false,
+		"save_external_files" : false,
 		"echo_level"          : 0
 	}
 }

@@ -213,6 +213,7 @@ class MonteCarlo(object):
             "confidence" : 9e-1,
             "batch_size" : 25,
             "initial_number_batches" : 1,
+            "maximum_number_iterations": 10,
             "convergence_criteria" : "MC_sample_variance_sequential_stopping_rule"
         }
         """)
@@ -438,6 +439,8 @@ class MonteCarlo(object):
                 self.QoI.h_statistics_1 = get_value_from_remote(self.QoI.h_statistics_1)
                 self.QoI.h_statistics_2 = get_value_from_remote(self.QoI.h_statistics_2)
                 break # break the for loop after the convergence of the first available batch is computed
+        if (self.iteration_counter >= self.settings["maximum_number_iterations"].GetInt()):
+            self.convergence = True
 
     """
     function adding QoI values to the corresponding level
