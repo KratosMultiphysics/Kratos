@@ -12,9 +12,17 @@
 //
 
 
+/**
+ * @class EmpiricalSpringElementProcess
+ *
+ * @brief This process creates a spring element w.r.t. to given displacement/load data points
+ *
+ * @author Klaus B Sautter
+ */
 
-#ifndef EDGE_CABLE_ELEMENT_PROCESS_H
-#define EDGE_CABLE_ELEMENT_PROCESS_H
+
+#ifndef EMPIRICAL_SPRING_ELEMENT_PROCESS_H
+#define EMPIRICAL_SPRING_ELEMENT_PROCESS_H
 
 // System includes
 #include <string>
@@ -28,15 +36,15 @@
 #include "processes/process.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
-#include "geometries/line_3d_3.h"
-#include "custom_geometries/line_3d_n.h"
+#include "geometries/line_3d_2.h"
 #include "includes/model_part.h"
+#include "cable_net_application_variables.h"
 
 namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EmpiricalSpringElementProcess
     : public Process
 {
   public:
@@ -52,23 +60,30 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
 
 
     /// Pointer definition of ApplyMultipointConstraintsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(EdgeCableElementProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(EmpiricalSpringElementProcess);
 
     /// Constructor.
-    EdgeCableElementProcess(ModelPart &rModelPart,
-     Parameters InputParameters):mrModelPart(rModelPart),mParameters(InputParameters)
+    EmpiricalSpringElementProcess(ModelPart &rModelPart,
+     Parameters InputParameters, const DoubleVector FittedPolynomial):mrModelPart(rModelPart),mParameters(InputParameters),mrFittedPoly(FittedPolynomial)
     {
         KRATOS_TRY;
         Parameters default_parameters = Parameters(R"(
         {
             "model_part_name"           : "example_part",
             "computing_model_part_name" : "computing_domain",
-            "element_type"              : "cable",
-            "node_id_order"             : [1,2,3],
+            "node_ids"                  : [1,2],
             "element_id"                : 1,
-            "property_id"               : 1
+            "property_id"               : 1,
+            "displacement_data"         : [0.0,1.0,2.0,3.0],
+            "force_data"                : [0.0,1.0,2.0,3.0],
+            "polynomial_order"          : 3
         })" );
         default_parameters.ValidateAndAssignDefaults(InputParameters);
+
+        KRATOS_ERROR_IF(mParameters["node_ids"].size()!=2) << "exactly two nodes for each spring needed !" << std::endl;
+        KRATOS_ERROR_IF(mParameters["displacement_data"].size()!=mParameters["force_data"].size()) << "only two nodes for each spring allowed !" << std::endl;
+
+
         KRATOS_CATCH("")
     }
 
@@ -77,39 +92,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
     void ExecuteInitialize() override
     {
         KRATOS_TRY;
-        this->CreateEdgeCableElement();
+        this->CreateEmpiricalSpringElement();
         KRATOS_CATCH("");
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override
+
+    void CreateEmpiricalSpringElement() const
     {
         KRATOS_TRY;
-        KRATOS_CATCH("");
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override
-    {
-        KRATOS_TRY;
-
-        KRATOS_CATCH("");
-    }
-
-
-
-    void CreateEdgeCableElement() const
-    {
-        KRATOS_TRY;
-        // !!
-        // probably better to create the line equation and calculate the ordering here
-        // !!
-
-        const SizeType number_nodes     = mParameters["node_id_order"].size();
-        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size()==number_nodes)
-         << "numbers of nodes in submodel part not consistent with numbers of nodes in process properties"
-         << std::endl;
-
+        Vector polynomial_order = ZeroVector(mrFittedPoly.size());
+        for (SizeType i=0;i<mrFittedPoly.size();++i) polynomial_order[i] = mrFittedPoly[i];
+        const int number_nodes = 2;
 
         // get new element id
         const std::size_t new_element_id = mParameters["element_id"].GetInt();
@@ -118,29 +112,20 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
         std::vector<NodeType::Pointer> element_nodes (number_nodes);
         for (SizeType i=0; i<number_nodes; ++i)
         {
-            element_nodes[i] = mrModelPart.pGetNode(mParameters["node_id_order"][i].GetInt());
+            element_nodes[i] = mrModelPart.pGetNode(mParameters["node_ids"][i].GetInt());
         }
-        Line3DN <NodeType> line_t ( PointerVector<NodeType>{element_nodes} );
+        Line3D2 <NodeType> line_t ( PointerVector<NodeType>{element_nodes} );
 
         // get properties
         Properties::Pointer p_elem_prop = mrModelPart.pGetProperties(mParameters["property_id"].GetInt());
 
-        // create element
-        if (mParameters["element_type"].GetString() == "cable")
-        {
-            const Element& rElem = KratosComponents<Element>::Get("SlidingCableElement3D3N");
-            Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
-            mrModelPart.AddElement(pElem);
-        }
-        else if (mParameters["element_type"].GetString() == "ring")
-        {
-            const Element& rElem = KratosComponents<Element>::Get("RingElement3D4N");
-            Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
-            mrModelPart.AddElement(pElem);
-        }
-        else KRATOS_ERROR << "element type :" << mParameters["element_type"].GetString() << " not available for sliding process" << std::endl;
+
+        p_elem_prop->SetValue(SPRING_DEFORMATION_EMPIRICAL_POLYNOMIAL, polynomial_order);
 
 
+        const Element& rElem = KratosComponents<Element>::Get("EmpiricalSpringElement3D2N");
+        Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
+        mrModelPart.AddElement(pElem);
 
 
         KRATOS_CATCH("");
@@ -153,6 +138,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
 
     ModelPart& mrModelPart;
     Parameters mParameters;
+    const DoubleVector mrFittedPoly;
 
 }; // Class
 
