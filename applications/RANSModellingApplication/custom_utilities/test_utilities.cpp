@@ -183,6 +183,7 @@ void InitializeVariableWithRandomValues(ModelPart& rModelPart,
 void RunGaussPointScalarSensitivityTest(
     ModelPart& rModelPart,
     Process& rYPlusProcess,
+    Process& rNutProcess,
     std::function<void(std::vector<double>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculatePrimalQuantities,
     std::function<void(std::vector<Vector>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculateSensitivities,
     std::function<void(ModelPart&)> UpdateVariablesInModelPart,
@@ -267,6 +268,7 @@ void RunGaussPointScalarSensitivityTest(
 void RunGaussPointVectorSensitivityTest(
     ModelPart& rModelPart,
     Process& rYPlusProcess,
+    Process& rNutProcess,
     std::function<void(std::vector<double>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculatePrimalQuantities,
     std::function<void(std::vector<Matrix>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculateSensitivities,
     std::function<void(ModelPart&)> UpdateVariablesInModelPart,
@@ -297,7 +299,7 @@ void RunGaussPointVectorSensitivityTest(
         };
 
         RunGaussPointScalarSensitivityTest(
-            rModelPart, rYPlusProcess, CalculatePrimalQuantities, calculate_sensitivities,
+            rModelPart, rYPlusProcess, rNutProcess, CalculatePrimalQuantities, calculate_sensitivities,
             UpdateVariablesInModelPart, perturb_variable, Delta, Tolerance);
     }
 }
@@ -327,8 +329,11 @@ void RunElementResidualScalarSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     Process& rPrimalYPlusProcess,
+    Process& rPrimalNutProcess,
     Process& rAdjointYPlusProcess,
+    Process& rAdjointNutProcess,
     Process& rYPlusSensitivitiesProcess,
+    Process& rNutSensitivitiesProcess,
     std::function<void(ModelPart&)> UpdateVariablesInModelPart,
     std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualScalarSensitivity,
     std::function<double&(NodeType&)> PerturbVariable,
@@ -347,16 +352,22 @@ void RunElementResidualScalarSensitivityTest(
 
     // Calculate initial y_plus values
     rPrimalYPlusProcess.Check();
+    rPrimalNutProcess.Check();
     rPrimalYPlusProcess.Execute();
+    rPrimalNutProcess.Execute();
     UpdateVariablesInModelPart(rPrimalModelPart);
 
     rAdjointYPlusProcess.Check();
+    rAdjointNutProcess.Check();
     rAdjointYPlusProcess.Execute();
+    rAdjointNutProcess.Execute();
     UpdateVariablesInModelPart(rAdjointModelPart);
 
     // Calculate adjoint values
     rYPlusSensitivitiesProcess.Check();
+    rNutSensitivitiesProcess.Check();
     rYPlusSensitivitiesProcess.Execute();
+    rNutSensitivitiesProcess.Execute();
 
     ProcessInfo& r_primal_process_info = rPrimalModelPart.GetProcessInfo();
     ProcessInfo& r_adjoint_process_info = rAdjointModelPart.GetProcessInfo();
@@ -399,6 +410,7 @@ void RunElementResidualScalarSensitivityTest(
             PerturbVariable(r_node) += Delta;
 
             rPrimalYPlusProcess.Execute();
+            rPrimalNutProcess.Execute();
             UpdateVariablesInModelPart(rPrimalModelPart);
 
             CalculateResidual(residual, r_primal_element, r_primal_process_info);
@@ -429,8 +441,11 @@ void RunElementResidualVectorSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     Process& rPrimalYPlusProcess,
+    Process& rPrimalNutProcess,
     Process& rAdjointYPlusProcess,
+    Process& rAdjointNutProcess,
     Process& rYPlusSensitivitiesProcess,
+    Process& rNutSensitivitiesProcess,
     std::function<void(ModelPart&)> UpdateVariablesInModelPart,
     std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualVectorSensitivity,
     std::function<double&(NodeType&, const int)> PerturbVariable,
@@ -469,16 +484,17 @@ void RunElementResidualVectorSensitivityTest(
         };
 
         RunElementResidualScalarSensitivityTest(
-            rPrimalModelPart, rAdjointModelPart, rPrimalYPlusProcess,
-            rAdjointYPlusProcess, rYPlusSensitivitiesProcess,
-            UpdateVariablesInModelPart, calculate_sensitivities, perturb_variable,
-            Delta, Tolerance, DerivativesOffset, EquationOffset);
+            rPrimalModelPart, rAdjointModelPart, rPrimalYPlusProcess, rPrimalNutProcess,
+            rAdjointYPlusProcess, rAdjointNutProcess, rYPlusSensitivitiesProcess,
+            rNutSensitivitiesProcess, UpdateVariablesInModelPart, calculate_sensitivities,
+            perturb_variable, Delta, Tolerance, DerivativesOffset, EquationOffset);
     }
 }
 
 void RunNodalScalarSensitivityTest(
     ModelPart& rModelPart,
     Process& rYPlusProcess,
+    Process& rNutProcess,
     std::function<void(std::vector<double>&, const NodeType&, const ProcessInfo&)> CalculatePrimalQuantities,
     std::function<void(std::vector<Vector>&, const ElementType&, const ProcessInfo&)> CalculateSensitivities,
     std::function<void(ModelPart&)> UpdateVariablesInModelPart,
@@ -539,6 +555,7 @@ void RunNodalScalarSensitivityTest(
 void RunNodalVectorSensitivityTest(
     ModelPart& rModelPart,
     Process& rYPlusProcess,
+    Process& rNutProcess,
     std::function<void(std::vector<double>&, const NodeType&, const ProcessInfo&)> CalculatePrimalQuantities,
     std::function<void(std::vector<Matrix>&, const ElementType&, const ProcessInfo&)> CalculateSensitivities,
     std::function<void(ModelPart&)> UpdateVariablesInModelPart,
@@ -566,8 +583,9 @@ void RunNodalVectorSensitivityTest(
         };
 
         RunNodalScalarSensitivityTest(
-            rModelPart, rYPlusProcess, CalculatePrimalQuantities, calculate_sensitivities,
-            UpdateVariablesInModelPart, perturb_variable, Delta, Tolerance);
+            rModelPart, rYPlusProcess, rNutProcess, CalculatePrimalQuantities,
+            calculate_sensitivities, UpdateVariablesInModelPart,
+            perturb_variable, Delta, Tolerance);
     }
 }
 } // namespace RansModellingApplicationTestUtilities

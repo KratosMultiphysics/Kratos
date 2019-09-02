@@ -25,6 +25,8 @@
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_adjoint_utilities.h"
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_velocity_sensitivities_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_calculation_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_sensitivities_process.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "test_k_epsilon_utilities.h"
@@ -48,13 +50,22 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElementTKEFirstDerivativeLHSMatrix,
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
         r_adjoint_model_part, "RANSEVMKAdjoint2D3N");
 
-    Parameters empty_parameters = Parameters(R"({
+    Parameters empty_y_plus_parameters = Parameters(R"({
         "model_part_name" : "RansEvmKElementSensitivityMatrix"
     })");
     RansLogarithmicYPlusVelocitySensitivitiesProcess y_plus_sensitivities_process(
-        adjoint_model, empty_parameters);
-    RansLogarithmicYPlusCalculationProcess adjoint_y_plus_process(adjoint_model, empty_parameters);
-    RansLogarithmicYPlusCalculationProcess primal_y_plus_process(primal_model, empty_parameters);
+        adjoint_model, empty_y_plus_parameters);
+    RansLogarithmicYPlusCalculationProcess adjoint_y_plus_process(adjoint_model, empty_y_plus_parameters);
+    RansLogarithmicYPlusCalculationProcess primal_y_plus_process(primal_model, empty_y_plus_parameters);
+
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "RansEvmKElementSensitivityMatrix"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
 
     auto perturb_variable = [](NodeType& rNode) -> double& {
         return rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
@@ -66,8 +77,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElementTKEFirstDerivativeLHSMatrix,
     };
 
     RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
-        r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
-        adjoint_y_plus_process, y_plus_sensitivities_process,
+        r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
+        adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable, 1e-8, 1e-5);
 }
@@ -87,13 +98,22 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElementEpsilonFirstDerivativeLHSMatrix,
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
         r_adjoint_model_part, "RANSEVMKAdjoint2D3N");
 
-    Parameters empty_parameters = Parameters(R"({
+    Parameters empty_y_plus_parameters = Parameters(R"({
         "model_part_name" : "RansEvmKElementSensitivityMatrix"
     })");
     RansLogarithmicYPlusVelocitySensitivitiesProcess y_plus_sensitivities_process(
-        adjoint_model, empty_parameters);
-    RansLogarithmicYPlusCalculationProcess adjoint_y_plus_process(adjoint_model, empty_parameters);
-    RansLogarithmicYPlusCalculationProcess primal_y_plus_process(primal_model, empty_parameters);
+        adjoint_model, empty_y_plus_parameters);
+    RansLogarithmicYPlusCalculationProcess adjoint_y_plus_process(adjoint_model, empty_y_plus_parameters);
+    RansLogarithmicYPlusCalculationProcess primal_y_plus_process(primal_model, empty_y_plus_parameters);
+
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "RansEvmKElementSensitivityMatrix"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
 
     auto perturb_variable = [](NodeType& rNode) -> double& {
         return rNode.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
@@ -106,8 +126,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElementEpsilonFirstDerivativeLHSMatrix,
     };
 
     RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
-        r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
-        adjoint_y_plus_process, y_plus_sensitivities_process,
+        r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
+        adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable, 1e-8, 1e-5);
 }
@@ -127,13 +147,22 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElementTKESecondDerivativeLHSMatrix,
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
         r_adjoint_model_part, "RANSEVMKAdjoint2D3N");
 
-    Parameters empty_parameters = Parameters(R"({
+    Parameters empty_y_plus_parameters = Parameters(R"({
         "model_part_name" : "RansEvmKElementSensitivityMatrix"
     })");
     RansLogarithmicYPlusVelocitySensitivitiesProcess y_plus_sensitivities_process(
-        adjoint_model, empty_parameters);
-    RansLogarithmicYPlusCalculationProcess adjoint_y_plus_process(adjoint_model, empty_parameters);
-    RansLogarithmicYPlusCalculationProcess primal_y_plus_process(primal_model, empty_parameters);
+        adjoint_model, empty_y_plus_parameters);
+    RansLogarithmicYPlusCalculationProcess adjoint_y_plus_process(adjoint_model, empty_y_plus_parameters);
+    RansLogarithmicYPlusCalculationProcess primal_y_plus_process(primal_model, empty_y_plus_parameters);
+
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "RansEvmKElementSensitivityMatrix"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
 
     auto perturb_variable = [](NodeType& rNode) -> double& {
         return rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY_RATE);
@@ -147,8 +176,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElementTKESecondDerivativeLHSMatrix,
     };
 
     RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
-        r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
-        adjoint_y_plus_process, y_plus_sensitivities_process,
+        r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
+        adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable, 1e-8, 1e-5);
 }
@@ -168,13 +197,22 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElementVelocityDerivativeLHSMatrix,
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
         r_adjoint_model_part, "RANSEVMKAdjoint2D3N");
 
-    Parameters empty_parameters = Parameters(R"({
+    Parameters empty_y_plus_parameters = Parameters(R"({
         "model_part_name" : "RansEvmKElementSensitivityMatrix"
     })");
     RansLogarithmicYPlusVelocitySensitivitiesProcess y_plus_sensitivities_process(
-        adjoint_model, empty_parameters);
-    RansLogarithmicYPlusCalculationProcess adjoint_y_plus_process(adjoint_model, empty_parameters);
-    RansLogarithmicYPlusCalculationProcess primal_y_plus_process(primal_model, empty_parameters);
+        adjoint_model, empty_y_plus_parameters);
+    RansLogarithmicYPlusCalculationProcess adjoint_y_plus_process(adjoint_model, empty_y_plus_parameters);
+    RansLogarithmicYPlusCalculationProcess primal_y_plus_process(primal_model, empty_y_plus_parameters);
+
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "RansEvmKElementSensitivityMatrix"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
 
     auto perturb_variable = [](NodeType& rNode, const int Dim) -> double& {
         array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
@@ -187,8 +225,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElementVelocityDerivativeLHSMatrix,
     };
 
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
-        r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
-        adjoint_y_plus_process, y_plus_sensitivities_process,
+        r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
+        adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable, 1e-7, 1e-5);
 }
@@ -207,13 +245,22 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElementShapeSensitivity, RANSEvModelsKEpsilonE
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
         r_adjoint_model_part, "RANSEVMKAdjoint2D3N");
 
-    Parameters empty_parameters = Parameters(R"({
+    Parameters empty_y_plus_parameters = Parameters(R"({
         "model_part_name" : "RansEvmKElementSensitivityMatrix"
     })");
     RansLogarithmicYPlusVelocitySensitivitiesProcess y_plus_sensitivities_process(
-        adjoint_model, empty_parameters);
-    RansLogarithmicYPlusCalculationProcess adjoint_y_plus_process(adjoint_model, empty_parameters);
-    RansLogarithmicYPlusCalculationProcess primal_y_plus_process(primal_model, empty_parameters);
+        adjoint_model, empty_y_plus_parameters);
+    RansLogarithmicYPlusCalculationProcess adjoint_y_plus_process(adjoint_model, empty_y_plus_parameters);
+    RansLogarithmicYPlusCalculationProcess primal_y_plus_process(primal_model, empty_y_plus_parameters);
+
+    Parameters empty_nut_parameters = Parameters(R"({
+        "model_part_name" : "RansEvmKElementSensitivityMatrix"
+    })");
+    RansNutKEpsilonHighReSensitivitiesProcess nut_sensitivities_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess adjoint_nut_process(
+        adjoint_model, empty_nut_parameters);
+    RansNutKEpsilonHighReCalculationProcess primal_nut_process(primal_model, empty_nut_parameters);
 
     auto perturb_variable = [](NodeType& rNode, const int Dim) -> double& {
         array_1d<double, 3>& r_coordinates = rNode.Coordinates();
@@ -226,8 +273,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElementShapeSensitivity, RANSEvModelsKEpsilonE
     };
 
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
-        r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
-        adjoint_y_plus_process, y_plus_sensitivities_process,
+        r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
+        adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable, 1e-7, 1e-5);
 }

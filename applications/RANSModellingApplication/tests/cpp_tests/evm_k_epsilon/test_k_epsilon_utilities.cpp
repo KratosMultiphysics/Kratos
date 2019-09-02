@@ -198,20 +198,14 @@ void UpdateVariablesInModelPart(ModelPart& rModelPart)
 {
     const int number_of_nodes = rModelPart.NumberOfNodes();
 
-    const double c_mu = rModelPart.GetProcessInfo()[TURBULENCE_RANS_C_MU];
     const double bossak_alpha = rModelPart.GetProcessInfo()[BOSSAK_ALPHA];
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
         NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
-        const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
-        const double epsilon =
-            r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE);
-        const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
 
-        double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
-        nu_t = EvmKepsilonModelUtilities::CalculateTurbulentViscosity(
-            c_mu, tke, epsilon, 1.0);
+        const double nu = r_node.FastGetSolutionStepValue(KINEMATIC_VISCOSITY);
+        const double& nu_t = r_node.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
         r_node.FastGetSolutionStepValue(VISCOSITY) = nu + nu_t;
 
         const double tke_rate =
