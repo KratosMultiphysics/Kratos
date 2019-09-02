@@ -328,11 +328,8 @@ class ExplicitStrategy(object):
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
-        time = self.spheres_model_part.ProcessInfo[TIME]
-        self.FixDOFsManually(time)
-        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
-        self.FixExternalForcesManually(time)
-        (self.cplusplus_strategy).Solve()
+        (self.cplusplus_strategy).SolveSolutionStep()
+        return True
 
     def AdvanceInTime(self, time):
         """This function updates and return the current simulation time
@@ -370,8 +367,17 @@ class ExplicitStrategy(object):
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def FinalizeSolutionStep(self):
+        (self.cplusplus_strategy).FinalizeSolutionStep()
         time = self.spheres_model_part.ProcessInfo[TIME]
         self._MoveAllMeshes(time, self.dt)
+
+    def InitializeSolutionStep(self):
+        time = self.spheres_model_part.ProcessInfo[TIME]
+        self.FixDOFsManually(time)
+        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
+        self.FixExternalForcesManually(time)
+
+        (self.cplusplus_strategy).InitializeSolutionStep()
 
     def SetNormalRadiiOnAllParticles(self):
         (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)

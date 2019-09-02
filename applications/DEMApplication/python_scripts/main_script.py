@@ -434,17 +434,16 @@ class Solution(object):
         self.time_old_print = 0.0
         while self.time < self.end_time:
 
-            self.InitializeTimeStep()
             self.time = self.time + self.solver.dt
             self.step += 1
 
             self.UpdateTimeInModelParts()
 
-            self._BeforeSolveOperations(self.time)
+            self.InitializeSolutionStep()
 
             self.SolverSolve()
 
-            self.AfterSolveOperations()
+            self.FinalizeSolutionStep()
 
             self.solver._MoveAllMeshes(self.time, self.solver.dt)
 
@@ -508,18 +507,23 @@ class Solution(object):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeTimeStep(self):
+        message = 'Warning!'
+        message += '\nFunction \'InitializeTimeStep\' is deprecated.'
+        message += '\nIt will be removed after 09/28/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
         pass
 
-    #TODO: deprecated
-    def BeforeSolveOperations(self, time):
-        message = 'Warning!'
-        message += '\nFunction \'BeforeSolveOperations\' is deprecated.'
-        message += '\nPlease call \'_BeforeSolveOperations\' instead.'
-        message += '\nThe deprecated version will be removed after 02/28/2019.\n'
-        Logger.PrintWarning("main_script.py", message)
-        self._BeforeSolveOperations(time)
-
     def _BeforeSolveOperations(self, time):
+        message = 'Warning!'
+        message += '\nFunction \'_BeforeSolveOperations\' is deprecated.'
+        message += '\nIt will be removed after 09/28/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
+        if self.post_normal_impact_velocity_option:
+            if self.IsCountStep():
+                self.FillAnalyticSubModelPartsWithNewParticles()
+
+    def InitializeSolutionStep(self):
+        self.solver.InitializeSolutionStep()
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
@@ -527,7 +531,22 @@ class Solution(object):
     def BeforePrintingOperations(self, time):
         pass
 
+    def FinalizeSolutionStep(self):
+        self.solver.FinalizeSolutionStep()
+        if self.post_normal_impact_velocity_option:
+            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
+            if self.IsTimeToPrintPostProcess():
+                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
+                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+
+        #Phantom Walls
+        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
+
     def AfterSolveOperations(self):
+        message = 'Warning!'
+        message += '\nFunction \'AfterSolveOperations\' is deprecated.'
+        message += '\nIt will be removed after 09/28/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
             if self.IsTimeToPrintPostProcess():
@@ -646,7 +665,6 @@ class Solution(object):
         self._UpdateTimeParameters()
 
     def _UpdateTimeParameters(self):
-        self.InitializeTimeStep()
         self.time = self.time + self.solver.dt
         self.step += 1
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
