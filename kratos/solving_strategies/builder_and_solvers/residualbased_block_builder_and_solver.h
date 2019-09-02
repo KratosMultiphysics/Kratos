@@ -245,6 +245,12 @@ public:
             }
         }
 
+        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+            Timer::Start("ApplyConstraints");
+            ApplyConstraints(pScheme, A, b, rModelPart);
+            Timer::Stop("ApplyConstraints");
+        }
+
         const double stop_build = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
 
@@ -420,12 +426,6 @@ public:
         Build(pScheme, rModelPart, A, b);
 
         Timer::Stop("Build");
-
-        if(rModelPart.MasterSlaveConstraints().size() != 0) {
-            Timer::Start("ApplyConstraints");
-            ApplyConstraints(pScheme,A,Dx,b,rModelPart);
-            Timer::Stop("ApplyConstraints");
-        }
 
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
@@ -1142,7 +1142,6 @@ protected:
     virtual void ApplyConstraints(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
         TSystemVectorType &rb,
         ModelPart &rModelPart)
     {
