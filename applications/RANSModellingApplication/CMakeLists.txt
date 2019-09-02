@@ -13,14 +13,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
 # generate variables with the sources
-set( KRATOS_RANS_MODELLING_APPLICATION_SOURCES
+set( KRATOS_RANS_MODELLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/rans_modelling_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rans_modelling_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/rans_modelling_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rans_calculation_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/test_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms_adjoint_two_equation_templates.cpp
@@ -35,20 +30,34 @@ set( KRATOS_RANS_MODELLING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_k_epsilon_vms_adjoint_element.cpp
 )
 
-## define test sources
+set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/rans_modelling_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+)
+
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
- 	file(GLOB_RECURSE KRATOS_RANS_MODELLING_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+  file(GLOB_RECURSE
+    KRATOS_RANS_MODELLING_APPLICATION_TESTING
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp/*.cpp
+  )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-# define library Kratos which defines the basic python interface
-pybind11_add_module(KratosRANSModellingApplication MODULE THIN_LTO ${KRATOS_RANS_MODELLING_APPLICATION_SOURCES} ${KRATOS_RANS_MODELLING_TESTING_SOURCES})
-target_link_libraries(KratosRANSModellingApplication PRIVATE KratosCore KratosFluidDynamicsCore )
+add_library(KratosRANSModellingCore SHARED ${KRATOS_RANS_MODELLING_APPLICATION_CORE} ${KRATOS_RANS_MODELLING_APPLICATION_TESTING})
+target_link_libraries(KratosRANSModellingCore PUBLIC KratosCore KratosFluidDynamicsCore)
+set_target_properties(KratosRANSModellingCore PROPERTIES COMPILE_DEFINITIONS "RANS_MODELLING_APPLICATION=EXPORT,API")
+
+pybind11_add_module(KratosRANSModellingApplication MODULE THIN_LTO ${KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosRANSModellingApplication PUBLIC KratosRANSModellingCore)
 set_target_properties(KratosRANSModellingApplication PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
     cotire(KratosRANSModellingApplication)
 endif(USE_COTIRE MATCHES ON)
 
+install(TARGETS KratosRANSModellingCore DESTINATION libs )
 install(TARGETS KratosRANSModellingApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)

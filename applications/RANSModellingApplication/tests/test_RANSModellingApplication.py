@@ -13,6 +13,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suites
 from evm_k_epsilon_tests import EvmKEpsilonTest
 from custom_process_tests import CustomProcessTest
+import run_cpp_unit_tests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.

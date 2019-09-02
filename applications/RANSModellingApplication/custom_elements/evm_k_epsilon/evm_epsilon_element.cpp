@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    , KratosAppGenerator
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
 // System includes
@@ -274,8 +274,8 @@ int EvmEpsilonElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcess
     KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
     KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
     KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE_2);
-    KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
-    KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
+    // KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
+    // KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
     KRATOS_CHECK_VARIABLE_KEY(RANS_AUXILIARY_VARIABLE_2);
 
     for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
@@ -287,9 +287,9 @@ int EvmEpsilonElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcess
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
+        // KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+        // KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
     }
@@ -396,35 +396,34 @@ void EvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionDat
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
-    const double& c1 = rCurrentProcessInfo[TURBULENCE_RANS_C1];
-    const double& c2 = rCurrentProcessInfo[TURBULENCE_RANS_C2];
-    const double& c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    const double& epsilon_sigma =
+    const double c1 = rCurrentProcessInfo[TURBULENCE_RANS_C1];
+    const double c2 = rCurrentProcessInfo[TURBULENCE_RANS_C2];
+    const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    const double epsilon_sigma =
         rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
 
-    const double& nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
-    const double& nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
-    const double& tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
-    const double& epsilon =
-        this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
-    const double& gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
+    const double nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
+    const double nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
+    const double tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
+    // const double epsilon =
+    //     this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
+    const double gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
     // const double gamma = tke / (epsilon + std::numeric_limits<double>::epsilon());
-    const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
-    const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
+    // const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
+    // const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
 
     rData.C1 = c1;
     rData.C2 = c2;
     rData.Gamma = gamma;
-    rData.KinematicViscosity = nu;
     rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
     rData.TurbulentKinematicViscosity = nu_t;
     rData.TurbulentKineticEnergy = tke;
-    rData.WallDistance = wall_distance;
+    // rData.WallDistance = wall_distance;
     // rData.WallNormal = this->EvaluateInPoint(NORMAL, rShapeFunctions);
     rData.VelocityDivergence =
         this->GetDivergenceOperator(VELOCITY, rShapeFunctionDerivatives);
-    rData.YPlus = y_plus;
-    rData.WallVelocity = norm_2(this->EvaluateInPoint(VELOCITY, rShapeFunctions));
+    // rData.YPlus = y_plus;
+    // rData.WallVelocity = norm_2(this->EvaluateInPoint(VELOCITY, rShapeFunctions));
 
     rEffectiveKinematicViscosity = nu + nu_t / epsilon_sigma;
 }
@@ -466,9 +465,9 @@ double EvmEpsilonElement<TDim, TNumNodes>::CalculateSourceTerm(const EvmEpsilonE
                                                                const int Step) const
 {
     double production = 0.0;
-    const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    const double von_karman = rCurrentProcessInfo[WALL_VON_KARMAN];
-    const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
+    // const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    // const double von_karman = rCurrentProcessInfo[WALL_VON_KARMAN];
+    // const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
     this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);
 

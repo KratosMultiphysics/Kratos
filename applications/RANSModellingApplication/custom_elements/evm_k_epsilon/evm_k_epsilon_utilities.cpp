@@ -45,7 +45,7 @@ double CalculateF2(const double turbulent_kinetic_energy,
     {
         const double Re_t = std::pow(turbulent_kinetic_energy, 2) /
                             (kinematic_viscosity * turbulent_energy_dissipation_rate);
-        const double f2 = 1.0 - 0.22 * std::exp(-1.0 * std::pow(Re_t / 6.0, 2));
+        const double f2 = 1.0 - 0.22 * std::exp(-1.0 * std::pow(Re_t * (1.0 / 6.0), 2));
 
         return f2;
     }

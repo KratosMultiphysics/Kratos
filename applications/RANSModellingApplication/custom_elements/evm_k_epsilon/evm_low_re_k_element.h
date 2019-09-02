@@ -122,7 +122,7 @@ public:
     /**
      * Constructor.
      */
-    EvmLowReKElement(IndexType NewId = 0);
+    explicit EvmLowReKElement(IndexType NewId = 0);
 
     /**
      * Constructor using an array of nodes
