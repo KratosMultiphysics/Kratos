@@ -36,7 +36,8 @@
             "scaling"     : false,
             "verbosity"   : 0
         },
-        "rotation_dofs"                      : false
+        "rotation_dofs"                      : false,
+        "use_computing_model_part" : "false"
     },
     "processes" : {
     "constraints_process_list" : [{
