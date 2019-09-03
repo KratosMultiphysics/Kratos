@@ -1058,9 +1058,8 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 
 template<class TPointType>
-const GeometryData Line3D3<TPointType>::msGeometryData( 3,
-        3,
-        1,
+const GeometryData Line3D3<TPointType>::msGeometryData(
+        &msGeometryDimension,
         GeometryData::GI_GAUSS_2,
         Line3D3<TPointType>::AllIntegrationPoints(),
         Line3D3<TPointType>::AllShapeFunctionsValues(),
