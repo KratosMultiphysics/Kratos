@@ -12,8 +12,6 @@
 #include "custom_utilities/potential_flow_utilities.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "includes/model_part.h"
-#include "custom_elements/incompressible_potential_flow_element.h"
-#include "compressible_potential_flow_application_variables.h"
 
 namespace Kratos {
 namespace PotentialFlowUtilities {
@@ -201,7 +199,7 @@ const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& 
 }
 
 template <int Dim>
-void CheckIfWakeConditionsAreFulfilled(ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel)
+void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel)
 {
     unsigned int number_of_unfulfilled_wake_conditions = 0;
     for (auto& r_element : rWakeModelPart.Elements()){
@@ -259,7 +257,7 @@ template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template const bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
-template void CheckIfWakeConditionsAreFulfilled<2>(ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template void CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template const bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 // 3D
@@ -277,7 +275,7 @@ template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template const bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
-template void CheckIfWakeConditionsAreFulfilled<3>(ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template void CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template const bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 } // namespace PotentialFlow
 } // namespace Kratos

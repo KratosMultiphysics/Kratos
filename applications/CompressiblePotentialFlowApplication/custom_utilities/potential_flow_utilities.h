@@ -9,6 +9,10 @@
 //
 //  Main authors:    Inigo Lopez
 
+#if !defined(KRATOS_POTENTIAL_FLOW_UTILITIES_H_INCLUDED )
+#define  KRATOS_POTENTIAL_FLOW_UTILITIES_H_INCLUDED
+
+
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
@@ -21,6 +25,15 @@ namespace Kratos
 
 namespace PotentialFlowUtilities
 {
+template <unsigned int TNumNodes, unsigned int TDim>
+struct ElementalData{
+    array_1d<double, TNumNodes> potentials, distances;
+    double vol;
+
+    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+    array_1d<double, TNumNodes> N;
+};
+
 template <int Dim, int NumNodes>
 array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
 
@@ -58,10 +71,12 @@ template <int Dim, int NumNodes>
 const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
 
 template <int Dim>
-void CheckIfWakeConditionsAreFulfilled(ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
+void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
 const bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 } // namespace PotentialFlow
 } // namespace Kratos
+
+#endif // KRATOS_POTENTIAL_FLOW_UTILITIES_H_INCLUDED  defined

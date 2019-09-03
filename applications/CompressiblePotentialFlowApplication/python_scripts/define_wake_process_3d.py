@@ -399,4 +399,4 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         gid_output.ExecuteFinalize()
 
     def ExecuteFinalizeSolutionStep(self):
-        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-2, 0)
+        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 0)

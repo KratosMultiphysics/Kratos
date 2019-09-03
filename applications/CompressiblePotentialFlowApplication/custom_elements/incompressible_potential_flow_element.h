@@ -19,19 +19,9 @@
 
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
-#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
-template <unsigned int TNumNodes, unsigned int TDim>
-struct ElementalData
-{
-    array_1d<double, TNumNodes> potentials, distances;
-    double vol;
-
-    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-    array_1d<double, TNumNodes> N;
-};
 ///@name Kratos Classes
 ///@{
 
@@ -39,6 +29,15 @@ template <int Dim, int NumNodes>
 class IncompressiblePotentialFlowElement : public Element
 {
 public:
+    template <unsigned int TNumNodes, unsigned int TDim>
+    struct ElementalData
+    {
+        array_1d<double, TNumNodes> potentials, distances;
+        double vol;
+
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+        array_1d<double, TNumNodes> N;
+    };
     ///@name Type Definitions
     ///@{
 
