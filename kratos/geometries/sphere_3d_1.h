@@ -835,9 +835,8 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 
 template<class TPointType>
-const GeometryData Sphere3D1<TPointType>::msGeometryData( 3,
-        3,
-        1,
+const GeometryData Sphere3D1<TPointType>::msGeometryData(
+        &msGeometryDimension,
         GeometryData::GI_GAUSS_1,
         Sphere3D1<TPointType>::AllIntegrationPoints(),
         Sphere3D1<TPointType>::AllShapeFunctionsValues(),
