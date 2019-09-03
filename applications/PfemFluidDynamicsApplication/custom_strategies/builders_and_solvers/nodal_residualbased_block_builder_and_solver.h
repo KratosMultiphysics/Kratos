@@ -268,7 +268,7 @@ namespace Kratos
 
 	  KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-	/* std::cout<<"Build Nodally Continuity Equation"<<std::endl; */
+	 std::cout<<"Build Nodally Continuity Equation"<<std::endl; 
 
 	//contributions to the system
 	LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -305,30 +305,19 @@ namespace Kratos
 		if (EquationId.size() != neighSize)
 		  EquationId.resize(neighSize, false);
 
-		
-		double deviatoricCoeff=1.0;
-		double volumetricCoeff=1.0;
-		if(itNode->Is(SOLID)){
-		
-		  deviatoricCoeff = timeInterval*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/(1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*0.5;
-		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*deviatoricCoeff/3.0;
-		}
-		else if(itNode->Is(FLUID)){
-		  deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-		}
+	  double deviatoricCoeff=itNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
+	  double volumetricCoeff=itNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT)+2.0*deviatoricCoeff/3.0;
 
 		const unsigned int xpos = itNode->GetDofPosition(VELOCITY_X);
 
 		double deltaPressure=itNode->FastGetSolutionStepValue(PRESSURE,0)-itNode->FastGetSolutionStepValue(PRESSURE,1);
 		double volumetricDefRate= itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE);
-		/* std::cout<<"totalVolume "<<nodalVolume<<"  VolumetricCoeff "<<volumetricCoeff<<std::endl; */
 
 		LHS_Contribution(0,0)+= nodalVolume/volumetricCoeff;
 		RHS_Contribution[0]  += (-deltaPressure/volumetricCoeff +  volumetricDefRate)*nodalVolume;
 
 		bool stabilizationNeeded=false;
-		if((itNode->Is(FLUID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
+		if((itNode->Is(FLUID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49999))){
 		  stabilizationNeeded=true;
 		}else{		  
 		  for (unsigned int i = 0; i< neighSize; i++)
@@ -638,44 +627,46 @@ namespace Kratos
        * @param Dx The Unknowns vector
        * @param b The RHS vector
        */
-      void BuildAndSolve(
-			 typename TSchemeType::Pointer pScheme,
-			 ModelPart& rModelPart,
-			 TSystemMatrixType& A,
-			 TSystemVectorType& Dx,
-			 TSystemVectorType& b) override
-      {
-        KRATOS_TRY
+void BuildAndSolve(
+ typename TSchemeType::Pointer pScheme,
+ ModelPart& rModelPart,
+ TSystemMatrixType& A,
+ TSystemVectorType& Dx,
+ TSystemVectorType& b) override
+  {
+    KRATOS_TRY
+
+	  std::cout << "CONTINUITY EQ: buildAndSolve " << std::endl;
 
 	  Timer::Start("Build");
 
-        /* Build(pScheme, rModelPart, A, b); */
+    /* Build(pScheme, rModelPart, A, b); */
 
-	boost::timer build_time;
-	BuildNodally(pScheme, rModelPart, A, b);
-	std::cout << "CONTINUITY EQ: build_time : " << build_time.elapsed() << std::endl;
+  	//boost::timer build_time;
+	  BuildNodally(pScheme, rModelPart, A, b);
+	  //std::cout << "CONTINUITY EQ: build_time : " << build_time.elapsed() << std::endl;
 
-	Timer::Stop("Build");
+	  Timer::Stop("Build");
 
-        ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
+    ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
-        KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+    KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-        const double start_solve = OpenMPUtils::GetCurrentTime();
-        Timer::Start("Solve");
+    const double start_solve = OpenMPUtils::GetCurrentTime();
+    Timer::Start("Solve");
 	
-	boost::timer solve_time;
-        SystemSolveWithPhysics(A, Dx, b, rModelPart);
-	std::cout << "CONTINUITY EQ: solve_time : " << solve_time.elapsed() << std::endl;
+	  //boost::timer solve_time;
+    SystemSolveWithPhysics(A, Dx, b, rModelPart);
+	  //std::cout << "CONTINUITY EQ: solve_time : " << solve_time.elapsed() << std::endl;
 
-        Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+    Timer::Stop("Solve");
+    const double stop_solve = OpenMPUtils::GetCurrentTime();
+    KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
-        KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+    KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-        KRATOS_CATCH("")
-	  }
+    KRATOS_CATCH("")
+	}
 
       /**
        * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
@@ -694,7 +685,7 @@ namespace Kratos
       {
         KRATOS_TRY
 
-	  BuildRHS(pScheme, rModelPart, b);
+	      BuildRHS(pScheme, rModelPart, b);
         SystemSolve(A, Dx, b);
 
         KRATOS_CATCH("")
@@ -961,7 +952,7 @@ namespace Kratos
       {
         KRATOS_TRY
 
-	  boost::timer contruct_matrix;
+	  //boost::timer contruct_matrix;
 
 	  if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
 	    {
@@ -1005,7 +996,7 @@ namespace Kratos
         if (b.size() != BaseType::mEquationSystemSize)
 	  b.resize(BaseType::mEquationSystemSize, false);
 
-	std::cout << "CONTINUITY EQ: contruct_matrix : " << contruct_matrix.elapsed() << std::endl;
+	//std::cout << "CONTINUITY EQ: contruct_matrix : " << contruct_matrix.elapsed() << std::endl;
 
         KRATOS_CATCH("")
 	  }
@@ -1020,6 +1011,8 @@ namespace Kratos
 				  TSystemVectorType& b) override
       {
         KRATOS_TRY
+       	std::cout << "Initialize Solution Step in nodal res based " << std::endl;
+    
 	  KRATOS_CATCH("")
 	  }
 

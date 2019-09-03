@@ -69,7 +69,7 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
         if k == 0:
             ## For the first iteration, do relaxation only
             if self.echo_level > 3:
-                classprint(self._Name(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
+                classprint(self._ClassName(), "Doing relaxation in the first iteration with factor = ", "{0:.1g}".format(self.alpha))
             return self.alpha * r
         else:
             self.F = np.empty( shape = (col, row) ) # will be transposed later
@@ -91,11 +91,11 @@ class AndersonConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             if switch.is_integer() == True:
                 B = self.beta * np.identity(row) - (self.X + self.beta * self.F) @ A @ self.F.T
                 if self.echo_level > 3:
-                    classprint(self._Name(), blue("Compute B with Anderson"))
+                    classprint(self._ClassName(), blue("Compute B with Anderson"))
             else:
                 B = self.alpha * np.identity(row)
                 if self.echo_level > 3:
-                    classprint(self._Name(), red("Constant underrelaxtion"))
+                    classprint(self._ClassName(), red("Constant underrelaxtion"))
 
             delta_x = B @ r
 

@@ -269,7 +269,7 @@ void InterfacePreprocessCondition::CreateNewCondition(
 {
     KRATOS_TRY;
 
-    Condition::Pointer p_cond = Condition::Pointer(rCondition.Create(ConditionId, rGeometry, pThisProperties));
+    Condition::Pointer p_cond = Condition::Pointer(rCondition.Create(ConditionId, rGeometry.Points(), pThisProperties));
     mrMainModelPart.AddCondition(p_cond);
     AssignMasterSlaveCondition(p_cond);
 

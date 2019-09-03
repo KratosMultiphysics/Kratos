@@ -6,9 +6,10 @@ import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 # Other imports
 import sys
+from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_adaptative_remeshing_structural
 
 # Import the base structural analysis
-from structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
 class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
     """
@@ -148,7 +149,6 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
         ## Solver construction
-        import python_solvers_wrapper_adaptative_remeshing_structural
         return python_solvers_wrapper_adaptative_remeshing_structural.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
