@@ -11,9 +11,8 @@
 //
 //
 
-#include "mpi.h"
-
 #include "includes/data_communicator.h"
+//#include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
 #include "testing/testing.h"
@@ -71,9 +70,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, Kratos
         const int global_rank = r_comm.Rank();
         if (global_rank == 0)
         {
-            // The communicator is equal to MPI_COMM_NULL for ranks that do not participate in in
-            // Note: MPI_Rank and MPI_Size are not valid operations on ranks that do not participate in communication.
-            KRATOS_CHECK_EQUAL(MPIDataCommunicator::GetMPICommunicator(r_new_comm), MPI_COMM_NULL);
+            // The communicator is equal to MPI_COMM_NULL for ranks that do not participate in it
+            KRATOS_CHECK(r_new_comm.IsNullOnThisRank());
+            KRATOS_CHECK_IS_FALSE(r_new_comm.IsDefinedOnThisRank());
         }
         else
         {
@@ -109,10 +108,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPIC
             r_all_except_first_comm, r_all_except_last_comm, r_comm, "UnionCommunicator");
 
         // our union MPI comm involves all ranks in the parent communicator, so it should be defined everywhere
-        KRATOS_CHECK_NOT_EQUAL(MPIDataCommunicator::GetMPICommunicator(r_union_comm), MPI_COMM_NULL);
+        KRATOS_CHECK_IS_FALSE(r_union_comm.IsNullOnThisRank());
 
         KRATOS_CHECK_EQUAL(r_union_comm.Rank(), r_comm.Rank());
         KRATOS_CHECK_EQUAL(r_union_comm.Size(), global_size);
+
+        // Clean up the ParallelEnvironment after test
+        //ParallelEnvironment::UnregisterDataCommunicator("AllExceptFirst");
+        //ParallelEnvironment::UnregisterDataCommunicator("AllExceptLast");
+        //ParallelEnvironment::UnregisterDataCommunicator("UnionCommunicator");
     }
 }
 
@@ -146,13 +150,18 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
         if ( (global_rank == 0) || (global_rank == global_size-1 ) )
         {
             // The first and last ranks do not participate in the intersection communicator
-            KRATOS_CHECK_EQUAL(MPIDataCommunicator::GetMPICommunicator(r_intersection_comm), MPI_COMM_NULL);
+            KRATOS_CHECK(r_intersection_comm.IsNullOnThisRank());
         }
         else
         {
             KRATOS_CHECK_EQUAL(r_intersection_comm.Rank(), r_comm.Rank() - 1);
             KRATOS_CHECK_EQUAL(r_intersection_comm.Size(), r_comm.Size() - 2);
         }
+
+        // Clean up the ParallelEnvironment after test
+        //ParallelEnvironment::UnregisterDataCommunicator("AllExceptFirst");
+        //ParallelEnvironment::UnregisterDataCommunicator("AllExceptLast");
+        //ParallelEnvironment::UnregisterDataCommunicator("IntersectionCommunicator");
     }
 }
 
