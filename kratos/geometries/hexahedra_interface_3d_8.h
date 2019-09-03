@@ -1522,10 +1522,9 @@ protected:
      */
 
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    /**
-     * Static Member Variables
-     */
     static const GeometryData msGeometryData;
 
     static const GeometryDimension msGeometryDimension;

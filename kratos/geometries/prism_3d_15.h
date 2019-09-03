@@ -1325,6 +1325,8 @@ private:
      */
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
 
     ///@}
     ///@name Serialization
@@ -1632,11 +1634,16 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Prism3D15<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_3,
+    &msGeometryDimension,
+    GeometryData::GI_GAUSS_3,
     Prism3D15<TPointType>::AllIntegrationPoints(),
     Prism3D15<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType> const
+GeometryDimension Prism3D15<TPointType>::msGeometryDimension(
+    3, 3, 3);
 
 }// namespace Kratos.
 
