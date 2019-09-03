@@ -125,8 +125,8 @@ namespace Kratos {
 
             auto quadrature_loaded = GenerateQuadraturePoint2();
 
-            serializer.save(tag_string, quadrature_saved);
-            serializer.load(tag_string, quadrature_loaded);
+            serializer.save("qp", quadrature_saved);
+            serializer.load("qp", quadrature_loaded);
 
             KRATOS_CHECK_NEAR((*quadrature_saved)[0].X(), (*quadrature_loaded)[0].X(), 1e-6);
             KRATOS_CHECK_NEAR((*quadrature_saved)[0].Y(), (*quadrature_loaded)[0].Y(), 1e-6);
