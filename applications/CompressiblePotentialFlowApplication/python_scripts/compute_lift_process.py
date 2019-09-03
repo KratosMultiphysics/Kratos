@@ -168,6 +168,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         for cond in self.far_field_model_part.Conditions:
             surface_normal = cond.GetGeometry().Normal()
             norm = surface_normal.norm_2()
+            if abs(norm) < 1e-9:
+                raise Exception('The norm of the condition ', cond.Id , ' should be larger than 0.')
             surface_normal_normalized = surface_normal/norm
             span_projection = _DotProduct(surface_normal_normalized, self.span_direction)
 
