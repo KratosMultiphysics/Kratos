@@ -118,8 +118,6 @@ private:
 
     const BoundedVector<double, 3> ComputeNodalDistancesToWake(const Element& rElement) const;
 
-    const bool CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const;
-
     void AddTrailingEdgeAndWakeElements(std::vector<std::size_t>& rWakeElementsOrderedIds);
 
     void MarkKuttaElements() const;

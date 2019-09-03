@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import os
 
@@ -46,6 +47,7 @@ class TikZOutputProcess(KratosMultiphysics.Process):
             "include_grid"                       : true,
             "landscape_mode"                     : true,
             "include_caption"                    : false,
+            "sans_fonts"                         : false,
             "prefix_nodes"                       : "",
             "prefix_elements"                    : ""
         }
@@ -65,7 +67,6 @@ class TikZOutputProcess(KratosMultiphysics.Process):
             if self.model_part.GetCommunicator().MyPID() == 0:
                 folder_name = self.settings["folder_name"].GetString()
                 if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-                    import KratosMultiphysics.kratos_utilities as kratos_utils
                     kratos_utils.DeleteDirectoryIfExisting(folder_name)
                 if not os.path.isdir(folder_name):
                     os.mkdir(folder_name)
@@ -101,8 +102,9 @@ class TikZOutputProcess(KratosMultiphysics.Process):
         include_grid = self.settings["include_grid"].GetBool()
         landscape_mode = self.settings["landscape_mode"].GetBool()
         include_caption = self.settings["include_caption"].GetBool()
+        sans_fonts = self.settings["sans_fonts"].GetBool()
         cmyk_colors_fill = self.settings["cmyk_colors_fill"].GetVector()
-        template_string = GetTemplateString(self.model_part, cmyk_colors_fill, include_nodes_label, include_elements_label, include_axis, include_grid, landscape_mode, include_caption)
+        template_string = GetTemplateString(self.model_part, cmyk_colors_fill, include_nodes_label, include_elements_label, include_axis, include_grid, landscape_mode, include_caption, sans_fonts)
 
         # Generate nodal data
         prefix_nodes = self.settings["prefix_nodes"].GetString()
@@ -187,8 +189,11 @@ class TikZOutputProcess(KratosMultiphysics.Process):
         else:
             return ( self.step_count >= self.next_output )
 
-def GetTemplateString(model_part, cmyk_colors_fill, include_nodes_label = True, include_elements_label = True, include_axis = True, include_grid = True, landscape_mode = True, include_caption = False):
-    template_string = "\documentclass{article}\n\\usepackage{tikz,listofitems,readarray,filecontents}\n\\usepackage{pdflscape}\n\\pagenumbering{gobble}\n\\usepackage{xcolor}\n\\usetikzlibrary{calc}\n\\begin{filecontents*}{nodedata.dat}\n%%REPLACE_NODE_DATA\n\end{filecontents*}\n\\begin{filecontents*}{elementdata.dat}\n%%REPLACE_ELEMENT_DATA\n\end{filecontents*}\n\n\definecolor{CustomColor}{cmyk}{" + str(cmyk_colors_fill[0]) + "," + str(cmyk_colors_fill[1]) + "," + str(cmyk_colors_fill[2]) + "," + str(cmyk_colors_fill[3]) + "}\n\n\\newcommand\coord[2][]{%\n  \edef\comparenode{#2}%\n  \\foreachitem\zzz\in\\noddat[]{%\n    \edef\\testnode{\\noddat[\zzzcnt,1]}%\n    \ifx\\testnode\comparenode\n      \\xaddtomacro\\tmp{(\\noddat[\zzzcnt,2]#1,\\noddat[\zzzcnt,3]#1)}\\fi\n  }%\n}\n\n\makeatletter\let\\addtomacro\g@addto@macro\makeatother\n\\newcommand\\xaddtomacro[2]{%\n  \edef\\xtmp{#2}%\n  \expandafter\\addtomacro\expandafter#1\expandafter{\\xtmp}%\n}\n\n\\newcommand\drawmesh[1][{\\filldraw[fill=CustomColor,fill opacity=0.1]}]{%\n  \def\\tmp{}%\n  \\foreachitem\z\in\eledat[]{%\n    \\addtomacro\\tmp{#1}%\n    \\foreachitem\zz\in\eledat[\zcnt]{%\n      \ifnum\zzcnt=1\\relax\else\n        \ifnum\zzcnt<\listlen\eledat[\zcnt]\\relax\n          \ifnum\zzcnt=2\\relax\coord{\zz}\\fi\n          \\addtomacro\\tmp{--}%\n          \coord{\eledat[\zcnt,\\the\\numexpr\zzcnt+1\\relax]}%\n        \else\n          \\addtomacro\\tmp{--}%\n          \coord{\eledat[\zcnt,2]}%\n        \\fi\n      \\fi\n    }%\n    \\addtomacro\\tmp{;}%\n  }%\n  \\tmp%\n}\n\n\\newcommand\labelnodes[1][\\node at]{%\n  \\foreachitem\z\in\\noddat[]{%\n    #1 (\\noddat[\zcnt,2],\\noddat[\zcnt,3]){%\n%% ALTERNATIVE 1\n%      \\textcolor{red}{$\\noddat[\zcnt,1]$}};\n%% ALTERNATIVE 2\n      \\fboxsep=0pt\\relax\n      \colorbox{white}{\color{red}$\\noddat[\zcnt,1]$}};\n%%\n  }%\n}\n\n\\newcommand\labelelements[1][\\node at]{%\n  \\foreachitem\z\in\eledat[]{%\n    \def\\tmp{#1 }%\n    \\addtomacro\\tmp{($}\n    \\foreachitem\zz\in\eledat[\zcnt]{%\n      \ifnum\zzcnt=1\\relax\else\n        \ifnum\zzcnt=2\\relax\else\\addtomacro\\tmp{ + }\\fi%\n        \coord[{/\\the\\numexpr\listlen\eledat[\zcnt]-1\\relax}]{%\n          \eledat[\zcnt,\zzcnt]}%\n      \\fi\n    }%\n    \\addtomacro\\tmp{$)}%\n    \\xaddtomacro\\tmp{{\\noexpand\\textcolor{blue!70!green}{$\eledat[\zcnt,1]$}};}%\n   \\tmp\n  }%\n}\n\n\\newcommand\\readmesh[2]{%\n  \ignoreemptyitems%\n  \\readarraysepchar{,}%\n  \ifx\\relax#1\\relax\else\\readdef{#1}\\nodedata\\fi\n  \ifx\\relax#2\\relax\else\\readdef{#2}\elementdata\\fi\n  \setsepchar{,/ }%\n  \\readlist*\\noddat{\\nodedata}%\n  \\readlist*\eledat{\elementdata}%\n}\n\\begin{document}\n%% FILE INPUT\n\\readmesh{nodedata.dat}{elementdata.dat}"
+def GetTemplateString(model_part, cmyk_colors_fill, include_nodes_label = True, include_elements_label = True, include_axis = True, include_grid = True, landscape_mode = True, include_caption = False, sans_fonts = False):
+    sans_font_string = ""
+    if sans_fonts:
+        sans_font_string = "\\usepackage{verbatim}\n\\usepackage{avant}\n\\usepackage[scaled]{helvet}\n\\usepackage[helvet]{sfmath}\n\\usepackage[EULERGREEK]{sansmath}\n\\usepackage{floatrow}\n\DeclareFloatFont{henry}{\\sffamily\\sansmath}\n\\floatsetup[figure]{font=henry}\n\\renewcommand{\\familydefault}{\\sfdefault}\n"
+    template_string = "\documentclass{article}\n\\usepackage{tikz,listofitems,readarray,filecontents}\n\\usepackage{pdflscape}\n\\pagenumbering{gobble}\n\\usepackage{xcolor}\n\\usetikzlibrary{calc}\n" + sans_font_string + "\\begin{filecontents*}{nodedata.dat}\n%%REPLACE_NODE_DATA\n\end{filecontents*}\n\\begin{filecontents*}{elementdata.dat}\n%%REPLACE_ELEMENT_DATA\n\end{filecontents*}\n\n\definecolor{CustomColor}{cmyk}{" + str(cmyk_colors_fill[0]) + "," + str(cmyk_colors_fill[1]) + "," + str(cmyk_colors_fill[2]) + "," + str(cmyk_colors_fill[3]) + "}\n\n\\newcommand\coord[2][]{%\n  \edef\comparenode{#2}%\n  \\foreachitem\zzz\in\\noddat[]{%\n    \edef\\testnode{\\noddat[\zzzcnt,1]}%\n    \ifx\\testnode\comparenode\n      \\xaddtomacro\\tmp{(\\noddat[\zzzcnt,2]#1,\\noddat[\zzzcnt,3]#1)}\\fi\n  }%\n}\n\n\makeatletter\let\\addtomacro\g@addto@macro\makeatother\n\\newcommand\\xaddtomacro[2]{%\n  \edef\\xtmp{#2}%\n  \expandafter\\addtomacro\expandafter#1\expandafter{\\xtmp}%\n}\n\n\\newcommand\drawmesh[1][{\\filldraw[fill=CustomColor,fill opacity=0.1]}]{%\n  \def\\tmp{}%\n  \\foreachitem\z\in\eledat[]{%\n    \\addtomacro\\tmp{#1}%\n    \\foreachitem\zz\in\eledat[\zcnt]{%\n      \ifnum\zzcnt=1\\relax\else\n        \ifnum\zzcnt<\listlen\eledat[\zcnt]\\relax\n          \ifnum\zzcnt=2\\relax\coord{\zz}\\fi\n          \\addtomacro\\tmp{--}%\n          \coord{\eledat[\zcnt,\\the\\numexpr\zzcnt+1\\relax]}%\n        \else\n          \\addtomacro\\tmp{--}%\n          \coord{\eledat[\zcnt,2]}%\n        \\fi\n      \\fi\n    }%\n    \\addtomacro\\tmp{;}%\n  }%\n  \\tmp%\n}\n\n\\newcommand\labelnodes[1][\\node at]{%\n  \\foreachitem\z\in\\noddat[]{%\n    #1 (\\noddat[\zcnt,2],\\noddat[\zcnt,3]){%\n%% ALTERNATIVE 1\n%      \\textcolor{red}{$\\noddat[\zcnt,1]$}};\n%% ALTERNATIVE 2\n      \\fboxsep=0pt\\relax\n      \colorbox{white}{\color{red}$\\noddat[\zcnt,1]$}};\n%%\n  }%\n}\n\n\\newcommand\labelelements[1][\\node at]{%\n  \\foreachitem\z\in\eledat[]{%\n    \def\\tmp{#1 }%\n    \\addtomacro\\tmp{($}\n    \\foreachitem\zz\in\eledat[\zcnt]{%\n      \ifnum\zzcnt=1\\relax\else\n        \ifnum\zzcnt=2\\relax\else\\addtomacro\\tmp{ + }\\fi%\n        \coord[{/\\the\\numexpr\listlen\eledat[\zcnt]-1\\relax}]{%\n          \eledat[\zcnt,\zzcnt]}%\n      \\fi\n    }%\n    \\addtomacro\\tmp{$)}%\n    \\xaddtomacro\\tmp{{\\noexpand\\textcolor{blue!70!green}{$\eledat[\zcnt,1]$}};}%\n   \\tmp\n  }%\n}\n\n\\newcommand\\readmesh[2]{%\n  \ignoreemptyitems%\n  \\readarraysepchar{,}%\n  \ifx\\relax#1\\relax\else\\readdef{#1}\\nodedata\\fi\n  \ifx\\relax#2\\relax\else\\readdef{#2}\elementdata\\fi\n  \setsepchar{,/ }%\n  \\readlist*\\noddat{\\nodedata}%\n  \\readlist*\eledat{\elementdata}%\n}\n\\begin{document}\n%% FILE INPUT\n\\readmesh{nodedata.dat}{elementdata.dat}"
 
     if landscape_mode:
         template_string += "\n\\begin{landscape}"

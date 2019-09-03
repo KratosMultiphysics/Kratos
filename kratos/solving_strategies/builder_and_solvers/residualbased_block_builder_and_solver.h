@@ -958,7 +958,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
+    virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
         if (rModelPart.MasterSlaveConstraints().size() > 0) {
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -1056,7 +1056,7 @@ protected:
         }
     }
 
-    void BuildMasterSlaveConstraints(ModelPart& rModelPart)
+    virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -1139,7 +1139,7 @@ protected:
         KRATOS_CATCH("")
     }
 
-    void ApplyConstraints(
+    virtual void ApplyConstraints(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType &rA,
         TSystemVectorType &rDx,

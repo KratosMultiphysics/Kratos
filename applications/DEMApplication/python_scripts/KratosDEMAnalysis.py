@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.DEMApplication
-from DEM_analysis_stage import DEMAnalysisStage
+from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 
 import time
 import sys

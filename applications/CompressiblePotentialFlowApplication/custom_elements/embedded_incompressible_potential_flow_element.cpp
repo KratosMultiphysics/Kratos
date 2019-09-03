@@ -11,6 +11,7 @@
 //
 #include "embedded_incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -55,8 +56,13 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
     const int wake = r_this.GetValue(WAKE);
     const int kutta = r_this.GetValue(KUTTA);
 
+    BoundedVector<double,NumNodes> distances;
+    for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+        distances[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+    }
+    const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
 
-    if (this->Is(TO_SPLIT) && wake == 0 && kutta == 0)
+    if (is_embedded && wake == 0 && kutta == 0)
         CalculateEmbeddedLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
     else
         BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
