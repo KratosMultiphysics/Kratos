@@ -61,6 +61,12 @@ void ParallelEnvironment::RegisterDataCommunicator(
     env.RegisterDataCommunicatorDetail(Name, rPrototype, Default);
 }
 
+void ParallelEnvironment::UnregisterDataCommunicator(const std::string& Name)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.UnregisterDataCommunicatorDetail(Name);
+}
+
 bool ParallelEnvironment::HasDataCommunicator(const std::string& rName)
 {
     const ParallelEnvironment& env = GetInstance();
@@ -164,6 +170,15 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
         << *(found->second)
         << " The provided DataCommunicator has not been added." << std::endl;
     }
+}
+
+void ParallelEnvironment::UnregisterDataCommunicatorDetail(const std::string& Name)
+{
+    int num_erased = mDataCommunicators.erase(Name);
+    KRATOS_WARNING_IF("ParallelEnvironment", num_erased == 0)
+    << "Trying to unregister a DataCommunicator with name " << Name
+    << " but no DataCommunicator of that name exsits."
+    << " No changes were made." << std::endl;
 }
 
 DataCommunicator& ParallelEnvironment::GetDataCommunicatorDetail(const std::string& rName) const
