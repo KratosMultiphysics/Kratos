@@ -230,7 +230,13 @@ MPIDataCommunicator::MPIDataCommunicator(MPI_Comm MPIComm):
 {}
 
 MPIDataCommunicator::~MPIDataCommunicator()
-{}
+{
+    // If the MPI_Comm object is not one of the standard ones, it is our responsibility to manage its lifetime.
+    if(mComm != MPI_COMM_WORLD && mComm != MPI_COMM_SELF && mComm != MPI_COMM_NULL)
+    {
+        MPI_Comm_free(&mComm);
+    }
+}
 
 DataCommunicator::UniquePointer MPIDataCommunicator::Clone() const
 {
@@ -375,6 +381,11 @@ MPI_Comm MPIDataCommunicator::GetMPICommunicator(const DataCommunicator& rDataCo
     }
 }
 
+MPIDataCommunicator::UniquePointer MPIDataCommunicator::Create(MPI_Comm Comm)
+{
+    return Kratos::make_unique<MPIDataCommunicator>(Comm);
+}
+
 const DataCommunicator& MPIDataCommunicator::SplitDataCommunicator(
     const DataCommunicator& rOriginalCommunicator,
     int Color, int Key,
@@ -385,7 +396,7 @@ const DataCommunicator& MPIDataCommunicator::SplitDataCommunicator(
     MPI_Comm_split(origin_mpi_comm, Color, Key, &split_mpi_comm);
 
     ParallelEnvironment::RegisterDataCommunicator(
-        rNewCommunicatorName, MPIDataCommunicator(split_mpi_comm).Clone(), ParallelEnvironment::DoNotMakeDefault);
+        rNewCommunicatorName, MPIDataCommunicator::Create(split_mpi_comm), ParallelEnvironment::DoNotMakeDefault);
     return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
 }
 
@@ -404,8 +415,10 @@ const DataCommunicator& MPIDataCommunicator::CreateDataCommunicatorFromRanks(
     int tag = 0;
     MPI_Comm_create_group(origin_mpi_comm, selected_ranks, tag, &comm_from_ranks);
 
+    MPI_Group_free(&all_ranks);
+    MPI_Group_free(&selected_ranks);
     ParallelEnvironment::RegisterDataCommunicator(
-        rNewCommunicatorName, MPIDataCommunicator(comm_from_ranks).Clone(), ParallelEnvironment::DoNotMakeDefault);
+        rNewCommunicatorName, MPIDataCommunicator::Create(comm_from_ranks), ParallelEnvironment::DoNotMakeDefault);
     return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
 }
 
