@@ -12,7 +12,7 @@
 //
 
 #include "includes/data_communicator.h"
-//#include "includes/parallel_environment.h"
+#include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
 #include "testing/testing.h"
@@ -44,6 +44,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPIC
         // Here keys in the global_rank >= i side of the split range between 1 and (global_size-i)
         KRATOS_CHECK_EQUAL(r_split_comm.Size(), expected_size);
         KRATOS_CHECK_EQUAL(r_split_comm.Rank(), expected_rank);
+
+        ParallelEnvironment::UnregisterDataCommunicator(name.str());
     }
 }
 
@@ -79,6 +81,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, Kratos
             KRATOS_CHECK_EQUAL(r_new_comm.Rank(), global_rank-1);
             KRATOS_CHECK_EQUAL(r_new_comm.Size(), global_size-1);
         }
+
+        ParallelEnvironment::UnregisterDataCommunicator("NewCommunicator");
     }
 }
 
@@ -114,9 +118,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPIC
         KRATOS_CHECK_EQUAL(r_union_comm.Size(), global_size);
 
         // Clean up the ParallelEnvironment after test
-        //ParallelEnvironment::UnregisterDataCommunicator("AllExceptFirst");
-        //ParallelEnvironment::UnregisterDataCommunicator("AllExceptLast");
-        //ParallelEnvironment::UnregisterDataCommunicator("UnionCommunicator");
+        ParallelEnvironment::UnregisterDataCommunicator("AllExceptFirst");
+        ParallelEnvironment::UnregisterDataCommunicator("AllExceptLast");
+        ParallelEnvironment::UnregisterDataCommunicator("UnionCommunicator");
     }
 }
 
@@ -139,10 +143,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
         const int global_rank = r_comm.Rank();
 
         const DataCommunicator& r_all_except_first_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
-            r_comm, all_except_first, "_AllExceptFirst");
+            r_comm, all_except_first, "AllExceptFirst");
 
         const DataCommunicator& r_all_except_last_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
-            r_comm, all_except_last, "_AllExceptLast");
+            r_comm, all_except_last, "AllExceptLast");
 
         const DataCommunicator& r_intersection_comm = MPIDataCommunicator::CreateIntersectionDataCommunicator(
             r_all_except_first_comm, r_all_except_last_comm, r_comm, "IntersectionCommunicator");
@@ -159,9 +163,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
         }
 
         // Clean up the ParallelEnvironment after test
-        //ParallelEnvironment::UnregisterDataCommunicator("AllExceptFirst");
-        //ParallelEnvironment::UnregisterDataCommunicator("AllExceptLast");
-        //ParallelEnvironment::UnregisterDataCommunicator("IntersectionCommunicator");
+        ParallelEnvironment::UnregisterDataCommunicator("AllExceptFirst");
+        ParallelEnvironment::UnregisterDataCommunicator("AllExceptLast");
+        ParallelEnvironment::UnregisterDataCommunicator("IntersectionCommunicator");
     }
 }
 
