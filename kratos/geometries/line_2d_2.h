@@ -1103,6 +1103,8 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -1288,6 +1290,10 @@ const GeometryData Line2D2<TPointType>::msGeometryData( 2,
         Line2D2<TPointType>::AllIntegrationPoints(),
         Line2D2<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients() );
+
+template<class TPointType>
+const GeometryDimension Line2D2<TPointType>::msGeometryDimension(
+    2, 2, 1);
 
 }  // namespace Kratos.
 
