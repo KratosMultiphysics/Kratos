@@ -143,10 +143,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
         const int global_rank = r_comm.Rank();
 
         const DataCommunicator& r_all_except_first_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
-            r_comm, all_except_first, "AllExceptFirst");
+            r_comm, all_except_first, "_AllExceptFirst");
 
         const DataCommunicator& r_all_except_last_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
-            r_comm, all_except_last, "AllExceptLast");
+            r_comm, all_except_last, "_AllExceptLast");
 
         const DataCommunicator& r_intersection_comm = MPIDataCommunicator::CreateIntersectionDataCommunicator(
             r_all_except_first_comm, r_all_except_last_comm, r_comm, "IntersectionCommunicator");
@@ -163,8 +163,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
         }
 
         // Clean up the ParallelEnvironment after test
-        ParallelEnvironment::UnregisterDataCommunicator("AllExceptFirst");
-        ParallelEnvironment::UnregisterDataCommunicator("AllExceptLast");
+        ParallelEnvironment::UnregisterDataCommunicator("_AllExceptFirst");
+        ParallelEnvironment::UnregisterDataCommunicator("_AllExceptLast");
         ParallelEnvironment::UnregisterDataCommunicator("IntersectionCommunicator");
     }
 }
