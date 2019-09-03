@@ -490,7 +490,7 @@ bool MPIDataCommunicator::IsDistributed() const
 
 bool MPIDataCommunicator::IsDefinedOnThisRank() const
 {
-    return !this->IsDefinedOnThisRank();
+    return !this->IsNullOnThisRank();
 }
 
 bool MPIDataCommunicator::IsNullOnThisRank() const
