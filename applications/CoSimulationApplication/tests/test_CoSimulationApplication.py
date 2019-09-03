@@ -1,15 +1,19 @@
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
+using_pykratos = UsingPyKratos()
+
 from co_simulation_test_factory import TestSmallCoSimulationCases
 from co_simulation_test_factory import TestCoSimulationCases
 from test_coupling_interface_data import TestCouplingInterfaceData
 from test_data_transfer_operators import TestDataTransferOperators
-from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
 from test_flower_coupling import TestFLOWerCoupling
+from test_coupling_operations import TestScalingOperation
+from test_function_callback_utility import TestGenericCallFunction
+if not using_pykratos:
+    from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
 
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
-using_pykratos = UsingPyKratos()
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -28,6 +32,8 @@ def AssembleTestSuites():
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGenericCallFunction]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
 
@@ -42,7 +48,8 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
-    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
+    if not using_pykratos:
+        validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
 
     ################################################################################
     # Create a test suit that contains all the tests:
