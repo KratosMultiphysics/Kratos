@@ -34,7 +34,7 @@ void InitializeMPIParallelRun()
     mpi_environment.Initialize();
 
     // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
-    ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
+    ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD).Clone(), ParallelEnvironment::MakeDefault);
 }
 
 PYBIND11_MODULE(KratosMPI, m)

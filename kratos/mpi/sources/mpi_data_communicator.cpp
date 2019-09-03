@@ -385,7 +385,7 @@ const DataCommunicator& MPIDataCommunicator::SplitDataCommunicator(
     MPI_Comm_split(origin_mpi_comm, Color, Key, &split_mpi_comm);
 
     ParallelEnvironment::RegisterDataCommunicator(
-        rNewCommunicatorName, MPIDataCommunicator(split_mpi_comm), ParallelEnvironment::DoNotMakeDefault);
+        rNewCommunicatorName, MPIDataCommunicator(split_mpi_comm).Clone(), ParallelEnvironment::DoNotMakeDefault);
     return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
 }
 
@@ -405,7 +405,7 @@ const DataCommunicator& MPIDataCommunicator::CreateDataCommunicatorFromRanks(
     MPI_Comm_create_group(origin_mpi_comm, selected_ranks, tag, &comm_from_ranks);
 
     ParallelEnvironment::RegisterDataCommunicator(
-        rNewCommunicatorName, MPIDataCommunicator(comm_from_ranks), ParallelEnvironment::DoNotMakeDefault);
+        rNewCommunicatorName, MPIDataCommunicator(comm_from_ranks).Clone(), ParallelEnvironment::DoNotMakeDefault);
     return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
 }
 
@@ -433,7 +433,7 @@ const DataCommunicator& MPIDataCommunicator::CreateUnionDataCommunicator(
     }
 
     ParallelEnvironment::RegisterDataCommunicator(
-        rNewCommunicatorName, MPIDataCommunicator(combined_mpi_comm), ParallelEnvironment::DoNotMakeDefault);
+        rNewCommunicatorName, MPIDataCommunicator(combined_mpi_comm).Clone(), ParallelEnvironment::DoNotMakeDefault);
     return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
 }
 
@@ -461,7 +461,7 @@ const DataCommunicator& MPIDataCommunicator::CreateIntersectionDataCommunicator(
     }
 
     ParallelEnvironment::RegisterDataCommunicator(
-        rNewCommunicatorName, MPIDataCommunicator(combined_mpi_comm), ParallelEnvironment::DoNotMakeDefault);
+        rNewCommunicatorName, MPIDataCommunicator(combined_mpi_comm).Clone(), ParallelEnvironment::DoNotMakeDefault);
     return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
 }
 

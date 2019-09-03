@@ -54,11 +54,11 @@ int ParallelEnvironment::GetDefaultSize()
 
 void ParallelEnvironment::RegisterDataCommunicator(
     const std::string& Name,
-    const DataCommunicator& rPrototype,
+    DataCommunicator::UniquePointer pPrototype,
     const bool Default)
 {
     ParallelEnvironment& env = GetInstance();
-    env.RegisterDataCommunicatorDetail(Name, rPrototype, Default);
+    env.RegisterDataCommunicatorDetail(Name, std::move(pPrototype), Default);
 }
 
 void ParallelEnvironment::UnregisterDataCommunicator(const std::string& Name)
@@ -101,7 +101,7 @@ void ParallelEnvironment::PrintData(std::ostream &rOStream)
 
 ParallelEnvironment::ParallelEnvironment()
 {
-    RegisterDataCommunicatorDetail("Serial", DataCommunicator(), MakeDefault);
+    RegisterDataCommunicatorDetail("Serial", DataCommunicator().Clone(), MakeDefault);
 }
 
 ParallelEnvironment::~ParallelEnvironment()
@@ -147,13 +147,13 @@ void ParallelEnvironment::Create()
 
 void ParallelEnvironment::RegisterDataCommunicatorDetail(
     const std::string& Name,
-    const DataCommunicator& rPrototype,
+    DataCommunicator::UniquePointer pPrototype,
     const bool Default)
 {
     auto found = mDataCommunicators.find(Name);
     if (found == mDataCommunicators.end())
     {
-        auto result = mDataCommunicators.emplace(Name, rPrototype.Clone());
+        auto result = mDataCommunicators.emplace(Name, std::move(pPrototype));
         // result.first returns the created pair, pair_iterator->second the cloned prototype (which is a UniquePointer)
         auto pair_iterator = result.first;
         KratosComponents<DataCommunicator>::Add(Name, *(pair_iterator->second));
