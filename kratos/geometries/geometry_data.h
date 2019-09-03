@@ -259,31 +259,6 @@ public:
     have gaussian order "2" ThisShapeFunctionsValues[GI_GAUSS_2]
     must be an empty ShapeFunctionsGradientsType.
     */
-    GeometryData( SizeType ThisDimension,
-                  SizeType ThisWorkingSpaceDimension,
-                  SizeType ThisLocalSpaceDimension,
-                  IntegrationMethod ThisDefaultMethod,
-                  const IntegrationPointsContainerType& ThisIntegrationPoints,
-                  const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
-                  const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients )
-        : mGeometryShapeFunctionContainer(
-            GeometryShapeFunctionContainer<IntegrationMethod>(
-                ThisDefaultMethod,
-                ThisIntegrationPoints,
-                ThisShapeFunctionsValues,
-                ThisShapeFunctionsLocalGradients))
-    {
-        mpGeometryDimension = new GeometryDimension(
-            ThisDimension,
-            ThisWorkingSpaceDimension,
-            ThisLocalSpaceDimension);
-    }
-
-    /*
-    * Constructor which has a precomputed a pointer to the static geometry dimension.
-    * @param pThisGeometryDimension pointer to the dimensional data
-    * @see other constructors.
-    */
     GeometryData(GeometryDimension const *pThisGeometryDimension,
         IntegrationMethod ThisDefaultMethod,
         const IntegrationPointsContainerType& ThisIntegrationPoints,
