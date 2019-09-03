@@ -420,14 +420,16 @@ const DataCommunicator& MPIDataCommunicator::CreateUnionDataCommunicator(
     MPI_Comm second_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rSecondDataCommunicator);
 
     MPI_Comm combined_mpi_comm;
+    constexpr int key = 0; // With key = 0 we are preserving the rank ordering on the new communicator
 
     if ( (first_mpi_comm != MPI_COMM_NULL) || (second_mpi_comm != MPI_COMM_NULL) )
     {
-        MPI_Comm_split(parent_comm, 0, 0, &combined_mpi_comm);
+        constexpr int color = 0;
+        MPI_Comm_split(parent_comm, color, key, &combined_mpi_comm);
     }
     else
     {
-        MPI_Comm_split(parent_comm, MPI_UNDEFINED, 0, &combined_mpi_comm);
+        MPI_Comm_split(parent_comm, MPI_UNDEFINED, key, &combined_mpi_comm);
     }
 
     ParallelEnvironment::RegisterDataCommunicator(
@@ -446,14 +448,16 @@ const DataCommunicator& MPIDataCommunicator::CreateIntersectionDataCommunicator(
     MPI_Comm second_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rSecondDataCommunicator);
 
     MPI_Comm combined_mpi_comm;
+    constexpr int key = 0; // With key = 0 we are preserving the rank ordering on the new communicator
 
     if ( (first_mpi_comm != MPI_COMM_NULL) && (second_mpi_comm != MPI_COMM_NULL) )
     {
-        MPI_Comm_split(parent_comm, 0, 0, &combined_mpi_comm);
+        constexpr int color = 0;
+        MPI_Comm_split(parent_comm, color, key, &combined_mpi_comm);
     }
     else
     {
-        MPI_Comm_split(parent_comm, MPI_UNDEFINED, 0, &combined_mpi_comm);
+        MPI_Comm_split(parent_comm, MPI_UNDEFINED, key, &combined_mpi_comm);
     }
 
     ParallelEnvironment::RegisterDataCommunicator(
