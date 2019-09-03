@@ -24,8 +24,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "please specify the model part that contains the surface nodes",
             "far_field_model_part_name": "please specify the model part that contains the surface nodes",
-            "trailing_edge_model_part_name": "",
             "moment_reference_point" : [0.0,0.0,0.0],
+            "trailing_edge_model_part_name": "",
             "is_infinite_wing": false
         }''')
 
