@@ -2675,6 +2675,7 @@ private:
 
     GeometryData const* mpGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -2709,9 +2710,8 @@ private:
         IntegrationPointsContainerType integration_points = {};
         ShapeFunctionsValuesContainerType shape_functions_values = {};
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {};
-        static GeometryData s_geometry_data(3,
-                            3,
-                            3,
+        static GeometryData s_geometry_data(
+                            &msGeometryDimension,
                             GeometryData::GI_GAUSS_1,
                             integration_points,
                             shape_functions_values,
@@ -2776,6 +2776,9 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 ///@}
 
+template<class TPointType>
+const GeometryDimension Geometry<TPointType>::msGeometryDimension(
+    3, 3, 3);
 
 }  // namespace Kratos.
 
