@@ -11,6 +11,7 @@
 
 #include "custom_utilities/potential_flow_utilities.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos {
 namespace PotentialFlowUtilities {
@@ -197,6 +198,47 @@ const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& 
            number_of_nodes_with_positive_distance > 0;
 }
 
+template <int Dim>
+void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel)
+{
+    unsigned int number_of_unfulfilled_wake_conditions = 0;
+    for (auto& r_element : rWakeModelPart.Elements()){
+        const bool wake_condition_is_fulfilled =
+            CheckWakeCondition<Dim, Dim + 1>(r_element, rTolerance, rEchoLevel);
+        if (!wake_condition_is_fulfilled)
+        {
+            number_of_unfulfilled_wake_conditions += 1;
+        }
+    }
+    KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << "THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
+        << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+}
+
+template <int Dim, int NumNodes>
+const bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel)
+{
+    const auto upper_velocity = ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+    const auto lower_velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+
+    bool wake_condition_is_fulfilled = true;
+    for (unsigned int i = 0; i < upper_velocity.size(); i++){
+        if(std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance){
+            wake_condition_is_fulfilled = false;
+            break;
+        }
+    }
+
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 0)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id() << std::endl;
+    KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 1)
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
+        << " upper_velocity  = " << upper_velocity
+        << " lower_velocity  = " << lower_velocity << std::endl;
+
+    return wake_condition_is_fulfilled;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
@@ -215,6 +257,8 @@ template array_1d<double, 2> ComputeVelocityLowerWakeElement<2, 3>(const Element
 template array_1d<double, 2> ComputeVelocity<2, 3>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<2, 3>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template const bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
+template void CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template const bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
@@ -231,5 +275,7 @@ template array_1d<double, 3> ComputeVelocityLowerWakeElement<3, 4>(const Element
 template array_1d<double, 3> ComputeVelocity<3, 4>(const Element& rElement);
 template double ComputeIncompressiblePressureCoefficient<3, 4>(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 template const bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
+template void CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template const bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 } // namespace PotentialFlow
 } // namespace Kratos
