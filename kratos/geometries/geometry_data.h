@@ -740,13 +740,13 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        //rSerializer.save("GeometryDimension", mpGeometryDimension);
+        rSerializer.save("GeometryDimension", mpGeometryDimension);
         rSerializer.save("GeometryShapeFunctionContainer", mGeometryShapeFunctionContainer);
     }
 
     virtual void load( Serializer& rSerializer )
     {
-        //rSerializer.load("GeometryDimension", const_cast<GeometryDimension*>(mpGeometryDimension));
+        rSerializer.load("GeometryDimension", const_cast<GeometryDimension*>(mpGeometryDimension));
         rSerializer.load("GeometryShapeFunctionContainer", mGeometryShapeFunctionContainer);
     }
 
