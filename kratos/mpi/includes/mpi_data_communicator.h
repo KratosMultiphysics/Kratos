@@ -262,6 +262,10 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 
     bool IsDistributed() const override;
 
+    bool IsDefinedOnThisRank() const override;
+
+    bool IsNullOnThisRank() const override;
+
     ///@}
     ///@name Helper functions for error checking in MPI
     ///@{

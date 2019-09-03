@@ -488,6 +488,16 @@ bool MPIDataCommunicator::IsDistributed() const
     return true;
 }
 
+bool MPIDataCommunicator::IsDefinedOnThisRank() const
+{
+    return !this->IsDefinedOnThisRank();
+}
+
+bool MPIDataCommunicator::IsNullOnThisRank() const
+{
+    return mComm == MPI_COMM_NULL;
+}
+
 // IO
 
 std::string MPIDataCommunicator::Info() const
