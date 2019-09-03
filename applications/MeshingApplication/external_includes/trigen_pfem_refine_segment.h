@@ -387,7 +387,7 @@ public:
 
             for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
             {
-                iii->SetId(i+1);
+                iii->SetEquationId(i+1);
 //                                    iii->Id() = i+1;
             }
             //reordering segment list
