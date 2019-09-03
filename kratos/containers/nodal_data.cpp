@@ -75,16 +75,13 @@ namespace Kratos
     void NodalData::save(Serializer& rSerializer) const
     {
         rSerializer.save("Id",mId);
-         const SolutionStepsNodalDataContainerType* pSolutionStepsNodalData = &mSolutionStepsNodalData;
-        // I'm saving it as pointer so the dofs pointers will point to it as stored pointer. Pooyan.
-        rSerializer.save("Solution Steps Nodal Data", pSolutionStepsNodalData);
+        rSerializer.save("SolutionStepsNodalData", mSolutionStepsNodalData);
    }
 
     void NodalData::load(Serializer& rSerializer)
     {
         rSerializer.load("Id",mId);
-        SolutionStepsNodalDataContainerType* pSolutionStepsNodalData = &mSolutionStepsNodalData;
-        rSerializer.load("Solution Steps Nodal Data", pSolutionStepsNodalData);
+        rSerializer.load("SolutionStepsNodalData", mSolutionStepsNodalData);
     }
 }  // namespace Kratos.
 
