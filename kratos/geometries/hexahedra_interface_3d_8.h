@@ -1515,12 +1515,6 @@ public:
         rOStream << "    Jacobian in the origin\t : " << jacobian;
     }
 
-protected:
-
-    /**
-     * there are no protected class members
-     */
-
 private:
     ///@name Static Member Variables
     ///@{

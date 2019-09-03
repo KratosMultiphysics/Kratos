@@ -1086,20 +1086,9 @@ public:
         return( result );
     }
 
-
-protected:
-
-
-    /**
-     * there are no protected class members
-     */
-
 private:
-
-
-    /**
-     * Static Member Variables
-     */
+    ///@name Static Member Variables
+    ///@{
 
     static const GeometryData msGeometryData;
 

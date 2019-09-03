@@ -1261,16 +1261,12 @@ private:
  * Input and output
  */
 
-/**
- * input stream function
- */
+/// input stream function
 template< class TPointType > inline std::istream& operator >> (
     std::istream& rIStream,
     Quadrilateral2D9<TPointType>& rThis );
 
-/**
- * output stream function
- */
+/// output stream function
 template< class TPointType > inline std::ostream& operator << (
     std::ostream& rOStream,
     const Quadrilateral2D9<TPointType>& rThis )
