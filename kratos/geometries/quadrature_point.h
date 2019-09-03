@@ -449,6 +449,7 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
         rSerializer.save("pGeometryParent", mpGeometryParent);
+        rSerializer.save("GeometryDimension", &msGeometryDimension);
         rSerializer.save("GeometryData", mGeometryData);
     }
 
@@ -456,7 +457,12 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("GeometryParent", mpGeometryParent);
-        rSerializer.save("GeometryData", mGeometryData);
+
+        GeometryDimension *temp;
+        rSerializer.load("GeometryDimension", temp);
+        //rSerializer.RedirectLoadingPointer(&msGeometryDimension, temp);
+
+        rSerializer.load("GeometryData", mGeometryData);
     }
 
     QuadraturePoint()
