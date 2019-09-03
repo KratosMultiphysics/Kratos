@@ -20,7 +20,7 @@
 #include "testing/testing.h"
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
-#include "geometries/nurbs_shape_function_utilities/projection_nurbs_geometry_utilities.h"
+#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
