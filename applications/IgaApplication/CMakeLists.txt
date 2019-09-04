@@ -36,6 +36,7 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${ANURBS_ROOT}/external_libraries/ClipperLib/clipper.cpp
     # conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_coupling_condition.cpp
 )
 
 ## generate variables with the testing sources
