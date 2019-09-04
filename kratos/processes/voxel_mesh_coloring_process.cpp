@@ -201,7 +201,7 @@ namespace Kratos
 		for (int k = min_position[2]; k < static_cast<int>(max_position[2]); k++) {
 			for (std::size_t j = min_position[1]; j < max_position[1]; j++) {
                 bool previous_cell_was_empty = true;
-                int previous_cell_color = 1;
+                int previous_cell_color = mOutsideColor;
  				for (std::size_t i = min_position[0]; i < max_position[0]; i++) {
                     std::size_t index = i + j * mNumberOfDivisions[0] + k * mNumberOfDivisions[1] * mNumberOfDivisions[0];
                    auto& r_node = *(nodes_begin + index);
