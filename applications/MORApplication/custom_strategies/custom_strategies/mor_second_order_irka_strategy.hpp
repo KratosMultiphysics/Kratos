@@ -348,7 +348,7 @@ class MorSecondOrderIRKAStrategy
 
 
             subrange(r_L2, 0, reduced_system_size, 0, reduced_system_size) = r_D_reduced;
-            subrange(r_L2, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = -1.0*id_m;//r_K_reduced;            
+            subrange(r_L2, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_K_reduced;            
 
             // for(size_t i = 0; i < reduced_system_size; ++i){
             //     r_L2(reduced_system_size+i,i) = -1;
@@ -364,29 +364,29 @@ class MorSecondOrderIRKAStrategy
             //KRATOS_WATCH(subrange(r_L2, reduced_system_size-2, reduced_system_size+2, reduced_system_size-2, reduced_system_size+2));
 
 
-            Eigen::Matrix3d t_eig_m3;
-            t_eig_m3(0,0) = 2;
-            t_eig_m3(0,1) = 1;
-            t_eig_m3(0,2) = 1;
+            // // // // // Eigen::Matrix3d t_eig_m3;
+            // // // // // t_eig_m3(0,0) = 2;
+            // // // // // t_eig_m3(0,1) = 1;
+            // // // // // t_eig_m3(0,2) = 1;
 
-            t_eig_m3(1,0) = 1;
-            t_eig_m3(1,1) = 2;
-            t_eig_m3(1,2) = 1;
+            // // // // // t_eig_m3(1,0) = 1;
+            // // // // // t_eig_m3(1,1) = 2;
+            // // // // // t_eig_m3(1,2) = 1;
 
-            t_eig_m3(2,0) = 1;
-            t_eig_m3(2,1) = 1;
-            t_eig_m3(2,2) = 2;
+            // // // // // t_eig_m3(2,0) = 1;
+            // // // // // t_eig_m3(2,1) = 1;
+            // // // // // t_eig_m3(2,2) = 2;
 
-            Eigen::Matrix3d t_eig_id3; 
-            t_eig_id3 = Eigen::Matrix3d::Identity();
+            // // // // // Eigen::Matrix3d t_eig_id3; 
+            // // // // // t_eig_id3 = Eigen::Matrix3d::Identity();
 
-            KRATOS_WATCH(t_eig_m3);
-            KRATOS_WATCH(t_eig_id3);
+            // // // // // KRATOS_WATCH(t_eig_m3);
+            // // // // // KRATOS_WATCH(t_eig_id3);
 
-            Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> eig_test;
-            eig_test.compute(t_eig_m3,t_eig_id3);
-            KRATOS_WATCH(eig_test.eigenvalues());
-            KRATOS_WATCH(eig_test.eigenvectors());
+            // // // // // Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> eig_test;
+            // // // // // eig_test.compute(t_eig_m3,t_eig_id3);
+            // // // // // KRATOS_WATCH(eig_test.eigenvalues());
+            // // // // // KRATOS_WATCH(eig_test.eigenvectors());
 
             // -> same results (also correct according to WolframAlpha)
             // -> ??? happens in eigensystem_solver.h for #eigenvalues>1 ...
@@ -409,35 +409,36 @@ class MorSecondOrderIRKAStrategy
             // DenseSpaceType::Resize(Eigenvalues,  3);
             // DenseSpaceType::Resize(Eigenvectors, 3, 3);
             
-            auto L1_test = SparseSpaceType::CreateEmptyMatrixPointer();
-            auto& r_L1_test = *L1_test;
-            SparseSpaceType::Resize(r_L1_test, 3, 3);
+            // // // // // auto L1_test = SparseSpaceType::CreateEmptyMatrixPointer();
+            // // // // // auto& r_L1_test = *L1_test;
+            // // // // // SparseSpaceType::Resize(r_L1_test, 3, 3);
             
-            auto L2_test = SparseSpaceType::CreateEmptyMatrixPointer();
-            auto& r_L2_test = *L2_test;
-            SparseSpaceType::Resize(r_L2_test, 3, 3);
+            // // // // // auto L2_test = SparseSpaceType::CreateEmptyMatrixPointer();
+            // // // // // auto& r_L2_test = *L2_test;
+            // // // // // SparseSpaceType::Resize(r_L2_test, 3, 3);
 
-            for(size_t i = 0; i < 3; ++i){
-                r_L2_test(i,i) = 1;
-            }
+            // // // // // for(size_t i = 0; i < 3; ++i){
+            // // // // //     r_L2_test(i,i) = 1;
+            // // // // // }
 
-            r_L1_test(0,0) = 2;
-            r_L1_test(0,1) = 1;
-            r_L1_test(0,2) = 1;
+            // // // // // r_L1_test(0,0) = 2;
+            // // // // // r_L1_test(0,1) = 1;
+            // // // // // r_L1_test(0,2) = 1;
 
-            r_L1_test(1,0) = 1;
-            r_L1_test(1,1) = 2;
-            r_L1_test(1,2) = 1;
+            // // // // // r_L1_test(1,0) = 1;
+            // // // // // r_L1_test(1,1) = 2;
+            // // // // // r_L1_test(1,2) = 1;
 
-            r_L1_test(2,0) = 1;
-            r_L1_test(2,1) = 1;
-            r_L1_test(2,2) = 2;
+            // // // // // r_L1_test(2,0) = 1;
+            // // // // // r_L1_test(2,1) = 1;
+            // // // // // r_L1_test(2,2) = 2;
 
-            KRATOS_WATCH(r_L1_test);
-            KRATOS_WATCH(r_L2_test);
+            // // // // // KRATOS_WATCH(r_L1_test);
+            // // // // // KRATOS_WATCH(r_L2_test);
 
             //TODO: issue linearized version: not spd
 
+            //TDenseVectorType Eigenvalues_im;
 
             p_builder_and_solver_feast->GetLinearSystemSolver()->Solve(
                 r_L2,
@@ -447,7 +448,14 @@ class MorSecondOrderIRKAStrategy
                 //r_K_reduced,
                 //r_M_reduced,
                 Eigenvalues,
+                //Eigenvalues_im,
                 Eigenvectors);
+
+                KRATOS_WATCH(Eigenvalues);
+                //KRATOS_WATCH(Eigenvalues_im);
+                KRATOS_WATCH(Eigenvectors);
+                
+
 
 
             Eigen::Matrix<double,8,8> r_L1_mtype;
@@ -536,8 +544,8 @@ class MorSecondOrderIRKAStrategy
 
 
 
-                Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> eig_test2;
-                //Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> eig_test2;
+                //Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> eig_test2;
+                Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> eig_test2;
             eig_test2.compute(r_L2_mtype,r_L1_mtype);
             KRATOS_WATCH(eig_test2.eigenvalues());
             //KRATOS_WATCH(eig_test2.alphas());
@@ -545,8 +553,19 @@ class MorSecondOrderIRKAStrategy
             KRATOS_WATCH(eig_test2.eigenvectors());
 
             //this->AssignVariables(Eigenvalues,Eigenvectors);
-            KRATOS_WATCH(Eigenvalues);
-            KRATOS_WATCH(Eigenvectors);
+            // // KRATOS_WATCH(Eigenvalues);
+            // // KRATOS_WATCH(Eigenvectors);
+
+
+            // auto& r_pa_test_tmp = eig_test2.eigenvectors();
+            // auto& r_pa_test = prod(r_L2_mtype,r_pa_test_tmp);
+            // KRATOS_WATCH(r_pa_test);
+            // auto& r_pb_test_tmp = eig_test2.eigenvectors();
+            // r_pb_test_tmp = prod(r_L1_mtype,r_pb_test_tmp);
+            // auto& r_pb_test_tmp_val = eig_test2.eigenvalues();
+            // auto& r_pb_test = prod(r_pb_test_tmp_val, r_pb_test_tmp);
+            // KRATOS_WATCH(r_pb_test);
+
 
         KRATOS_WATCH(r_L1);
         KRATOS_WATCH(r_L2);
