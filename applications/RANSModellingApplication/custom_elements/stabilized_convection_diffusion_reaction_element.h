@@ -1029,14 +1029,14 @@ private:
 
     double GetDeltaTime(const ProcessInfo& rProcessInfo) const
     {
-        if (this->Has(DELTA_TIME))
-        {
-            return this->GetValue(DELTA_TIME);
-        }
-        else
-        {
+        // if (this->Has(DELTA_TIME))
+        // {
+        //     return this->GetValue(DELTA_TIME);
+        // }
+        // else
+        // {
             return rProcessInfo[DELTA_TIME];
-        }
+        // }
     }
 
     ///@}
