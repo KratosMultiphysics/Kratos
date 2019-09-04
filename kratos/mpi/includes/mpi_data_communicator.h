@@ -157,7 +157,7 @@ namespace Kratos
  *
  *  @see DataCommunicator in the KratosCore for the full interface and a serial do-nothing implementation.
  */
-class MPIDataCommunicator: public DataCommunicator
+class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 {
   public:
     ///@name Type Definitions

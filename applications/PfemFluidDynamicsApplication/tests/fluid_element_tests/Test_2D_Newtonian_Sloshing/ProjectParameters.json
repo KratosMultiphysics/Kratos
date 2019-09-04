@@ -56,7 +56,7 @@
     },
     "problem_process_list"     : [{
         "help"          : "This process applies meshing to the problem domains",
-        "kratos_module" : "KratosMultiphysics.DelaunayMeshingApplication",
+        "kratos_module" : "KratosMultiphysics.PfemFluidDynamicsApplication",
         "python_module" : "remesh_fluid_domains_process",
         "process_name"  : "RemeshFluidDomainsProcess",
         "Parameters"    : {
