@@ -932,7 +932,7 @@ const GeometryData LineGaussLobatto3D2<TPointType>::msGeometryData(
         AllShapeFunctionsLocalGradients() );
 
 template<class TPointType>
-const GeometryData LineGaussLobatto3D2<TPointType>::msGeometryDimension(
+const GeometryDimension LineGaussLobatto3D2<TPointType>::msGeometryDimension(
     3, 3, 1);
 
 }  // namespace Kratos.
