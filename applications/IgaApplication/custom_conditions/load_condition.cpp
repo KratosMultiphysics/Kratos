@@ -72,7 +72,7 @@ namespace Kratos
                 // Point loads
                 if (this->Has(POINT_LOAD))
                 {
-                    const array_1d<double, 3> point_load = this->GetValue(POINT_LOAD);
+                    const array_1d<double, 3>& point_load = this->GetValue(POINT_LOAD);
 
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
@@ -86,7 +86,7 @@ namespace Kratos
                 // Line loads
                 if (this->Has(LINE_LOAD))
                 {
-                    const array_1d<double, 3> line_load = this->GetValue(LINE_LOAD);
+                    const array_1d<double, 3>& line_load = this->GetValue(LINE_LOAD);
 
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
@@ -100,7 +100,7 @@ namespace Kratos
                 // Surface loads
                 if (this->Has(SURFACE_LOAD))
                 {
-                    const array_1d<double, 3> surface_load = this->GetValue(SURFACE_LOAD);
+                    const array_1d<double, 3>& surface_load = this->GetValue(SURFACE_LOAD);
 
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
@@ -114,7 +114,7 @@ namespace Kratos
                 // Pressure loads
                 if (this->Has(PRESSURE))
                 {
-                    double pressure = this->GetValue(PRESSURE);
+                    const double pressure = this->GetValue(PRESSURE);
 
                     array_1d<double, 3> normal = r_geometry.Normal(point_number);
                     normal = normal / norm_2(normal);
