@@ -70,7 +70,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMin)
         .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMax)
         .def("EstimateDt",&EstimateDtUtility < 2 > ::EstimateDt)
-        .def("CalculateLocalCFL",(void (EstimateDtUtility<2>::*)()) &EstimateDtUtility<2>::CalculateLocalCFL)
         .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &EstimateDtUtility<2>::CalculateLocalCFL )
         ;
 
@@ -81,7 +80,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMin)
         .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMax)
         .def("EstimateDt",&EstimateDtUtility < 3 > ::EstimateDt)
-        .def("CalculateLocalCFL",(void (EstimateDtUtility<3>::*)()) &EstimateDtUtility<3>::CalculateLocalCFL)
         .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &EstimateDtUtility<3>::CalculateLocalCFL )
         ;
 
