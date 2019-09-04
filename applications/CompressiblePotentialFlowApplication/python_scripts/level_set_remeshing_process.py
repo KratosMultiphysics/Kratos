@@ -175,8 +175,6 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         ''' This function modifies the distance field to avoid ill defined cuts.
         '''
         ini_time = time.time()
-        find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.main_model_part)
-        find_nodal_h.Execute()
         KratosMultiphysics.FluidDynamicsApplication.DistanceModificationProcess(self.main_model_part,self.distance_modification_parameters).Execute()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Modify distance time: ',time.time()-ini_time)
 

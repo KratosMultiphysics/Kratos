@@ -154,7 +154,7 @@ class EigenDirectSolver
 
         m_solver.compute(a);
 
-        KRATOS_ERROR_IF(m_solver.info() != Eigen::Success) << "Decomposition failed!" << std::endl;
+        KRATOS_ERROR_IF(m_solver.info() != Eigen::Success) << "Decomposition failed: " << m_solver.lastErrorMessage() << std::endl;
     }
 
     /**
@@ -171,7 +171,7 @@ class EigenDirectSolver
 
         x = m_solver.solve(b);
 
-        KRATOS_ERROR_IF(m_solver.info() != Eigen::Success) << "Solving failed!" << std::endl;
+        KRATOS_ERROR_IF(m_solver.info() != Eigen::Success) << "Solving failed: " << m_solver.lastErrorMessage() << std::endl;
     }
 
     /**
