@@ -156,7 +156,7 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
         auto result = mDataCommunicators.emplace(Name, std::move(pPrototype));
         // result.first returns the created pair, pair_iterator->second the cloned prototype (which is a UniquePointer)
         auto pair_iterator = result.first;
-        KratosComponents<DataCommunicator>::Add(Name, *(pair_iterator->second));
+        //KratosComponents<DataCommunicator>::Add(Name, *(pair_iterator->second));
 
         if (Default == MakeDefault)
         {
