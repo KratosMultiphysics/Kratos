@@ -42,3 +42,7 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MultilevelMonteCarloApplication.py" DESTINATION "KratosMultiphysics/MultilevelMonteCarloApplication" RENAME "__init__.py")
+
+if(NOT DEFINED USING_PYCOMPSS)
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/exaqute" DESTINATION .)
+endif(NOT DEFINED USING_PYCOMPSS)
