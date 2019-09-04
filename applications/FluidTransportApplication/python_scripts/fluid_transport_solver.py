@@ -6,7 +6,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.ConvectionDiffusionApplication
+import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
 
 def CreateSolver(main_model_part, custom_settings):
@@ -85,7 +85,10 @@ class FluidTransportSolver(PythonSolver):
                 "coarsening_type": "aggregation"
             },
             "problem_domain_sub_model_part_list": [""],
-            "processes_sub_model_part_list": [""]
+            "processes_sub_model_part_list": [""],
+            "pfem2_convection_settings"    : {
+                "use_pfem2_convection"         : false
+	        }
         }""")
 
         this_defaults.AddMissingParameters(super(FluidTransportSolver, cls).GetDefaultSettings())
