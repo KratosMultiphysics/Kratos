@@ -169,5 +169,22 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentRegisterDataCommunicator, KratosMPICoreFastSuite)
+{
+    const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+
+    MPIDataCommunicator::SplitDataCommunicator(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
+
+    KRATOS_CHECK(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
+
+    ParallelEnvironment::UnregisterDataCommunicator("EvenOdd");
+
+    KRATOS_CHECK_IS_FALSE(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
+
+    MPIDataCommunicator::SplitDataCommunicator(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
+
+    KRATOS_CHECK(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
+}
+
 }
 }
