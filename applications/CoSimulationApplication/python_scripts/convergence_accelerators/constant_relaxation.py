@@ -27,6 +27,6 @@ class ConstantRelaxationConvergenceAccelerator(CoSimulationConvergenceAccelerato
     # Computes the approximated update in each iteration.
     def UpdateSolution( self, r, x ):
         if self.echo_level > 3:
-            classprint(self._Name(), "Doing relaxation with factor = ", "{0:.1g}".format(self.alpha))
+            classprint(self._ClassName(), "Doing relaxation with factor = ", "{0:.1g}".format(self.alpha))
         delta_x = self.alpha * r
         return delta_x

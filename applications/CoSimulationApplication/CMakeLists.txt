@@ -29,10 +29,16 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     set( KRATOS_CO_SIMULATION_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_application.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/co_simulation_python_application.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
     )
 
+    ## define test sources (cpp tests)
+    if(${KRATOS_BUILD_TESTING} MATCHES ON)
+         file(GLOB_RECURSE KRATOS_CO_SIMULATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
     # define library Kratos which defines the basic python interface
-    pybind11_add_module(KratosCoSimulationApplication MODULE THIN_LTO ${KRATOS_CO_SIMULATION_APPLICATION_SOURCES})
+    pybind11_add_module(KratosCoSimulationApplication MODULE THIN_LTO ${KRATOS_CO_SIMULATION_APPLICATION_SOURCES} ${KRATOS_CO_SIMULATION_TESTING_SOURCES})
     target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCore )
     set_target_properties(KratosCoSimulationApplication PROPERTIES PREFIX "")
     install(TARGETS KratosCoSimulationApplication DESTINATION libs )

@@ -225,9 +225,6 @@ protected:
 
     void CalculateTransformationMatrix(const BoundedMatrix<double,3,3>& rMainDirection, BoundedMatrix<double,6,6>& rA);
 
-
-    double GetPI();
-
     ///@}
     ///@name Protected  Access
     ///@{

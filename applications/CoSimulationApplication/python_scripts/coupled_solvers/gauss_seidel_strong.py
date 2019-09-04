@@ -72,7 +72,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
     def SolveSolutionStep(self):
         for k in range(self.num_coupling_iterations):
             if self.echo_level > 0:
-                cs_tools.cs_print_info(self._Name(), colors.cyan("Coupling iteration:"), colors.bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
+                cs_tools.cs_print_info(self._ClassName(), colors.cyan("Coupling iteration:"), colors.bold(str(k+1)+" / " + str(self.num_coupling_iterations)))
 
             for coupling_op in self.coupling_operations_dict.values():
                 coupling_op.InitializeCouplingIteration()
@@ -97,12 +97,13 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             for conv_crit in self.convergence_criteria_list:
                 conv_crit.FinalizeNonLinearIteration()
 
-            is_converged = True
-            for conv_crit in self.convergence_criteria_list:
-                is_converged = is_converged and conv_crit.IsConverged()
+            is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])
+
+            self.__CommunicateStateOfConvergence(is_converged)
+
             if is_converged:
                 if self.echo_level > 0:
-                    cs_tools.cs_print_info(self._Name(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
+                    cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
                 return True
             else:
                 # TODO I think this should not be done in the last iterations if the solution does not converge in this timestep
@@ -110,7 +111,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                     conv_acc.ComputeAndApplyUpdate()
 
             if k+1 >= self.num_coupling_iterations and self.echo_level > 0:
-                cs_tools.cs_print_info(self._Name(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
+                cs_tools.cs_print_info(self._ClassName(), colors.red("XXX CONVERGENCE WAS NOT ACHIEVED XXX"))
                 return False
 
     def Check(self):
@@ -137,3 +138,14 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
         this_defaults.AddMissingParameters(super(GaussSeidelStrongCoupledSolver, cls)._GetDefaultSettings())
 
         return this_defaults
+
+    def __CommunicateStateOfConvergence(self, is_converged):
+        # Communicate the state of convergence with external solvers through IO
+        convergence_signal_config = {
+            "type" : "convergence_signal",
+            "is_converged" : is_converged
+        }
+
+        for solver in self.solver_wrappers.values():
+            solver.ExportData(convergence_signal_config)
+

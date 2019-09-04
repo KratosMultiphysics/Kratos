@@ -22,6 +22,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos
 {
@@ -39,6 +40,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     AddCustomResponseFunctionUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     //registering variables in python
     // Degrees of freedom
@@ -71,16 +73,21 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     // Geometrical variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, REFERENCE_CHORD);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, WAKE_NORMAL);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, WING_SPAN_DIRECTION);
 
     // Integral magnitudes
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LIFT_COEFFICIENT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DRAG_COEFFICIENT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MOMENT_COEFFICIENT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LIFT_COEFFICIENT_JUMP);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LIFT_COEFFICIENT_FAR_FIELD);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DRAG_COEFFICIENT_FAR_FIELD);
 
     // Markers
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WAKE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KUTTA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WING_TIP);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRAILING_EDGE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UPPER_SURFACE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOWER_SURFACE);
