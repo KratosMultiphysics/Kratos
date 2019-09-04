@@ -156,7 +156,7 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
         auto result = mDataCommunicators.emplace(Name, std::move(pPrototype));
         // result.first returns the created pair, pair_iterator->second the cloned prototype (which is a UniquePointer)
         auto pair_iterator = result.first;
-        //KratosComponents<DataCommunicator>::Add(Name, *(pair_iterator->second));
+        KratosComponents<DataCommunicator>::Add(Name, *(pair_iterator->second));
 
         if (Default == MakeDefault)
         {
@@ -179,6 +179,10 @@ void ParallelEnvironment::UnregisterDataCommunicatorDetail(const std::string& Na
     << "Trying to unregister a DataCommunicator with name " << Name
     << " but no DataCommunicator of that name exsits."
     << " No changes were made." << std::endl;
+    if (num_erased == 1)
+    {
+        KratosComponents<DataCommunicator>::Remove(Name);
+    }
 }
 
 DataCommunicator& ParallelEnvironment::GetDataCommunicatorDetail(const std::string& rName) const
