@@ -28,6 +28,7 @@
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
+#include "includes/geometry_container.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
@@ -123,6 +124,8 @@ public:
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;
+
+    typedef GeometryContainer<NodeType> GeometryContainerType;
 
     typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
 
@@ -1261,6 +1264,9 @@ public:
         return GetMesh(ThisIndex).ConditionsArray();
     }
 
+    ///@}
+    ///@name Geometries
+    ///@{
 
     ///@}
     ///@name Sub model parts
@@ -1554,6 +1560,8 @@ private:
     TablesContainerType mTables; /// The tables contained on the model part
 
     MeshesContainerType mMeshes; /// The container of all meshes
+
+    GeometryContainerType mGeometryContainer;
 
     VariablesList::Pointer mpVariablesList; /// The variable list
 
