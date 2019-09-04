@@ -87,6 +87,16 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
+    def test_EmbeddedCircle(self):
+        if not meshing_is_available:
+            self.skipTest("Missing required application: MeshingApplication")
+        settings_file_name = "embedded_circle_parameters.json"
+        work_folder = "embedded_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], -0.08769331821378197, 0.0, 1e-9)
+
     def test_WakeProcess3DSmall(self):
         if not numpy_stl_is_available:
             self.skipTest("Missing required dependency: numpy-stl.")
@@ -227,8 +237,13 @@ class PotentialFlowTests(UnitTest.TestCase):
                                     "plane_output"        : [],
                                     "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
                                     "nodal_nonhistorical_results": ["TRAILING_EDGE","WAKE_DISTANCE"],
+<<<<<<< HEAD
                                     "elemental_conditional_flags_results": ["STRUCTURE"],
                                     "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
+=======
+                                    "elemental_conditional_flags_results": ["STRUCTURE","TO_SPLIT"],
+                                    "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
+>>>>>>> origin/cps/embedded-pr-3of4
                                 },
                                 "point_data_configuration"  : []
                             }
