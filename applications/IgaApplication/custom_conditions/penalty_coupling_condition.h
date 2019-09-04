@@ -25,6 +25,7 @@
 #include "iga_application_variables.h"
 #include "custom_utilities/iga_flags.h"
 
+#include "geometries/coupling_geometry.h"
 
 namespace Kratos
 {
@@ -46,9 +47,15 @@ class PenaltyCouplingCondition
     : public Condition
 {
 public:
+    ///@name Type Definitions
+    ///@{
 
     /// Counted pointer of PenaltyCouplingCondition
     KRATOS_CLASS_POINTER_DEFINITION(PenaltyCouplingCondition);
+
+    /// Size types
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
 
     ///@}
     ///@name Life Cycle

@@ -64,9 +64,9 @@ namespace Kratos
 
             //FOR DISPLACEMENTS
             Matrix H = ZeroMatrix(3, mat_size);
-            for (unsigned int i = 0; i < number_of_nodes_master; i++)
+            for (IndexType i = 0; i < number_of_nodes_master; i++)
             {
-                int index = 3 * i;
+                IndexType index = 3 * i;
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X))
                     H(0, index) = N_master(point_number, i);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
@@ -75,9 +75,9 @@ namespace Kratos
                     H(2, index + 2) = N_master(point_number, i);
             }
 
-            for (unsigned int i = 0; i < number_of_nodes_slave; i++)
+            for (IndexType i = 0; i < number_of_nodes_slave; i++)
             {
-                int index = 3 * i + number_of_nodes_master;
+                IndexType index = 3 * i + number_of_nodes_master;
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X))
                     H(0, index) = -N_slave(point_number, i);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
@@ -98,18 +98,18 @@ namespace Kratos
             if (CalculateResidualVectorFlag) {
 
                 Vector u(mat_size);
-                for (unsigned int i = 0; i < number_of_nodes_master; i++)
+                for (IndexType i = 0; i < number_of_nodes_master; i++)
                 {
                     const array_1d<double, 3> disp = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT);
-                    int index = 3 * i;
+                    IndexType index = 3 * i;
                     u[index]     = disp[0];
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
                 }
-                for (unsigned int i = 0; i < number_of_nodes_slave; i++)
+                for (IndexType i = 0; i < number_of_nodes_slave; i++)
                 {
                     const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
-                    int index = 3 * i + number_of_nodes_master;
+                    IndexType index = 3 * i + number_of_nodes_master;
                     u[index]     = disp[0];
                     u[index + 1] = disp[1];
                     u[index + 2] = disp[2];
@@ -132,22 +132,22 @@ namespace Kratos
         const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
-        const int number_of_nodes_master = r_geometry_master.size();
-        const int number_of_nodes_slave = r_geometry_slave.size();
+        const SizeType number_of_nodes_master = r_geometry_master.size();
+        const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
         if (rResult.size() != 3 * (number_of_nodes_master + number_of_nodes_slave))
             rResult.resize(3 * (number_of_nodes_master + number_of_nodes_slave), false);
 
-        for (unsigned int i = 0; i < number_of_nodes_master; ++i) {
-            const unsigned int index = i * 3;
+        for (IndexType i = 0; i < number_of_nodes_master; ++i) {
+            const IndexType index = i * 3;
             const auto& r_node = r_geometry_master[i];
             rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
         }
 
-        for (unsigned int i = 0; i < number_of_nodes_slave; ++i) {
-            const unsigned int index = i * 3 + number_of_nodes_master;
+        for (IndexType i = 0; i < number_of_nodes_slave; ++i) {
+            const IndexType index = i * 3 + number_of_nodes_master;
             const auto& r_node = r_geometry_slave[i];
             rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
@@ -166,20 +166,20 @@ namespace Kratos
         const auto r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
-        const int number_of_nodes_master = r_geometry_master.size();
-        const int number_of_nodes_slave = r_geometry_slave.size();
+        const SizeType number_of_nodes_master = r_geometry_master.size();
+        const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
         rElementalDofList.resize(0);
         rElementalDofList.reserve(3 * (number_of_nodes_master + number_of_nodes_slave));
 
-        for (unsigned int i = 0; i < number_of_nodes_master; ++i) {
+        for (IndexType i = 0; i < number_of_nodes_master; ++i) {
             const auto& r_node = r_geometry_master.GetPoint(i);
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Y));
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Z));
         }
 
-        for (unsigned int i = 0; i < number_of_nodes_slave; ++i) {
+        for (IndexType i = 0; i < number_of_nodes_slave; ++i) {
             const auto& r_node = r_geometry_slave.GetPoint(i);
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Y));
