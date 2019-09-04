@@ -239,8 +239,12 @@ def FindMatchingFiles(pattern):
     path, _ = os.path.split(pattern)
     if path == "":
         path = "."  # os.listdir fails with empty path
-    def match(s): return s.startswith(pattern) and s.endswith(".h5")
-    return list(filter(match, os.listdir(path)))
+    initial_file = pattern + ".h5"
+    temporal_pattern = pattern + "-"
+    def match(s): return s.startswith(temporal_pattern) and s.endswith(".h5")
+    file_list = list(filter(match, os.listdir(path)))
+    file_list.insert(0, initial_file)
+    return file_list
 
 
 def CreateXdmfTemporalGridFromMultifile(list_of_h5_files, h5path_to_mesh, h5path_to_results):
