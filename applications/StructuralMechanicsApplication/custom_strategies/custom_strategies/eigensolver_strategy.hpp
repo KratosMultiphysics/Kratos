@@ -399,9 +399,6 @@ public:
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
         TSparseSpace::SetToZero(rMassMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
-        if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
-            this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rMassMatrix, b);
-        }
         this->ApplyDirichletConditions(rMassMatrix, 1.0);
 
         if (BaseType::GetEchoLevel() == 4) {
@@ -413,9 +410,6 @@ public:
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
         TSparseSpace::SetToZero(rStiffnessMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
-        if (rModelPart.NumberOfMasterSlaveConstraints() != 0) {
-            this->pGetBuilderAndSolver()->ApplyConstraints(pScheme, rModelPart, rStiffnessMatrix, b);
-        }
         ApplyDirichletConditions(rStiffnessMatrix,-1.0);
 
         if (BaseType::GetEchoLevel() == 4) {
