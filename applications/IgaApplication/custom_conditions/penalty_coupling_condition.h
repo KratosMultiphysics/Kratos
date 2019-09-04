@@ -50,26 +50,39 @@ public:
     /// Counted pointer of PenaltyCouplingCondition
     KRATOS_CLASS_POINTER_DEFINITION(PenaltyCouplingCondition);
 
-    /// Default constructor.
-    PenaltyCouplingCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor with Id and geometry
+    PenaltyCouplingCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
-    PenaltyCouplingCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    /// Constructor with Id, geometry and property
+    PenaltyCouplingCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
     {};
 
+    /// Default constructor
     PenaltyCouplingCondition()
         : Condition()
     {};
 
-    /**
-    * @brief Creates a new element
-    * @param NewId The Id of the new created element
-    * @param pGeom The pointer to the geometry of the element
-    * @param pProperties The pointer to property
-    * @return The pointer to the created element
-    */
+    /// Destructor.
+    virtual ~PenaltyCouplingCondition() override
+    {};
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Create with Id, pointer to geometry and pointer to property
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
@@ -80,6 +93,7 @@ public:
             NewId, pGeom, pProperties);
     };
 
+    /// Create with Id, pointer to geometry and pointer to property
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
@@ -90,11 +104,16 @@ public:
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
-    /// Destructor.
-    virtual ~PenaltyCouplingCondition() override
-    {};
+    ///@}
+    ///@name Operations
+    ///@{
 
-
+    /**
+    * @brief This is called during the assembling process in order
+    *        to calculate the condition right hand side matrix
+    * @param rLeftHandSideMatrix the condition right hand side matrix
+    * @param rCurrentProcessInfo the current process info
+    */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo)
@@ -105,6 +124,12 @@ public:
             rCurrentProcessInfo, false, true);
     }
 
+    /**
+    * @brief This is called during the assembling process in order
+    *        to calculate the condition left hand side matrix
+    * @param rLeftHandSideMatrix the condition left hand side matrix
+    * @param rCurrentProcessInfo the current process info
+    */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
         ProcessInfo& rCurrentProcessInfo)
@@ -115,6 +140,14 @@ public:
             rCurrentProcessInfo, true, false);
     }
 
+    /**
+    * @brief This function provides a more general interface to the element.
+    * @details It is designed so that rLHSvariables and rRHSvariables are
+    *          passed to the element thus telling what is the desired output
+    * @param rLeftHandSideMatrix container with the output Left Hand Side matrix
+    * @param rRightHandSideVector container for the desired RHS output
+    * @param rCurrentProcessInfo the current process info instance
+    */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -160,7 +193,34 @@ public:
         const bool CalculateResidualVectorFlag
     );
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "\"PenaltyCouplingCondition\" #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "\"PenaltyCouplingCondition\" #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
+    ///@}
+
 private:
+    ///@name Serialization
+    ///@{
 
     friend class Serializer;
 
@@ -173,6 +233,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
     }
+
+    ///@}
 
 }; // Class PenaltyCouplingCondition
 
