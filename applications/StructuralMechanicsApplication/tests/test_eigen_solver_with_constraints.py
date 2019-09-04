@@ -60,13 +60,13 @@ class TestEigenSolverWithConstraints(KratosUnittest.TestCase):
                 "solver_type"              : "eigen_value",
                 "model_part_name"          : "Structure",
                 "domain_size"              : 3,
-                "use_computing_model_part" : false,
                 "model_import_settings"    : {
                     "input_type"     : "use_input_model_part"
                 },
                 "time_stepping"            : {
                     "time_step" : 1.1
                 },
+                "use_computing_model_part" : false,
                 "rotation_dofs"            : true
             }
         }""")
