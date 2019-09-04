@@ -40,6 +40,8 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+enum ElementFramework {Eulerian = 0, PFEM2 = 1};
+
 ///@}
 ///@name  Functions
 ///@{
@@ -49,7 +51,7 @@ namespace Kratos
 ///@{
 
 /// Implementation of a linear element for shallow water problems
-template< size_t TNumNodes, Framework TFramework >
+template< size_t TNumNodes, ElementFramework TFramework >
 class RV_SWE : public Element
 {
 public:
@@ -211,6 +213,7 @@ protected:
         BoundedMatrix<double,TNumNodes*3,TNumNodes*3> VectorDiv;
         BoundedMatrix<double,TNumNodes*3,TNumNodes*3> ScalarDiff;
         BoundedMatrix<double,TNumNodes*3,TNumNodes*3> VectorDiff;
+        BoundedMatrix<double,LocalSize,LocalSize> Convection;
     };
 
     virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
@@ -238,6 +241,11 @@ protected:
         ElementVariables& rVariables);
 
     virtual void BuildDiffusivityMatrices(
+        BoundedMatrix<double, TNumNodes, 2>& rDN_DX,
+        ElementVariables& rVariables);
+
+    virtual void BuildConvectionMatrices(
+        array_1d<double, TNumNodes>& rN,
         BoundedMatrix<double, TNumNodes, 2>& rDN_DX,
         ElementVariables& rVariables);
 
