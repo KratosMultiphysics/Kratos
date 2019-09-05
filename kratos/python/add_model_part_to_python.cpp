@@ -653,17 +653,17 @@ void RemoveSubModelPart2(ModelPart& rModelPart, ModelPart& ThisSubModelPart)
     rModelPart.RemoveSubModelPart(ThisSubModelPart);
 }
 
-void AddNodess(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& NodesIds )
+void AddNodesByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& NodesIds )
 {
     rModelPart.AddNodes(NodesIds);
 }
 
-void AddConditionss(ModelPart& rModelPart,std::vector< ModelPart::IndexType >& ConditionsIds )
+void AddConditionsByIds(ModelPart& rModelPart,std::vector< ModelPart::IndexType >& ConditionsIds )
 {
     rModelPart.AddConditions(ConditionsIds);
 }
 
-void AddElementss(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ElementsIds )
+void AddElementsByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ElementsIds )
 {
     rModelPart.AddElements(ElementsIds);
 }
@@ -962,11 +962,11 @@ void AddModelPartToPython(pybind11::module& m)
         .def("IsSubModelPart", &ModelPart::IsSubModelPart)
         .def("IsDistributed", &ModelPart::IsDistributed)
         .def("AddNode", &ModelPart::AddNode)
-        .def("AddNodes",AddNodess)
+        .def("AddNodes",AddNodesByIds)
         .def("AddCondition", &ModelPart::AddCondition)
-        .def("AddConditions",AddConditionss)
+        .def("AddConditions",AddConditionsByIds)
         .def("AddElement", &ModelPart::AddElement)
-        .def("AddElements",AddElementss)
+        .def("AddElements",AddElementsByIds)
         .def("GetParentModelPart", &ModelPart::GetParentModelPart, py::return_value_policy::reference_internal)
         .def("GetRootModelPart", &ModelPart::GetRootModelPart, py::return_value_policy::reference_internal)
         .def("GetModel", &ModelPart::GetModel, py::return_value_policy::reference_internal)
