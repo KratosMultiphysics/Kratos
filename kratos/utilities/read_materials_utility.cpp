@@ -287,8 +287,8 @@ void ReadMaterialsUtility::CreateSubProperties(
                 auto& r_root_model_part = rModelPart.GetRootModelPart();
                 for (auto& p_prop : r_root_model_part.PropertiesArray(mesh_id)) {
                     if (r_use_existing_property.size() > 1) {
-                        if (p_prop->HasSubPropertiesByAddress(r_use_existing_property)) {
-                            p_new_sub_prop = p_prop->pGetSubPropertiesByAddress(r_use_existing_property);
+                        if (p_prop->HasSubProperties(r_use_existing_property)) {
+                            p_new_sub_prop = p_prop->pGetSubProperties(r_use_existing_property);
                             already_defined = true;
                             break;
                         }
