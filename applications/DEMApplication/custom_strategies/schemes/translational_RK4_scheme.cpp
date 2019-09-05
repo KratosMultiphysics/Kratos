@@ -32,14 +32,12 @@ namespace Kratos {
                 if (Fix_vel[k] == false) {
 
                     mInitialDispl[k] = displ[k];
+                    mInitialVel[k] = vel[k];
 
-                    mRungeKuttaL(StepFlag,k) = delta_t * force[k] * mass_inv;
-                    mRungeKuttaK(StepFlag,k) = delta_t * vel[k];
+                    mRungeKuttaL(StepFlag,k) = force[k] * mass_inv;
+                    mRungeKuttaK(StepFlag,k) = vel[k];
 
-                    KRATOS_WATCH(mRungeKuttaL(StepFlag,k))
-                    KRATOS_WATCH(mRungeKuttaK(StepFlag,k))
-
-                    delta_displ[k] = mRungeKuttaK(StepFlag,k) * 0.5 ;
+                    delta_displ[k] = 0.5 * delta_t * mRungeKuttaK(StepFlag,k);
                     displ[k] += delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
 
@@ -55,15 +53,13 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
 
-                    mRungeKuttaL(StepFlag,k) = delta_t * force[k] * mass_inv;
-                    mRungeKuttaK(StepFlag,k) = delta_t * vel[k] +  delta_t * mRungeKuttaL(StepFlag-1,k) * 0.5;
+                    mRungeKuttaL(StepFlag,k) = force[k] * mass_inv;
+                    mRungeKuttaK(StepFlag,k) = vel[k] + 0.5 * delta_t * mRungeKuttaL(StepFlag-1,k);
 
-                    KRATOS_WATCH(mRungeKuttaL(StepFlag,k))
-                    KRATOS_WATCH(mRungeKuttaK(StepFlag,k))
-
-                    delta_displ[k] = mRungeKuttaK(StepFlag,k) * 0.5 ;
+                    delta_displ[k] = 0.5 * delta_t * mRungeKuttaK(StepFlag,k);
                     displ[k] = mInitialDispl[k] + delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
+                    //vel[k] = mRungeKuttaK(StepFlag-1,k);
                 }
             }
         }
@@ -72,15 +68,13 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
 
-                    mRungeKuttaL(StepFlag,k) = delta_t * force[k] * mass_inv;
-                    mRungeKuttaK(StepFlag,k) = delta_t * vel[k] +  delta_t * mRungeKuttaL(StepFlag-1,k) * 0.5;
+                    mRungeKuttaL(StepFlag,k) = force[k] * mass_inv;
+                    mRungeKuttaK(StepFlag,k) = vel[k] + 0.5 * delta_t * mRungeKuttaL(StepFlag-1,k);
 
-                    KRATOS_WATCH(mRungeKuttaL(StepFlag,k))
-                    KRATOS_WATCH(mRungeKuttaK(StepFlag,k))
-
-                    delta_displ[k] = mRungeKuttaK(StepFlag,k);
+                    delta_displ[k] = delta_t * mRungeKuttaK(StepFlag,k);
                     displ[k] = mInitialDispl[k] + delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
+                    //vel[k] = mRungeKuttaK(StepFlag-1,k);
                 }
             }
         }
@@ -89,20 +83,13 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
 
-                    mRungeKuttaL(StepFlag,k) = delta_t * force[k] * mass_inv;
-                    mRungeKuttaK(StepFlag,k) = delta_t * vel[k] +  delta_t * mRungeKuttaL(StepFlag-1,k);
+                    mRungeKuttaL(StepFlag,k) = force[k] * mass_inv;
+                    mRungeKuttaK(StepFlag,k) = vel[k] + delta_t * mRungeKuttaL(StepFlag-1,k);
 
-                    delta_displ[k] = 1.0/6.0 * (mRungeKuttaK(0,k) + 2.0 * mRungeKuttaK(1,k) + 2.0 * mRungeKuttaK(2,k) + mRungeKuttaK(3,k));
-                    KRATOS_WATCH(delta_displ[k])
-
+                    delta_displ[k] = 1.0/6.0 * delta_t * (mRungeKuttaK(0,k) + 2.0 * mRungeKuttaK(1,k) + 2.0 * mRungeKuttaK(2,k) + mRungeKuttaK(3,k));
                     displ[k] = mInitialDispl[k] + delta_displ[k];
-                    KRATOS_WATCH(displ[k])
-
                     coor[k] = initial_coor[k] + displ[k];
-                    KRATOS_WATCH(coor[k])
-
-                    vel[k] += 1.0/6.0 * (mRungeKuttaL(0,k) + 2.0 * mRungeKuttaL(1,k) + 2.0 * mRungeKuttaL(2,k) + mRungeKuttaL(3,k));
-                    KRATOS_WATCH(vel[k])
+                    vel[k] = mInitialVel[k] + 1.0/6.0 * delta_t * (mRungeKuttaL(0,k) + 2.0 * mRungeKuttaL(1,k) + 2.0 * mRungeKuttaL(2,k) + mRungeKuttaL(3,k));
 
                 }
             }

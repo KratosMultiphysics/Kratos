@@ -83,25 +83,25 @@ namespace Kratos
 
         BaseType::InitializeSolutionStep();
 
+        BaseType::ForceOperations(r_model_part);
         SchemeRKStepInit();
         BaseType::SearchDEMOperations(r_model_part);
         BaseType::SearchFEMOperations(r_model_part);
-        BaseType::ForceOperations(r_model_part);
 
+        BaseType::ForceOperations(r_model_part);
         SchemeRKStep1();
         BaseType::SearchDEMOperations(r_model_part);
         BaseType::SearchFEMOperations(r_model_part);
-        BaseType::ForceOperations(r_model_part);
 
+        BaseType::ForceOperations(r_model_part);
         SchemeRKStep2();
         BaseType::SearchDEMOperations(r_model_part);
         BaseType::SearchFEMOperations(r_model_part);
-        BaseType::ForceOperations(r_model_part);
 
+        BaseType::ForceOperations(r_model_part);
         SchemeRKStep3();
         BaseType::SearchDEMOperations(r_model_part);
         BaseType::SearchFEMOperations(r_model_part);
-        BaseType::ForceOperations(r_model_part);
 
         BaseType::FinalizeSolutionStep();
 
