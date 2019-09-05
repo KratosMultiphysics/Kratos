@@ -1,0 +1,59 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.0,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 0,
+        "predictors" : [
+        ],
+        "data_transfer_operators" : {
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "ping",
+                "input_data_list"  : [],
+                "output_data_list" : []
+            },
+            {
+                "name": "pong",
+                "input_data_list"   : [],
+                "output_data_list"  : []
+            }
+        ],
+        "solvers" :
+        {
+            "ping":
+            {
+                "type" : "solver_wrappers.cpp_test.cpp_test_wrapper",
+                "solver_wrapper_settings" : {
+                    "executable_name"  : "/media/aditya/external1tb/experiments/01_kratos_prs/01_master/Kratos/cmake_build/applications/CoSimulationApplication/exe_cpp_test_solver_one"
+                },
+                "io_settings":{
+                    "type":"empire_io"
+                },
+                "data" : {
+                }
+            },
+            "pong" :
+            {
+                "type" : "solver_wrappers.cpp_test.cpp_test_wrapper",
+                "solver_wrapper_settings" : {
+                    "executable_name"  : "/media/aditya/external1tb/experiments/01_kratos_prs/01_master/Kratos/cmake_build/applications/CoSimulationApplication/exe_cpp_test_solver_two"
+                },
+                "io_settings":{
+                    "type":"empire_io"
+                },                
+                "data" : {
+                }
+            }
+        }
+    }
+}
