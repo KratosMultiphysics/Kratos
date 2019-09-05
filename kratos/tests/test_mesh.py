@@ -20,5 +20,8 @@ class TestMesh(KratosUnittest.TestCase):
         self.mesh.Nodes.append(self.mesh.Nodes[1])
         self.assertEqual(len(self.mesh.Nodes), 6)
 
+        self.mesh.Nodes[2].SetValue(KM.PRESSURE, 1.5)
+        self.assertAlmostEqual(self.mesh.Nodes[2].GetValue(KM.PRESSURE), 1.5)
+
 if __name__ == '__main__':
     KratosUnittest.main()
