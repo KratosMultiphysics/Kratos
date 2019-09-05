@@ -54,46 +54,46 @@ void SetValueHelperFunction1(
     rProperties.SetValue(rVar,rData);
 }
 
-PropertiesContainerType& GetSubProperties1(Properties& rProperties)
+PropertiesContainerType& GetSubPropertiesArray1(Properties& rProperties)
 {
     return rProperties.GetSubProperties();
 }
 
-PropertiesContainerType const& GetSubProperties2(const Properties& rProperties)
+PropertiesContainerType const& GetSubPropertiesArray2(const Properties& rProperties)
 {
     return rProperties.GetSubProperties();
 }
 
-bool HasSubPropertiesById1(
+bool HasSubProperties1(
     Properties& rProperties,
     IndexType Index
     )
 {
-    return rProperties.HasSubPropertiesById(Index);
+    return rProperties.HasSubProperties(Index);
 }
 
-Properties::Pointer GetSubPropertiesById1(
+Properties::Pointer GetSubProperties1(
     Properties& rProperties,
     IndexType Index
     )
 {
-    return rProperties.pGetSubPropertiesById(Index);
+    return rProperties.pGetSubProperties(Index);
 }
 
-bool HasSubPropertiesByAddress1(
+bool HasSubProperties2(
     Properties& rProperties,
     const std::string& rAdress
     )
 {
-    return rProperties.HasSubPropertiesByAddress(rAdress);
+    return rProperties.HasSubProperties(rAdress);
 }
 
-Properties::Pointer GetSubPropertiesByAddress1(
+Properties::Pointer GetSubProperties2(
     Properties& rProperties,
     const std::string& rAdress
     )
 {
-    return rProperties.pGetSubPropertiesByAddress(rAdress);
+    return rProperties.pGetSubProperties(rAdress);
 }
 
 void SetArrayValue(
@@ -221,12 +221,12 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("IsEmpty", &Properties::IsEmpty)
     .def("NumberOfSubproperties", &Properties::NumberOfSubproperties)
     .def("AddSubProperties", &Properties::AddSubProperties)
-    .def("HasSubPropertiesById", HasSubPropertiesById1)
-    .def("GetSubPropertiesById", GetSubPropertiesById1)
-    .def("GetSubPropertiesByAddress", GetSubPropertiesByAddress1)
-    .def("HasSubPropertiesByAddress", HasSubPropertiesByAddress1)
+    .def("HasSubProperties", HasSubProperties1)
     .def("GetSubProperties", GetSubProperties1)
     .def("GetSubProperties", GetSubProperties2)
+    .def("HasSubProperties", HasSubProperties2)
+    .def("GetSubProperties", GetSubPropertiesArray1)
+    .def("GetSubProperties", GetSubPropertiesArray2)
     .def("SetSubProperties", &Properties::SetSubProperties)
     .def("__str__", PrintObject<Properties>)
     ;
