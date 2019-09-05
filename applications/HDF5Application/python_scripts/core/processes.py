@@ -1,11 +1,26 @@
 '''HDF5 core processes.
 
+This module only contains the most general HDF5 IO processes which should not
+change frequently.
+
 license: HDF5Application/license.txt
 '''
+
+
+__all__ = ["ControllerProcess"]
+
+
 import KratosMultiphysics
 
 
-class OrderedAggregationProcess(KratosMultiphysics.Process):
+class OrderedOperationProcess(KratosMultiphysics.Process):
+    """A process for grouping operations.
+
+    This implements a whole-part structural decomposition. The members are
+    operations or function objects with no arguments. They may be attached
+    to any of the process steps during construction and are called in the same
+    order at the corresponding step of the solution algorithm.
+    """
 
     def __init__(self):
         KratosMultiphysics.Process.__init__(self)
@@ -74,3 +89,12 @@ class OrderedAggregationProcess(KratosMultiphysics.Process):
 
     def AddFinalize(self, func):
         self.finalize_sequence.append(func)
+
+
+class ControllerProcess(OrderedOperationProcess):
+    """A process for grouping controllers.
+
+    This adds a shorter more specific name for the process that groups
+    controllers.
+    """
+    pass

@@ -1,3 +1,9 @@
+### ATTENTION ###
+# This is the GLOBAL gitignore, please do NOT change this file,
+# unless it should be available for everyone
+# Please change the LOCAL gitignore (.git/info/exclude) to cutomize 
+# exluding files/folders from being recognized by git
+
 # Recovery files
 *~
 
@@ -65,6 +71,9 @@ script.py
 
 # Backup files
 *.bak
+
+# Most used editor files
+*.vscode
 
 # Auxiliar file (deprecated?)
 applications/python_scripts/beam_profiles\.csv

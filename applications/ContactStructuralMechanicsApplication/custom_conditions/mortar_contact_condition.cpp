@@ -40,7 +40,7 @@ Condition::Pointer MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVar
 {
     KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
 
-    return Kratos::make_intrusive< MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster> >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -261,7 +261,8 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_ERROR << "You are calling to the base class method AddExplicitContribution, check your condition definition" << std::endl;
+    const IndexType integration_order = this->GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? this->GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+    MortarExplicitContributionUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::ComputeNodalArea(this, rCurrentProcessInfo, rDestinationVariable, integration_order, false);
 }
 
 /***********************************************************************************/
@@ -293,7 +294,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     KRATOS_TRY;
 
     // The slave geometry
-    const GeometryType& r_slave_geometry = this->GetGeometry();
+    const GeometryType& r_slave_geometry = this->GetParentGeometry();
     const array_1d<double, 3>& r_normal_slave = this->GetValue(NORMAL);
 
     // Create and initialize condition variables
@@ -306,7 +307,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
     const NormalDerivativesComputation consider_normal_variation = static_cast<NormalDerivativesComputation>(rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION]);
 
     // We compute the normal derivatives
-    if (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormalSlave(derivative_data.DeltaNormalSlave, GetGeometry());
+    if (TNormalVariation) DerivativesUtilitiesType::CalculateDeltaNormalSlave(derivative_data.DeltaNormalSlave, GetParentGeometry());
 
     // Create the mortar operators
     MortarConditionMatrices mortar_operators;
@@ -435,7 +436,7 @@ bool MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 //     const double tolerance = std::numeric_limits<double>::epsilon();
 //
 //     // Geometries
-//     GeometryType& slave_geometry = this->GetGeometry();
+//     GeometryType& slave_geometry = this->GetParentGeometry();
 //     GeometryType& master_geometry = this->GetPairedGeometry();
 //
 //     // Dynamic/static
@@ -622,7 +623,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType &integration_points = GetParentGeometry().IntegrationPoints();
 
     if ( rOutput.size() != integration_points.size() )
         rOutput.resize( integration_points.size() );
@@ -645,7 +646,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType &integration_points = GetParentGeometry().IntegrationPoints();
 
     if ( rOutput.size() != integration_points.size() )
         rOutput.resize( integration_points.size() );
@@ -668,7 +669,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 {
     KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType &integration_points = GetParentGeometry().IntegrationPoints();
 
     if ( rOutput.size() != integration_points.size() )
         rOutput.resize( integration_points.size() );
@@ -700,7 +701,7 @@ int MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNode
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < TNumNodes; i++ ) {
-        Node<3> &rnode = this->GetGeometry()[i];
+        Node<3> &rnode = this->GetParentGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_GAP,rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)

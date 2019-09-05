@@ -2,18 +2,18 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-try:
+from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+have_mesh_moving = CheckIfApplicationsAvailable("MeshMovingApplication")
+if have_mesh_moving:
     import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-    have_mesh_moving = True
-except ImportError:
-    have_mesh_moving = False
-
 
 # Import base class file
-from fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
+from KratosMultiphysics.FluidDynamicsApplication import read_distance_from_file
 
 class EmbeddedFormulation(object):
     """Helper class to define embedded-dependent parameters."""
@@ -169,7 +169,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         else:
             raise Exception("Provided mesh movement \'" + mesh_movement + "\'. Available options are \'implicit\' and \'explicit\'.")
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -219,15 +220,20 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             }
         }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        settings["fm_ale_settings"].ValidateAndAssignDefaults(default_settings["fm_ale_settings"])
-        if settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0:
-            mesh_movement = settings["fm_ale_settings"]["mesh_movement"].GetString()
-            settings["fm_ale_settings"]["fm_ale_solver_settings"].ValidateAndAssignDefaults(self._get_fm_ale_solver_default_settings(mesh_movement))
+        default_settings.AddMissingParameters(super(NavierStokesEmbeddedMonolithicSolver, cls).GetDefaultSettings())
+        return default_settings
 
-        return settings
+    def ValidateSettings(self):
+        """Overriding python_solver ValidateSettings to validate the fm_ale_settings
+        """
+        super(NavierStokesEmbeddedMonolithicSolver, self).ValidateSettings()
+        self.settings["fm_ale_settings"].ValidateAndAssignDefaults(self.GetDefaultSettings()["fm_ale_settings"])
+        if self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() > 0:
+            mesh_movement = self.settings["fm_ale_settings"]["mesh_movement"].GetString()
+            self.settings["fm_ale_settings"]["fm_ale_solver_settings"].ValidateAndAssignDefaults(self._get_fm_ale_solver_default_settings(mesh_movement))
 
     def __init__(self, model, custom_settings):
+        self._validate_settings_in_baseclass=True # To be removed eventually
         super(NavierStokesEmbeddedMonolithicSolver,self).__init__(model,custom_settings)
 
         self.min_buffer_size = 3
@@ -239,7 +245,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.level_set_type = self.embedded_formulation.level_set_type
 
         ## Construct the linear solver
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the distance reading filename
@@ -262,7 +267,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
@@ -297,6 +301,13 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
+        # Set the time discretization utility to compute the BDF coefficients
+        time_order = self.settings["time_order"].GetInt()
+        if time_order == 2:
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        else:
+            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
+
         # Creating the solution strategy
         self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                                      self.settings["absolute_velocity_tolerance"].GetDouble(),
@@ -304,9 +315,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                                                      self.settings["absolute_pressure_tolerance"].GetDouble())
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(computing_model_part,
-                                                                            self.settings["time_order"].GetInt())
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
@@ -358,7 +366,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # Compute the BDF coefficients
-            (self.bdf_process).Execute()
+            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # If required, compute the nodal neighbours
             if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
@@ -373,6 +381,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # Perform the FM-ALE operations
+            # Note that this also sets the EMBEDDED_VELOCITY from the MESH_VELOCITY
             self._do_fm_ale_operations()
 
             # Call the base SolveSolutionStep to solve the embedded CFD problem
@@ -432,7 +441,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
     def _set_distance_function(self):
         ## Set the nodal distance function
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
-            import read_distance_from_file
             DistanceUtility = read_distance_from_file.DistanceImportUtility(self.main_model_part, self.settings["distance_reading_settings"])
             DistanceUtility.ImportDistance()
         elif (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
@@ -521,3 +529,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                     self._get_mesh_moving_util().ProjectVirtualValues2D(self.main_model_part, buffer_size)
                 else:
                     self._get_mesh_moving_util().ProjectVirtualValues3D(self.main_model_part, buffer_size)
+
+                # If FM-ALE is performed, use the MESH_VELOCITY as EMBEDDED_VELOCITY
+                KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+                    KratosMultiphysics.MESH_VELOCITY,
+                    KratosMultiphysics.EMBEDDED_VELOCITY,
+                    self.GetComputingModelPart(),
+                    self.GetComputingModelPart(),
+                    0)

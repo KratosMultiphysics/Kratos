@@ -15,9 +15,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         self._validate_settings_in_baseclass = True
         super(ShallowWaterBaseSolver, self).__init__(model, settings)
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
         self.element_name = None
@@ -191,9 +188,6 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     #### Specific internal functions ####
 
-    def _IsPrintingRank(self):
-        return self._is_printing_rank
-
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input), but the wetting model should modify this extra step
         return self.main_model_part.ProcessInfo[KM.STEP] >= self.GetMinimumBufferSize()
@@ -284,9 +278,9 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def _GetConditionNumNodes(self):
         if self.main_model_part.NumberOfConditions() != 0:
-                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
+            condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
         else:
-            condition_num_nodes = 0
+            condition_num_nodes = 2
 
         condition_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes

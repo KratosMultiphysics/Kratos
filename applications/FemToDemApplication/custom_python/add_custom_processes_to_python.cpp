@@ -18,7 +18,7 @@
 #include "fem_to_dem_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/stress_to_nodes_process.hpp"
-#include "custom_processes/compute_normalized_free_energy_on_nodes_process.hpp"
+#include "custom_processes/compute_normalized_free_energy_on_nodes_process.h"
 #include "custom_processes/damage_to_nodes_process.hpp"
 #include "custom_processes/dem_after_remesh_identificator_process.hpp"
 #include "custom_processes/initial_dem_skin_process.hpp"
@@ -30,6 +30,7 @@
 #include "custom_processes/generate_dem_process.h"
 #include "custom_processes/update_dem_kinematics_process.h"
 #include "custom_processes/transfer_nodal_forces_to_fem.h"
+#include "custom_processes/compute_sand_production.h"
 
 
 namespace Kratos
@@ -78,7 +79,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
 	// Normalized Free Energy extrapolation to Nodes
 	class_<ComputeNormalizedFreeEnergyOnNodesProcess, ComputeNormalizedFreeEnergyOnNodesProcess::Pointer, Process>(m, "ComputeNormalizedFreeEnergyOnNodesProcess")
-		.def(init<ModelPart &, unsigned int>())
+		.def(init<ModelPart &, Parameters>())
 		.def("Execute", &ComputeNormalizedFreeEnergyOnNodesProcess::Execute);
 
 	class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process> (m, "ApplyComponentTableProcess")
@@ -98,6 +99,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
 	class_<TransferNodalForcesToFem, TransferNodalForcesToFem::Pointer, Process>(m, "TransferNodalForcesToFem")
 		.def(init<ModelPart &, ModelPart &>())
 		.def("Execute", &TransferNodalForcesToFem::Execute);
+
+	class_<ComputeSandProduction, ComputeSandProduction::Pointer, Process>(m, "ComputeSandProduction")
+		.def(init<ModelPart &>())
+		.def("Execute", &ComputeSandProduction::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos
