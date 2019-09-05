@@ -4,7 +4,7 @@ import os
 import KratosMultiphysics as kratos
 import KratosMultiphysics.DEMApplication as Dem
 
-import main_script
+from KratosMultiphysics.DEMApplication import main_script
 
 BaseAlgorithm = main_script.Solution
 

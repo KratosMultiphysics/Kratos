@@ -9,19 +9,19 @@ from Kratos import Logger
 import KratosMultiphysics.DEMApplication as Dem
 sys.path.insert(0, '')
 Logger.Print("Running under OpenMP........", label="DEM")
-import DEM_procedures
-import DEM_material_test_script
+from KratosMultiphysics.DEMApplication import DEM_procedures
+from KratosMultiphysics.DEMApplication import DEM_material_test_script
 import KratosMultiphysics.StructuralMechanicsApplication as Structural
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
-import dem_structures_coupling_gid_output
+from KratosMultiphysics.DemStructuresCouplingApplication import dem_structures_coupling_gid_output
 
 class Algorithm(object):
 
     def __init__(self):
         self.model = Kratos.Model()
 
-        import dem_main_script_ready_for_coupling_with_fem
-        self.dem_solution = dem_main_script_ready_for_coupling_with_fem.Solution(self.model)
+        from KratosMultiphysics.DemStructuresCouplingApplication.dem_main_script_ready_for_coupling_with_fem import Solution
+        self.dem_solution = Solution(self.model)
         self.dem_solution.coupling_algorithm = weakref.proxy(self)
 
         from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
@@ -75,13 +75,13 @@ class Algorithm(object):
         self.test_number = 0
 
         if not self.sandwich_simulation and self.test_number:
-            import control_module_fem_dem_utility
-            self.control_module_fem_dem_utility = control_module_fem_dem_utility.ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
+            from KratosMultiphysics.DemStructuresCouplingApplication.control_module_fem_dem_utility import ControlModuleFemDemUtility
+            self.control_module_fem_dem_utility = ControlModuleFemDemUtility(self.model, self.dem_solution.spheres_model_part, self.test_number)
             self.control_module_fem_dem_utility.ExecuteInitialize()
 
         # Create Postprocess tool for SP
-        import sand_production_post_process_tool
-        self.sp_post_process_tool = sand_production_post_process_tool.SandProductionPostProcessTool(self.structural_solution._GetSolver().GetComputingModelPart(),
+        from KratosMultiphysics.DemStructuresCouplingApplication.sand_production_post_process_tool import SandProductionPostProcessTool
+        self.sp_post_process_tool = SandProductionPostProcessTool(self.structural_solution._GetSolver().GetComputingModelPart(),
                                                                                                     self.dem_solution.spheres_model_part,
                                                                                                     self.test_number)
 
