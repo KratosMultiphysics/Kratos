@@ -298,7 +298,7 @@ public:
      * @brief This method returns the number of subproperties
      * @return The current number of subproperties
      */
-    std::size_t NumberOfSubproperties()
+    std::size_t NumberOfSubproperties() const
     {
         return mSubPropertiesList.size();
     }
@@ -345,7 +345,7 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The pointer to the subproperty of interest
      */
-    Properties::Pointer pGetSubProperties(const IndexType SubPropertyIndex) const
+    const Properties::Pointer pGetSubProperties(const IndexType SubPropertyIndex) const
     {
         // Looking into the database
         SubPropertiesConstantIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
@@ -461,7 +461,7 @@ public:
      * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @return The pointer to the subproperty of interest
      */
-    Properties::Pointer pGetSubProperties(const std::string& rAddress) const
+    const Properties::Pointer pGetSubProperties(const std::string& rAddress) const
     {
         const auto indexes = TrimComponentName(rAddress);
         const std::size_t number_indexes = indexes.size();
@@ -529,7 +529,7 @@ public:
      * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
      * @return The reference to the subproperty of interest
      */
-    Properties& GetSubProperties(const std::string& rAddress) const
+    const Properties& GetSubProperties(const std::string& rAddress) const
     {
         const auto indexes = TrimComponentName(rAddress);
         const std::size_t number_indexes = indexes.size();
