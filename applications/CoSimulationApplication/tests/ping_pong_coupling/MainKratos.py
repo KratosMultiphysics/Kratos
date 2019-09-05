@@ -9,7 +9,7 @@ from CoSimulationAnalysis to do modifications
 Check also "kratos/python_scripts/analysis-stage.py" for available methods that can be overridden
 """
 
-parameter_file_name = "cosim_cpp_cpp_parameters.json"
+parameter_file_name = "cosim_ping_pong_parameters.json"
 with open(parameter_file_name,'r') as parameter_file:
     parameters = KM.Parameters(parameter_file.read())
 
