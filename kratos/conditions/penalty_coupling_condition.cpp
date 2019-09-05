@@ -13,7 +13,7 @@
 // System includes
 
 // External includes
-#include "custom_conditions/penalty_coupling_condition.h"
+#include "conditions/penalty_coupling_condition.h"
 
 // Project includes
 
@@ -152,11 +152,11 @@ namespace Kratos
 
             for (auto itDVar = r_dof_variables.DoubleVariablesBegin();
                 itDVar != r_dof_variables.DoubleVariablesEnd(); ++itDVar)
-                rElementalDofList[local_index++] = r_node.pGetDof(*itDVar);
+                rResult[local_index++] = r_node.GetDof(*itDVar).EquationId();
 
             for (auto itCVar = r_dof_variables.VariableComponentsBegin();
                 itCVar != r_dof_variables.VariableComponentsEnd(); ++itCVar)
-                ElementalDofList[local_index++] = r_node.pGetDof(*itCVar);
+                rResult[local_index++] = r_node.GetDof(*itCVar).EquationId();
         }
 
         for (IndexType i = 0; i < number_of_nodes_slave; ++i) {
@@ -164,11 +164,11 @@ namespace Kratos
 
             for (auto itDVar = r_dof_variables.DoubleVariablesBegin();
                 itDVar != r_dof_variables.DoubleVariablesEnd(); ++itDVar)
-                rElementalDofList[local_index++] = r_node.pGetDof(*itDVar);
+                rResult[local_index++] = r_node.GetDof(*itDVar).EquationId();
 
             for (auto itCVar = r_dof_variables.VariableComponentsBegin();
                 itCVar != r_dof_variables.VariableComponentsEnd(); ++itCVar)
-                ElementalDofList[local_index++] = r_node.pGetDof(*itCVar);
+                rResult[local_index++] = r_node.GetDof(*itCVar).EquationId();
         }
 
         KRATOS_CATCH("")
@@ -200,7 +200,7 @@ namespace Kratos
 
             for (auto itCVar = r_dof_variables.VariableComponentsBegin();
                 itCVar != r_dof_variables.VariableComponentsEnd(); ++itCVar)
-                ElementalDofList[local_index++] = r_node.pGetDof(*itCVar);
+                rElementalDofList[local_index++] = r_node.pGetDof(*itCVar);
         }
 
         for (IndexType i = 0; i < number_of_nodes_slave; ++i) {
@@ -211,7 +211,7 @@ namespace Kratos
 
             for (auto itCVar = r_dof_variables.VariableComponentsBegin();
                 itCVar != r_dof_variables.VariableComponentsEnd(); ++itCVar)
-                ElementalDofList[local_index++] = r_node.pGetDof(*itCVar);
+                rElementalDofList[local_index++] = r_node.pGetDof(*itCVar);
         }
 
         KRATOS_CATCH("")

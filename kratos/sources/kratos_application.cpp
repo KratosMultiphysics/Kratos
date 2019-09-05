@@ -97,7 +97,7 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       // Deprecated conditions end
 
       // Penalty Coupling Condition
-      mPeriodicCondition(0, GeometryType::Pointer(new Geometry<NodeType>(GeometryType::PointsArrayType(1)))),
+      mPenaltyCouplingCondition(0, GeometryType::Pointer(new Geometry<NodeType>(GeometryType::PointsArrayType(1)))),
 
       // Periodic conditions
       mPeriodicCondition( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),

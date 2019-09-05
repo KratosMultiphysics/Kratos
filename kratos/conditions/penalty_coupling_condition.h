@@ -16,14 +16,13 @@
 // System includes
 #include "includes/define.h"
 #include "includes/condition.h"
+#include "includes/variables.h"
 
 // External includes
 
 // Project includes
-#include "iga_application_variables.h"
-#include "custom_utilities/iga_flags.h"
-
 #include "geometries/coupling_geometry.h"
+#include "containers/dof_variables_container.h"
 
 namespace Kratos
 {
