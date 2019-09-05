@@ -150,18 +150,16 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            const array_1d<double, 3> displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
             {
                 for ( unsigned int j = 0; j < dimension; j++)
                 {
-                    field_displacement[j] += Variables.N[i] * displacement[j];
-
+                    field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
                 }
             }
         }
-        const double penetration = MathUtils<double>::Dot((field_displacement - imposed_displacement), unit_normal_vector);
 
+        const double penetration = MathUtils<double>::Dot((field_displacement - imposed_displacement), unit_normal_vector);
 
         // If penetrates, apply constraint, otherwise no
         if (penetration >= 0.0)
