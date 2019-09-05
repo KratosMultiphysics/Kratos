@@ -17,9 +17,11 @@ class TestMesh(KratosUnittest.TestCase):
         self.assertEqual(self.mesh.NumberOfNodes(), 5)
         self.assertEqual(len(self.mesh.Nodes), 5)
 
+        # chekcing that nodes can be added ("Nodes" is not "const")
         self.mesh.Nodes.append(self.mesh.Nodes[1])
         self.assertEqual(len(self.mesh.Nodes), 6)
 
+        # chekcing that nodes can be modified (are not "const")
         self.mesh.Nodes[2].SetValue(KM.PRESSURE, 1.5)
         self.assertAlmostEqual(self.mesh.Nodes[2].GetValue(KM.PRESSURE), 1.5)
 
