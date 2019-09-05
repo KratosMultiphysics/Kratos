@@ -34,7 +34,9 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
 
     ## define test sources (cpp tests)
     if(${KRATOS_BUILD_TESTING} MATCHES ON)
-         file(GLOB_RECURSE KRATOS_CO_SIMULATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+         set(KRATOS_CO_SIMULATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/test_multiple_includes_api_headers.cpp)
+         set(KRATOS_CO_SIMULATION_TESTING_CPP_ONE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/cpp_test_solver_one/cpp_test_solver_one.cpp)
+         set(KRATOS_CO_SIMULATION_TESTING_CPP_TWO_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/cpp_test_solver_two/cpp_test_solver_two.cpp)
     endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
     # define library Kratos which defines the basic python interface
@@ -42,6 +44,11 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCore )
     set_target_properties(KratosCoSimulationApplication PROPERTIES PREFIX "")
     install(TARGETS KratosCoSimulationApplication DESTINATION libs )
+
+    # making the cpp_test_solver_one and cpp_test_solver_two executables
+    MESSAGE(${KRATOS_CO_SIMULATION_TESTING_SOURCES})
+    add_executable (exe_cpp_test_solver_one ${KRATOS_CO_SIMULATION_TESTING_CPP_ONE_SOURCES})
+    add_executable (exe_cpp_test_solver_two ${KRATOS_CO_SIMULATION_TESTING_CPP_TWO_SOURCES})
 
     # changing the .dll suffix to .pyd (Windows)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
