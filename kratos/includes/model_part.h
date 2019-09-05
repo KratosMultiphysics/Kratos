@@ -1634,23 +1634,6 @@ private:
     ///@{
 
     /**
-     * @brief This method trims a string and returns the first component
-     * @param rStringName The given name to be trimmed
-     * @return The first index
-     */
-    IndexType FirstComponentName(const std::string& rStringName)
-    {
-        std::stringstream ss(rStringName);
-        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
-            return std::stoi(index_string);
-        }
-
-        KRATOS_ERROR << "ModelPart:: Empty list of indexes when reading suproperties" << std::endl;
-
-        return 0;
-    }
-
-    /**
      * @brief This method trims a string and returns the first component (constant version)
      * @param rStringName The given name to be trimmed
      * @return The first index
