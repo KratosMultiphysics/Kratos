@@ -43,26 +43,6 @@ class MechanicalSolver(PythonSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
-        # temporary warnings, to be removed
-        # this needs to be done before the call to the constructor of the baseclass, bcs there the settings are validated
-        if custom_settings.Has("bodies_list"):
-            custom_settings.RemoveValue("bodies_list")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            KratosMultiphysics.Logger.PrintWarning("Bodies list", warning)
-        if custom_settings.Has("solver_type"):
-            custom_settings.RemoveValue("solver_type")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "solver_type", '
-            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
-            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            KratosMultiphysics.Logger.PrintWarning("Solver type", warning)
-        if custom_settings.Has("time_integration_method"):
-            custom_settings.RemoveValue("time_integration_method")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "time_integration_method", '
-            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
-            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            KratosMultiphysics.Logger.PrintWarning("Time integration method", warning)
-
         settings_have_smps_for_comp_mp = custom_settings.Has("problem_domain_sub_model_part_list") or custom_settings.Has("processes_sub_model_part_list")
 
         self._validate_settings_in_baseclass=True # To be removed eventually
@@ -104,6 +84,7 @@ class MechanicalSolver(PythonSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
+            "solver_type" : "mechanical_solver",
             "model_part_name" : "",
             "domain_size" : -1,
             "echo_level": 0,

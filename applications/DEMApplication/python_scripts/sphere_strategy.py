@@ -4,7 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 import math
 import time
-import cluster_file_reader
+import KratosMultiphysics.DEMApplication.cluster_file_reader as cluster_file_reader
 
 class ExplicitStrategy(object):
 
@@ -325,6 +325,8 @@ class ExplicitStrategy(object):
 
     def SolveSolutionStep(self):
         (self.cplusplus_strategy).SolveSolutionStep()
+        return True
+
         return True
 
     def AdvanceInTime(self, time):
