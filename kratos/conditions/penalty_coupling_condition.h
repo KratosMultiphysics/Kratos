@@ -8,8 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Tobias Tescheamacher
-//                   Michael Breitenberger
-//                   Riccardo Rossi
 //
 
 #if !defined(KRATOS_PENALTY_COUPLING_CONDITION_H_INCLUDED )

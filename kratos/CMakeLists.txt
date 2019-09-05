@@ -107,6 +107,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/elements/embedded_nodal_variable_calculation_element_simplex.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/elements/mesh_element.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/conditions/mesh_condition.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/conditions/penalty_coupling_condition.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/apply_periodic_boundary_condition_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers/amgcl_solver_impl.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/communication_coloring_utilities.cpp

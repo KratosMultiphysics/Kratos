@@ -27,6 +27,7 @@
 #include "elements/levelset_convection_element_simplex.h"
 #include "includes/condition.h"
 #include "conditions/mesh_condition.h"
+#include "conditions/penalty_coupling_condition.h"
 #include "includes/periodic_condition.h"
 #include "utilities/quaternion.h"
 #include "includes/master_slave_constraint.h"
@@ -391,6 +392,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshCondition mCondition3D8N;
     const MeshCondition mCondition3D9N;
     // END Deprecated conditions
+
+    // Penalty Coupling Condition
+    const PenaltyCouplingCondition mPenaltyCouplingCondition;
 
     // Periodic Condition
     const PeriodicCondition mPeriodicCondition;

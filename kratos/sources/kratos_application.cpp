@@ -96,6 +96,9 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mCondition3D9N( 0, GeometryType::Pointer(new Quadrilateral3D9<NodeType >(GeometryType::PointsArrayType(9)))),
       // Deprecated conditions end
 
+      // Penalty Coupling Condition
+      mPeriodicCondition(0, GeometryType::Pointer(new Geometry<NodeType>(GeometryType::PointsArrayType(1)))),
+
       // Periodic conditions
       mPeriodicCondition( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
       mPeriodicConditionEdge( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
@@ -194,6 +197,8 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONDITION("Condition3D8N", mCondition3D8N);
     KRATOS_REGISTER_CONDITION("Condition3D9N", mCondition3D9N);
     //deprecated conditions start
+
+    KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
 
     KRATOS_REGISTER_CONDITION("PeriodicCondition", mPeriodicCondition)
     KRATOS_REGISTER_CONDITION("PeriodicConditionEdge", mPeriodicConditionEdge)

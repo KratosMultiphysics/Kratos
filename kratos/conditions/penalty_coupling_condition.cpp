@@ -8,8 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Tobias Tescheamacher
-//                   Michael Breitenberger
-//                   Riccardo Rossi
 //
 
 // System includes
