@@ -40,6 +40,8 @@ namespace Kratos
     {
     protected:
 
+        ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
     public:
         KRATOS_CLASS_POINTER_DEFINITION(SlidingCableElement3D);
 
@@ -123,9 +125,9 @@ namespace Kratos
         Vector GetDirectionVectorNt();
         Vector GetInternalForces();
 
-        Matrix ElasticStiffnessMatrix();
-        Matrix GeometricStiffnessMatrix();
-        inline Matrix TotalStiffnessMatrix();
+        Matrix ElasticStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+        Matrix GeometricStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+        inline Matrix TotalStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
         double GetCurrentLength();
         double GetRefLength() const;
@@ -169,6 +171,15 @@ namespace Kratos
             ) override;
 
         int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
+
+        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+
+        void GetConstitutiveLawTrialResponse(
+            const ProcessInfo& rCurrentProcessInfo, const bool rSaveInternalVariables);
 
         /**
          * @brief This function checks if self weight is present
