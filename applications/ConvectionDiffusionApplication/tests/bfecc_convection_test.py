@@ -15,7 +15,7 @@ class BFECCConvectionTest(UnitTest.TestCase):
         self.check_tolerance = 1.0e-8
         self.print_reference_values = False
         self.work_folder = "BFECCConvectionTest"
-        self.reference_file = "test_bfecc_convection"
+        self.reference_file = "bfecc_convection_test"
 
     def runTest(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
@@ -68,7 +68,7 @@ class BFECCConvectionTest(UnitTest.TestCase):
                 multifile = KratosMultiphysics.MultiFileFlag.SingleFile
                 deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
                 write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly
-                gid_io = KratosMultiphysics.GidIO("test_bfecc_convection", gid_mode, multifile, deformed_mesh_flag, write_conditions)
+                gid_io = KratosMultiphysics.GidIO("bfecc_convection_test", gid_mode, multifile, deformed_mesh_flag, write_conditions)
 
                 mesh_name = 0.0
                 gid_io.InitializeMesh(mesh_name)
