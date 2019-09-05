@@ -7,6 +7,7 @@ cmake .. -G "Visual Studio 15 2017 Win64"                                       
 -DDEM_APPLICATION=ON                                                            ^
 -DEXTERNAL_SOLVERS_APPLICATION=OFF                                              ^
 -DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
+-DCONVECTION_DIFFUSION_APPLICATION=ON                                           ^
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                           ^
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                   ^
 -DSWIMMING_DEM_APPLICATION=ON                                                   ^

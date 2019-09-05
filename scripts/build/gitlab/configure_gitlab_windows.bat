@@ -17,6 +17,7 @@ cd ..\..\..\cmake_build
 -DDEM_APPLICATION=ON                                                            ^
 -DEXTERNAL_SOLVERS_APPLICATION=ON                                               ^
 -DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
+-DCONVECTION_DIFFUSION_APPLICATION=ON                                           ^
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                           ^
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=OFF                                  ^
 -DSWIMMING_DEM_APPLICATION=OFF                                                   ^
@@ -33,4 +34,4 @@ cd ..\..\..\cmake_build
 -DTRILINOS_APPLICATION=OFF                                                      ^
 -DTRILINOS_ROOT="UNSET"                                                         ^
 -DINSTALL_EMBEDDED_PYTHON=ON                                                    ^
--DINCLUDE_FEAST=OFF                                                             
+-DINCLUDE_FEAST=OFF
