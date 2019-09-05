@@ -187,6 +187,7 @@ protected:
     struct ElementVariables
     {
         static constexpr size_t LocalSize = TNumNodes*3;
+        const double epsilon = 1e-5;
 
         double dt_inv;
         double lumping_factor;
@@ -196,24 +197,27 @@ protected:
         double height_units;
 
         double height;
-        array_1d<double,2> velocity;
-        array_1d<double,2> height_grad;
-        BoundedMatrix<double,2,2> velocity_grad;
+        array_1d<double, 2> velocity;
+        array_1d<double, 2> projected_velocity;
+        array_1d<double, 2> height_grad;
+        BoundedMatrix<double, 2, 2> velocity_grad;
         double velocity_div;
 
-        array_1d<double, TNumNodes*3> depth;
-        array_1d<double, TNumNodes*3> rain;
-        array_1d<double, TNumNodes*3> unknown;
-        array_1d<double, TNumNodes*3> prev_unk;
-        array_1d<double, TNumNodes*3> proj_unk;
+        array_1d<double, LocalSize> depth;
+        array_1d<double, LocalSize> rain;
+        array_1d<double, LocalSize> unknown;
+        array_1d<double, LocalSize> prev_unk;
+        array_1d<double, LocalSize> proj_unk;
 
-        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> MassMatrixScalar;
-        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> MassMatrixVector;
-        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> ScalarGrad;
-        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> VectorDiv;
-        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> ScalarDiff;
-        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> VectorDiff;
-        BoundedMatrix<double,LocalSize,LocalSize> Convection;
+        BoundedMatrix<double, LocalSize, LocalSize> MassMatrixScalar;
+        BoundedMatrix<double, LocalSize, LocalSize> MassMatrixVector;
+        BoundedMatrix<double, LocalSize, LocalSize> ScalarGrad;
+        BoundedMatrix<double, LocalSize, LocalSize> VectorDiv;
+        BoundedMatrix<double, LocalSize, LocalSize> ScalarDiff;
+        BoundedMatrix<double, LocalSize, LocalSize> VectorDiff;
+        BoundedMatrix<double, LocalSize, LocalSize> Convection;
+        BoundedMatrix<double, LocalSize, LocalSize> ScalarConvectionStabilization;
+        BoundedMatrix<double, LocalSize, LocalSize> VectorConvectionStabilization;
     };
 
     virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
@@ -222,14 +226,14 @@ protected:
 
     virtual void GetNodalValues(ElementVariables& rVariables);
 
-    virtual void GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
+    virtual void CalculateElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
 
     virtual void ComputeStabilizationParameters(
         const ElementVariables& rVariables,
-        const double& rElemSize,
         double& rTauU,
         double& rTauH,
-        double& rKdc);
+        double& rKappaU,
+        double& rKappaH);
 
     virtual void BuildMassMatrices(
         array_1d<double,TNumNodes>& rN,
@@ -275,7 +279,6 @@ protected:
         ElementVariables& rVariables);
     
     virtual void AddSourceTerms(
-        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables);
 

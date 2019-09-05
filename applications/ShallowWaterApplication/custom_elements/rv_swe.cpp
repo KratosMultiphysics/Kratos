@@ -28,7 +28,7 @@ namespace Kratos
 {
 
 template< size_t TNumNodes, ElementFramework TFramework >
-int RV_SWE<TNumNodes, TFramework>::Check( const ProcessInfo& rCurrentProcessInfo )
+int RV_SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -94,7 +94,7 @@ void RV_SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResu
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void RV_SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+void RV_SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -116,7 +116,10 @@ void RV_SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void RV_SWE<TNumNodes, TFramework>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void RV_SWE<TNumNodes, TFramework>::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo)
 {
     // Resize of the Left and Right Hand side
     constexpr size_t element_size = TNumNodes*3;
@@ -131,13 +134,15 @@ void RV_SWE<TNumNodes, TFramework>::CalculateLocalSystem(MatrixType& rLeftHandSi
     ElementVariables variables;
     this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
-    BoundedMatrix<double,TNumNodes, TNumNodes> NContainer;  // In this case, number of Gauss points and number of nodes coincides
-    NContainer = Geom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
+    const BoundedMatrix<double,TNumNodes, TNumNodes> NContainer = Geom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 ); // In this case, number of Gauss points and number of nodes coincides
 
     BoundedMatrix<double,TNumNodes, 2> DN_DX;  // Shape function gradients are constant since we are using linear functions
     array_1d<double,TNumNodes> N;
     double Area;
     this-> CalculateGeometry(DN_DX,Area);
+
+    this->GetNodalValues(variables);
+    this->CalculateElementValues(DN_DX, variables);
 
     rLeftHandSideMatrix = ZeroMatrix(element_size, element_size);
     rRightHandSideVector = ZeroVector(element_size);
@@ -156,7 +161,7 @@ void RV_SWE<TNumNodes, TFramework>::CalculateLocalSystem(MatrixType& rLeftHandSi
         AddWaveTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
         AddFrictionTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
         AddStabilizationTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        AddSourceTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
+        AddSourceTerms(rRightHandSideVector, variables);
     }
 
     rRightHandSideVector *= Area * variables.lumping_factor;
@@ -165,14 +170,19 @@ void RV_SWE<TNumNodes, TFramework>::CalculateLocalSystem(MatrixType& rLeftHandSi
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void RV_SWE<TNumNodes, TFramework>::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void RV_SWE<TNumNodes, TFramework>::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 }
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void RV_SWE<TNumNodes, TFramework>::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void RV_SWE<TNumNodes, TFramework>::GetValueOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM || rVariable == MIU)
     {
@@ -183,7 +193,9 @@ void RV_SWE<TNumNodes, TFramework>::GetValueOnIntegrationPoints(const Variable<d
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void RV_SWE<TNumNodes, TFramework>::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void RV_SWE<TNumNodes, TFramework>::InitializeElementVariables(
+    ElementVariables& rVariables,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const double delta_t = rCurrentProcessInfo[DELTA_TIME];
     rVariables.dt_inv = 1.0 / delta_t;
@@ -229,31 +241,41 @@ void RV_SWE<TNumNodes, TFramework>::GetNodalValues(ElementVariables& rVariables)
         rVariables.depth[counter] = 0;
         rVariables.rain[counter]  = 0;
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
-        rVariables.proj_unk[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X);
+        rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, 1);
+        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X);
         counter++;
 
         rVariables.depth[counter] = 0;
         rVariables.rain[counter]  = 0;
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
-        rVariables.proj_unk[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y);
+        rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, 1);
+        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y);
         counter++;
 
         rVariables.depth[counter] = rGeom[i].FastGetSolutionStepValue(BATHYMETRY) / rVariables.height_units;
         rVariables.rain[counter]  = rGeom[i].FastGetSolutionStepValue(RAIN);
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(HEIGHT);
-        rVariables.proj_unk[counter]  = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
+        rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(HEIGHT, 1);
+        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
         counter++;
+    }
+    if (TFramework == PFEM2)
+    {
+        rVariables.prev_unk = rVariables.proj_unk;
     }
 }
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void RV_SWE<TNumNodes, TFramework>::GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables)
+void RV_SWE<TNumNodes, TFramework>::CalculateElementValues(
+    const BoundedMatrix<double,TNumNodes, 2>& rDN_DX,
+    ElementVariables& rVariables)
 {
     // Initialize outputs
     rVariables.height = 0;
     rVariables.velocity = ZeroVector(2);
     rVariables.height_grad = ZeroVector(2);
+    rVariables.projected_velocity = ZeroVector(2);
 
     // integrate over the element
     for (size_t i = 0; i < TNumNodes; i++)
@@ -263,47 +285,56 @@ void RV_SWE<TNumNodes, TFramework>::GetElementValues(const BoundedMatrix<double,
         rVariables.height += rVariables.unknown[2 + 3*i];
         rVariables.height_grad[0] += rDN_DX(i,0) * rVariables.unknown[2 + 3*i];
         rVariables.height_grad[1] += rDN_DX(i,1) * rVariables.unknown[2 + 3*i];
+        rVariables.projected_velocity[0] += rVariables.proj_unk[  + 3*i];
+        rVariables.projected_velocity[1] += rVariables.proj_unk[1 + 3*i];
     }
 
     rVariables.velocity *= rVariables.lumping_factor;
     rVariables.height *= rVariables.lumping_factor * rVariables.height_units;
     rVariables.height_grad *= rVariables.height_units;
+    rVariables.projected_velocity *= rVariables.lumping_factor;
 }
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
-void RV_SWE<TNumNodes, TFramework>::ComputeStabilizationParameters(const ElementVariables& rVariables,
-                                                                    const double& rElemSize,
-                                                                    double& rTauU,
-                                                                    double& rTauH,
-                                                                    double& rKdc)
+void RV_SWE<TNumNodes, TFramework>::ComputeStabilizationParameters(
+    const ElementVariables& rVariables,
+    double& rTauU,
+    double& rTauH,
+    double& rKappaU,
+    double& rKappaH)
 {
-    // Initialize outputs
-    rTauU = 0;
-    rTauH = 0;
-    rKdc  = 0;
-
     // Get element values
-    double height_grad_norm = norm_2(rVariables.height_grad);
+    const double elem_size = this->GetGeometry().Length();
+    const double height = std::abs(rVariables.height) + rVariables.epsilon;
+    const double CTau = rVariables.dyn_tau;  // 0.005 ~ 0.002
 
-    // Compute stabilization parameters
-    bool stabilization = true;
-    double CTau = rVariables.dyn_tau;  // 0.005 ~ 0.002  // 0.002; //
-    double abs_height = std::abs(rVariables.height);
-    if (stabilization && abs_height > 1e-6)
+    // Wave mixed form stabilization
+    rTauU = CTau * elem_size * std::sqrt(rVariables.gravity/height);
+    rTauH = CTau * elem_size * std::sqrt(height/rVariables.gravity);
+
+    // Convective stabilization
+    if (TFramework == Eulerian)
     {
-        rTauU = CTau/rElemSize*std::sqrt(rVariables.gravity/abs_height);
-        rTauH = CTau/rElemSize*std::sqrt(abs_height/rVariables.gravity);
+        const double abs_vel = norm_2(rVariables.velocity);
+        rKappaU = CTau * elem_size / abs_vel;
+        rKappaH = CTau * elem_size / abs_vel;
+    }
+    else
+    {
+        rKappaU = 0.0;
+        rKappaH = 0.0;
     }
 
-    // Compute discontinuity capturing parameters
-    bool discontinuity_capturing = true;
-    double gradient_threshold = 1e-6;
-    //~ double residual;
-    if (discontinuity_capturing && height_grad_norm > gradient_threshold)
-    {
-        rKdc = 0.5*0.1*rElemSize*height_grad_norm;  // Residual formulation
-    }
+    // // Compute discontinuity capturing parameters
+    // bool discontinuity_capturing = true;
+    // double height_grad_norm = norm_2(rVariables.height_grad);
+    // double gradient_threshold = 1e-6;
+    // //~ double residual;
+    // if (discontinuity_capturing && height_grad_norm > gradient_threshold)
+    // {
+    //     rKdc = 0.5*0.1*elem_size*height_grad_norm;  // Residual formulation
+    // }
 }
 
 
@@ -313,8 +344,9 @@ void RV_SWE<TNumNodes, TFramework>::BuildMassMatrices(
     ElementVariables& rVariables)
 {
     // Auxiliary definitions
-    BoundedMatrix<double,2,TNumNodes*3> N_vel    = ZeroMatrix(2,TNumNodes*3); // Shape functions matrix (for velocity unknown)
-    array_1d<double,TNumNodes*3> N_height        = ZeroVector(TNumNodes*3);  // Shape functions vector (for height unknown)
+    constexpr size_t local_size = TNumNodes * 3;
+    BoundedMatrix<double,2,local_size> N_vel = ZeroMatrix(2,local_size); // Shape functions matrix (for velocity unknown)
+    array_1d<double,local_size> N_height     = ZeroVector(local_size);  // Shape functions vector (for height unknown)
 
     // Build the shape and derivatives functions at the Gauss point
     for(size_t node = 0; node < TNumNodes; ++node)
@@ -337,10 +369,11 @@ void RV_SWE<TNumNodes, TFramework>::BuildGradientMatrices(
     ElementVariables& rVariables)
 {
     // Auxiliary definitions
-    BoundedMatrix<double,2,TNumNodes*3> N_vel        = ZeroMatrix(2,TNumNodes*3); // Shape functions matrix (for velocity unknown)
-    array_1d<double,TNumNodes*3> N_height            = ZeroVector(TNumNodes*3);   // Shape functions vector (for height unknown)
-    array_1d<double,TNumNodes*3> DN_DX_vel           = ZeroVector(TNumNodes*3);   // Shape functions gradients vector (for velocity unknown)
-    BoundedMatrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3); // Shape functions gradients matrix (for height unknown)
+    constexpr size_t local_size = TNumNodes * 3;
+    BoundedMatrix<double,2,local_size> N_vel        = ZeroMatrix(2,local_size); // Shape functions matrix (for velocity unknown)
+    array_1d<double,local_size> N_height            = ZeroVector(local_size);   // Shape functions vector (for height unknown)
+    array_1d<double,local_size> DN_DX_vel           = ZeroVector(local_size);   // Shape functions gradients vector (for velocity unknown)
+    BoundedMatrix<double,2,local_size> DN_DX_height = ZeroMatrix(2,local_size); // Shape functions gradients matrix (for height unknown)
 
     // Build the shape and derivatives functions at the Gauss point
     for(size_t node = 0; node < TNumNodes; ++node)
@@ -368,8 +401,9 @@ void RV_SWE<TNumNodes, TFramework>::BuildDiffusivityMatrices(
     ElementVariables& rVariables)
 {
     // Some auxilary definitions
-    array_1d<double,TNumNodes*3> DN_DX_vel           = ZeroVector(TNumNodes*3);  // Shape functions gradients vector (for velocity unknown)
-    BoundedMatrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradients matrix (for height unknown)
+    constexpr size_t local_size = TNumNodes * 3;
+    array_1d<double,local_size> DN_DX_vel           = ZeroVector(local_size);  // Shape functions gradients vector (for velocity unknown)
+    BoundedMatrix<double,2,local_size> DN_DX_height = ZeroMatrix(2,local_size);  // Shape functions gradients matrix (for height unknown)
 
     // Build the shape and derivatives functions at the Gauss point
     for(size_t node = 0; node < TNumNodes; ++node)
@@ -392,35 +426,53 @@ void RV_SWE<TNumNodes, TFramework>::BuildConvectionMatrices(
     BoundedMatrix<double, TNumNodes, 2>& rDN_DX,
     ElementVariables& rVariables)
 {
-    // Auxiliary definitions
-    BoundedMatrix<double,2,TNumNodes*3> N_vel        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for velocity unknown)
-    array_1d<double,TNumNodes*3> N_height            = ZeroVector(TNumNodes*3);    // Shape functions vector (for height unknown)
-    BoundedMatrix<double,2,TNumNodes*3> Grad_vel_1   = ZeroMatrix(1,TNumNodes*3);  // Shape functions gradients vector (for velocity unknown)
-    BoundedMatrix<double,2,TNumNodes*3> Grad_vel_2   = ZeroMatrix(1,TNumNodes*3);  // Shape functions gradients vector (for velocity unknown)
-    BoundedMatrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradients matrix (for height unknown)
-
-    // Build the shape and derivatives functions at the Gauss point
-    for(size_t node = 0; node < TNumNodes; ++node)
+    constexpr size_t local_size = TNumNodes * 3;
+    noalias(rVariables.Convection) = ZeroMatrix(local_size,local_size);
+    noalias(rVariables.ScalarConvectionStabilization) = ZeroMatrix(local_size,local_size);
+    noalias(rVariables.VectorConvectionStabilization) = ZeroMatrix(local_size,local_size);
+    if (TFramework == Eulerian)
     {
-        // Height gradient
-        DN_DX_height(0, 2+node*3) = rDN_DX(node,0);
-        DN_DX_height(1, 2+node*3) = rDN_DX(node,1);
-        // Velocity gradient
-        Grad_vel_1(0,   node*3) = rDN_DX(node,0);
-        Grad_vel_1(1, 1+node*3) = rDN_DX(node,0);
-        Grad_vel_2(0,   node*3) = rDN_DX(node,1);
-        Grad_vel_2(1, 1+node*3) = rDN_DX(node,1);
-        // Height shape funtions
-        N_height[2+node*3] = rN[node];
-        // Velocity shape functions
-        N_vel(0,   node*3) = rN[node];
-        N_vel(1, 1+node*3) = rN[node];
-    }
+        // Auxiliary definitions
+        BoundedMatrix<double,2,local_size> N_vel        = ZeroMatrix(2,local_size);  // Shape functions matrix (for velocity unknown)
+        array_1d<double,local_size> N_height            = ZeroVector(local_size);    // Shape functions vector (for height unknown)
+        array_1d<double,local_size> DN_DX_vel           = ZeroVector(local_size);    // Shape functions gradients vector (for velocity unknown)
+        BoundedMatrix<double,2,local_size> Grad_vel_1   = ZeroMatrix(1,local_size);  // Shape functions gradients vector (for velocity unknown)
+        BoundedMatrix<double,2,local_size> Grad_vel_2   = ZeroMatrix(1,local_size);  // Shape functions gradients vector (for velocity unknown)
+        BoundedMatrix<double,2,local_size> DN_DX_height = ZeroMatrix(2,local_size);  // Shape functions gradients matrix (for height unknown)
 
-    array_1d<double,TNumNodes*3> temp_convect = prod(rVariables.velocity, DN_DX_height);
-    noalias(rVariables.Convection) += outer_prod(N_height, temp_convect);     // q * u * grad_h
-    noalias(rVariables.Convection) += rVariables.velocity[0] * prod(trans(N_vel), Grad_vel_1);     // w * u * grad_u
-    noalias(rVariables.Convection) += rVariables.velocity[1] * prod(trans(N_vel), Grad_vel_2);     // w * u * grad_u
+        // Build the shape and derivatives functions at the Gauss point
+        for(size_t node = 0; node < TNumNodes; ++node)
+        {
+            // Height gradient
+            DN_DX_height(0, 2+node*3) = rDN_DX(node,0);
+            DN_DX_height(1, 2+node*3) = rDN_DX(node,1);
+            // Velocity gradient
+            Grad_vel_1(0,   node*3) = rDN_DX(node,0);
+            Grad_vel_1(1, 1+node*3) = rDN_DX(node,0);
+            Grad_vel_2(0,   node*3) = rDN_DX(node,1);
+            Grad_vel_2(1, 1+node*3) = rDN_DX(node,1);
+            // Velocity divergence
+            DN_DX_vel[  node*3] = rDN_DX(node,0);
+            DN_DX_vel[1+node*3] = rDN_DX(node,1);
+            // Height shape funtions
+            N_height[2+node*3] = rN[node];
+            // Velocity shape functions
+            N_vel(0,   node*3) = rN[node];
+            N_vel(1, 1+node*3) = rN[node];
+        }
+
+        array_1d<double,local_size> scalar_convection_operator = prod(rVariables.velocity, DN_DX_height);
+        BoundedMatrix<double,2,local_size> vector_convection_operator = rVariables.velocity[0] * (Grad_vel_1 + Grad_vel_2);
+
+        noalias(rVariables.Convection) += outer_prod(N_height, scalar_convection_operator);  // q * u * grad_h
+        noalias(rVariables.Convection) += prod(trans(N_vel), vector_convection_operator);   // w * u * grad_u
+
+        // noalias(rVariables.Convection) += rVariables.velocity[0] * prod(trans(N_vel), Grad_vel_1);
+        // noalias(rVariables.Convection) += rVariables.velocity[1] * prod(trans(N_vel), Grad_vel_2);
+
+        noalias(rVariables.ScalarConvectionStabilization) += outer_prod(DN_DX_vel, scalar_convection_operator);     // div_w * u * grad_h
+        noalias(rVariables.VectorConvectionStabilization) += prod(trans(DN_DX_height), vector_convection_operator);// grad_q * u * grad_u
+    }
 }
 
 
@@ -444,8 +496,7 @@ void RV_SWE<TNumNodes, TFramework>::AddConvectiveTerms(
 {
     if (TFramework == Eulerian)
     {
-        double a = 1;
-        a++;
+        rLeftHandSideMatrix += rVariables.Convection;
     }
 }
 
@@ -455,7 +506,10 @@ void RV_SWE<TNumNodes, TFramework>::AddWaveTerms(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
-{}
+{
+    rLeftHandSideMatrix += rVariables.height * rVariables.VectorDiv;
+    rLeftHandSideMatrix += rVariables.gravity * rVariables.ScalarGrad;
+}
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
@@ -463,7 +517,11 @@ void RV_SWE<TNumNodes, TFramework>::AddFrictionTerms(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
-{}
+{
+    const double abs_vel = norm_2(rVariables.projected_velocity);
+    const double height43 = std::pow(std::abs(rVariables.height), 1.3333333333333) + rVariables.epsilon;
+    rLeftHandSideMatrix += rVariables.gravity * rVariables.manning2 * abs_vel / height43 * rVariables.MassMatrixVector;
+}
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
@@ -471,15 +529,27 @@ void RV_SWE<TNumNodes, TFramework>::AddStabilizationTerms(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
-{}
+{
+    double tau_u;
+    double tau_h;
+    double kappa_u;
+    double kappa_h;
+    this->ComputeStabilizationParameters(rVariables, tau_u, tau_h, kappa_u, kappa_h);
+    rLeftHandSideMatrix += tau_u * rVariables.VectorDiff;
+    rLeftHandSideMatrix += tau_h * rVariables.ScalarDiff;
+    rLeftHandSideMatrix += kappa_u * rVariables.VectorConvectionStabilization;
+    rLeftHandSideMatrix += kappa_h * rVariables.ScalarConvectionStabilization;
+}
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
 void RV_SWE<TNumNodes, TFramework>::AddSourceTerms(
-    MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
-{}
+{
+    rRightHandSideVector += rVariables.gravity * prod(rVariables.ScalarGrad, rVariables.depth);
+    rRightHandSideVector += prod(rVariables.MassMatrixScalar, rVariables.rain);
+}
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
