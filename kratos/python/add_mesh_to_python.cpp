@@ -57,6 +57,11 @@ typedef GeometryType::PointsArrayType NodesArrayType;
 typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
+const NodesContainerType::Pointer MeshpNodes(const MeshType& rMesh)
+{
+    return rMesh.pNodes();
+}
+
 array_1d<double,3> GetNormalFromCondition(
     Condition& dummy,
     CoordinatesArrayType& LocalCoords
@@ -756,7 +761,7 @@ void  AddMeshToPython(pybind11::module& m)
     ;
 
     py::class_<MeshType, MeshType::Pointer, DataValueContainer, Flags >(m,"Mesh")
-    .def_property("Nodes", &MeshType::pNodes,&MeshType::SetNodes)
+    .def_property_readonly("Nodes", &MeshpNodes)
     .def("NodesArray", &MeshType::NodesArray, py::return_value_policy::reference_internal)
     .def("NumberOfNodes", &MeshType::NumberOfNodes)
 
