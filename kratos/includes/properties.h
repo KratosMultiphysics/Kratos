@@ -379,7 +379,7 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The reference to the subproperty of interest
      */
-    Properties& GetSubProperties(const IndexType SubPropertyIndex) const
+    const Properties& GetSubProperties(const IndexType SubPropertyIndex) const
     {
         // Looking into the database
         if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
