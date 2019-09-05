@@ -68,7 +68,7 @@ class BFECCConvectionTest(UnitTest.TestCase):
                 multifile = KratosMultiphysics.MultiFileFlag.SingleFile
                 deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
                 write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly
-                gid_io = KratosMultiphysics.GidIO("bfecc_convection_test", gid_mode, multifile, deformed_mesh_flag, write_conditions)
+                gid_io = KratosMultiphysics.GidIO(self.reference_file, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 
                 mesh_name = 0.0
                 gid_io.InitializeMesh(mesh_name)
@@ -120,8 +120,10 @@ class BFECCConvectionTest(UnitTest.TestCase):
                         self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
     def testBFECCConvection(self):
+        self.setUp()
         self.runTest()
         self.checkResults()
+        self.tearDown()
 
 if __name__ == '__main__':
     test = BFECCConvectionTest()
