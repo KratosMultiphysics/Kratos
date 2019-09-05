@@ -44,6 +44,7 @@ import test_linear_master_slave_constraints
 import test_flags
 import test_time_discretization
 import test_python_generic_function_utility
+import test_serializer
 
 
 def AssembleTestSuites():
@@ -111,6 +112,7 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_distance_to_skin.TestCalculateDistanceToSkin]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mortar_mapper.TestMortarMapperCore]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_serializer.TestSerializer]))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
