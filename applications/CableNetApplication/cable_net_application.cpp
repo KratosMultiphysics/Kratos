@@ -23,6 +23,7 @@
 
 
 #include "geometries/triangle_3d_3.h"
+#include "geometries/line_3d_2.h"
 #include "custom_geometries/line_3d_n.h"
 
 namespace Kratos {
@@ -34,7 +35,8 @@ KratosCableNetApplication::KratosCableNetApplication():
     mWeakSlidingElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
     mSlidingCableElement3D3N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(3)))),
     mRingElement3D4N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(4)))),
-    mRingElement3D3N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(3))))
+    mRingElement3D3N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+    mEmpiricalSpringElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2))))
     {}
 
 void KratosCableNetApplication::Register()
@@ -55,5 +57,8 @@ void KratosCableNetApplication::Register()
     KRATOS_REGISTER_ELEMENT("SlidingCableElement3D3N", mSlidingCableElement3D3N)
     KRATOS_REGISTER_ELEMENT("RingElement3D4N", mRingElement3D4N)
     KRATOS_REGISTER_ELEMENT("RingElement3D3N", mRingElement3D3N)
+    KRATOS_REGISTER_ELEMENT("EmpiricalSpringElement3D2N", mEmpiricalSpringElement3D2N)
+
+    KRATOS_REGISTER_VARIABLE(SPRING_DEFORMATION_EMPIRICAL_POLYNOMIAL)
 }
 }  // namespace Kratos.

@@ -5,20 +5,26 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 Kratos default license:
+//kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
+// System includes
+#include <unordered_set>
+
+// External includes
+
 // Project includes
 #include "testing/testing.h"
+#include "containers/nodal_data.h"
+#include "includes/stream_serializer.h"
 #include "containers/model.h"
-#include "includes/prime_numbers.h"
-#include "includes/model_part.h"
 
 namespace Kratos {
-	namespace Testing {
+namespace Testing {
 
 		KRATOS_TEST_CASE_IN_SUITE(NodalSolutionStepData, KratosCoreFastSuite)
 		{
@@ -90,5 +96,50 @@ namespace Kratos {
 			}
 		}
 
-	}
-}  // namespace Kratos.
+		KRATOS_TEST_CASE_IN_SUITE(NodalSolutionStepDataSerialization, KratosCoreFastSuite)
+		{
+			Model current_model;
+
+			ModelPart& model_part = current_model.CreateModelPart("test");
+			model_part.AddNodalSolutionStepVariable(DISTANCE);
+			model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+            StreamSerializer serializer;
+
+            const std::string tag_string("Node");
+
+
+			Node<3>::Pointer p_node_to_be_saved = model_part.CreateNewNode(1, 1, 0, 0);
+			p_node_to_be_saved->FastGetSolutionStepValue(DISTANCE) = 1.12;
+			p_node_to_be_saved->FastGetSolutionStepValue(VELOCITY_X) = 2.32;
+
+			Node<3>::Pointer p_node_to_be_loaded(nullptr);
+ 
+            serializer.save(tag_string, p_node_to_be_saved);
+            serializer.load(tag_string, p_node_to_be_loaded);
+
+			KRATOS_CHECK_EQUAL(p_node_to_be_loaded->Id() , 1);
+			KRATOS_CHECK_DOUBLE_EQUAL(p_node_to_be_loaded->FastGetSolutionStepValue(DISTANCE), 1.12);
+			KRATOS_CHECK_DOUBLE_EQUAL(p_node_to_be_loaded->FastGetSolutionStepValue(VELOCITY_X), 2.32);
+		}
+
+        KRATOS_TEST_CASE_IN_SUITE(NodalDataSerialization, KratosCoreFastSuite) {
+			Model current_model;
+
+			ModelPart& model_part = current_model.CreateModelPart("test");
+			model_part.AddNodalSolutionStepVariable(DISTANCE);
+			model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+            NodalData nodal_data_to_be_saved(23, &model_part.GetNodalSolutionStepVariablesList());
+            NodalData nodal_data_to_be_loaded(42, &model_part.GetNodalSolutionStepVariablesList());
+
+            StreamSerializer serializer;
+
+            serializer.save("NodalData", nodal_data_to_be_saved);
+            serializer.load("NodalData", nodal_data_to_be_loaded);
+
+            KRATOS_CHECK_EQUAL(nodal_data_to_be_saved.Id(), nodal_data_to_be_loaded.Id());
+        }
+
+}
+} // namespace Kratos.
