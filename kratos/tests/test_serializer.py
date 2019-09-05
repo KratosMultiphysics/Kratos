@@ -56,8 +56,8 @@ class TestSerializer(KratosUnittest.TestCase):
             pressure = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
             serialized_pressure_results.append(pressure)
         # Comparing results before and after serializing
-        for i_node in range(len(serialized_pressure_results)):
-            self.assertAlmostEqual(pre_serialized_pressure_results[i_node], serialized_pressure_results[i_node])
+        for pre_serialized_result, serialized_result in zip(pre_serialized_pressure_results,serialized_pressure_results):
+            self.assertAlmostEqual(pre_serialized_result, serialized_result)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"FluidDynamicsApplication is not available")
     def test_serializer_fluid_analysis(self):
