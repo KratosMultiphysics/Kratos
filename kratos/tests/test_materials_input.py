@@ -87,19 +87,19 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         prop1 = self.model_part.GetProperties()[1]
         self.assertEqual(prop1.NumberOfSubproperties(), 3)
 
-        self.assertEqual(prop1.HasSubPropertiesById(11), True)
-        self.assertEqual(prop1.HasSubPropertiesById(120), False)
+        self.assertEqual(prop1.HasSubProperties(11), True)
+        self.assertEqual(prop1.HasSubProperties(120), False)
 
-        sub_prop11 = prop1.GetSubPropertiesById(11)
+        sub_prop11 = prop1.GetSubProperties(11)
         self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.YOUNG_MODULUS), 206900000000.0)
         self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.POISSON_RATIO), 0.29)
         self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.THICKNESS), 0.000889)
 
         self.assertEqual(sub_prop11.NumberOfSubproperties(), 3)
 
-        self.assertEqual(prop1.HasSubPropertiesByAddress("1.11"), True)
-        self.assertEqual(prop1.HasSubPropertiesByAddress("1.110"), False)
-        sub_prop11_adress = prop1.GetSubPropertiesByAddress("1.11")
+        self.assertEqual(prop1.HasSubProperties("1.11"), True)
+        self.assertEqual(prop1.HasSubProperties("1.110"), False)
+        sub_prop11_adress = prop1.GetSubProperties("1.11")
         self.assertEqual(sub_prop11.Id, sub_prop11_adress.Id)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
