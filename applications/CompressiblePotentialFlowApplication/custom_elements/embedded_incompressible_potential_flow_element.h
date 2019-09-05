@@ -114,6 +114,8 @@ public:
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;
 
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
     /// Turn back information as a string.
     std::string Info() const override;
