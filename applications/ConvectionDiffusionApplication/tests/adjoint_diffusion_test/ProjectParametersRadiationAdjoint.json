@@ -7,35 +7,33 @@
         "end_time"      : 0.99,
         "echo_level"    : 0
     },
-    "solver_settings"  : {
-        "solver_type"                        : "stationary",
-        "analysis_type"                      : "linear",
-        "model_part_name"                    : "ThermalModelPart",
-        "domain_size"                        : 2,
-        "model_import_settings"              : {
-            "input_type"     : "mdpa",
-            "input_filename" : "adjoint_test"
+    "solver_settings": {
+        "solver_type": "adjoint_stationary",
+        "model_part_name": "AdjointModelPart",
+        "primal_model_part_name": "ThermalModelPart",
+        "domain_size": 2,
+        "response_function_settings": {
+            "response_type": "point_temperature",
+            "custom_settings": {
+                "model_part_name": "HeatFlux2D_right"
+            }
         },
-        "material_import_settings"           : {
-            "materials_filename" : "ConvectionDiffusionMaterials.json"
+        "sensitivity_settings": {
+            "sensitivity_model_part_name": "Parts_solid",
+            "nodal_solution_step_sensitivity_variables": [ "SHAPE_SENSITIVITY" ],
+            "build_mode": "static",
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe": false
         },
-        "element_replace_settings"  :{
-            "element_name" : "LaplacianElement",
-            "condition_name" : "ThermalFace"
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "adjoint_test"
         },
-        "line_search"                        : false,
-        "echo_level"                         : 0,
-        "compute_reactions"                  : false,
-        "max_iteration"                      : 10,
-        "convergence_criterion"              : "residual_criterion",
-        "solution_relative_tolerance"        : 1e-5,
-        "solution_absolute_tolerance"        : 1e-7,
-        "residual_relative_tolerance"        : 1e-5,
-        "residual_absolute_tolerance"        : 1e-7,
-        "problem_domain_sub_model_part_list" : ["Parts_solid"],
-        "processes_sub_model_part_list"      : ["HeatFlux2D_right","ImposedTemperature2D_left"],
-        "time_stepping"                      : {
-            "time_step" : 1.0
+        "material_import_settings": {
+            "materials_filename": "ConvectionDiffusionMaterials.json"
+        },
+        "echo_level": 0,
+        "time_stepping": {
+            "time_step": 1.0
         }
     },
     "processes"        : {
@@ -44,22 +42,22 @@
             "python_module" : "assign_scalar_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.ImposedTemperature2D_left",
-                "variable_name"   : "TEMPERATURE",
+                "model_part_name" : "AdjointModelPart.ImposedTemperature2D_left",
+                "variable_name"   : "ADJOINT_HEAT_TRANSFER",
                 "constrained"     : true,
-                "value"           : 300.0,
+                "value"           : 0.0,
                 "interval"        : [0.0,"End"]
             }
         },{
             "python_module" : "apply_thermal_face_process",
             "kratos_module" : "KratosMultiphysics.ConvectionDiffusionApplication",
             "Parameters"    : {
-                "model_part_name"        : "ThermalModelPart.HeatFlux2D_right",
+                "model_part_name"        : "AdjointModelPart.HeatFlux2D_right",
                 "ambient_temperature"    : 150.0,
-                "add_ambient_radiation"  : false,
-                "emissivity"             : 0.0,
-                "add_ambient_convection" : true,
-                "convection_coefficient" : 2.0,
+                "add_ambient_radiation"  : true,
+                "emissivity"             : 0.9,
+                "add_ambient_convection" : false,
+                "convection_coefficient" : 0.0,
                 "interval"               : [0.0,"End"]
             }
         }],
@@ -72,8 +70,8 @@
             "process_name"  : "GiDOutputProcess",
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
-                "model_part_name"        : "ThermalModelPart.thermal_computing_domain",
-                "output_name"            : "diffusion_test_primal",
+                "model_part_name"        : "AdjointModelPart",
+                "output_name"            : "diffusion_test_adjoint",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {
@@ -89,19 +87,18 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["TEMPERATURE"],
+                        "nodal_results"       : ["TEMPERATURE","ADJOINT_HEAT_TRANSFER","SHAPE_SENSITIVITY","HEAT_FLUX","CONDUCTIVITY"],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []
                 }
             }
-        }],
-        "vtk_output" : []
+        }]
     },
     "restart_options"  : {
-        "SaveRestart"      : false,
+        "SaveRestart"      : "False",
         "RestartFrequency" : 0,
-        "LoadRestart"      : false,
+        "LoadRestart"      : "False",
         "Restart_Step"     : 0
     }
 }
