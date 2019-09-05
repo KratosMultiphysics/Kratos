@@ -68,9 +68,28 @@ class ContactRemeshMmgProcess(MmgProcess):
                 "interpolation_error"              : 0.04,
                 "mesh_dependent_constant"          : 0.28125
             },
+            "error_strategy_parameters"              :{
+                "compute_error_extra_parameters":
+                {
+                    "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
+                    "penalty_normal"                      : 1.0e4,
+                    "penalty_tangential"                  : 1.0e4
+                },
+                "error_metric_parameters"                 :
+                {
+                    "error_threshold"                       : 1.0e-4,
+                    "interpolation_error"                   : 0.04
+                },
+                "set_target_number_of_elements"       : false,
+                "target_number_of_elements"           : 1000,
+                "perform_nodal_h_averaging"           : false
+            },
             "enforce_current"                  : true,
+            "remesh_control_type"              : "step",
             "initial_step"                     : 1,
             "step_frequency"                   : 0,
+            "interval"                         : [0.0, 1e30],
+            "time_stepping"                    : {},
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      :{
                 "automatic_remesh_type"            : "Ratio",
@@ -128,6 +147,13 @@ class ContactRemeshMmgProcess(MmgProcess):
         }
         """)
 
+        # Time stepping settings
+        self.time_stepping = KratosMultiphysics.Parameters("""{}""")
+        if settings.Has("time_stepping"):
+            self.time_stepping = settings["time_stepping"].Clone()
+            settings.RemoveValue("time_stepping")
+
+        # Validate the settings
         settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
         # Parameters of the process
@@ -369,3 +395,21 @@ class ContactRemeshMmgProcess(MmgProcess):
         self -- It signifies an instance of a class.
         """
         KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.computing_model_part, self.computing_model_part.GetParentModelPart()).Execute()
+
+    def _GenerateErrorProcess(self):
+        """ This method creates an erro process to compute the metric
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        # We compute the error
+        error_compute_parameters = KratosMultiphysics.Parameters("""{}""")
+        error_compute_parameters.AddValue("stress_vector_variable", self.settings["error_strategy_parameters"]["compute_error_extra_parameters"]["stress_vector_variable"])
+        error_compute_parameters.AddValue("penalty_normal", self.settings["error_strategy_parameters"]["compute_error_extra_parameters"]["penalty_normal"])
+        error_compute_parameters.AddValue("penalty_tangential", self.settings["error_strategy_parameters"]["compute_error_extra_parameters"]["penalty_tangential"])
+        error_compute_parameters.AddValue("echo_level", self.settings["echo_level"])
+        if self.domain_size == 2:
+            return ContactStructuralMechanicsApplication.ContactSPRErrorProcess2D(self.main_model_part, error_compute_parameters)
+        else:
+            return ContactStructuralMechanicsApplication.ContactSPRErrorProcess3D(self.main_model_part, error_compute_parameters)

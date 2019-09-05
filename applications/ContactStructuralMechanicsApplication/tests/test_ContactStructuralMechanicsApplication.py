@@ -41,6 +41,7 @@ from SmallTests import SimplePatchTestThreeDMeshTying          as TSimplePatchTe
 
 # ALM frictionless tests
 from SmallTests import ALMHyperSimplePatchTestContact                              as TALMHyperSimplePatchTestContact
+from SmallTests import ALMHyperSimplePatchTrianglesTestContact                     as TALMHyperSimplePatchTrianglesTestContact
 from SmallTests import ALMHyperSimplePatchTestWithEliminationContact               as TALMHyperSimplePatchTestWithEliminationContact
 from SmallTests import ALMHyperSimplePatchTestWithEliminationWithConstraintContact as TALMHyperSimplePatchTestWithEliminationWithConstraintContact
 from SmallTests import ALMHyperSimpleSlopePatchTestContact                         as TALMHyperSimpleSlopePatchTestContact
@@ -182,6 +183,7 @@ def AssembleTestSuites():
 
     # ALM frictionless tests
     smallSuite.addTest(TALMHyperSimplePatchTestContact('test_execution'))
+    smallSuite.addTest(TALMHyperSimplePatchTrianglesTestContact('test_execution'))
     smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationContact('test_execution'))
     smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
     smallSuite.addTest(TALMHyperSimpleSlopePatchTestContact('test_execution'))
@@ -350,6 +352,7 @@ def AssembleTestSuites():
             #TSimplestPatchTestThreeDQuadTriMeshTying,
             #TSimplePatchTestThreeDMeshTying,
             #TALMHyperSimplePatchTestContact,
+            #TALMHyperSimplePatchTrianglesTestContact,
             #TALMHyperSimplePatchTestWithEliminationContact,
             #TALMHyperSimplePatchTestWithEliminationWithConstraintContact,
             #TALMHyperSimpleSlopePatchTestContact,

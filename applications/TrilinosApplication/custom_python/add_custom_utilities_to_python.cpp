@@ -26,12 +26,11 @@
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
-#include "custom_utilities/mpi_normal_calculation_utilities.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
 #include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
 
 // External includes
-#include "../FSIapplication/custom_utilities/aitken_convergence_accelerator.hpp"
+#include "../FSIApplication/custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -116,12 +115,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<TrilinosRefineMesh>(m,"TrilinosRefineMesh").def(py::init<ModelPart& , Epetra_MpiComm& >() )
         .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
         .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
-        ;
-
-    py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils").def(py::init<>())
-        .def("Check",&MPINormalCalculationUtils::Check)
-        .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
-        .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
         ;
 
     typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, double, 2> BasePartitionedFSIUtilitiesDouble2DType;

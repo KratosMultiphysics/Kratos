@@ -13,6 +13,7 @@
 #include "incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -148,7 +149,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Pro
 
     if (wake != 0 && active == true)
     {
-        CheckWakeCondition();
         ComputePotentialJump(rCurrentProcessInfo);
     }
     ComputeElementInternalEnergy();
@@ -551,20 +551,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeNod
     else if (data.distances[row] > 0.0)
         for (unsigned int column = 0; column < NumNodes; ++column)
             rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column); // Side 2
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() const
-{
-    array_1d<double, Dim> upper_wake_velocity;
-    upper_wake_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-    const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
-
-    array_1d<double, Dim> lower_wake_velocity;
-    lower_wake_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
-    const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
-
-    KRATOS_WARNING_IF("IncompressibleElement", std::abs(vupnorm - vlownorm) > 0.1) << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
 }
 
 template <int Dim, int NumNodes>
