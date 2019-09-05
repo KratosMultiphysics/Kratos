@@ -29,6 +29,7 @@
 #include "containers/array_1d.h"
 #include "containers/global_pointers_vector.h"
 #include "containers/periodic_variables_container.h"
+#include "containers/dof_variables_container.h"
 #include "utilities/table_stream_utility.h"
 #include "utilities/adjoint_extensions.h"
 
@@ -432,6 +433,7 @@ namespace Kratos
     //KRATOS_DEFINE_VARIABLE( RadiationSettings::Pointer,  RADIATION_SETTINGS )
 
     KRATOS_DEFINE_VARIABLE( PeriodicVariablesContainer, PERIODIC_VARIABLES )
+    KRATOS_DEFINE_VARIABLE(DofVariablesContainer, DOF_VARIABLES)
 
     // Variables that should be moved to applications (but have too many dependencies)
     KRATOS_DEFINE_VARIABLE(int, FRACTIONAL_STEP)

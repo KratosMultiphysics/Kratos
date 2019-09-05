@@ -423,6 +423,7 @@ KRATOS_CREATE_VARIABLE(ConvectionDiffusionSettings::Pointer, CONVECTION_DIFFUSIO
 KRATOS_CREATE_VARIABLE(RadiationSettings::Pointer, RADIATION_SETTINGS)
 
 KRATOS_CREATE_VARIABLE(PeriodicVariablesContainer, PERIODIC_VARIABLES)
+KRATOS_CREATE_VARIABLE(DofVariablesContainer, DOF_VARIABLES)
 
 // Variables that should be moved to applications (but have too many dependencies)
 KRATOS_CREATE_VARIABLE(int, FRACTIONAL_STEP)
