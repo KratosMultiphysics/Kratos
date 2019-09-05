@@ -47,8 +47,8 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
 
     # making the cpp_test_solver_one and cpp_test_solver_two executables
     MESSAGE(${KRATOS_CO_SIMULATION_TESTING_SOURCES})
-    add_executable (exe_cpp_test_solver_one ${KRATOS_CO_SIMULATION_TESTING_CPP_ONE_SOURCES})
-    add_executable (exe_cpp_test_solver_two ${KRATOS_CO_SIMULATION_TESTING_CPP_TWO_SOURCES})
+    add_executable (ping ${KRATOS_CO_SIMULATION_TESTING_CPP_ONE_SOURCES})
+    add_executable (pong ${KRATOS_CO_SIMULATION_TESTING_CPP_TWO_SOURCES})
 
     # changing the .dll suffix to .pyd (Windows)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
