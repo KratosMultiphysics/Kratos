@@ -34,7 +34,7 @@
             {
                 "type" : "solver_wrappers.cpp_test.cpp_test_wrapper",
                 "solver_wrapper_settings" : {
-                    "executable_name"  : "/media/aditya/external1tb/experiments/01_kratos_prs/01_master/Kratos/cmake_build/applications/CoSimulationApplication/exe_cpp_test_solver_one"
+                    "executable_name"  : "../../../../cmake_build/applications/CoSimulationApplication/ping"
                 },
                 "io_settings":{
                     "type":"empire_io"
@@ -46,7 +46,7 @@
             {
                 "type" : "solver_wrappers.cpp_test.cpp_test_wrapper",
                 "solver_wrapper_settings" : {
-                    "executable_name"  : "/media/aditya/external1tb/experiments/01_kratos_prs/01_master/Kratos/cmake_build/applications/CoSimulationApplication/exe_cpp_test_solver_two"
+                    "executable_name"  : "../../../../cmake_build/applications/CoSimulationApplication/pong"
                 },
                 "io_settings":{
                     "type":"empire_io"
