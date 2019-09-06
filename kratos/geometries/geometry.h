@@ -111,7 +111,7 @@ public:
         QUADRATURE_ON_NODES
     };
 
-  
+
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */
@@ -212,8 +212,8 @@ public:
     typedef typename PointsArrayType::iterator iterator;
     typedef typename PointsArrayType::const_iterator const_iterator;
 
-    typedef typename PointsArrayType::iterator ptr_iterator;
-    typedef typename PointsArrayType::const_iterator ptr_const_iterator;
+    typedef typename PointsArrayType::ptr_iterator ptr_iterator;
+    typedef typename PointsArrayType::ptr_const_iterator ptr_const_iterator;
     typedef typename PointsArrayType::difference_type difference_type;
 
     ///@}
@@ -431,19 +431,19 @@ public:
     }
     virtual ptr_iterator               ptr_begin()
     {
-        return mPoints.begin();
+        return mPoints.ptr_begin();
     }
     virtual ptr_const_iterator         ptr_begin() const
     {
-        return mPoints.begin();
+        return mPoints.ptr_begin();
     }
     virtual ptr_iterator               ptr_end()
     {
-        return mPoints.end();
+        return mPoints.ptr_end();
     }
     virtual ptr_const_iterator         ptr_end() const
     {
-        return mPoints.end();
+        return mPoints.ptr_end();
     }
     virtual PointReferenceType        front()       /* nothrow */
     {
@@ -1077,7 +1077,7 @@ public:
         if (norm_normal > std::numeric_limits<double>::epsilon())
             normal_vector /= norm_normal;
         else
-            KRATOS_ERROR 
+            KRATOS_ERROR
             << "ERROR: The normal norm is zero or almost zero: "
             << norm_normal << std::endl;
         return normal_vector;
@@ -2985,8 +2985,10 @@ private:
 
     GeometryData const* mpGeometryData;
 
-    PointsArrayType mPoints;
+    static const GeometryDimension msGeometryDimension;
 
+    PointsArrayType mPoints;
+  
     ///@}
     ///@name Serialization
     ///@{
@@ -3018,9 +3020,8 @@ private:
         IntegrationPointsContainerType integration_points = {};
         ShapeFunctionsValuesContainerType shape_functions_values = {};
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {};
-        static GeometryData s_geometry_data(3,
-                            3,
-                            3,
+        static GeometryData s_geometry_data(
+                            &msGeometryDimension,
                             GeometryData::GI_GAUSS_1,
                             integration_points,
                             shape_functions_values,
@@ -3085,6 +3086,9 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 ///@}
 
+template<class TPointType>
+const GeometryDimension Geometry<TPointType>::msGeometryDimension(
+    3, 3, 3);
 
 }  // namespace Kratos.
 
