@@ -146,6 +146,7 @@ public:
         ,mOrder(rOther.mOrder)
         ,mBDF(rOther.mBDF)
         ,mVector(rOther.mVector)
+        ,mpBDFUtility(rOther.mpBDFUtility)
     {
     }
 
