@@ -71,7 +71,7 @@ template <int Dim, int NumNodes>
 const bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
 
 template <int Dim>
-void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
+void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
 const bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
