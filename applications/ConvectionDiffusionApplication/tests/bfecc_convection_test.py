@@ -116,10 +116,7 @@ class BFECCConvectionTest(UnitTest.TestCase):
                     "reference_file_name"   : "bfecc_convection_test.csv",
                     "output_file_name"      : "bfecc_convection_test_results.csv",
                     "remove_output_file"    : true,
-                    "comparison_type"       : "deterministic",
-                    "tolerance"             : 1e-2,
-                    "relative_tolerance"    : 1e-5,
-                    "dimension"             : 2
+                    "comparison_type"       : "deterministic"
                 }''')
                 CompareTwoFilesCheckProcess(compare_files_settings).Execute()
 
