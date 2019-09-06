@@ -186,7 +186,7 @@ public:
         unsigned int lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes;
         RansVariableUtils().ClipScalarVariable(
             lower_number_of_nodes, higher_number_of_nodes, total_selected_nodes,
-            nu_t_min, nu_t_max, TURBULENT_VISCOSITY, r_nodes);
+            nu_t_min, nu_t_max, TURBULENT_VISCOSITY, r_model_part);
 
         KRATOS_WARNING_IF(this->Info(),
                           (lower_number_of_nodes > 0 || higher_number_of_nodes > 0) &&
