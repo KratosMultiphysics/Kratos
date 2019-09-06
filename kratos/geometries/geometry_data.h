@@ -332,10 +332,10 @@ public:
     ///@name GeometryDimension
     ///@{
 
-    //void SetGeometryDimension(GeometryDimension* pGeometryDimension)
-    //{
-    //    mpGeometryDimension = pGeometryDimension;
-    //}
+    void SetGeometryDimension(GeometryDimension const* pGeometryDimension)
+    {
+        mpGeometryDimension = pGeometryDimension;
+    }
 
     ///@}
     ///@name Informations

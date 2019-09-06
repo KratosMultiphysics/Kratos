@@ -457,14 +457,13 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("pGeometryParent", mpGeometryParent);
 
-        //GeometryDimension local(3, 3, 3);
-        //GeometryDimension *temp = &local;
-        //rSerializer.load("pGeometryDimension", temp);
+        GeometryDimension local(3, 3, 3);
+        GeometryDimension *temp = &local;
+        rSerializer.load("pGeometryDimension", temp);
 
-        //GeometryData dummy()
-        //rSerializer.load("GeometryData", mGeometryData);
+        rSerializer.load("GeometryData", mGeometryData);
 
-        //mGeometryData.SetGeometryDimension(&msGeometryDimension);
+        mGeometryData.SetGeometryDimension(&msGeometryDimension);
 
     }
 
