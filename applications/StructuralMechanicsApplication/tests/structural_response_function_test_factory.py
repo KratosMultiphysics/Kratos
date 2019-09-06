@@ -6,7 +6,7 @@ import os
 import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import structural_response_function_factory
+from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 

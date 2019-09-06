@@ -432,16 +432,6 @@ public:
     }
 
     /**
-            Adds the point loads to the RHS
-     */
-    virtual void ApplyPointLoads(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemVectorType& b)
-    {
-    }
-
-    /**
             Builds the list of the DofSets involved in the problem by "asking" to each element
             and condition its Dofs.
             The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
