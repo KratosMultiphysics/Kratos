@@ -151,7 +151,7 @@ void  AddSchemes(pybind11::module& m)
 
     py::class_ < TurbulentBossakBaseType, typename TurbulentBossakBaseType::Pointer,TrilinosBaseSchemeType >
         (m,"TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent")
-        .def(py::init<double, double, unsigned int, Process::Pointer >())
+        .def(py::init<double, double, unsigned int, double, Process::Pointer >())
         .def(py::init<double,double,unsigned int >())
         .def(py::init<double,unsigned int, const Variable<int>&>())
         ;

@@ -26,7 +26,20 @@ set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_auxiliary_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_solving_processes_to_python.cpp
 )
+
+set(KRATOS_RANS_MODELLING_APPLICATION_SOURCES_MPI "")
+set(KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS "")
+if(${MPI_NEEDED} MATCHES ON )
+    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
+    find_package(TRILINOS REQUIRED)
+    include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR}) # Included as "SYSTEM" to suppress warnings from it
+
+    set(KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS ${KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS} ${MPI_LIBRARIES})
+    set(KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS ${KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS} ${TRILINOS_LIBRARIES})
+endif(${MPI_NEEDED} MATCHES ON )
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
   file(GLOB_RECURSE

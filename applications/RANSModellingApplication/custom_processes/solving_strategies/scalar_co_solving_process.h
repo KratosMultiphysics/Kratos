@@ -125,15 +125,12 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(IS_CO_SOLVING_PROCESS_ACTIVE);
         KRATOS_CHECK_VARIABLE_KEY(this->mrConvergenceVariable);
 
-        for (ModelPart::NodeType& r_node : mrModelPart.Nodes())
-        {
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(this->mrConvergenceVariable, r_node);
-        }
+        KRATOS_CHECK_IS_FALSE(!mrModelPart.HasNodalSolutionStepVariable(this->mrConvergenceVariable));
 
         for (SolvingStrategyType* strategy : mrSolvingStrategiesList)
             strategy->Check();
 
-        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+        for (Process::Pointer auxiliary_process : mAuxiliaryProcessList)
             auxiliary_process->Check();
 
         KRATOS_ERROR_IF(mrSolvingStrategiesList.size() == 0)
@@ -144,7 +141,7 @@ public:
 
     virtual void ExecuteInitialize() override
     {
-        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+        for (Process::Pointer auxiliary_process : mAuxiliaryProcessList)
             auxiliary_process->ExecuteInitialize();
     }
 
@@ -218,13 +215,13 @@ protected:
 
     void ExecuteAuxiliaryProcesses()
     {
-        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+        for (Process::Pointer auxiliary_process : mAuxiliaryProcessList)
             auxiliary_process->Execute();
     }
 
     void ExecuteAuxiliaryProcessesInitializeSolutionStep()
     {
-        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+        for (Process::Pointer auxiliary_process : mAuxiliaryProcessList)
             auxiliary_process->ExecuteInitializeSolutionStep();
     }
 
@@ -243,7 +240,9 @@ protected:
 
         RansVariableUtils rans_variable_utils;
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        Communicator& r_communicator = mrModelPart.GetCommunicator();
+
+        ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
         const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
 
         Vector old_values(r_nodes.size());
@@ -277,18 +276,27 @@ protected:
                 new_values, r_nodes, this->mrConvergenceVariable);
             noalias(delta_values) = new_values - old_values;
 
-            double increase_norm = std::pow(norm_2(delta_values), 2);
-            double solution_norm = std::pow(norm_2(new_values), 2);
+            // This vector stores norms of the residual
+            // index - 0 : increase_norm
+            // index - 1 : solution_norm
+            // index - 3 : number of nodes
+            std::vector<double> residual_norms(3);
+            residual_norms[0] = std::pow(norm_2(delta_values), 2);
+            residual_norms[1] = std::pow(norm_2(new_values), 2);
+            residual_norms[2] = static_cast<double>(r_nodes.size());
+            r_communicator.GetDataCommunicator().SumAll(residual_norms);
 
             noalias(new_values) = old_values + delta_values * mRelaxationFactor;
             rans_variable_utils.SetNodalVariables(new_values, r_nodes,
                                                   this->mrConvergenceVariable);
+            r_communicator.SynchronizeVariable(this->mrConvergenceVariable);
 
-            if (solution_norm <= std::numeric_limits<double>::epsilon())
-                solution_norm = 1.0;
+            if (residual_norms[1] <= std::numeric_limits<double>::epsilon())
+                residual_norms[1] = 1.0;
 
-            double convergence_relative = increase_norm / solution_norm;
-            double convergence_absolute = std::sqrt(increase_norm) / r_nodes.size();
+            double convergence_relative = residual_norms[0] / residual_norms[1];
+            double convergence_absolute =
+                std::sqrt(residual_norms[0]) / residual_norms[2];
 
             is_converged = (convergence_relative < this->mConvergenceRelativeTolerance ||
                             convergence_absolute < this->mConvergenceAbsoluteTolerance);

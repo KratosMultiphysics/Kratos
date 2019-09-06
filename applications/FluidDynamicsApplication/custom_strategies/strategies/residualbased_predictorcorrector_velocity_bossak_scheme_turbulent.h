@@ -248,13 +248,9 @@ namespace Kratos {
 
             mRotationTool.RotateVelocities(r_model_part);
 
-            const int number_of_dofs = static_cast<int>(Dv.size());
-            TSystemVectorType relaxed_dx(number_of_dofs);
-            #pragma omp parallel for
-            for (int i = 0; i < number_of_dofs; ++i)
-                relaxed_dx[i] = Dv[i] * mRelaxationFactor;
+            TSparseSpace::InplaceMult(Dv, mRelaxationFactor);
 
-            mpDofUpdater->UpdateDofs(rDofSet,relaxed_dx);
+            mpDofUpdater->UpdateDofs(rDofSet,Dv);
 
             mRotationTool.RecoverVelocities(r_model_part);
 
