@@ -179,7 +179,7 @@ namespace Kratos
 
 
         void GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo, const bool rSaveInternalVariables);
+            const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function checks if self weight is present
