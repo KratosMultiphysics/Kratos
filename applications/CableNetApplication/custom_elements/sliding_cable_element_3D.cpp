@@ -775,11 +775,9 @@ int SlidingCableElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
     const double domain_size = this->GetCurrentLength();
     KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
 
-    if (mpConstitutiveLaw != nullptr) {
-        mpConstitutiveLaw->Check(GetProperties(),GetGeometry(),rCurrentProcessInfo);
-    }
 
-    KRATOS_ERROR_IF(GetProperties()[CONSTITUTIVE_LAW] == nullptr)  << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
+    KRATOS_ERROR_IF_NOT(GetProperties()[CONSTITUTIVE_LAW])  << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
+    mpConstitutiveLaw->Check(GetProperties(),GetGeometry(),rCurrentProcessInfo);
 
     return 0;
 
