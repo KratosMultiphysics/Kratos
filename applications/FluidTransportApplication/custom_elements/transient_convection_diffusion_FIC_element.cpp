@@ -377,6 +377,11 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     {
         rVariables.lv = std::sqrt(2.0*Domain);
         rVariables.lsc = rVariables.lv;
+
+        if (TNumNodes == 3)
+        {
+            rVariables.lsc = std::sqrt(2.0) * rVariables.lv;
+        }
     }
     else
     {
