@@ -112,11 +112,12 @@ public:
         std::vector<unsigned int> nodes_count = {number_of_nodes_below_minimum,
                                                  number_of_nodes_above_maximum,
                                                  number_of_nodes_selected};
-        r_communicator.GetDataCommunicator().SumAll(nodes_count);
+        const std::vector<unsigned int>& total_nodes_count =
+            r_communicator.GetDataCommunicator().SumAll(nodes_count);
 
-        rNumberOfNodesBelowMinimum = nodes_count[0];
-        rNumberOfNodesAboveMaximum = nodes_count[1];
-        rNumberOfSelectedNodes = nodes_count[2];
+        rNumberOfNodesBelowMinimum = total_nodes_count[0];
+        rNumberOfNodesAboveMaximum = total_nodes_count[1];
+        rNumberOfSelectedNodes = total_nodes_count[2];
 
         KRATOS_CATCH("")
     }
