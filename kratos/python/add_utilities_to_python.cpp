@@ -59,6 +59,7 @@
 #include "utilities/sensitivity_builder.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/time_discretization.h"
+#include "utilities/geometrical_transformation_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -214,7 +215,8 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
 
 void VariableUtilsUpdateCurrentPosition(
     VariableUtils &rVariableUtils,
-    const ModelPart::NodesContainerType &rNodes)
+    const ModelPart::NodesContainerType &rNodes
+    )
 {
     rVariableUtils.UpdateCurrentPosition(rNodes);
 }
@@ -222,9 +224,20 @@ void VariableUtilsUpdateCurrentPosition(
 void VariableUtilsUpdateCurrentPositionWithVariable(
     VariableUtils &rVariableUtils,
     const ModelPart::NodesContainerType &rNodes,
-    const VariableUtils::ArrayVarType &rUpdateVariable)
+    const VariableUtils::ArrayVarType &rUpdateVariable
+    )
 {
     rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable);
+}
+
+void VariableUtilsUpdateCurrentPositionWithVariableAndPosition(
+    VariableUtils &rVariableUtils,
+    const ModelPart::NodesContainerType &rNodes,
+    const VariableUtils::ArrayVarType &rUpdateVariable,
+    const IndexType BufferPosition
+    )
+{
+    rVariableUtils.UpdateCurrentPosition(rNodes, rUpdateVariable, BufferPosition);
 }
 
 template<class TVarType>
@@ -551,6 +564,7 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition)
         ;
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
@@ -938,7 +952,7 @@ void AddUtilitiesToPython(pybind11::module &m)
 
     py::class_<TimeDiscretization::BDF>(mod_time_discretization, "BDF")
         .def(py::init<const unsigned int>())
-        .def("GetTimeOrder", (const unsigned int (TimeDiscretization::BDF::*)() const) & TimeDiscretization::BDF::GetTimeOrder)
+        .def("GetTimeOrder", (unsigned int (TimeDiscretization::BDF::*)() const) & TimeDiscretization::BDF::GetTimeOrder)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(double) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(double, double) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
         .def("ComputeBDFCoefficients", (std::vector<double> (TimeDiscretization::BDF::*)(const ProcessInfo &) const) & TimeDiscretization::BDF::ComputeBDFCoefficients)
@@ -1020,6 +1034,11 @@ void AddUtilitiesToPython(pybind11::module &m)
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeNewmark );
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBossak );
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeGeneralizedAlpha );
+
+    // GeometricalTransformationUtilities
+    auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
+    mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
+    mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
 }
 
 } // namespace Python.
