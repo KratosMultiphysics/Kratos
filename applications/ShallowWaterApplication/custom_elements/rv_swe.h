@@ -202,6 +202,7 @@ protected:
         array_1d<double, 2> height_grad;
         BoundedMatrix<double, 2, 2> velocity_grad;
         double velocity_div;
+        int sign;
 
         array_1d<double, LocalSize> depth;
         array_1d<double, LocalSize> rain;

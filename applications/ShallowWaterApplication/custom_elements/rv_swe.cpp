@@ -308,6 +308,9 @@ void RV_SWE<TNumNodes, TFramework>::CalculateElementValues(
     rVariables.height *= rVariables.lumping_factor * rVariables.height_units;
     rVariables.height_grad *= rVariables.height_units;
     rVariables.projected_velocity *= rVariables.lumping_factor;
+
+    rVariables.sign = 1;
+    if (rVariables.height < 0.0) rVariables.sign = -1;
 }
 
 
@@ -522,7 +525,7 @@ void RV_SWE<TNumNodes, TFramework>::AddWaveTerms(
     ElementVariables& rVariables)
 {
     rLeftHandSideMatrix += rVariables.height * rVariables.VectorDiv;
-    rLeftHandSideMatrix += rVariables.gravity * rVariables.ScalarGrad;
+    rLeftHandSideMatrix += rVariables.sign * rVariables.gravity * rVariables.ScalarGrad;
 }
 
 
@@ -561,7 +564,7 @@ void RV_SWE<TNumNodes, TFramework>::AddSourceTerms(
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
 {
-    rRightHandSideVector += rVariables.gravity * prod(rVariables.ScalarGrad, rVariables.depth);
+    rRightHandSideVector += rVariables.sign * rVariables.gravity * prod(rVariables.ScalarGrad, rVariables.depth);
     rRightHandSideVector += prod(rVariables.MassMatrixScalar, rVariables.rain);
 }
 
