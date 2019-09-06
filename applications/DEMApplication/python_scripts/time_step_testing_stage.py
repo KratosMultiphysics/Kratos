@@ -9,8 +9,8 @@ import sys
 class TimeStepTester(object):
     def __init__(self):
         #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
-        self.schemes_list = ["Runge_Kutta"]
-        #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme","Gear_Scheme", "Beeman_Scheme"]
+        self.schemes_list = ["Runge_Kutta","Velocity_Verlet"]
+        #self.schemes_list = ["Symplectic_Euler", Runge_Kutta "Velocity_Verlet","Cimne_Scheme","Gear_Scheme", "Beeman_Scheme"]
         #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme","Gear_Scheme"]
         self.stable_time_steps_list = []
 
@@ -52,7 +52,7 @@ class TimeStepTester(object):
     def RunForACertainScheme(self, scheme):
         print("Computing stable time step for scheme: "+ scheme)
         tolerance = 0.5e-7
-        dt = 0.004    # changing the initial dt will change the number of iterations required to find a stable time step
+        dt = 1e-4    # changing the initial dt will change the number of iterations required to find a stable time step
         previous_dt = 0.0
 
         gnuplot_data = open("gnuplot_file.dem", 'a')
@@ -70,20 +70,20 @@ class TimeStepTester(object):
 
         self.RunTestCaseWithCustomizedDtAndScheme(dt, scheme)
 
-        # while dt > previous_dt + tolerance:
-        #     try:
-        #         print("current dt: " + str(dt))
-        #         self.RunTestCaseWithCustomizedDtAndScheme(dt, scheme)
+        while dt > previous_dt + tolerance:
+            try:
+                print("current dt: " + str(dt))
+                self.RunTestCaseWithCustomizedDtAndScheme(dt, scheme)
 
-        #     except SystemExit:
-        #         factor = min(0.2, 0.2*(dt-previous_dt))
-        #         dt = factor * dt
-        #         print("decreasing dt by " + str(factor))
-        #         continue
+            except SystemExit:
+                factor = min(0.15, 0.15*(dt-previous_dt))
+                dt = factor * dt
+                print("decreasing dt by " + str(factor))
+                continue
 
-        #     previous_dt = dt
-        #     dt = dt * 1.2
-        #     print("increasing dt by 1.2")
+            previous_dt = dt
+            dt = dt * 1.15
+            print("increasing dt by 1.15")
 
         self.stable_time_steps_list.append(previous_dt)
 
@@ -203,7 +203,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
                 "PostRadius"                       : false,
                 "PostGroupId"                      : false,
                 "PostExportId"                     : false,
-                "PostAngularVelocity"              : false,
+                "PostAngularVelocity"              : true,
                 "PostParticleMoment"               : false,
                 "PostEulerAngles"                  : false,
                 "PostContactSigma"                 : false,
@@ -305,7 +305,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
         for element in self.spheres_model_part.Elements:
             this_test_total_energy += element.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, self.spheres_model_part.ProcessInfo)
-            #this_test_total_energy += element.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY, self.spheres_model_part.ProcessInfo)
+            this_test_total_energy += element.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY, self.spheres_model_part.ProcessInfo)
             this_test_total_energy += element.Calculate(PARTICLE_ELASTIC_ENERGY, self.spheres_model_part.ProcessInfo)
 
         return this_test_total_energy
@@ -316,7 +316,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
 
         for element in self.spheres_model_part.Elements:
             this_test_total_energy += element.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, self.spheres_model_part.ProcessInfo)
-            #this_test_total_energy += element.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY, self.spheres_model_part.ProcessInfo)
+            this_test_total_energy += element.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY, self.spheres_model_part.ProcessInfo)
             this_test_total_energy += element.Calculate(PARTICLE_ELASTIC_ENERGY, self.spheres_model_part.ProcessInfo)
         energy_delta = (this_test_total_energy - self.initial_test_energy)/self.initial_test_energy
 
@@ -349,11 +349,11 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
     def FinalizeTimeStep(self, time):
         super(CustomizedSolutionForTimeStepTesting, self).FinalizeTimeStep(time)
         self.energy_delta = self.ComputeEnergyVariation()
-        # if abs(self.energy_delta) > 0.5:
-        #     print("ENERGY VARIATION OVER 50%")
-        #     print("time step is:" + str(self.customized_time_step))
-        #     import sys
-        #     sys.exit()
+        if abs(self.energy_delta) > 0.5:
+            print("ENERGY VARIATION OVER 50%")
+            print("time step is:" + str(self.customized_time_step))
+            import sys
+            sys.exit()
 
         # self.current_test_energy = self.ComputeEnergy()
         # if self.current_test_energy/self.initial_test_energy > 1.4:
