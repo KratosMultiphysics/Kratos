@@ -456,7 +456,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 double EvmEpsilonElement<TDim, TNumNodes>::CalculateReactionTerm(
     const EvmEpsilonElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
 {
-    return rData.C2 * rData.Gamma + rData.C1 * 2.0 * rData.VelocityDivergence / 3.0;
+    return std::max(rData.C2 * rData.Gamma + rData.C1 * 2.0 * rData.VelocityDivergence / 3.0, 0.0);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

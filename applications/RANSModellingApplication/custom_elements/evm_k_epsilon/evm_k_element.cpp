@@ -452,7 +452,7 @@ double EvmKElement<TDim, TNumNodes>::CalculateReactionTerm(const EvmKElementData
     // if (this->Is(STRUCTURE))
     //     return 2.0 * rData.VelocityDivergence / 3.0;
     // else
-    return rData.Gamma + (2.0 / 3.0) * rData.VelocityDivergence;
+    return std::max(rData.Gamma + (2.0 / 3.0) * rData.VelocityDivergence, 0.0);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
