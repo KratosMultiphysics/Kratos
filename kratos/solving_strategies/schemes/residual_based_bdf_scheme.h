@@ -241,7 +241,6 @@ public:
         KRATOS_TRY;
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ProcessInfo& r_previous_process_info = r_current_process_info.GetPreviousTimeStepInfo(1);
 
         ImplicitBaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
