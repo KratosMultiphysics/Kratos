@@ -125,9 +125,9 @@ namespace Kratos
         Vector GetDirectionVectorNt();
         Vector GetInternalForces();
 
-        Matrix ElasticStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
-        Matrix GeometricStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
-        inline Matrix TotalStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+        Matrix ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo);
+        Matrix GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo);
+        inline Matrix TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo);
 
         double GetCurrentLength();
         double GetRefLength() const;

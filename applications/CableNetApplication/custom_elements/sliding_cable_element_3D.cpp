@@ -95,11 +95,7 @@ void SlidingCableElement3D::GetDofList(DofsVectorType &rElementalDofList,
 void SlidingCableElement3D::Initialize()
 {
     KRATOS_TRY
-    if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
-        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-    } else {
-        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
-    }
+    mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
     KRATOS_CATCH("")
 }
 
@@ -445,7 +441,7 @@ Vector SlidingCableElement3D::GetCustomInternalForceWithFriction(const Vector& r
 }
 
 
-Matrix SlidingCableElement3D::ElasticStiffnessMatrix(ProcessInfo& rCurrentProcessInfo)
+Matrix SlidingCableElement3D::ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo)
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -466,7 +462,7 @@ Matrix SlidingCableElement3D::ElasticStiffnessMatrix(ProcessInfo& rCurrentProces
   return elastic_stiffness_matrix;
 }
 
-Matrix SlidingCableElement3D::GeometricStiffnessMatrix(ProcessInfo& rCurrentProcessInfo)
+Matrix SlidingCableElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo)
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -524,7 +520,7 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix(ProcessInfo& rCurrentProc
   return geometric_stiffness_matrix;
 }
 
-inline Matrix SlidingCableElement3D::TotalStiffnessMatrix(ProcessInfo& rCurrentProcessInfo)
+inline Matrix SlidingCableElement3D::TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo)
 {
   const Matrix ElasticStiffnessMatrix = this->ElasticStiffnessMatrix(rCurrentProcessInfo);
   const Matrix GeometrixStiffnessMatrix = this->GeometricStiffnessMatrix(rCurrentProcessInfo);
@@ -782,6 +778,8 @@ int SlidingCableElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
     if (mpConstitutiveLaw != nullptr) {
         mpConstitutiveLaw->Check(GetProperties(),GetGeometry(),rCurrentProcessInfo);
     }
+
+    KRATOS_ERROR_IF(GetProperties()[CONSTITUTIVE_LAW] == nullptr)  << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
 
     return 0;
 
