@@ -4,7 +4,7 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
-        "end_time"      : 0.01
+        "end_time"      : 1.0e-4
     },
     "solver_settings"  : {
         "solver_type"                        : "Dynamic",
@@ -23,7 +23,7 @@
             "materials_filename" : "StructuralMaterials.json"
         },
         "time_stepping"                      : {
-            "time_step" : 1e-5
+            "time_step" : 1.0e-5
         },
         "linear_solver_settings":             {
             "solver_type":     "amgcl",
