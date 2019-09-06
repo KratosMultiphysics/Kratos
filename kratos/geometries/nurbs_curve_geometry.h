@@ -42,6 +42,8 @@ public:
 
     typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
+    using PointType = TPointType;
+
     /// Counted pointer of NurbsCurveGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveGeometry);
 
@@ -342,7 +344,7 @@ public:
     {
         array_1d<double, 3> parameter = ZeroVector(3);
         parameter[0] = ((*this).DomainInterval().MinParameter() + (*this).DomainInterval().MaxParameter())/2.0;
-        ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve<TWorkingSpaceDimension, TPointType>(
+        ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve<TWorkingSpaceDimension, PointType>(
             parameter,
             rPoint,
             rResult,
