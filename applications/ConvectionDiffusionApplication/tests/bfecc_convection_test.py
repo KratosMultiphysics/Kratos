@@ -3,6 +3,8 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
+
 import math
 
 class BFECCConvectionTest(UnitTest.TestCase):
@@ -102,22 +104,24 @@ class BFECCConvectionTest(UnitTest.TestCase):
                     reference_file.write("#ID, TEMPERATURE\n")
                     for node in self.main_model_part.Nodes:
                         reference_file.write("{0}, {1}\n".format(node.Id, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)))
+                    reference_file.close()
             else:
-                with open(self.reference_file + '.csv','r') as reference_file:
-                    reference_file.readline() # skip header
-                    line = reference_file.readline()
-
+                with open(self.reference_file + '_results' + '.csv','w') as reference_file:
+                    reference_file.write("#ID, TEMPERATURE\n")
                     for node in self.main_model_part.Nodes:
-                        values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-                        node_id = values[0]
-                        reference_temp = values[1]
+                        reference_file.write("{0}, {1}\n".format(node.Id, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)))
+                    reference_file.close()
 
-                        temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-                        self.assertAlmostEqual(reference_temp, temp, delta = self.check_tolerance)
-
-                        line = reference_file.readline()
-                    if line != '': # If we did not reach the end of the reference file
-                        self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
+                compare_files_settings = KratosMultiphysics.Parameters(r'''{
+                    "reference_file_name"   : "bfecc_convection_test.csv",
+                    "output_file_name"      : "bfecc_convection_test_results.csv",
+                    "remove_output_file"    : true,
+                    "comparison_type"       : "deterministic",
+                    "tolerance"             : 1e-2,
+                    "relative_tolerance"    : 1e-5,
+                    "dimension"             : 2
+                }''')
+                CompareTwoFilesCheckProcess(compare_files_settings).Execute()
 
     def testBFECCConvection(self):
         self.setUp()
@@ -130,4 +134,3 @@ if __name__ == '__main__':
     test.setUp()
     test.testBFECCConvection()
     test.tearDown()
-
