@@ -16,6 +16,7 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 
 // External includes
 #include <delaunator-cpp/delaunator.hpp>
@@ -133,11 +134,12 @@ inline void validate(
         triangles_areas.push_back(std::abs((by - ay) * (cx - bx) - (bx - ax) * (cy - by)));
 
         if (fill_model_part) {
-            r_delaunator_model_part.CreateNewElement("Element2D3N", counter, {{r_triangles[i] + 1,r_triangles[i + 1] + 1, r_triangles[i + 2] + 1}}, p_delaunator_prop);
+            auto p_elem = r_delaunator_model_part.CreateNewElement("Element2D3N", counter, {{r_triangles[i] + 1,r_triangles[i + 1] + 1, r_triangles[i + 2] + 1}}, p_delaunator_prop);
+            p_elem->SetValue(NODAL_MAUX, triangles_areas[i]);
             ++counter;
         }
     }
-    double triangles_area = delaunator::sum(triangles_areas);
+    double triangles_area = std::accumulate(triangles_areas.begin(), triangles_areas.end(), 0.0);
     KRATOS_CHECK_NEAR(triangles_area, hull_area, Tolerance);
 
     // Creating the containers for the input and output
@@ -161,7 +163,8 @@ inline void validate(
     // "B" Suppresses boundary markers in the output .node, .poly, and .edge output files
     // "n" outputs a list of triangles neighboring each triangle.
     // "e" outputs edge list (i.e. all the "connectivities")
-    char options1[] = "Pne";
+    // "Q"  Quiet:  No terminal output except errors.
+    char options1[] = "QPne";
     triangulate(options1, &in_mid, &out_mid, &vorout_mid);
 
     const std::size_t number_of_triangles = out_mid.numberoftriangles;
@@ -170,20 +173,21 @@ inline void validate(
     counter = 0;
     const auto& r_triangles_list = out_mid.trianglelist;
     for (std::size_t i = 0; i < number_of_triangles; i += 3) {
-        const double ax = rCoordinates[2 * r_triangles_list[i]];
-        const double ay = rCoordinates[2 * r_triangles_list[i] + 1];
-        const double bx = rCoordinates[2 * r_triangles_list[i + 1]];
-        const double by = rCoordinates[2 * r_triangles_list[i + 1] + 1];
-        const double cx = rCoordinates[2 * r_triangles_list[i + 2]];
-        const double cy = rCoordinates[2 * r_triangles_list[i + 2] + 1];
+        const double ax = rCoordinates[2 * r_triangles_list[i] - 1];
+        const double ay = rCoordinates[2 * r_triangles_list[i]];
+        const double bx = rCoordinates[2 * r_triangles_list[i + 1] - 1];
+        const double by = rCoordinates[2 * r_triangles_list[i + 1]];
+        const double cx = rCoordinates[2 * r_triangles_list[i + 2] - 1];
+        const double cy = rCoordinates[2 * r_triangles_list[i + 2]];
         triangles_areas.push_back(std::abs((by - ay) * (cx - bx) - (bx - ax) * (cy - by)));
 
         if (fill_model_part) {
-            r_triangle_model_part.CreateNewElement("Element2D3N", counter, {{static_cast<std::size_t>(r_triangles_list[i] + 1),static_cast<std::size_t>(r_triangles_list[i + 1] + 1), static_cast<std::size_t>(r_triangles_list[i + 2] + 1)}}, p_triangle_prop);
+            auto p_elem = r_triangle_model_part.CreateNewElement("Element2D3N", counter, {{static_cast<std::size_t>(r_triangles_list[i]),static_cast<std::size_t>(r_triangles_list[i + 1]), static_cast<std::size_t>(r_triangles_list[i + 2])}}, p_triangle_prop);
+            p_elem->SetValue(NODAL_MAUX, triangles_areas[i]);
             ++counter;
         }
     }
-    triangles_area = delaunator::sum(triangles_areas);
+    triangles_area = std::accumulate(triangles_areas.begin(), triangles_areas.end(), 0.0);
 //     KRATOS_CHECK_NEAR(triangles_area, hull_area, Tolerance);
 
     CleanTriangulateIO(in_mid);
@@ -192,8 +196,8 @@ inline void validate(
 
     // Save filled debug model part
     if (fill_model_part) {
-        VtkOutput(r_delaunator_model_part).PrintOutput();
-        VtkOutput(r_triangle_model_part).PrintOutput();
+        VtkOutput(r_delaunator_model_part, Parameters(R"({"element_data_value_variables" : ["NODAL_MAUX"]})")).PrintOutput();
+        VtkOutput(r_triangle_model_part, Parameters(R"({"element_data_value_variables" : ["NODAL_MAUX"]})")).PrintOutput();
     }
 }
 
