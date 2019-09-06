@@ -166,8 +166,8 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
         array_1d <double, TNumNodes> AuxMVector;
-        // noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N);
-         noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N + 0.5 * prod(Variables.GradNT,Variables.HVector));
+        //noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N);
+        noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N + 0.5 * prod(Variables.GradNT,Variables.HVector));
 
         MMatrixAux1 += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
 
@@ -746,10 +746,10 @@ KRATOS_TRY
         }
 
 
-        double AuxScalar = (rVariables.lsc * (rVariables.Residual / std::abs(rVariables.Residual)) - 2.0 * rVariables.NormGradPhi / rVariables.Residual
+        double AuxScalar = (rVariables.lsc * (rVariables.TransientResidual / std::abs(rVariables.TransientResidual)) - 2.0 * rVariables.NormGradPhi / rVariables.TransientResidual
                             * DoubleDotScalar) * (1.0 - rVariables.Beta * rVariables.Beta);
 
-        if (std::abs(rVariables.Residual) < rVariables.LowTolerance)
+        if (std::abs(rVariables.TransientResidual) < rVariables.LowTolerance)
         {
             AuxScalar = 0.0;
         }
