@@ -160,6 +160,34 @@ public:
         KRATOS_CATCH("");
     }
 
+    bool CheckIfVariableExistsInModelPart(const ModelPart& rModelPart,
+                                          const Variable<double>& rVariable) const
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(rVariable))
+            << rModelPart.Name() << " doesn't have "
+            << rVariable.Name() << " in NodalSolutionStepDataContainer. Please add it as a SolutionStepVariable.";
+
+        return true;
+
+        KRATOS_CATCH("");
+    }
+
+    bool CheckIfVariableExistsInModelPart(const ModelPart& rModelPart,
+                                          const Variable<array_1d<double, 3>>& rVariable) const
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(!rModelPart.HasNodalSolutionStepVariable(rVariable))
+            << rModelPart.Name() << " doesn't have "
+            << rVariable.Name() << " in NodalSolutionStepDataContainer. Please add it as a SolutionStepVariable.";
+
+        return true;
+
+        KRATOS_CATCH("");
+    }
+
     ///@}
 
 private:
