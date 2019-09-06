@@ -161,11 +161,12 @@ inline void validate(
     // "P" suppresses the output .poly file. Saves disk space, but you
     // lose the ability to maintain constraining segments  on later refinements of the mesh.
     // "B" Suppresses boundary markers in the output .node, .poly, and .edge output files
-    // "n" outputs a list of triangles neighboring each triangle.
     // "e" outputs edge list (i.e. all the "connectivities")
-    // "Q"  Quiet:  No terminal output except errors.
-    // "z"  Numbers all items starting from zero (rather than one)
-    char options1[] = "QPnez";
+    // "Q" Quiet:  No terminal output except errors.
+    // "z" Numbers all items starting from zero (rather than one)
+    // "c" Encloses the convex hull with segments
+    // "D" Conforming Delaunay:  all triangles are truly Delaunay
+    char options1[] = "QPez";
     triangulate(options1, &in_mid, &out_mid, &vorout_mid);
 
     const std::size_t number_of_triangles = out_mid.numberoftriangles;
