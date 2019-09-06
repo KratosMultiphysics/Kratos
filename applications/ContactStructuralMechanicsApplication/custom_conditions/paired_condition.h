@@ -190,7 +190,7 @@ public:
      */
     GeometryType& GetParentGeometry()
     {
-        return this->GetGeometry().GetGeometryPart(0);
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
     }
 
     /**
@@ -199,7 +199,7 @@ public:
      */
     GeometryType const& GetParentGeometry() const
     {
-        return this->GetGeometry().GetGeometryPart(0);
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
     }
 
     /**
@@ -208,7 +208,7 @@ public:
      */
     GeometryType& GetPairedGeometry()
     {
-        return this->GetGeometry().GetGeometryPart(1);
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Slave);
     }
 
     /**
@@ -217,7 +217,7 @@ public:
      */
     GeometryType const& GetPairedGeometry() const
     {
-        return this->GetGeometry().GetGeometryPart(1);
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Slave);
     }
 
     ///@}
