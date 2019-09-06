@@ -284,19 +284,21 @@ protected:
             residual_norms[0] = std::pow(norm_2(delta_values), 2);
             residual_norms[1] = std::pow(norm_2(new_values), 2);
             residual_norms[2] = static_cast<double>(r_nodes.size());
-            r_communicator.GetDataCommunicator().SumAll(residual_norms);
+            const std::vector<double>& total_residual_norms =
+                r_communicator.GetDataCommunicator().SumAll(residual_norms);
 
             noalias(new_values) = old_values + delta_values * mRelaxationFactor;
-            rans_variable_utils.SetNodalVariables(new_values, r_nodes,
+            rans_variable_utils.SetNodalVariables(r_nodes, new_values,
                                                   this->mrConvergenceVariable);
             r_communicator.SynchronizeVariable(this->mrConvergenceVariable);
 
-            if (residual_norms[1] <= std::numeric_limits<double>::epsilon())
-                residual_norms[1] = 1.0;
-
-            double convergence_relative = residual_norms[0] / residual_norms[1];
+            double convergence_relative =
+                total_residual_norms[0] /
+                (total_residual_norms[1] <= std::numeric_limits<double>::epsilon()
+                     ? 1.0
+                     : total_residual_norms[1]);
             double convergence_absolute =
-                std::sqrt(residual_norms[0]) / residual_norms[2];
+                std::sqrt(total_residual_norms[0]) / total_residual_norms[2];
 
             is_converged = (convergence_relative < this->mConvergenceRelativeTolerance ||
                             convergence_absolute < this->mConvergenceAbsoluteTolerance);
