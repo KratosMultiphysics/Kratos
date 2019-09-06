@@ -525,7 +525,7 @@ void RV_SWE<TNumNodes, TFramework>::AddFrictionTerms(
     ElementVariables& rVariables)
 {
     // const double abs_vel = norm_2(rVariables.projected_velocity);
-    const double abs_vel = norm_2(rVariables.velocity);
+    const double abs_vel = norm_2(rVariables.projected_velocity);
     const double height43 = std::pow(std::abs(rVariables.height), 1.3333333333333) + rVariables.epsilon;
     rLeftHandSideMatrix += rVariables.gravity * rVariables.manning2 * abs_vel / height43 * rVariables.MassMatrixVector;
 }
