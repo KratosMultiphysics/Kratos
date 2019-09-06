@@ -96,7 +96,7 @@ public:
         GeometryType::Pointer pGeometry
         ) :Condition(NewId, Kratos::make_shared<CouplingGeometryType>(pGeometry, nullptr))
     {
-        KRATOS_ERROR << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
+        KRATOS_WARNING_FIRST_N("PairedCondition", 10) << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
     }
 
     // Constructor 2
@@ -106,7 +106,7 @@ public:
         PropertiesType::Pointer pProperties
         ) :Condition( NewId, Kratos::make_shared<CouplingGeometryType>(pGeometry, nullptr), pProperties )
     {
-        KRATOS_ERROR << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
+        KRATOS_WARNING_FIRST_N("PairedCondition", 10) << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
     }
 
     // Constructor 3
