@@ -54,12 +54,11 @@ namespace Kratos {
                 if (Fix_vel[k] == false) {
 
                     mRungeKuttaL(StepFlag,k) = force[k] * mass_inv;
-                    mRungeKuttaK(StepFlag,k) = vel[k] + 0.5 * delta_t * mRungeKuttaL(StepFlag-1,k);
+                    mRungeKuttaK(StepFlag,k) = mInitialVel[k] + 0.5 * delta_t * mRungeKuttaL(StepFlag-1,k);
 
                     delta_displ[k] = 0.5 * delta_t * mRungeKuttaK(StepFlag,k);
                     displ[k] = mInitialDispl[k] + delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
-                    //vel[k] = mRungeKuttaK(StepFlag-1,k);
                 }
             }
         }
@@ -69,12 +68,11 @@ namespace Kratos {
                 if (Fix_vel[k] == false) {
 
                     mRungeKuttaL(StepFlag,k) = force[k] * mass_inv;
-                    mRungeKuttaK(StepFlag,k) = vel[k] + 0.5 * delta_t * mRungeKuttaL(StepFlag-1,k);
+                    mRungeKuttaK(StepFlag,k) = mInitialVel[k] + 0.5 * delta_t * mRungeKuttaL(StepFlag-1,k);
 
                     delta_displ[k] = delta_t * mRungeKuttaK(StepFlag,k);
                     displ[k] = mInitialDispl[k] + delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
-                    //vel[k] = mRungeKuttaK(StepFlag-1,k);
                 }
             }
         }
@@ -84,7 +82,7 @@ namespace Kratos {
                 if (Fix_vel[k] == false) {
 
                     mRungeKuttaL(StepFlag,k) = force[k] * mass_inv;
-                    mRungeKuttaK(StepFlag,k) = vel[k] + delta_t * mRungeKuttaL(StepFlag-1,k);
+                    mRungeKuttaK(StepFlag,k) = mInitialVel[k] + delta_t * mRungeKuttaL(StepFlag-1,k);
 
                     delta_displ[k] = 1.0/6.0 * delta_t * (mRungeKuttaK(0,k) + 2.0 * mRungeKuttaK(1,k) + 2.0 * mRungeKuttaK(2,k) + mRungeKuttaK(3,k));
                     displ[k] = mInitialDispl[k] + delta_displ[k];
