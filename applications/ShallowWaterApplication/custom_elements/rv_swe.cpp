@@ -37,28 +37,14 @@ int RV_SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
     if(ierr != 0) return ierr;
 
     // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-    KRATOS_CHECK_VARIABLE_KEY(HEIGHT)
-    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_SCALAR1)
-    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_VECTOR1)
-    KRATOS_CHECK_VARIABLE_KEY(BATHYMETRY)
-    KRATOS_CHECK_VARIABLE_KEY(RAIN)
-    KRATOS_CHECK_VARIABLE_KEY(MANNING)
-    KRATOS_CHECK_VARIABLE_KEY(GRAVITY)
-    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU)
-    KRATOS_CHECK_VARIABLE_KEY(WATER_HEIGHT_UNIT_CONVERTER)
+    this->CheckVariableKey();
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( size_t i = 0; i < TNumNodes; i++ )
     {
         Node<3>& node = this->GetGeometry()[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEIGHT, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BATHYMETRY, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
+
+        this->CheckVariableInNodalData(node);
 
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X, node)
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y, node)
@@ -72,15 +58,41 @@ int RV_SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
+void RV_SWE<TNumNodes, TFramework>::CheckVariableKey()
+{
+    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_SCALAR1)
+    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_VECTOR1)
+    KRATOS_CHECK_VARIABLE_KEY(BATHYMETRY)
+    KRATOS_CHECK_VARIABLE_KEY(RAIN)
+    KRATOS_CHECK_VARIABLE_KEY(MANNING)
+    KRATOS_CHECK_VARIABLE_KEY(GRAVITY)
+    KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
+    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU)
+    KRATOS_CHECK_VARIABLE_KEY(WATER_HEIGHT_UNIT_CONVERTER)
+}
+
+
+template< size_t TNumNodes, ElementFramework TFramework >
+void RV_SWE<TNumNodes, TFramework>::CheckVariableInNodalData(Node<3>& rNode)
+{
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, rNode)
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEIGHT, rNode)
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, rNode)
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, rNode)
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BATHYMETRY, rNode)
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, rNode)
+}
+
+
+template< size_t TNumNodes, ElementFramework TFramework >
 void RV_SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
-    size_t element_size = TNumNodes*3;
+    const size_t element_size = TNumNodes*3;
     if(rResult.size() != element_size)
         rResult.resize(element_size,false);                         // False says not to preserve existing storage!!
 
     GeometryType& rGeom = GetGeometry();
+
     int counter=0;
     for (size_t i = 0; i < TNumNodes; i++)
     {
@@ -88,21 +100,18 @@ void RV_SWE<TNumNodes, TFramework>::EquationIdVector(EquationIdVectorType& rResu
         rResult[counter++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
         rResult[counter++] = rGeom[i].GetDof(HEIGHT).EquationId();
     }
-
-    KRATOS_CATCH("")
 }
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
 void RV_SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-
     const size_t element_size = TNumNodes*3;
     if(rElementalDofList.size() != element_size)
         rElementalDofList.resize(element_size);
 
     GeometryType& rGeom = GetGeometry();
+
     int counter=0;
     for (size_t i = 0; i < TNumNodes; i++)
     {
@@ -110,8 +119,6 @@ void RV_SWE<TNumNodes, TFramework>::GetDofList(DofsVectorType& rElementalDofList
         rElementalDofList[counter++] = rGeom[i].pGetDof(VELOCITY_Y);
         rElementalDofList[counter++] = rGeom[i].pGetDof(HEIGHT);
     }
-
-    KRATOS_CATCH("")
 }
 
 
@@ -139,7 +146,7 @@ void RV_SWE<TNumNodes, TFramework>::CalculateLocalSystem(
     BoundedMatrix<double,TNumNodes, 2> DN_DX;  // Shape function gradients are constant since we are using linear functions
     array_1d<double,TNumNodes> N;
     double Area;
-    this-> CalculateGeometry(DN_DX,Area);
+    this->CalculateGeometry(DN_DX,Area);
 
     this->GetNodalValues(variables);
     this->CalculateElementValues(DN_DX, variables);
@@ -151,17 +158,17 @@ void RV_SWE<TNumNodes, TFramework>::CalculateLocalSystem(
     {
         noalias(N) = row(NContainer, i_gauss);
 
-        BuildMassMatrices(N, variables);
-        BuildGradientMatrices(N, DN_DX, variables);
-        BuildDiffusivityMatrices(DN_DX, variables);
-        BuildConvectionMatrices(N, DN_DX, variables);
+        this->BuildMassMatrices(N, variables);
+        this->BuildGradientMatrices(N, DN_DX, variables);
+        this->BuildDiffusivityMatrices(DN_DX, variables);
+        this->BuildConvectionMatrices(N, DN_DX, variables);
 
-        AddInertiaTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        AddConvectiveTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        AddWaveTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        AddFrictionTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        AddStabilizationTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
-        AddSourceTerms(rRightHandSideVector, variables);
+        this->AddInertiaTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
+        this->AddConvectiveTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
+        this->AddWaveTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
+        this->AddFrictionTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
+        this->AddStabilizationTerms(rLeftHandSideMatrix, rRightHandSideVector, variables);
+        this->AddSourceTerms(rRightHandSideVector, variables);
     }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
@@ -281,6 +288,7 @@ void RV_SWE<TNumNodes, TFramework>::CalculateElementValues(
     rVariables.height = 0;
     rVariables.velocity = ZeroVector(2);
     rVariables.height_grad = ZeroVector(2);
+    rVariables.velocity_div = 0;
     rVariables.projected_velocity = ZeroVector(2);
 
     // integrate over the element
@@ -291,6 +299,7 @@ void RV_SWE<TNumNodes, TFramework>::CalculateElementValues(
         rVariables.height += rVariables.unknown[2 + 3*i];
         rVariables.height_grad[0] += rDN_DX(i,0) * rVariables.unknown[2 + 3*i];
         rVariables.height_grad[1] += rDN_DX(i,1) * rVariables.unknown[2 + 3*i];
+        rVariables.velocity_div += rDN_DX(i,0) * rVariables.unknown[  + 3*i] + rDN_DX(i,1) * rVariables.unknown[1 + 3*i];
         rVariables.projected_velocity[0] += rVariables.proj_unk[  + 3*i];
         rVariables.projected_velocity[1] += rVariables.proj_unk[1 + 3*i];
     }
@@ -447,7 +456,6 @@ void RV_SWE<TNumNodes, TFramework>::BuildConvectionMatrices(
         // Auxiliary definitions
         BoundedMatrix<double,2,local_size> N_vel        = ZeroMatrix(2,local_size);  // Shape functions matrix (for velocity unknown)
         array_1d<double,local_size> N_height            = ZeroVector(local_size);    // Shape functions vector (for height unknown)
-        array_1d<double,local_size> DN_DX_vel           = ZeroVector(local_size);    // Shape functions gradients vector (for velocity unknown)
         BoundedMatrix<double,2,local_size> Grad_vel_1   = ZeroMatrix(1,local_size);  // Shape functions gradients vector (for velocity unknown)
         BoundedMatrix<double,2,local_size> Grad_vel_2   = ZeroMatrix(1,local_size);  // Shape functions gradients vector (for velocity unknown)
         BoundedMatrix<double,2,local_size> DN_DX_height = ZeroMatrix(2,local_size);  // Shape functions gradients matrix (for height unknown)
@@ -524,7 +532,6 @@ void RV_SWE<TNumNodes, TFramework>::AddFrictionTerms(
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
 {
-    // const double abs_vel = norm_2(rVariables.projected_velocity);
     const double abs_vel = norm_2(rVariables.projected_velocity);
     const double height43 = std::pow(std::abs(rVariables.height), 1.3333333333333) + rVariables.epsilon;
     rLeftHandSideMatrix += rVariables.gravity * rVariables.manning2 * abs_vel / height43 * rVariables.MassMatrixVector;

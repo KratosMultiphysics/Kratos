@@ -220,6 +220,10 @@ protected:
         BoundedMatrix<double, LocalSize, LocalSize> VectorConvectionStabilization;
     };
 
+    void CheckVariableKey();
+
+    void CheckVariableInNodalData(Node<3>& rNode);
+
     virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateGeometry(BoundedMatrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
