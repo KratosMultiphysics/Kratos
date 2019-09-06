@@ -20,17 +20,75 @@
 // External includes
 #include <delaunator-cpp/delaunator.hpp>
 
+#define REAL double
+
+#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
+#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
+#include "triangle.h"
+#endif
+
 // Project includes
 #include "testing/testing.h"
 
 namespace Kratos {
+
 namespace Testing {
+
+extern "C" {
+    void triangulate(char *, struct triangulateio *, struct triangulateio *,struct triangulateio *);
+}
 
 constexpr double DELAUNATOR_TOLERANCE = 1.0e-6;
 
+static inline void InitializeTriangulateIO( triangulateio& rTriangles )
+{
+    rTriangles.pointlist                  = (REAL*) nullptr;
+    rTriangles.pointattributelist         = (REAL*) nullptr;
+    rTriangles.pointmarkerlist            = (int*) nullptr;
+    rTriangles.numberofpoints             = 0;
+    rTriangles.numberofpointattributes    = 0;
+    rTriangles.trianglelist               = (int*) nullptr;
+    rTriangles.triangleattributelist      = (REAL*) nullptr;
+    rTriangles.trianglearealist           = (REAL*) nullptr;
+    rTriangles.neighborlist               = (int*) nullptr;
+    rTriangles.numberoftriangles          = 0;
+    rTriangles.numberofcorners            = 3;
+    rTriangles.numberoftriangleattributes = 0;
+    rTriangles.segmentlist                = (int*) nullptr;
+    rTriangles.segmentmarkerlist          = (int*) nullptr;
+    rTriangles.numberofsegments           = 0;
+    rTriangles.holelist                   = (REAL*) nullptr;
+    rTriangles.numberofholes              = 0;
+    rTriangles.regionlist                 = (REAL*) nullptr;
+    rTriangles.numberofregions            = 0;
+    rTriangles.edgelist                   = (int*) nullptr;
+    rTriangles.edgemarkerlist             = (int*) nullptr;
+    rTriangles.normlist                   = (REAL*) nullptr;
+    rTriangles.numberofedges              = 0;
+};
+
+static inline void CleanTriangulateIO( triangulateio& rTriangles )
+{
+    if(rTriangles.pointlist != nullptr) free(rTriangles.pointlist );
+    if(rTriangles.pointattributelist != nullptr) free(rTriangles.pointattributelist );
+    if(rTriangles.pointmarkerlist != nullptr) free(rTriangles.pointmarkerlist   );
+    if(rTriangles.trianglelist != nullptr) free(rTriangles.trianglelist  );
+    if(rTriangles.triangleattributelist != nullptr) free(rTriangles.triangleattributelist );
+    if(rTriangles.trianglearealist != nullptr) free(rTriangles.trianglearealist );
+    if(rTriangles.neighborlist != nullptr) free(rTriangles.neighborlist   );
+    if(rTriangles.segmentlist != nullptr) free(rTriangles.segmentlist    );
+    if(rTriangles.segmentmarkerlist != nullptr) free(rTriangles.segmentmarkerlist   );
+    if(rTriangles.holelist != nullptr) free(rTriangles.holelist      );
+    if(rTriangles.regionlist != nullptr) free(rTriangles.regionlist  );
+    if(rTriangles.edgelist != nullptr) free(rTriangles.edgelist   );
+    if(rTriangles.edgemarkerlist != nullptr) free(rTriangles.edgemarkerlist   );
+    if(rTriangles.normlist != nullptr) free(rTriangles.normlist  );
+};
+
 inline void validate(
     const std::vector<double>& rCoordinates,
-    const double Tolerance
+    const double Tolerance,
+    const std::string Debug = ""
     )
 {
     delaunator::Delaunator delaunator(rCoordinates);
@@ -57,10 +115,63 @@ inline void validate(
     }
     double triangles_area = delaunator::sum(triangles_areas);
     KRATOS_CHECK_NEAR(triangles_area, hull_area, Tolerance);
+
+    // Creating the containers for the input and output
+    struct triangulateio in_mid;
+    struct triangulateio out_mid;
+    struct triangulateio vorout_mid;
+
+    InitializeTriangulateIO(in_mid);
+    InitializeTriangulateIO(out_mid);
+    InitializeTriangulateIO(vorout_mid);
+
+    in_mid.numberofpoints = rCoordinates.size()/2;
+    in_mid.pointlist = (REAL *) malloc(in_mid.numberofpoints * 2 * sizeof(REAL));
+
+    for(std::size_t i = 0; i < rCoordinates.size(); i++) {
+        in_mid.pointlist[i] = rCoordinates[i];
+    }
+
+    // "P" suppresses the output .poly file. Saves disk space, but you
+    // lose the ability to maintain constraining segments  on later refinements of the mesh.
+    // "B" Suppresses boundary markers in the output .node, .poly, and .edge output files
+    // "n" outputs a list of triangles neighboring each triangle.
+    // "e" outputs edge list (i.e. all the "connectivities")
+    char options1[] = "Pne";
+    triangulate(options1, &in_mid, &out_mid, &vorout_mid);
+
+    const std::size_t number_of_triangles = out_mid.numberoftriangles;
+
+    triangles_areas.clear();
+    std::size_t point_base;
+    for (std::size_t i = 0; i < number_of_triangles; i += 3) {
+        point_base = (out_mid.trianglelist[i * 3] - 1)*2;
+        const double ax = out_mid.pointlist[point_base];
+        const double ay = out_mid.pointlist[point_base + 1];
+
+        point_base = (out_mid.trianglelist[i * 3 + 1] - 1)*2;
+        const double bx = out_mid.pointlist[point_base];
+        const double by = out_mid.pointlist[point_base + 1];
+
+        point_base = (out_mid.trianglelist[i * 3 + 2] - 1)*2;
+        const double cx = out_mid.pointlist[point_base];
+        const double cy = out_mid.pointlist[point_base + 1];
+        triangles_areas.push_back(std::abs((by - ay) * (cx - bx) - (bx - ax) * (cy - by)));
+    }
+    triangles_area = delaunator::sum(triangles_areas);
+//     KRATOS_CHECK_NEAR(triangles_area, hull_area, Tolerance);
+
+    CleanTriangulateIO(in_mid);
+    CleanTriangulateIO(out_mid);
+    CleanTriangulateIO(vorout_mid);
 }
 
-inline void validate(const std::vector<double>& rCoordinates) {
-    validate(rCoordinates, DELAUNATOR_TOLERANCE);
+inline void validate(
+    const std::vector<double>& rCoordinates,
+    const std::string Debug = ""
+    )
+{
+    validate(rCoordinates, DELAUNATOR_TOLERANCE, Debug);
 }
 
 struct multiply {
