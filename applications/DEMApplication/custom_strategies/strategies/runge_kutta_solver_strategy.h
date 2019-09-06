@@ -56,23 +56,19 @@ namespace Kratos
       }
 
       void SchemeRKStepInit(){
-        KRATOS_WATCH("SchemeRKStepInit")
         PerformTimeIntegrationOfMotion(0);
       }
 
       void SchemeRKStep1(){
-        KRATOS_WATCH("SchemeRKStep1")
-          PerformTimeIntegrationOfMotion(1);
+        PerformTimeIntegrationOfMotion(1);
       }
 
       void SchemeRKStep2(){
-        KRATOS_WATCH("SchemeRKStep2")
-          PerformTimeIntegrationOfMotion(2);
+        PerformTimeIntegrationOfMotion(2);
       }
 
       void SchemeRKStep3(){
-        KRATOS_WATCH("SchemeRKStep3")
-          PerformTimeIntegrationOfMotion(3);
+        PerformTimeIntegrationOfMotion(3);
       }
 
       virtual double SolveSolutionStep() override {

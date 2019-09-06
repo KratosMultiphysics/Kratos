@@ -8,11 +8,18 @@ import sys
 
 class TimeStepTester(object):
     def __init__(self):
-        #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
-        self.schemes_list = ["Runge_Kutta","Velocity_Verlet"]
-        #self.schemes_list = ["Symplectic_Euler", Runge_Kutta "Velocity_Verlet","Cimne_Scheme","Gear_Scheme", "Beeman_Scheme"]
-        #self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet","Cimne_Scheme","Gear_Scheme"]
+
+        self.schemes_list = ["Symplectic_Euler","Velocity_Verlet"]
         self.stable_time_steps_list = []
+
+        # "Forward_Euler"
+        # "Taylor_Scheme"
+        # "Symplectic_Euler"
+        # "Velocity_Verlet"
+        # "Runge_Kutta"
+        # "Cimne_Scheme"
+        # "Gear_Scheme"
+        # "Beeman_Scheme"
 
         gnuplot_data = open("gnuplot_file.dem", 'w+')
         gnuplot_data.write('unset xrange' +'\n')
@@ -349,8 +356,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
     def FinalizeTimeStep(self, time):
         super(CustomizedSolutionForTimeStepTesting, self).FinalizeTimeStep(time)
         self.energy_delta = self.ComputeEnergyVariation()
-        if abs(self.energy_delta) > 0.5:
-            print("ENERGY VARIATION OVER 50%")
+        if abs(self.energy_delta) > 1.0:
+            print("ENERGY VARIATION OVER 100%")
             print("time step is:" + str(self.customized_time_step))
             import sys
             sys.exit()
@@ -385,8 +392,8 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
         super(CustomizedSolutionForTimeStepTesting, self).Finalize()
 
 
-    # def PrintResultsForGid(self, time):
-    #     pass
+    def PrintResultsForGid(self, time):
+        pass
 
 
 if __name__ == '__main__':
