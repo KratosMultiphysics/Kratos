@@ -93,6 +93,12 @@ namespace Kratos
         // Registering elements and conditions here
         KRATOS_REGISTER_ELEMENT("ShallowElement2D3N", mShallowElement2D3N)
 
+        KRATOS_REGISTER_ELEMENT("ReducedSWE2D3N", mRVSWE2D3N)
+        KRATOS_REGISTER_ELEMENT("ReducedSWE2D4N", mRVSWE2D4N)
+
+        KRATOS_REGISTER_ELEMENT("PFEM2ReducedSWE2D3N", mPFEM2RVSWE2D3N)
+        KRATOS_REGISTER_ELEMENT("PFEM2ReducedSWE2D4N", mPFEM2RVSWE2D4N)
+
         KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D3N", mPrimitiveVarElement2D3N)   // mesh stage element
         KRATOS_REGISTER_ELEMENT("PrimitiveVarElement2D4N", mPrimitiveVarElement2D4N)   // mesh stage element
 
