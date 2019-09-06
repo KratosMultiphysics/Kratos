@@ -144,11 +144,7 @@ public:
 					    const Vector& rShapeFunctionsValues,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                        const GeometryType& rElementGeometry,
-                        const Vector& rShapeFunctionsValues,
-                        const ProcessInfo& rCurrentProcessInfo) override;
-
+    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
 
     /**
      * @brief This function checks if the predicted stress state is in the elastic regime

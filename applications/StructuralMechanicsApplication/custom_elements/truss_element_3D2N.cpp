@@ -936,9 +936,8 @@ TrussElement3D2N::GetConstitutiveLawTrialResponse(
 void TrussElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    Vector temp_shape_function = ZeroVector(3);
-    mpConstitutiveLaw->FinalizeSolutionStep(GetProperties(),
-                                            GetGeometry(),temp_shape_function,rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters element_parameters;
+    mpConstitutiveLaw->FinalizeMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
     KRATOS_CATCH("");
 }
 

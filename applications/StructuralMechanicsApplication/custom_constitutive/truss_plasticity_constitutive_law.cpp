@@ -323,10 +323,9 @@ void TrussPlasticityConstitutiveLaw::FinalizeNonLinearIteration(const Properties
     this->mPreviousInElasticFlag = this->mCurrentInElasticFlag;
 }
 
-void TrussPlasticityConstitutiveLaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
-                    const GeometryType& rElementGeometry,
-                    const Vector& rShapeFunctionsValues,
-                    const ProcessInfo& rCurrentProcessInfo)
+
+
+void TrussPlasticityConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     this->mAccumulatedPlasticStrainVector[1] = this->mAccumulatedPlasticStrainVector[0];
     this->mPlasticAlphaVector[1] = this->mPlasticAlphaVector[0];
