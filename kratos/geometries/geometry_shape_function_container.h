@@ -123,7 +123,7 @@ public:
         mShapeFunctionsLocalGradients[ThisDefaultMethod] = DN_De_array;
     }
 
-    /// Constructor ONLY for single integration point with first derivatives
+    /// Constructor ONLY for single integration point with multiple derivatives
     GeometryShapeFunctionContainer(
         IntegrationMethod ThisDefaultMethod,
         const IntegrationPointType& ThisIntegrationPoint,

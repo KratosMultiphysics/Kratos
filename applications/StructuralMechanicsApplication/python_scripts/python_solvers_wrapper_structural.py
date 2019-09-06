@@ -66,10 +66,6 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
 
-    # Remove settings that are not needed any more
-    solver_settings.RemoveValue("solver_type")
-    solver_settings.RemoveValue("time_integration_method") # does not throw even if the value is not existing
-
     module_full = 'KratosMultiphysics.StructuralMechanicsApplication.' + solver_module_name
     solver = import_module(module_full).CreateSolver(model, solver_settings)
 

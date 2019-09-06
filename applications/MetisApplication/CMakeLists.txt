@@ -6,6 +6,12 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+# Use Metis 5 by default
+if(NOT DEFINED USE_METIS_5)
+	message("USE_METIS_5 not defined. Setting to ON")
+	SET (USE_METIS_5 ON)
+endif(NOT DEFINED USE_METIS_5)
+
 if(${USE_METIS_5} MATCHES ON)
     message("using metis (and not Parmetis) version 5")
     add_definitions(-DKRATOS_USE_METIS_5)
@@ -14,7 +20,7 @@ if(${USE_METIS_5} MATCHES ON)
     link_directories(${METIS_LIBRARIES})
     install(FILES ${METIS_LIBRARIES} DESTINATION libs)
 else(${USE_METIS_5} MATCHES ON)
-    message("using PARMETIS < 4 as default. Set USE_METIS_5=ON to compile with METIS v5 instead- note that current compile option is deprecated")
+    message("using PARMETIS < 4 as default. Set USE_METIS_5=ON to compile with METIS v5 instead- note that current compile option is deprecated and will be removed soon")
     find_package(PARMETIS REQUIRED)
     include_directories(${PARMETIS_INCLUDE_DIR})
     link_directories(${PARMETIS_LIBRARIES})
@@ -26,7 +32,6 @@ set( KRATOS_METIS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_metis_python_application.cpp
 )
-
 
 # ###############################################################
 pybind11_add_module(KratosMetisApplication MODULE THIN_LTO ${KRATOS_METIS_APPLICATION_SOURCES})
