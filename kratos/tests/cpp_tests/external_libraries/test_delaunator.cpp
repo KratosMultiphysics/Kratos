@@ -103,8 +103,8 @@ inline void validate(
     const bool fill_model_part = Debug != "" ? true : false;
     if (fill_model_part) {
         for(std::size_t i = 0; i < rCoordinates.size()/2; i++) {
-            r_delaunator_model_part.CreateNewNode(i, rCoordinates[i * 2], rCoordinates[i * 2 + 1], 0.0);
-            r_triangle_model_part.CreateNewNode(i, rCoordinates[i * 2], rCoordinates[i * 2 + 1], 0.0);
+            r_delaunator_model_part.CreateNewNode(i + 1, rCoordinates[i * 2], rCoordinates[i * 2 + 1], 0.0);
+            r_triangle_model_part.CreateNewNode(i + 1, rCoordinates[i * 2], rCoordinates[i * 2 + 1], 0.0);
         }
     }
 
@@ -174,7 +174,7 @@ inline void validate(
         const double ay = rCoordinates[2 * r_triangles_list[i] + 1];
         const double bx = rCoordinates[2 * r_triangles_list[i + 1]];
         const double by = rCoordinates[2 * r_triangles_list[i + 1] + 1];
-        const double cx = rCoordinates[2 * r_triangles[i + 2]];
+        const double cx = rCoordinates[2 * r_triangles_list[i + 2]];
         const double cy = rCoordinates[2 * r_triangles_list[i + 2] + 1];
         triangles_areas.push_back(std::abs((by - ay) * (cx - bx) - (bx - ax) * (cy - by)));
 
