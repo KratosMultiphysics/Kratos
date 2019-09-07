@@ -21,15 +21,15 @@ int main(int argc, char **argv) {
     std::cout<<"Solver 1 : "<< "------------ Setting the mesh"<<std::endl;
     EMPIRE_API_sendMesh("mesh1_cpp", numNodes, numElems, nodes, nodeIDs, numNodesPerElem, elems);
 
-    double toReceive = -1;
-    std::cout<<"Solver 1 : "<< "Receiving ... \n";
-    EMPIRE_API_recvSignal_double("signal2", 1, &toReceive);
-    std::cout<<"Solver 1 : "<<"Received: "<<toReceive<<std::endl;
-
     double toSend = 111;
     std::cout<<"Solver 1 : "<<"Sending ... \n";
-    EMPIRE_API_sendSignal_double("signal1", 1, &toSend);
+    EMPIRE_API_sendDataField("ping_send_data", 1, &toSend);
     std::cout<<"Solver 1 : "<<"Sent: "<< toSend<<std::endl;
+
+    double toReceive = -1;
+    std::cout<<"Solver 1 : "<< "Receiving ... \n";
+    EMPIRE_API_recvDataField("ping_recv_data", 1, &toReceive);
+    std::cout<<"Solver 1 : "<<"Received: "<<toReceive<<std::endl;
 
     return (0);
 }
