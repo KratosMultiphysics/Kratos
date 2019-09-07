@@ -31,14 +31,15 @@ class PingPongIO(CoSimulationIO):
                     data = float(input_file.readline())
                     node = interface_data.GetModelPart().Nodes[1]
                     node.SetSolutionStepValue(interface_data.variable, data)
-                    try:
-                        cwd = os.getcwd()
-                        file_to_rmv = os.path.join(cwd, data_file_name)
-                        print("Removing file :: ", file_to_rmv)
-                        os.remove(data_file_name)
-                    except OSError as e: # name the Exception `e`
-                        print ("Failed with:", e.strerror) # look what it says
-                        print ("Error code:", e.code)     
+                    input_file.close()
+                try:
+                    cwd = os.getcwd()
+                    file_to_rmv = os.path.join(cwd, data_file_name)
+                    print("Removing file :: ", file_to_rmv)
+                    os.remove(data_file_name)
+                except OSError as e: # name the Exception `e`
+                    print ("Failed with:", e.strerror) # look what it says
+                    print ("Error code:", e.code)     
         else:
             raise NotImplementedError('Importing interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
