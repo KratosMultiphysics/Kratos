@@ -34,9 +34,9 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
 
     ## define test sources (cpp tests)
     if(${KRATOS_BUILD_TESTING} MATCHES ON)
-         set(KRATOS_CO_SIMULATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/test_multiple_includes_api_headers.cpp)
-         set(KRATOS_CO_SIMULATION_TESTING_CPP_ONE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/cpp_test_solver_one/cpp_test_solver_one.cpp)
-         set(KRATOS_CO_SIMULATION_TESTING_CPP_TWO_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/cpp_test_solver_two/cpp_test_solver_two.cpp)
+         file(GLOB_RECURSE KRATOS_CO_SIMULATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+         set(KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_ping_pong_solvers/cpp_test_solver_ping/cpp_test_solver_ping.cpp)
+         set(KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_ping_pong_solvers/cpp_test_solver_pong/cpp_test_solver_pong.cpp)
     endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
     # define library Kratos which defines the basic python interface
@@ -47,8 +47,8 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
 
     # making the cpp_test_solver_one and cpp_test_solver_two executables
     MESSAGE(${KRATOS_CO_SIMULATION_TESTING_SOURCES})
-    add_executable (ping ${KRATOS_CO_SIMULATION_TESTING_CPP_ONE_SOURCES})
-    add_executable (pong ${KRATOS_CO_SIMULATION_TESTING_CPP_TWO_SOURCES})
+    add_executable (ping ${KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES})
+    add_executable (pong ${KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES})
 
     # changing the .dll suffix to .pyd (Windows)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
