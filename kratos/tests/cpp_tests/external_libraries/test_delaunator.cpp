@@ -12,6 +12,8 @@
 //
 //
 
+#ifdef INCLUDE_DELAUNATORCPP
+
 // System includes
 #include <limits>
 #include <algorithm>
@@ -19,7 +21,7 @@
 #include <numeric>
 
 // External includes
-#include <delaunator-cpp/delaunator.hpp>
+#include "delaunator.hpp"
 
 #define REAL double
 
@@ -331,3 +333,5 @@ KRATOS_TEST_CASE_IN_SUITE(DelaunatorRoubustness, KratosExternalLibrariesFastSuit
 
 } // namespace Testing.
 } // namespace Kratos.
+
+#endif

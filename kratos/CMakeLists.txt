@@ -7,6 +7,12 @@ endif(${MPI_NEEDED} MATCHES ON )
 
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
 
+if(${INCLUDE_DELAUNATORCPP} MATCHES ON)
+    add_definitions( -DINCLUDE_DELAUNATORCPP )
+
+    INCLUDE_DIRECTORIES(${DELAUNATORCPP_INCLUDE_DIR})
+endif(${INCLUDE_DELAUNATORCPP} MATCHES ON)
+
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/flags.cpp

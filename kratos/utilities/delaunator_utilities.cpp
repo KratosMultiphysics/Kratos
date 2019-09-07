@@ -13,7 +13,9 @@
 // System includes
 
 // External includes
-#include <delaunator-cpp/delaunator.hpp>
+#ifdef INCLUDE_DELAUNATORCPP
+    #include "delaunator.hpp"
+#endif
 
 // Project includes
 #include "utilities/delaunator_utilities.h"
@@ -64,6 +66,7 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
         }
     }
 
+#ifdef INCLUDE_MMG
     // Calling the library
     delaunator::Delaunator delaunator(coordinates);
 
@@ -75,6 +78,9 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
         rModelPart.CreateNewElement("Element2D3N", counter, {{r_triangles[i] + 1,r_triangles[i + 1] + 1, r_triangles[i + 2] + 1}}, p_elem_prop);
         ++counter;
     }
+#else
+
+#endif
 
     KRATOS_CATCH("")
 }
