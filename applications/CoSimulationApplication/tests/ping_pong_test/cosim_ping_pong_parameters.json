@@ -49,7 +49,7 @@
         {
             "ping":
             {
-                "type" : "solver_wrappers.cpp_test.cpp_test_wrapper",
+                "type" : "solver_wrappers.cpp_ping_pong.cpp_test_wrapper",
                 "solver_wrapper_settings" : {
                     "main_model_part_name" : "ping",
                     "domain_size" : 2,                    
@@ -73,7 +73,7 @@
             },
             "pong" :
             {
-                "type" : "solver_wrappers.cpp_test.cpp_test_wrapper",
+                "type" : "solver_wrappers.cpp_ping_pong.cpp_test_wrapper",
                 "solver_wrapper_settings" : {
                     "main_model_part_name" : "pong",
                     "domain_size" : 2,                    
