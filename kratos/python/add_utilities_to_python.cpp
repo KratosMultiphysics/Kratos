@@ -878,7 +878,8 @@ void AddUtilitiesToPython(pybind11::module &m)
     m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
 
     // Delaunator utilities
-    m.def("CreateTriangleMeshFromNodes",&DelaunatorUtilities::CreateTriangleMeshFromNodes);
+    auto mod_delaunator = m.def_submodule("CreateTriangleMeshFromNodes");
+    mod_delaunator.def("CreateTriangleMeshFromNodes",&DelaunatorUtilities::CreateTriangleMeshFromNodes);
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
