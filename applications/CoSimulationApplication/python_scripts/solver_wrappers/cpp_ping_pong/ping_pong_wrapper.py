@@ -13,13 +13,13 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 def Create(settings, solver_name):
-    return TestCppWrapper(settings, solver_name)
+    return PingPongWrapper(settings, solver_name)
 
-class TestCppWrapper(CoSimulationSolverWrapper):
+class PingPongWrapper(CoSimulationSolverWrapper):
     """This class serves as wrapper for the cpp test solvers
     """
     def __init__(self, settings, solver_name):
-        super(TestCppWrapper, self).__init__(settings, solver_name)
+        super(PingPongWrapper, self).__init__(settings, solver_name)
 
         settings_defaults = KM.Parameters("""{
             "main_model_part_name" : "",
@@ -35,10 +35,10 @@ class TestCppWrapper(CoSimulationSolverWrapper):
         self.mp.CreateNewNode(1,0,0,0)
 
     def Initialize(self):
-        super(TestCppWrapper, self).Initialize()
+        super(PingPongWrapper, self).Initialize()
 
     def Finalize(self):
-        super(TestCppWrapper, self).Finalize()
+        super(PingPongWrapper, self).Finalize()
         with self.rv.stdout, open(self.name +'.log', 'w') as file:
             for line in self.rv.stdout:
                 #print("Finalze :: ",self.name)
@@ -49,7 +49,7 @@ class TestCppWrapper(CoSimulationSolverWrapper):
         return 1.0
 
     def SolveSolutionStep(self):
-        super(TestCppWrapper, self).SolveSolutionStep()
+        super(PingPongWrapper, self).SolveSolutionStep()
         self.__RunExecutable()      
 
     def PrintInfo(self):
