@@ -25,6 +25,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "utilities/timer.h"
 #include "utilities/delaunator_utilities.h"
 #include "input_output/vtk_output.h"
 
