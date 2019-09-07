@@ -1390,8 +1390,8 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
         rConditionsPointsSlave.resize((list_size - 2));
 
         IndexType aux_elem_index = 0;
+        ArrayTriangleType points_locals_slave, points_locals_master;
         for (IndexType elem = 0; elem < list_size - 2; ++elem) { // NOTE: We always have two points less that the number of nodes
-            ArrayTriangleType points_locals_slave, points_locals_master;
 
             points_locals_slave[0] = rPointList[0];
             points_locals_slave[1] = rPointList[index_vector[elem + 0] + 1];
