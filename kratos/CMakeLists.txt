@@ -7,11 +7,11 @@ endif(${MPI_NEEDED} MATCHES ON )
 
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
 
-if(${INCLUDE_DELAUNATORCPP} MATCHES ON)
+if(DELAUNATORCPP_INCLUDE_DIR)
     add_definitions( -DINCLUDE_DELAUNATORCPP )
 
     INCLUDE_DIRECTORIES(${DELAUNATORCPP_INCLUDE_DIR})
-endif(${INCLUDE_DELAUNATORCPP} MATCHES ON)
+endif(DELAUNATORCPP_INCLUDE_DIR)
 
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
@@ -84,7 +84,6 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/connectivity_preserve_modeler.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/parallel_environment.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/data_communicator.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/delaunator_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_geometry.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
@@ -106,6 +105,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/delaunator_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;

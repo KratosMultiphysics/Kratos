@@ -13,8 +13,15 @@
 // System includes
 
 // External includes
+#define REAL double
+
+#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
+#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
+#include "triangle.h"
+#endif
+
 #ifdef INCLUDE_DELAUNATORCPP
-    #include "delaunator.hpp"
+#include "delaunator.hpp"
 #endif
 
 // Project includes
@@ -24,6 +31,10 @@ namespace Kratos
 {
 namespace DelaunatorUtilities
 {
+extern "C" {
+    void triangulate(char *, struct triangulateio *, struct triangulateio *,struct triangulateio *);
+}
+
 /**
 * @brief This method initializes the triangulate IO
 * @param rTriangles The triangles to be initialized

@@ -16,12 +16,6 @@
 // System includes
 
 // External includes
-#define REAL double
-
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
-#include "triangle.h"
-#endif
 
 // Project includes
 #include "includes/model_part.h"
@@ -54,10 +48,6 @@ namespace Kratos
  */
 namespace DelaunatorUtilities
 {
-    extern "C" {
-        void triangulate(char *, struct triangulateio *, struct triangulateio *,struct triangulateio *);
-    }
-
     /**
      * @brief This method creates a triangle mesh from a model part of nodes
      * @param rModelPart The model of the problem to mesh
