@@ -56,7 +56,7 @@
                     "executable_name"  : "../../../../cmake_build/applications/CoSimulationApplication/ping"
                 },
                 "io_settings":{
-                    "type":"empire_io"
+                    "type":"cpp_ping_pong.ping_pong_io"
                 },
                 "data" : {
                     "send_data" : {
@@ -80,7 +80,7 @@
                     "executable_name"  : "../../../../cmake_build/applications/CoSimulationApplication/pong"
                 },
                 "io_settings":{
-                    "type":"empire_io"
+                    "type":"cpp_ping_pong.ping_pong_io"
                 },                
                 "data" : {
                     "send_data" : {
