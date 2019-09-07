@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int main(int argc, char **argv) {
-    EMPIRE_API_Connect("ping.xml");
+    EMPIRE_API_Connect("pong.xml");
 
 
     // Setting mesh in solver 2
@@ -22,16 +22,15 @@ int main(int argc, char **argv) {
     std::cout<<"Solver 2 : "<< "------------ Setting the mesh"<<std::endl;
     EMPIRE_API_sendMesh("mesh2_cpp", numNodes, numElems, nodes, nodeIDs, numNodesPerElem, elems);    
 
-    double toSend = 222;
-    std::cout<<"Solver 2 : "<<"Sending ... \n";
-    EMPIRE_API_sendSignal_double("signal2", 1, &toSend);
-    std::cout<<"Solver 2 : "<<"Sent: "<<toSend<<std::endl;
-
     std::cout<<"Solver 2 : "<<"Receiving ... \n";
     double toReceive = -1;
-    EMPIRE_API_recvSignal_double("signal1", 1, &toReceive);
+    EMPIRE_API_recvDataField("pong_recv_data", 1, &toReceive);
     std::cout<<"Solver 2 : "<<"Received: "<<toReceive<<std::endl;
 
+    double toSend = 222;
+    std::cout<<"Solver 2 : "<<"Sending ... \n";
+    EMPIRE_API_sendDataField("pong_send_data", 1, &toSend);
+    std::cout<<"Solver 2 : "<<"Sent: "<<toSend<<std::endl;
 
     return (0);
 }
