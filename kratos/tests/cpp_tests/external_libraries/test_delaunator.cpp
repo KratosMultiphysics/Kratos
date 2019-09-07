@@ -58,7 +58,12 @@ inline void validatewithtolerance(
         }
     }
 
+    if (Debug != "")
+        Timer::SetOuputFile("times/" + Debug + ".time");
+
+    Timer::Start("Delaunator");
     delaunator::Delaunator delaunator(rCoordinates);
+    Timer::Stop("Delaunator");
 
     // Validate halfedges
     for (std::size_t i = 0; i < delaunator.halfedges.size(); i++) {
@@ -99,7 +104,13 @@ inline void validatewithtolerance(
     // Comparing with the results obtained with triangle
     triangles_areas.clear();
     counter = 0;
+    Timer::Start("Triangle");
     const auto& r_triangles_list = DelaunatorUtilities::ComputeTrianglesConnectivityWithTriangle(rCoordinates);
+    Timer::Stop("Triangle");
+
+    if (Debug != "")
+        Timer::CloseOuputFile();
+
     for (std::size_t i = 0; i < r_triangles_list.size(); i += 3) {
         const double ax = rCoordinates[2 * r_triangles_list[i]];
         const double ay = rCoordinates[2 * r_triangles_list[i] + 1];
