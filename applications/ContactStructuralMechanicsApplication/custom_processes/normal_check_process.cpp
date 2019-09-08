@@ -57,7 +57,7 @@ void NormalCheckProcess::Execute()
                 aux_perturbed_coords = r_face.Center() + 1.0e-1 * r_face.Length() * normal;
                 if (r_geometry.IsInside(aux_perturbed_coords, aux_coords)) {
                     it_elem->Set(MARKER);
-                    KRATOS_WARNING("NormalCheckProcess") << "Normal inverted in element: " << it_elem->Id() << " the corresponding element will be inverted" << std::endl;
+                    KRATOS_INFO("NormalCheckProcess") << "Normal inverted in element: " << it_elem->Id() << " the corresponding element will be inverted" << std::endl;
                 }
             }
         }
@@ -72,7 +72,7 @@ void NormalCheckProcess::Execute()
                     r_node.SetLock();
                     r_node.Set(MARKER);
                     r_node.UnSetLock();
-                    KRATOS_WARNING("NormalCheckProcess") << "Normal inverted in node: " << r_node.Id() << " the corresponding condition will be inverted" << std::endl;
+                    KRATOS_INFO("NormalCheckProcess") << "Normal inverted in node: " << r_node.Id() << " the corresponding condition will be inverted" << std::endl;
                 }
             }
         }
