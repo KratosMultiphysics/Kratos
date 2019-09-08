@@ -137,6 +137,10 @@ class SearchBaseProcess(KM.Process):
         self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
         self.find_nodal_h.Execute()
 
+        # We check the normals
+        check_normal_process = CSMA.NormalCheckProcess(self.main_model_part)
+        check_normal_process.Execute()
+
         ## We recompute the search factor and the check in function of the relative size of the mesh
         if self.settings["search_parameters"]["adapt_search"].GetBool():
             factor = CSMA.ContactUtilities.CalculateRelativeSizeMesh(self.computing_model_part)
