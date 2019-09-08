@@ -35,6 +35,7 @@
 #include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
+#include "custom_strategies/schemes/trilinos_residualbased_simple_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
@@ -154,6 +155,12 @@ void  AddSchemes(pybind11::module& m)
         .def(py::init<double, double, unsigned int, double, Process::Pointer >())
         .def(py::init<double,double,unsigned int >())
         .def(py::init<double,unsigned int, const Variable<int>&>())
+        ;
+    typedef TrilinosResidualBasedSimpleSteadyScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedSimpleSteadyScheme;
+    py::class_ < TrilinosResidualBasedSimpleSteadyScheme, typename TrilinosResidualBasedSimpleSteadyScheme::Pointer,TrilinosBaseSchemeType >
+        (m,"TrilinosResidualBasedSimpleSteadyScheme")
+        .def(py::init<double, double, unsigned int, Process::Pointer >())
+        .def(py::init<double,double,unsigned int >())
         ;
 
     py::class_ <
