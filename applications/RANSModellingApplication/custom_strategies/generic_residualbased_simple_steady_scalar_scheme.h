@@ -64,7 +64,7 @@ public:
     ///@{
 
     GenericResidualBasedSimpleSteadyScalarScheme(const double RelaxationFactor)
-        : Scheme<TSparseSpace, TDenseSpace>(), mRelaxationFactor(RelaxationFactor)
+        : mRelaxationFactor(RelaxationFactor)
     {
         KRATOS_INFO("GenericResidualBasedSimpleSteadyScalarScheme")
             << " Using residual based simple steady scheme with relaxation "
@@ -86,10 +86,10 @@ public:
                                         TSystemVectorType &b) override
     {
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
-        if (TSparseSpace::Size(mPreviousB) != TSparseSpace::Size(b)) {
-            TSparseSpace::Resize(mPreviousB, TSparseSpace::Size(b));
-        }
-        TSparseSpace::SetToZero(mPreviousB);
+        // if (TSparseSpace::Size(mPreviousB) != TSparseSpace::Size(b)) {
+        //     TSparseSpace::Resize(mPreviousB, TSparseSpace::Size(b));
+        // }
+        // TSparseSpace::SetToZero(mPreviousB);
         mIterationCounter = 0;
     }
 
@@ -350,7 +350,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    TSystemVectorType mPreviousB;
+    // TSystemVectorType mPreviousB;
 
     double mPreviousRelaxationFactor;
 
