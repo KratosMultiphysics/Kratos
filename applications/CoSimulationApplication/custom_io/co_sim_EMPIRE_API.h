@@ -38,7 +38,6 @@ namespace EMPIRE_API_helpers {
 
 // Some options that can be configured
 static const std::string CommDir = ".EmpireIO";
-static int VtkUseBinary = 0;
 static int PrintTiming = 0;
 static int EchoLevel = 1;
 
@@ -236,10 +235,6 @@ static void EMPIRE_API_Connect(const char* inputFileName)
                 if (current_line.find("PrintTiming") != std::string::npos) {
                     EMPIRE_API_helpers::ReadNumberAfterKeyword("PrintTiming", current_line, EMPIRE_API_helpers::PrintTiming);
                 }
-                // not yet implemented
-                // if (current_line.find("VtkUseBinary") != std::string::npos) {
-                //     EMPIRE_API_helpers::ReadNumberAfterKeyword("VtkUseBinary", current_line, EMPIRE_API_helpers::VtkUseBinary);
-                // }
             }
         } else {
             EMPIRE_API_LOG(0) << "Config-file \"" << file_name << "\" not found!" << std::endl;
@@ -248,8 +243,7 @@ static void EMPIRE_API_Connect(const char* inputFileName)
 
     EMPIRE_API_LOG(0) << "Configuration:\n"
                       << "    EchoLevel: " << EMPIRE_API_helpers::EchoLevel << "\n"
-                      << "    PrintTiming: " << EMPIRE_API_helpers::PrintTiming << "\n"
-                      << "    VtkUseBinary: " << EMPIRE_API_helpers::VtkUseBinary << std::endl;
+                      << "    PrintTiming: " << EMPIRE_API_helpers::PrintTiming << std::endl;
 }
 
 /***********************************************************************************************
@@ -290,11 +284,7 @@ static void EMPIRE_API_sendMesh(const char *name, const int numNodes, const int 
     // write file header
     output_file << "# vtk DataFile Version 4.0\n";
     output_file << "vtk output\n";
-    // if (EMPIRE_API_helpers::VtkUseBinary) {
-    //     output_file << "BINARY\n";
-    // } else {
-        output_file << "ASCII\n";
-    // }
+    output_file << "ASCII\n";
     output_file << "DATASET UNSTRUCTURED_GRID\n\n";
 
     // write nodes
