@@ -19,6 +19,17 @@ def CreateTurbulenceModel(model, settings):
     from turbulence_model_factory import Factory
     return Factory(settings, model)
 
+def CreateMPITurbulenceModel(model, settings):
+    if not CheckIfApplicationsAvailable("RANSModellingApplication"):
+        msg = "Using a turbulence model requires the RANSModellingApplication. "
+        msg += "Please re-install/re-compile with RANSModellingApplication."
+        raise Exception(msg)
+
+    # print(dir(Kratos))
+
+    from turbulence_model_factory_mpi import Factory
+    return Factory(settings, model, parallel_type="MPI")
+
 class TurbulenceModelConfiguration(PythonSolver):
     def AddVariables(self):
         msg = "Calling the base TurbulenceModelConfiguration class AddVariables method."

@@ -1,6 +1,5 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import math
 
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
@@ -13,18 +12,15 @@ else:
     msg += " Please install/compile it and try again."
     raise Exception(msg)
 
-
 class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
     def __init__(self, model, settings):
         self._validate_settings_in_baseclass = True  # To be removed eventually
+        self.parallel_type = ""
 
         super(TurbulenceEddyViscosityModelConfiguration, self).__init__(
             model, settings)
 
         # self.mesh_moving = self.settings["mesh_moving"].GetBool()
-        self.distance_calculation_process = None
-        self.y_plus_model_process = None
-        self.wall_velocity_model_process = None
         self.turbulence_model_process = None
         self.strategies_list = []
         self.nu_t_min = self.settings["turbulent_viscosity_min"].GetDouble()
@@ -37,6 +33,20 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         self.model_elements_list = []
         self.model_conditions_list = []
         self.model_parts_list = []
+
+    def SetParallelType(self, parallel_type):
+        self.parallel_type = parallel_type
+
+        if (self.parallel_type == "MPI"):
+            if CheckIfApplicationsAvailable("TrilinosApplication"):
+                import KratosMultiphysics.mpi as KratosMPI  # MPI-python interface
+                # Import applications
+                import KratosMultiphysics.TrilinosApplication as KratosTrilinos  # MPI solvers
+            else:
+                raise Exception(
+                    "MPI parallel type enforced without TrilinosApplication. Please install/compile it and try again."
+                )
+            self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
 
     def GetDefaultSettings(self):
         return Kratos.Parameters(r'''{
@@ -84,11 +94,75 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
                 element_name, condition_name)
             self.model_parts_list.append(model_part)
 
+    def __CreateLinearSolver(self, linear_solver_settings):
+        if (self.parallel_type == "MPI"):
+            from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory as linear_solver_factory
+        elif (self.parallel_type == "OpenMP"):
+            from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+
+        return linear_solver_factory.ConstructSolver(linear_solver_settings)
+
+    def __CreateBuilderAndSolver(self, linear_solver, is_periodic):
+        if (self.parallel_type == "MPI"):
+            if self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 3:
+                guess_row_size = 20 * 4
+            elif self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 2:
+                guess_row_size = 10 * 3
+            if (is_periodic):
+                return KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
+                    self.EpetraCommunicator, guess_row_size,
+                    self.trilinos_linear_solver, KratosCFD.PATCH_INDEX)
+            else:
+                return KratosTrilinos.TrilinosBlockBuilderAndSolver(
+                    self.EpetraCommunicator, guess_row_size,
+                    self.trilinos_linear_solver)
+        elif (self.parallel_type == "OpenMP"):
+            if (is_periodic):
+                return KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
+                    linear_solver, KratosCFD.PATCH_INDEX)
+            else:
+                return Kratos.ResidualBasedBlockBuilderAndSolver(linear_solver)
+
+    def __CreateConvergenceCriteria(self, scheme_type, relative_tolerance,
+                                    absolute_tolerance):
+        if (self.parallel_type == "MPI"):
+            if (scheme_type == "bossak"):
+                return KratosRANS.MPIGenericScalarConvergenceCriteria(
+                    relative_tolerance, absolute_tolerance)
+            elif (scheme_type == "steady"):
+                return Kratos.TrilinosResidualCriteria(relative_tolerance,
+                                                       absolute_tolerance)
+        elif (self.parallel_type == "OpenMP"):
+            if (scheme_type == "bossak"):
+                return KratosRANS.GenericScalarConvergenceCriteria(
+                    relative_tolerance, absolute_tolerance)
+            elif (scheme_type == "steady"):
+                return Kratos.ResidualCriteria(relative_tolerance,
+                                               absolute_tolerance)
+
+    def __CreateDynamicTimeScheme(self, alpha_bossak, relaxation_factor,
+                                  scalar_variable, scalar_variable_rate,
+                                  relaxed_scalar_variable_rate):
+        if (self.parallel_type == "MPI"):
+            return KratosRANS.MPIGenericResidualBasedBossakVelocityDynamicScalarScheme(
+                alpha_bossak, relaxation_factor, scalar_variable,
+                scalar_variable_rate, relaxed_scalar_variable_rate)
+        elif (self.parallel_type == "OpenMP"):
+            return KratosRANS.GenericResidualBasedBossakVelocityDynamicScalarScheme(
+                alpha_bossak, relaxation_factor, scalar_variable,
+                scalar_variable_rate, relaxed_scalar_variable_rate)
+
+    def __CreateSteadyScheme(self, relaxation_factor):
+        if (self.parallel_type == "MPI"):
+            return KratosRANS.MPIGenericResidualBasedSimpleSteadyScalarScheme(
+                relaxation_factor)
+        elif (self.parallel_type == "OpenMP"):
+            return KratosRANS.GenericResidualBasedSimpleSteadyScalarScheme(
+                relaxation_factor)
+
     def CreateStrategy(self, solver_settings, scheme_settings, model_part,
                        scalar_variable, scalar_variable_rate,
                        relaxed_scalar_variable_rate):
-        import python_linear_solver_factory as linear_solver_factory
-
         default_solver_settings = Kratos.Parameters(r'''{
                 "is_periodic"           : false,
                 "relative_tolerance"    : 1e-3,
@@ -113,33 +187,30 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         solver_settings.ValidateAndAssignDefaults(default_solver_settings)
         scheme_settings.ValidateAndAssignDefaults(default_scheme_settings)
 
-        linear_solver = linear_solver_factory.ConstructSolver(
+        linear_solver = self.__CreateLinearSolver(
             solver_settings["linear_solver_settings"])
 
         is_periodic = solver_settings["is_periodic"].GetBool()
 
         if is_periodic:
             self.__InitializePeriodicConditions(model_part, scalar_variable)
-            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
-                linear_solver, KratosCFD.PATCH_INDEX)
-        else:
-            builder_and_solver = Kratos.ResidualBasedBlockBuilderAndSolver(
-                linear_solver)
+
+        builder_and_solver = self.__CreateBuilderAndSolver(
+            linear_solver, is_periodic)
+
+        convergence_criteria = self.__CreateConvergenceCriteria(
+            scheme_settings["scheme_type"].GetString(),
+            solver_settings["relative_tolerance"].GetDouble(),
+            solver_settings["absolute_tolerance"].GetDouble())
 
         if (scheme_settings["scheme_type"].GetString() == "bossak"):
-            convergence_criteria = KratosRANS.GenericScalarConvergenceCriteria(
-                solver_settings["relative_tolerance"].GetDouble(),
-                solver_settings["absolute_tolerance"].GetDouble())
-            time_scheme = KratosRANS.GenericResidualBasedBossakVelocityDynamicScalarScheme(
+            time_scheme = self.__CreateDynamicTimeScheme(
                 scheme_settings["alpha_bossak"].GetDouble(),
                 solver_settings["relaxation_factor"].GetDouble(),
                 scalar_variable, scalar_variable_rate,
                 relaxed_scalar_variable_rate)
         elif (scheme_settings["scheme_type"].GetString() == "steady"):
-            convergence_criteria = Kratos.ResidualCriteria(
-                solver_settings["relative_tolerance"].GetDouble(),
-                solver_settings["absolute_tolerance"].GetDouble())
-            time_scheme = KratosRANS.GenericResidualBasedSimpleSteadyScalarScheme(
+            time_scheme = self.__CreateSteadyScheme(
                 solver_settings["relaxation_factor"].GetDouble())
             self.fluid_model_part.ProcessInfo[
                 Kratos.
@@ -158,7 +229,12 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
             raise Exception("Unknown scheme_type = \"" +
                             scheme_settings["scheme_type"] + "\"")
 
-        strategy = Kratos.ResidualBasedNewtonRaphsonStrategy(
+        if (self.parallel_type == "MPI"):
+            strategy_type = KratosTrilinos.TrilinosNewtonRaphsonStrategy
+        else:
+            strategy_type = Kratos.ResidualBasedNewtonRaphsonStrategy
+
+        strategy = strategy_type(
             model_part, time_scheme, linear_solver, convergence_criteria,
             builder_and_solver, solver_settings["max_iterations"].GetInt(),
             solver_settings["compute_reactions"].GetBool(),
