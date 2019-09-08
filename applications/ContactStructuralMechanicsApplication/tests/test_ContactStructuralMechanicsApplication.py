@@ -27,6 +27,7 @@ sys.path.insert(0, GetFilePath('../../../kratos/tests/'))
 ## SMALL TESTS
 # Exact integration tests
 from test_process_factory import TestProcessFactory as TTestProcessFactory
+from test_check_normals_process import TestCheckNormals as TTestCheckNormals
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
 from test_dynamic_search import TestDynamicSearch as TTestDynamicSearch
 from test_mortar_mapper import TestMortarMapperCore as TTestMortarMapperCore
@@ -171,6 +172,7 @@ def AssembleTestSuites():
 
     # Test ProcessFactoryUtility
     smallSuite.addTest(TTestProcessFactory('test_process_factory'))
+    smallSuite.addTest(TTestCheckNormals('test_check_normals'))
     smallSuite.addTest(TTestProcessFactory('test_processes_list_factory'))
 
     # Mesh tying tests
