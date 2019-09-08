@@ -39,7 +39,7 @@ class PingPongIO(CoSimulationIO):
                     os.remove(data_file_name)
                 except OSError as e: # name the Exception `e`
                     print ("Failed with:", e.strerror) # look what it says
-                    print ("Error code:", e.code)     
+                    print ("Error code:", e.code)
         else:
             raise NotImplementedError('Importing interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
@@ -58,7 +58,6 @@ class PingPongIO(CoSimulationIO):
                 output_file.close()
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
-        pass
 
     def PrintInfo(self):
         print("This is the PingPong-IO")
