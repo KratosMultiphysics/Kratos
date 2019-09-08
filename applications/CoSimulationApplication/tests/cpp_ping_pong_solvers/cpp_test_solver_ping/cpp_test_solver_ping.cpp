@@ -1,3 +1,15 @@
+// KRATOS  / ___|___/ ___|(_)_ __ ___  _   _| | __ _| |_(_) ___  _ ___
+//        | |   / _ \___ \| | '_ ` _ \| | | | |/ _` | __| |/ _ \| '_  |
+//        | |__| (_) |__) | | | | | | | |_| | | (_| | |_| | (_) | | | |
+//         \____\___/____/|_|_| |_| |_|\__,_|_|\__,_|\__|_|\___/|_| |_|
+//
+//  License:		 BSD License
+//					 license: CoSimulationApplication/license.txt
+//
+//  Main authors:    Aditya Ghantasala
+//
+
+
 //NOTE: This can use any implementation of IO which communicates with IO of CoSimulationApplication's PingPongIO.py
 //      Here the header-only version of co_sim_EMPIRE_API.h is used as it is already available.
 #include "custom_io/co_sim_EMPIRE_API.h" 

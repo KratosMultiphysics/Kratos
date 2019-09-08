@@ -16,7 +16,7 @@ def Create(settings, solver_name):
     return PingPongWrapper(settings, solver_name)
 
 class PingPongWrapper(CoSimulationSolverWrapper):
-    """This class serves as wrapper for the cpp test solvers
+    """This class serves as wrapper for the cpp ping and pong solvers
     """
     def __init__(self, settings, solver_name):
         super(PingPongWrapper, self).__init__(settings, solver_name)
@@ -41,8 +41,6 @@ class PingPongWrapper(CoSimulationSolverWrapper):
         super(PingPongWrapper, self).Finalize()
         with self.rv.stdout, open(self.name +'.log', 'w') as file:
             for line in self.rv.stdout:
-                #print("Finalze :: ",self.name)
-                #print (line)
                 file.write(line.decode("utf-8"))
 
     def AdvanceInTime(self, current_time):
@@ -54,7 +52,6 @@ class PingPongWrapper(CoSimulationSolverWrapper):
 
     def PrintInfo(self):
         cs_tools.cs_print_info(self._ClassName(), "printing info...")
-        ## TODO print additional stuff with higher echo-level
 
     def _GetIOType(self):
         return self.settings["io_settings"]["type"].GetString()
@@ -62,5 +59,4 @@ class PingPongWrapper(CoSimulationSolverWrapper):
     def __RunExecutable(self):
         command_txt = self.settings["solver_wrapper_settings"]["executable_name"].GetString()
         print("Running : ", command_txt)
-        self.rv = subprocess.Popen(command_txt, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, start_new_session=True)     
-        #subprocess.Popen(command_txt)     
+        self.rv = subprocess.Popen(command_txt, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True, start_new_session=True)
