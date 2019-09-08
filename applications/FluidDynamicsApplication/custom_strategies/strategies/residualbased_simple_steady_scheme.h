@@ -114,7 +114,7 @@ public:
 
     mRotationTool.RotateVelocities(rModelPart);
 
-    noalias(rDx) = rDx * mVelocityRelaxationFactor;
+    TSparseSpace::InplaceMult(rDx, mVelocityRelaxationFactor);
 
     mpDofUpdater->UpdateDofs(rDofSet,rDx);
 
