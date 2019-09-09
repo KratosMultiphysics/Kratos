@@ -168,20 +168,10 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
     auto penaltyTerm = data.vol*prod(DN_DX, averaged_xi);
-    double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
-
-    auto convergence_check = penaltyTerm-prod(rLeftHandSideMatrix, potential);
-
-    if (this->Id() == 2256 ) {
-        KRATOS_WATCH(this->Id())
-        KRATOS_WATCH(prod(trans(data.DN_DX), potential))
-
-        KRATOS_WATCH(averaged_xi)
-        KRATOS_WATCH(penaltyTerm)
-    }
+    const auto penalty = rCurrentProcessInfo[INITIAL_PENALTY];
 
     noalias(rLeftHandSideMatrix) = (1+penalty) * rLeftHandSideMatrix;
-    noalias(rRightHandSideVector) = -penalty*penaltyTerm-prod(rLeftHandSideMatrix, potential);
+    noalias(rRightHandSideVector) = penalty*penaltyTerm-prod(rLeftHandSideMatrix, potential);
 
 }
 
