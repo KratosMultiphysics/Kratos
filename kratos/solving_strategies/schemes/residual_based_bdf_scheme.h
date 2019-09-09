@@ -123,7 +123,7 @@ public:
     explicit ResidualBasedBDFScheme(const std::size_t Order = 2)
         :ImplicitBaseType(),
          mOrder(Order),
-         mpBDFUtility(Kratos::make_shared<TimeDiscretization::BDF>(Order))
+         mpBDFUtility(Kratos::make_unique<TimeDiscretization::BDF>(Order))
     {
         // Allocate auxiliary memory
         const std::size_t num_threads = OpenMPUtils::GetNumThreads();
@@ -146,8 +146,10 @@ public:
         ,mOrder(rOther.mOrder)
         ,mBDF(rOther.mBDF)
         ,mVector(rOther.mVector)
-        ,mpBDFUtility(rOther.mpBDFUtility)
+        ,mpBDFUtility(nullptr)
     {
+        Kratos::unique_ptr<TimeDiscretization::BDF> auxiliar_pointer = Kratos::make_unique<TimeDiscretization::BDF>(mOrder);
+        mpBDFUtility.swap(auxiliar_pointer);
     }
 
     /**
@@ -333,7 +335,7 @@ protected:
     const std::size_t mOrder;                      /// The integration order
     Vector mBDF;                                   /// The BDF coefficients
     GeneralVectors mVector;                        /// The structure containing the  derivatives
-    TimeDiscretization::BDF::Pointer mpBDFUtility; /// Utility to compute BDF coefficients
+    Kratos::unique_ptr<TimeDiscretization::BDF> mpBDFUtility; /// Utility to compute BDF coefficients
 
 
     ///@}
