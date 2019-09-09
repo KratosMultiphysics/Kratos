@@ -191,7 +191,6 @@ protected:
     ModelPart& mrModelPart;
     std::string mPressureName;
     std::vector<ModelPart::PropertiesType::Pointer> mpPropertiesVector;
-    std::vector<unsigned int> mPropertiesId;
 
 };  // Class
 

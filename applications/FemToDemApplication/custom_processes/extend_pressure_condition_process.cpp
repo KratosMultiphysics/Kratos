@@ -215,8 +215,7 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
     std::string sub_model_name;
 	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
-    ModelPart::ConditionIterator it_cond = r_sub_model_part.ConditionsBegin();
-    ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
+    ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
     auto& r_geom = (*itElem)->GetGeometry();
 
     const IndexType id_1 = (NonWetLocalIdNode == 0) ? 0 : (NonWetLocalIdNode == 1) ? 1 : (NonWetLocalIdNode == 2) ? 2 : 3;
@@ -333,6 +332,15 @@ void ExtendPressureConditionProcess<TDim>::Execute()
 template <SizeType TDim>
 void ExtendPressureConditionProcess<TDim>::SavePreviousProperties()
 {
+    const std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
+    for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
+        if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8)) {
+            auto& r_sub_model_part = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
+            ModelPart::ConditionIterator it_cond = r_sub_model_part.ConditionsBegin();
+            ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
+            mpPropertiesVector.push_back(p_properties);
+        }
+    }
 }
 /***********************************************************************************/
 /***********************************************************************************/
