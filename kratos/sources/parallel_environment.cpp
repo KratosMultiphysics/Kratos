@@ -174,6 +174,10 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
 
 void ParallelEnvironment::UnregisterDataCommunicatorDetail(const std::string& Name)
 {
+    KRATOS_ERROR_IF(Name == mDefaultCommunicator->first)
+    << "Trying to unregister the default DataCommunicator \"" << Name
+    << "\". Please define a new default before unregistering the current one."
+    << std::endl;
     int num_erased = mDataCommunicators.erase(Name);
     KRATOS_WARNING_IF("ParallelEnvironment", num_erased == 0)
     << "Trying to unregister a DataCommunicator with name " << Name
