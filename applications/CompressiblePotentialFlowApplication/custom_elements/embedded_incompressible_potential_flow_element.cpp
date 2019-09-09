@@ -168,7 +168,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
     auto penaltyTerm = data.vol*prod(DN_DX, averaged_xi);
-    double penalty = 0.010;
+    double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
 
     auto convergence_check = penaltyTerm-prod(rLeftHandSideMatrix, potential);
 

@@ -57,6 +57,8 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
 
+        self.process_info_data[KratosMultiphysics.INITIAL_PENALTY] = formulation_settings["penalty_coefficient"].GetDouble()
+
 def CreateSolver(model, custom_settings):
     return PotentialFlowSolver(model, custom_settings)
 
