@@ -245,14 +245,14 @@ namespace MortarUtilities
         );
 
     /**
-     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the r_normal
+     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the normal when certain flag is active
      * @param rContainer Reference to the objective container
      * @param Flag The flag of the entities inverted
      */
     template<class TContainerType>
-    void InvertNormal(
+    void InvertNormalForFlag(
         TContainerType& rContainer,
-        const Flags Flag = Flags()
+        const Flags Flag
         )
     {
         bool to_invert = false;
@@ -269,6 +269,16 @@ namespace MortarUtilities
                 std::reverse(data_geom.begin(), data_geom.end());
             }
         }
+    }
+
+    /**
+     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the normal
+     * @param rContainer Reference to the objective container
+     */
+    template<class TContainerType>
+    void InvertNormal(TContainerType& rContainer)
+    {
+        InvertNormalForFlag(rContainer, Flags());
     }
 
     /**
