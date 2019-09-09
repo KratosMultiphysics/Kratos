@@ -59,7 +59,6 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TFrictional If we are solving a frictional or frictionless problem
  * @tparam TNormalVariation If we are consider normal variation
  * @tparam TNumNodesMaster The number of nodes of the master
  */
@@ -125,6 +124,8 @@ public:
     static constexpr IndexType StepSlip = TNormalVariation ? 0 : 1;
 
     static constexpr double OperatorThreshold = 1.0e-3;
+
+    static constexpr double TangentCoefficient = 1.0;
 
     ///@}
     ///@name Life Cycle
@@ -313,7 +314,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -411,7 +412,7 @@ protected:
     {
         // The friction coefficient
         array_1d<double, TNumNodes> friction_coeffient_vector;
-        auto& geom = this->GetGeometry();
+        auto& geom = this->GetParentGeometry();
 
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
             friction_coeffient_vector[i_node] = geom[i_node].GetValue(FRICTION_COEFFICIENT);
@@ -456,16 +457,6 @@ private:
      * @param rCurrentProcessInfo The current process information
      */
     void ComputePreviousMortarOperators( ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * @brief It calculates the matrix containing the tangent vector of the r_gt (for frictional contact)
-     * @param rGeometry The geometry to calculate
-     * @return tangent_matrix The matrix containing the tangent vectors of the r_gt
-     */
-    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& rGeometry)
-    {
-        return ContactUtilities::ComputeTangentMatrixSlip<TDim, TNumNodes>(rGeometry, StepSlip);
-    }
 
     ///@}
     ///@name Private  Access

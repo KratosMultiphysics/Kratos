@@ -31,7 +31,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
 #include "processes/node_erase_process.h"

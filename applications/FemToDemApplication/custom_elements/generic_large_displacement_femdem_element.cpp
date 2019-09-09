@@ -222,7 +222,8 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, this->mThisIntegrationMethod);
 
         double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
-        const Matrix &Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
+        integration_weigth = this->CalculateIntegrationWeight(integration_weigth);
+        const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
 		Vector N = row(Ncontainer, point_number);
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
@@ -321,7 +322,8 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLeftHandSi
 		J = this->GetGeometry().Jacobian(J, point_number, this->mThisIntegrationMethod);
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, this->mThisIntegrationMethod);
 
-        const double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
+        double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
+        integration_weigth = this->CalculateIntegrationWeight(integration_weigth);
         const Matrix& r_Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
 		Vector N = row(r_Ncontainer, point_number);
 
@@ -389,6 +391,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, this->mThisIntegrationMethod);
 
         double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
+        integration_weigth = this->CalculateIntegrationWeight(integration_weigth);
         const Matrix &Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
 		Vector N = row(Ncontainer, point_number);
 
@@ -501,7 +504,16 @@ void GenericLargeDisplacementFemDemElement<3,5>::CalculateB(Matrix& rB, const Ma
 {
     this->CalculateB3D(rB, rF, rDN_DX);
 }
-
+template<>
+void GenericLargeDisplacementFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB2D(rB, rF, rDN_DX);
+}
+template<>
+void GenericLargeDisplacementFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->CalculateB3D(rB, rF, rDN_DX);
+}
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB2D(
@@ -794,11 +806,13 @@ template class GenericLargeDisplacementFemDemElement<2,2>;
 template class GenericLargeDisplacementFemDemElement<2,3>;
 template class GenericLargeDisplacementFemDemElement<2,4>;
 template class GenericLargeDisplacementFemDemElement<2,5>;
+template class GenericLargeDisplacementFemDemElement<2,6>;
 template class GenericLargeDisplacementFemDemElement<3,0>;
 template class GenericLargeDisplacementFemDemElement<3,1>;
 template class GenericLargeDisplacementFemDemElement<3,2>;
 template class GenericLargeDisplacementFemDemElement<3,3>;
 template class GenericLargeDisplacementFemDemElement<3,4>;
 template class GenericLargeDisplacementFemDemElement<3,5>;
+template class GenericLargeDisplacementFemDemElement<3,6>;
 
 } // namespace Kratos

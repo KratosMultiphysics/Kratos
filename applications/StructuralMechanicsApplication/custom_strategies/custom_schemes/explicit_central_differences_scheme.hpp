@@ -243,7 +243,6 @@ public:
             ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, prediction_parameters);
         }
         InitializeResidual(rModelPart);
-
         KRATOS_CATCH("")
     }
 
@@ -393,7 +392,6 @@ public:
         ) override
     {
         KRATOS_TRY
-
         // The current process info
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -455,6 +453,7 @@ public:
         const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
         const double nodal_displacement_damping = itCurrentNode->GetValue(NODAL_DISPLACEMENT_DAMPING);
         const array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL);
+
 
         array_1d<double, 3>& r_current_velocity = itCurrentNode->FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
@@ -692,21 +691,45 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-     * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
-     * @param rModelPart The model of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     */
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
+
+    void CalculateAndAddRHS(ModelPart& rModelPart)
     {
-        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+        KRATOS_TRY
+
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        ConditionsArrayType& r_conditions = rModelPart.Conditions();
+        ElementsArrayType& r_elements = rModelPart.Elements();
+
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+        Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
+
+        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
+        for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
+            auto it_cond = r_conditions.begin() + i;
+            Condition_Calculate_RHS_Contribution((*it_cond.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
+        }
+
+        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy), schedule(guided,512)
+        for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+            auto it_elem = r_elements.begin() + i;
+            Calculate_RHS_Contribution((*it_elem.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+
+     void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b
+    ) override
+    {
+        KRATOS_TRY;
+        CalculateAndAddRHS(rModelPart);
+        KRATOS_CATCH("")
     }
 
     ///@}

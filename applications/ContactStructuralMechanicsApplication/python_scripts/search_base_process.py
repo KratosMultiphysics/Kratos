@@ -60,6 +60,7 @@ class SearchBaseProcess(KM.Process):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
+                "normal_orientation_threshold"        : 0.0,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -634,7 +635,7 @@ class SearchBaseProcess(KM.Process):
 
         if self.preprocess:
             id_prop = self.settings["search_property_ids"][key].GetInt()
-            if (id_prop != 0):
+            if id_prop != 0:
                 sub_search_model_part.SetProperties(self.main_model_part.GetProperties(id_prop))
             else:
                 sub_search_model_part.SetProperties(self.main_model_part.GetProperties())
@@ -643,7 +644,7 @@ class SearchBaseProcess(KM.Process):
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
 
-                if (self.computing_model_part.Is(KM.MODIFIED)):
+                if self.main_model_part.Is(KM.MODIFIED) or self.computing_model_part.Is(KM.MODIFIED):
                     KM.VariableUtils().SetFlag(KM.TO_ERASE, True, partial_model_part.Conditions)
                     partial_model_part.RemoveConditions(KM.TO_ERASE)
 
