@@ -143,10 +143,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
         const int global_rank = r_comm.Rank();
 
         const DataCommunicator& r_all_except_first_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
-            r_comm, all_except_first, "_AllExceptFirst");
+            r_comm, all_except_first, "AllExceptFirst");
 
         const DataCommunicator& r_all_except_last_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
-            r_comm, all_except_last, "_AllExceptLast");
+            r_comm, all_except_last, "AllExceptLast");
 
         const DataCommunicator& r_intersection_comm = MPIDataCommunicator::CreateIntersectionDataCommunicator(
             r_all_except_first_comm, r_all_except_last_comm, r_comm, "IntersectionCommunicator");
@@ -163,8 +163,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
         }
 
         // Clean up the ParallelEnvironment after test
-        ParallelEnvironment::UnregisterDataCommunicator("_AllExceptFirst");
-        ParallelEnvironment::UnregisterDataCommunicator("_AllExceptLast");
+        ParallelEnvironment::UnregisterDataCommunicator("AllExceptFirst");
+        ParallelEnvironment::UnregisterDataCommunicator("AllExceptLast");
         ParallelEnvironment::UnregisterDataCommunicator("IntersectionCommunicator");
     }
 }
@@ -184,6 +184,29 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentRegisterDataCommunicator, KratosMPI
     MPIDataCommunicator::SplitDataCommunicator(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
 
     KRATOS_CHECK(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
+
+    // Clean up after the test
+    ParallelEnvironment::UnregisterDataCommunicator("EvenOdd");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregisterDefault, KratosMPICoreFastSuite)
+{
+    const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    std::string current_default_name = ParallelEnvironment::GetDefaultDataCommunicatorName();
+
+    MPIDataCommunicator::SplitDataCommunicator(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
+
+    ParallelEnvironment::SetDefaultDataCommunicator("EvenOdd");
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        ParallelEnvironment::UnregisterDataCommunicator("EvenOdd"),
+        "Trying to unregister the default DataCommunicator"
+    );
+
+    ParallelEnvironment::SetDefaultDataCommunicator(current_default_name);
+
+    // Now that it is no longer the default, we should be able to unregister it (cleaning up in the process).
+    ParallelEnvironment::UnregisterDataCommunicator("EvenOdd");
 }
 
 }
