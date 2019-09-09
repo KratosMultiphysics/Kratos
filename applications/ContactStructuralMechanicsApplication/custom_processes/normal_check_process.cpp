@@ -81,7 +81,7 @@ void NormalCheckProcess::Execute()
     }
 
     // Invert elements
-    MortarUtilities::InvertNormalForFlag(r_elements_array, MARKER);
+    MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>(r_elements_array, MARKER);
 
     // Getting conditions array
     auto& r_conditions_array = mrModelPart.Conditions();
@@ -109,7 +109,7 @@ void NormalCheckProcess::Execute()
     }
 
     // Invert conditions
-    MortarUtilities::InvertNormalForFlag(r_conditions_array, MARKER);
+    MortarUtilities::InvertNormalForFlag<PointerVectorSet<Condition, IndexedObject>>(r_conditions_array, MARKER);
 
     // Reset flags
     VariableUtils().ResetFlag(MARKER, mrModelPart.Nodes());
