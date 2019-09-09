@@ -79,7 +79,7 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo&
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        array_1d<double, 3 > & lagrange_multiplier  = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+        array_1d<double, 3 > & r_lagrange_multiplier  = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
