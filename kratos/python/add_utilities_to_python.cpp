@@ -291,23 +291,6 @@ void PrintTimingInformation(Timer& rTimer)
     rTimer.PrintTimingInformation();
 }
 
-template<class TContainerType>
-void InvertNormal1(
-    TContainerType& rContainer
-    )
-{
-    MortarUtilities::InvertNormal<TContainerType>(rContainer);
-}
-
-template<class TContainerType>
-void InvertNormal2(
-    TContainerType& rContainer,
-    const Flags Flag
-    )
-{
-    MortarUtilities::InvertNormal<TContainerType>(rContainer, Flag);
-}
-
 void AddUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -890,10 +873,8 @@ void AddUtilitiesToPython(pybind11::module &m)
 
     // Mortar utilities
     m.def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart);
-    m.def("InvertNormal",InvertNormal1<PointerVectorSet<Element, IndexedObject>>);
-    m.def("InvertNormal",InvertNormal1<PointerVectorSet<Condition, IndexedObject>>);
-    m.def("InvertNormal",InvertNormal2<PointerVectorSet<Element, IndexedObject>>);
-    m.def("InvertNormal",InvertNormal2<PointerVectorSet<Condition, IndexedObject>>);
+    m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>);
+    m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
