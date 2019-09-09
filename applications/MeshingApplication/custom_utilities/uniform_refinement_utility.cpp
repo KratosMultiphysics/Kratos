@@ -256,7 +256,7 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(3); // 3 edges
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
 
             // Split the triangle
@@ -274,7 +274,7 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(5); // 4 edges and the quadrilateral itself
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
             middle_nodes[i_node++] = GetNodeInFace(FaceType{geom}, step_divisions_level, rTagNodes, collection_tag);
 
@@ -293,7 +293,7 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(6); // 6 edges
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
 
             // Split the tetrahedra
@@ -311,9 +311,9 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(19); // 12 edges, 6 faces and the hexahedra itself
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
-            for (auto face : geom.Faces())
+            for (auto face : geom.GenerateFaces())
                 middle_nodes[i_node++] = GetNodeInFace(FaceType{face}, step_divisions_level, rTagNodes, collection_tag);
             middle_nodes[i_node++] = GetNodeInBody(BodyType{geom}, step_divisions_level, rTagNodes,collection_tag);
 
@@ -368,7 +368,7 @@ void UniformRefinementUtility::ExecuteDivision(
             IndexType i_node = 0;
             std::vector<NodeType::Pointer> middle_nodes(3);
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
 
             PointerVector<NodeType> sub_condition_nodes(3);    // a triangle is defined by 3 nodes
@@ -384,7 +384,7 @@ void UniformRefinementUtility::ExecuteDivision(
             IndexType i_node = 0;
             std::vector<NodeType::Pointer> middle_nodes(5);
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.Edges())
+            for (auto edge : geom.GenerateEdges())
                 middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
             middle_nodes[i_node++] = GetNodeInFace(FaceType{geom}, step_divisions_level, rTagNodes, collection_tag);
 

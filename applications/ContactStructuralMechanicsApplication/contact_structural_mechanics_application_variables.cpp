@@ -27,7 +27,6 @@ KRATOS_CREATE_VARIABLE( int , INNER_LOOP_ITERATION )                            
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                         // The integration order computed in the contact
 KRATOS_CREATE_VARIABLE( double, DISTANCE_THRESHOLD )                              // The distance threshold considered
 KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                             // The factor employed to search an active/inactive node
-KRATOS_CREATE_VARIABLE( GeometryType::Pointer, PAIRED_GEOMETRY )                  // The paired geometry with the current condition
 KRATOS_CREATE_VARIABLE( Vector3, PAIRED_NORMAL )                                  // The normal of the paired geometry
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )                 // Auxiliar coordinates used to map
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )                    // Delta coordinates used to map

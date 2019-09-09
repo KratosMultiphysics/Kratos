@@ -12,7 +12,7 @@
 //
 
 // System includes
-
+#include <vector>
 
 // External includes
 
