@@ -9,8 +9,6 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SearchBaseProcess(Model, settings["Parameters"])
 
-import sys
-
 # All the processes python processes should be derived from "Process"
 
 class SearchBaseProcess(KM.Process):
