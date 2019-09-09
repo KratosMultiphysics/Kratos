@@ -1,8 +1,12 @@
 from __future__ import print_function, absolute_import, division  # makes KM backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
+
+# Some imports
+from KratosMultiphysics import from_json_check_result_process
+#from KratosMultiphysics import json_output_process
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -48,7 +52,7 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         self.contact_model_part = self.main_model_part.GetSubModelPart("DISPLACEMENT_Displacement_Auto2")
 
         model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
-        model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
+        #model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
         KM.VariableUtils().SetFlag(KM.SLAVE, False, self.contact_model_part.Nodes)
         KM.VariableUtils().SetFlag(KM.MASTER, True, self.contact_model_part.Nodes)
         KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Nodes)
@@ -104,8 +108,6 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         ## DEBUG
         #self.__post_process()
 
-        import from_json_check_result_process
-
         check_parameters = KM.Parameters("""
         {
             "check_variables"      : ["NORMAL_GAP"],
@@ -123,8 +125,6 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
-
-        #import json_output_process
 
         #out_parameters = KM.Parameters("""
         #{
@@ -155,7 +155,6 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         self._dynamic_search_tests(input_filename, 4)
 
     def __post_process(self):
-        from gid_output_process import GiDOutputProcess
         self.gid_output = GiDOutputProcess(self.main_model_part,
                                     "gid_output",
                                     KM.Parameters("""
