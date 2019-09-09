@@ -1,12 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KM backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Some imports
 from KratosMultiphysics import from_json_check_result_process
-from KratosMultiphysics import json_output_process
+#from KratosMultiphysics import json_output_process
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
