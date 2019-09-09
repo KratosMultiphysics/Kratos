@@ -11,6 +11,7 @@ class PotentialFlowFormulation(object):
     def __init__(self, formulation_settings):
         self.element_name = None
         self.condition_name = None
+        self.process_info_data = {}
 
         if formulation_settings.Has("element_type"):
             element_type = formulation_settings["element_type"].GetString()
@@ -22,6 +23,10 @@ class PotentialFlowFormulation(object):
                 self._SetUpEmbeddedIncompressibleElement(formulation_settings)
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
+
+    def SetProcessInfo(self, model_part):
+        for variable,value in self.process_info_data.items():
+            model_part.ProcessInfo[variable] = value
 
     def _SetUpIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -43,7 +48,9 @@ class PotentialFlowFormulation(object):
 
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "embedded_incompressible"
+            "element_type": "embedded_incompressible",
+            "penalty_coefficient": 0.0
+
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -105,6 +112,7 @@ class PotentialFlowSolver(FluidSolver):
         self.formulation = PotentialFlowFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
+        self.formulation.SetProcessInfo(self.main_model_part)
         self.min_buffer_size = 1
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.reference_chord = custom_settings["reference_chord"].GetDouble()
@@ -135,33 +143,33 @@ class PotentialFlowSolver(FluidSolver):
         self._ComputeNodalNeighbours()
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        # if "incompressible" in self.settings["formulation"]["element_type"].GetString():
-        #     # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
-        # self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-        #     self.GetComputingModelPart(),
-        #     time_scheme,
-        #     self.linear_solver,
-        #     self.settings["compute_reactions"].GetBool(),
-        #     self.settings["reform_dofs_at_each_step"].GetBool(),
-        #     self.settings["calculate_solution_norm"].GetBool(),
-        #     self.settings["move_mesh_flag"].GetBool())
-        # elif "compressible" in self.settings["formulation"]["element_type"].GetString():
-        conv_criteria = KratosMultiphysics.ResidualCriteria(
-            -self.settings["relative_tolerance"].GetDouble(),
-            -self.settings["absolute_tolerance"].GetDouble())
-        max_iterations = self.settings["maximum_iterations"].GetInt()
-
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+        if "incompressible" in self.settings["formulation"]["element_type"].GetString() and not self.settings["formulation"].Has("penalty_coefficient"):
+            # TODO: Rename to self.strategy once we upgrade the base FluidDynamicsApplication solvers
+            self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
             self.GetComputingModelPart(),
             time_scheme,
             self.linear_solver,
-            conv_criteria,
-            max_iterations,
             self.settings["compute_reactions"].GetBool(),
             self.settings["reform_dofs_at_each_step"].GetBool(),
+            self.settings["calculate_solution_norm"].GetBool(),
             self.settings["move_mesh_flag"].GetBool())
-        # else:
-        #     raise Exception("Element not implemented")
+        elif "compressible" in self.settings["formulation"]["element_type"].GetString() or self.settings["formulation"].Has("penalty_coefficient"):
+            conv_criteria = KratosMultiphysics.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+            max_iterations = self.settings["maximum_iterations"].GetInt()
+
+            self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+                self.GetComputingModelPart(),
+                time_scheme,
+                self.linear_solver,
+                conv_criteria,
+                max_iterations,
+                self.settings["compute_reactions"].GetBool(),
+                self.settings["reform_dofs_at_each_step"].GetBool(),
+                self.settings["move_mesh_flag"].GetBool())
+        else:
+            raise Exception("Element not implemented")
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Initialize()
