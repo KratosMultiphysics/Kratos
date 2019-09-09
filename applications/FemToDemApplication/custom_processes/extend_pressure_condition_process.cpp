@@ -114,8 +114,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
     std::string sub_model_name;
 	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
-    ModelPart::ConditionIterator it_cond = r_sub_model_part.ConditionsBegin();
-    ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
+    ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
     auto& r_geom = (*itElem)->GetGeometry();
 
     // We check some things...
@@ -140,8 +139,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
     std::string sub_model_name;
 	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
-    ModelPart::ConditionIterator it_cond = r_sub_model_part.ConditionsBegin();
-    ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
+    ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
 
     // We get the neighbour elements
     GlobalPointersVector<Element>& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
@@ -182,8 +180,7 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads4WetNodes(
     std::string sub_model_name;
 	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
-    ModelPart::ConditionIterator it_cond = r_sub_model_part.ConditionsBegin();
-    ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
+    ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
     const int id = (*itElem)->Id();
 
     // We only create pressure loads when the surface is skin
