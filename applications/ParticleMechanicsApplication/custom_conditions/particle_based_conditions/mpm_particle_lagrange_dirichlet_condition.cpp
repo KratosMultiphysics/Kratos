@@ -84,8 +84,6 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo&
         {
             lagrange_multiplier[j] = 0;
         }
-
-        r_geometry[i].SetValue(VECTOR_LAGRANGE_MULTIPLIER,lagrange_multiplier);
     }
 
 
