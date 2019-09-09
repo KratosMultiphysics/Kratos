@@ -180,7 +180,13 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@name Operations
     ///@{
 
-    DataCommunicator::UniquePointer Clone() const override;
+    /// Create a new MPIDataCommunicator using the provided MPI_Comm object.
+    /** The new MPIDataCommunicator instance is returned as a unique pointer,
+     *  since it is responsible for managing the lifetime of the underlying MPI_Comm,
+     *  and in particular calling MPI_Comm_free once it goes out of scope
+     *  (this is only required/done if Comm is not one of the predefined MPI_COMM types).
+     */
+    static MPIDataCommunicator::UniquePointer Create(MPI_Comm MPIComm);
 
     void Barrier() const override;
 
@@ -228,14 +234,6 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
      *  as it would introduce a dependency to MPI in the Kratos core.
      */
     static MPI_Comm GetMPICommunicator(const DataCommunicator& rDataCommunicator);
-
-    /// Create a new MPIDataCommunicator using the provided MPI_Comm object.
-    /** The new MPIDataCommunicator instance is returned as a unique pointer,
-     *  since it is responsible for managing the lifetime of the underlying MPI_Comm,
-     *  and in particular calling MPI_Comm_free once it goes out of scope
-     *  (this is only required/done if Comm is not one of the predefined MPI_COMM types).
-     */
-    static MPIDataCommunicator::UniquePointer Create(MPI_Comm Comm);
 
     static const DataCommunicator& SplitDataCommunicator(
         const DataCommunicator& rOriginalCommunicator,

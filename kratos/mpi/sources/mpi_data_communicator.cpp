@@ -238,9 +238,11 @@ MPIDataCommunicator::~MPIDataCommunicator()
     }
 }
 
-DataCommunicator::UniquePointer MPIDataCommunicator::Clone() const
+// New communicator creation
+
+MPIDataCommunicator::UniquePointer MPIDataCommunicator::Create(MPI_Comm Comm)
 {
-    return Kratos::make_unique<MPIDataCommunicator>(mComm);
+    return Kratos::make_unique<MPIDataCommunicator>(Comm);
 }
 
 // Barrier wrapper
@@ -379,11 +381,6 @@ MPI_Comm MPIDataCommunicator::GetMPICommunicator(const DataCommunicator& rDataCo
     {
         return MPI_COMM_SELF;
     }
-}
-
-MPIDataCommunicator::UniquePointer MPIDataCommunicator::Create(MPI_Comm Comm)
-{
-    return Kratos::make_unique<MPIDataCommunicator>(Comm);
 }
 
 const DataCommunicator& MPIDataCommunicator::SplitDataCommunicator(

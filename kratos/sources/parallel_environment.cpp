@@ -101,7 +101,7 @@ void ParallelEnvironment::PrintData(std::ostream &rOStream)
 
 ParallelEnvironment::ParallelEnvironment()
 {
-    RegisterDataCommunicatorDetail("Serial", DataCommunicator().Clone(), MakeDefault);
+    RegisterDataCommunicatorDetail("Serial", DataCommunicator::Create(), MakeDefault);
 }
 
 ParallelEnvironment::~ParallelEnvironment()

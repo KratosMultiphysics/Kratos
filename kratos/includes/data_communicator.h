@@ -339,7 +339,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      *  @see ParallelEnvironment.
      *  @return a unique pointer to the new DataCommunicator.
      */
-    virtual DataCommunicator::UniquePointer Clone() const
+    static DataCommunicator::UniquePointer Create()
     {
         return Kratos::make_unique<DataCommunicator>();
     }
