@@ -149,8 +149,6 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
             }
         }
         xi = xi/this_area;
-        xi[2] = 0.0;
-        this->GetGeometry()[i_node].GetValue(VELOCITY_LOWER) = xi;
     }
 
     array_1d<double,Dim> averaged_xi;
