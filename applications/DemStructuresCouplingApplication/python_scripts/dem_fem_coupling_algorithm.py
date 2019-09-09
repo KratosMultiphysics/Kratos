@@ -20,9 +20,14 @@ class Algorithm(object):
     def __init__(self):
         self.model = Kratos.Model()
 
-        from KratosMultiphysics.DemStructuresCouplingApplication.dem_main_script_ready_for_coupling_with_fem import Solution
-        self.dem_solution = Solution(self.model)
-        self.dem_solution.coupling_algorithm = weakref.proxy(self)
+        from KratosMultiphysics.DemStructuresCouplingApplication.dem_main_script_ready_for_coupling_with_fem import StructuresCoupledDEMAnalysisStage
+        dem_parameters_file_name = "ProjectParametersDEM.json"
+
+        with open(dem_parameters_file_name,'r') as parameter_file:
+            parameters = Kratos.Parameters(parameter_file.read())
+
+        self.dem_solution = StructuresCoupledDEMAnalysisStage(self.model, parameters)
+        self.dem_solution.coupling_analysis = weakref.proxy(self)
 
         from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
         structural_parameters_file_name = "ProjectParameters.json"
@@ -64,7 +69,7 @@ class Algorithm(object):
 
         self._DetectStructuresSkin()
         self._TransferStructuresSkinToDem()
-        self.dem_solution.solver.Initialize()
+        self.dem_solution._GetSolver().Initialize()
 
         self.sandwich_simulation = False
         # Test types (4 different options):
@@ -72,7 +77,7 @@ class Algorithm(object):
         # Test number 1: CTW16 specimen
         # Test number 2: CTW10 specimen
         # Test number 3: Blind test specimen
-        self.test_number = 0
+        self.test_number = 1
 
         if not self.sandwich_simulation and self.test_number:
             from KratosMultiphysics.DemStructuresCouplingApplication.control_module_fem_dem_utility import ControlModuleFemDemUtility
@@ -203,15 +208,15 @@ class Algorithm(object):
                 DemFem.DemStructuresCouplingUtilities().ComputeTriaxialSandProduction(self.dem_solution.spheres_model_part, self.outer_walls_model_part_1, self.outer_walls_model_part_2, self.structural_solution.time)
 
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
-                self.dem_solution.time = self.dem_solution.time + self.dem_solution.solver.dt
+                self.dem_solution.time = self.dem_solution.time + self.dem_solution._GetSolver().dt
 
                 self.dem_solution.step += 1
 
-                self.dem_solution.DEMFEMProcedures.UpdateTimeInModelParts(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.solver.dt, self.dem_solution.step)
+                self.dem_solution.DEMFEMProcedures.UpdateTimeInModelParts(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution._GetSolver().dt, self.dem_solution.step)
 
                 self.dem_solution.InitializeSolutionStep()
 
-                DemFem.InterpolateStructuralSolutionForDEM().InterpolateStructuralSolution(self.structural_mp, self.Dt_structural, self.structural_solution.time, self.dem_solution.solver.dt, self.dem_solution.time)
+                DemFem.InterpolateStructuralSolutionForDEM().InterpolateStructuralSolution(self.structural_mp, self.Dt_structural, self.structural_solution.time, self.dem_solution._GetSolver().dt, self.dem_solution.time)
 
                 self.dem_solution.SolverSolve()
 
@@ -236,11 +241,14 @@ class Algorithm(object):
 
                 self.dem_solution.creator_destructor.MarkParticlesForErasingGivenCylinder(self.dem_solution.spheres_model_part, center, axis, radius)
 
-                self.dem_solution.AfterSolveOperations()
+                # TODO: calling FinalizeSolutionStep instead of AfterSolveOperations changes the old DEMFEM solution.
+                # In the FinalizeSolutionStep the solver is also finalized, which was not done in the AfterSolveOperations
+                # self.dem_solution.AfterSolveOperations()
+                self.dem_solution.FinalizeSolutionStep()
 
-                DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution.solver.dt, self.Dt_structural)
+                DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution._GetSolver().dt, self.Dt_structural)
 
-                self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.solver.dt)
+                self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution._GetSolver().dt)
                 #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
                 ##### adding DEM elements by the inlet ######
@@ -267,9 +275,9 @@ class Algorithm(object):
 
                 #### GiD IO ##########################################
                 if self.dem_solution.IsTimeToPrintPostProcess():
-                    self.dem_solution.solver.PrepareElementsForPrinting()
+                    self.dem_solution._GetSolver().PrepareElementsForPrinting()
                     if self.dem_solution.DEM_parameters["ContactMeshOption"].GetBool():
-                        self.dem_solution.solver.PrepareContactElementsForPrinting()
+                        self.dem_solution._GetSolver().PrepareContactElementsForPrinting()
                     self.dem_solution.PrintResultsForGid(self.dem_solution.time)
                     self.dem_solution.demio.PrintMultifileLists(self.dem_solution.time, self.dem_solution.post_path)
                     self.dem_solution.time_old_print = self.dem_solution.time
@@ -302,7 +310,6 @@ class Algorithm(object):
 
     def Finalize(self):
         self.dem_solution.Finalize()
-        self.dem_solution.CleanUpOperations()
         self.structural_solution.Finalize()
 
     def yield_DEM_time(self, current_time, current_time_plus_increment, delta_time):
