@@ -166,7 +166,7 @@ void SlidingCableElement3D::GetSecondDerivativesVector(Vector &rValues, int Step
   KRATOS_CATCH("")
 }
 
-Vector SlidingCableElement3D::GetCurrentLengthArray(int step)
+Vector SlidingCableElement3D::GetCurrentLengthArray(int step) const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number-1;
@@ -208,7 +208,7 @@ Vector SlidingCableElement3D::GetRefLengthArray() const
   return segment_lengths;
 }
 
-double SlidingCableElement3D::GetCurrentLength()
+double SlidingCableElement3D::GetCurrentLength() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number-1;
@@ -272,14 +272,14 @@ Vector SlidingCableElement3D::GetDeltaPositions(const int& rDirection) const
   return delta_position;
 }
 
-double SlidingCableElement3D::CalculateGreenLagrangeStrain()
+double SlidingCableElement3D::CalculateGreenLagrangeStrain() const
 {
   const double reference_length = this->GetRefLength();
   const double current_length = this->GetCurrentLength();
   return (0.50 * (((current_length*current_length)-(reference_length*reference_length)) / (reference_length*reference_length)));
 }
 
-Vector SlidingCableElement3D::GetDirectionVectorNt()
+Vector SlidingCableElement3D::GetDirectionVectorNt() const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -441,7 +441,7 @@ Vector SlidingCableElement3D::GetCustomInternalForceWithFriction(const Vector& r
 }
 
 
-Matrix SlidingCableElement3D::ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo)
+Matrix SlidingCableElement3D::ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -462,7 +462,7 @@ Matrix SlidingCableElement3D::ElasticStiffnessMatrix(const ProcessInfo& rCurrent
   return elastic_stiffness_matrix;
 }
 
-Matrix SlidingCableElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo)
+Matrix SlidingCableElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -520,7 +520,7 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurre
   return geometric_stiffness_matrix;
 }
 
-inline Matrix SlidingCableElement3D::TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo)
+inline Matrix SlidingCableElement3D::TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
 {
   const Matrix ElasticStiffnessMatrix = this->ElasticStiffnessMatrix(rCurrentProcessInfo);
   const Matrix GeometrixStiffnessMatrix = this->GeometricStiffnessMatrix(rCurrentProcessInfo);

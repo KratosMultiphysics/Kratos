@@ -119,19 +119,19 @@ namespace Kratos
         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
         void GetFirstDerivativesVector(Vector& rValues,int Step = 0) override;
 
-        Vector GetCurrentLengthArray(int Step = 0);
+        Vector GetCurrentLengthArray(int Step = 0) const;
         Vector GetRefLengthArray() const;
         Vector GetDeltaPositions(const int& rDirection) const;
-        Vector GetDirectionVectorNt();
+        Vector GetDirectionVectorNt() const;
         Vector GetInternalForces();
 
-        Matrix ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo);
-        Matrix GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo);
-        inline Matrix TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo);
+        Matrix ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
+        Matrix GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
+        inline Matrix TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
 
-        double GetCurrentLength();
+        double GetCurrentLength() const;
         double GetRefLength() const;
-        double CalculateGreenLagrangeStrain();
+        double CalculateGreenLagrangeStrain() const;
         inline double LinearStiffness() const
         {
             return (this->GetProperties()[CROSS_AREA] * this->GetProperties()[YOUNG_MODULUS] / this->GetRefLength());
