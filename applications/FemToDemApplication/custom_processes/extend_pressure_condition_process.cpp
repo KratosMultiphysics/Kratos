@@ -319,6 +319,8 @@ void ExtendPressureConditionProcess<TDim>::Execute()
 
     // Remove previous line loads-> Only the 1st iteration
     if (r_process_info[INTERNAL_PRESSURE_ITERATION] == 1) {
+        // We fill the properties vectors to be reassigned afterwards
+        this->SavePreviousProperties();
         this->RemovePreviousLineLoads();
         this->ResetFlagOnElements();
     }
@@ -326,6 +328,12 @@ void ExtendPressureConditionProcess<TDim>::Execute()
     this->CreateNewConditions();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+template <SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::SavePreviousProperties()
+{
+}
 /***********************************************************************************/
 /***********************************************************************************/
 template <SizeType TDim>

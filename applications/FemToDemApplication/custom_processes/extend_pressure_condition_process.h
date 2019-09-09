@@ -43,17 +43,26 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ExtendPressureConditionProcess);
 
     // Constructor
-    ExtendPressureConditionProcess(ModelPart &r_model_part);
+    ExtendPressureConditionProcess(ModelPart& r_model_part);
 
     // Destructor
     ~ExtendPressureConditionProcess() override = default;
 
     void operator()() { Execute(); }
 
+    /**
+     * @brief Regenerates the prssure load according to ne new boundary
+     */
     void Execute() override;
 
+    /**
+     * @brief This erases all the line loads 
+     */
     void RemovePreviousLineLoads();
 
+    /**
+     * @brief This generates the new line/surface loads
+     */
     void CreateNewConditions();
 
     void GenerateLineLoads2Nodes(
@@ -107,10 +116,14 @@ public:
 
     void ResetFlagOnElements();
 
+    void SavePreviousProperties();
+
 protected:
     // Member Variables
     ModelPart& mrModelPart;
     std::string mPressureName;
+    std::vector<ModelPart::PropertiesType::Pointer> mpPropertiesVector;
+    std::vector<unsigned int> mPropertiesId;
 
 };  // Class
 
