@@ -248,8 +248,7 @@ public:
         mBDF = r_current_process_info[BDF_COEFFICIENTS];
 
         KRATOS_WARNING_IF("ResidualBasedBDFScheme", mOrder > 2)
-        << "For higher orders than 2 the time step is assumed to be constant."
-        << "Sorry for the inconveniences \n";
+        << "For higher orders than 2 the time step is assumed to be constant.\n";
 
         KRATOS_CATCH( "" );
     }
