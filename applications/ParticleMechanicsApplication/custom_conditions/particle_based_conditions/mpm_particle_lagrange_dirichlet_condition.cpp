@@ -23,6 +23,7 @@
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 #include "includes/checks.h"
 
+
 namespace Kratos
 {
 //******************************* CONSTRUCTOR ****************************************
@@ -82,7 +83,8 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo&
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            lagrange_multiplier[j] = 0;
+            #pragma omp atomic
+            lagrange_multiplier[j] *= 0.0;
         }
     }
 
