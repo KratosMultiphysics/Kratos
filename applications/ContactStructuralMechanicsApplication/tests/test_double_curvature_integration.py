@@ -1,12 +1,16 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# Some additional imports
+from gid_output_process import GiDOutputProcess
+
+# Some system imports
 import os
+from decimal import Decimal
 
 class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
     def setUp(self):
@@ -115,28 +119,27 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
 
         self.__base_test_integration(input_filename, num_nodes)
 
-        for iter in range(1):
-            delta_disp = 1.0e-6
-            for node in self.main_model_part.GetSubModelPart("GroupPositiveX").Nodes:
-                node.X += delta_disp
-            for node in self.main_model_part.GetSubModelPart("GroupPositiveY").Nodes:
-                node.Y += delta_disp
-            for node in self.main_model_part.GetSubModelPart("GroupNegativeX").Nodes:
-                node.X -= delta_disp
-            for node in self.main_model_part.GetSubModelPart("GroupNegativeY").Nodes:
-                node.Y -= delta_disp
+        delta_disp = 1.0e-6
+        for node in self.main_model_part.GetSubModelPart("GroupPositiveX").Nodes:
+            node.X += delta_disp
+        for node in self.main_model_part.GetSubModelPart("GroupPositiveY").Nodes:
+            node.Y += delta_disp
+        for node in self.main_model_part.GetSubModelPart("GroupNegativeX").Nodes:
+            node.X -= delta_disp
+        for node in self.main_model_part.GetSubModelPart("GroupNegativeY").Nodes:
+            node.Y -= delta_disp
 
-            #print("Solution obtained")
-            tolerance = 5.0e-5
-            for cond in self.contact_model_part.Conditions:
-                if cond.Is(KratosMultiphysics.SLAVE):
-                    area = self.exact_integration.TestGetExactAreaIntegration(self.contact_model_part, cond)
-                    condition_area = cond.GetGeometry().Area()
-                    check_value = abs((area - condition_area)/condition_area)
-                    if check_value >  tolerance:
-                        print(cond.Id,"\t",area,"\t", condition_area,"\t", self.__sci_str(check_value))
-                    else:
-                        self.assertLess(check_value, tolerance)
+        #print("Solution obtained")
+        tolerance = 5.0e-5
+        for cond in self.contact_model_part.Conditions:
+            if cond.Is(KratosMultiphysics.SLAVE):
+                area = self.exact_integration.TestGetExactAreaIntegration(self.contact_model_part, cond)
+                condition_area = cond.GetGeometry().Area()
+                check_value = abs((area - condition_area)/condition_area)
+                if check_value >  tolerance:
+                    print(cond.Id,"\t",area,"\t", condition_area,"\t", __sci_str(check_value))
+                else:
+                    self.assertLess(check_value, tolerance)
 
     def test_double_curvature_integration_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/integration_tests/test_double_curvature_integration_triangle"
@@ -166,7 +169,6 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         self._double_curvature_tests(input_filename, 4, list_of_border_cond)
 
     def __post_process(self):
-        from gid_output_process import GiDOutputProcess
         self.gid_output = GiDOutputProcess(self.main_model_part,
                                     "gid_output",
                                     KratosMultiphysics.Parameters("""
@@ -193,17 +195,16 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
         self.gid_output.ExecuteFinalizeSolutionStep()
         self.gid_output.ExecuteFinalize()
 
-    def __sci_str(self, x):
-        from decimal import Decimal
-        s = 10*Decimal(str(x))
-        s = ('{:.' + str(len(s.normalize().as_tuple().digits) - 1) + 'E}').format(s)
-        s = s.replace('E+','D0')
-        s = s.replace('E-','D0-')
-        s = s.replace('.','')
-        if s.startswith('-'):
-            return '-.' + s[1:]
-        else:
-            return '.' + s
+def __sci_str(x):
+    s = 10*Decimal(str(x))
+    s = ('{:.' + str(len(s.normalize().as_tuple().digits) - 1) + 'E}').format(s)
+    s = s.replace('E+','D0')
+    s = s.replace('E-','D0-')
+    s = s.replace('.','')
+    if s.startswith('-'):
+        return '-.' + s[1:]
+    else:
+        return '.' + s
 
 if __name__ == '__main__':
     KratosUnittest.main()
