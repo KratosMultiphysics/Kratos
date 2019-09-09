@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/condition.h"
+#include "geometries/coupling_geometry.h"
 
 namespace Kratos
 {
@@ -66,6 +67,8 @@ public:
 
     typedef Geometry<NodeType>                                              GeometryType;
 
+    typedef CouplingGeometry<NodeType>                              CouplingGeometryType;
+
     typedef BaseType::VectorType                                              VectorType;
 
     typedef BaseType::MatrixType                                              MatrixType;
@@ -91,10 +94,9 @@ public:
     PairedCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
-        ) :Condition(NewId, pGeometry),
-           mpPairedGeometry(nullptr)
+        ) :Condition(NewId, Kratos::make_shared<CouplingGeometryType>(pGeometry, nullptr))
     {
-        KRATOS_ERROR << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
+        KRATOS_WARNING_FIRST_N("PairedCondition", 10) << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
     }
 
     // Constructor 2
@@ -102,10 +104,9 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
-        ) :Condition( NewId, pGeometry, pProperties ),
-           mpPairedGeometry(nullptr)
+        ) :Condition( NewId, Kratos::make_shared<CouplingGeometryType>(pGeometry, nullptr), pProperties )
     {
-        KRATOS_ERROR << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
+        KRATOS_WARNING_FIRST_N("PairedCondition", 10) << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
     }
 
     // Constructor 3
@@ -115,8 +116,7 @@ public:
         PropertiesType::Pointer pProperties,
         GeometryType::Pointer pPairedGeometry
         )
-        :Condition( NewId, pGeometry, pProperties ),
-         mpPairedGeometry(pPairedGeometry)
+        :Condition( NewId, Kratos::make_shared<CouplingGeometryType>(pGeometry, pPairedGeometry), pProperties )
     {}
 
     ///Copy constructor
@@ -190,7 +190,7 @@ public:
      */
     GeometryType& GetParentGeometry()
     {
-        return this->GetGeometry();
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
     }
 
     /**
@@ -199,7 +199,7 @@ public:
      */
     GeometryType const& GetParentGeometry() const
     {
-        return this->GetGeometry();
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
     }
 
     /**
@@ -208,7 +208,7 @@ public:
      */
     GeometryType& GetPairedGeometry()
     {
-        return *mpPairedGeometry;
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Slave);
     }
 
     /**
@@ -217,7 +217,7 @@ public:
      */
     GeometryType const& GetPairedGeometry() const
     {
-        return *mpPairedGeometry;
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Slave);
     }
 
     ///@}
@@ -246,7 +246,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -263,8 +263,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    GeometryType::Pointer mpPairedGeometry; // The geometry of the pair "condition"
 
     ///@}
     ///@name Protected Operators
@@ -322,13 +320,11 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-        rSerializer.save("PairedGeometry", mpPairedGeometry);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-        rSerializer.load("PairedGeometry", mpPairedGeometry);
     }
 
     ///@}

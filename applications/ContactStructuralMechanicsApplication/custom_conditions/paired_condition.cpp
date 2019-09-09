@@ -70,11 +70,6 @@ void PairedCondition::Initialize( )
 
     BaseType::Initialize();
 
-    // Setting paired condition
-    if (!this->Has(PAIRED_GEOMETRY)) {
-        this->SetValue(PAIRED_GEOMETRY, mpPairedGeometry);
-    }
-
     KRATOS_CATCH( "" );
 }
 
