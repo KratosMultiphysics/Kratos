@@ -33,9 +33,9 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
     def ModifyInitialGeometry(self):
         """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node"""
         super(ConvectionDiffusionAnalysisWithFlush,self).ModifyInitialGeometry()
-        
+
         computing_model_part = self.model["ThermalModelPart"]
-        
+
         with open('NodalModes.json') as f:
             data=json.load(f)
             counter = 0
@@ -44,10 +44,8 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
                 aux = KratosMultiphysics.Matrix(1, rom_dofs) # 1, since its a scalar quantity (a vector is imported to each node)
                 Counter=str(1.0*node.Id)
                 for i in range(rom_dofs):
-                    aux[0, i] = data[Counter][i]
-                """ROM_BASIS"""
-                node.SetValue(romapp.ROM_BASIS, aux )
-                """AUX_ID"""
+                    aux[0, i] = data[Counter][i] # ROM basis
+                node.SetValue(romapp.ROM_BASIS, aux ) # Aux ID
                 node.SetValue(romapp.AUX_ID, counter)
                 counter+=1
 
@@ -62,7 +60,7 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
     def ModifyInitialProperties(self):
         # ################################################################
         # #                      HEAT FLUX PROPERTY                      #
-        ################################################################  
+        ##################################################################
         self.processes = []
 
         HeatFlux1 = -700.0
@@ -78,7 +76,6 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
         heatFluxSettings1.AddEmptyValue("value").SetDouble(HeatFlux1)
         self.processes.append(AssignScalarVariableProcess(self.model, heatFluxSettings1))
 
-        
         HeatFlux2 = 700.0
         heatFluxSettings2 = KratosMultiphysics.Parameters("""
             {
@@ -168,7 +165,7 @@ if __name__ == "__main__":
     model = KratosMultiphysics.Model()
     simulation = ConvectionDiffusionAnalysisWithFlush(model,parameters)
     simulation.Run()
-    
+
     QoI2 = simulation.EvaluateQuantityOfInterest2()
     print(QoI2)
     print( "------------------------------------------" )
