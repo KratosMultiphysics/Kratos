@@ -726,12 +726,12 @@ class MultilevelMonteCarlo(object):
             "k1"                                  : 0.1,
             "r1"                                  : 1.25,
             "r2"                                  : 1.15,
-            "initial_tolerance"                   : 0.25,
+            "initial_tolerance"                   : -1,
             "tolerance"                           : 0.1,
             "tolerance_absolute"                  : 1e-6,
             "confidence"                          : 0.9,
             "cphi_confidence"                     : 1.28155156554,
-            "initial_batch_size"            : [25,25,25],
+            "initial_batch_size"                  : [25,25,25],
             "initial_number_batches"              : 1,
             "maximum_number_levels"               : 4,
             "maximum_number_iterations"           : 5,
@@ -753,6 +753,12 @@ class MultilevelMonteCarlo(object):
 
         # validate and assign default parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
+        # distinguish between MLMC and CMLMC
+        if (self.settings["initial_tolerance"].GetDouble() == -1): # MLMC
+            self.settings["initial_tolerance"].SetDouble(self.settings["tolerance"].GetDouble()) # set initial tolerance equal to tolerance: does not change as we run more iterations
+        else: # CMLMC: as long as iteration_counter grows, we decrease the tolerance from initial_tolerance to tolerance
+            if (self.settings["initial_tolerance"].GetDouble() < self.settings["tolerance"].GetDouble()):
+                raise Exception ("Set initial_tolerance greater or equal than tolerance")
         # warning if use_lower_levels_samples is True
         if (self.settings["use_lower_levels_samples"].GetBool()):
             print("\n ######## WARNING: use_lower_levels_samples set to True --> introducing a BIAS in the problem ########\n")
