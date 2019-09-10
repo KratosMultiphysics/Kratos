@@ -44,19 +44,20 @@ class TestSerializer(KratosUnittest.TestCase):
         serialized_model.Load("ModelSerialization",self.current_model)
 
     def _check_results(self):
-        pre_serialized_model_part = self.pre_serialized_model.GetModelPart(self.main_model_part_name).GetSubModelPart("NoSlip2D_structure")
-        pre_serialized_pressure_results = []
-        for node in pre_serialized_model_part.Nodes:
-            pressure = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
-            pre_serialized_pressure_results.append(pressure)
-        serialized_model_part = self.current_model.GetModelPart(self.main_model_part_name).GetSubModelPart("NoSlip2D_structure")
-        serialized_pressure_results = []
-        for node in serialized_model_part.Nodes:
-            pressure = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
-            serialized_pressure_results.append(pressure)
+        pre_serialized_model_part = self.pre_serialized_model.GetModelPart(self.main_model_part_name)
+        pre_serialized_pressure_results = [node.GetSolutionStepValue(KratosMultiphysics.PRESSURE) for node in pre_serialized_model_part.Nodes]
+        pre_serialized_velocity_results = [node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) for node in pre_serialized_model_part.Nodes]
+
+        serialized_model_part = self.current_model.GetModelPart(self.main_model_part_name)
+        serialized_pressure_results = [node.GetSolutionStepValue(KratosMultiphysics.PRESSURE) for node in serialized_model_part.Nodes]
+        serialized_velocity_results = [node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) for node in serialized_model_part.Nodes]
+
         # Comparing results before and after serializing
         for pre_serialized_result, serialized_result in zip(pre_serialized_pressure_results,serialized_pressure_results):
             self.assertAlmostEqual(pre_serialized_result, serialized_result)
+        for pre_serialized_result, serialized_result in zip(pre_serialized_velocity_results,serialized_velocity_results):
+            for value_pre_seralized, value_serialized in zip(pre_serialized_result, serialized_result):
+                self.assertAlmostEqual(value_pre_seralized, value_serialized)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"FluidDynamicsApplication is not available")
     def test_serializer_fluid_analysis(self):
