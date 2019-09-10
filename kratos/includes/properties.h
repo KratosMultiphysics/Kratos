@@ -398,26 +398,22 @@ public:
     {
         const auto indexes = TrimComponentName(rAddress);
         const std::size_t number_indexes = indexes.size();
-        if (indexes[0] == this->Id()) {
-            if (number_indexes > 1) {
-                if (this->HasSubProperties(indexes[1])) {
-                    Properties::Pointer p_property_interest = pGetSubProperties(indexes[1]);
-                    for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
-                        if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
-                            return false;
-                        } else {
-                            p_property_interest = pGetSubProperties(indexes[i_index]);
-                        }
+        if (number_indexes > 0) {
+            if (this->HasSubProperties(indexes[0])) {
+                Properties::Pointer p_property_interest = pGetSubProperties(indexes[0]);
+                for (IndexType i_index = 1; i_index < number_indexes; ++i_index) {
+                    if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
+                        return false;
+                    } else {
+                        p_property_interest = pGetSubProperties(indexes[i_index]);
                     }
-                    return true;
-                } else {
-                    return false;
                 }
+                return true;
             } else {
-                KRATOS_WARNING("Properties") << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
                 return false;
             }
         } else {
+            KRATOS_WARNING("Properties") << "Giving an address pointing directly to this Properties, extension expected of at least one component" << std::endl;
             return false;
         }
     }
@@ -433,26 +429,22 @@ public:
         const std::size_t number_indexes = indexes.size();
 
         // Iterating over subproperties
-        if (indexes[0] == this->Id()) {
-            if (number_indexes > 1) {
-                if (this->HasSubProperties(indexes[1])) {
-                    Properties::Pointer p_property_interest = pGetSubProperties(indexes[1]);
-                    for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
-                        if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
-                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
-                        } else {
-                            p_property_interest = pGetSubProperties(indexes[i_index]);
-                        }
+        if (number_indexes > 0) {
+            if (this->HasSubProperties(indexes[0])) {
+                Properties::Pointer p_property_interest = pGetSubProperties(indexes[0]);
+                for (IndexType i_index = 1; i_index < number_indexes; ++i_index) {
+                    if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
+                        KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+                    } else {
+                        p_property_interest = pGetSubProperties(indexes[i_index]);
                     }
-                    return p_property_interest;
-                } else {
-                    KRATOS_ERROR << "Second index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[1] << std::endl;
                 }
+                return p_property_interest;
             } else {
-                KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
+                KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[0] << std::endl;
             }
         } else {
-            KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
+            KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least one component" << std::endl;
         }
     }
 
@@ -467,26 +459,22 @@ public:
         const std::size_t number_indexes = indexes.size();
 
         // Iterating over subproperties
-        if (indexes[0] == this->Id()) {
-            if (number_indexes > 1) {
-                if (this->HasSubProperties(indexes[1])) {
-                    Properties::Pointer p_property_interest = pGetSubProperties(indexes[1]);
-                    for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
-                        if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
-                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
-                        } else {
-                            p_property_interest = pGetSubProperties(indexes[i_index]);
-                        }
+        if (number_indexes > 0) {
+            if (this->HasSubProperties(indexes[0])) {
+                Properties::Pointer p_property_interest = pGetSubProperties(indexes[0]);
+                for (IndexType i_index = 1; i_index < number_indexes; ++i_index) {
+                    if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
+                        KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+                    } else {
+                        p_property_interest = pGetSubProperties(indexes[i_index]);
                     }
-                    return p_property_interest;
-                } else {
-                    KRATOS_ERROR << "Second index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[1] << std::endl;
                 }
+                return p_property_interest;
             } else {
-                KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
+                KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[0] << std::endl;
             }
         } else {
-            KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
+            KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least one component" << std::endl;
         }
     }
 
@@ -501,26 +489,22 @@ public:
         const std::size_t number_indexes = indexes.size();
 
         // Iterating over subproperties
-        if (indexes[0] == this->Id()) {
-            if (number_indexes > 1) {
-                if (this->HasSubProperties(indexes[1])) {
-                    Properties::Pointer p_property_interest = pGetSubProperties(indexes[1]);
-                    for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
-                        if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
-                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
-                        } else {
-                            p_property_interest = pGetSubProperties(indexes[i_index]);
-                        }
+        if (number_indexes > 0) {
+            if (this->HasSubProperties(indexes[0])) {
+                Properties::Pointer p_property_interest = pGetSubProperties(indexes[0]);
+                for (IndexType i_index = 1; i_index < number_indexes; ++i_index) {
+                    if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
+                        KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+                    } else {
+                        p_property_interest = pGetSubProperties(indexes[i_index]);
                     }
-                    return *p_property_interest;
-                } else {
-                    KRATOS_ERROR << "Second index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[1] << std::endl;
                 }
+                return *p_property_interest;
             } else {
-                KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
+                KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[0] << std::endl;
             }
         } else {
-            KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
+            KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least one component" << std::endl;
         }
     }
 
@@ -535,26 +519,22 @@ public:
         const std::size_t number_indexes = indexes.size();
 
         // Iterating over subproperties
-        if (indexes[0] == this->Id()) {
-            if (number_indexes > 1) {
-                if (this->HasSubProperties(indexes[1])) {
-                    Properties::Pointer p_property_interest = pGetSubProperties(indexes[1]);
-                    for (IndexType i_index = 2; i_index < number_indexes; ++i_index) {
-                        if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
-                            KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
-                        } else {
-                            p_property_interest = pGetSubProperties(indexes[i_index]);
-                        }
+        if (number_indexes > 0) {
+            if (this->HasSubProperties(indexes[0])) {
+                Properties::Pointer p_property_interest = pGetSubProperties(indexes[0]);
+                for (IndexType i_index = 1; i_index < number_indexes; ++i_index) {
+                    if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
+                        KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+                    } else {
+                        p_property_interest = pGetSubProperties(indexes[i_index]);
                     }
-                    return *p_property_interest;
-                } else {
-                    KRATOS_ERROR << "Second index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[1] << std::endl;
                 }
+                return *p_property_interest;
             } else {
-                KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least two components" << std::endl;
+                KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[0] << std::endl;
             }
         } else {
-            KRATOS_ERROR << "First index is wrong, does not correspond with current Properties Id: " << indexes[0] << " vs " << this->Id() << std::endl;
+            KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least one component" << std::endl;
         }
     }
 
