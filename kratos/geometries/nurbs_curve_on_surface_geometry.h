@@ -8,6 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Thomas Oberbichler
+//                   Tobias Teschemacher
+//                   Andreas Apostolatos
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
@@ -18,6 +20,8 @@
 // Project includes
 #include "geometries/geometry.h"
 
+#include "geometries/nurbs_curve_geometry.h"
+#include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
@@ -32,18 +36,20 @@ public:
     ///@{
 
     /// Geometry as base class.
-    typedef Geometry<typename TContainerPointType::value_type> BaseType;
+    // typedef Geometry<typename TCurveContainerPointType::value_type> BaseType;
+    typedef NurbsCurveGeometry<2, TCurveContainerPointType> BaseType;
     typedef NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TSurfaceContainerPointType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
 
-    typedef NurbsSurfaceGeometry<3, typename TSurfaceContainerPointType::value_type> NurbsSurfaceType;
-    typedef NurbsCurveGeometry<2, typename TCurveContainerPointType::value_type> NurbsCurveType;
+    typedef NurbsSurfaceGeometry<3, TSurfaceContainerPointType> NurbsSurfaceType;
+    typedef NurbsCurveGeometry<2, TCurveContainerPointType> NurbsCurveType;
 
     /** Array of counted pointers to point. This type used to hold
         geometry's points.*/
-    typedef  typename TContainerPointType PointsArrayType;
+    // typedef  typename TCurveContainerPointType PointsArrayType;
+    typedef  typename BaseType::PointsArrayType PointsArrayType;
 
     typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
@@ -55,16 +61,30 @@ public:
     ///@{
 
     /// Conctructor for curve on surface
-    NurbsCurveOnSurfaceGeometry((
+    /*NurbsCurveOnSurfaceGeometry(
         typename NurbsSurfaceType::Pointer pSurface,
-        typename NurbsCurveType::Pointer pCurve))
+        typename NurbsCurveType::Pointer pCurve)
         : BaseType(rThisPoints, &msGeometryData)
+        , mpNurbsSurface(pSurface)
+        , mpNurbsCurve(pCurve)
+    {
+    }*/
+
+    NurbsCurveOnSurfaceGeometry(
+        typename NurbsSurfaceType::Pointer pSurface,
+        typename NurbsCurveType::Pointer pCurve)
+        : BaseType(
+            pCurve->Points(), 
+            pCurve->PolynomialDegree(), 
+            pCurve->Knots(), 
+            pCurve->Weights()
+        )
         , mpNurbsSurface(pSurface)
         , mpNurbsCurve(pCurve)
     {
     }
 
-    explicit NurbsCurveOnSurfaceGeometry()
+    explicit NurbsCurveOnSurfaceGeometry(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
     }
@@ -79,7 +99,7 @@ public:
 
     /// Copy constructor from a geometry with different point type.
     template<class TOtherCurveContainerPointType, class TOtherSurfaceContainerPointType> NurbsCurveOnSurfaceGeometry(
-        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
+        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TOtherSurfaceContainerPointType> const& rOther)
         : BaseType(rOther)
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mpNurbsCurve(rOther.mpNurbsCurve)
@@ -123,7 +143,7 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    template<class TOtherContainerPointType>
+    /*template<class TOtherContainerPointType>
     NurbsCurveOnSurfaceGeometry& operator=(
         NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
     {
@@ -131,17 +151,17 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mpNurbsCurve = rOther.mpNurbsCurve;
         return *this;
-    }
+    }*/
 
     ///@}
     ///@name Operations
     ///@{
 
-    typename BaseType::Pointer Create(
+    /*typename BaseType::Pointer Create(
         PointsArrayType const& ThisPoints) const override
     {
         return Kratos::make_shared<NurbsCurveOnSurfaceGeometry>();
-    }
+    }*/
 
     ///@}
     ///@name Get and Set functions
@@ -156,15 +176,15 @@ public:
         return mpNurbsCurve->PolynomialDegree();
     }
 
-    ///* 
-    //* @brief Knot vector is defined to have a multiplicity of p
-    //*        at the beginning and end (NOT: p + 1).
-    //* @return knot vector.
-    //*/
-    //const Vector& Knots() const
-    //{
-    //    return mKnots;
-    //}
+    /* 
+    * @brief Knot vector is defined to have a multiplicity of p
+    *        at the beginning and end (NOT: p + 1).
+    * @return knot vector.
+    */
+    /*const Vector& Knots() const
+    {
+        return mpNurbsCurve->Knots();
+    }*/
 
     ///*
     //* @brief The number of knots within the knot vector.
@@ -245,7 +265,7 @@ public:
     /** 
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
-    * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
+    * From ANurbs library (https://github.com/oberbichler/ANurbs)
     * @param LocalCoordinates The local coordinates in dimension space
     * @param Derivative Number of computed derivatives
     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
@@ -256,42 +276,38 @@ public:
         const SizeType DerivativeOrder) const
     {
         // derivatives of base geometries
+        auto curve_derivatives = mpNurbsCurve->GlobalDerivatives(rCoordinates, DerivativeOrder);
 
-        const auto curve_derivatives =
-            m_curve_geometry->derivatives_at(t, order);
+        const CoordinatesArrayType surface_coordinates = {curve_derivatives[0][0], curve_derivatives[1][0]};
 
-        const double u = curve_derivatives[0][0];
-        const double v = curve_derivatives[0][1];
-
-        const auto surface_derivatives =
-            m_surface_geometry->derivatives_at(u, v, order);
+        auto surface_derivatives = mpNurbsSurface->GlobalDerivatives(surface_coordinates, DerivativeOrder);
 
         // compute combined derivatives
 
-        std::vector<Vector> derivatives(order + 1);
+        std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
 
         std::function<Vector(int, int, int)> c;
 
-        c = [&](int order, int i, int j) -> Vector {
-            if (order > 0) {
-                Vector result = Vector::Zero();
+        c = [&](int DerivativeOrder, int i, int j) -> Vector {
+            if (DerivativeOrder > 0) {
+                Vector result = ZeroVector();
 
-                for (int a = 1; a <= order; a++) {
+                for (int a = 1; a <= DerivativeOrder; a++) {
                     result += (
-                        c(order - a, i + 1, j) * curve_derivatives[a][0] +
-                        c(order - a, i, j + 1) * curve_derivatives[a][1]
-                        ) * Math::binom(order - 1, a - 1);
+                        c(DerivativeOrder - a, i + 1, j) * curve_derivatives[0][a] +
+                        c(DerivativeOrder - a, i, j + 1) * curve_derivatives[1][a]
+                        ) * NurbsUtilities::GetBinomCoefficient(DerivativeOrder - 1, a - 1);
                 }
 
                 return result;
             }
             else {
-                const int index = NurbsSurfaceShapeFunction::shape_index(i, j);
+                const int index = surface_derivatives->IndexOfShapeFunctionRow(i, j);
                 return surface_derivatives[index];
             }
         };
 
-        for (int i = 0; i <= order; i++) {
+        for (int i = 0; i <= DerivativeOrder; i++) {
             derivatives[i] = c(i, 0, 0);
         }
 
@@ -324,7 +340,7 @@ public:
         //    derivatives[order] = (*this)[index_0] * 0.0;
         //}
         //return derivatives;
-    }
+    // }
 
     /*
     * @brief This method maps from dimension space to working space.
@@ -334,7 +350,7 @@ public:
     * @return array_1d<double, 3> with the coordinates in working space
     * @see PointLocalCoordinates
     */
-    CoordinatesArrayType& GlobalCoordinates(
+    /*CoordinatesArrayType& GlobalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rLocalCoordinates
     ) const override
@@ -360,7 +376,7 @@ public:
         //    rResult += (*this)[index] * shape_function_container(i, 0);
         //}
         //return rResult;
-    }
+    }*/
 
     ///@}
     ///@name Shape Function
@@ -487,13 +503,13 @@ private:
 
 }; // class NurbsCurveOnSurfaceGeometry
 
-template<int TWorkingSpaceDimension, class TContainerPointType>
-const GeometryData NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryData(
+/*template<int TWorkingSpaceDimension, class TContainerPointType>TPointType
+const GeometryData NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimTPointTypeension, TContainerPointType>::msGeometryData(
     1,
     TWorkingSpaceDimension,
     2,
     GeometryData::GI_GAUSS_1,
-    {}, {}, {});
+    {}, {}, {});*/
 
 } // namespace Kratos
 
