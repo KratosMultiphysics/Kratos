@@ -21,7 +21,7 @@ class TestSerializer(KratosUnittest.TestCase):
     def _prepare_test(self):
         # Define a model and load the parameters
         self.pre_serialized_model = KratosMultiphysics.Model()
-        with open("auxiliar_files_for_python_unnitest/parameters_files/test_serializer.json",'r') as parameter_file:
+        with open(GetFilePath("auxiliar_files_for_python_unnitest/parameters_files/test_serializer.json"),'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         # First the model is initialized
