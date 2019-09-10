@@ -977,9 +977,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                const array_1d<double,3>& delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
-
-                array_1d<double, 3> actual_arm_vector, new_arm_vector;
+                const array_1d<double,3> negative_delta_rotation = -1.0*GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
+                array_1d<double, 3> actual_arm_vector, old_arm_vector;
                 actual_arm_vector[0] = -data_buffer.mLocalCoordSystem[2][0] * DistPToB;
                 actual_arm_vector[1] = -data_buffer.mLocalCoordSystem[2][1] * DistPToB;
                 actual_arm_vector[2] = -data_buffer.mLocalCoordSystem[2][2] * DistPToB;
@@ -989,14 +988,14 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
                 GeometryFunctions::CrossProduct(AngularVel, actual_arm_vector, tangential_vel);
 
                 Quaternion<double> DeltaOrientation = Quaternion<double>::Identity();
-                GeometryFunctions::OrientationFromRotationAngle(DeltaOrientation, delta_rotation);
+                GeometryFunctions::OrientationFromRotationAngle(DeltaOrientation, negative_delta_rotation);
 
-                DeltaOrientation.RotateVector3(actual_arm_vector, new_arm_vector);
+                DeltaOrientation.RotateVector3(actual_arm_vector, old_arm_vector);
 
                 // Contribution of the rotation
-                tangential_displacement_due_to_rotation[0] = (new_arm_vector[0] - actual_arm_vector[0]);
-                tangential_displacement_due_to_rotation[1] = (new_arm_vector[1] - actual_arm_vector[1]);
-                tangential_displacement_due_to_rotation[2] = (new_arm_vector[2] - actual_arm_vector[2]);
+                tangential_displacement_due_to_rotation[0] = (actual_arm_vector[0] - old_arm_vector[0]);
+                tangential_displacement_due_to_rotation[1] = (actual_arm_vector[1] - old_arm_vector[1]);
+                tangential_displacement_due_to_rotation[2] = (actual_arm_vector[2] - old_arm_vector[2]);
 
                 DEM_ADD_SECOND_TO_FIRST(DeltVel, tangential_vel)
                 DEM_ADD_SECOND_TO_FIRST(DeltDisp, tangential_displacement_due_to_rotation)
