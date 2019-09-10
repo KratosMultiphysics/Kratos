@@ -168,6 +168,7 @@ def AssembleTestSuites():
     # Test ProcessFactoryUtility
     smallSuite.addTest(TTestProcessFactory('test_process_factory'))
     smallSuite.addTest(TTestCheckNormals('test_check_normals'))
+    smallSuite.addTest(TTestCheckNormals('test_check_normals_quads'))
     smallSuite.addTest(TTestProcessFactory('test_processes_list_factory'))
 
     # Mesh tying tests

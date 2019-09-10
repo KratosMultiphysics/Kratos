@@ -83,6 +83,11 @@ class TestCheckNormals(KratosUnittest.TestCase):
 
         self._normal_check_process_tests(input_filename)
 
+    def test_check_normals_quads(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/inverted_normals_quads"
+
+        self._normal_check_process_tests(input_filename)
+
     def __post_process(self, debug = "GiD"):
         if debug == "GiD":
             self.gid_output = GiDOutputProcess(self.main_model_part,
