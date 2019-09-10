@@ -75,9 +75,14 @@ class FEM_Solution(MainSolidFEM.Solution):
 		### replace this "model" for real one once available in kratos core
 		self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
 
-		#construct the solver (main setting methods are located in the solver_module)
-		solver_module = __import__("KratosMultiphysics.FemToDemApplication." + self.ProjectParameters["solver_settings"]["solver_type"].GetString())
-		self.solver   = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+		# Construct the solver (main setting methods are located in the solver_module)
+		if self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "FemDemDynamicSolver":
+			import KratosMultiphysics.FemToDemApplication.FemDemDynamicSolver as FemDemDynamicSolver
+			self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+		elif self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "FemDemStaticSolver":
+			import KratosMultiphysics.FemToDemApplication.FemDemStaticSolver as FemDemStaticSolver
+			self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+
 
 		#### Output settings start ####
 		self.problem_path = os.getcwd()
