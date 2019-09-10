@@ -68,6 +68,10 @@ namespace Kratos
 			mStatus = Result::Failed;
 		}
 
+		void TestCaseResult::SetToSkipped() {
+			mStatus = Result::Skipped;
+		}
+
 		void TestCaseResult::SetOutput(const std::string& TheOutput) {
 			mOutput = TheOutput;
 		}
@@ -133,6 +137,16 @@ namespace Kratos
 		bool TestCaseResult::IsFailed() const
 		{
 			return mStatus == Result::Failed;
+		}
+
+		bool TestCaseResult::IsSkipped() const
+		{
+			return mStatus == Result::Skipped;
+		}
+
+		bool TestCaseResult::IsRun() const
+		{
+			return mStatus != Result::NotRun;
 		}
 
 		std::string TestCaseResult::Info() const

@@ -76,6 +76,8 @@ namespace Kratos
 
 			void SetToFailed();
 
+			void SetToSkipped();
+
 			void SetOutput(const std::string& TheOutput);
 
 			const std::string& GetOutput() const;
@@ -109,6 +111,10 @@ namespace Kratos
 			bool IsSucceed() const;
 
 			bool IsFailed() const;
+
+			bool IsSkipped() const;
+
+			bool IsRun() const;
 
 			///@}
 			///@name Input and output
