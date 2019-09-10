@@ -26,6 +26,22 @@
 namespace Kratos {
 namespace Python {
 
+const DataCommunicator& CreateFromListOfRanks(
+    const DataCommunicator& rReferenceComm,
+    pybind11::list& rRanks,
+    const std::string& rNewName)
+{
+    namespace py = pybind11;
+
+    std::size_t list_length = py::len(rRanks);
+    std::vector<int> rank_vector(list_length);
+    for (std::size_t i = 0; i < list_length; i++)
+    {
+        rank_vector[i] = py::int_(rRanks[i]);
+    }
+    return DataCommunicatorFactory::CreateFromRanksAndRegister(rReferenceComm, rank_vector, rNewName);
+}
+
 void AddMPIUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -41,11 +57,11 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     ;
 
     m.def_submodule("DataCommunicatorFactory")
-    .def("DuplicateAndRegister",DataCommunicatorFactory::DuplicateAndRegister, py::return_value_policy::reference)
-    .def("SplitAndRegister",DataCommunicatorFactory::SplitAndRegister, py::return_value_policy::reference)
-    .def("CreateFromRanksAndRegister",DataCommunicatorFactory::CreateFromRanksAndRegister, py::return_value_policy::reference)
-    .def("CreateUnionAndRegister",DataCommunicatorFactory::CreateUnionAndRegister, py::return_value_policy::reference)
-    .def("CreateIntersectionAndRegister",DataCommunicatorFactory::CreateIntersectionAndRegister, py::return_value_policy::reference)
+    .def("DuplicateAndRegister", &DataCommunicatorFactory::DuplicateAndRegister, py::return_value_policy::reference)
+    .def("SplitAndRegister", &DataCommunicatorFactory::SplitAndRegister, py::return_value_policy::reference)
+    .def("CreateFromRanksAndRegister", &CreateFromListOfRanks, py::return_value_policy::reference)
+    .def("CreateUnionAndRegister", &DataCommunicatorFactory::CreateUnionAndRegister, py::return_value_policy::reference)
+    .def("CreateIntersectionAndRegister", &DataCommunicatorFactory::CreateIntersectionAndRegister, py::return_value_policy::reference)
     ;
 
     py::class_<GatherModelPartUtility>(m, "GatherModelPartUtility")
