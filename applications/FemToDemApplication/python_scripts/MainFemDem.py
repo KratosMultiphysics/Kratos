@@ -93,7 +93,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 	def AddMaterials(self):
 
 		# Assign material to model_parts (if Materials.json exists)
-		import process_factory
+		import KratosMultiphysics.process_factory as process_factory
 
 		if os.path.isfile("Materials.json"):
 			materials_file = open("Materials.json",'r')
