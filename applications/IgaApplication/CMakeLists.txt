@@ -5,19 +5,8 @@ message("**** configuring KratosIgaApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-if(NOT DEFINED ANURBS_ROOT)
-    message(FATAL_ERROR
-        "ANURBS_ROOT not defined!\n"
-        "  - Download ANurbs from https://github.com/oberbichler/ANurbs\n"
-        "  - Add '-DANURBS_ROOT=<path to ANurbs>' to your build script")
-else()
-    message(STATUS "ANURBS_ROOT = ${ANURBS_ROOT}")
-endif()
-
 include_directories(
     ${CMAKE_SOURCE_DIR}/kratos
-    ${ANURBS_ROOT}/include
-    ${ANURBS_ROOT}/external_libraries
 )
 
 # generate variables with the sources
@@ -33,7 +22,8 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
-    ${ANURBS_ROOT}/external_libraries/ClipperLib/clipper.cpp
+    # conditions
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_condition.cpp
 )
 
 ## generate variables with the testing sources

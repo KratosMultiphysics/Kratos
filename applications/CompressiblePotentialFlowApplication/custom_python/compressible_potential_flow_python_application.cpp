@@ -22,6 +22,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos
 {
@@ -39,6 +40,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     AddCustomResponseFunctionUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     //registering variables in python
     // Degrees of freedom
