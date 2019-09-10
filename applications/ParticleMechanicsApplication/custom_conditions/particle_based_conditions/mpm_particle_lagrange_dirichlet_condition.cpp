@@ -84,7 +84,7 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( ProcessInfo&
         for ( unsigned int j = 0; j < dimension; j++ )
         {
             #pragma omp atomic
-            lagrange_multiplier[j] *= 0.0;
+            r_lagrange_multiplier[j] *= 0.0;
         }
     }
 
@@ -129,7 +129,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     // Get imposed displacement and normal vector
     const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
-    const array_1d<double, 3 > & imposed_displacement = this->GetValue (MPC_IMPOSED_DISPLACEMENT);
+    const array_1d<double, 3 > & r_imposed_displacement = this->GetValue (MPC_IMPOSED_DISPLACEMENT);
 
     // Prepare variables
     GeneralVariables Variables;
@@ -145,8 +145,8 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     if (Is(CONTACT))
     {
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
-        array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
-        ParticleMechanicsMathUtilities<double>::Normalize(unit_normal_vector);
+        array_1d<double, 3 > & r_unit_normal_vector = this->GetValue(MPC_NORMAL);
+        ParticleMechanicsMathUtilities<double>::Normalize(r_unit_normal_vector);
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -159,7 +159,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             }
         }
 
-        const double penetration = MathUtils<double>::Dot((field_displacement - imposed_displacement), unit_normal_vector);
+        const double penetration = MathUtils<double>::Dot((field_displacement - r_imposed_displacement), r_unit_normal_vector);
 
         // If penetrates, apply constraint, otherwise no
         if (penetration >= 0.0)
@@ -220,15 +220,15 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             Vector gap_function = ZeroVector(matrix_size);
             for (unsigned int i = 0; i < number_of_nodes; i++)
             {
-                const array_1d<double, 3> disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3>& r_displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
                 const int index = dimension * i;
 
-                const array_1d<double, 3> lagrange_multiplier = GetGeometry()[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double, 3>& r_lagrange_multiplier = GetGeometry()[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                 const int lagrange_index = dimension * i + dimension * number_of_nodes;
 
                 for (unsigned int j = 0; j < dimension; j++){
-                    gap_function[index+j]          = disp[j] - imposed_displacement[j];
-                    gap_function[lagrange_index+j] = lagrange_multiplier[j];
+                    gap_function[index+j]          = r_displacement[j] - r_imposed_displacement[j];
+                    gap_function[lagrange_index+j] = r_lagrange_multiplier[j];
                 }
             }
 
@@ -384,14 +384,14 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        const array_1d<double, 3 > & Displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-        const array_1d<double, 3 > & lagrange_multiplier = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
+        const array_1d<double, 3 > & r_displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const array_1d<double, 3 > & r_lagrange_multiplier = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
         unsigned int index = i * dimension;
         const unsigned int lagrange_index = i * dimension+number_of_nodes * dimension;
         for(unsigned int k = 0; k < dimension; ++k)
         {
-            rValues[index + k] = Displacement[k];
-            rValues[lagrange_index + k] = lagrange_multiplier[k];
+            rValues[index + k] = r_displacement[k];
+            rValues[lagrange_index + k] = r_lagrange_multiplier[k];
         }
     }
 }
@@ -414,11 +414,11 @@ void MPMParticleLagrangeDirichletCondition::GetFirstDerivativesVector(
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        const array_1d<double, 3 > & Velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
+        const array_1d<double, 3 > & r_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         const unsigned int index = i * dimension;
         for(unsigned int k = 0; k < dimension; ++k)
         {
-            rValues[index + k] = Velocity[k];
+            rValues[index + k] = r_velocity[k];
         }
     }
 }
@@ -441,11 +441,11 @@ void MPMParticleLagrangeDirichletCondition::GetSecondDerivativesVector(
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        const array_1d<double, 3 > & Acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_1d<double, 3 > & r_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
         const unsigned int index = i * dimension;
         for(unsigned int k = 0; k < dimension; ++k)
         {
-            rValues[index + k] = Acceleration[k];
+            rValues[index + k] = r_acceleration[k];
         }
     }
 }
