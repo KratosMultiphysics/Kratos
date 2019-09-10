@@ -24,15 +24,16 @@
 
 namespace Kratos {
 
-template <int TWorkingSpaceDimension, class TPointType>
-class NurbsCurveGeometry : public Geometry<TPointType>
+template <int TWorkingSpaceDimension, class TContainerPointType>
+class NurbsCurveGeometry : public Geometry<typename TContainerPointType::value_type>
 {
 public:
     ///@name Type Definitions
     ///@{
+
     /// Geometry as base class.
-    typedef Geometry<TPointType> BaseType;
-    typedef NurbsCurveGeometry<TWorkingSpaceDimension, TPointType> GeometryType;
+    typedef Geometry<typename TContainerPointType::value_type> BaseType;
+    typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
@@ -87,7 +88,7 @@ public:
     }
 
     /// Copy constructor.
-    NurbsCurveGeometry(NurbsCurveGeometry const& rOther)
+    NurbsCurveGeometry(NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>  const& rOther)
         : BaseType(rOther)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
@@ -96,9 +97,9 @@ public:
     }
 
     /// Copy constructor from a geometry with different point type.
-    template<class TOtherPointType> NurbsCurveGeometry(
-        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointType> const& rOther)
-        : BaseType(rOther)
+    template<class TOtherContainerPointType> NurbsCurveGeometry(
+        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const& rOther)
+        : BaseType(rOther, &msGeometryData)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
         , mWeights(rOther.mWeights)
@@ -126,6 +127,9 @@ public:
     NurbsCurveGeometry& operator=(const NurbsCurveGeometry& rOther)
     {
         BaseType::operator=(rOther);
+        mPolynomialDegree = rOther.mPolynomialDegree;
+        mKnots = rOther.mKnots;
+        mWeights = rOther.mWeights;
         return *this;
     }
 
@@ -140,11 +144,14 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    template<class TOtherPointType>
+    template<class TOtherContainerPointType>
     NurbsCurveGeometry& operator=(
-        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointType> const & rOther)
+        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
     {
         BaseType::operator=(rOther);
+        mPolynomialDegree = rOther.mPolynomialDegree;
+        mKnots = rOther.mKnots;
+        mWeights = rOther.mWeights;
         return *this;
     }
 
@@ -464,8 +471,8 @@ private:
 
 }; // class NurbsCurveGeometry
 
-template<int TWorkingSpaceDimension, class TPointType>
-const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TPointType>::msGeometryData(
+template<int TWorkingSpaceDimension, class TContainerPointType>
+const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryData(
     1,
     TWorkingSpaceDimension,
     1,

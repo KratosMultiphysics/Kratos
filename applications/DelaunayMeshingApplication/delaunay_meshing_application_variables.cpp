@@ -8,7 +8,7 @@
 //
 
 #include "delaunay_meshing_application_variables.h"
-#include "utilities/stl_io.h"
+#include "utilities/stl_vector_io.h"
 #include "containers/global_pointers_vector.h"
 
 namespace Kratos
