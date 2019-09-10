@@ -833,7 +833,11 @@ public:
 
         mDofs.push_back(Kratos::make_unique<DofType>(&mNodalData, rDofVariable));
 
-        return mDofs.back().get();
+        DofType* p_new_dof = mDofs.back().get();
+
+        SortDofs();
+
+        return p_new_dof;
 
         KRATOS_CATCH(*this);
     }
@@ -857,7 +861,11 @@ public:
         mDofs.push_back(Kratos::make_unique<DofType>(SourceDof));
         mDofs.back()->SetNodalData(&mNodalData);
 
-        return mDofs.back().get();
+        DofType* p_new_dof = mDofs.back().get();
+
+        SortDofs();
+
+        return p_new_dof;
 
         KRATOS_CATCH(*this);
     }
@@ -877,7 +885,11 @@ public:
 
         mDofs.push_back(Kratos::make_unique<DofType>(&mNodalData, rDofVariable, rDofReaction));
 
-        return mDofs.back().get();
+        DofType* p_new_dof = mDofs.back().get();
+
+        SortDofs();
+
+        return p_new_dof;
 
         KRATOS_CATCH(*this);
 
@@ -897,7 +909,11 @@ public:
 
         mDofs.push_back(Kratos::make_unique<DofType>(&mNodalData, rDofVariable));
 
-        return *mDofs.back();
+        DofType* p_new_dof = mDofs.back().get();
+
+        SortDofs();
+
+        return *p_new_dof;
 
         KRATOS_CATCH(*this);
 
@@ -918,7 +934,11 @@ public:
 
         mDofs.push_back(Kratos::make_unique<DofType>(&mNodalData, rDofVariable, rDofReaction));
 
-        return *mDofs.back();
+        DofType* p_new_dof = mDofs.back().get();
+
+        SortDofs();
+
+        return *p_new_dof;
 
         KRATOS_CATCH(*this);
 
@@ -1070,6 +1090,11 @@ private:
     //*********************************************
 
 
+    void SortDofs(){
+        std::sort(mDofs.begin(), mDofs.end(), [](Kratos::unique_ptr<DofType>& First, Kratos::unique_ptr<DofType>& Second)->bool{
+            return First->GetVariable().Key() < Second->GetVariable().Key();
+        });
+    }
     ///@}
     ///@name Private Operations
     ///@{
