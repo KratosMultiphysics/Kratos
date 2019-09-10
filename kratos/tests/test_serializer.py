@@ -42,7 +42,6 @@ class TestSerializer(KratosUnittest.TestCase):
         # Deserialize and store the new model
         self.current_model = KratosMultiphysics.Model()
         serialized_model.Load("ModelSerialization",self.current_model)
-        del(serialized_model)
 
     def _check_results(self):
         pre_serialized_model_part = self.pre_serialized_model.GetModelPart(self.main_model_part_name).GetSubModelPart("NoSlip2D_structure")
