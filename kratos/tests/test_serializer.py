@@ -34,7 +34,7 @@ class TestSerializer(KratosUnittest.TestCase):
         serialized_model = KratosMultiphysics.StreamSerializer()
         serialized_model.Save("ModelSerialization",self.pre_serialized_model)
 
-        with open("auxiliar_files_for_python_unnitest/parameters_files/test_serializer.json",'r') as parameter_file:
+        with open(GetFilePath("auxiliar_files_for_python_unnitest/parameters_files/test_serializer.json"),'r') as parameter_file:
             self.project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
         # Parameters are read again and input type set to use_input_model_part since the serialized model already has the mdpa loaded
         self.project_parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("use_input_model_part")
