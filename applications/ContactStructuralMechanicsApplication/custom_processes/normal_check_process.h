@@ -9,8 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_NORMAL_GAP_PROCESS_H_INCLUDED )
-#define  KRATOS_NORMAL_GAP_PROCESS_H_INCLUDED
+#if !defined(KRATOS_NORMAL_CHECK_PROCESS_H_INCLUDED )
+#define  KRATOS_NORMAL_CHECK_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -19,7 +19,6 @@
 // Project includes
 #include "processes/process.h"
 #include "includes/model_part.h"
-#include "processes/simple_mortar_mapper_process.h"
 
 namespace Kratos
 {
@@ -43,33 +42,32 @@ namespace Kratos
 ///@{
 
 /**
- * @class NormalGapProcess
+ * @class NormalCheckProcess
  * @ingroup ContactStructuralMechanicsApplication
- * @brief This process computes the normal gap
+ * @brief This process checks the normal
  * @author Vicente Mataix Ferrandiz
- * @tparam TDim The dimension of work
- * @tparam TNumNodes The number of nodes of the slave
- * @tparam TNumNodesMaster The number of nodes of the master
  */
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster = TNumNodes>
-class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) NormalGapProcess
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) NormalCheckProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// The type of mapper considered
-    typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, TNumNodesMaster> MapperType;
+    // Some geometrical definitions
+    typedef Node<3>                                              NodeType;
+    typedef Point                                               PointType;
+    typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
 
-    /// General type definitions
-    typedef ModelPart::NodesContainerType                    NodesArrayType;
+    /// Definition of geometries
+    typedef Geometry<NodeType>                               GeometryType;
+    typedef Geometry<PointType>                         GeometryPointType;
 
     /// The definition of zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
-    /// Pointer definition of NormalGapProcess
-    KRATOS_CLASS_POINTER_DEFINITION( NormalGapProcess );
+    /// Pointer definition of NormalCheckProcess
+    KRATOS_CLASS_POINTER_DEFINITION( NormalCheckProcess );
 
     ///@}
     ///@name  Enum's
@@ -80,21 +78,16 @@ public:
     ///@{
 
     /**
-     * @brief The constructor of the normal gap process uses the following inputs:
-     * @param rMasterModelPart The master model part to be considered
-     * @param rSlaveModelPart The slave model part to be considered
+     * @brief The constructor of the normal check process
+     * @param rModelPart The model part to be considered
      */
-    NormalGapProcess(
-        ModelPart& rMasterModelPart,
-        ModelPart& rSlaveModelPart,
-        const bool SearchOrientation = true
-        ) : mrMasterModelPart(rMasterModelPart),
-            mrSlaveModelPart(rSlaveModelPart),
-            mSearchOrientation(SearchOrientation)
+    NormalCheckProcess(
+        ModelPart& rModelPart
+        ) : mrModelPart(rModelPart)
     {
     }
 
-    virtual ~NormalGapProcess()= default;;
+    virtual ~NormalCheckProcess()= default;;
 
     ///@}
     ///@name Operators
@@ -135,7 +128,7 @@ public:
 
     std::string Info() const override
     {
-        return "NormalGapProcess";
+        return "NormalCheckProcess";
     }
 
     /************************************ PRINT INFO ***********************************/
@@ -161,9 +154,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrMasterModelPart;  /// The master model part to be considered
-    ModelPart& mrSlaveModelPart;   /// The slave model part to be considered
-    const bool mSearchOrientation; /// The orientation of the search (inverted or not)
+    ModelPart& mrModelPart;  /// The model part to be considered
 
     ///@}
     ///@name Protected Operators
@@ -172,26 +163,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief This method switchs the flag of an array of nodes
-     * @param rNodes The set of nodes where the flags are reset
-     */
-    static inline void SwitchFlagNodes(NodesArrayType& rNodes)
-    {
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(rNodes.size()); ++i) {
-            auto it_node = rNodes.begin() + i;
-            it_node->Flip(SLAVE);
-            it_node->Flip(MASTER);
-        }
-    }
-
-    /**
-     * @brief This method computes the normal gap
-     * @param rNodes The set of nodes where the gap is computed
-     */
-    void ComputeNormalGap(NodesArrayType& rNodes);
 
     ///@}
     ///@name Protected  Access
@@ -237,7 +208,7 @@ private:
 
     ///@}
 
-}; // Class NormalGapProcess
+}; // Class NormalCheckProcess
 
 ///@}
 
@@ -252,16 +223,14 @@ private:
 /****************************** INPUT STREAM FUNCTION ******************************/
 /***********************************************************************************/
 
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>& rThis);
+                                  NormalCheckProcess& rThis);
 
 /***************************** OUTPUT STREAM FUNCTION ******************************/
 /***********************************************************************************/
 
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>& rThis)
+                                  const NormalCheckProcess& rThis)
 {
     return rOStream;
 }
@@ -270,4 +239,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NORMAL_GAP_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_NORMAL_CHECK_PROCESS_H_INCLUDED  defined
