@@ -20,6 +20,7 @@ Furthermore it is tested if the header-file includes all necessary includes to c
 
 // API includes
 #include "custom_io/co_sim_EMPIRE_API.h"
+#include "custom_io/co_sim_api.h"
 
 namespace {
 // defining aliases to the functions to avoid the "unused-functions" compiler-warning
