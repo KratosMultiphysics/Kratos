@@ -1,10 +1,13 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import MainDEM_for_coupling as DEM
-import MainFEM_for_coupling as FEM
-import FEMDEMParticleCreatorDestructor as PCD
+
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
+import KratosMultiphysics.FemToDemApplication.MainDEM_for_coupling as DEM
+import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as FEM
+import FEMDEMParticleCreatorDestructor as PCD
+
+
 import CouplingFemDem
 import math
 import os
