@@ -55,7 +55,7 @@ void NormalCheckProcess::Execute()
                 r_face.PointLocalCoordinates(aux_coords, r_face.Center());
                 const array_1d<double, 3> normal = r_face.UnitNormal(aux_coords);
                 aux_perturbed_coords = r_face.Center() + 1.0e-1 * r_face.Length() * normal;
-                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords)) {
+                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, 1.0e-12)) {
                     it_elem->Set(MARKER);
                     KRATOS_INFO("NormalCheckProcess") << "Normal inverted in element: " << it_elem->Id() << " the corresponding element will be inverted" << std::endl;
                 }
@@ -68,7 +68,7 @@ void NormalCheckProcess::Execute()
                 const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
                 aux_perturbed_coords = r_node.Coordinates() + 1.0e-1 * r_geometry.Length() * r_normal;
 
-                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords)) {
+                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, 1.0e-12)) {
                     r_node.SetLock();
                     r_node.Set(MARKER);
                     r_node.UnSetLock();
