@@ -97,9 +97,9 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         self.assertEqual(sub_prop11.NumberOfSubproperties(), 3)
 
-        self.assertEqual(prop1.HasSubProperties("1.11"), True)
-        self.assertEqual(prop1.HasSubProperties("1.110"), False)
-        sub_prop11_adress = prop1.GetSubProperties("1.11")
+        self.assertEqual(prop1.HasSubProperties("11"), True)
+        self.assertEqual(prop1.HasSubProperties("110"), False)
+        sub_prop11_adress = prop1.GetSubProperties("11")
         self.assertEqual(sub_prop11.Id, sub_prop11_adress.Id)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
@@ -199,4 +199,5 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             self.assertEqual(cond.Properties.Id, 2)
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
