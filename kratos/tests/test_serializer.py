@@ -21,7 +21,8 @@ class TestSerializer(KratosUnittest.TestCase):
         self.pre_serialized_model = KratosMultiphysics.Model()
         with open(GetFilePath("auxiliar_files_for_python_unnitest/parameters_files/test_serializer.json"),'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
+        file_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+        parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(GetFilePath(file_name))
         # First the model is initialized
         self.pre_serialized_simulation = FluidDynamicsAnalysis(self.pre_serialized_model, parameters)
         self.pre_serialized_simulation.Initialize()
