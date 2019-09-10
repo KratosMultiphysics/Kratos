@@ -282,36 +282,20 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     }
 
 
-    if(dimension == 2)
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            unsigned int index = i * dimension;
-            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y).EquationId();
-
-
-            index = i * dimension + number_of_nodes * dimension;
-            rResult[index    ] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
-        }
-    }
-    else
-    {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            unsigned int index = i * dimension;
-            rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y).EquationId();
+        unsigned int index = i * dimension;
+        rResult[index    ] = r_geometry[i].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[index + 1] = r_geometry[i].GetDof(DISPLACEMENT_Y).EquationId();
+        if(dimension == 3)
             rResult[index + 2] = r_geometry[i].GetDof(DISPLACEMENT_Z).EquationId();
 
-            index = i * dimension + number_of_nodes * dimension;
-            rResult[index    ] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
-            rResult[index + 1] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
+        index = i * dimension + number_of_nodes * dimension;
+        rResult[index    ] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
+        rResult[index + 1] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
+        if(dimension == 3)
             rResult[index + 2] = r_geometry[i].GetDof(VECTOR_LAGRANGE_MULTIPLIER_Z).EquationId();
-        }
     }
-
 
     KRATOS_CATCH("")
 }
@@ -333,34 +317,21 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
     const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-    if(dimension == 2)
-    {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
 
-        }
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
-        }
-    }
-    else
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
+        rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_X));
+        rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Y));
+        if(dimension == 3)
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
-        }
-        for (unsigned int i = 0; i < number_of_nodes; ++i)
-        {
-            rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-            rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+
+    }
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
+    {
+        rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+        rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+        if(dimension == 3)
             rElementalDofList.push_back( r_geometry[i].pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
-        }
     }
 
     KRATOS_CATCH("")
