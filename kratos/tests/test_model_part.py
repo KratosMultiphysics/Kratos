@@ -302,8 +302,8 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(prop_4.NumberOfSubproperties(), 1)
         self.assertEqual(prop_4.HasSubProperties(3), True)
         self.assertEqual(prop_4.HasSubProperties(120), False)
-        self.assertEqual(prop_4.HasSubProperties("4.3"), True)
-        self.assertEqual(prop_4.HasSubProperties("4.110"), False)
+        self.assertEqual(prop_4.HasSubProperties("3"), True)
+        self.assertEqual(prop_4.HasSubProperties("110"), False)
 
     def test_model_part_sub_properties(self):
         current_model = KratosMultiphysics.Model()
@@ -319,10 +319,10 @@ class TestModelPart(KratosUnittest.TestCase):
         subsubprop4 = KratosMultiphysics.Properties(4)
         subprop3.AddSubProperties(subsubprop4)
 
-        self.assertEqual(prop1.HasSubProperties("1.2"), True)
-        self.assertEqual(prop1.HasSubProperties("1.3.2"), True)
-        self.assertEqual(prop1.HasSubProperties("1.2.3"), False)
-        self.assertEqual(prop1.HasSubProperties("3.1.1"), False)
+        self.assertEqual(prop1.HasSubProperties("2"), True)
+        self.assertEqual(prop1.HasSubProperties("3.2"), True)
+        self.assertEqual(prop1.HasSubProperties("2.3"), False)
+        self.assertEqual(prop1.HasSubProperties("1.1"), False)
 
         self.assertEqual(model_part.HasSubProperties("1.2"), True)
         self.assertEqual(model_part.HasSubProperties("1.3.2"), True)
