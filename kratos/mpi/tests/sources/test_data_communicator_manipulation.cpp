@@ -11,9 +11,12 @@
 //
 //
 
+#include <string>
+
 #include "includes/data_communicator.h"
 #include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
+#include "mpi/utilities/data_communicator_factory.h"
 
 #include "testing/testing.h"
 
@@ -36,7 +39,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPIC
         std::stringstream name;
         name << "split_communicator_step_" << i;
 
-        const DataCommunicator& r_split_comm = MPIDataCommunicator::SplitDataCommunicator(r_comm, color, key, name.str());
+        const DataCommunicator& r_split_comm = DataCommunicatorFactory::SplitAndRegister(r_comm, color, key, name.str());
 
         int expected_size = global_rank < i ? i : global_size - i;
         int expected_rank = global_rank < i ? key : key - 1;
@@ -66,7 +69,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorFromRanks, Kratos
         // Note: communicator creation is a collective on all ranks of the "parent" communicator,
         // even if they do not participate in the new one
         const std::string new_comm_name("NewCommunicator");
-        const DataCommunicator& r_new_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
+        const DataCommunicator& r_new_comm = DataCommunicatorFactory::CreateFromRanksAndRegister(
             r_comm, rank_list, new_comm_name);
 
         const int global_rank = r_comm.Rank();
@@ -102,13 +105,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorUnion, KratosMPIC
             all_except_last[i] = i;
         }
 
-        const DataCommunicator& r_all_except_first_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
+        const DataCommunicator& r_all_except_first_comm = DataCommunicatorFactory::CreateFromRanksAndRegister(
             r_comm, all_except_first, "AllExceptFirst");
 
-        const DataCommunicator& r_all_except_last_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
+        const DataCommunicator& r_all_except_last_comm = DataCommunicatorFactory::CreateFromRanksAndRegister(
             r_comm, all_except_last, "AllExceptLast");
 
-        const DataCommunicator& r_union_comm = MPIDataCommunicator::CreateUnionDataCommunicator(
+        const DataCommunicator& r_union_comm = DataCommunicatorFactory::CreateUnionAndRegister(
             r_all_except_first_comm, r_all_except_last_comm, r_comm, "UnionCommunicator");
 
         // our union MPI comm involves all ranks in the parent communicator, so it should be defined everywhere
@@ -142,13 +145,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorIntersection, Kra
 
         const int global_rank = r_comm.Rank();
 
-        const DataCommunicator& r_all_except_first_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
+        const DataCommunicator& r_all_except_first_comm = DataCommunicatorFactory::CreateFromRanksAndRegister(
             r_comm, all_except_first, "AllExceptFirst");
 
-        const DataCommunicator& r_all_except_last_comm = MPIDataCommunicator::CreateDataCommunicatorFromRanks(
+        const DataCommunicator& r_all_except_last_comm = DataCommunicatorFactory::CreateFromRanksAndRegister(
             r_comm, all_except_last, "AllExceptLast");
 
-        const DataCommunicator& r_intersection_comm = MPIDataCommunicator::CreateIntersectionDataCommunicator(
+        const DataCommunicator& r_intersection_comm = DataCommunicatorFactory::CreateIntersectionAndRegister(
             r_all_except_first_comm, r_all_except_last_comm, r_comm, "IntersectionCommunicator");
 
         if ( (global_rank == 0) || (global_rank == global_size-1 ) )
@@ -173,7 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentRegisterDataCommunicator, KratosMPI
 {
     const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
 
-    MPIDataCommunicator::SplitDataCommunicator(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
+    DataCommunicatorFactory::SplitAndRegister(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
 
     KRATOS_CHECK(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
 
@@ -181,7 +184,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentRegisterDataCommunicator, KratosMPI
 
     KRATOS_CHECK_IS_FALSE(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
 
-    MPIDataCommunicator::SplitDataCommunicator(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
+    DataCommunicatorFactory::SplitAndRegister(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
 
     KRATOS_CHECK(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
 
@@ -193,7 +196,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregister, KratosMPICoreFastSuite)
 {
     const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
 
-    MPIDataCommunicator::SplitDataCommunicator(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
+    DataCommunicatorFactory::SplitAndRegister(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
 
     KRATOS_CHECK(ParallelEnvironment::HasDataCommunicator("EvenOdd"));
 
@@ -207,7 +210,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelEnvironmentUnregisterDefault, KratosMPICoreFas
     const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
     std::string current_default_name = ParallelEnvironment::GetDefaultDataCommunicatorName();
 
-    MPIDataCommunicator::SplitDataCommunicator(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
+    DataCommunicatorFactory::SplitAndRegister(r_comm, r_comm.Rank() % 2, 0, "EvenOdd");
 
     ParallelEnvironment::SetDefaultDataCommunicator("EvenOdd");
 
