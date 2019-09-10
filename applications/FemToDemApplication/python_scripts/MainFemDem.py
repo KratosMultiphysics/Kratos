@@ -9,11 +9,11 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication	 as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
-import MainSolidFEM
+import KratosMultiphysics.FemToDemApplication.MainSolidFEM
+
 
 def Wait():
 	input("Press Something")
-
 
 class FEM_Solution(MainSolidFEM.Solution):
 

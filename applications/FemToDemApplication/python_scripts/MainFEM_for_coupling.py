@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import MainFemDem
 import KratosMultiphysics
+import KratosMultiphysics.FemToDemApplication.MainFemDem
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 # Python script created to modify the existing one due to the coupling of the DEM app in 2D
