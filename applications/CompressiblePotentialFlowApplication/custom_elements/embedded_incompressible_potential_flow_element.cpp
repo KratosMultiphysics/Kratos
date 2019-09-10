@@ -165,11 +165,14 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
 
     PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
-    auto penaltyTerm = data.vol*prod(DN_DX, averaged_xi);
+
+
+    auto penalty_term_xi = data.vol*prod(DN_DX, averaged_xi);
+    auto penalty_term_potential = data.vol*prod(DN_DX,trans(DN_DX));
     const auto penalty = rCurrentProcessInfo[INITIAL_PENALTY];
 
-    noalias(rLeftHandSideMatrix) = (1+penalty) * rLeftHandSideMatrix;
-    noalias(rRightHandSideVector) = penalty*penaltyTerm-prod(rLeftHandSideMatrix, potential);
+    noalias(rLeftHandSideMatrix) +=  penalty*penalty_term_potential;
+    noalias(rRightHandSideVector) = penalty*penalty_term_xi-prod(rLeftHandSideMatrix, potential);
 
 }
 
@@ -218,7 +221,7 @@ std::string EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Info() co
 template <int Dim, int NumNodes>
 void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "EmbeddedIncompressiblePotentialFlowElement #" << this->Id();
+    rOStream << "EmbeddedIncompressiblePotentialFlowEle ment #" << this->Id();
 }
 
 template <int Dim, int NumNodes>
