@@ -24,7 +24,17 @@ namespace Kratos {
 
 namespace Testing {
 
-// MPI Communicator splitting /////////////////////////////////////////////////
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorDuplicate, KratosMPICoreFastSuite)
+{
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_duplicate = DataCommunicatorFactory::DuplicateAndRegister(r_comm, "Duplicate");
+
+    KRATOS_CHECK_EQUAL(r_comm.Rank(), r_duplicate.Rank());
+    KRATOS_CHECK_EQUAL(r_comm.Size(), r_duplicate.Size());
+
+    // Clean up the ParallelEnvironment after test
+    ParallelEnvironment::UnregisterDataCommunicator("Duplicate");
+}
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(CreateMPIDataCommunicatorSplit, KratosMPICoreFastSuite)
 {

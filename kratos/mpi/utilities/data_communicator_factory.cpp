@@ -22,6 +22,19 @@ namespace Kratos
 namespace DataCommunicatorFactory
 {
 
+const DataCommunicator& DuplicateAndRegister(
+    const DataCommunicator& rOriginalCommunicator,
+    const std::string& rNewCommunicatorName)
+{
+    MPI_Comm origin_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rOriginalCommunicator);
+    MPI_Comm duplicate_comm;
+    MPI_Comm_dup(origin_mpi_comm, &duplicate_comm);
+
+    ParallelEnvironment::RegisterDataCommunicator(
+        rNewCommunicatorName, MPIDataCommunicator::Create(duplicate_comm), ParallelEnvironment::DoNotMakeDefault);
+    return ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName);
+}
+
 const DataCommunicator& SplitAndRegister(
     const DataCommunicator& rOriginalCommunicator,
     int Color, int Key,

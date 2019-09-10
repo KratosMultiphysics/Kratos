@@ -23,9 +23,9 @@ namespace Kratos
 namespace DataCommunicatorFactory
 {
 
-//const DataCommunicator& DuplicateAndRegister(
-//    const DataCommunicator& rOriginalCommunicator,
-//    const std::string& rNewCommunicatorName);
+const DataCommunicator& DuplicateAndRegister(
+    const DataCommunicator& rOriginalCommunicator,
+    const std::string& rNewCommunicatorName);
 
 const DataCommunicator& SplitAndRegister(
     const DataCommunicator& rOriginalCommunicator,
