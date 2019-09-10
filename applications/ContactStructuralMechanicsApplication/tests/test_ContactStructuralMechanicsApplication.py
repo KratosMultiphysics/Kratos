@@ -1,14 +1,9 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
 import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
-# Import subprocess
-import subprocess
 
 # Using kratos_utilities
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -27,6 +22,7 @@ sys.path.insert(0, GetFilePath('../../../kratos/tests/'))
 ## SMALL TESTS
 # Exact integration tests
 from test_process_factory import TestProcessFactory as TTestProcessFactory
+from test_check_normals_process import TestCheckNormals as TTestCheckNormals
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
 from test_dynamic_search import TestDynamicSearch as TTestDynamicSearch
 from test_mortar_mapper import TestMortarMapperCore as TTestMortarMapperCore
@@ -104,14 +100,14 @@ from SmallTests import PenaltyHyperSimplePatchFrictionalStickTestContact        
 from NightlyTests import ALMTaylorPatchTestContact           as TALMTaylorPatchTestContact
 from NightlyTests import ALMHertzSimpleTestContact           as TALMHertzSimpleTestContact
 from NightlyTests import ALMHertzSimpleSphereTestContact     as TALMHertzSimpleSphereTestContact
-from NightlyTests import ALMHertzSphereTestContact           as TALMHertzSphereTestContact
+#from NightlyTests import ALMHertzSphereTestContact           as TALMHertzSphereTestContact
 from NightlyTests import ALMHertzCompleteTestContact         as TALMHertzCompleteTestContact
 
 # Components ALM frictionless tests
 from NightlyTests import ComponentsALMTaylorPatchTestContact           as TComponentsALMTaylorPatchTestContact
 from NightlyTests import ComponentsALMHertzSimpleTestContact           as TComponentsALMHertzSimpleTestContact
 from NightlyTests import ComponentsALMHertzSimpleSphereTestContact     as TComponentsALMHertzSimpleSphereTestContact
-from NightlyTests import ComponentsALMHertzSphereTestContact           as TComponentsALMHertzSphereTestContact
+#from NightlyTests import ComponentsALMHertzSphereTestContact           as TComponentsALMHertzSphereTestContact
 from NightlyTests import ComponentsALMHertzCompleteTestContact         as TComponentsALMHertzCompleteTestContact
 
 # ALM frictional tests
@@ -127,8 +123,8 @@ from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacement
 from ValidationTests import ALMTaylorPatchDynamicTestContact as TALMTaylorPatchDynamicTestContact
 from ValidationTests import ALMMeshMovingMatchingTestContact    as TALMMeshMovingMatchingTestContact
 from ValidationTests import ALMMeshMovingNotMatchingTestContact as TALMMeshMovingNotMatchingTestContact
-from ValidationTests import ALMIroningTestContact    as TALMIroningTestContact
-from ValidationTests import ALMIroningDieTestContact as TALMIroningDieTestContact
+#from ValidationTests import ALMIroningTestContact    as TALMIroningTestContact
+#from ValidationTests import ALMIroningDieTestContact as TALMIroningDieTestContact
 from ValidationTests import ALMLargeDisplacementPatchTestTetra as TALMLargeDisplacementPatchTestTetra
 from ValidationTests import ALMLargeDisplacementPatchTestHexa as TALMLargeDisplacementPatchTestHexa
 from ValidationTests import ALMMultiLayerContactTest as TALMMultiLayerContactTest
@@ -171,6 +167,7 @@ def AssembleTestSuites():
 
     # Test ProcessFactoryUtility
     smallSuite.addTest(TTestProcessFactory('test_process_factory'))
+    smallSuite.addTest(TTestCheckNormals('test_check_normals'))
     smallSuite.addTest(TTestProcessFactory('test_processes_list_factory'))
 
     # Mesh tying tests

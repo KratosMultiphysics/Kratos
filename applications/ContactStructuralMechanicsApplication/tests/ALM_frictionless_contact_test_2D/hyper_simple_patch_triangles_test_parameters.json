@@ -102,13 +102,13 @@
         ],
         "json_check_process" : [
         {
-            "python_module"   : "json_output_process",
+            "python_module"   : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
             "help"                  : "",
-            "process_name"          : "JsonOutputProcess",
+            "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
-                "output_variables"     : ["LAGRANGE_MULTIPLIER_CONTACT_PRESSURE"],
-                "output_file_name"     : "ALM_frictionless_contact_test_2D/hyper_simple_patch_triangles_test_results.json",
+                "check_variables"      : ["LAGRANGE_MULTIPLIER_CONTACT_PRESSURE"],
+                "input_file_name"      : "ALM_frictionless_contact_test_2D/hyper_simple_patch_triangles_test_results.json",
                 "model_part_name"      : "Contact_Part",
                 "time_frequency"       : 1.00
             }
