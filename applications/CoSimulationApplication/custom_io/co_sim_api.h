@@ -12,6 +12,8 @@
 #ifndef KRATOS_CO_SIM_API_H_INCLUDED
 #define KRATOS_CO_SIM_API_H_INCLUDED
 
+#define KRATOS_CO_SIM_API_VERSION 1 // TODO probably this has to be in a different file ...
+
 /*
 This file defines the API of Kratos-CoSimulation for the exchange of data
 with external solvers.
@@ -22,66 +24,42 @@ support for sockets and MPI can optionally be enabled
 // #define KRATOS_CO_SIM_API_ENABLE_SOCKETS // uncomment for Sockets support
 // #define KRATOS_CO_SIM_API_ENABLE_MPI // uncomment for MPI support
 
-#include <vector>
+// System includes
 #include <string>
-#include <unordered_map>
+#include <memory>
 
-typedef std::unordered_map<std::string, std::string> CoSimAPIConfigType;
+// Project includes
+#include "co_sim_comm.h"
 
-// // stores the coordinates in an array [x1,y1,z1,x2,y2,z2,x3,y3,z3,...]
-// struct Coordinates
-// {
-
-// };
-
-// struct Connectivities
-// {
-
-// };
-
-// struct Ids
-// {
-
-// };
-
-// struct ConvergenceSignal
-// {
-
-// };
+namespace CoSim {
 
 class CoSimAPI
 {
 
 public:
-    CoSimAPI(CoSimAPIConfigType& rConfiguration);
-    CoSimAPI(const std::string& rConfigurationFileName);
+    typedef CoSimComm::SettingsType SettingsType;
 
+    // Constructor establishes connection
+    CoSimAPI(SettingsType& rSettings);
+    CoSimAPI(const std::string& rSettingsFileName);
 
-    bool SendData(const std::vector<double>& rData, const std::string rIdentifier);
+    // Destructor performs disconnect
+    ~CoSimAPI();
 
-    // template<class DataContainer>
-    // bool SendData(const DataContainer& rContainer,  const std::string rIdentifier);
+    template<class DataContainer>
+    bool SendData(const DataContainer& rContainer, const std::string& rIdentifier);
 
-
-    bool RecvData(std::vector<double>& rData,       const std::string rIdentifier);
-
-    // template<class DataContainer>
-    // bool RecvData(const DataContainer& rContainer,  const std::string rIdentifier);
+    template<class DataContainer>
+    bool RecvData(DataContainer& rContainer, const std::string& rIdentifier);
 
 private:
-    std::string mCommunicationFormat;
-    int mEchoLevel;
+    std::unique_ptr<CoSimComm> mpComm;
 
-    CoSimAPIConfigType mDefaults {
-        { "communication_format", "file" },
-        { "echo_level", "0" }
-    };
-
-    void AssignAndValidateDefaults(CoSimAPIConfigType& rConfiguration);
-
-    void ParseConfiguration(CoSimAPIConfigType& rConfiguration);
+    void Initialize(SettingsType& rSettings);
 
 }; // class CoSimAPI
+
+} // namespace CoSim
 
 #include "co_sim_api_impl.h"
 

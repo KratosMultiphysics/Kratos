@@ -12,68 +12,88 @@
 #ifndef KRATOS_CO_SIM_API_IMPL_H_INCLUDED
 #define KRATOS_CO_SIM_API_IMPL_H_INCLUDED
 
-
+// Optional includes
 #ifdef KRATOS_CO_SIM_API_ENABLE_SOCKETS
-#include "sockets_utils.h"
+#include "co_sim_sockets_comm.h"
 #endif /* KRATOS_CO_SIM_API_ENABLE_SOCKETS */
 
 
 #ifdef KRATOS_CO_SIM_API_ENABLE_MPI
-#include "mpi_utils.h"
+#include "co_sim_mpi_comm.h"
 #endif /* KRATOS_CO_SIM_API_ENABLE_MPI */
 
+// System includes
+#include <iostream>
 #include <vector>
 #include <string>
 #include <unordered_map>
 #include <stdexcept>
 
-CoSimAPI::CoSimAPI(CoSimAPIConfigType& rConfiguration)
+// Project includes
+#include "co_sim_file_comm.h"
+
+
+namespace CoSim {
+
+CoSimAPI::CoSimAPI(SettingsType& rSettings)
 {
-    ParseConfiguration(rConfiguration);
+    Initialize(rSettings);
 }
 
-CoSimAPI::CoSimAPI(const std::string& rConfigurationFileName)
+CoSimAPI::CoSimAPI(const std::string& rSettingsFileName)
 {
     // read file
-    // ParseConfiguration(rConfiguration);
+    // Initialize(rSettings);
+}
+
+CoSimAPI::~CoSimAPI()
+{
+    if (!mpComm->Disconnect()) {
+        std::cout << "Warning: Disconnect was not successful!" << std::endl;
+    }
 }
 
 
-
-bool CoSimAPI::SendData(const std::vector<double>& rData, const std::string rIdentifier)
+template<class DataContainer>
+bool CoSimAPI::SendData(const DataContainer& rContainer, const std::string& rIdentifier)
 {
-    return true;
+    return mpComm->SendData(rContainer, rIdentifier);
 }
 
-bool CoSimAPI::RecvData(std::vector<double>& rData, const std::string rIdentifier)
+template<class DataContainer>
+bool CoSimAPI::RecvData(DataContainer& rContainer, const std::string& rIdentifier)
 {
-    return true;
+    return mpComm->RecvData(rContainer, rIdentifier);
 }
 
-void CoSimAPI::ParseConfiguration(CoSimAPIConfigType& rConfiguration)
+
+void CoSimAPI::Initialize(SettingsType& rSettings)
 {
-    AssignAndValidateDefaults(rConfiguration);
+    const std::string comm_format(rSettings.at("communication_format")); // TODO check if specified, if not set to file
 
-    mEchoLevel = std::stoi(rConfiguration.at("echo_level"));
-    mCommunicationFormat = rConfiguration.at("communication_format");
-
-    if (mCommunicationFormat == "sockets") {
-#ifndef KRATOS_CO_SIM_API_ENABLE_SOCKETS
+    if (comm_format == "file") {
+        mpComm = std::unique_ptr<CoSimComm>(new FileComm(rSettings));
+    } else if (comm_format == "sockets") {
+#ifdef KRATOS_CO_SIM_API_ENABLE_SOCKETS
+        mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(rSettings));
+#else
         throw std::runtime_error("Support for Sockets was not compiled!");
 #endif /* KRATOS_CO_SIM_API_ENABLE_SOCKETS */
-    }
-
-    if (mCommunicationFormat == "mpi") {
-#ifndef KRATOS_CO_SIM_API_ENABLE_MPI
+    } else if (comm_format == "mpi") {
+#ifdef KRATOS_CO_SIM_API_ENABLE_MPI
+        mpComm = std::unique_ptr<CoSimComm>(new MPIComm(rSettings));
+#else
         throw std::runtime_error("Support for MPI was not compiled!");
 #endif /* KRATOS_CO_SIM_API_ENABLE_MPI */
+    } else {
+        throw std::runtime_error("comm format not available!"); // TODO improve message
     }
 
+    if (!mpComm->Connect()) {
+        throw std::runtime_error("Connection was not successful!");
+    }
 }
 
-void CoSimAPI::AssignAndValidateDefaults(CoSimAPIConfigType& rConfiguration)
-{
-
-}
+} // namespace CoSim
 
 #endif /* KRATOS_CO_SIM_API_IMPL_H_INCLUDED */
