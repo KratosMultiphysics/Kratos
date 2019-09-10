@@ -95,7 +95,7 @@ namespace Kratos
 			void SetTearDownElapsedTime(double ElapsedTime);
 
 			double GetTearDownElapsedTime() const;
-			
+
 			void SetElapsedTime(double ElapsedTime);
 
 			double GetElapsedTime() const;
@@ -133,6 +133,18 @@ namespace Kratos
 
 
 		private:
+
+			///@name Type definitions
+			///@{
+
+			enum class Result {
+				NotRun,
+				Passed,
+				Failed,
+				Skipped
+			};
+
+			///@}
 			///@name Static Member Variables
 			///@{
 
@@ -141,7 +153,7 @@ namespace Kratos
 			///@name Member Variables
 			///@{
 
-			bool mSucceed;
+			Result mStatus;
 			std::string mOutput;
 			std::string mErrorMessage;
 			double mSetupElapsedTime;

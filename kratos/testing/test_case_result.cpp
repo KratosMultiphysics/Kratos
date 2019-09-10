@@ -26,11 +26,11 @@ namespace Kratos
 {
 	namespace Testing
 	{
-		TestCaseResult::TestCaseResult() : mSucceed(true), mOutput(""), mErrorMessage("")
+		TestCaseResult::TestCaseResult() : mStatus(Result::NotRun), mOutput(""), mErrorMessage("")
 			, mSetupElapsedTime(0.00), mRunElapsedTime(0.00), mTearDownElapsedTime(0.00), mElapsedTime(0.00) {}
 
 		TestCaseResult::TestCaseResult(TestCaseResult const& rOther)
-			: mSucceed(rOther.mSucceed), mOutput(rOther.mOutput), mErrorMessage(rOther.mErrorMessage)
+			: mStatus(rOther.mStatus), mOutput(rOther.mOutput), mErrorMessage(rOther.mErrorMessage)
 			, mSetupElapsedTime(rOther.mSetupElapsedTime), mRunElapsedTime(rOther.mRunElapsedTime)
 			, mTearDownElapsedTime(rOther.mTearDownElapsedTime), mElapsedTime(rOther.mElapsedTime) {}
 
@@ -38,7 +38,7 @@ namespace Kratos
 
 		TestCaseResult& TestCaseResult::operator=(TestCaseResult const& rOther)
 		{
-			mSucceed = rOther.mSucceed;
+			mStatus = rOther.mStatus;
 			mOutput = rOther.mOutput;
 			mErrorMessage = rOther.mErrorMessage;
 			mSetupElapsedTime = rOther.mSetupElapsedTime;
@@ -51,7 +51,7 @@ namespace Kratos
 
 		void TestCaseResult::Reset()
 		{
-			mSucceed = true;
+			mStatus = Result::NotRun;
 			mOutput = "";
 			mErrorMessage = "";
 			mSetupElapsedTime = 0.00;
@@ -61,11 +61,11 @@ namespace Kratos
 		}
 
 		void TestCaseResult::SetToSucceed()	{
-			mSucceed = true;
+			mStatus = Result::Passed;
 		}
 
 		void TestCaseResult::SetToFailed() {
-			mSucceed = false;
+			mStatus = Result::Failed;
 		}
 
 		void TestCaseResult::SetOutput(const std::string& TheOutput) {
@@ -127,19 +127,34 @@ namespace Kratos
 
 		bool TestCaseResult::IsSucceed() const
 		{
-			return mSucceed;
+			return mStatus == Result::Passed;
 		}
 
 		bool TestCaseResult::IsFailed() const
 		{
-			return !mSucceed;
+			return mStatus == Result::Failed;
 		}
 
 		std::string TestCaseResult::Info() const
 		{
-			if(mSucceed)
-				return "Test case succeed";
-			return "Test case failed";
+			if (mStatus == Result::NotRun)
+			{
+				return "Test case not run";
+			}
+			else if (mStatus == Result::Passed)
+			{
+				return "Test case successful";
+			}
+			else if (mStatus == Result::Failed)
+			{
+				return "Test case failed";
+			}
+			else if (mStatus == Result::Skipped)
+			{
+				return "Test case skipped";
+			}
+
+			return "Unknown test case state";
 		}
 
 		/// Print information about this object.
