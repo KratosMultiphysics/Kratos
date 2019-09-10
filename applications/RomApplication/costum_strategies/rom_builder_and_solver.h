@@ -283,7 +283,7 @@ public:
 	)
     {
         Vector rom_unknowns = ZeroVector(mRomDofs);
-        for(auto& node : rNodes)
+        for(const auto& node : rNodes)
         {
             unsigned int node_aux_id = node.GetValue(AUX_ID);
             const auto& nodal_rom_basis = node.GetValue(ROM_BASIS);
@@ -303,7 +303,7 @@ public:
 	)
     {
         TSparseSpace::SetToZero(rX);
-        for(auto& node : rNodes)
+        for(const auto& node : rNodes)
         {
             unsigned int node_aux_id = node.GetValue(AUX_ID);
             const auto& nodal_rom_basis = node.GetValue(ROM_BASIS);
