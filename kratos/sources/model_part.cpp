@@ -691,7 +691,7 @@ bool ModelPart::HasSubProperties(
     const IndexType first_component = FirstComponentName(rAddress);
     if (HasProperties(first_component, MeshIndex)) {
         Properties& r_prop = GetProperties(first_component, MeshIndex);
-        return r_prop.HasSubProperties(rAddress);
+        return r_prop.HasSubProperties(LastComponentName(rAddress));
     } else {
         return false;
     }
@@ -707,7 +707,7 @@ Properties::Pointer ModelPart::pGetSubProperties(
 {
     const IndexType first_component = FirstComponentName(rAddress);
     Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.pGetSubProperties(rAddress);
+    return r_prop.pGetSubProperties(LastComponentName(rAddress));
 }
 
 /***********************************************************************************/
@@ -720,7 +720,7 @@ const Properties::Pointer ModelPart::pGetSubProperties(
 {
     const IndexType first_component = FirstComponentName(rAddress);
     Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.pGetSubProperties(rAddress);
+    return r_prop.pGetSubProperties(LastComponentName(rAddress));
 }
 
 /***********************************************************************************/
@@ -733,7 +733,7 @@ Properties& ModelPart::GetSubProperties(
 {
     const IndexType first_component = FirstComponentName(rAddress);
     Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.GetSubProperties(rAddress);
+    return r_prop.GetSubProperties(LastComponentName(rAddress));
 }
 
 /***********************************************************************************/
@@ -746,7 +746,7 @@ const Properties& ModelPart::GetSubProperties(
 {
     const IndexType first_component = FirstComponentName(rAddress);
     Properties& r_prop = GetProperties(first_component, MeshIndex);
-    return r_prop.GetSubProperties(rAddress);
+    return r_prop.GetSubProperties(LastComponentName(rAddress));
 }
 
 /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
