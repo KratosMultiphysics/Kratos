@@ -47,7 +47,17 @@ namespace Kratos
 ///@{
 
 /// Short class definition.
+//Lagrange Multiplier Method and Augmented Lagrange Multiplier Method for imposition of non-conforming boundary conditions
+
 /** Detail class definition.
+The ParticleLagrangeDirichletCondition can be used for the imposition of non-conforming boundary conditions.
+Either as LM which results in the matrix, with H beeing the product of the shape functions:
+                |0       H^T|
+                |H       0  |
+or as ALM (see Belytschko "Nonlinear Finite Elements for Continua and Structures" (2014) equation 6.3.58) for linear constraints
+                |aug*H   H^T|
+                |H       0  |
+Additionally for stabilization purposes, the zero diagonal can be set to a very small value by setting "stabilization" = true
 */
 
 class MPMParticleLagrangeDirichletCondition
