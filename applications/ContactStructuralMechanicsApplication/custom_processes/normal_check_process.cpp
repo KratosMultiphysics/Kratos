@@ -105,7 +105,7 @@ void NormalCheckProcess::Execute()
             it_cond->Set(MARKER);
         }
 
-        boundary_face = true;
+        inverted_condition = true;
     }
 
     // Invert conditions
