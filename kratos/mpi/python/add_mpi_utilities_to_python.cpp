@@ -19,6 +19,7 @@
 #include "add_mpi_utilities_to_python.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
+#include "mpi/utilities/data_communicator_factory.h"
 #include "mpi/utilities/gather_modelpart_utility.h"
 #include "mpi/utilities/mpi_normal_calculation_utilities.h"
 
@@ -37,6 +38,14 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     .def(py::init<ModelPart& >() )
     .def("Execute", &ParallelFillCommunicator::Execute )
     .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
+    ;
+
+    m.def_submodule("DataCommunicatorFactory")
+    .def("DuplicateAndRegister",DataCommunicatorFactory::DuplicateAndRegister, py::return_value_policy::reference)
+    .def("SplitAndRegister",DataCommunicatorFactory::SplitAndRegister, py::return_value_policy::reference)
+    .def("CreateFromRanksAndRegister",DataCommunicatorFactory::CreateFromRanksAndRegister, py::return_value_policy::reference)
+    .def("CreateUnionAndRegister",DataCommunicatorFactory::CreateUnionAndRegister, py::return_value_policy::reference)
+    .def("CreateIntersectionAndRegister",DataCommunicatorFactory::CreateIntersectionAndRegister, py::return_value_policy::reference)
     ;
 
     py::class_<GatherModelPartUtility>(m, "GatherModelPartUtility")
