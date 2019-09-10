@@ -451,7 +451,7 @@ class FemDemMechanicalSolver(object):
         conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
 
         # Construction of the class convergence_criterion
-        import convergence_criteria_factory_fem_dem
+        import KratosMultiphysics.FemToDemApplication.convergence_criteria_factory_fem_dem as convergence_criteria_factory_fem_dem
         convergence_criteria_factory_fem_dem = convergence_criteria_factory_fem_dem.convergence_criterion(conv_params)
 
         return convergence_criteria_factory_fem_dem.mechanical_convergence_criterion

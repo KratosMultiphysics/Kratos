@@ -261,9 +261,9 @@ class FEM_Solution(MainSolidFEM.Solution):
 
  #============================================================================================================================	   
 	def SetGraphicalOutput(self):
-		from gid_output_process import GiDOutputProcess
+		import KratosMultiphysics.gid_output_process as gid_output_process
 		self.output_settings = self.ProjectParameters["output_configuration"]
-		self.graphical_output = GiDOutputProcess(self.computing_model_part,
+		self.graphical_output = gid_output_process.GiDOutputProcess(self.computing_model_part,
 									  self.problem_name,
 									  self.output_settings)		
 	#============================================================================================================================
