@@ -20,7 +20,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
     def __init__(self, settings, solver_name):
         super(KratosBaseWrapper, self).__init__(settings, solver_name)
 
-        input_file_name = self.settings["settings"]["input_file"].GetString()
+        input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
         if not input_file_name.endswith(".json"):
             input_file_name += ".json"
 
@@ -35,6 +35,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
         super(KratosBaseWrapper, self).Initialize()
 
     def Finalize(self):
+        super(KratosBaseWrapper, self).Finalize()
         self._analysis_stage.Finalize()
 
     def AdvanceInTime(self, current_time):
@@ -50,6 +51,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def SolveSolutionStep(self):
         self._analysis_stage._GetSolver().SolveSolutionStep()
+        super(KratosBaseWrapper, self).SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         self._analysis_stage.FinalizeSolutionStep()
@@ -61,12 +63,13 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
         raise Exception('The "KratosBaseWrapper" can only be used when specifying "analysis_stage_module", otherwise the creation of the AnalysisStage must be implemented in the derived class!')
 
     def __GetAnalysisStage(self):
-        if self.settings["settings"].Has("analysis_stage_module"):
-            analysis_stage_module = import_module(self.settings["settings"]["analysis_stage_module"].GetString())
+        if self.settings["solver_wrapper_settings"].Has("analysis_stage_module"):
+            analysis_stage_module = import_module(self.settings["solver_wrapper_settings"]["analysis_stage_module"].GetString())
             return analysis_stage_module.Create(self.model, self.project_parameters)
         else:
             return self._CreateAnalysisStage()
 
     def PrintInfo(self):
         cs_tools.cs_print_info("KratosSolver", self._ClassName())
+        cs_tools.cs_print_info("KratosSolver", 'Using AnalysisStage "{}", defined in module "{}'.format(self._analysis_stage.__class__.__name__, self._analysis_stage.__class__.__module__))
         ## TODO print additional stuff with higher echo-level

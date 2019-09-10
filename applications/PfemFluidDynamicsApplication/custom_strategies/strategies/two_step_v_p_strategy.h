@@ -277,17 +277,17 @@ public:
 	  this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
     			if((momentumConverged==true || it==maxNonLinearIterations-1) && momentumAlreadyConverged==false){
-				std::ofstream myfile;
-  	    myfile.open ("momentumConvergedIteration.txt",std::ios::app);
-				myfile << currentTime << "\t" << it << "\n";
-        myfile.close();
+				// std::ofstream myfile;
+  	    // myfile.open ("momentumConvergedIteration.txt",std::ios::app);
+				// myfile << currentTime << "\t" << it << "\n";
+        // myfile.close();
 				momentumAlreadyConverged=true;
 			}
 			if((continuityConverged==true || it==maxNonLinearIterations-1) && continuityAlreadyConverged==false){
-				std::ofstream myfile;
-  	    myfile.open ("continuityConvergedIteration.txt",std::ios::app);
-				myfile << currentTime << "\t" << it << "\n";
-        myfile.close();
+				// std::ofstream myfile;
+  	    // myfile.open ("continuityConvergedIteration.txt",std::ios::app);
+				// myfile << currentTime << "\t" << it << "\n";
+        // myfile.close();
 				continuityAlreadyConverged=true;
 			}
 
@@ -299,10 +299,10 @@ public:
       //this->ComputeErrorL2Norm();
       //this->ComputeErrorL2NormCasePoiseuille();
 	    this->UpdateStressStrain();
-      				std::ofstream myfile;
-  	    myfile.open ("maxConvergedIteration.txt",std::ios::app);
-				myfile << currentTime << "\t" << it << "\n";
-        myfile.close();
+      	// std::ofstream myfile;
+  	    // myfile.open ("maxConvergedIteration.txt",std::ios::app);
+				// myfile << currentTime << "\t" << it << "\n";
+        // myfile.close();
 	  }
 
 
@@ -739,36 +739,36 @@ protected:
 	      fixedTimeStep=this->CheckMomentumConvergence(DvErrorNorm);
       }
 
-      				    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-	    double currentTime = rCurrentProcessInfo[TIME];
-      double tolerance=0.0000000001;
-      if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("velocityConvergenceAt025s.txt",std::ios::app);
-				myfile << it << "\t" << DvErrorNorm << "\n";
-        myfile.close();
-			}
-			else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("velocityConvergenceAt05s.txt",std::ios::app);
-				myfile << it << "\t" << DvErrorNorm << "\n";
-        myfile.close();
-			}
-      else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("velocityConvergenceAt075s.txt",std::ios::app);
-				myfile << it << "\t" << DvErrorNorm << "\n";
-        myfile.close();
-			}
-			else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("velocityConvergenceAt100s.txt",std::ios::app);
-				myfile << it << "\t" << DvErrorNorm << "\n";
-        myfile.close();
-			}
+      // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	    // double currentTime = rCurrentProcessInfo[TIME];
+      // double tolerance=0.0000000001;
+      // if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt025s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
+			// else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt05s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
+      // else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt075s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
+			// else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt100s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
 
       if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
-	std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
+	      std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
 
       return ConvergedMomentum;
     }
@@ -810,36 +810,36 @@ protected:
       }
 
 
-	    ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-	    double currentTime = rCurrentProcessInfo[TIME];
-      double tolerance=0.0000000001;
-      if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("pressureConvergenceAt025s.txt",std::ios::app);
-				myfile << it << "\t" << DpErrorNorm << "\n";
-        myfile.close();
-			}
-			else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("pressureConvergenceAt05s.txt",std::ios::app);
-				myfile << it << "\t" << DpErrorNorm << "\n";
-        myfile.close();
-			}
-      else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("pressureConvergenceAt075s.txt",std::ios::app);
-				myfile << it << "\t" << DpErrorNorm << "\n";
-        myfile.close();
-			}
-			else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
-				std::ofstream myfile;
-  	    myfile.open ("pressureConvergenceAt100s.txt",std::ios::app);
-				myfile << it << "\t" << DpErrorNorm << "\n";
-        myfile.close();
-			}
+	    // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	    // double currentTime = rCurrentProcessInfo[TIME];
+      // double tolerance=0.0000000001;
+      // if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
+			// 	std::ofstream myfile;
+  	  //  myfile.open ("pressureConvergenceAt025s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //  myfile.close();
+			// }
+			// else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
+			// 	std::ofstream myfile;
+  	  //  myfile.open ("pressureConvergenceAt05s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //  myfile.close();
+			// }
+      // else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
+			// 	std::ofstream myfile;
+  	  //  myfile.open ("pressureConvergenceAt075s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //  myfile.close();
+			// }
+			// else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
+			// 	std::ofstream myfile;
+  	  //  myfile.open ("pressureConvergenceAt100s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //  myfile.close();
+			// }
       
       if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
-	std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
+	      std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
 
       return ConvergedContinuity;
     }

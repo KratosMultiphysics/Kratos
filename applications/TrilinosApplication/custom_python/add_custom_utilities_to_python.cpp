@@ -28,13 +28,11 @@
 #include "custom_utilities/trilinos_refine_mesh.h"
 #include "custom_utilities/trilinos_fractional_step_settings.h"
 #include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
-#include "custom_utilities/gather_modelpart_utility.h"
-#include "custom_utilities/mpi_normal_calculation_utilities.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
 #include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
 
 // External includes
-#include "../FSIapplication/custom_utilities/aitken_convergence_accelerator.hpp"
+#include "../FSIApplication/custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -163,20 +161,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetStrategy",ThatSetStrategyOverload)
         .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
         .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
-        ;
-
-    py::class_<GatherModelPartUtility>(m,"GatherModelPartUtility")
-        .def(py::init<int, ModelPart&, int , ModelPart&>() )
-        .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<double> )
-        .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<array_1d<double,3> > )
-        .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<double> )
-        .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<array_1d<double,3> > )
-        ;
-
-    py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils").def(py::init<>())
-        .def("Check",&MPINormalCalculationUtils::Check)
-        .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
-        .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
         ;
 
     typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, double, 2> BasePartitionedFSIUtilitiesDouble2DType;

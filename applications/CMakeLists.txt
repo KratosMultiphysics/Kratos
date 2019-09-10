@@ -61,6 +61,7 @@ FEM_TO_DEM_APPLICATION;\
 EXAQUTE_SANDBOX_APPLICATION;\
 CO_SIMULATION_APPLICATION;\
 ROM_APPLICATION;\
+CABLE_NET_APPLICATION;\
 ")
 
 message( " ")
@@ -228,7 +229,7 @@ if(${STRING_DYNAMICS_APPLICATION} MATCHES ON)
 endif(${STRING_DYNAMICS_APPLICATION} MATCHES ON)
 
 if(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
-  add_subdirectory(convection_diffusion_application)
+  add_subdirectory(ConvectionDiffusionApplication)
 endif(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
 
 if(${MESHING_APPLICATION} MATCHES ON)
@@ -248,7 +249,7 @@ if(${MESH_MOVING_APPLICATION} MATCHES ON)
 endif(${MESH_MOVING_APPLICATION} MATCHES ON)
 
 if(${FSI_APPLICATION} MATCHES ON)
-  add_subdirectory(FSIapplication)
+  add_subdirectory(FSIApplication)
 endif(${FSI_APPLICATION} MATCHES ON)
 
 if(${EMPIRE_APPLICATION} MATCHES ON)
@@ -418,6 +419,10 @@ endif(${CO_SIMULATION_APPLICATION} MATCHES ON)
 if(${ROM_APPLICATION} MATCHES ON)
   add_subdirectory(RomApplication)
 endif(${ROM_APPLICATION} MATCHES ON)
+
+if(${CABLE_NET_APPLICATION} MATCHES ON)
+  add_subdirectory(CableNetApplication)
+endif(${CABLE_NET_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
