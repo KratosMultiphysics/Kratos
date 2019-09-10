@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division
 
 import os
-import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -10,7 +9,6 @@ import KratosMultiphysics.kratos_utilities as KratosUtils
 
 dependencies_are_available = KratosUtils.CheckIfApplicationsAvailable("FluidDynamicsApplication")
 if dependencies_are_available:
-    import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
     from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 
