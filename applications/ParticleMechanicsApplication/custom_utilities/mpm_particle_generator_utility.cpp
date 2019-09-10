@@ -520,8 +520,8 @@ namespace MPMParticleGeneratorUtility
                             mpc_imposed_acceleration = i->GetValue(ACCELERATION);
                         if (i->Has(PENALTY_FACTOR))
                             mpc_penalty_factor = i->GetValue(PENALTY_FACTOR);
-                        if (i->Has(SCALAR_LAGRANGE_MULTIPLIER))
-                            mpc_augmentation_factor = i->GetValue(SCALAR_LAGRANGE_MULTIPLIER);
+                        if (i->Has(AUGMENTATION_FACTOR))
+                            mpc_augmentation_factor = i->GetValue(AUGMENTATION_FACTOR);
                         if (i->Has(STABILIZATION_LAGRANGE_MULTIPLIER))
                             mpc_stabilization = i->GetValue(STABILIZATION_LAGRANGE_MULTIPLIER);
 
@@ -623,7 +623,7 @@ namespace MPMParticleGeneratorUtility
                                     p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
                                 else if (boundary_condition_type == 2)
                                 {
-                                    p_condition->SetValue(SCALAR_LAGRANGE_MULTIPLIER, mpc_augmentation_factor);
+                                    p_condition->SetValue(AUGMENTATION_FACTOR, mpc_augmentation_factor);
                                     p_condition->SetValue(STABILIZATION_LAGRANGE_MULTIPLIER, mpc_stabilization);
 
                                 }
@@ -685,7 +685,7 @@ namespace MPMParticleGeneratorUtility
                                     p_condition->SetValue(PENALTY_FACTOR, mpc_penalty_factor);
                                 else if (boundary_condition_type == 2)
                                 {
-                                    p_condition->SetValue(SCALAR_LAGRANGE_MULTIPLIER, mpc_augmentation_factor);
+                                    p_condition->SetValue(AUGMENTATION_FACTOR, mpc_augmentation_factor);
                                     p_condition->SetValue(STABILIZATION_LAGRANGE_MULTIPLIER, mpc_stabilization);
                                 }
 

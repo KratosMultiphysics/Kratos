@@ -108,7 +108,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 if self.boundary_condition_type==1:
                     condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
                 elif self.boundary_condition_type==2:
-                    condition.SetValue(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER, self.augmentation_factor)
+                    condition.SetValue(KratosParticle.AUGMENTATION_FACTOR, self.augmentation_factor)
                     condition.SetValue(KratosParticle.STABILIZATION_LAGRANGE_MULTIPLIER, self.stabilization)
 
                 condition.SetValue(self.variable, self.vector)

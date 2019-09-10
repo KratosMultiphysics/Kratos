@@ -133,7 +133,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     // Prepare variables
     GeneralVariables Variables;
-    const double augmentation_factor = this->GetValue(SCALAR_LAGRANGE_MULTIPLIER);
+    const double augmentation_factor = this->GetValue(AUGMENTATION_FACTOR);
     bool stabilization = this->GetValue(STABILIZATION_LAGRANGE_MULTIPLIER);
 
     // Calculating shape function
