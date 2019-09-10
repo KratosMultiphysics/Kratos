@@ -424,6 +424,17 @@ class MmgProcess(KratosMultiphysics.Process):
         # Reset flag
         self.remesh_executed = False
 
+    def ExecuteBeforeOutputStep(self):
+        """ This method is executed right before the ouput process computation
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        if self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            if self.interval.IsInInterval(current_time):
+                self._ErrorCalculation()
+
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
 
