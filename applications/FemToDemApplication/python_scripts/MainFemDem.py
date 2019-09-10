@@ -9,7 +9,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication	 as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
-import KratosMultiphysics.FemToDemApplication.MainSolidFEM
+import KratosMultiphysics.FemToDemApplication.MainSolidFEM as MainSolidFEM
 
 
 def Wait():
@@ -76,7 +76,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 		self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
 
 		#construct the solver (main setting methods are located in the solver_module)
-		solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
+		solver_module = __import__("KratosMultiphysics.FemToDemApplication." + self.ProjectParameters["solver_settings"]["solver_type"].GetString())
 		self.solver   = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
 
 		#### Output settings start ####

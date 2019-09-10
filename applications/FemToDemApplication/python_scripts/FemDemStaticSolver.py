@@ -8,7 +8,7 @@ import KratosMultiphysics.FemToDemApplication as KratosFemDem
 KratosMultiphysics.CheckForPreviousImport()
 
 # Import the mechanical solver base class
-import FemDemMechanicalSolver as BaseSolver
+import KratosMultiphysics.FemToDemApplication.FemDemMechanicalSolver as BaseSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return StaticMechanicalSolver(main_model_part, custom_settings)

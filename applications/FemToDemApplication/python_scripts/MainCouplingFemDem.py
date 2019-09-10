@@ -5,10 +5,8 @@ import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.MainDEM_for_coupling as DEM
 import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as FEM
-import FEMDEMParticleCreatorDestructor as PCD
+import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as PCD
 
-
-import CouplingFemDem
 import math
 import os
 import KratosMultiphysics.MeshingApplication as MeshingApplication
