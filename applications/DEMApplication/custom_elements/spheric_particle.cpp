@@ -987,10 +987,10 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
                 double tangential_displacement_due_to_rotation[3]  = {0.0};
                 GeometryFunctions::CrossProduct(AngularVel, actual_arm_vector, tangential_vel);
 
-                Quaternion<double> DeltaOrientation = Quaternion<double>::Identity();
-                GeometryFunctions::OrientationFromRotationAngle(DeltaOrientation, negative_delta_rotation);
+                Quaternion<double> NegativeDeltaOrientation = Quaternion<double>::Identity();
+                GeometryFunctions::OrientationFromRotationAngle(NegativeDeltaOrientation, negative_delta_rotation);
 
-                DeltaOrientation.RotateVector3(actual_arm_vector, old_arm_vector);
+                NegativeDeltaOrientation.RotateVector3(actual_arm_vector, old_arm_vector);
 
                 // Contribution of the rotation
                 tangential_displacement_due_to_rotation[0] = (actual_arm_vector[0] - old_arm_vector[0]);
