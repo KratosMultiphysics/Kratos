@@ -54,4 +54,21 @@ void TestSkippedException::PrintData(std::ostream &rOStream) const
     rOStream << "   in: " << where();
 }
 
+/// input stream function
+std::istream& operator >> (std::istream& rIStream,
+    TestSkippedException& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+std::ostream& operator << (std::ostream& rOStream, const TestSkippedException& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
 } // namespace Kratos.

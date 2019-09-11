@@ -56,6 +56,24 @@ public:
     ~TestSkippedException() noexcept override;
 
     ///@}
+    ///@name Operators
+    ///@{
+
+    /// string stream function
+    template<class ValueType>
+    TestSkippedException& operator << (ValueType Value)
+    {
+        Exception::operator << (Value);
+        return *this;
+    }
+
+    TestSkippedException& operator << (std::ostream& (*pf)(std::ostream&))
+    {
+        Exception::operator<<(pf);
+        return *this;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
