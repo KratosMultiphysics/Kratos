@@ -54,7 +54,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, Krat
     }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
 
