@@ -325,13 +325,14 @@ namespace Kratos
 		void Tester::EndShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase)
 		{
 			constexpr std::size_t ok_culumn = 72;
-			if (GetInstance().mVerbosity == Verbosity::PROGRESS)
+			if (GetInstance().mVerbosity == Verbosity::PROGRESS) {
 				if (pTheTestCase->GetResult().IsSucceed())
 					std::cout << ".";
 				else if (pTheTestCase->GetResult().IsFailed())
 					std::cout << "F";
 				else if (pTheTestCase->GetResult().IsSkipped())
 					std::cout << "s";
+			}
 			else if (GetInstance().mVerbosity >= Verbosity::TESTS_LIST)
 			{
 				for (std::size_t i = pTheTestCase->Name().size(); i < ok_culumn; i++)
