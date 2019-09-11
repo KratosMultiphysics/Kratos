@@ -275,38 +275,26 @@ public:
         const CoordinatesArrayType& rCoordinates,
         const SizeType DerivativeOrder) const
     {
-        // derivatives of base geometries
-        
-        KRATOS_WATCH(" ")
-        KRATOS_WATCH(rCoordinates)
+        // Compute the gradients of the embedded curve in the parametric space of the surface
         auto curve_derivatives = mpNurbsCurve->GlobalDerivatives(rCoordinates, DerivativeOrder);
         
-        // const CoordinatesArrayType surface_coordinates = {curve_derivatives[0][0], curve_derivatives[1][0]};
-        
-        array_1d<double, 2> surface_coordinates(0.0);
+        // Compute the gradients of the surface in the geometric space
+        array_1d<double, 2> surface_coordinates =  ZeroVector(2);
         surface_coordinates[0] = curve_derivatives[0][0];
         surface_coordinates[1] = curve_derivatives[0][1];
-        KRATOS_WATCH(surface_coordinates[0])
-        KRATOS_WATCH(surface_coordinates[1])
-        
         auto surface_derivatives = mpNurbsSurface->GlobalDerivatives(surface_coordinates, DerivativeOrder);
-        KRATOS_WATCH(surface_derivatives)
-        exit(-1);
         
-        // compute combined derivatives
-
+        // Compute the gradients of the embedded curve in the geometric space
         std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
-
-        /*std::function<Vector(int, int, int)> c;
-
-        c = [&](int DerivativeOrder, int i, int j) -> Vector {
+        std::function<array_1d<double, 3>(int, int, int)> c;
+        c = [&](int DerivativeOrder, int i, int j) -> array_1d<double, 3> {
             if (DerivativeOrder > 0) {
-                Vector result = ZeroVector();
+                array_1d<double, 3> result = ZeroVector(3);
 
                 for (int a = 1; a <= DerivativeOrder; a++) {
                     result += (
-                        c(DerivativeOrder - a, i + 1, j) * curve_derivatives[0][a] +
-                        c(DerivativeOrder - a, i, j + 1) * curve_derivatives[1][a]
+                        c(DerivativeOrder - a, i + 1, j) * curve_derivatives[a][0] +
+                        c(DerivativeOrder - a, i, j + 1) * curve_derivatives[a][1]
                         ) * NurbsUtilities::GetBinomCoefficient(DerivativeOrder - 1, a - 1);
                 }
 
@@ -317,41 +305,13 @@ public:
                 return surface_derivatives[index];
             }
         };
-
         for (int i = 0; i <= DerivativeOrder; i++) {
             derivatives[i] = c(i, 0, 0);
-        }*/
+        }
 
+        // Return the gradients of the embedded curve in the geometric space
         return derivatives;
     }
-        //NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, std::min(DerivativeOrder, PolynomialDegree()));
-
-        //if (IsRational()) {
-        //    shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
-        //}
-        //else {
-        //    shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
-        //}
-
-        //std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
-
-        //for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
-        //    IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
-        //    derivatives[order] = (*this)[index_0] * shape_function_container(0, order);
-        //    for (IndexType u = 1; u < shape_function_container.NumberOfNonzeroControlPoints(); u++) {
-        //        IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + u;
-
-        //        derivatives[order] += (*this)[index] * shape_function_container(u, order);
-        //    }
-        //}
-
-        ////fill up the vector with zeros
-        //for (IndexType order = shape_function_container.NumberOfShapeFunctionRows(); order <= DerivativeOrder; order++) {
-        //    IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
-        //    derivatives[order] = (*this)[index_0] * 0.0;
-        //}
-        //return derivatives;
-    // }
 
     /*
     * @brief This method maps from dimension space to working space.
