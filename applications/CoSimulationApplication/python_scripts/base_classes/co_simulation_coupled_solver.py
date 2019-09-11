@@ -86,6 +86,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         self.time = 0.0
         for solver in self.solver_wrappers.values():
             self.time = max(self.time, solver.AdvanceInTime(current_time))
+            #self.time = solver.AdvanceInTime(current_time)
 
         return self.time
 
