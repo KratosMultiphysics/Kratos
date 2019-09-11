@@ -13,12 +13,20 @@
 #define KRATOS_CO_SIM_COMM_H_INCLUDED
 
 // System includes
+#include <unordered_map>
+#include <string>
 #include <stdexcept>
 
 // Project includes
 #include "co_sim_data_containers.h"
 
 namespace CoSim {
+
+#define CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainerType)                                \
+    virtual bool SendData(const DataContainerType& rDataContainer, const std::string& rIdentifier) \
+        { throw std::runtime_error("Type of data not yet supported"); }                            \
+    virtual bool RecvData(DataContainerType& rDataContainer, const std::string& rIdentifier)       \
+        { throw std::runtime_error("Type of data not yet supported"); }                            \
 
 class CoSimComm
 {
@@ -28,35 +36,9 @@ public:
     virtual bool Connect()    { return true; };
     virtual bool Disconnect() { return true; };
 
-    virtual bool SendData(const std::vector<double>& rData, const std::string& rIdentifier)
-    {
-        throw std::runtime_error("Type of data not yet supported");
-    }
-
-    virtual bool SendData(const DataContainers::Mesh& rContainer, const std::string& rIdentifier)
-    {
-        throw std::runtime_error("Type of data not yet supported");
-    }
-
-    virtual bool SendData(const DataContainers::ConvergenceSignal& rContainer, const std::string& rIdentifier)
-    {
-        throw std::runtime_error("Type of data not yet supported");
-    }
-
-    virtual bool RecvData(std::vector<double>& rData, const std::string& rIdentifier)
-    {
-        throw std::runtime_error("Type of data not yet supported");
-    }
-
-    virtual bool RecvData(DataContainers::Mesh& rContainer, const std::string& rIdentifier)
-    {
-        throw std::runtime_error("Type of data not yet supported");
-    }
-
-    virtual bool RecvData(DataContainers::ConvergenceSignal& rContainer, const std::string& rIdentifier)
-    {
-        throw std::runtime_error("Type of data not yet supported");
-    }
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(std::vector<double>);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Mesh);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::ConvergenceSignal);
 
 private:
     void AssignAndValidateDefaults(const SettingsType& rDefaultSettings, SettingsType& rSettings)
@@ -65,6 +47,8 @@ private:
     }
 
 };
+
+#undef CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE // this macro should only be used for this class
 
 } // namespace CoSim
 

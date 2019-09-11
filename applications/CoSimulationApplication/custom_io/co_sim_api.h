@@ -39,11 +39,11 @@ class CoSimAPI
 public:
     typedef CoSimComm::SettingsType SettingsType;
 
-    // Constructor establishes connection
+    // Constructor establishes connection (RAII)
     CoSimAPI(SettingsType& rSettings);
     CoSimAPI(const std::string& rSettingsFileName);
 
-    // Destructor performs disconnect
+    // Destructor performs disconnect (RAII)
     ~CoSimAPI();
 
     template<class DataContainer>

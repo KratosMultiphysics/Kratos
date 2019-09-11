@@ -22,7 +22,10 @@ namespace CoSim {
 class FileComm : public CoSimComm
 {
 public:
-    FileComm(SettingsType& rSettings);
+    FileComm(SettingsType& rSettings)
+    {
+
+    }
 
     bool SendData(const DataContainers::Mesh& rContainer, const std::string& rIdentifier) override
     {
