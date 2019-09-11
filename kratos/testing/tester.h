@@ -104,6 +104,8 @@ namespace Kratos
 
 			static std::size_t NumberOfFailedTestCases();
 
+			static std::size_t NumberOfSkippedTestCases();
+
 			/// This method assumes that the given test case is allocated
 			/// via new. So it will delete it at the end of the program
 			static void AddTestCase(TestCase* pHeapAllocatedTestCase);

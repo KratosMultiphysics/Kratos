@@ -105,6 +105,20 @@ namespace Kratos
 			return result;
 		}
 
+		std::size_t Tester::NumberOfSkippedTestCases()
+		{
+			std::size_t result = 0;
+			for (auto i_test = GetInstance().mTestCases.begin();
+			i_test != GetInstance().mTestCases.end(); i_test++)
+			{
+				TestCaseResult const& test_case_result = i_test->second->GetResult();
+				if (test_case_result.IsSkipped())
+					result++;
+			}
+
+			return result;
+		}
+
 		void Tester::AddTestCase(TestCase* pHeapAllocatedTestCase)
 		{
 			KRATOS_ERROR_IF(HasTestCase(pHeapAllocatedTestCase->Name())) << "A duplicated test case found! The test case \"" << pHeapAllocatedTestCase->Name() << "\" is already added." << std::endl;
@@ -354,7 +368,7 @@ namespace Kratos
 				{
 					std::cout << " SKIPPED." << std::endl;
 					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
-						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
+						std::cout << pTheTestCase->GetResult().GetErrorMessage() << std::endl;
 				}
 			}
 		}
@@ -367,18 +381,25 @@ namespace Kratos
 				rOStream << std::endl;
 
 			auto number_of_failed_tests = NumberOfFailedTestCases();
+			auto number_of_skipped_tests = NumberOfSkippedTestCases();
 
 			std::string total_test_cases = " test case";
 			auto total_test_cases_size = GetInstance().mTestCases.size();
 			if (total_test_cases_size > 1)
 				total_test_cases += "s";
 
-			if (number_of_failed_tests == 0)
-				rOStream << "Ran " << NumberOfRunTests << " of " << total_test_cases_size << total_test_cases << " in " << ElapsedTime << "s. OK." << std::endl;
+			rOStream << "Ran " << NumberOfRunTests << " of " << total_test_cases_size << total_test_cases << " in " << ElapsedTime << "s";
+			if (number_of_skipped_tests > 0) {
+				rOStream << " (" << number_of_skipped_tests << " skipped)";
+			}
+
+			if (number_of_failed_tests == 0) {
+				rOStream << ". OK" << std::endl;
+			}
 			else
 			{
-				rOStream << "Ran " << NumberOfRunTests << " of " << total_test_cases_size << total_test_cases << " in " << ElapsedTime << "s. " << number_of_failed_tests << " failed:" << std::endl;
-                ReportFailures(rOStream);
+				rOStream << ". " << number_of_failed_tests << " failed:" << std::endl;
+				ReportFailures(rOStream);
                 exit_code = 1;
 			}
 
