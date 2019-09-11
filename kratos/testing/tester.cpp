@@ -328,8 +328,10 @@ namespace Kratos
 			if (GetInstance().mVerbosity == Verbosity::PROGRESS)
 				if (pTheTestCase->GetResult().IsSucceed())
 					std::cout << ".";
-				else
+				else if (pTheTestCase->GetResult().IsFailed())
 					std::cout << "F";
+				else if (pTheTestCase->GetResult().IsSkipped())
+					std::cout << "s";
 			else if (GetInstance().mVerbosity >= Verbosity::TESTS_LIST)
 			{
 				for (std::size_t i = pTheTestCase->Name().size(); i < ok_culumn; i++)
@@ -341,10 +343,16 @@ namespace Kratos
 					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
 				}
-				else
+				else if (pTheTestCase->GetResult().IsFailed())
 				{
 					std::cout << " FAILED!" << std::endl;
 					if (GetInstance().mVerbosity >= Verbosity::FAILED_TESTS_OUTPUTS)
+						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
+				}
+				else if (pTheTestCase->GetResult().IsSkipped())
+				{
+					std::cout << " SKIPPED." << std::endl;
+					if (GetInstance().mVerbosity == Verbosity::TESTS_OUTPUTS)
 						std::cout << pTheTestCase->GetResult().GetOutput() << std::endl;
 				}
 			}
