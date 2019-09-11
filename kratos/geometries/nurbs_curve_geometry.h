@@ -78,8 +78,9 @@ public:
         KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
             << "Number of knots and control points do not match!" << std::endl;
 
-        KRATOS_DEBUG_ERROR_IF(rWeights.size() != rThisPoints.size())
-            << "Number of control points and weights do not match!" << std::endl;
+        if (!rWeights.empty())
+            KRATOS_DEBUG_ERROR_IF(rWeights.size() != rThisPoints.size())
+                << "Number of control points and weights do not match!" << std::endl;
     }
 
     explicit NurbsCurveGeometry(const PointsArrayType& ThisPoints)
@@ -277,17 +278,14 @@ public:
         const CoordinatesArrayType& rCoordinates,
         const SizeType DerivativeOrder) const
     {
-        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, PolynomialDegree());
-
+        NurbsCurveShapeFunction shape_function_container(PolynomialDegree(), DerivativeOrder);
         if (IsRational()) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
         }
         else {
             shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
         }
-
         std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
-
         for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
             IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
             derivatives[order] = (*this)[index_0] * shape_function_container(0, order);

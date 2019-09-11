@@ -76,7 +76,7 @@ public:
         : BaseType(
             pCurve->Points(), 
             pCurve->PolynomialDegree(), 
-            pCurve->Knots(), 
+            pCurve->Knots(),
             pCurve->Weights()
         )
         , mpNurbsSurface(pSurface)
@@ -276,17 +276,28 @@ public:
         const SizeType DerivativeOrder) const
     {
         // derivatives of base geometries
+        
+        KRATOS_WATCH(" ")
+        KRATOS_WATCH(rCoordinates)
         auto curve_derivatives = mpNurbsCurve->GlobalDerivatives(rCoordinates, DerivativeOrder);
-
-        const CoordinatesArrayType surface_coordinates = {curve_derivatives[0][0], curve_derivatives[1][0]};
-
+        
+        // const CoordinatesArrayType surface_coordinates = {curve_derivatives[0][0], curve_derivatives[1][0]};
+        
+        array_1d<double, 2> surface_coordinates(0.0);
+        surface_coordinates[0] = curve_derivatives[0][0];
+        surface_coordinates[1] = curve_derivatives[0][1];
+        KRATOS_WATCH(surface_coordinates[0])
+        KRATOS_WATCH(surface_coordinates[1])
+        
         auto surface_derivatives = mpNurbsSurface->GlobalDerivatives(surface_coordinates, DerivativeOrder);
-
+        KRATOS_WATCH(surface_derivatives)
+        exit(-1);
+        
         // compute combined derivatives
 
         std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
 
-        std::function<Vector(int, int, int)> c;
+        /*std::function<Vector(int, int, int)> c;
 
         c = [&](int DerivativeOrder, int i, int j) -> Vector {
             if (DerivativeOrder > 0) {
@@ -302,14 +313,14 @@ public:
                 return result;
             }
             else {
-                const int index = surface_derivatives->IndexOfShapeFunctionRow(i, j);
+                const int index = NurbsSurfaceShapeFunction::IndexOfShapeFunctionRow(i, j);
                 return surface_derivatives[index];
             }
         };
 
         for (int i = 0; i <= DerivativeOrder; i++) {
             derivatives[i] = c(i, 0, 0);
-        }
+        }*/
 
         return derivatives;
     }
