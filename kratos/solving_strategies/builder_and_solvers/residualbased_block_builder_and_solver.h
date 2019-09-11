@@ -823,28 +823,6 @@ public:
         std::size_t* Arow_indices = A.index1_data().begin();
         std::size_t* Acol_indices = A.index2_data().begin();
 
-        //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        #pragma omp parallel for firstprivate(system_size)
-        for (int k = 0; k < static_cast<int>(system_size); ++k){
-            std::size_t col_begin = Arow_indices[k];
-            std::size_t col_end = Arow_indices[k+1];
-            bool empty = true;
-            for (std::size_t j = col_begin; j < col_end; ++j)
-            {
-                if(Avalues[j] != 0.0)
-                {
-                    empty = false;
-                    break;
-                }
-            }
-
-            if(empty == true)
-            {
-                A(k,k) = 1.0;
-                b[k] = 0.0;
-            }
-        }
-
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(system_size); ++k)
         {
@@ -867,6 +845,16 @@ public:
                 for (std::size_t j = col_begin; j < col_end; ++j)
                     if(scaling_factors[ Acol_indices[j] ] == 0 )
                         Avalues[j] = 0.0;
+            }
+        }
+
+        //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        #pragma omp parallel for firstprivate(system_size)
+        for (int k = 0; k < static_cast<int>(system_size); ++k){
+            double k_factor = scaling_factors[k];
+            if(k_factor == 0 && A(k,k) == 0)
+            {
+                A(k,k) = 1.0;
             }
         }
     }
