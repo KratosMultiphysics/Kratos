@@ -210,6 +210,18 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, exp_error):
             coupling_data.Initialize()
 
+    def test_wrong_input_missing_solutionstepvar_component(self):
+        settings = KM.Parameters("""{
+            "model_part_name" : "mp_4_test",
+            "variable_name"   : "FORCE_X"
+        }""")
+
+        exp_error = '"FORCE" is missing as SolutionStepVariable in ModelPart "mp_4_test"'
+
+        coupling_data = CouplingInterfaceData(settings, self.model)
+        with self.assertRaisesRegex(Exception, exp_error):
+            coupling_data.Initialize()
+
     def test_GetHistoricalVariableDict(self):
         settings = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
