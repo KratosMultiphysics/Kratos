@@ -535,4 +535,16 @@ static void EMPIRE_API_Disconnect()
     EMPIRE_API_LOG(0) << "Called \"EMPIRE_API_Disconnect\" which is no longer necessary and can be removed" << std::endl;
 }
 
+// defining aliases to the functions to avoid the "unused-functions" compiler-warning if not all functions are used
+const auto _alias_EMPIRE_API_Connect = EMPIRE_API_Connect;
+const auto _alias_EMPIRE_API_Disconnect = EMPIRE_API_Disconnect;
+const auto _alias_EMPIRE_API_getUserDefinedText = EMPIRE_API_getUserDefinedText;
+const auto _alias_EMPIRE_API_sendMesh = EMPIRE_API_sendMesh;
+const auto _alias_EMPIRE_API_sendDataField = EMPIRE_API_sendDataField;
+const auto _alias_EMPIRE_API_recvDataField = EMPIRE_API_recvDataField;
+const auto _alias_EMPIRE_API_sendSignal_double = EMPIRE_API_sendSignal_double;
+const auto _alias_EMPIRE_API_recvSignal_double = EMPIRE_API_recvSignal_double;
+const auto _alias_EMPIRE_API_EMPIRE_API_sendConvergenceSignal = EMPIRE_API_sendConvergenceSignal;
+const auto _alias_EMPIRE_API_EMPIRE_API_recvConvergenceSignal = EMPIRE_API_recvConvergenceSignal;
+
 #endif /* KRATOS_CO_SIM_EMPIRE_API_H_INCLUDED */
