@@ -9,20 +9,20 @@
 //  Main authors:    Philipp Bucher
 //
 
-#ifndef KRATOS_CO_SIM_API_H_INCLUDED
-#define KRATOS_CO_SIM_API_H_INCLUDED
+#ifndef KRATOS_CO_SIM_IO_H_INCLUDED
+#define KRATOS_CO_SIM_IO_H_INCLUDED
 
-#define KRATOS_CO_SIM_API_VERSION 1 // TODO probably this has to be in a different file ...
+#define KRATOS_CO_SIM_IO_VERSION 1 // TODO probably this has to be in a different file ...
 
 /*
-This file defines the API of Kratos-CoSimulation for the exchange of data
+This file defines the IO of Kratos-CoSimulation for the exchange of data
 with external solvers.
 By default the communication is done through files,
 support for sockets and MPI can optionally be enabled
 */
 
-// #define KRATOS_CO_SIM_API_ENABLE_SOCKETS // uncomment for Sockets support
-// #define KRATOS_CO_SIM_API_ENABLE_MPI // uncomment for MPI support
+// #define KRATOS_CO_SIM_IO_ENABLE_SOCKETS // uncomment for Sockets support
+// #define KRATOS_CO_SIM_IO_ENABLE_MPI // uncomment for MPI support
 
 // System includes
 #include <string>
@@ -33,34 +33,34 @@ support for sockets and MPI can optionally be enabled
 
 namespace CoSim {
 
-class CoSimAPI
+class CoSimIO
 {
 
 public:
     typedef CoSimComm::SettingsType SettingsType;
 
     // Constructor establishes connection (RAII)
-    CoSimAPI(SettingsType& rSettings);
-    CoSimAPI(const std::string& rSettingsFileName);
+    CoSimIO(SettingsType& rSettings);
+    CoSimIO(const std::string& rSettingsFileName);
 
     // Destructor performs disconnect (RAII)
-    ~CoSimAPI();
+    ~CoSimIO();
 
     template<class DataContainer>
-    bool SendData(const DataContainer& rContainer, const std::string& rIdentifier);
+    bool Import(DataContainer& rDataContainer, const std::string& rIdentifier);
 
     template<class DataContainer>
-    bool RecvData(DataContainer& rContainer, const std::string& rIdentifier);
+    bool Export(const DataContainer& rDataContainer, const std::string& rIdentifier);
 
 private:
     std::unique_ptr<CoSimComm> mpComm;
 
     void Initialize(SettingsType& rSettings);
 
-}; // class CoSimAPI
+}; // class CoSimIO
 
 } // namespace CoSim
 
-#include "co_sim_api_impl.h"
+#include "co_sim_io_impl.h"
 
-#endif /* KRATOS_CO_SIM_API_H_INCLUDED */
+#endif /* KRATOS_CO_SIM_IO_H_INCLUDED */

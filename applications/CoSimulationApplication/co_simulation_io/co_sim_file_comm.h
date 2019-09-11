@@ -27,7 +27,7 @@ public:
 
     }
 
-    bool SendData(const DataContainers::Mesh& rContainer, const std::string& rIdentifier) override
+    bool Export(const DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
     {
         return true;
     }

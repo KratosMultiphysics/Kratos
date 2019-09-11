@@ -22,11 +22,11 @@
 
 namespace CoSim {
 
-#define CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainerType)                                \
-    virtual bool SendData(const DataContainerType& rDataContainer, const std::string& rIdentifier) \
-        { throw std::runtime_error("Type of data not yet supported"); }                            \
-    virtual bool RecvData(DataContainerType& rDataContainer, const std::string& rIdentifier)       \
-        { throw std::runtime_error("Type of data not yet supported"); }                            \
+#define CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainerType)                              \
+    virtual bool Import(DataContainerType& rDataContainer, const std::string& rIdentifier)       \
+        { throw std::runtime_error("Type of data not yet supported"); }                          \
+    virtual bool Export(const DataContainerType& rDataContainer, const std::string& rIdentifier) \
+        { throw std::runtime_error("Type of data not yet supported"); }                          \
 
 class CoSimComm
 {
