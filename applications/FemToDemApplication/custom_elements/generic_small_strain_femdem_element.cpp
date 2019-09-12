@@ -451,7 +451,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegrateStressDamageMech
 	}
 
 	const double F = uniaxial_stress - rThreshold;
-	if (F <= 0.0) { // Elastic region --> Damage is constant
+	if (F <= tolerance) { // Elastic region --> Damage is constant
 		rDamage = mDamages[Edge];
 	} else {
 		double damage_parameter; // A parameter
