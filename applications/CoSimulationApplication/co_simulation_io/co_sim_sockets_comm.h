@@ -14,6 +14,9 @@
 
 // System includes
 
+// External includes
+#include <boost/asio.hpp>
+
 // Project includes
 #include "co_sim_comm.h"
 
