@@ -23,7 +23,7 @@ namespace CoSim {
 class MPIComm : public CoSimComm
 {
 public:
-    MPIComm(SettingsType& rSettings);
+    explicit MPIComm(SettingsType& rSettings);
 
 };
 

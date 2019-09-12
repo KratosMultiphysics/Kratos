@@ -40,8 +40,8 @@ public:
     typedef CoSimComm::SettingsType SettingsType;
 
     // Constructor establishes connection (RAII)
-    CoSimIO(SettingsType& rSettings);
-    CoSimIO(const std::string& rSettingsFileName);
+    explicit CoSimIO(SettingsType& rSettings);
+    explicit CoSimIO(const std::string& rSettingsFileName);
 
     // Destructor performs disconnect (RAII)
     ~CoSimIO();
@@ -53,7 +53,7 @@ public:
     bool Export(const DataContainer& rDataContainer, const std::string& rIdentifier);
 
 private:
-    std::unique_ptr<CoSimComm> mpComm;
+    std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
 
     void Initialize(SettingsType& rSettings);
 

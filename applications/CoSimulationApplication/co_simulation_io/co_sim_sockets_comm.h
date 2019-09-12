@@ -22,7 +22,7 @@ namespace CoSim {
 class SocketsComm : public CoSimComm
 {
 public:
-    SocketsComm(SettingsType& rSettings);
+    explicit SocketsComm(SettingsType& rSettings);
 
 };
 

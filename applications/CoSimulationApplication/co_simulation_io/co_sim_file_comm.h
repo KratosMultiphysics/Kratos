@@ -22,7 +22,7 @@ namespace CoSim {
 class FileComm : public CoSimComm
 {
 public:
-    FileComm(SettingsType& rSettings)
+    explicit FileComm(SettingsType& rSettings)
     {
 
     }
