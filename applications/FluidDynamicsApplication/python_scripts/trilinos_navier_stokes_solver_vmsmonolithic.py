@@ -112,10 +112,10 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 import KratosMultiphysics.RANSModellingApplication as KratosRANS
             else:
                 raise Exception("Please install/compile RANSModellingApplication to use turbulence_model properties")
-            from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_configuration import CreateMPITurbulenceModel
-            self.turbulence_model_configuration = CreateMPITurbulenceModel(model, self.settings["turbulence_model"])
+            from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_configuration import CreateTurbulenceModel
+            self.turbulence_model_configuration = CreateTurbulenceModel(model, self.settings["turbulence_model"], "MPI")
             self.condition_name = self.turbulence_model_configuration.GetFluidVelocityPressureConditionName()
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Using " + self.condition_name)
+            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic", "Using " + self.condition_name)
         else:
             self.turbulence_model_configuration = None
 
@@ -154,6 +154,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
     def Initialize(self):
         ## Construct the communicator
         self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
+        self.turbulence_model_configuration.SetCommunicator(self.EpetraCommunicator)
 
         ## Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
@@ -170,7 +171,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                                                                    self.settings["absolute_pressure_tolerance"].GetDouble())
         elif (self.settings["time_scheme"].GetString() == "steady"):
             self.conv_criteria = KratosTrilinos.TrilinosResidualCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                                         self.settings["absolute_velocity_tolerance"].GetDouble())
+                                                                             self.settings["absolute_velocity_tolerance"].GetDouble())
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
@@ -213,7 +214,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             else:
                 self.turbulence_model_configuration.Initialize()
                 if self.settings["time_scheme"].GetString() == "bossak":
-                    if (self.settings["consider_periodic_conditions"].GetBool() == True)
+                    if (self.settings["consider_periodic_conditions"].GetBool() == True):
                         self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
                                 self.settings["alpha"].GetDouble(),
                                 self.settings["move_mesh_strategy"].GetInt(),
@@ -222,7 +223,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                                 self.turbulence_model_configuration.GetTurbulenceSolvingProcess())
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    self.time_scheme = KratosTrilinos.ResidualBasedSimpleSteadyScheme(
+                    self.time_scheme = KratosTrilinos.TrilinosResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
