@@ -37,7 +37,6 @@
                 "mach_infinity": 0.02941176471,
                 "free_stream_density": 1.225,
                 "inlet_potential"         : 1.0
-
             }
         },{
             "python_module" : "define_wake_process_2d",
