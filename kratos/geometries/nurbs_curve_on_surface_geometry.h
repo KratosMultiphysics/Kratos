@@ -200,7 +200,7 @@ public:
                 return surface_derivatives[index];
             }
         };
-        for (int i = 0; i <= DerivativeOrder; i++) {
+        for (SizeType i = 0; i <= DerivativeOrder; i++) {
             derivatives[i] = c(i, 0, 0);
         }
 
