@@ -457,6 +457,9 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegrateStressDamageMech
 		double damage_parameter; // A parameter
 		this->CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
 		this->CalculateExponentialDamage(rDamage, damage_parameter, uniaxial_stress, initial_threshold);
+		if (this->GetProperties()[FRAGILE] == true) {
+			rDamage = 0.98;
+		}
 		rThreshold = uniaxial_stress;
 		rIsDamaging = true;
 	}
