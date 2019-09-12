@@ -8,27 +8,14 @@ if CheckIfApplicationsAvailable("RANSModellingApplication"):
     import KratosMultiphysics.RANSModellingApplication as KratosRANS
 
 
-def CreateTurbulenceModel(model, settings):
+def CreateTurbulenceModel(model, settings, parallel_type = "OpenMP"):
     if not CheckIfApplicationsAvailable("RANSModellingApplication"):
         msg = "Using a turbulence model requires the RANSModellingApplication. "
         msg += "Please re-install/re-compile with RANSModellingApplication."
         raise Exception(msg)
-
-    # print(dir(Kratos))
 
     from turbulence_model_factory import Factory
-    return Factory(settings, model)
-
-def CreateMPITurbulenceModel(model, settings):
-    if not CheckIfApplicationsAvailable("RANSModellingApplication"):
-        msg = "Using a turbulence model requires the RANSModellingApplication. "
-        msg += "Please re-install/re-compile with RANSModellingApplication."
-        raise Exception(msg)
-
-    # print(dir(Kratos))
-
-    from turbulence_model_factory_mpi import Factory
-    return Factory(settings, model, parallel_type="MPI")
+    return Factory(settings, model, parallel_type)
 
 class TurbulenceModelConfiguration(PythonSolver):
     def AddVariables(self):
