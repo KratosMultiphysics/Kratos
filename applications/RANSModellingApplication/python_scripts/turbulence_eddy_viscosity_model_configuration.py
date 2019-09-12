@@ -101,7 +101,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
             model_part = CreateDuplicateModelPart(
                 self.fluid_model_part, "TurbulenceModelPart_" + element,
                 element_name, condition_name, original_condition_name)
-            KratosMPI.ParallelFillCommunicator(model_part).Execute()
             self.model_parts_list.append(model_part)
 
     def __CreateLinearSolver(self, linear_solver_settings):

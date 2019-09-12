@@ -140,9 +140,15 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
 
     def PrepareModelPart(self):
-        super(TrilinosNavierStokesSolverMonolithic,self).PrepareModelPart()
-        ## Construct the MPI communicators
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._set_physical_properties()
+
+        super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).PrepareModelPart()
+
         self.distributed_model_part_importer.CreateCommunicators()
+
+        if self.turbulence_model_configuration is not None:
+            self.turbulence_model_configuration.PrepareModelPart()
 
     def AddDofs(self):
         ## Base class DOFs addition
