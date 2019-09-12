@@ -13,6 +13,7 @@
 
 #include "modeler/connectivity_preserve_modeler.h"
 #include "utilities/variable_utils.h"
+#include "includes/geometrical_object.h"
 
 namespace Kratos
 {
@@ -36,6 +37,32 @@ void ConnectivityPreserveModeler::GenerateModelPart(
     this->DuplicateElements(rOriginModelPart, rDestinationModelPart, rReferenceElement);
 
     this->DuplicateConditions(rOriginModelPart, rDestinationModelPart, rReferenceBoundaryCondition);
+
+    this->DuplicateCommunicatorData(rOriginModelPart,rDestinationModelPart);
+
+    this->DuplicateSubModelParts(rOriginModelPart, rDestinationModelPart);
+
+    KRATOS_CATCH("");
+}
+
+void ConnectivityPreserveModeler::GenerateModelPart(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart,
+    Element const& rReferenceElement,
+    Condition const& rReferenceBoundaryCondition,
+    Condition const& rOriginalBoundaryCondition)
+{
+    KRATOS_TRY;
+
+    this->CheckVariableLists(rOriginModelPart, rDestinationModelPart);
+
+    this->ResetModelPart(rDestinationModelPart);
+
+    this->CopyCommonData(rOriginModelPart, rDestinationModelPart);
+
+    this->DuplicateElements(rOriginModelPart, rDestinationModelPart, rReferenceElement);
+
+    this->DuplicateConditions(rOriginModelPart, rDestinationModelPart, rReferenceBoundaryCondition, rOriginalBoundaryCondition);
 
     this->DuplicateCommunicatorData(rOriginModelPart,rDestinationModelPart);
 
@@ -171,16 +198,51 @@ void ConnectivityPreserveModeler::DuplicateConditions(
     ModelPart& rDestinationModelPart,
     const Condition& rReferenceBoundaryCondition) const
 {
+    const Condition& r_periodic_condition = KratosComponents<Condition>::Get("PeriodicCondition");
+
     // Generate the conditions
     ModelPart::ConditionsContainerType temp_conditions;
     temp_conditions.reserve(rOriginModelPart.NumberOfConditions());
     for (auto i_cond = rOriginModelPart.ConditionsBegin(); i_cond != rOriginModelPart.ConditionsEnd(); ++i_cond) {
+        if (GeometricalObject::HasSameType(r_periodic_condition, *i_cond))
+            continue;
         Properties::Pointer properties = i_cond->pGetProperties();
 
         // Reuse the geometry of the old element (to save memory)
         Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(i_cond->Id(), i_cond->pGetGeometry(), properties);
 
         temp_conditions.push_back(p_condition);
+    }
+
+    rDestinationModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());
+}
+
+void ConnectivityPreserveModeler::DuplicateConditions(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart,
+    const Condition& rReferenceBoundaryCondition,
+    const Condition& rOriginalBoundaryCondition) const
+{
+    // Generate the conditions
+    ModelPart::ConditionsContainerType temp_conditions;
+    temp_conditions.reserve(rOriginModelPart.NumberOfConditions());
+    for (auto i_cond = rOriginModelPart.ConditionsBegin(); i_cond != rOriginModelPart.ConditionsEnd(); ++i_cond) {
+        Properties::Pointer properties = i_cond->pGetProperties();
+
+        if (GeometricalObject::HasSameType(rOriginalBoundaryCondition, *i_cond))
+        {
+            // Reuse the geometry of the old element (to save memory)
+            Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(i_cond->Id(), i_cond->pGetGeometry(), properties);
+
+            temp_conditions.push_back(p_condition);
+        }
+        else
+        {
+            Condition::Pointer p_condition = i_cond->Create(i_cond->Id(), i_cond->GetGeometry().Points(), properties);
+
+            temp_conditions.push_back(p_condition);
+        }
+
     }
 
     rDestinationModelPart.AddConditions(temp_conditions.begin(), temp_conditions.end());

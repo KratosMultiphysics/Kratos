@@ -153,6 +153,11 @@ public:
         KRATOS_ERROR << "This modeler CAN NOT be used for mesh generation." << std::endl;
     }
 
+    virtual void GenerateModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition, Condition const& rOriginalBoundaryCondition)
+    {
+        KRATOS_ERROR << "This modeler CAN NOT be used for mesh generation." << std::endl;
+    }
+
     virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition)
     {
         KRATOS_ERROR << "This modeler CAN NOT be used for mesh generation." << std::endl;

@@ -42,6 +42,15 @@ void GenerateModelPart(Modeler& GM, ModelPart& origin_model_part, ModelPart& des
 
 }
 
+void GenerateModelPartSpecifiedCondition(Modeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rElementName, const std::string& rConditionName, const std::string& rOriginalConditionName)
+{
+    GM.GenerateModelPart(origin_model_part, destination_model_part,
+                         KratosComponents<Element>::Get(rElementName),
+                         KratosComponents<Condition>::Get(rConditionName),
+                         KratosComponents<Condition>::Get(rOriginalConditionName));
+
+}
+
 void GenerateMesh(Modeler& GM, ModelPart& model_part, const std::string& rElementName, const std::string& rConditionName)
 {
     GM.GenerateMesh(model_part,
@@ -78,6 +87,7 @@ void  AddModelerToPython(pybind11::module& m)
     py::class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,Modeler>(m,"ConnectivityPreserveModeler")
     .def(py::init< >())
     .def("GenerateModelPart",&GenerateModelPart)
+    .def("GenerateModelPart",&GenerateModelPartSpecifiedCondition)
     .def("GenerateModelPart",&GeneratePartialModelPart)
     ;
 
