@@ -263,7 +263,7 @@ class NodalNeighboursSearchProcess
       //set fixed nodes as Nodes<3>::STRUCTURE  to not be removed in the meshing
       for(const auto& i_dof : i_node.GetDofs())
       {
-        if(i_dof.IsFixed())
+        if(i_dof->IsFixed())
         {
           i_node.Set(STRUCTURE);
           break;
