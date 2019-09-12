@@ -37,6 +37,24 @@ TestSkippedException::TestSkippedException(const TestSkippedException &Other):
 TestSkippedException::~TestSkippedException() throw()
 {}
 
+TestSkippedException& TestSkippedException::operator << (CodeLocation const& TheLocation)
+{
+    Exception::operator<<(TheLocation);
+    return *this;
+}
+
+TestSkippedException& TestSkippedException::operator << (std::ostream& (*pf)(std::ostream&))
+{
+    Exception::operator<<(pf);
+    return *this;
+}
+
+TestSkippedException& TestSkippedException::operator << (const char * rString)
+{
+    Exception::operator<<(rString);
+    return *this;
+}
+
 std::string TestSkippedException::Info() const
 {
     return "TestSkippedException";

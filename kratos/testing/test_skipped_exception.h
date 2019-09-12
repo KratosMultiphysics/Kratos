@@ -59,19 +59,22 @@ public:
     ///@name Operators
     ///@{
 
+    /// CodeLocation stream function
+    TestSkippedException& operator << (CodeLocation const& TheLocation);
+
     /// string stream function
-    template<class ValueType>
-    TestSkippedException& operator << (ValueType Value)
+    template<class StreamValueType>
+    TestSkippedException& operator << (StreamValueType const& rValue)
     {
-        Exception::operator << (Value);
+        Exception::operator << (rValue);
         return *this;
     }
 
-    TestSkippedException& operator << (std::ostream& (*pf)(std::ostream&))
-    {
-        Exception::operator<<(pf);
-        return *this;
-    }
+    /// Manipulator stream function
+    TestSkippedException& operator << (std::ostream& (*pf)(std::ostream&));
+
+    /// char stream function
+    TestSkippedException& operator << (const char * rString);
 
     ///@}
     ///@name Input and output
