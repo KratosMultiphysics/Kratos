@@ -29,7 +29,7 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -65,7 +65,7 @@ class ContactResidualBasedBlockBuilderAndSolver
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of ContactResidualBasedBlockBuilderAndSolver
     KRATOS_CLASS_POINTER_DEFINITION(ContactResidualBasedBlockBuilderAndSolver);
 
@@ -107,7 +107,7 @@ public:
     /**
      * @brief This method imposses the BC of Dirichlet. It will fill with 0 the corresponding DoF
      * @param pScheme The pointer to the scheme considered
-     * @param rModelPart The model part of the problem to solve 
+     * @param rModelPart The model part of the problem to solve
      * @param A The LHS of the system
      * @param Dx The current solution increment
      * @param b The RHS of the system
@@ -121,16 +121,16 @@ public:
         ) override
     {
         FixIsolatedNodes(rModelPart);
-        
+
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
-        
+
         FreeIsolatedNodes(rModelPart);
     }
-    
+
     /**
      * @brief This method buils the RHS of the system of equations
      * @param pScheme The pointer to the scheme considered
-     * @param rModelPart The model part of the problem to solve 
+     * @param rModelPart The model part of the problem to solve
      * @param b The RHS of the system
      */
     void BuildRHS(
@@ -140,12 +140,12 @@ public:
         ) override
     {
         FixIsolatedNodes(rModelPart);
-        
+
         BaseType::BuildRHS(pScheme, rModelPart, b);
-        
+
         FreeIsolatedNodes(rModelPart);
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -195,11 +195,11 @@ protected:
     ///@}
 
 private:
-    ///@name Static Member Variables 
+    ///@name Static Member Variables
     ///@{
 
     ///@}
-    ///@name Member Variables 
+    ///@name Member Variables
     ///@{
 
     ///@}
@@ -214,38 +214,38 @@ private:
     {
         KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart("Contact")) << "CONTACT MODEL PART NOT CREATED" << std::endl;
         KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart("ComputingContact")) << "CONTACT COMPUTING MODEL PART NOT CREATED" << std::endl;
-        ModelPart& contact_model_part = rModelPart.GetSubModelPart("Contact"); 
-        ModelPart& computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact"); 
-        
+        ModelPart& contact_model_part = rModelPart.GetSubModelPart("Contact");
+        ModelPart& computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
+
         // We reset the flag
         auto& nodes_array = contact_model_part.Nodes();
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             (nodes_array.begin() + i)->Set(VISITED, false);
             (nodes_array.begin() + i)->Set(ISOLATED, false);
         }
-        
+
         // Now we set the flag in the nodes
         auto& conditions_array = computing_contact_model_part.Conditions();
-        
-        #pragma omp parallel for 
+
+        #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto it_cond = conditions_array.begin() + i;
-            auto& geom = it_cond->GetGeometry();
-            for (std::size_t i_node = 0; i_node < geom.size(); ++i_node) {
-                geom[i_node].SetLock();
-                if (geom[i_node].Is(VISITED) == false) {
-                    geom[i_node].Set(ISOLATED, it_cond->Is(ISOLATED));
-                    geom[i_node].Set(VISITED, true);
+            auto& r_parent_geometry = it_cond->GetGeometry().GetGeometryPart(0);
+            for (std::size_t i_node = 0; i_node < r_parent_geometry.size(); ++i_node) {
+                r_parent_geometry[i_node].SetLock();
+                if (r_parent_geometry[i_node].Is(VISITED) == false) {
+                    r_parent_geometry[i_node].Set(ISOLATED, it_cond->Is(ISOLATED));
+                    r_parent_geometry[i_node].Set(VISITED, true);
                 } else {
-                    geom[i_node].Set(ISOLATED, geom[i_node].Is(ISOLATED) && it_cond->Is(ISOLATED));
+                    r_parent_geometry[i_node].Set(ISOLATED, r_parent_geometry[i_node].Is(ISOLATED) && it_cond->Is(ISOLATED));
                 }
-                geom[i_node].UnSetLock();
+                r_parent_geometry[i_node].UnSetLock();
             }
         }
-        
+
         // We fix the LM
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(ISOLATED) == true) {
@@ -259,19 +259,19 @@ private:
             }
         }
     }
-    
+
     /**
-     * @brief This method releases the ISOLATED nodes 
+     * @brief This method releases the ISOLATED nodes
      * @param rModelPart The model part to compute
      */
     void FreeIsolatedNodes(ModelPart& rModelPart)
     {
         KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart("Contact")) << "CONTACT MODEL PART NOT CREATED" << std::endl;
         ModelPart& contact_model_part = rModelPart.GetSubModelPart("Contact");
-        
+
         // We release the LM
         auto& nodes_array = contact_model_part.Nodes();
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(ISOLATED) == true) {
@@ -285,7 +285,7 @@ private:
             }
         }
     }
-    
+
     ///@}
     ///@name Private Operations
     ///@{
