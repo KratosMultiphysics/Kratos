@@ -65,7 +65,14 @@ public:
     void CalculateNormal(array_1d<double, 3>& rnormal) override;
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
     void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
-
+    void ComputeConditionRelativeData(int rigid_neighbour_index,
+                                      SphericParticle* const particle,
+                                      double LocalCoordSystem[3][3],
+                                      double& DistPToB,
+                                      array_1d<double, 4>& Weight,
+                                      array_1d<double, 3>& wall_delta_disp_at_contact_point,
+                                      array_1d<double, 3>& wall_velocity_at_contact_point,
+                                      int& ContactType) override;
 
     /**
      * Turn back information as a string.
