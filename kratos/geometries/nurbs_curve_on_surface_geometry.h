@@ -60,16 +60,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Conctructor for curve on surface
-    /*NurbsCurveOnSurfaceGeometry(
-        typename NurbsSurfaceType::Pointer pSurface,
-        typename NurbsCurveType::Pointer pCurve)
-        : BaseType(rThisPoints, &msGeometryData)
-        , mpNurbsSurface(pSurface)
-        , mpNurbsCurve(pCurve)
-    {
-    }*/
-
     NurbsCurveOnSurfaceGeometry(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve)
@@ -143,15 +133,15 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    /*template<class TOtherContainerPointType>
+    template<class TOtherCurveContainerPointType, class TOtherSurfaceContainerPointType>
     NurbsCurveOnSurfaceGeometry& operator=(
-        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
+        NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TOtherCurveContainerPointType, TOtherSurfaceContainerPointType> const & rOther)
     {
         BaseType::operator=(rOther);
         mpNurbsSurface = rOther.mpNurbsSurface;
         mpNurbsCurve = rOther.mpNurbsCurve;
         return *this;
-    }*/
+    }
 
     ///@}
     ///@name Operations
@@ -160,103 +150,8 @@ public:
     /*typename BaseType::Pointer Create(
         PointsArrayType const& ThisPoints) const override
     {
-        return Kratos::make_shared<NurbsCurveOnSurfaceGeometry>();
+        return Kratos::make_shared<NurbsCurveOnSurfaceGeometry>(ThisPoints);
     }*/
-
-    ///@}
-    ///@name Get and Set functions
-    ///@{
-
-    /*
-    * @brief Polynomial degree of this curve.
-    * @return the polynomial degree.
-    */
-    SizeType PolynomialDegree() const
-    {
-        return mpNurbsCurve->PolynomialDegree();
-    }
-
-    /* 
-    * @brief Knot vector is defined to have a multiplicity of p
-    *        at the beginning and end (NOT: p + 1).
-    * @return knot vector.
-    */
-    /*const Vector& Knots() const
-    {
-        return mpNurbsCurve->Knots();
-    }*/
-
-    ///*
-    //* @brief The number of knots within the knot vector.
-    //* @return the size of the knot vector.
-    //*/
-    //SizeType NumberOfKnots() const
-    //{
-    //    return mKnots.size();
-    //}
-
-    ///*
-    //* @brief The number of nonzero control points for one point in the curve
-    //*        is given by p+1.
-    //* @return the number of nonzero control points.
-    //*/
-    //SizeType NumberOfNonzeroControlPoints() const
-    //{
-    //    return PolynomialDegree() + 1;
-    //}
-
-    ///*
-    //* @brief Checks if shape functions are rational or not.
-    //* @return true if NURBS,
-    //*         false if B-Splines only (all weights are considered as 1.0)
-    //*/
-    //bool IsRational() const
-    //{
-    //    return mWeights.size() != 0;
-    //}
-
-    ///*
-    //* @brief Provides weights vector. All values are 1.0 for B-Splines,
-    //*        for NURBS those can be unequal 1.0.
-    //*        Has size 0 if B-Spline.
-    //* @return weights vector.
-    //*/
-    //const Vector& Weights() const
-    //{
-    //    //return mWeights;
-    //}
-
-    ///* 
-    //* @brief Provides the natural boundaries of the NURBS/B-Spline curve.
-    //* @return domain interval.
-    //*/
-    //Interval DomainInterval() const
-    //{
-    //    //return Interval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
-    //}
-
-    ///*
-    //* @brief Provides all knot intervals within one curve.
-    //* @return vector of domain intervals.
-    //*/
-    //std::vector<Interval> KnotSpanIntervals() const
-    //{
-    //    //const IndexType first_span = mPolynomialDegree - 1;
-    //    //const IndexType last_span = NumberOfKnots() - mPolynomialDegree - 1;
-
-    //    //const IndexType number_of_spans = last_span - first_span + 1;
-
-    //    //std::vector<Interval> result(number_of_spans);
-
-    //    //for (IndexType i = 0; i < number_of_spans; i++) {
-    //    //    const double t0 = mKnots[first_span + i];
-    //    //    const double t1 = mKnots[first_span + i + 1];
-
-    //    //    result[i] = Interval(t0, t1);
-    //    //}
-
-    //    //return result;
-    //}
 
     ///@}
     ///@name Operations
@@ -321,98 +216,16 @@ public:
     * @return array_1d<double, 3> with the coordinates in working space
     * @see PointLocalCoordinates
     */
-    /*CoordinatesArrayType& GlobalCoordinates(
+    CoordinatesArrayType& GlobalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rLocalCoordinates
     ) const override
     {
-        const auto uv = m_curve_geometry->point_at(t);
-
-        const auto point = m_surface_geometry->point_at(uv[0], uv[1]);
-
-        return point;
-        //NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 0);
-
-        //if (IsRational()) {
-        //    shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rLocalCoordinates[0]);
-        //}
-        //else {
-        //    shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rLocalCoordinates[0]);
-        //}
-
-        //noalias(rResult) = ZeroVector(3);
-        //for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-        //    const IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + i;
-
-        //    rResult += (*this)[index] * shape_function_container(i, 0);
-        //}
-        //return rResult;
-    }*/
-
-    ///@}
-    ///@name Shape Function
-    ///@{
-
-    /*
-    * @brief This function computes the shape functions at a certain point.
-    * From Piegl and Tiller, The NURBS Book, Algorithm A3.1/ A4.1
-    * @param rResult the given Vector, which will be overwritten by the solution
-    * @param rCoordinates the given local coordinates, with the coordinates u and v.
-    * @return vector of the shape functions at rCoordinates
-    */
-    Vector& ShapeFunctionsValues(
-        Vector &rResult,
-        const CoordinatesArrayType& rCoordinates) const override
-    {
-        //NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 0);
-
-        //if (IsRational()) {
-        //    shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
-        //}
-        //else {
-        //    shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
-        //}
-
-        //if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
-        //    rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
-
-        //for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-        //    rResult[i] = shape_function_container(i, 0);
-        //}
-
-        //return rResult;
-    }
-
-    /*
-    * @brief This function computes the first derivatives at a certain point.
-    * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
-    * @param rResult the given Matrix which will be overwritten by the solution
-    * @param rCoordinates the given local coordinates, with the coordinates u and v.
-    * @return matrix of derivatives at rCoordinates.
-    *         (0,i): dN/du, (1,i): dN/dv
-    */
-    Matrix& ShapeFunctionsLocalGradients(
-        Matrix& rResult,
-        const CoordinatesArrayType& rCoordinates) const override
-    {
-        //NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 1);
-
-        //if (IsRational()) {
-        //    shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
-        //}
-        //else {
-        //    shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
-        //}
-
-        //if (rResult.size1() != 1
-        //    && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
-        //    rResult.resize(1, shape_function_container.NumberOfNonzeroControlPoints());
-
-        //for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-        //    rResult(0, i) = shape_function_container(i, 1);
-        //}
-
-        //return rResult;
+        // Compute the coordinates of the embedded curve in the parametric space of the surface
+        rResult = mpNurbsCurve->GlobalCoordinates(rResult, rLocalCoordinates);
+        
+        // Compute and return the coordinates of the surface in the geometric space
+        return mpNurbsSurface->GlobalCoordinates(rResult, rResult);
     }
 
     ///@}
@@ -474,13 +287,13 @@ private:
 
 }; // class NurbsCurveOnSurfaceGeometry
 
-/*template<int TWorkingSpaceDimension, class TContainerPointType>TPointType
-const GeometryData NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimTPointTypeension, TContainerPointType>::msGeometryData(
+template<int TWorkingSpaceDimension, class TCurveContainerPointType, class TSurfaceContainerPointType>
+const GeometryData NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TSurfaceContainerPointType>::msGeometryData(
     1,
     TWorkingSpaceDimension,
     2,
     GeometryData::GI_GAUSS_1,
-    {}, {}, {});*/
+    {}, {}, {});
 
 } // namespace Kratos
 

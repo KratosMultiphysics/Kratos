@@ -206,6 +206,20 @@ typedef Node<3> NodeType;
         // Create a Nurbs curve on a Nurbs surface
         auto curve_on_surface = GenerateReferenceNurbsCurveOnNurbsSurface3d();
 
+        // Evaluate the global coordinates of the curve at u = 4.0
+        {
+            array_1d<double, 1> parameter = ZeroVector(1);
+            parameter[0] = 4.0;
+
+            // Compute the global coordinates of the curve on surface
+            auto global_coordinates = curve_on_surface.GlobalDerivatives(parameter, 1);
+
+            // Compare the position vectors
+            std::vector<double> positionVct = {0.054174511426802, -0.034958783455029, 0.038314563432352};
+
+            KRATOS_CHECK_VECTOR_NEAR(global_coordinates[0], positionVct, TOLERANCE);
+        }
+
         // Evaluate the gradients of the curve at u = 0.0
         {
             array_1d<double, 1> parameter = ZeroVector(1);
