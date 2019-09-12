@@ -18,6 +18,7 @@ set( KRATOS_RANS_MODELLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_low_re_k_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_epsilon_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_low_re_epsilon_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/relaxed_dof_updater.cpp
 )
 
 set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
@@ -53,7 +54,7 @@ target_link_libraries(KratosRANSModellingCore PUBLIC KratosCore KratosFluidDynam
 set_target_properties(KratosRANSModellingCore PROPERTIES COMPILE_DEFINITIONS "RANS_MODELLING_APPLICATION=EXPORT,API")
 
 pybind11_add_module(KratosRANSModellingApplication MODULE THIN_LTO ${KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosRANSModellingApplication PUBLIC KratosRANSModellingCore)
+target_link_libraries(KratosRANSModellingApplication PRIVATE KratosRANSModellingCore)
 set_target_properties(KratosRANSModellingApplication PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
