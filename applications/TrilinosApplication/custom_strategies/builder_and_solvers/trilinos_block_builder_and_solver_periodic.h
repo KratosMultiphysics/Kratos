@@ -144,12 +144,6 @@ public:
     {
         KRATOS_TRY;
 
-        // This sort helps us preserve consistency of dof ordering across processors (as searching for a dof in
-        // the nodal list of dofs will sort the list first).
-        // If/when the DofList becomes a static array, this step can be skipped.
-        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
-            itNode->GetDofs().Sort();
-
         unsigned int Rank = this->mrComm.MyPID();
 
         // Count the Dofs on this partition (on periodic node pairs, only the dofs on the node with higher Id are counted)
