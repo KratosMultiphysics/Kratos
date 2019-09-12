@@ -86,44 +86,11 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef ConvergenceCriteria<MPISparseSpaceType, LocalSpaceType> MPIConvergenceCriteria;
 
-    py::class_<MPIConvergenceCriteria, MPIConvergenceCriteria::Pointer>(
-        m, "MPIConvergenceCriteria")
-        .def(py::init<>())
-        .def("SetActualizeRHSFlag", &MPIConvergenceCriteria::SetActualizeRHSFlag)
-        .def("GetActualizeRHSflag", &MPIConvergenceCriteria::GetActualizeRHSflag)
-        .def("PreCriteria", &MPIConvergenceCriteria::PreCriteria)
-        .def("PostCriteria", &MPIConvergenceCriteria::PostCriteria)
-        .def("Initialize", &MPIConvergenceCriteria::Initialize)
-        .def("InitializeSolutionStep", &MPIConvergenceCriteria::InitializeSolutionStep)
-        .def("FinalizeSolutionStep", &MPIConvergenceCriteria::FinalizeSolutionStep)
-        .def("Check", &MPIConvergenceCriteria::Check)
-        .def("SetEchoLevel", &MPIConvergenceCriteria::SetEchoLevel);
 
     py::class_<MPIGenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>,
                typename MPIGenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>::Pointer, MPIConvergenceCriteria>(
         m, "MPIGenericScalarConvergenceCriteria")
         .def(py::init<MPISparseSpaceType::DataType, MPISparseSpaceType::DataType>());
-
-    py::class_<MPIBaseSchemeType, typename MPIBaseSchemeType::Pointer>(
-        m, "MPIScheme")
-        .def(py::init<>())
-        .def("Initialize", &MPIBaseSchemeType::Initialize)
-        .def("SchemeIsInitialized", &MPIBaseSchemeType::SchemeIsInitialized)
-        .def("ElementsAreInitialized", &MPIBaseSchemeType::ElementsAreInitialized)
-        .def("ConditionsAreInitialized", &MPIBaseSchemeType::ConditionsAreInitialized)
-        .def("InitializeElements", &MPIBaseSchemeType::InitializeElements)
-        .def("InitializeConditions", &MPIBaseSchemeType::InitializeConditions)
-        .def("InitializeSolutionStep", &MPIBaseSchemeType::InitializeSolutionStep)
-        .def("FinalizeSolutionStep", &MPIBaseSchemeType::FinalizeSolutionStep)
-        .def("InitializeNonLinIteration", &MPIBaseSchemeType::InitializeNonLinIteration)
-        .def("FinalizeNonLinIteration", &MPIBaseSchemeType::FinalizeNonLinIteration)
-        .def("Predict", &MPIBaseSchemeType::Predict)
-        .def("Update", &MPIBaseSchemeType::Update)
-        .def("CalculateOutputData", &MPIBaseSchemeType::CalculateOutputData)
-        .def("Clean", &MPIBaseSchemeType::Clean)
-        .def("Clear", &MPIBaseSchemeType::Clear)
-        .def("MoveMesh", MoveMesh)
-        .def("Check", &MPIBaseSchemeType::Check);
 
     py::class_<GenericResidualBasedBossakVelocityScalarScheme<MPISparseSpaceType, LocalSpaceType>,
                typename GenericResidualBasedBossakVelocityScalarScheme<MPISparseSpaceType, LocalSpaceType>::Pointer, MPIBaseSchemeType>(
