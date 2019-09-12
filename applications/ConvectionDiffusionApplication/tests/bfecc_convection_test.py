@@ -3,6 +3,8 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
+from KratosMultiphysics.json_output_process import JsonOutputProcess
+from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 import math
@@ -100,25 +102,28 @@ class BFECCConvectionTest(UnitTest.TestCase):
     def checkResults(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
             if self.print_reference_values:
-                with open(self.reference_file + '.csv','w') as reference_file:
-                    reference_file.write("#ID, TEMPERATURE\n")
-                    for node in self.main_model_part.Nodes:
-                        reference_file.write("{0}, {1}\n".format(node.Id, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)))
-                    reference_file.close()
-            else:
-                with open(self.reference_file + '_results' + '.csv','w') as reference_file:
-                    reference_file.write("#ID, TEMPERATURE\n")
-                    for node in self.main_model_part.Nodes:
-                        reference_file.write("{0}, {1}\n".format(node.Id, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)))
-                    reference_file.close()
-
-                compare_files_settings = KratosMultiphysics.Parameters(r'''{
-                    "reference_file_name"   : "bfecc_convection_test.csv",
-                    "output_file_name"      : "bfecc_convection_test_results.csv",
-                    "remove_output_file"    : true,
-                    "comparison_type"       : "deterministic"
+                json_output_settings = KratosMultiphysics.Parameters(r'''{
+                        "output_variables": ["TEMPERATURE"],
+                        "output_file_name": "bfecc_convection_test_results.json",
+                        "model_part_name": "MainModelPart",
+                        "time_frequency": 0.0
                 }''')
-                CompareTwoFilesCheckProcess(compare_files_settings).Execute()
+                json_output_process = JsonOutputProcess(self.model, json_output_settings)
+                json_output_process.ExecuteInitialize()
+                json_output_process.ExecuteBeforeSolutionLoop()
+                json_output_process.ExecuteFinalizeSolutionStep()
+            else:
+                json_check_parameters = KratosMultiphysics.Parameters(r'''
+                {
+                    "check_variables"      : ["TEMPERATURE"],
+                    "input_file_name"      : "bfecc_convection_test_results.json",
+                    "model_part_name"      : "MainModelPart",
+                    "time_frequency"       : 0.0
+                }''')
+                json_check_process = FromJsonCheckResultProcess(self.model, json_check_parameters)
+                json_check_process.ExecuteInitialize()
+                json_check_process.ExecuteBeforeSolutionLoop()
+                json_check_process.ExecuteFinalizeSolutionStep()
 
     def testBFECCConvection(self):
         self.setUp()
