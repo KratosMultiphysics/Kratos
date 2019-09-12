@@ -4,6 +4,9 @@ import sys
 
 # Application dependent names and paths
 import KratosMultiphysics as KM
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if (CheckIfApplicationsAvailable("TrilinosApplication")):
+    from KratosMultiphysics.TrilinosApplication import *
 from KratosRANSModellingApplication import *
 application = KratosRANSModellingApplication()
 application_name = "KratosRANSModellingApplication"
