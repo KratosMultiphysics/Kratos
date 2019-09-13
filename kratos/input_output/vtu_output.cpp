@@ -56,6 +56,27 @@ VtuOutput::VtuOutput(
 
 void VtuOutput::PrintOutput()
 {
+    std::vector<double> points
+    {
+        0.0, 0.0, 0.5,    0.0, 0.3, 0.5,    0.0, 0.7, 0.5,    0.0, 1.0, 0.5, // 0,  1,  2,  3
+        0.5, 0.0, 0.5,    0.5, 0.3, 0.5,    0.5, 0.7, 0.5,    0.5, 1.0, 0.5, // 4,  5,  6,  7
+        1.0, 0.0, 0.5,    1.0, 0.3, 0.5,    1.0, 0.7, 0.5,    1.0, 1.0, 0.5  // 8,  9, 10, 11
+    };
+
+    std::vector<std::size_t> connectivity
+    {
+        0,  4,  5,  1, // 0
+        1,  5,  6,  2, // 1
+        2,  6,  7,  3, // 2
+        4,  8,  9,  5, // 3
+        5,  9, 10,  6, // 4
+        6, 10, 11,  7  // 5
+    };
+
+    std::vector<std::size_t> offsets { 4, 8, 12, 16, 20, 24 };
+    std::vector<vtu11::VtkCellType> types { 9, 9, 9, 9, 9, 9 };
+
+    vtu11::Vtu11UnstructuredMesh vtu_mesh{ points, connectivity, offsets, types };
 }
 
 /***********************************************************************************/
