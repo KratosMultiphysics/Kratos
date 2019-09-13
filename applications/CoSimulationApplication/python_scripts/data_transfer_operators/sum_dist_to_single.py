@@ -6,7 +6,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_
 import numpy as np
 
 def Create(settings):
-    return SumAndCopyDistToSingle(settings)
+    return SumDistToSingle(settings)
 
 class SumDistToSingle(CoSimulationDataTransferOperator):
 
