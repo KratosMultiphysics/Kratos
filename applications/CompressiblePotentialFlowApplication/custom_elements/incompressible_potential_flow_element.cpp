@@ -152,6 +152,11 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Pro
         ComputePotentialJump(rCurrentProcessInfo);
     }
     ComputeElementInternalEnergy();
+
+    // Save velocity
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim,NumNodes>(*this);
+    this->SetValue(VELOCITY, velocity);
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -393,23 +398,24 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNorm
 
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int kutta = r_this.GetValue(KUTTA);
-    if(kutta){
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            // The TE node takes the contribution of the subdivided element and
-            // we do not apply the wake condition on the TE node
-            if (GetGeometry()[i].GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT))// && !GetGeometry()[i].GetValue(WING_TIP))
-            {
-                //int id = GetGeometry()[i].Id();
-                //to_be_decoupled = false;
-                // KRATOS_WATCH(GetGeometry()[i].Id())
-                //KRATOS_WATCH(id)
-                // Kutta elements do not contribute to the TE node
-                for (unsigned int j = 0; j < NumNodes; ++j){
-                    rLeftHandSideMatrix(i, j) = 0.0;
-                }
-            }
-        }
-    }
+    const int up_kutta = r_this.GetValue(ZERO_VELOCITY_CONDITION);
+    // if(kutta){
+    //     //KRATOS_WATCH(this->Id())
+    //     for (unsigned int i = 0; i < NumNodes; ++i){
+    //         // The TE node takes the contribution of the subdivided element and
+    //         // we do not apply the wake condition on the TE node
+    //         if (GetGeometry()[i].GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT))// && !GetGeometry()[i].GetValue(WING_TIP))
+    //         {
+    //             //to_be_decoupled = false;
+    //             //KRATOS_WATCH(this->Id())
+    //             // KRATOS_WATCH(GetGeometry()[i].Id())
+    //             // Kutta elements do not contribute to the TE node
+    //             for (unsigned int j = 0; j < NumNodes; ++j){
+    //                 rLeftHandSideMatrix(i, j) = 0.0;
+    //             }
+    //         }
+    //     }
+    // }
 
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(*this);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.potentials);
@@ -528,15 +534,15 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdivi
     {
         // The TE node takes the contribution of the subdivided element and
         // we do not apply the wake condition on the TE node
-        if (GetGeometry()[i].GetValue(WING_TIP))// && to_be_decoupled)
+        if (GetGeometry()[i].GetValue(TRAILING_EDGE))// && to_be_decoupled)
         {
             //to_be_decoupled = false;
-            KRATOS_WATCH(GetGeometry()[i].Id())
-            KRATOS_WATCH(this->Id())
+            // KRATOS_WATCH(GetGeometry()[i].Id())
+            //KRATOS_WATCH(this->Id())
             for (unsigned int j = 0; j < NumNodes; ++j)
             {
-                rLeftHandSideMatrix(i, j) = lhs_positive(i,j);//lhs_total(i, j);
-                rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_negative(i,j);//lhs_total(i, j);
+                rLeftHandSideMatrix(i, j) =lhs_positive(i, j);//lhs_positive(i,j);//lhs_total(i, j);
+                rLeftHandSideMatrix(i + NumNodes, j + NumNodes) =lhs_negative(i, j);//lhs_negative(i,j);//lhs_total(i, j);
             }
         }
         else

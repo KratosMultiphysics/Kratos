@@ -121,4 +121,11 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def _AssignNeumannFarFieldBoundaryCondition(self, cond):
         cond.SetValue(CPFApp.FREE_STREAM_VELOCITY, self.free_stream_velocity)
 
+    def ExecuteFinalize(self):
+        for element in self.fluid_model_part.Elements:
+            velocity = element.GetValue(KratosMultiphysics.VELOCITY)
+            # if(abs(velocity[1])> 5.0):
+            #     print('element_id = ', element.Id)
+            #     print('velocity_y = ', velocity[1])
+
 

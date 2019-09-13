@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
+import time as time
 
 # Importing the base class
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
@@ -167,8 +168,14 @@ class PotentialFlowSolver(FluidSolver):
         self.solver.Initialize()
 
     def SolveSolutionStep(self):
+        start_time = time.time()
         super(PotentialFlowSolver, self).SolveSolutionStep()
-        #self._ComputeConditionNumber()
+        exe_time = time.time() - start_time
+        print('Executing SolveSolutionStep took ' + str(round(exe_time, 2)) + ' sec')
+        # start_time = time.time()
+        # self._ComputeConditionNumber()
+        # exe_time = time.time() - start_time
+        # print('Executing _ComputeConditionNumber took ' + str(round(exe_time, 2)) + ' sec')
 
     def AdvanceInTime(self, current_time):
         raise Exception("AdvanceInTime is not implemented. Potential Flow simulations are steady state.")
