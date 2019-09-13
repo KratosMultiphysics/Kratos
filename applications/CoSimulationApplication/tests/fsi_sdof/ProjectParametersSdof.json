@@ -1,0 +1,26 @@
+{
+    "system_parameters":{
+        "mass": 4.36e-3,
+        "stiffness" : 10.0,
+        "damping": 0.0
+    },
+    "time_integration_parameters":{
+        "alpha_m": -0.3,
+        "alpha_f":  -0.0,
+        "time_step": 0.01
+    },
+     "initial_values":{
+        "displacement": 0.0,
+        "velocity": 0.0,
+        "acceleration": 0.0
+     },
+     "boundary_conditions":{
+        "external_load": 0.0
+     },
+     "solver_parameters": {
+         "buffer_size": 3
+     },
+     "output_parameters":{
+        "file_name": "fsi_sdof/results_sdof.dat"
+     }
+}
