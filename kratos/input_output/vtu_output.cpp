@@ -35,11 +35,16 @@ VtuOutput::VtuOutput(
     const std::string file_format = mOutputSettings["file_format"].GetString();
     if (file_format == "ascii") {
         mFileFormat = VtuOutput::FileFormat::VTU_ASCII;
-    } else if (file_format == "binary") {
-        mFileFormat = VtuOutput::FileFormat::VTU_BINARY;
-
+    } else if (file_format == "binary_raw") {
+        mFileFormat = VtuOutput::FileFormat::VTU_BINARY_RAW;
+    } else if (file_format == "binary_raw_compressed") {
+        mFileFormat = VtuOutput::FileFormat::VTU_BINARY_RAW_COMPRESSED;
+    } else if (file_format == "binary_base64") {
+        mFileFormat = VtuOutput::FileFormat::VTU_BINARY_BASE64;
+    } else if (file_format == "binary_base64_appended") {
+        mFileFormat = VtuOutput::FileFormat::VTU_BINARY_BASE64_APPENDED;
     } else {
-        KRATOS_ERROR << "Option for \"file_format\": " << file_format << " not recognised!\n Possible output formats options are: \"ascii\", \"binary\"" << std::endl;
+        KRATOS_ERROR << "Option for \"file_format\": " << file_format << " not recognised!\n Possible output formats options are: \"ascii\", \"binary_raw\", \"binary_raw_compressed\", \"binary_base64\", \"binary_base64_appended\"" << std::endl;
     }
 
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();

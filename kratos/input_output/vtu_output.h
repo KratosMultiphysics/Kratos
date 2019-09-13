@@ -88,7 +88,10 @@ public:
 
     enum class FileFormat {
         VTU_ASCII,
-        VTU_BINARY
+        VTU_BINARY_RAW,
+        VTU_BINARY_RAW_COMPRESSED,
+        VTU_BINARY_BASE64,
+        VTU_BINARY_BASE64_APPENDED
     };
 
 protected:
