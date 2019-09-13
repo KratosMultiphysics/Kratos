@@ -14,7 +14,9 @@
 // System includes
 
 // External includes
+#ifndef KRATOS_USE_VTU11
 #include "inc/vtu11.hpp"
+#endif
 
 // Project includes
 #include "vtu_output.h"
