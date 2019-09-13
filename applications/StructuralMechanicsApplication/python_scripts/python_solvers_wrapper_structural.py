@@ -18,20 +18,34 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     else:
         time_integration_method = "implicit" # defaulting to implicit time-integration
 
+    if solver_settings.Has("contact_settings"):
+        contact_problem = True
+    else:
+        contact_problem = False
+
     # Solvers for OpenMP parallelism
     if parallelism == "OpenMP":
         if solver_type == "dynamic" or solver_type == "Dynamic":
             if time_integration_method == "implicit":
-                solver_module_name = "structural_mechanics_implicit_dynamic_solver"
+                if not contact_problem:
+                    solver_module_name = "structural_mechanics_implicit_dynamic_solver"
+                else:
+                    solver_module_name = "contact_structural_mechanics_implicit_dynamic_solver"
             elif time_integration_method == "explicit":
-                solver_module_name = "structural_mechanics_explicit_dynamic_solver"
+                if not contact_problem:
+                    solver_module_name = "structural_mechanics_explicit_dynamic_solver"
+                else:
+                    solver_module_name = "contact_structural_mechanics_explicit_dynamic_solver"
             else:
                 err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
                 err_msg += "Available options are: \"implicit\", \"explicit\""
                 raise Exception(err_msg)
 
         elif solver_type == "static" or solver_type == "Static":
-            solver_module_name = "structural_mechanics_static_solver"
+            if not contact_problem:
+                solver_module_name = "structural_mechanics_static_solver"
+            else:
+                solver_module_name = "contact_structural_mechanics_static_solver"
 
         elif solver_type == "eigen_value":
             solver_module_name = "structural_mechanics_eigensolver"
@@ -72,11 +86,18 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
 
-    if not kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
-        err_msg =  "The KratosMultiphysics.StructuralMechanicsApplication must be imported in your main script in order to call this solver:\n"
-        err_msg += solver_module_name
-        raise Exception(err_msg)
-    module_full = 'KratosMultiphysics.StructuralMechanicsApplication.' + solver_module_name
+    if not "contact_" in solver_module_name:
+        if not kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
+            err_msg =  "The KratosMultiphysics.StructuralMechanicsApplication must be imported in your main script in order to call this solver:\n"
+            err_msg += solver_module_name
+            raise Exception(err_msg)
+        module_full = 'KratosMultiphysics.StructuralMechanicsApplication.' + solver_module_name
+    else:
+        if not kratos_utilities.CheckIfApplicationsAvailable("ContactStructuralMechanicsApplication"):
+            err_msg =  "The KratosMultiphysics.ContactStructuralMechanicsApplication must be imported in your main script in order to call this solver:\n"
+            err_msg += solver_module_name
+            raise Exception(err_msg)
+        module_full = 'KratosMultiphysics.ContactStructuralMechanicsApplication.' + solver_module_name
     solver = import_module(module_full).CreateSolver(model, solver_settings)
 
     return solver
