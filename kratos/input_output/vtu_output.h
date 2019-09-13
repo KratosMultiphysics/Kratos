@@ -18,7 +18,7 @@
 #include <unordered_map>
 
 // External includes
-#include "vtu11.hpp"
+#include "inc/vtu11.hpp"
 
 // Project includes
 #include "includes/kratos_parameters.h"
