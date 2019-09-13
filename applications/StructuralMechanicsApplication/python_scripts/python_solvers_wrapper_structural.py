@@ -15,31 +15,20 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     else:
         time_integration_method = "implicit" # defaulting to implicit time-integration
 
-    contact_problem = solver_settings.Has("contact_settings")
-
     # Solvers for OpenMP parallelism
     if parallelism == "OpenMP":
         if solver_type == "dynamic" or solver_type == "Dynamic":
             if time_integration_method == "implicit":
-                if not contact_problem:
-                    solver_module_name = "structural_mechanics_implicit_dynamic_solver"
-                else:
-                    solver_module_name = "contact_structural_mechanics_implicit_dynamic_solver"
+                solver_module_name = "structural_mechanics_implicit_dynamic_solver"
             elif time_integration_method == "explicit":
-                if not contact_problem:
-                    solver_module_name = "structural_mechanics_explicit_dynamic_solver"
-                else:
-                    solver_module_name = "contact_structural_mechanics_explicit_dynamic_solver"
+                solver_module_name = "structural_mechanics_explicit_dynamic_solver"
             else:
                 err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
                 err_msg += "Available options are: \"implicit\", \"explicit\""
                 raise Exception(err_msg)
 
         elif solver_type == "static" or solver_type == "Static":
-            if not contact_problem:
-                solver_module_name = "structural_mechanics_static_solver"
-            else:
-                solver_module_name = "contact_structural_mechanics_static_solver"
+            solver_module_name = "structural_mechanics_static_solver"
 
         elif solver_type == "eigen_value":
             solver_module_name = "structural_mechanics_eigensolver"
@@ -80,8 +69,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
 
-    if contact_problem:
+    if solver_settings.Has("contact_settings"): # this is a contact problem
         kratos_module = "KratosMultiphysics.ContactStructuralMechanicsApplication"
+        solver_module_name = "contact_" + solver_module_name
     else:
         kratos_module = "KratosMultiphysics.StructuralMechanicsApplication"
 
