@@ -14,7 +14,7 @@
 // System includes
 
 // External includes
-#ifndef KRATOS_USE_VTU11
+#ifdef KRATOS_USE_VTU11
 #include "inc/vtu11.hpp"
 #endif
 
