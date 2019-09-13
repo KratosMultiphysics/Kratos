@@ -18,10 +18,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     else:
         time_integration_method = "implicit" # defaulting to implicit time-integration
 
-    if solver_settings.Has("contact_settings"):
-        contact_problem = True
-    else:
-        contact_problem = False
+    contact_problem = solver_settings.Has("contact_settings")
 
     # Solvers for OpenMP parallelism
     if parallelism == "OpenMP":
@@ -86,19 +83,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
 
-    if not "contact_" in solver_module_name:
-        if not kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
-            err_msg =  "The KratosMultiphysics.StructuralMechanicsApplication must be imported in your main script in order to call this solver:\n"
-            err_msg += solver_module_name
-            raise Exception(err_msg)
-        module_full = 'KratosMultiphysics.StructuralMechanicsApplication.' + solver_module_name
+    if contact_problem:
+        kratos_module = "KratosMultiphysics.ContactStructuralMechanicsApplication"
     else:
-        if not kratos_utilities.CheckIfApplicationsAvailable("ContactStructuralMechanicsApplication"):
-            err_msg =  "The KratosMultiphysics.ContactStructuralMechanicsApplication must be imported in your main script in order to call this solver:\n"
-            err_msg += solver_module_name
-            raise Exception(err_msg)
-        module_full = 'KratosMultiphysics.ContactStructuralMechanicsApplication.' + solver_module_name
-    solver = import_module(module_full).CreateSolver(model, solver_settings)
+        kratos_module = "KratosMultiphysics.StructuralMechanicsApplication"
+
+    solver = import_module(kratos_module + "." + solver_module_name).CreateSolver(model, solver_settings)
 
     return solver
 
