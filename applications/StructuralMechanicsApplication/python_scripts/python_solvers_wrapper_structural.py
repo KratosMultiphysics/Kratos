@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing Kratos
 import KratosMultiphysics
 
-# Importing Kratos utilities
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-
 # Other imports
 from importlib import import_module
 
