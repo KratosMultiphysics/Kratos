@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 2.8.6)
 
 
 # Setting some policies
-# No recursive dereferencing 
+# No recursive dereferencing
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 NEW)
 endif(POLICY CMP0054)
@@ -361,6 +361,17 @@ if( AMATRIX_DIR )
     add_definitions(-DKRATOS_USE_AMATRIX)
 else()
     message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
+endif()
+
+if( VTU11_DIR )
+    message(STATUS "VTU11_DIR : ${VTU11_DIR}")
+    include_directories(${VTU11_DIR})
+    include_directories(${VTU11_DIR}/inc)
+    include_directories(${VTU11_DIR}/impl)
+    include_directories(${VTU11_DIR}/external/zlib/inc)
+    add_definitions(-DKRATOS_USE_VTU11)
+else()
+    message(STATUS "vtu11 not found. Please define the VTU11_DIR pointing to the vtu11 root directory to enable the vtu output.")
 endif()
 
 ##echo user options
