@@ -63,6 +63,16 @@ public:
     DistributedTestCase& operator=(DistributedTestCase const& rOther) = delete;
 
     ///@}
+    ///@name Operations
+    ///@{
+
+    void Run() override;
+
+
+    void Profile() override;
+
+
+    ///@}
     ///@name Inquiry
     ///@{
 

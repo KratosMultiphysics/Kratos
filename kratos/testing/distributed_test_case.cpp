@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/kernel.h"
+#include "includes/data_communicator.h"
 #include "testing/distributed_test_case.h"
 
 namespace Kratos {
@@ -27,6 +28,36 @@ DistributedTestCase::DistributedTestCase(std::string const& Name):
 {}
 
 DistributedTestCase::~DistributedTestCase() {}
+
+void DistributedTestCase::Run()
+{
+    TestCase::Run();
+    bool success_on_this_rank = GetResult().IsSucceed();
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    bool global_success = r_comm.AndReduceAll(success_on_this_rank);
+    if (success_on_this_rank && !global_success)
+    {
+        TestCaseResult remote_failure(GetResult());
+        remote_failure.SetToFailed();
+        remote_failure.SetErrorMessage("Test was reported as successful on this rank, but failed on a different rank.");
+        SetResult(remote_failure);
+    }
+}
+
+void DistributedTestCase::Profile()
+{
+    TestCase::Profile();
+    bool success_on_this_rank = GetResult().IsSucceed();
+    const DataCommunicator& r_comm = DataCommunicator::GetDefault();
+    bool global_success = r_comm.AndReduceAll(success_on_this_rank);
+    if (success_on_this_rank && !global_success)
+    {
+        TestCaseResult remote_failure(GetResult());
+        remote_failure.SetToFailed();
+        remote_failure.SetErrorMessage("Test was reported as successful on this rank, but failed on a different rank.");
+        SetResult(remote_failure);
+    }
+}
 
 bool DistributedTestCase::IsEnabled() const
 {
