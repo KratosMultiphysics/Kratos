@@ -20,7 +20,7 @@
         ],
         "data_transfer_operators" : {
             "mapper_1" : {
-                "type" : "sum_and_copy_dist_to_single"
+                "type" : "sum_dist_to_single"
             },
             "mapper_2" : {
                 "type" : "copy_single_to_dist"

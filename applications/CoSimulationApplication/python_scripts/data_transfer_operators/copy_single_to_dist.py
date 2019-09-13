@@ -15,8 +15,8 @@ class CopySingleToDist(CoSimulationDataTransferOperator):
         to_solver_values = to_solver_data.GetData()
         data_value = from_solver_data.GetData()
 
-        if not data_value.size() == 0:
-            raise Exception('Expected one value, got: {}'.format(data_value.size()))
+        if not data_value.size == 1:
+            raise Exception('Expected one value, got: {}'.format(data_value.size))
 
         to_solver_values.fill(data_value[0])
 
