@@ -52,7 +52,10 @@ public:
      * @param rModelPart The modelpart which is used for output
      * @param Parameters Parameters including settings for the output
      */
-    explicit VtkOutput(ModelPart& rModelPart, Parameters ThisParameters);
+    explicit VtkOutput(
+        ModelPart& rModelPart,
+        Parameters ThisParameters = Parameters(R"({})" )
+        );
 
     /// Destructor.
     virtual ~VtkOutput() = default;
@@ -60,6 +63,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    static Parameters GetDefaultParameters();
 
     /**
      * @brief Prints mrModelPart in VTK format together with the results
@@ -381,15 +389,21 @@ private:
     ///@{
 
     /**
+     * @brief Prints the Properties Id as an integer variable in each element/condition
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType>
+    void WritePropertiesIdsToFile(
+        const TContainerType& rContainer,
+        std::ofstream& rFileStream) const;
+
+    /**
      * @brief Print the given rModelPart as VTK file together with the requested results (Only for model parts without nodes)
      * @param rModelPart modelpart which is beging output
      */
     void WriteModelPartWithoutNodesToFile(ModelPart& rModelPart);
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
 };

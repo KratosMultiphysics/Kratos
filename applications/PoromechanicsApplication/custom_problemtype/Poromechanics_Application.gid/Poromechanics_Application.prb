@@ -54,6 +54,13 @@ HELP: Used to avoid deviations in the propagation path caused by irregularities 
 QUESTION: Propagation_Frequency
 VALUE: 1
 HELP: Number of steps after which the fracture propagation will be checked. Set 1 if propagation should be checked at every time step.
+QUESTION: Initial_Stresses#CB#(true,false)
+VALUE: false
+HELP: Take into account initial stresses (only for linear elasticity for the moment).
+DEPENDENCIES: (true,RESTORE,Mode,#CURRENT#)(false,HIDE,Mode,#CURRENT#)
+QUESTION: Mode#CB#(save,load)
+VALUE: save
+HELP: Working mode: save initial stresses at the end of the calculation or load them at the beginning.
 
 
 TITLE:Solver_Settings
@@ -137,6 +144,8 @@ VALUE: false
 QUESTION: Write_Effective_Stress#CB#(true,false)
 VALUE: true
 QUESTION: Write_Total_Stress#CB#(true,false)
+VALUE: false
+QUESTION: Write_Initial_Stress#CB#(true,false)
 VALUE: false
 QUESTION: Write_Von_Mises_Stress#CB#(true,false)
 VALUE: false

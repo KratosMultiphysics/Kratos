@@ -64,6 +64,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DELTA_COORDINATES )                  // Delta coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_ORDER_CONTACT )                             // The integration order considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISTANCE_THRESHOLD )                                    // The distance threshold considered
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ZERO_TOLERANCE_FACTOR )                                 // The epsilon factor considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_CHECK_FACTOR )                                   // The factor employed to search an active/inactive node
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORMAL_GAP )                                            // The normal gap employed in contact formulation
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TANGENT_SLIP )                       // The tangent slip employed in contact formulation
@@ -72,7 +73,11 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WEIGHTED_SCALAR_RESIDUAL )                              // The integrated scalar residual
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, WEIGHTED_VECTOR_RESIDUAL )           // The integrated vector residual
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_CHECK_FACTOR )                                   // The factor employed to search an active/inactive node
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_SET_COMPUTED )                                   // To know if the active set has been computed
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_SET_CONVERGED )                                  // To know if the active set has converged
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SLIP_SET_CONVERGED )                                    // To know if the slip set has converged
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SLIP_CONVERGENCE_COEFFICIENT )                          // Coefficient to improve the slip computation convergence
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SLIP_AUGMENTATION_COEFFICIENT )                         // Coefficient to improve the slip computation convergence (augmented part related)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DYNAMIC_FACTOR )                                        // The factor considered for dynamic problems (in order to take intro account the gap evolution)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )                  // The lagrange multiplier for normal contact pressure
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUGMENTED_NORMAL_CONTACT_PRESSURE )                     // The resultant augmented pressure in the normal direction

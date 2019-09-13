@@ -3,20 +3,15 @@
         "problem_name"    : "taylor_patch_test",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 2.0e0,
+        "end_time"        : 2.1e0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
-        "solver_type"                        : "Dynamic",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
+        "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
-        "time_integration_method"            : "implicit",
-        "scheme_type"                        : "bossak",
-        "damp_factor_m"                      : -0.1,
-        "rayleigh_alpha"                     : 8.0,
-        "rayleigh_beta"                      : 0.001,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictional_contact_test_2D/taylor_patch_test"
@@ -29,7 +24,16 @@
             "mortar_type"                    : "ALMContactFrictional"
         },
         "time_stepping"                      : {
-            "time_step" : 1.0e-3
+            "time_step_intervals" : {
+                "first_interval" : {
+                    "interval"  : [0.0, 1.0],
+                    "time_step" : 5.0e-2
+                },
+                "second_interval" : {
+                    "interval"  : [1.0, "End"],
+                    "time_step" : 2.5e-2
+                }
+            }
         },
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
@@ -74,7 +78,7 @@
                 "model_part_name" : "Structure.DISPLACEMENT_rolling_support_y",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
-                "value"           : [0.0,0.0,0.0]
+                "value"           : [null,0.0,0.0]
             }
         },{
             "python_module"   : "assign_vector_variable_process",
@@ -86,7 +90,7 @@
                 "model_part_name" : "Structure.DISPLACEMENT_rolling_support_x",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
-                "value"           : [0.0,0.0,0.0]
+                "value"           : [0.0,null,0.0]
             }
         }],
         "loads_process_list"       : [{
@@ -99,7 +103,7 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_line_load",
                 "variable_name"   : "LINE_LOAD",
-                "modulus"         : "2.0e6 * t",
+                "modulus"         : "4.0e6 * t",
                 "direction"       : [5.0e-2,-1.0e0,0.0],
                 "interval"        : [0.0, 1.0e0]
             }
@@ -111,7 +115,7 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_line_load",
                 "variable_name"   : "LINE_LOAD_Y",
-                "value"           : -2.0e6,
+                "value"           : -4.0e6,
                 "interval"        : [1.0e0, "End"]
             }
         },{
@@ -122,7 +126,7 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_line_load",
                 "variable_name"   : "LINE_LOAD_X",
-                "value"           : "1.0e4 + 5.0e5 * (t - 1.0)",
+                "value"           : "2.0e4 + 2.0e5 * (t - 1.0)",
                 "interval"        : [1.0e0, "End"]
             }
         }],
@@ -134,7 +138,7 @@
             "Parameters"            : {
                 "model_part_name"             : "Structure",
                 "contact_model_part"          : { "0" : ["Contact_Part"]},
-                "contact_type"                : "Frictional",
+                "contact_type"                : "FrictionalWithNormalUpdate",
                 "assume_master_slave"         : { "0" : ["Parts_punch"]}
             }
         }

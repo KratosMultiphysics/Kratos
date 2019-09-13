@@ -4,8 +4,8 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-import postprocess_eigenvalues_process
-from compare_two_files_check_process import CompareTwoFilesCheckProcess
+from KratosMultiphysics.StructuralMechanicsApplication import postprocess_eigenvalues_process
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 import os
 

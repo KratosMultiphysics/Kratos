@@ -19,7 +19,6 @@
 
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
-#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -39,7 +38,6 @@ public:
         BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         array_1d<double, TNumNodes> N;
     };
-
     ///@name Type Definitions
     ///@{
 
@@ -225,30 +223,9 @@ private:
                                    const ElementalData<NumNodes, Dim>& data,
                                    unsigned int& row) const;
 
-    void CheckWakeCondition() const;
-
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     void ComputeElementInternalEnergy();
-
-    void GetPotentialOnWakeElement(Vector& split_element_values,
-                                   const array_1d<double, NumNodes>& distances) const;
-
-    void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes>& upper_phis,
-                                        const array_1d<double, NumNodes>& distances) const;
-
-    void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& lower_phis,
-                                        const array_1d<double, NumNodes>& distances) const;
-
-    void ComputeVelocity(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityNormalElement(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityUpperWakeElement(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityLowerWakeElement(array_1d<double, Dim>& velocity) const;
-
-    double ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Serialization

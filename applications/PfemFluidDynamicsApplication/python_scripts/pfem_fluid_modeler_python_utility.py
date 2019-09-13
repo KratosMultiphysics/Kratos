@@ -236,8 +236,8 @@ class ModelerUtility:
             if( parameters["Refine"] ):
                 removing_options.Set(ModelerUtilities.REMOVE_NODES, True)
                 removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_DISTANCE, True)
-                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_ERROR, True)
-                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_THRESHOLD, True)
+                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_ERROR, False)
+                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_THRESHOLD, False)
 
             self.RefiningParameters.SetRemovingOptions(removing_options)
 

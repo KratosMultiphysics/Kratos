@@ -53,3 +53,12 @@ class ComponentsALMMultiLayerContactTest(TestFactory):
 
 class ALMTaylorPatchFrictionalTestContact(TestFactory):
     file_name = "ALM_frictional_contact_test_2D/taylor_patch_test"
+
+class ALMMeshMovingMatchingTestFrictionalPureSlipContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/mesh_moving_matching_test"
+
+class ALMMeshMovingNotMatchingTestFrictionalPureSlipContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/mesh_moving_notmatching_test"
+
+class ALMHertzTestFrictionalContact(TestFactory):
+    file_name = "ALM_frictional_contact_test_2D/hertz_complete_test"

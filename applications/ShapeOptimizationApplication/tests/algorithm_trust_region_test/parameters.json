@@ -59,7 +59,7 @@
         },
         "optimization_algorithm" : {
             "name"                    : "trust_region",
-            "max_iterations"          : 3,
+            "max_iterations"          : 4,
             "max_step_length"         : 0.5
         },
         "output" : {

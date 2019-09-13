@@ -105,7 +105,11 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeSolutionStep(
     ProcessInfo& rCurrentProcessInfo
     )
 {
-	this->ComputeEdgeNeighbours(rCurrentProcessInfo);
+	if (this->GetValue(RECOMPUTE_NEIGHBOURS)) {
+		this->ComputeEdgeNeighbours(rCurrentProcessInfo);
+		this->SetValue(RECOMPUTE_NEIGHBOURS, false);		
+	}
+
 	this->InitializeInternalVariablesAfterMapping();
 }
 
@@ -197,7 +201,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
 	// reading integration points
-	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
 	//auxiliary terms
 	Vector volume_force(dimension);
@@ -213,7 +217,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 
 		//calculating weights for integration on the "reference configuration"
 		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
-		variables.IntegrationWeight = this->CalculateIntegrationWeight( variables.IntegrationWeight );
+		variables.IntegrationWeight = this->CalculateIntegrationWeight(variables.IntegrationWeight);
 
         bool is_damaging = false;
         if (yield_surface != "Elastic") {
@@ -243,6 +247,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
 
 		// Calculate the elemental Damage...
 		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+
 		const Vector& r_predictive_stress_vector = values.GetStressVector();
 		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
 		const Vector& r_strain_vector = values.GetStrainVector();
@@ -439,19 +444,18 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegrateStressDamageMech
     double initial_threshold;
     this->GetInitialUniaxialThreshold(rValues, initial_threshold);
 
-    double damage_parameter; // A parameter
-    this->CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
-
 	if (rThreshold < tolerance) {
 		rThreshold = initial_threshold; // 1st iteration sets threshold as c_max
 	}  else if (initial_threshold > rThreshold) { // remeshing stuff
 		rThreshold = initial_threshold;
 	}
 
-    const double F = uniaxial_stress - rThreshold;
+	const double F = uniaxial_stress - rThreshold;
 	if (F <= 0.0) { // Elastic region --> Damage is constant
 		rDamage = mDamages[Edge];
 	} else {
+		double damage_parameter; // A parameter
+		this->CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
 		this->CalculateExponentialDamage(rDamage, damage_parameter, uniaxial_stress, initial_threshold);
 		rThreshold = uniaxial_stress;
 		rIsDamaging = true;
@@ -522,6 +526,16 @@ void GenericSmallStrainFemDemElement<3,5>::CalculateAverageVariableOnEdge(
     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
 }
 template<>
+void GenericSmallStrainFemDemElement<3,6>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
 void GenericSmallStrainFemDemElement<2,0>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
     const Variable<Vector> ThisVariable,
@@ -573,6 +587,16 @@ void GenericSmallStrainFemDemElement<2,4>::CalculateAverageVariableOnEdge(
 }
 template<>
 void GenericSmallStrainFemDemElement<2,5>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,6>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
     const Variable<Vector> ThisVariable,
     Vector& rAverageVector,
@@ -648,6 +672,11 @@ double GenericSmallStrainFemDemElement<3,5>::CalculateElementalDamage(const Vect
     return this->CalculateElementalDamage3D(rEdgeDamages);
 }
 template<>
+double GenericSmallStrainFemDemElement<3,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
 double GenericSmallStrainFemDemElement<2,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
    return this->CalculateElementalDamage2D(rEdgeDamages);
@@ -674,6 +703,11 @@ double GenericSmallStrainFemDemElement<2,4>::CalculateElementalDamage(const Vect
 }
 template<>
 double GenericSmallStrainFemDemElement<2,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericSmallStrainFemDemElement<2,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
    return this->CalculateElementalDamage2D(rEdgeDamages);
 }
@@ -731,6 +765,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
 
 	if (mDamage >= 0.98) {
 		this->Set(ACTIVE, false);
+		mDamage = 0.98;
 		// We set a "flag" to generate the DEM 
 		rCurrentProcessInfo[GENERATE_DEM] = true;
 	}
@@ -792,6 +827,11 @@ void GenericSmallStrainFemDemElement<3,5>::ComputeEdgeNeighbours(ProcessInfo& rC
 {
     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
 }
+template<>
+void GenericSmallStrainFemDemElement<3,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+{
+    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+}
 
 
 /***********************************************************************************/
@@ -809,6 +849,8 @@ template<>
 void GenericSmallStrainFemDemElement<2,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
 template<> 
 void GenericSmallStrainFemDemElement<2,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+template<> 
+void GenericSmallStrainFemDemElement<2,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1028,7 +1070,26 @@ void GenericSmallStrainFemDemElement<3,5>::CalculateEquivalentStress(
 {
     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
 }
-
+template<>
+void GenericSmallStrainFemDemElement<2,6>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,6>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -1128,7 +1189,22 @@ void GenericSmallStrainFemDemElement<3,5>::GetInitialUniaxialThreshold(
 {
     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdTresca(rValues, rThreshold);
 }
-
+template<>
+void GenericSmallStrainFemDemElement<2,6>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdMohrCoulomb(rValues, rThreshold);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,6>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdMohrCoulomb(rValues, rThreshold);
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -1240,15 +1316,45 @@ void GenericSmallStrainFemDemElement<3,5>::CalculateDamageParameter(
 {
     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterTresca(rValues, rAParameter, CharacteristicLength);
 }
-
+template<>
+void GenericSmallStrainFemDemElement<2,6>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterMohrCoulomb(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,6>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterMohrCoulomb(rValues, rAParameter, CharacteristicLength);
+}
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
 double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateCharacteristicLength(
     GenericSmallStrainFemDemElement<TDim,TyieldSurf> *pCurrentElement
-    )
+	)
 {
-    return pCurrentElement->GetGeometry().Length();
+	auto& r_geometry = pCurrentElement->GetGeometry();
+	const SizeType number_of_edges = r_geometry.EdgesNumber();
+	const auto& r_edges = r_geometry.Edges();
+
+	double sum_of_lengths = 0.0;
+	for (IndexType i = 0; i < number_of_edges; ++i) {
+		auto& node_1 = r_edges[i][0];
+		auto& node_2 = r_edges[i][1];
+		auto coordinates_1 = node_1.GetInitialPosition();
+		auto coordinates_2 = node_2.GetInitialPosition();
+		sum_of_lengths += std::sqrt(std::pow(coordinates_1[0] - coordinates_2[0], 2) + 
+			std::pow(coordinates_1[1] - coordinates_2[1], 2) + std::pow(coordinates_1[2] - coordinates_2[2], 2));
+	}
+	return sum_of_lengths / number_of_edges;
 }
 
 /***********************************************************************************/
@@ -1382,16 +1488,16 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStrain(
     Vector average_strain_edge = rPerturbedStrainVector;
 
 	for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-        this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-        this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+		this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+		this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
-        double damage_edge = mDamages[edge];
-        double threshold = mThresholds[edge];
-        
-        this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-            average_stress_edge, edge, characteristic_length, rValues, dummy);
+		double damage_edge = mDamages[edge];
+		double threshold = mThresholds[edge];
 
-        damages_edges[edge] = damage_edge;
+		this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
+			average_stress_edge, edge, characteristic_length, rValues, dummy);
+
+		damages_edges[edge] = damage_edge;
 	} // Loop edges
 	const double damage_element = this->CalculateElementalDamage(damages_edges);
 	rPerturbedStressVector = (1.0 - damage_element) * r_perturbed_predictive_stress;
@@ -1423,7 +1529,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValueOnIntegrationPoin
 	std::vector<double> &rValues,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	if (rVariable == DAMAGE_ELEMENT || rVariable == IS_DAMAGED || rVariable == STRESS_THRESHOLD || rVariable == EQUIVALENT_STRESS_VM) {
+	if (rVariable == DAMAGE_ELEMENT || 
+	rVariable == IS_DAMAGED || 
+	rVariable == STRESS_THRESHOLD || 
+	rVariable == EQUIVALENT_STRESS_VM) {
 		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 	}
 }
@@ -1541,10 +1650,12 @@ template class GenericSmallStrainFemDemElement<2,2>;
 template class GenericSmallStrainFemDemElement<2,3>;
 template class GenericSmallStrainFemDemElement<2,4>;
 template class GenericSmallStrainFemDemElement<2,5>;
+template class GenericSmallStrainFemDemElement<2,6>;
 template class GenericSmallStrainFemDemElement<3,0>;
 template class GenericSmallStrainFemDemElement<3,1>;
 template class GenericSmallStrainFemDemElement<3,2>;
 template class GenericSmallStrainFemDemElement<3,3>;
 template class GenericSmallStrainFemDemElement<3,4>;
 template class GenericSmallStrainFemDemElement<3,5>;
+template class GenericSmallStrainFemDemElement<3,6>;
 } // namespace Kratos

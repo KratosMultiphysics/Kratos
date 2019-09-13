@@ -43,7 +43,7 @@ namespace MPMSearchElementUtility
      * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
      *
      */
-    template<std::size_t TDim>
+    template<std::size_t TDimension>
     void SearchElement(ModelPart& rBackgroundGridModelPart, ModelPart& rMPMModelPart, const std::size_t MaxNumberOfResults,
         const double Tolerance)
     {
@@ -51,11 +51,11 @@ namespace MPMSearchElementUtility
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i){
                 auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
-                auto& rGeom = element_itr->GetGeometry();
+                auto& r_geometry = element_itr->GetGeometry();
                 element_itr->Reset(ACTIVE);
 
-                for (IndexType j=0; j < rGeom.PointsNumber(); ++j)
-                    rGeom[j].Reset(ACTIVE);
+                for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
+                    r_geometry[j].Reset(ACTIVE);
 
         }
 
@@ -65,10 +65,10 @@ namespace MPMSearchElementUtility
 
         #pragma omp parallel
         {
-            BinBasedFastPointLocator<TDim> SearchStructure(rBackgroundGridModelPart);
+            BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
             SearchStructure.UpdateSearchDatabase();
 
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
+            typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(max_result);
 
             // Element search and assign background grid
             #pragma omp for
@@ -77,7 +77,7 @@ namespace MPMSearchElementUtility
                 auto element_itr = rMPMModelPart.Elements().begin() + i;
 
                 const array_1d<double,3>& xg = element_itr->GetValue(MP_COORD);
-                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
 
@@ -87,10 +87,10 @@ namespace MPMSearchElementUtility
                 if (is_found == true) {
                         pelem->Set(ACTIVE);
                         element_itr->GetGeometry() = pelem->GetGeometry();
-                        auto& rGeom = element_itr->GetGeometry();
+                        auto& r_geometry = element_itr->GetGeometry();
 
-                        for (IndexType j=0; j < rGeom.PointsNumber(); ++j)
-                            rGeom[j].Set(ACTIVE);
+                        for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
+                            r_geometry[j].Set(ACTIVE);
                 }
                 else{
                         KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
@@ -110,7 +110,7 @@ namespace MPMSearchElementUtility
 
                 if (condition_itr->Has(MPC_COORD)){
                     const array_1d<double,3>& xg = condition_itr->GetValue(MPC_COORD);
-                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                    typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
 
                     Element::Pointer pelem;
 
@@ -120,10 +120,10 @@ namespace MPMSearchElementUtility
                     if (is_found == true) {
                             pelem->Set(ACTIVE);
                             condition_itr->GetGeometry() = pelem->GetGeometry();
-                            auto& rGeom = condition_itr->GetGeometry();
+                            auto& r_geometry = condition_itr->GetGeometry();
 
-                            for (IndexType j=0; j < rGeom.PointsNumber(); ++j)
-                                rGeom[j].Set(ACTIVE);
+                            for (IndexType j=0; j < r_geometry.PointsNumber(); ++j)
+                                r_geometry[j].Set(ACTIVE);
                     }
                     else{
                             KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
