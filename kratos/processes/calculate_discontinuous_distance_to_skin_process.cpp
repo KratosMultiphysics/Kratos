@@ -150,8 +150,11 @@ namespace Kratos
 			// the plane defined by the 3 intersection points.
 			auto &r_geometry = rElement1.GetGeometry();
 			const bool do_plane_approx = (n_cut_edges == r_geometry.WorkingSpaceDimension()) ? false : true;
-
-			if (do_plane_approx){
+			if (rElement1.Id() == 13) {
+				KRATOS_WATCH(do_plane_approx)
+				KRATOS_WATCH(n_cut_edges)
+			}
+			if (do_plane_approx && (int_pts_vector.size() > 1)){
 				// Call the plane optimization utility
 				array_1d<double,3> base_pt, normal;
 				ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
@@ -163,12 +166,32 @@ namespace Kratos
 				}
 			} else {
 				// Create a plane with the 3 intersection points (or 2 in 2D)
-				Plane3D plane = SetIntersectionPlane(int_pts_vector);
-
-				// Compute the distance to the intersection plane
-				for (int i = 0; i < number_of_tetrahedra_points; i++) {
-					elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
+				if (int_pts_vector.size()>1) {
+					Plane3D plane = SetIntersectionPlane(int_pts_vector);
+					// Compute the distance to the intersection plane
+					for (int i = 0; i < number_of_tetrahedra_points; i++) {
+						elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
+					}
 				}
+				else {
+					std::vector<array_1d<double,3>> int_pts_tangent;
+
+					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[0].Coordinates());
+					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[1].Coordinates());
+					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[2].Coordinates());
+
+					Plane3D plane = SetIntersectionPlane(int_pts_tangent);
+
+					for (int i = 0; i < number_of_tetrahedra_points; i++) {
+						elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
+					}
+					if (rElement1.Id() == 13) {
+						KRATOS_WATCH(elemental_distances)
+					}
+				}
+
+
+
 			}
 
 			// Correct the distance values orientation
@@ -203,6 +226,7 @@ namespace Kratos
 		rIntersectionPointsArray.clear();
 		rCutEdgesVector = std::vector<unsigned int>(n_edges, 0);
 
+		std::vector<array_1d<double,3> > aux_pts_2;
 		// Check wich edges are intersected
 		for (std::size_t i_edge = 0; i_edge < n_edges; ++i_edge){
 			array_1d<double,3> avg_pt = ZeroVector(3);
@@ -215,7 +239,7 @@ namespace Kratos
 				const int int_id = ComputeEdgeIntersection(r_int_obj_geom, r_edges_container[i_edge][0], r_edges_container[i_edge][1], int_pt);
 
 				// There is intersection
-				if (int_id == 1){
+				if (int_id == 1 || int_id == 3){
 					// Check if there is a close intersection (repeated intersection point)
 					bool is_repeated = false;
 					for (auto aux_pt : aux_pts){
@@ -244,8 +268,22 @@ namespace Kratos
 			// if (rCutEdgesVector[i_edge] % 2 != 0){
 			if (rCutEdgesVector[i_edge] != 0){
 				avg_pt /= rCutEdgesVector[i_edge];
-				rIntersectionPointsArray.push_back(avg_pt);
 				n_cut_edges++;
+
+				bool is_repeated = false;
+				for (auto aux_pt : aux_pts_2){
+					const double aux_dist = norm_2(avg_pt - aux_pt);
+					const double tol_edge = 1e-2*norm_2(r_edges_container[i_edge][0] - r_edges_container[i_edge][1]);
+					if (aux_dist < tol_edge){
+						is_repeated = true;
+						break;
+					}
+				}
+
+				if (!is_repeated){
+					rIntersectionPointsArray.push_back(avg_pt);
+					aux_pts_2.push_back(avg_pt);
+				}
 			}
 		}
 
