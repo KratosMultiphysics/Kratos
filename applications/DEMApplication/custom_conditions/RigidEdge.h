@@ -70,8 +70,8 @@ public:
                                       double LocalCoordSystem[3][3],
                                       double& DistPToB,
                                       array_1d<double, 4>& Weight,
-                                      array_1d<double, 3>& wall_delta_disp_at_contact_point,
-                                      array_1d<double, 3>& wall_velocity_at_contact_point,
+                                      array_1d<double, 3>& edge_delta_disp_at_contact_point,
+                                      array_1d<double, 3>& edge_velocity_at_contact_point,
                                       int& ContactType) override;
 
     /**
