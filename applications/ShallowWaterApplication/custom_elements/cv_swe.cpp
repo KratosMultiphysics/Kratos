@@ -229,8 +229,7 @@ void CV_SWE<TNumNodes, TFramework>::CalculateElementValues(
     rVariables.projected_momentum *= rVariables.lumping_factor;
     rVariables.velocity *= rVariables.lumping_factor;
 
-    rVariables.sign = 1;
-    if (rVariables.height < 0.0) rVariables.sign = -1;
+    rVariables.wave_vel_2 = rVariables.gravity * std::abs(rVariables.height);
 }
 
 
@@ -254,15 +253,15 @@ void CV_SWE<TNumNodes, TFramework>::ComputeStabilizationParameters(
     // Discontinuity capturing
     double vel_grad_norm = std::abs(rVariables.momentum_div);
     double height_grad_norm = norm_2(rVariables.height_grad);
-    rTauU += 0.5 * 0.1 * elem_size * vel_grad_norm;
-    rTauH += 0.5 * 0.1 * elem_size * height_grad_norm;
+    rTauU += 0.5 * 0.01 * elem_size * vel_grad_norm;
+    rTauH += 0.5 * 0.01 * elem_size * height_grad_norm;
 
     // Convective stabilization
     if (TFramework == Eulerian)
     {
         const double vel_modulus = norm_2(rVariables.velocity) + rVariables.epsilon;
         rKappaU = CTau * elem_size / vel_modulus;
-        rKappaH = CTau * elem_size / vel_modulus;
+        rKappaH = 0.0;
     }
     else
     {
@@ -282,6 +281,7 @@ void CV_SWE<TNumNodes, TFramework>::BuildConvectionMatrices(
     noalias(rVariables.Convection) = ZeroMatrix(local_size,local_size);
     noalias(rVariables.ScalarConvectionStabilization) = ZeroMatrix(local_size,local_size);
     noalias(rVariables.VectorConvectionStabilization) = ZeroMatrix(local_size,local_size);
+    noalias(rVariables.FrictionStabilization) = ZeroMatrix(local_size,local_size);
 
     if (TFramework == Eulerian)
     {
@@ -309,10 +309,17 @@ void CV_SWE<TNumNodes, TFramework>::BuildConvectionMatrices(
 
         BoundedMatrix<double,2,local_size> vector_convection_operator = rVariables.velocity[0] * Grad_vel_1 + rVariables.velocity[1] * Grad_vel_2;
 
-        noalias(rVariables.Convection) += prod(trans(N_vel), vector_convection_operator);   // w * u * grad_q
-        double sq_vel = rVariables.velocity[0] * rVariables.velocity[0] + rVariables.velocity[1] * rVariables.velocity[1];
-        noalias(rVariables.Convection) += sq_vel * prod(trans(N_vel), DN_DX_height); // w * u * u * grad_h
-        noalias(rVariables.VectorConvectionStabilization) += prod(trans(vector_convection_operator), vector_convection_operator);// grad_q * u * grad_u
+        rVariables.Convection += prod(trans(N_vel), vector_convection_operator);   // w * u * grad_q
+        double vel2 = rVariables.velocity[0] * rVariables.velocity[0] + rVariables.velocity[1] * rVariables.velocity[1];
+        rVariables.Convection += vel2 * prod(trans(N_vel), DN_DX_height); // w * u * u * grad_h
+        rVariables.VectorConvectionStabilization += prod(trans(vector_convection_operator), vector_convection_operator);// grad_w * u * grad_u
+        double vel1 = std::sqrt(vel2);
+        rVariables.VectorConvectionStabilization += vel1 * prod(trans(vector_convection_operator), DN_DX_height);     // grad_w * u * u * grad_h
+
+        // Mass balance stabilization
+        rVariables.ScalarConvectionStabilization += vel2 * prod(trans(DN_DX_height), DN_DX_height); // grad_n * u * u * grad_h
+        rVariables.ScalarConvectionStabilization += prod(trans(DN_DX_height), vector_convection_operator); // grad_n * u * grad_q
+        rVariables.FrictionStabilization += prod(trans(DN_DX_height), N_vel);  // grad_n * u
     }
 }
 
@@ -324,7 +331,7 @@ void CV_SWE<TNumNodes, TFramework>::AddWaveTerms(
     ConservativeElementVariables& rVariables)
 {
     rLeftHandSideMatrix += rVariables.VectorDiv;
-    rLeftHandSideMatrix += rVariables.sign * rVariables.gravity * rVariables.height * rVariables.ScalarGrad;
+    rLeftHandSideMatrix += rVariables.wave_vel_2 * rVariables.ScalarGrad;
 }
 
 
@@ -341,11 +348,35 @@ void CV_SWE<TNumNodes, TFramework>::AddFrictionTerms(
 
 
 template< size_t TNumNodes, ElementFramework TFramework >
+void CV_SWE<TNumNodes, TFramework>::AddStabilizationTerms(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ConservativeElementVariables& rVariables)
+{
+    double tau_u;
+    double tau_h;
+    double kappa_u;
+    double kappa_h;
+    this->ComputeStabilizationParameters(rVariables, tau_u, tau_h, kappa_u, kappa_h);
+    // Momentum stabilization
+    rLeftHandSideMatrix += tau_u * rVariables.VectorDiff;
+    rLeftHandSideMatrix += kappa_u * rVariables.VectorConvectionStabilization;
+    // Mass stabilization
+    rLeftHandSideMatrix += tau_h * rVariables.wave_vel_2 * rVariables.ScalarDiff;
+    rRightHandSideVector += tau_h * rVariables.wave_vel_2 * prod(rVariables.ScalarDiff, rVariables.depth);
+    rLeftHandSideMatrix += tau_h * rVariables.ScalarConvectionStabilization;
+    const double abs_mom = norm_2(rVariables.projected_momentum);
+    const double height73 = std::pow(std::abs(rVariables.height), 2.3333333333333) + rVariables.epsilon;
+    rLeftHandSideMatrix += tau_h * rVariables.gravity * rVariables.manning2 * abs_mom / height73 * rVariables.FrictionStabilization;
+}
+
+
+template< size_t TNumNodes, ElementFramework TFramework >
 void CV_SWE<TNumNodes, TFramework>::AddSourceTerms(
     VectorType& rRightHandSideVector,
     ConservativeElementVariables& rVariables)
 {
-    rRightHandSideVector += rVariables.sign * rVariables.gravity * rVariables.height * prod(rVariables.ScalarGrad, rVariables.depth);
+    rRightHandSideVector += rVariables.wave_vel_2 * prod(rVariables.ScalarGrad, rVariables.depth);
     rRightHandSideVector += prod(rVariables.MassMatrixScalar, rVariables.rain);
 }
 

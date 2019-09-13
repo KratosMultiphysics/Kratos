@@ -215,16 +215,25 @@ void RV_SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.lumping_factor = 1.0 / static_cast<double>(TNumNodes);
     rVariables.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];
     rVariables.gravity = rCurrentProcessInfo[GRAVITY_Z];
-    rVariables.manning2 = 0.0;//std::pow( GetProperties()[MANNING], 2);
+    rVariables.manning2 = 0.0;
+    rVariables.porosity = 0.0;
     rVariables.height_units = rCurrentProcessInfo[WATER_HEIGHT_UNIT_CONVERTER];
 
     GeometryType& rGeom = GetGeometry();
     for (size_t i = 0; i < TNumNodes; i++)
     {
         rVariables.manning2 += rGeom[i].FastGetSolutionStepValue(EQUIVALENT_MANNING);
+        rVariables.porosity += rGeom[i].FastGetSolutionStepValue(POROSITY);
     }
     rVariables.manning2 *= rVariables.lumping_factor;
     rVariables.manning2 = std::pow(rVariables.manning2, 2);
+
+    rVariables.porosity *= rVariables.lumping_factor;
+    if (rVariables.porosity < 1.0 - rVariables.epsilon){
+        rVariables.porosity = 0.0;
+    } else {
+        rVariables.porosity = 1.0;
+    }
 }
 
 
@@ -500,8 +509,8 @@ void RV_SWE<TNumNodes, TFramework>::AddInertiaTerms(
     ElementVariables& rVariables)
 {
     BoundedMatrix<double, TNumNodes*3,TNumNodes*3> mass_matrix = rVariables.MassMatrixVector + rVariables.MassMatrixScalar;
-    rLeftHandSideMatrix += rVariables.dt_inv * mass_matrix;
-    rRightHandSideVector += rVariables.dt_inv * prod(mass_matrix, rVariables.prev_unk);
+    rLeftHandSideMatrix += rVariables.dt_inv * rVariables.porosity * mass_matrix;
+    rRightHandSideVector += rVariables.dt_inv * rVariables.porosity * prod(mass_matrix, rVariables.prev_unk);
 }
 
 

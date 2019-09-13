@@ -208,6 +208,7 @@ protected:
         array_1d<double, 2> projected_momentum;
         BoundedMatrix<double, 2, 2> momentum_grad;
         double momentum_div;
+        double wave_vel_2;
         array_1d<double, BaseType::ElementVariables::LocalSize> nodal_velocity;
     };
 
@@ -233,6 +234,11 @@ protected:
         ConservativeElementVariables& rVariables);
 
     void AddFrictionTerms(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ConservativeElementVariables& rVariables);
+
+    void AddStabilizationTerms(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ConservativeElementVariables& rVariables);

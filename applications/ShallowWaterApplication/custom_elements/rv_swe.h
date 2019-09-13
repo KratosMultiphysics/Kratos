@@ -187,13 +187,14 @@ protected:
     struct ElementVariables
     {
         static constexpr size_t LocalSize = TNumNodes*3;
-        const double epsilon = 1e-5;
+        const double epsilon = 1e-4;
 
         double dt_inv;
         double lumping_factor;
         double dyn_tau;
         double gravity;
         double manning2;
+        double porosity;
         double height_units;
 
         double height;
@@ -219,6 +220,7 @@ protected:
         BoundedMatrix<double, LocalSize, LocalSize> Convection;
         BoundedMatrix<double, LocalSize, LocalSize> ScalarConvectionStabilization;
         BoundedMatrix<double, LocalSize, LocalSize> VectorConvectionStabilization;
+        BoundedMatrix<double, LocalSize, LocalSize> FrictionStabilization;
     };
 
     void CheckVariableKey();
