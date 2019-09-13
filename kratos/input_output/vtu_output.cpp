@@ -27,6 +27,10 @@ VtuOutput::VtuOutput(
     ) : mrModelPart(rModelPart),
         mOutputSettings(ThisParameters)
 {
+#ifndef KRATOS_USE_VTU11
+    KRATOS_ERROR << "The vtu output process has to be enabled at compile time by adding \"VTU11_DIR\" in the configure-script" << std::endl;
+#endif
+
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
     mOutputSettings.ValidateAndAssignDefaults(default_parameters);
