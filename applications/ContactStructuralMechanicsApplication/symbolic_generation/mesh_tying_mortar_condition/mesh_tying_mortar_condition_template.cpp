@@ -810,7 +810,7 @@ int MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Check( co
     int ierr = Condition::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    KRATOS_ERROR_IF(BaseType::mpPairedGeometry == nullptr) << "YOU HAVE NOT INITIALIZED THE PAIR GEOMETRY IN THE MeshTyingMortarCondition" << std::endl;
+    KRATOS_ERROR_IF(this->GetParentGeometry().NumberOfGeometryParts() == 0) << "YOU HAVE NOT INITIALIZED THE PAIR GEOMETRY IN THE MeshTyingMortarCondition" << std::endl;
 
     return ierr;
 

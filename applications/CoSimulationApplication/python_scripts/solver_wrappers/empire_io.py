@@ -17,6 +17,8 @@ import os
 def Create(settings, model, solver_name):
     return EmpireIO(settings, model, solver_name)
 
+communication_folder = ".EmpireIO" # hardcoded in C++
+
 class EmpireIO(CoSimulationIO):
     """IO for the legacy EMPIRE_API
     """
@@ -25,13 +27,11 @@ class EmpireIO(CoSimulationIO):
         KratosCoSim.EMPIRE_API.EMPIRE_API_Connect(self.settings["api_configuration_file_name"].GetString())
 
         # delete and recreate communication folder to avoid leftover files
-        # TODO implement this
-        self.communication_folder = ".EmpireIO_" + self.solver_name
-        kratos_utilities.DeleteDirectoryIfExisting(self.communication_folder)
-        os.mkdir(self.communication_folder)
+        kratos_utilities.DeleteDirectoryIfExisting(communication_folder)
+        os.mkdir(communication_folder)
 
     def Finalize(self):
-        kratos_utilities.DeleteDirectoryIfExisting(self.communication_folder)
+        kratos_utilities.DeleteDirectoryIfExisting(communication_folder)
 
     def ImportCouplingInterface(self, interface_config):
         model_part_name = interface_config["model_part_name"]
@@ -76,7 +76,7 @@ class EmpireIO(CoSimulationIO):
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
-            "api_configuration_file_name"  : "UNSPECIFIED"
+            "api_configuration_file_name" : "UNSPECIFIED"
         }""")
         this_defaults.AddMissingParameters(super(EmpireIO, cls)._GetDefaultSettings())
 
