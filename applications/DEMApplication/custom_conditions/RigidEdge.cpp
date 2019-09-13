@@ -85,8 +85,8 @@ void RigidEdge3D::ComputeConditionRelativeData(int rigid_neighbour_index,
                                                double LocalCoordSystem[3][3],
                                                double& DistPToB,
                                                array_1d<double, 4>& Weight,
-                                               array_1d<double, 3>& wall_delta_disp_at_contact_point,
-                                               array_1d<double, 3>& wall_velocity_at_contact_point,
+                                               array_1d<double, 3>& edge_delta_disp_at_contact_point,
+                                               array_1d<double, 3>& edge_velocity_at_contact_point,
                                                int& ContactType)
 {
     size_t FE_size = this->GetGeometry().size();
@@ -117,25 +117,7 @@ void RigidEdge3D::ComputeConditionRelativeData(int rigid_neighbour_index,
 
     const double radius = particle->GetInteractionRadius();
 
-    if (points == 3 || points == 4)
-    {
-        unsigned int dummy_current_edge_index;
-        contact_exists = GeometryFunctions::FacetCheck(this->GetGeometry(), node_coordinates, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index);
-        ContactType = 1;
-        Weight[0]=TempWeight[0];
-        Weight[1]=TempWeight[1];
-        Weight[2]=TempWeight[2];
-        if (points == 4)
-        {
-            Weight[3] = TempWeight[3];
-        }
-        else
-        {
-            Weight[3] = 0.0;
-        }
-    }
-
-    else if (points == 2) {
+    if (points == 2) {
 
         double eta = 0.0;
         contact_exists = GeometryFunctions::EdgeCheck(this->GetGeometry()[inode1], this->GetGeometry()[inode2], node_coordinates, radius, LocalCoordSystem, DistPToB, eta);
@@ -155,11 +137,11 @@ void RigidEdge3D::ComputeConditionRelativeData(int rigid_neighbour_index,
     if (contact_exists == false) {ContactType = -1;}
 
     for (std::size_t inode = 0; inode < FE_size; inode++) {
-        noalias(wall_velocity_at_contact_point) += this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
+        noalias(edge_velocity_at_contact_point) += this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
 
         array_1d<double, 3>  wall_delta_displacement = ZeroVector(3);
         this->GetDeltaDisplacement(wall_delta_displacement, inode);
-        noalias(wall_delta_disp_at_contact_point) += wall_delta_displacement* Weight[inode];
+        noalias(edge_delta_disp_at_contact_point) += wall_delta_displacement* Weight[inode];
 
     }
 }//ComputeConditionRelativeData
