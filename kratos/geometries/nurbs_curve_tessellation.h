@@ -16,18 +16,29 @@
 #define  KRATOS_NURBS_CURVE_TESSELLATION_H_INCLUDED
 
 #include "geometries/geometry.h"
+#include "geometries/nurbs_curve_geometry.h"
 
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 
 namespace Kratos {
 
-template <typename TCurve>
+// template <typename TCurve>
+template <int TWorkingSpaceDimension, class TContainerPointType>
 class NurbsCurveTessellation
 {
-public:     // types
-    using Vector = array_1d<double, TCurve::GetDimension()>;
+public:
+
+    ///@name Type Definitions
+    ///@{
+
+    // using Vector = array_1d<double, TCurve::GetDimension()>;
+    using Vector = array_1d<double, TWorkingSpaceDimension>;
     using ParameterPoint = std::pair<double, Vector>;
+    typedef Geometry<typename TContainerPointType::value_type> GeometryType;
+    typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> NurbsCurveGeometryType;
+    typedef typename GeometryType::IndexType IndexType;
+    typedef typename GeometryType::SizeType SizeType;
 
 private:    // static methods
     static double Cross(const array_1d<double, 2>& VectorU,
@@ -71,30 +82,54 @@ private:    // static methods
         return Norm(Cross(vector_v, vector_u)) / Norm(vector_u);
     }
 
-public:     // static methods
-    static std::vector<ParameterPoint> Compute(const TCurve& Curve,
-        const Interval Domain, const double Tolerance)
+public:
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Conctructor for tessellation of a nurbs curve
+    NurbsCurveTessellation(
+        typename NurbsCurveGeometryType::Pointer pNurbsCurve
+        ):mpNurbsCurve(pNurbsCurve)
+    {
+    }
+
+    /*static std::vector<ParameterPoint> Compute(const TCurve& Curve,
+        const Interval Domain, const double Tolerance)*/
+    std::vector<ParameterPoint> Compute(const double Tolerance)
     {
         std::vector<ParameterPoint> sample_points;
         std::vector<ParameterPoint> points;
+        typename NurbsCurveGeometryType::CoordinatesArrayType point;
+
+        array_1d<double, 3> result = ZeroVector();
 
         // compute sample points
 
-        for (const auto& span : Curve.GetSpans()) {
-            const Interval normalized_span = Domain.GetNormalizedInterval(span);
+        std::vector<Interval> knot_span_intervals = mpNurbsCurve->KnotSpanIntervals();
+
+        for (const auto& span : knot_span_intervals) {
+            const Interval normalized_span = mpNurbsCurve->DomainInterval().GetNormalizedInterval(span);
 
             if (normalized_span.GetLength() < 1e-7) {
                 continue;
             }
 
             const double t = normalized_span.GetT0();
-            const Vector point = Curve.GetPointAt(span.GetT0());
+            typename NurbsCurveGeometryType::CoordinatesArrayType t0;
+            t0[0] = span.GetT0();
+            
+            point = mpNurbsCurve->GlobalCoordinates(result, t0);
 
             sample_points.emplace_back(t, point);
         }
 
-        sample_points.emplace_back(1.0,
-            Curve.GetPointAt(Domain.GetParameterAtNormalized(1.0)));
+        typename NurbsCurveGeometryType::CoordinatesArrayType tAtNormalized;
+        tAtNormalized[0] = mpNurbsCurve->DomainInterval().GetParameterAtNormalized(1.0);
+
+        point = mpNurbsCurve->GlobalCoordinates(result, tAtNormalized);
+
+        sample_points.emplace_back(1.0,point);
 
         std::sort(std::begin(sample_points), std::end(sample_points),
             [](const ParameterPoint& lhs, const ParameterPoint& rhs) {
@@ -104,7 +139,7 @@ public:     // static methods
 
         // compute polyline
 
-        const int n = Curve.GetDegree() * 2 + 1;
+        const int n = mpNurbsCurve->PolynomialDegree() * 2 + 1;
 
         while (true) {
             const auto parameter_point_a = sample_points.back();
@@ -114,7 +149,7 @@ public:     // static methods
 
             sample_points.pop_back();
 
-            points.emplace_back(Domain.GetParameterAtNormalized(t_a), point_a);
+            points.emplace_back(mpNurbsCurve->DomainInterval().GetParameterAtNormalized(t_a), point_a);
 
             if (sample_points.size() == 0) {
                 break;
@@ -132,8 +167,11 @@ public:     // static methods
                 for (int i = 1; i <= n; i++) {
                     const double t = Interval::GetParameterAtNormalized(t_a,
                         t_b, i / double(n + 1));
-                    const Vector point = Curve.GetPointAt(
-                        Domain.GetParameterAtNormalized(t));
+
+                    tAtNormalized[0] = mpNurbsCurve->DomainInterval().GetParameterAtNormalized(t);
+
+                    const Vector point = mpNurbsCurve->GlobalCoordinates(
+                        result, tAtNormalized);
 
                     const double distance = DistanceToLine(point, point_a,
                         point_b);
@@ -154,7 +192,27 @@ public:     // static methods
 
         return points;
     }
-}; 
+
+    private:
+    ///@name Private Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Member Variables
+    ///@{
+
+    typename NurbsCurveGeometryType::Pointer mpNurbsCurve;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private Serialization
+    ///@{
+
+    friend class Serializer;
+};
 
 } // namespace NurbsCurveTessellation
 

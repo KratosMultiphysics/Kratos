@@ -22,6 +22,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/pointer_vector.h"
+#include "nurbs_test_utility.h"
 
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_curve_tessellation.h"
@@ -29,29 +30,37 @@
 namespace Kratos {
 namespace Testing {
 
-    /*KRATOS_TEST_CASE_IN_SUITE(NurbsCurveTessellation3D,
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurveTessellation3D,
         KratosCoreNurbsGeometriesFastSuite)
     {
-        NurbsCurveGeometry<2> geometry(
-            2,      // degree
-            4,      // nb_poles
-            false   // IsRational
-        );
+        // Control Points
+        PointerVector<Point> points;
+        points.push_back(Point::Pointer(new Point(0.0,  0.0)));
+        points.push_back(Point::Pointer(new Point(1.0,  1.0)));
+        points.push_back(Point::Pointer(new Point(2.0, -1.0)));
+        points.push_back(Point::Pointer(new Point(3.0, -1.0)));
 
-        geometry.SetKnot(0, 0.0);
-        geometry.SetKnot(1, 0.0);
-        geometry.SetKnot(2, 1.0);
-        geometry.SetKnot(3, 2.0);
-        geometry.SetKnot(4, 2.0);
-        
-        geometry.SetPole(0, NurbsTestUtility::Point2D(0.0,  0.0));
-        geometry.SetPole(1, NurbsTestUtility::Point2D(1.0,  1.0));
-        geometry.SetPole(2, NurbsTestUtility::Point2D(2.0, -1.0));
-        geometry.SetPole(3, NurbsTestUtility::Point2D(3.0, -1.0));
+        // Knot vector
+        Vector knot_vector = ZeroVector(5);
+        knot_vector[0] = 0.0;
+        knot_vector[1] = 0.0;
+        knot_vector[2] = 1.0;
+        knot_vector[3] = 2.0;
+        knot_vector[4] = 2.0;
 
-        const auto tessellation =
+        // Polynomial order
+        int p = 2;
+
+        // Create the 2d nurbs curve
+        auto geometry = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
+
+        /*const auto tessellation =
             NurbsCurveTessellation<NurbsCurveGeometry<2>>::Compute(geometry,
-                geometry.GetDomain(), 1e-2);
+                geometry.GetDomain(), 1e-2);*/
+        
+        auto tessellation_class = NurbsCurveTessellation<2, PointerVector<Point>>(geometry);
+
+        auto tessellation = tessellation_class.Compute(1e-2);
 
         NurbsTestUtility::ArrayAlmostEqual(tessellation[0].second,
             NurbsTestUtility::Point2D(0.0000000,  0.000000));
@@ -86,7 +95,7 @@ namespace Testing {
         NurbsTestUtility::ArrayAlmostEqual(tessellation[15].second,
             NurbsTestUtility::Point2D(2.7578125, -0.984375));
         NurbsTestUtility::ArrayAlmostEqual(tessellation[16].second,
-            NurbsTestUtility::Point2D(3.0000000, -1.000000));*/
+            NurbsTestUtility::Point2D(3.0000000, -1.000000));
     }
 
 } // namespace Testing.
