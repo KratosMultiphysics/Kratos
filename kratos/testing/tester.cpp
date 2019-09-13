@@ -23,6 +23,7 @@
 #include "testing/tester.h"
 #include "testing/test_suite.h" // it includes the test_case.h
 #include "includes/exception.h"
+#include "includes/parallel_environment.h"
 
 
 namespace Kratos
@@ -266,6 +267,12 @@ namespace Kratos
 			auto start = std::chrono::steady_clock::now();
 			auto number_of_run_tests = NumberOfSelectedTestCases();
 
+			std::stringstream secondary_stream;
+			std::streambuf* original_buffer = nullptr;
+			if (ParallelEnvironment::GetDefaultRank() != 0) {
+				original_buffer = std::cout.rdbuf(secondary_stream.rdbuf());
+			}
+
 			std::size_t test_number = 0;
 			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
@@ -288,7 +295,12 @@ namespace Kratos
 			auto end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> elapsed = end - start;
 
-			return ReportResults(std::cout, number_of_run_tests, elapsed.count());
+			auto tmp = ReportResults(std::cout, number_of_run_tests, elapsed.count());
+
+			if (ParallelEnvironment::GetDefaultRank() != 0) {
+				std::cout.rdbuf(original_buffer);
+			}
+			return tmp;
 		}
 
 
