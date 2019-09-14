@@ -11,8 +11,8 @@ namespace Kratos {
     class KRATOS_API(DEM_APPLICATION) DEM_Force_Based_Inlet: public DEM_Inlet
     {
     public:
-        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-        typedef WeakPointerVector<Element> ParticleWeakVectorType;
+        typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
+        typedef GlobalPointersVector<Element> ParticleWeakVectorType;
         typedef ModelPart::ElementsContainerType ElementsArrayType;
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Force_Based_Inlet);

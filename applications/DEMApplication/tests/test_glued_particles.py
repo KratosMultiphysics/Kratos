@@ -4,7 +4,7 @@ from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import main_script
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -13,22 +13,22 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def CreateAndRunObjectInOneOpenMPThread(my_obj):
+def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
     omp_utils = Kratos.OpenMPUtils()
     if "OMP_NUM_THREADS" in os.environ:
         initial_number_of_threads = os.environ['OMP_NUM_THREADS']
         omp_utils.SetNumThreads(1)
 
-    model = Kratos.Model()
-    my_obj(model).Run()
+    with open(parameters_file_name,'r') as parameter_file:
+        project_parameters = Kratos.Parameters(parameter_file.read())
+
+    my_obj(model, project_parameters).Run()
 
     if "OMP_NUM_THREADS" in os.environ:
         omp_utils.SetNumThreads(int(initial_number_of_threads))
 
-class GluedParticlesTestSolution(main_script.Solution):
 
-    def GetParametersFileName(self):
-        return os.path.join(self.GetMainPath(), "ProjectParametersDEM.json")
+class GluedParticlesTestSolution(DEM_analysis_stage.DEMAnalysisStage):
 
     @classmethod
     def GetMainPath(self):
@@ -72,7 +72,10 @@ class TestGluedParticles(KratosUnittest.TestCase):
 
     @classmethod
     def test_Glued_Particles_1(self):
-        CreateAndRunObjectInOneOpenMPThread(GluedParticlesTestSolution)
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "glued_particles_tests_files")
+        parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+        model = Kratos.Model()
+        CreateAndRunStageInOneOpenMPThread(GluedParticlesTestSolution, model, parameters_file_name)
 
     def tearDown(self):
         file_to_remove = os.path.join("glued_particles_tests_files", "TimesPartialRelease")

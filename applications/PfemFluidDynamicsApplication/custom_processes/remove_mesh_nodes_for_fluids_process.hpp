@@ -69,8 +69,8 @@ public:
   typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
   typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -162,7 +162,7 @@ public:
 	  any_node_removed = true;
 
 
-	if(any_node_removed)
+	if(any_node_removed || mrRemesh.UseBoundingBox==true)
 	  this->CleanRemovedNodes(mrModelPart);
 
       }
@@ -261,7 +261,34 @@ private:
     for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
       {
 	if( i_node->IsNot(TO_ERASE) ){
-	  (rModelPart.Nodes()).push_back(*(i_node.base()));
+
+			/////////////////////////////////////////// here for BOUNDING BOX ///////////////////////////////////////////
+		 bool boundingBox=mrRemesh.UseBoundingBox;
+		 if(boundingBox==true && i_node->IsNot(RIGID)){
+			 const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+       double currentTime = rCurrentProcessInfo[TIME];
+       double initialTime=mrRemesh.BoundingBoxInitialTime;
+       double finalTime=mrRemesh.BoundingBoxFinalTime;
+      if(currentTime>initialTime && currentTime<finalTime){
+	      array_1d<double, 3> BoundingBoxLowerPoint=mrRemesh.BoundingBoxLowerPoint;
+	      array_1d<double, 3> BoundingBoxUpperPoint=mrRemesh.BoundingBoxUpperPoint;
+		    if(i_node->X()<BoundingBoxLowerPoint[0] || i_node->Y()<BoundingBoxLowerPoint[1] || i_node->Z()<BoundingBoxLowerPoint[2] ||
+			     i_node->X()>BoundingBoxUpperPoint[0] || i_node->Y()>BoundingBoxUpperPoint[1] || i_node->Z()>BoundingBoxUpperPoint[2]){
+	       i_node->Set(TO_ERASE);
+	     }else{
+	     (rModelPart.Nodes()).push_back(*(i_node.base()));
+		 }
+      }else{
+	     (rModelPart.Nodes()).push_back(*(i_node.base()));
+		 }
+
+		 }else{
+	     (rModelPart.Nodes()).push_back(*(i_node.base()));
+		 }
+
+	/////////////////////////////////////////// here for BOUNDING BOX ///////////////////////////////////////////
+
+
 	}
       }
 
@@ -651,28 +678,7 @@ private:
 	      // if(ie->GetGeometry()[i].Is(RIGID)  || ie->GetGeometry()[i].Is(SOLID)){
 	      rigidNodes++;
 	    }
-	    	
-	/////////////////////////////////////////// here for BOUNDING BOX ///////////////////////////////////////////
-	   // TODO data for bounding box will come from the interface
-		 bool boundingBox=mrRemesh.UseBoundingBox;
-		 if(boundingBox==true && ie->GetGeometry()[i].IsNot(RIGID)){
-			 const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-       double currentTime = rCurrentProcessInfo[TIME];
-       double initialTime=mrRemesh.BoundingBoxInitialTime;
-       double finalTime=mrRemesh.BoundingBoxFinalTime;
-      if(currentTime>initialTime && currentTime<finalTime){
-	      array_1d<double, 3> BoundingBoxLowerPoint=mrRemesh.BoundingBoxLowerPoint;
-	      array_1d<double, 3> BoundingBoxUpperPoint=mrRemesh.BoundingBoxUpperPoint;
-		    if(ie->GetGeometry()[i].X()<BoundingBoxLowerPoint[0] || ie->GetGeometry()[i].Y()<BoundingBoxLowerPoint[1] || ie->GetGeometry()[i].Z()<BoundingBoxLowerPoint[2] ||
-			     ie->GetGeometry()[i].X()>BoundingBoxUpperPoint[0] || ie->GetGeometry()[i].Y()>BoundingBoxUpperPoint[1] || ie->GetGeometry()[i].Z()>BoundingBoxUpperPoint[2]){
-	       ie->GetGeometry()[i].Set(TO_ERASE);
-	       any_node_removed = true;
-	     }
-      }
 
-		 }
-
-	/////////////////////////////////////////// here for BOUNDING BOX ///////////////////////////////////////////
 
 	  }
 
@@ -831,8 +837,8 @@ private:
 	      {
 		       if(eElement[i].Is(FREE_SURFACE) && eElement[i].IsNot(RIGID)){
 
-		         WeakPointerVector<Element > & neighb_elems = eElement[i].GetValue(NEIGHBOUR_ELEMENTS);
-		         WeakPointerVector<Node < 3 >> & neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
+		         GlobalPointersVector<Element > & neighb_elems = eElement[i].GetValue(NEIGHBOUR_ELEMENTS);
+		         GlobalPointersVector<Node < 3 >> & neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
 
              if(neighb_elems.size()<2){
 		          	eElement[i].Set(TO_ERASE);
@@ -931,8 +937,8 @@ private:
 	{
 	  if(eElement[i].Is(FREE_SURFACE) && eElement[i].IsNot(RIGID)){
 
-	    WeakPointerVector<Element > & neighb_elems = eElement[i].GetValue(NEIGHBOUR_ELEMENTS);
-	    WeakPointerVector<Node < 3 >> & neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
+	    GlobalPointersVector<Element > & neighb_elems = eElement[i].GetValue(NEIGHBOUR_ELEMENTS);
+	    GlobalPointersVector<Node < 3 >> & neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
 
 	    if(neighb_elems.size()<2){
 	      eElement[i].Set(TO_ERASE);

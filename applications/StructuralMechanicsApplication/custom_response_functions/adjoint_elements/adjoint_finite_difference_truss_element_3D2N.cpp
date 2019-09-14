@@ -15,31 +15,27 @@
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
+#include "custom_elements/truss_element_3D2N.hpp"
+#include "custom_elements/truss_element_linear_3D2N.hpp"
+
+
 
 
 namespace Kratos
 {
 
-AdjointFiniteDifferenceTrussElement::AdjointFiniteDifferenceTrussElement(Element::Pointer pPrimalElement)
-    : AdjointFiniteDifferencingBaseElement(pPrimalElement)
-{
-}
-
-AdjointFiniteDifferenceTrussElement::~AdjointFiniteDifferenceTrussElement()
-{
-}
-
-void AdjointFiniteDifferenceTrussElement::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
     if(rStressVariable == STRESS_ON_GP)
     {
-        const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
-        const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
+        const SizeType num_nodes = this->mpPrimalElement->GetGeometry().PointsNumber();
+        const SizeType dimension = this->mpPrimalElement->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs = num_nodes * dimension;
-        const SizeType num_GP = (mpPrimalElement->GetGeometry().IntegrationPoints()).size();
+        const SizeType num_GP = (this->mpPrimalElement->GetGeometry().IntegrationPoints()).size();
         if ( (rOutput.size1() != num_dofs) || (rOutput.size2() != num_GP ) )
             rOutput.resize(num_dofs, num_GP);
 
@@ -61,22 +57,23 @@ void AdjointFiniteDifferenceTrussElement::CalculateStressDisplacementDerivative(
     KRATOS_CATCH("")
 }
 
-int AdjointFiniteDifferenceTrussElement::Check(const ProcessInfo& rCurrentProcessInfo)
+template <class TPrimalElement>
+int AdjointFiniteDifferenceTrussElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    int return_value = AdjointFiniteDifferencingBaseElement::Check(rCurrentProcessInfo);
+    int return_value = BaseType::Check(rCurrentProcessInfo);
 
-    KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
+    KRATOS_ERROR_IF_NOT(this->mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     //TODO: Check() of primal element should be called, but is not possible because of DOF check!
 
     KRATOS_ERROR_IF(this->GetGeometry().WorkingSpaceDimension() != 3 || this->GetGeometry().size() != 2)
         << "The truss element works only in 3D and with 2 noded elements" << "" << std::endl;
 
-    CheckVariables();
-    CheckDofs();
-    CheckProperties(rCurrentProcessInfo);
+    this->CheckVariables();
+    this->CheckDofs();
+    this->CheckProperties(rCurrentProcessInfo);
 
     KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this)
          < std::numeric_limits<double>::epsilon())
@@ -87,8 +84,8 @@ int AdjointFiniteDifferenceTrussElement::Check(const ProcessInfo& rCurrentProces
     KRATOS_CATCH("")
 }
 
-
-void AdjointFiniteDifferenceTrussElement::CheckVariables() const
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CheckVariables() const
 {
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
@@ -98,13 +95,14 @@ void AdjointFiniteDifferenceTrussElement::CheckVariables() const
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
 }
 
-void AdjointFiniteDifferenceTrussElement::CheckDofs() const
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CheckDofs() const
 {
     const SizeType number_of_nodes = this->GetGeometry().size();
 
     for (IndexType i = 0; i < number_of_nodes; ++i)
     {
-        const NodeType &r_node = this->GetGeometry()[i];
+        const auto& r_node = this->GetGeometry()[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
@@ -115,10 +113,11 @@ void AdjointFiniteDifferenceTrussElement::CheckDofs() const
     }
 }
 
-void AdjointFiniteDifferenceTrussElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
-    const PropertiesType & r_properties = GetProperties();
+    const PropertiesType & r_properties = this->GetProperties();
 
     KRATOS_ERROR_IF(r_properties.Has(CROSS_AREA) == false || r_properties[CROSS_AREA] <= numerical_limit)
     << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
@@ -135,7 +134,8 @@ void AdjointFiniteDifferenceTrussElement::CheckProperties(const ProcessInfo& rCu
     cl->Check(r_properties ,this->GetGeometry(),rCurrentProcessInfo);
 }
 
-void AdjointFiniteDifferenceTrussElement::CalculateCurrentLengthDisplacementDerivative(Vector& rDerivativeVector)
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateCurrentLengthDisplacementDerivative(Vector& rDerivativeVector)
 {
     KRATOS_TRY;
 
@@ -167,7 +167,8 @@ void AdjointFiniteDifferenceTrussElement::CalculateCurrentLengthDisplacementDeri
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferenceTrussElement::GetDerivativePreFactor(double& rDerivativePreFactor, const ProcessInfo& rCurrentProcessInfo)
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElement<TPrimalElement>::GetDerivativePreFactor(double& rDerivativePreFactor, const ProcessInfo& rCurrentProcessInfo)
 {
     TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
 
@@ -188,18 +189,19 @@ void AdjointFiniteDifferenceTrussElement::GetDerivativePreFactor(double& rDeriva
     }
 }
 
-double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorFX(const ProcessInfo& rCurrentProcessInfo)
+template <class TPrimalElement>
+double AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateDerivativePreFactorFX(const ProcessInfo& rCurrentProcessInfo)
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
-    const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
-    const double A = mpPrimalElement->GetProperties()[CROSS_AREA];
+    const double E = this->mpPrimalElement->GetProperties()[YOUNG_MODULUS];
+    const double A = this->mpPrimalElement->GetProperties()[CROSS_AREA];
     const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
     double prestress = 0.0;
-    if (mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2))
-        prestress = mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
+    if (this->mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2))
+        prestress = this->mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
     std::vector<Vector> GL_strain;
-    mpPrimalElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, GL_strain, rCurrentProcessInfo);
+    this->mpPrimalElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, GL_strain, rCurrentProcessInfo);
     const double GL_strain_X = GL_strain[0][0]; //one Gauss-Point result is enough due to constant strains.
 
     double derivative_pre_factor = A / l_0 * (E * GL_strain_X + prestress + E * l * l / (l_0 * l_0));
@@ -210,10 +212,11 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorFX(const
     return derivative_pre_factor;
 }
 
-double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorPK2(const ProcessInfo& rCurrentProcessInfo)
+template <class TPrimalElement>
+double AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateDerivativePreFactorPK2(const ProcessInfo& rCurrentProcessInfo)
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
-    const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
+    const double E = this->mpPrimalElement->GetProperties()[YOUNG_MODULUS];
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
     const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     double derivative_pre_factor = E * l / (l_0 * l_0);
@@ -224,15 +227,20 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorPK2(cons
     return derivative_pre_factor;
 }
 
-void AdjointFiniteDifferenceTrussElement::save(Serializer& rSerializer) const
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElement<TPrimalElement>::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, AdjointFiniteDifferencingBaseElement);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
 }
 
-void AdjointFiniteDifferenceTrussElement::load(Serializer& rSerializer)
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElement<TPrimalElement>::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, AdjointFiniteDifferencingBaseElement);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
+
+template class AdjointFiniteDifferenceTrussElement<TrussElement3D2N>;
+template class AdjointFiniteDifferenceTrussElement<TrussElementLinear3D2N>;
 
 } // namespace Kratos.
 

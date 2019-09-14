@@ -71,7 +71,7 @@ public:
     ///@{
 
     /// Counted pointer of MeshTyingMortarCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MeshTyingMortarCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MeshTyingMortarCondition );
 
     /// Base class definitions
     typedef PairedCondition                                                               BaseType;
@@ -143,16 +143,14 @@ public:
 
     /// Default constructor
     MeshTyingMortarCondition()
-        : PairedCondition(),
-          mIntegrationOrder(2)
+        : PairedCondition()
     {}
 
     // Constructor 1
     MeshTyingMortarCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
-        ) :PairedCondition(NewId, pGeometry),
-           mIntegrationOrder(2)
+        ) :PairedCondition(NewId, pGeometry)
     {}
 
     // Constructor 2
@@ -160,8 +158,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
-        ) :PairedCondition( NewId, pGeometry, pProperties ),
-           mIntegrationOrder(2)
+        ) :PairedCondition( NewId, pGeometry, pProperties )
     {}
 
     // Constructor 3
@@ -171,8 +168,7 @@ public:
         PropertiesType::Pointer pProperties,
         GeometryType::Pointer pMasterGeometry
         )
-        :PairedCondition( NewId, pGeometry, pProperties, pMasterGeometry),
-         mIntegrationOrder(2)
+        :PairedCondition( NewId, pGeometry, pProperties, pMasterGeometry)
     {}
 
     ///Copy constructor
@@ -355,10 +351,8 @@ public:
         ) override;
 
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
      * @param rCurrentProcessInfo The current process information
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
@@ -393,7 +387,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -473,8 +467,6 @@ protected:
 
     MortarConditionMatrices mrThisMortarConditionMatrices;         /// The mortar operators
 
-    IndexType mIntegrationOrder;                                   /// The integration order to consider
-
     std::vector<Variable<double>> mDoubleVariables;                /// The list of double variables
 
     std::vector<Variable<array_1d<double, 3>>> mArray1DVariables;  /// The list of components array1d
@@ -545,19 +537,19 @@ protected:
     void InitializeDofData(DofData<TTensor>& rDofData)
     {
         // Slave element info
-        rDofData.Initialize(GetGeometry());
+        rDofData.Initialize(GetParentGeometry());
 
         if (TTensor == ScalarValue) {
             for (IndexType i_node = 0; i_node < NumNodes; i_node++) {
-                const double value = GetGeometry()[i_node].FastGetSolutionStepValue(mDoubleVariables[0]);
-                const double lm = GetGeometry()[i_node].FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER);
+                const double value = GetParentGeometry()[i_node].FastGetSolutionStepValue(mDoubleVariables[0]);
+                const double lm = GetParentGeometry()[i_node].FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER);
                 rDofData.u1(i_node, 0) = value;
                 rDofData.LagrangeMultipliers(i_node, 0) = lm;
             }
         } else {
             for (IndexType i_node = 0; i_node < NumNodes; i_node++) {
-                const array_1d<double, 3>& value = GetGeometry()[i_node].FastGetSolutionStepValue(mArray1DVariables[0]);
-                const array_1d<double, 3>& lm = GetGeometry()[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double, 3>& value = GetParentGeometry()[i_node].FastGetSolutionStepValue(mArray1DVariables[0]);
+                const array_1d<double, 3>& lm = GetParentGeometry()[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                 for (IndexType i_dof = 0; i_dof < TDim; i_dof++) {
                     rDofData.u1(i_node, i_dof) = value[i_dof];
                     rDofData.LagrangeMultipliers(i_node, i_dof) = lm[i_dof];
@@ -644,7 +636,8 @@ protected:
     IntegrationMethod GetIntegrationMethod() override
     {
         // Setting the auxiliar integration points
-        switch (mIntegrationOrder) {
+        const IndexType integration_order = GetProperties().Has(INTEGRATION_ORDER_CONTACT) ? GetProperties().GetValue(INTEGRATION_ORDER_CONTACT) : 2;
+        switch (integration_order) {
             case 1: return GeometryData::GI_GAUSS_1;
             case 2: return GeometryData::GI_GAUSS_2;
             case 3: return GeometryData::GI_GAUSS_3;
@@ -702,13 +695,11 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.save("IntegrationOrder", mIntegrationOrder);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.load("IntegrationOrder", mIntegrationOrder);
     }
 
     ///@}

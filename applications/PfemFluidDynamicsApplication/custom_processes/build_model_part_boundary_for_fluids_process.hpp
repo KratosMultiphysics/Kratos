@@ -56,8 +56,8 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
   typedef  ModelPart::ConditionsContainerType ConditionsContainerType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
   ///@}
   ///@name  Enum's
@@ -791,7 +791,7 @@ namespace Kratos
 		    rConditionId +=1;
 
 		    //Create a composite condition
-		    CompositeCondition::Pointer p_cond = Kratos::make_shared< CompositeCondition >(rConditionId,ConditionVertices,properties);
+		    CompositeCondition::Pointer p_cond = Kratos::make_intrusive< CompositeCondition >(rConditionId,ConditionVertices,properties);
 
 		    bool condition_found = false;
 		    bool point_condition = false;

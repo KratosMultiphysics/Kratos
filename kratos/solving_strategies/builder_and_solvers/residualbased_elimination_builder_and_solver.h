@@ -537,8 +537,6 @@ public:
 
         Timer::Stop("Build");
 
-//         ApplyPointLoads(pScheme,rModelPart, rb);
-
         // Does nothing...dirichlet conditions are naturally dealt with in defining the residual
         ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 

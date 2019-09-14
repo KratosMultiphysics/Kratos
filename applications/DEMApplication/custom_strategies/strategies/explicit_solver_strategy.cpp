@@ -238,12 +238,18 @@ namespace Kratos {
 
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
-            auto neighbour_walls_vector = mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces;
+            std::vector<DEMWall*>& neighbour_walls_vector = mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces;
             for (int j = 0; j<(int)neighbour_walls_vector.size(); j++) {
                 if( neighbour_walls_vector[j]->Is(DEMFlags::STICKY) ) {
-                    mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls_vector[j]);
-                    mListOfSphericParticles[i]->Set(DEMFlags::STICKY, true);
-                    break;
+                    const bool is_inside = mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls_vector[j]);
+                    if(is_inside) {
+                        #pragma omp critical
+                        {
+                            neighbour_walls_vector[j]->GetVectorOfGluedParticles().push_back(mListOfSphericParticles[i]);
+                        }
+                        mListOfSphericParticles[i]->Set(DEMFlags::STICKY, true);
+                        break;
+                    }
                 }
             }
         }
@@ -437,16 +443,14 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    double ExplicitSolverStrategy::Solve() {
+    double ExplicitSolverStrategy::SolveSolutionStep() {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
 
-        InitializeSolutionStep();
         SearchDEMOperations(r_model_part);
         SearchFEMOperations(r_model_part);
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
-        FinalizeSolutionStep();
 
         return 0.00;
 

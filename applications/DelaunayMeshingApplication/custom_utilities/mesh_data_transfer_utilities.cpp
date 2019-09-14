@@ -317,8 +317,8 @@ void MeshDataTransferUtilities::TransferBoundaryData(const TransferParameters& r
 
         //std::cout<<" Transfer: Cond: "<<i_cond.Id()<<" is Active "<<std::endl;
 
-        Element*           MasterElement   = i_cond.GetValue(MASTER_ELEMENT).lock().get();
-        Condition*         MasterCondition = i_cond.GetValue(MASTER_CONDITION).lock().get();
+        Element*           MasterElement   = i_cond.GetValue(MASTER_ELEMENT).get();
+        Condition*         MasterCondition = i_cond.GetValue(MASTER_CONDITION).get();
 
         unsigned int integration_points_number = (MasterElement->pGetGeometry())->IntegrationPointsNumber(MasterElement->GetIntegrationMethod());
 
@@ -1071,7 +1071,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart& rMo
     }
 
     unsigned int id= i_elem.Id();
-    PointPointerType p_center =  Kratos::make_shared<PointType>(id,xc,yc,zc);
+    PointPointerType p_center =  Kratos::make_intrusive<PointType>(id,xc,yc,zc);
 
     // if ((*i_elem.base())->GetOptions().Is(Element::THERMAL))
     //   std::cout<<" is thermal "<<std::endl;

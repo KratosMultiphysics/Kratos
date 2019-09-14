@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "taylor_patch_test",
-		"parallel_type"   : "OpenMP",
+        "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -29,7 +29,7 @@
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,
-        "reform_dofs_at_each_step"	         : true,
+        "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
@@ -38,16 +38,7 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_foundation","Parts_punch"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part",
-                                                "Parts_foundation",
-        										"Parts_punch",
-        										"DISPLACEMENT_fixed_support",
-        										"DISPLACEMENT_rolling_support_y",
-        										"DISPLACEMENT_rolling_support_x",
-        										"LineLoad2D_line_load"
-        										]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -57,7 +48,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_fixed_support",
+                "model_part_name" : "Structure.DISPLACEMENT_fixed_support",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -69,7 +60,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_rolling_support_y",
+                "model_part_name" : "Structure.DISPLACEMENT_rolling_support_y",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -81,7 +72,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_rolling_support_x",
+                "model_part_name" : "Structure.DISPLACEMENT_rolling_support_x",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,0.0,0.0]
@@ -95,7 +86,7 @@
             "process_name"          : "ApplyVectorOnConditionsProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "LineLoad2D_line_load",
+                "model_part_name" : "Structure.LineLoad2D_line_load",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : 10,
                 "direction"       : [0.0,-1.0,0.0]
@@ -123,7 +114,7 @@
             "Parameters"            : {
                 "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
                 "input_file_name"     : "ALM_frictionless_contact_test_2D/taylor_patch_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 1.0
             }
         }
@@ -139,25 +130,25 @@
                 "model_part_name"        : "Structure.computing_domain",
                 "output_name"            : "test_solution",
                 "postprocess_parameters" : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP"],
-            "nodal_nonhistorical_results": ["NORMAL"],
-            "nodal_flags_results": ["ACTIVE","SLAVE"],
-            "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
-        },
-        "point_data_configuration"  : []}}}]
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1.0,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP"],
+                        "nodal_nonhistorical_results": ["NORMAL"],
+                        "nodal_flags_results": ["ACTIVE","SLAVE"],
+                        "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                    },
+                    "point_data_configuration"  : []}}}]
     },
     "_json_output_process" : [
     {
@@ -168,19 +159,9 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/taylor_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 1.00
         }
     }
-    ],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    ]
 }

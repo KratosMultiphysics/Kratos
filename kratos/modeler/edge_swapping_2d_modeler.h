@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #if !defined(KRATOS_EDGE_SWAPPING_2D_MODELER_H_INCLUDED )
@@ -28,7 +28,6 @@
 #include "utilities/math_utils.h"
 #include "utilities/timer.h"
 #include "processes/find_elements_neighbours_process.h"
-#include "processes/node_erase_process.h"
 
 namespace Kratos
 {
@@ -426,10 +425,7 @@ private:
             }
         }
 
-        NodeEraseProcess node_erase_process(rThisModelPart);
-
-        node_erase_process.Execute();
-
+        rThisModelPart.RemoveNodes(TO_ERASE);
 
         ModelPart::ElementsContainerType temp_elements_container;
         temp_elements_container.reserve(number_of_elements);
@@ -803,6 +799,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EDGE_SWAPPING_2D_MODELER_H_INCLUDED  defined 
+#endif // KRATOS_EDGE_SWAPPING_2D_MODELER_H_INCLUDED  defined
 
 

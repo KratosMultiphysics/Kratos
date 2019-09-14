@@ -59,7 +59,7 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
         solver_settings = self.project_parameters["solver_settings"]
 
         solver_settings["domain_size"].SetInt(self.domain_size)
-        solver_settings["buffer_size"].SetInt(KM.GetMinimumBufferSize(self.mesh_vel_calc_helper))
+        solver_settings["buffer_size"].SetInt(KM.TimeDiscretization.GetMinimumBufferSize(self.mesh_vel_calc_helper))
         solver_settings["solver_type"].SetString(self.solver_type)
         input_file_name = os.path.join("test_mdpa_files", "rectangle_{}_test".format(self.__GetElementTopology()))
         solver_settings["model_import_settings"]["input_filename"].SetString(input_file_name)
@@ -82,9 +82,10 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
                                           "MESH_VELOCITY_X",
                                           "MESH_VELOCITY_Y",
                                           "MESH_VELOCITY_Z"],
-                    "output_file_name" : \""""+result_file_name+"""\",
-                    "model_part_name"  : "Probe_1",
-                    "time_frequency"   : 0.1
+                    "output_file_name" : \""""+result_file_name.replace("\\", "\\\\")+"""\",
+                    "model_part_name"  : "MainModelPart.Probe_1",
+                    "time_frequency"   : 0.1,
+                    "use_node_coordinates" : true
                 }
             }]"""))
         else:
@@ -99,9 +100,10 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
                                          "MESH_VELOCITY_X",
                                          "MESH_VELOCITY_Y",
                                          "MESH_VELOCITY_Z"],
-                    "input_file_name"  : \""""+result_file_name+"""\",
-                    "model_part_name"  : "Probe_1",
-                    "time_frequency"   : 0.1
+                    "input_file_name"  : \""""+result_file_name.replace("\\", "\\\\")+"""\",
+                    "model_part_name"  : "MainModelPart.Probe_1",
+                    "time_frequency"   : 0.1,
+                    "use_node_coordinates" : true
                 }
             }]"""))
 

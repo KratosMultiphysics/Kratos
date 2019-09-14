@@ -63,7 +63,7 @@ public:
     typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementUPElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LargeDisplacementUPElement );
     ///@}
 
     ///@name Life Cycle

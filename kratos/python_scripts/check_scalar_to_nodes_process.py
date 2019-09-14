@@ -1,4 +1,5 @@
 import KratosMultiphysics
+from KratosMultiphysics.check_scalar_base_process import CheckScalarBaseProcess
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -9,7 +10,6 @@ def Factory(settings, Model):
     return CheckScalarToNodesProcess(Model, settings["Parameters"])
 
 
-from check_scalar_base_process import CheckScalarBaseProcess
 class CheckScalarToNodesProcess(CheckScalarBaseProcess, KratosUnittest.TestCase):
     """This process checks analytically from a function the solution (scalar) in a set of nodes belonging a certain submodelpart
 
@@ -108,7 +108,7 @@ class CheckScalarToNodesProcess(CheckScalarBaseProcess, KratosUnittest.TestCase)
         self -- It signifies an instance of a class.
         """
         process_info = self.model_part.ProcessInfo
-        current_time = process_info[KratosMultiphysics.TIME] - process_info[KratosMultiphysics.DELTA_TIME]
+        current_time = process_info[KratosMultiphysics.TIME]
 
         if(current_time >= self.interval[0] and  current_time<self.interval[1]):
 

@@ -10,14 +10,22 @@ from glob import glob
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import DEM_material_test_script
+import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 def Flush(a):
     a.flush()
 
-
 def KratosPrint(*args):
-    Logger.Print(*args, label="DEM")
+    Logger.PrintInfo("This method is deprecated since 01/03/2019", label="DEM")
+    Logger.PrintInfo(*args, label="DEM")
+    Logger.Flush()
+
+def KratosPrintInfo(*args):
+    Logger.PrintInfo(*args, label="DEM")
+    Logger.Flush()
+
+def KratosPrintWarning(*args):
+    Logger.PrintWarning(*args, label="DEM")
     Logger.Flush()
 
 
@@ -96,7 +104,7 @@ class SetOfModelParts(object):
         self.spheres_model_part = self.Get("SpheresPart")
         self.rigid_face_model_part = self.Get("RigidFacePart")
         self.cluster_model_part = self.Get("ClusterPart")
-        self.DEM_inlet_model_part = self.Get("DEMInletPart")
+        self.dem_inlet_model_part = self.Get("DEMInletPart")
         self.mapping_model_part = self.Get("MappingPart")
         self.contact_model_part = self.Get("ContactPart")
 
@@ -366,7 +374,7 @@ class Procedures(object):
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             translational_scheme = VelocityVerletScheme()
         else:
-            self.KRATOSprint('Error: selected translational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -385,7 +393,7 @@ class Procedures(object):
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration':
             rotational_scheme = QuaternionIntegrationScheme()
         else:
-            self.KRATOSprint('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -393,7 +401,7 @@ class Procedures(object):
 
         spheres_model_part = all_model_parts.Get('SpheresPart')
         cluster_model_part = all_model_parts.Get('ClusterPart')
-        DEM_inlet_model_part = all_model_parts.Get('DEMInletPart')
+        dem_inlet_model_part = all_model_parts.Get('DEMInletPart')
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
 
         self.solver = weakref.proxy(solver)
@@ -406,9 +414,9 @@ class Procedures(object):
         self.AddCommonVariables(cluster_model_part, DEM_parameters)
         self.AddClusterVariables(cluster_model_part, DEM_parameters)
         self.AddMpiVariables(cluster_model_part)
-        self.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
-        self.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
-        self.solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)
+        self.AddCommonVariables(dem_inlet_model_part, DEM_parameters)
+        self.AddSpheresVariables(dem_inlet_model_part, DEM_parameters)
+        self.solver.AddAdditionalVariables(dem_inlet_model_part, DEM_parameters)
         self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         self.AddMpiVariables(rigid_face_model_part)
@@ -486,8 +494,7 @@ class Procedures(object):
                 model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
         if "PostGluedSphere" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostGluedSphere"].GetBool():
-                model_part.AddNodalSolutionStepVariable(IS_STICKY)
+            model_part.AddNodalSolutionStepVariable(IS_STICKY)
 
         # LOCAL AXIS
         if DEM_parameters["PostEulerAngles"].GetBool():
@@ -592,14 +599,14 @@ class Procedures(object):
     def AddMpiVariables(self, model_part):
         pass
 
-    def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part):
+    def SetInitialNodalValues(self, spheres_model_part, cluster_model_part, dem_inlet_model_part, rigid_face_model_part):
         pass
 
     @classmethod
-    def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, DEM_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size):
+    def SetUpBufferSizeInAllModelParts(self, spheres_model_part, spheres_b_size, cluster_model_part, clusters_b_size, dem_inlet_model_part, inlet_b_size, rigid_face_model_part, rigid_b_size):
         spheres_model_part.SetBufferSize(spheres_b_size)
         cluster_model_part.SetBufferSize(clusters_b_size)
-        DEM_inlet_model_part.SetBufferSize(inlet_b_size)
+        dem_inlet_model_part.SetBufferSize(inlet_b_size)
         rigid_face_model_part.SetBufferSize(rigid_b_size)
 
     @classmethod
@@ -673,7 +680,7 @@ class Procedures(object):
             Model_Data.write("Bonded Coordination Number NC: " + str(Coordination_Number) + '\n')
             Model_Data.write('\n')
             #Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
-            self.KRATOSprint("Coordination Number: " + str(Coordination_Number) + "\n")
+            self.KratosPrintInfo("Coordination Number: " + str(Coordination_Number) + "\n")
 
         Model_Data.close()
 
@@ -803,7 +810,7 @@ class Procedures(object):
             bounding_box_time_limits = [self.solver.bounding_box_start_time, self.solver.bounding_box_stop_time]
             return bounding_box_time_limits
 
-    def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, DEM_inlet_model_part, creator_destructor):
+    def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, dem_inlet_model_part, creator_destructor):
 
         b_box_low = Array3()
         b_box_high = Array3()
@@ -815,7 +822,7 @@ class Procedures(object):
         b_box_high[2] = self.b_box_maxZ
         creator_destructor.SetLowNode(b_box_low)
         creator_destructor.SetHighNode(b_box_high)
-        creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, DEM_inlet_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
+        creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, dem_inlet_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
 
     @classmethod
     def DeleteFiles(self):
@@ -829,20 +836,20 @@ class Procedures(object):
     def PreProcessModel(self, DEM_parameters):
         pass
 
-    def CheckVariableType(self, var, expected_type, msg):
+    def CheckVariableType(self, var, expected_type, msg):   # TODO is this actually being used
         actual_type = type(var)
         if actual_type is int and expected_type is float:
             return
         if actual_type is not expected_type:
-            self.KRATOSprint(
+            self.KratosPrintWarning(
                 "**************************************************************************")
-            self.KRATOSprint(
+            self.KratosPrintWarning(
                 "ERROR: Input parameter of wrong type in file 'DEM_explicit_solver_var.py'.")
             a = str(expected_type)
             b = str(var)
-            self.KRATOSprint("The type expected was " +
+            self.KratosPrintWarning("The type expected was " +
                              a + " but " + b + " was read.")
-            self.KRATOSprint(
+            self.KratosPrintWarning(
                 "**************************************************************************")
             sys.exit()
 
@@ -850,14 +857,18 @@ class Procedures(object):
     def Flush(self, a):
         a.flush()
 
-    def KRATOSprint(self, message):
-        Logger.Print(message, label="DEM")
+    def KratosPrintInfo(self, message):
+        Logger.PrintInfo(message, label="DEM")
+        Logger.Flush()
+
+    def KratosPrintWarning(self, message):
+        Logger.PrintWarning(message, label="DEM")
         Logger.Flush()
 
 
 class DEMFEMProcedures(object):
 
-    def __init__(self, DEM_parameters, graphs_path, spheres_model_part, RigidFace_model_part):
+    def __init__(self, DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part):
 
         # GLOBAL VARIABLES OF THE SCRIPT
         self.DEM_parameters = DEM_parameters
@@ -880,7 +891,7 @@ class DEMFEMProcedures(object):
 
         self.graphs_path = graphs_path
         self.spheres_model_part = spheres_model_part
-        self.RigidFace_model_part = RigidFace_model_part
+        self.rigid_face_model_part = rigid_face_model_part
         #self.solver = solver
         self.aux = AuxiliaryUtilities()
 
@@ -899,8 +910,8 @@ class DEMFEMProcedures(object):
         def Flush(self, a):
             a.flush()
 
-        def open_graph_files(self, RigidFace_model_part):
-            for smp in self.RigidFace_model_part.SubModelParts:
+        def open_graph_files(self, rigid_face_model_part):
+            for smp in self.rigid_face_model_part.SubModelParts:
                 if smp[FORCE_INTEGRATION_GROUP]:
                     identifier = smp[IDENTIFIER]
                     absolute_path_to_file = os.path.join(self.graphs_path, str(self.DEM_parameters["problem_name"].GetString()) + "_" + str(identifier) + "_force_graph.grf")
@@ -941,8 +952,8 @@ class DEMFEMProcedures(object):
 
             integration_groups = False
 
-            if self.RigidFace_model_part.NumberOfSubModelParts() > 0:
-                for smp in self.RigidFace_model_part.SubModelParts:
+            if self.rigid_face_model_part.NumberOfSubModelParts() > 0:
+                for smp in self.rigid_face_model_part.SubModelParts:
                     if smp[FORCE_INTEGRATION_GROUP]:
                         integration_groups = True
                         break
@@ -952,7 +963,7 @@ class DEMFEMProcedures(object):
         self.particle_graph_forces = {}
 
         if self.TestType == "None":
-            open_graph_files(self, RigidFace_model_part)
+            open_graph_files(self, rigid_face_model_part)
             open_balls_graph_files(self, spheres_model_part)
 
         # SIMULATION SETTINGS
@@ -965,13 +976,13 @@ class DEMFEMProcedures(object):
     def MoveAllMeshes(self, all_model_parts, time, dt): # TODO: deprecated
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
-        DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        dem_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
         cluster_model_part = all_model_parts.Get("ClusterPart")
 
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
 
     # def MoveAllMeshesUsingATable(self, model_part, time, dt):
@@ -1015,12 +1026,12 @@ class DEMFEMProcedures(object):
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         cluster_model_part = all_model_parts.Get("ClusterPart")
-        DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        dem_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
 
         self.UpdateTimeInOneModelPart(spheres_model_part, time, dt, step, is_time_to_print)
         self.UpdateTimeInOneModelPart(cluster_model_part, time, dt, step, is_time_to_print)
-        self.UpdateTimeInOneModelPart(DEM_inlet_model_part, time, dt, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(dem_inlet_model_part, time, dt, step, is_time_to_print)
         self.UpdateTimeInOneModelPart(rigid_face_model_part, time, dt, step, is_time_to_print)
 
     @classmethod
@@ -1030,9 +1041,9 @@ class DEMFEMProcedures(object):
         model_part.ProcessInfo[TIME_STEPS] = step
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
-    def close_graph_files(self, RigidFace_model_part):
+    def close_graph_files(self, rigid_face_model_part):
 
-        for smp in self.RigidFace_model_part.SubModelParts:
+        for smp in self.rigid_face_model_part.SubModelParts:
             if smp[FORCE_INTEGRATION_GROUP]:
                 identifier = smp[IDENTIFIER]
                 self.graph_forces[identifier].close()
@@ -1063,7 +1074,7 @@ class DEMFEMProcedures(object):
             if self.graph_counter == self.graph_frequency:
                 self.graph_counter = 0
 
-                for smp in self.RigidFace_model_part.SubModelParts:
+                for smp in self.rigid_face_model_part.SubModelParts:
                     if smp[FORCE_INTEGRATION_GROUP]:
                         mesh_nodes = smp.Nodes
 
@@ -1091,10 +1102,10 @@ class DEMFEMProcedures(object):
 
             self.graph_counter += 1
 
-    def FinalizeGraphs(self, RigidFace_model_part):
+    def FinalizeGraphs(self, rigid_face_model_part):
 
         if self.TestType == "None":
-            self.close_graph_files(RigidFace_model_part)
+            self.close_graph_files(rigid_face_model_part)
 
     def PrintBallsGraph(self, time):
 
@@ -1455,8 +1466,8 @@ class DEMIo(object):
         self.SetMultifileLists(self.multifiles)
 
 
-    def KRATOSprint(self, message):
-        Logger.Print(message,label="DEM")
+    def KratosPrintInfo(self, message):
+        Logger.PrintInfo(message,label="DEM")
         Logger.Flush()
 
     @classmethod
@@ -1464,10 +1475,10 @@ class DEMIo(object):
         a.flush()
 
     def ShowPrintingResultsOnScreen(self, all_model_parts):
-        self.KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
-        self.KRATOSprint("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfElements(0)) + " elements)")
-        self.KRATOSprint("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfNodes(0)) + " nodes)")
-        self.KRATOSprint("")
+        self.KratosPrintInfo("*******************  PRINTING RESULTS FOR GID  ***************************")
+        self.KratosPrintInfo("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfElements(0)) + " elements)")
+        self.KratosPrintInfo("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfNodes(0)) + " nodes)")
+        self.KratosPrintInfo("")
 
     def Initialize(self, DEM_parameters):
         self.AddGlobalVariables()
@@ -1537,9 +1548,8 @@ class DEMIo(object):
             if self.DEM_parameters["PostBrokenRatio"].GetBool():
                 self.PushPrintVar(self.PostBrokenRatio, NEIGHBOUR_RATIO, self.spheres_variables)
 
-        if "PostGluedSphere" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostGluedSphere"].GetBool():
-                self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)
+        if self.PostGluedSphere:
+            self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)
 
         # NANO (TODO: must be removed from here.)
         if self.DEM_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
@@ -1993,8 +2003,7 @@ class ParallelUtils(object):
 
     @classmethod
     def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
-        MPICommSetup = 0
-        return [model_part_io_spheres, spheres_model_part, MPICommSetup]
+        return [model_part_io_spheres, spheres_model_part]
 
     @classmethod
     def GetSearchStrategy(self, solver, model_part):

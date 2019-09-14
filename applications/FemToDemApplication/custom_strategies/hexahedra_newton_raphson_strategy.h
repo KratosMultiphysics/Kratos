@@ -27,7 +27,7 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
 // Extrapolation process
-#include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
+#include "processes/integration_values_extrapolation_to_nodes_process.h"
 
 
 namespace Kratos

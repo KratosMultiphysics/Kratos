@@ -55,20 +55,20 @@ namespace Kratos
  * @todo Complete this
  * @author Vicente Mataix Ferrandiz
  */
-template< std::size_t TNumNodes, bool TNormalVariation >
+template< std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster = TNumNodes>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PenaltyMethodFrictionalMortarContactAxisymCondition
-    : public PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>
+    : public PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Counted pointer of PenaltyMethodFrictionalMortarContactAxisymCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PenaltyMethodFrictionalMortarContactAxisymCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PenaltyMethodFrictionalMortarContactAxisymCondition );
 
-    typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation> MortarBaseType;
+    typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation, TNumNodesMaster> MortarBaseType;
 
-    typedef PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>                         BaseType;
+    typedef PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation, TNumNodesMaster>                    BaseType;
 
     typedef typename MortarBaseType::MortarConditionMatrices                                                   MortarConditionMatrices;
 
@@ -98,9 +98,9 @@ public:
 
     typedef Line2D2<Point>                                                                                           DecompositionType;
 
-    typedef DerivativeDataFrictional<2, TNumNodes, TNormalVariation>                                                DerivativeDataType;
+    typedef DerivativeDataFrictional<2, TNumNodes, TNormalVariation, TNumNodesMaster>                               DerivativeDataType;
 
-    static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
+    static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodesMaster);
 
     ///@}
     ///@name Life Cycle
@@ -112,12 +112,29 @@ public:
     }
 
     // Constructor 1
-    PenaltyMethodFrictionalMortarContactAxisymCondition(IndexType NewId, GeometryPointerType pGeometry):BaseType(NewId, pGeometry)
+    PenaltyMethodFrictionalMortarContactAxisymCondition(
+        IndexType NewId,
+        GeometryPointerType pGeometry
+        ):BaseType(NewId, pGeometry)
     {
     }
 
     // Constructor 2
-    PenaltyMethodFrictionalMortarContactAxisymCondition(IndexType NewId, GeometryPointerType pGeometry, PropertiesPointerType pProperties):BaseType( NewId, pGeometry, pProperties )
+    PenaltyMethodFrictionalMortarContactAxisymCondition(
+        IndexType NewId,
+        GeometryPointerType pGeometry,
+        PropertiesPointerType pProperties
+        ):BaseType( NewId, pGeometry, pProperties )
+    {
+    }
+
+    // Constructor 3
+    PenaltyMethodFrictionalMortarContactAxisymCondition(
+        IndexType NewId,
+        GeometryPointerType pGeometry,
+        PropertiesPointerType pProperties,
+        GeometryType::Pointer pMasterGeometry
+        ):BaseType( NewId, pGeometry, pProperties, pMasterGeometry )
     {
     }
 
@@ -139,13 +156,12 @@ public:
     ///@{
 
     /**
-     * Creates a new element pointer from an arry of nodes
+     * @brief Creates a new element pointer from an arry of nodes
      * @param NewId The ID of the new element
      * @param rThisNodes The nodes of the new element
      * @param pProperties The properties assigned to the new element
      * @return a Pointer to the new element
      */
-
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& rThisNodes,
@@ -153,17 +169,31 @@ public:
         ) const override;
 
     /**
-     * Creates a new element pointer from an existing geometry
+     * @brief Creates a new element pointer from an existing geometry
      * @param NewId The ID of the new element
      * @param pGeom The  geometry taken to create the condition
      * @param pProperties The properties assigned to the new element
      * @return a Pointer to the new element
      */
-
     Condition::Pointer Create(
         IndexType NewId,
         GeometryPointerType pGeom,
         PropertiesPointerType pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element pointer from an existing geometry
+     * @param NewId the ID of the new element
+     * @param pGeom the  geometry taken to create the condition
+     * @param pProperties the properties assigned to the new element
+     * @param pMasterGeom the paired geometry
+     * @return a Pointer to the new element
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryPointerType pGeom,
+        PropertiesPointerType pProperties,
+        GeometryPointerType pMasterGeom
         ) const override;
 
     /******************************************************************/
@@ -220,7 +250,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 

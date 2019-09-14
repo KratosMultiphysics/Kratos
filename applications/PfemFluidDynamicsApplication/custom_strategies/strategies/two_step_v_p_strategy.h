@@ -249,6 +249,10 @@ public:
       bool momentumConverged = true;
       bool continuityConverged = false;
       bool fixedTimeStep=false;
+
+
+	bool momentumAlreadyConverged=false;
+	bool continuityAlreadyConverged=false;
       /* boost::timer solve_step_time; */
 
       // Iterative solution for pressure
@@ -272,14 +276,37 @@ public:
 
 	  this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
+    			if((momentumConverged==true || it==maxNonLinearIterations-1) && momentumAlreadyConverged==false){
+				// std::ofstream myfile;
+  	    // myfile.open ("momentumConvergedIteration.txt",std::ios::app);
+				// myfile << currentTime << "\t" << it << "\n";
+        // myfile.close();
+				momentumAlreadyConverged=true;
+			}
+			if((continuityConverged==true || it==maxNonLinearIterations-1) && continuityAlreadyConverged==false){
+				// std::ofstream myfile;
+  	    // myfile.open ("continuityConvergedIteration.txt",std::ios::app);
+				// myfile << currentTime << "\t" << it << "\n";
+        // myfile.close();
+				continuityAlreadyConverged=true;
+			}
 
 
 	  if( fixedTimeStep==false){
 	    continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
 	  }
 	  if(it==maxNonLinearIterations-1 || ((continuityConverged && momentumConverged) && it>2)){
+      //this->ComputeErrorL2Norm();
+      //this->ComputeErrorL2NormCasePoiseuille();
 	    this->UpdateStressStrain();
+      	// std::ofstream myfile;
+  	    // myfile.open ("maxConvergedIteration.txt",std::ios::app);
+				// myfile << currentTime << "\t" << it << "\n";
+        // myfile.close();
 	  }
+
+
+
 	  if ( (continuityConverged && momentumConverged) && it>2)
 	    {
 	      rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
@@ -378,7 +405,7 @@ public:
         }
     }
 
-    void CalculateTemporalVariables()
+    virtual void CalculateTemporalVariables()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -434,8 +461,6 @@ public:
 
 	    CurrentPressureAcceleration += -CurrentPressureVelocity/timeInterval;
 
-	    double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
-	    previousFluidFraction=(i)->FastGetSolutionStepValue(FLUID_FRACTION);
 	  }
 
 
@@ -496,7 +521,7 @@ public:
       // std::cout<<"rBDFCoeffs[2] is "<<rBDFCoeffs[2]<<std::endl;//1/(2*delta_t)
     }
 
-    void CalculateDisplacementsAndPorosity()
+  virtual void CalculateDisplacementsAndPorosity()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -511,10 +536,6 @@ public:
 
 	  array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 	  array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-	  // const double& currentFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION);
-	  // const double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
-	  // double& currentFluidFractionRate = (i)->FastGetSolutionStepValue(FLUID_FRACTION_RATE);
 
 	  /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
 	  CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
@@ -706,6 +727,7 @@ protected:
       ConvergedMomentum = this->CheckVelocityConvergence(NormDv,DvErrorNorm);
 
       unsigned int iterationForCheck=3;
+        KRATOS_INFO("TwoStepVPStrategy") << "iteration("<<it<<") Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
 
       // Check convergence
       if(it==maxIt-1){
@@ -717,8 +739,36 @@ protected:
 	      fixedTimeStep=this->CheckMomentumConvergence(DvErrorNorm);
       }
 
+      // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	    // double currentTime = rCurrentProcessInfo[TIME];
+      // double tolerance=0.0000000001;
+      // if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt025s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
+			// else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt05s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
+      // else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt075s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
+			// else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
+			// 	std::ofstream myfile;
+  	  //   myfile.open ("velocityConvergenceAt100s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DvErrorNorm << "\n";
+      //   myfile.close();
+			// }
+
       if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
-	std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
+	      std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
 
       return ConvergedMomentum;
     }
@@ -749,6 +799,7 @@ protected:
 
       double DpErrorNorm = 0;
       ConvergedContinuity = this->CheckPressureConvergence(NormDp,DpErrorNorm);
+          KRATOS_INFO("TwoStepVPStrategy") <<"                    iteration("<<it<<") Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
 
       // Check convergence
       if(it==maxIt-1){
@@ -758,11 +809,344 @@ protected:
       	ConvergedContinuity=this->FixTimeStepContinuity(DpErrorNorm);
       }
 
+
+	    // ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	    // double currentTime = rCurrentProcessInfo[TIME];
+      // double tolerance=0.0000000001;
+      // if(currentTime>(0.25-tolerance) && currentTime<(0.25+tolerance)){
+			// 	std::ofstream myfile;
+  	  //  myfile.open ("pressureConvergenceAt025s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //  myfile.close();
+			// }
+			// else if(currentTime>(0.5-tolerance) && currentTime<(0.5+tolerance)){
+			// 	std::ofstream myfile;
+  	  //  myfile.open ("pressureConvergenceAt05s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //  myfile.close();
+			// }
+      // else if(currentTime>(0.75-tolerance) && currentTime<(0.75+tolerance)){
+			// 	std::ofstream myfile;
+  	  //  myfile.open ("pressureConvergenceAt075s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //  myfile.close();
+			// }
+			// else if(currentTime>(1.0-tolerance) && currentTime<(1.0+tolerance)){
+			// 	std::ofstream myfile;
+  	  //  myfile.open ("pressureConvergenceAt100s.txt",std::ios::app);
+			// 	myfile << it << "\t" << DpErrorNorm << "\n";
+      //  myfile.close();
+			// }
+      
       if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
-	std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
+	      std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
 
       return ConvergedContinuity;
     }
+
+
+
+    void ComputeErrorL2Norm()
+    {
+        ModelPart& rModelPart = BaseType::GetModelPart();
+				ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	      const double currentTime = rCurrentProcessInfo[TIME];
+        const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+        long double sumErrorL2Velocity  = 0;
+        long double sumErrorL2VelocityX = 0;
+        long double sumErrorL2VelocityY = 0;
+        long double sumErrorL2Pressure  = 0;
+        long double sumErrorL2TauXX     = 0;
+        long double sumErrorL2TauYY     = 0;
+        long double sumErrorL2TauXY     = 0;
+
+#pragma omp parallel
+     {
+       ModelPart::ElementIterator ElemBegin;
+       ModelPart::ElementIterator ElemEnd;
+       OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
+       for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
+        {
+
+          Element::GeometryType& geometry = itElem->GetGeometry();
+	        long double nodalArea=0;
+
+	         if(dimension==2){
+		         nodalArea=geometry.Area()/3.0;
+	         }else if(dimension==3){
+		         nodalArea=geometry.Volume()*0.25;
+	         }
+
+          long double bariPosX=0;
+          long double bariPosY=0;
+
+        long double eleErrorL2Velocity  = 0;
+        long double eleErrorL2VelocityX = 0;
+        long double eleErrorL2VelocityY = 0;
+        long double eleErrorL2Pressure  = 0;
+
+
+        //ShapeFunctionDerivativesArrayType DN_DX;
+        Matrix NContainer;
+        NContainer = geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        //this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+
+           const Vector& N = row(NContainer,0);
+          //  itElem->EvaluateInPoint(elementalPressure,PRESSURE,N);
+          const unsigned int  NumNodes = geometry.size();
+
+
+        double elementalPressure  = N[0] * geometry(0)->FastGetSolutionStepValue(PRESSURE);
+        double elementalVelocityX = N[0] * geometry(0)->FastGetSolutionStepValue(VELOCITY_X);
+        double elementalVelocityY = N[0] * geometry(0)->FastGetSolutionStepValue(VELOCITY_Y);;
+
+          for(unsigned int  i = 1; i < NumNodes; i++)
+            {
+              elementalPressure  += N[i] * geometry(i)->FastGetSolutionStepValue(PRESSURE);
+              elementalVelocityX += N[i] * geometry(i)->FastGetSolutionStepValue(VELOCITY_X);
+              elementalVelocityY += N[i] * geometry(i)->FastGetSolutionStepValue(VELOCITY_Y);
+            }
+
+
+
+	        for (unsigned int i = 0; i <geometry.size(); i++)
+	         	{
+
+		          // index = i*dimension;
+              const long double nodalPosX      = geometry(i)->X();
+              const long double nodalPosY      = geometry(i)->Y();
+              // const long double velX      = geometry(i)->FastGetSolutionStepValue(VELOCITY_X);
+              // const long double velY      = geometry(i)->FastGetSolutionStepValue(VELOCITY_Y);
+              // const long double pressure  = geometry(i)->FastGetSolutionStepValue(PRESSURE);
+
+              // long double expectedVelocityX =  pow(posX,2) * (1.0-posX)*(1.0-posX) * ( 2.0*posY - 6.0*pow(posY,2) + 4.0*pow(posY,3) );
+              // long double expectedVelocityY = -pow(posY,2) * (1.0-posY)*(1.0-posY) * ( 2.0*posX - 6.0*pow(posX,2) + 4.0*pow(posX,3) );
+              // long double expectedPressure  = -posX * (1.0-posX);
+
+              // long double nodalErrorVelocityX = velX - expectedVelocityX;
+              // long double nodalErrorVelocityY = velY - expectedVelocityY;
+              // long double nodalErrorPressure  = pressure - expectedPressure;
+
+              // sumErrorL2Velocity  +=  (pow(nodalErrorVelocityX,2) + pow(nodalErrorVelocityY,2)) * nodalArea;
+              // sumErrorL2VelocityX +=  pow(nodalErrorVelocityX,2) * nodalArea;
+              // sumErrorL2VelocityY +=  pow(nodalErrorVelocityY,2) * nodalArea;
+              // sumErrorL2Pressure  +=  pow(nodalErrorPressure,2)  * nodalArea;
+              // eleErrorL2Velocity  +=  pow(nodalErrorVelocityX,2) + pow(nodalErrorVelocityY,2);
+              // eleErrorL2VelocityX +=  pow(nodalErrorVelocityX,2);
+              // eleErrorL2VelocityY +=  pow(nodalErrorVelocityY,2);
+              // eleErrorL2Pressure  +=  pow(nodalErrorPressure,2);
+
+              bariPosX += nodalPosX/3.0;
+              bariPosY += nodalPosY/3.0;
+     	    }
+           
+          const long double posX = bariPosX;
+          const long double posY = bariPosY;
+          long double expectedVelocityX =  pow(posX,2) * (1.0-posX)*(1.0-posX) * ( 2.0*posY - 6.0*pow(posY,2) + 4.0*pow(posY,3) );
+          long double expectedVelocityY = -pow(posY,2) * (1.0-posY)*(1.0-posY) * ( 2.0*posX - 6.0*pow(posX,2) + 4.0*pow(posX,3) );
+          long double expectedPressure  = -posX * (1.0-posX);
+
+          eleErrorL2VelocityX =  elementalVelocityX - expectedVelocityX;
+          eleErrorL2VelocityY =  elementalVelocityY - expectedVelocityY;
+          eleErrorL2Pressure  =  elementalPressure  - expectedPressure;
+
+          sumErrorL2VelocityX +=  pow(eleErrorL2VelocityX,2) * geometry.Area();
+          sumErrorL2VelocityY +=  pow(eleErrorL2VelocityY,2) * geometry.Area();
+          sumErrorL2Pressure  +=  pow(eleErrorL2Pressure,2)  * geometry.Area();
+
+          // sumErrorL2Velocity  +=  eleErrorL2Velocity * geometry.Area();
+          // sumErrorL2VelocityX +=  eleErrorL2VelocityX * geometry.Area();
+          // sumErrorL2VelocityY +=  eleErrorL2VelocityY * geometry.Area();
+          // sumErrorL2Pressure  +=  eleErrorL2Pressure * geometry.Area();
+
+          const long double tauXX     = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XX);
+					const long double tauYY     = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_YY);
+					const long double tauXY     = 0; 	// itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XY);				
+
+					long double expectedTauXX = 2.0*(-4.0 * (1.0-bariPosX) * bariPosX * (-1.0 + 2.0*bariPosX) * bariPosY * (1.0 - 3.0*bariPosY + 2.0*pow(bariPosY,2)));
+					long double expectedTauYY = 2.0*(4.0 * bariPosX * (1.0 - 3.0*bariPosX + 2.0*pow(bariPosX,2)) * (1.0-bariPosY) * bariPosY * (-1.0 + 2.0*bariPosY));
+					long double expectedTauXY = (2.0 * (1.0 - 6.0*bariPosY + 6.0*pow(bariPosY,2)) * (1.0-bariPosX)*(1.0-bariPosX) * pow(bariPosX,2) -2.0 * (1.0 - 6.0*bariPosX + 6.0*pow(bariPosX,2)) * (1.0-bariPosY)*(1-bariPosY) * pow(bariPosY,2));
+
+          long double nodalErrorTauXX     = tauXX - expectedTauXX;
+					long double nodalErrorTauYY     = tauYY - expectedTauYY;
+					long double nodalErrorTauXY     = tauXY - expectedTauXY;
+
+          // std::cout<<"tauXX "<<tauXX<<"     expectedtauXX "<<expectedTauXX<<"     nodalErrorTauXX "<<nodalErrorTauXX<<std::endl;
+         	// std::cout<<"tauyy "<<tauYY<<"     expectedtauYY "<<expectedTauYY<<"     nodalErrorTauYY "<<nodalErrorTauYY<<std::endl;
+          // std::cout<<"tauXY "<<tauXY<<"     expectedtauXY "<<expectedTauXY<<"     nodalErrorTauXY "<<nodalErrorTauXY<<std::endl;
+
+          sumErrorL2TauXX     +=  pow(nodalErrorTauXX,2)  * geometry.Area();
+					sumErrorL2TauYY     +=  pow(nodalErrorTauYY,2)  * geometry.Area();
+					sumErrorL2TauXY     +=  pow(nodalErrorTauXY,2)  * geometry.Area();
+
+
+        }
+     }
+
+        // long double errorL2Velocity  = sumErrorL2Velocity;
+        // long double errorL2VelocityX = sumErrorL2VelocityX;
+        // long double errorL2VelocityY = sumErrorL2VelocityY;
+        // long double errorL2Pressure  = sumErrorL2Pressure;
+        long double errorL2Velocity  = sqrt(sumErrorL2Velocity);
+        long double errorL2VelocityX = sqrt(sumErrorL2VelocityX);
+        long double errorL2VelocityY = sqrt(sumErrorL2VelocityY);
+        long double errorL2Pressure  = sqrt(sumErrorL2Pressure);
+        long double errorL2TauXX     = sqrt(sumErrorL2TauXX);
+        long double errorL2TauYY     = sqrt(sumErrorL2TauYY);
+        long double errorL2TauXY     = sqrt(sumErrorL2TauXY);
+
+				std::ofstream myfileVelocity;
+  	    myfileVelocity.open ("errorL2VelocityFile.txt",std::ios::app);
+				myfileVelocity << currentTime << "\t" << errorL2Velocity << "\n";
+        myfileVelocity.close();
+
+				std::ofstream myfileVelocityX;
+  	    myfileVelocityX.open ("errorL2VelocityXFile.txt",std::ios::app);
+				myfileVelocityX << currentTime << "\t" << errorL2VelocityX << "\n";
+        myfileVelocityX.close();
+
+				std::ofstream myfileVelocityY;
+  	    myfileVelocityY.open ("errorL2VelocityYFile.txt",std::ios::app);
+				myfileVelocityY << currentTime << "\t" << errorL2VelocityY << "\n";
+        myfileVelocityY.close();
+
+				std::ofstream myfilePressure;
+  	    myfilePressure.open ("errorL2PressureFile.txt",std::ios::app);
+				myfilePressure << currentTime << "\t" << errorL2Pressure << "\n";
+        myfilePressure.close();
+
+				std::ofstream myfileTauXX;
+  	    myfileTauXX.open ("errorL2TauXXFile.txt",std::ios::app);
+				myfileTauXX << currentTime << "\t" << errorL2TauXX << "\n";
+        myfileTauXX.close();
+
+				std::ofstream myfileTauYY;
+  	    myfileTauYY.open ("errorL2TauYYFile.txt",std::ios::app);
+				myfileTauYY << currentTime << "\t" << errorL2TauYY << "\n";
+        myfileTauYY.close();
+
+				std::ofstream myfileTauXY;
+  	    myfileTauXY.open ("errorL2TauXYFile.txt",std::ios::app);
+				myfileTauXY << currentTime << "\t" << errorL2TauXY << "\n";
+        myfileTauXY.close();
+
+  }
+
+
+ void ComputeErrorL2NormCasePoiseuille()
+    {
+        ModelPart& rModelPart = BaseType::GetModelPart();
+				ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+	      const double currentTime = rCurrentProcessInfo[TIME];
+        const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+
+        double sumErrorL2VelocityTheta  = 0;
+        double sumErrorL2TauTheta       = 0;
+
+				double r_in=0.2;
+				double R_out=0.5;
+				double kappa=r_in/R_out;
+				double omega=0.5;
+				double viscosity=100.0;
+
+#pragma omp parallel
+     {
+       ModelPart::ElementIterator ElemBegin;
+       ModelPart::ElementIterator ElemEnd;
+       OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd);
+       for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
+        {
+
+          Element::GeometryType& geometry = itElem->GetGeometry();
+	        long double nodalArea=0;
+
+	         if(dimension==2){
+		         nodalArea=geometry.Area()/3.0;
+	         }else if(dimension==3){
+		         nodalArea=geometry.Volume()*0.25;
+	         }
+
+          long double bariPosX=0;
+          long double bariPosY=0;
+
+        long double eleErrorL2Velocity  = 0;
+        long double eleErrorL2VelocityX = 0;
+        long double eleErrorL2VelocityY = 0;
+        long double eleErrorL2Pressure  = 0;
+
+
+        //ShapeFunctionDerivativesArrayType DN_DX;
+        Matrix NContainer;
+        NContainer = geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        //this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+
+           const Vector& N = row(NContainer,0);
+          //  itElem->EvaluateInPoint(elementalPressure,PRESSURE,N);
+          const unsigned int  NumNodes = geometry.size();
+
+
+        double elementalPressure  = N[0] * geometry(0)->FastGetSolutionStepValue(PRESSURE);
+        double elementalVelocityX = N[0] * geometry(0)->FastGetSolutionStepValue(VELOCITY_X);
+        double elementalVelocityY = N[0] * geometry(0)->FastGetSolutionStepValue(VELOCITY_Y);;
+
+          for(unsigned int  i = 1; i < NumNodes; i++)
+            {
+              elementalPressure  += N[i] * geometry(i)->FastGetSolutionStepValue(PRESSURE);
+              elementalVelocityX += N[i] * geometry(i)->FastGetSolutionStepValue(VELOCITY_X);
+              elementalVelocityY += N[i] * geometry(i)->FastGetSolutionStepValue(VELOCITY_Y);
+            }
+
+
+
+	        for (unsigned int i = 0; i <geometry.size(); i++)
+	         	{
+
+		          // index = i*dimension;
+              const long double nodalPosX      = geometry(i)->X();
+              const long double nodalPosY      = geometry(i)->Y();
+
+              bariPosX += nodalPosX/3.0;
+              bariPosY += nodalPosY/3.0;
+     	    }
+           
+                const long double posX = bariPosX;
+                const long double posY = bariPosY;
+          			const double rPos 		 = sqrt( pow(posX,2) + pow(posY,2) );
+								const double cosalfa   = posX/rPos;
+								const double sinalfa   = posY/rPos;								
+								const double sin2alfa  = 2.0*cosalfa*sinalfa;
+								const double cos2alfa  = 1.0-2.0*pow(sinalfa,2);
+
+                double expectedVelocityTheta   =  pow(kappa,2) * omega * R_out / (1.0 - pow(kappa,2)) * (R_out/rPos - rPos/R_out);
+								double computedVelocityTheta   =  sqrt( pow(elementalVelocityX,2) + pow(elementalVelocityY,2) );
+								double nodalErrorVelocityTheta = computedVelocityTheta - expectedVelocityTheta;
+                      
+                const long double tauXX     = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XX);
+                const long double tauYY     = 0; // itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_YY);
+                const long double tauXY     = 0; 	// itElem->GetValue(ELEMENTAL_DEVIATORIC_STRESS_XY);
+
+								double expectedTauTheta   = (2.0 * viscosity * pow(kappa,2) * omega * pow(R_out,2))/(1.0 - pow(kappa,2)) / pow(rPos,2);
+                double computedTauTheta   = (tauXX-tauYY)*sin2alfa/2.0 - tauXY*cos2alfa;
+								double nodalErrorTauTheta = computedTauTheta - expectedTauTheta;
+
+                sumErrorL2VelocityTheta  +=  pow(nodalErrorVelocityTheta,2) * geometry.Area();
+								sumErrorL2TauTheta       +=  pow(nodalErrorTauTheta,2) * geometry.Area();
+
+        }
+     }
+
+        double errorL2VelocityTheta  = sqrt(sumErrorL2VelocityTheta);
+        double errorL2TauTheta = sqrt(sumErrorL2TauTheta);
+
+				std::ofstream myfileVelocity;
+  	    myfileVelocity.open ("errorL2Poiseuille.txt",std::ios::app);
+				myfileVelocity << currentTime << "\t" << errorL2VelocityTheta << "\t" << errorL2TauTheta << "\n";
+        myfileVelocity.close();
+
+
+  }
 
 
     bool CheckVelocityConvergence(const double NormDv, double& errorNormDv)
@@ -791,7 +1175,7 @@ protected:
             }
         }
 
-        BaseType::GetModelPart().GetCommunicator().SumAll(NormV);
+        BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
 
         NormV = sqrt(NormV);
 
@@ -838,7 +1222,7 @@ protected:
             }
         }
 
-        BaseType::GetModelPart().GetCommunicator().SumAll(NormP);
+        BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
 
         NormP = sqrt(NormP);
 
@@ -990,7 +1374,6 @@ protected:
 
     ///@}
 
-private:
     ///@name Static Member Variables
     ///@{
 
@@ -1036,7 +1419,7 @@ private:
     ///@{
 
 
-    void InitializeStrategy(SolverSettingsType& rSolverConfig)
+    virtual void InitializeStrategy(SolverSettingsType& rSolverConfig)
     {
         KRATOS_TRY;
 

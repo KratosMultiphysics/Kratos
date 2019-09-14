@@ -12,11 +12,11 @@
 // System includes
 #include <string>
 #include <iostream>
- 
+
 // External includes
 
 
-#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_element.h" 
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_element.h"
 
 namespace Kratos
 {
@@ -47,18 +47,18 @@ namespace Kratos
   /**
    */
   /* class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement : public Element */
-  template< unsigned int TDim > 
+  template< unsigned int TDim >
     class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement : public TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>
     {
-  
+
     public:
       ///@name Type Definitions
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement);
 
-      ///base type: 
+      ///base type:
       typedef TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim> BaseType;
 
       /// Node type (default is: Node<3>)
@@ -101,7 +101,7 @@ namespace Kratos
 
       typedef typename BaseType::ElementalVariables ElementalVariables;
 
- 
+
       ///@}
       ///@name Life Cycle
       ///@{

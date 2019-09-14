@@ -24,6 +24,8 @@
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 #include "custom_strategies/strategies/explicit_two_step_v_p_strategy.hpp"
 #include "custom_strategies/strategies/nodal_two_step_v_p_strategy.h"
+#include "custom_strategies/strategies/nodal_two_step_v_p_strategy_for_FSI.h"
+#include "custom_strategies/strategies/two_step_v_p_DEM_coupling_strategy.h"
 
 //schemes
 #include "custom_strategies/schemes/first_order_forward_euler_scheme.hpp"
@@ -61,8 +63,10 @@ namespace Kratos
 
       //custom strategy types
       typedef TwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > TwoStepVPStrategyType;
+      typedef TwoStepVPDEMcouplingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > TwoStepVPDEMcouplingStrategyType;
       typedef ExplicitTwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
       typedef NodalTwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > NodalTwoStepVPStrategyType;
+      typedef NodalTwoStepVPStrategyForFSI< SparseSpaceType, LocalSpaceType, LinearSolverType > NodalTwoStepVPStrategyForFSIType;
       typedef GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GaussSeidelLinearStrategyType;
       //********************************************************************
       //*************************SHCHEME CLASSES****************************
@@ -76,6 +80,10 @@ namespace Kratos
       	// .def("InitializeStressStrain",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
       	    ;
 
+      py::class_< TwoStepVPDEMcouplingStrategyType, TwoStepVPDEMcouplingStrategyType::Pointer, TwoStepVPStrategyType >(m,"TwoStepVPDEMcouplingStrategy")
+      	.def(py::init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
+      	    ;
+
       py::class_< ExplicitStrategyType, ExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"ExplicitStrategyType")
 	.def(py::init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool >())
 	.def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
@@ -87,6 +95,10 @@ namespace Kratos
       	.def(py::init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
         .def("CalculateAccelerations",&NodalTwoStepVPStrategyType::CalculateAccelerations)
         .def("CalculateDisplacements",&NodalTwoStepVPStrategyType::CalculateDisplacements)
+	;
+
+      py::class_< NodalTwoStepVPStrategyForFSIType, NodalTwoStepVPStrategyForFSIType::Pointer, BaseSolvingStrategyType >(m,"NodalTwoStepVPStrategyForFSI")
+      	.def(py::init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
 	;
 
       py::class_< GaussSeidelLinearStrategyType,GaussSeidelLinearStrategyType::Pointer, BaseSolvingStrategyType >(m,"GaussSeidelLinearStrategy")

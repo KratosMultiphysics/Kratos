@@ -57,9 +57,9 @@ class NodalNeighboursSearchProcess
   typedef  ModelPart::NodesContainerType NodesContainerType;
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -232,11 +232,11 @@ class NodalNeighboursSearchProcess
   ///@name Private Operators
   ///@{
   template<class TDataType> void  AddUniquePointer
-  (WeakPointerVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
+  (GlobalPointersVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
   {
-    typename WeakPointerVector< TDataType >::iterator i = v.begin();
-    typename WeakPointerVector< TDataType >::iterator endit = v.end();
-    while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+    typename GlobalPointersVector< TDataType >::iterator i = v.begin();
+    typename GlobalPointersVector< TDataType >::iterator endit = v.end();
+    while ( i != endit && (i)->Id() != (candidate)->Id())
     {
       i++;
     }

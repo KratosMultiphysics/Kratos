@@ -49,7 +49,7 @@ public:
     ///@{
 
     // Counted pointer of PointMomentCondition3D
-    KRATOS_CLASS_POINTER_DEFINITION( PointMomentCondition3D );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PointMomentCondition3D );
 
     ///@}
     ///@name Life Cycle

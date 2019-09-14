@@ -16,7 +16,7 @@
 // External includes
 
 
-// Project includes 
+// Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
 /* #include "includes/element.h" */
@@ -64,7 +64,7 @@ namespace Kratos
   template< unsigned int TDim >
     class TwoStepUpdatedLagrangianVPImplicitElement : public TwoStepUpdatedLagrangianElement<TDim>
     {
-  
+
     protected:
 
 
@@ -75,18 +75,18 @@ namespace Kratos
       ///@}
       ///@name Protected member Variables
       ///@{
- 
+
 
     public:
       ///@name Type Definitions
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitElement);
 
       ///base type:
       typedef TwoStepUpdatedLagrangianElement<TDim> BaseType;
-	    
+
       /// Node type (default is: Node<3>)
       typedef Node <3> NodeType;
 
@@ -179,7 +179,7 @@ namespace Kratos
     TwoStepUpdatedLagrangianVPImplicitElement(TwoStepUpdatedLagrangianVPImplicitElement const& rOther):
       BaseType(rOther)
       {}
-      
+
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPImplicitElement()
         {}
@@ -241,7 +241,7 @@ namespace Kratos
 	KRATOS_CATCH("");
       }
 
- 
+
       /* // The following methods have different implementations depending on TDim */
       /* /// Provides the global indices for each one of this element's local rows */
       /* /\** */
@@ -261,9 +261,9 @@ namespace Kratos
       /* virtual void GetDofList(DofsVectorType& rElementalDofList, */
       /* 			      ProcessInfo& rCurrentProcessInfo); */
 
-    
+
       /* virtual GeometryData::IntegrationMethod GetIntegrationMethod() const; */
-    
+
       void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo) override{};
 
       void InitializeElementalVariables(ElementalVariables & rElementalVariables) override{
@@ -350,7 +350,7 @@ namespace Kratos
       void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 					std::vector<double>& rValues,
 					const ProcessInfo& rCurrentProcessInfo ) override;
-      
+
       void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,
 					   VectorType& rRightHandSideVector,
 					   ProcessInfo& rCurrentProcessInfo) override;
@@ -381,12 +381,6 @@ namespace Kratos
 	return 1.0;
       };
       
-  
-
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override{};
-
       void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
 						 double& MeanValue,
 						 const ShapeFunctionDerivativesType& rShapeDeriv,
@@ -410,27 +404,27 @@ namespace Kratos
 				      const double theta,
 				      const double Weight);
 
-         
+
       virtual void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
 					 const double Weight){};
-      
+
       virtual void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
 					       const double Weight){};
-      
+
       virtual void ComputeBulkMatrix(MatrixType& BulkMatrix,
 				     const ShapeFunctionsType& rN,
 				     const double Weight){};
-	
+
       /* virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix, */
       /* 						   const double Weight){}; */
-      
+
       /* virtual void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix, */
       /* 						   const double Weight){}; */
 
       /* virtual void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix, */
       /* 						   const ShapeFunctionsType& rN, */
       /* 						   const double Weight){}; */
-      
+
       /* virtual void ComputeBulkMatrixForPressureAcc(MatrixType& BulkAccMatrix, */
       /* 						   const ShapeFunctionsType& rN, */
       /* 						   const double Weight){}; */
@@ -448,7 +442,7 @@ namespace Kratos
       virtual void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 					      const ShapeFunctionDerivativesType& rShapeDeriv,
 					      const double Weight){};
-  
+
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g) override{};
@@ -477,7 +471,7 @@ namespace Kratos
 						 const ShapeFunctionDerivativesType& rDN_DX,
 						 const SizeType i){};
 
-   
+
       ///@}
       ///@name Protected  Access
       ///@{

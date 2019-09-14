@@ -26,7 +26,7 @@ sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  li
 # We move to home directory
 cd ${HOME}
 # mmg library
-wget https://drive.google.com/uc\?export\=download\&id\=1ythlWTtOCqm2nSKQzvc6QLiFYeFgC1NX -O mmg.zip
+wget https://drive.google.com/uc\?export\=download\&id\=1RM-SpxbynS6_zby8TjaJvIEC9NA-IxRZ -O mmg.zip
 unzip mmg.zip
 # Eigen library
 wget https://bitbucket.org/eigen/eigen/get/dbed8786ceed.tar.gz -O eigen.tar.gz

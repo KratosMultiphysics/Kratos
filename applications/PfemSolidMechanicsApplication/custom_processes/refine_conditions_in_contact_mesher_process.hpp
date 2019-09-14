@@ -689,7 +689,7 @@ private:
 
 		      new_point.SetId(ic->Id()); //set condition Id
 
-		      Condition* ContactMasterCondition  = ic->GetValue(MASTER_CONDITION).lock().get();
+		      Condition* ContactMasterCondition  = ic->GetValue(MASTER_CONDITION).get();
 
 
 		      if( (rConditionGeometry[0].Is(TO_SPLIT) && rConditionGeometry[1].Is(TO_SPLIT)) )

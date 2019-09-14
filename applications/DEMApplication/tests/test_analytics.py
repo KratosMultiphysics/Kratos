@@ -4,7 +4,7 @@ from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import main_script
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -13,34 +13,21 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def CreateAndRunObjectInOneOpenMPThread(my_obj):
+def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
     omp_utils = Kratos.OpenMPUtils()
     if "OMP_NUM_THREADS" in os.environ:
         initial_number_of_threads = os.environ['OMP_NUM_THREADS']
         omp_utils.SetNumThreads(1)
 
-    model = Kratos.Model()
-    my_obj(model).Run()
+    with open(parameters_file_name,'r') as parameter_file:
+        project_parameters = Kratos.Parameters(parameter_file.read())
+
+    my_obj(model, project_parameters).Run()
 
     if "OMP_NUM_THREADS" in os.environ:
         omp_utils.SetNumThreads(int(initial_number_of_threads))
 
-class AnalyticsTestSolution(main_script.Solution):
-
-    def GetInputParameters(self):
-        input_parameters = Kratos.Parameters(("""
-        {
-            "problem_name":"analytics_test_1",
-            "PostNormalImpactVelocity"              : true,
-            "PostTangentialImpactVelocity"          : true,
-            "PostFaceNormalImpactVelocity"          : true,
-            "PostFaceTangentialImpactVelocity"      : true,
-            "FinalTime"                             : 0.45,
-            "MaxTimeStep"                           : 1e-4,
-            "OutputTimeStep"                        : 1e-2
-        }
-        """))
-        return input_parameters
+class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     @classmethod
     def GetMainPath(self):
@@ -108,14 +95,11 @@ class AnalyticsTestSolution(main_script.Solution):
 
     def Finalize(self):
         super(AnalyticsTestSolution, self).Finalize()
-        #self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
 
-class GhostsTestSolution(main_script.Solution):
+class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
-    def GetParametersFileName(self):
-        return os.path.join(self.main_path, "ProjectParametersDEM_single_layer_ghost.json")
-
+    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
@@ -123,12 +107,12 @@ class GhostsTestSolution(main_script.Solution):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def RunAnalytics(self, time, is_time_to_print=True):
-        self.MakeAnalyticsMeasurements()
-        if is_time_to_print:  # or IsCountStep()
-            self.FaceAnalyzerClass.CreateNewFile()
-            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
-                self.CheckTotalNumberOfCrossingParticles()
+            self.MakeAnalyticsMeasurements()
+            if is_time_to_print:
+                self.FaceAnalyzerClass.CreateNewFile()
+                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+                    self.CheckTotalNumberOfCrossingParticles()
 
             self.FaceAnalyzerClass.RemoveOldFile()
 
@@ -145,16 +129,12 @@ class GhostsTestSolution(main_script.Solution):
 
     def Finalize(self):
         super(GhostsTestSolution, self).Finalize()
-        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
 
 
+class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
-class MultiGhostsTestSolution(main_script.Solution):
-
-    def GetParametersFileName(self):
-        return os.path.join(self.main_path, "ProjectParametersDEM_multi_layer_ghost.json")
-
+    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
@@ -162,16 +142,16 @@ class MultiGhostsTestSolution(main_script.Solution):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def RunAnalytics(self, time, is_time_to_print=True):
-        self.MakeAnalyticsMeasurements()
-        if is_time_to_print:  # or IsCountStep()
-            self.FaceAnalyzerClass.CreateNewFile()
-            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+            self.MakeAnalyticsMeasurements()
+            if is_time_to_print:  # or IsCountStep()
+                self.FaceAnalyzerClass.CreateNewFile()
+                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
 
-                if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
-                    self.CheckTotalNumberOfCrossingParticles()
+                    if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
+                        self.CheckTotalNumberOfCrossingParticles()
 
-            self.FaceAnalyzerClass.RemoveOldFile()
+                self.FaceAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
@@ -186,7 +166,6 @@ class MultiGhostsTestSolution(main_script.Solution):
 
     def Finalize(self):
         super(MultiGhostsTestSolution, self).Finalize()
-        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
 
 class TestAnalytics(KratosUnittest.TestCase):
@@ -196,19 +175,28 @@ class TestAnalytics(KratosUnittest.TestCase):
 
     @classmethod
     def test_Analytics_1(self):
-        CreateAndRunObjectInOneOpenMPThread(AnalyticsTestSolution)
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+        parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+        model = Kratos.Model()
+        CreateAndRunStageInOneOpenMPThread(AnalyticsTestSolution, model, parameters_file_name)
 
 
     @classmethod
     @KratosUnittest.expectedFailure
     def test_Analytics_2(self):
-        CreateAndRunObjectInOneOpenMPThread(GhostsTestSolution)
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+        parameters_file_name = os.path.join(path, "ProjectParametersDEM_single_layer_ghost.json")
+        model = Kratos.Model()
+        CreateAndRunStageInOneOpenMPThread(GhostsTestSolution, model, parameters_file_name)
 
 
     @classmethod
     @KratosUnittest.expectedFailure
     def test_Analytics_3(self):
-        CreateAndRunObjectInOneOpenMPThread(MultiGhostsTestSolution)
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+        parameters_file_name = os.path.join(path, "ProjectParametersDEM_multi_layer_ghost.json")
+        model = Kratos.Model()
+        CreateAndRunStageInOneOpenMPThread(MultiGhostsTestSolution, model, parameters_file_name)
 
 
     def tearDown(self):

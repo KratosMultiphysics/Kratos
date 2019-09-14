@@ -20,12 +20,15 @@ class FEM_Solution(MainSolidFEM.Solution):
 	def Info(self):
 		KratosMultiphysics.Logger.PrintInfo("FEM part of the FEMDEM application")
 
+	def KratosPrintInfo(self, message):
+		KratosMultiphysics.Logger.Print(message, label="")
+		KratosMultiphysics.Logger.Flush()
 #============================================================================================================================					
 	def __init__(self, Model):
 
 		#### TIME MONITORING START ####
 		# Time control starts		
-		KratosMultiphysics.Logger.PrintInfo(timer.ctime())
+		self.KratosPrintInfo(timer.ctime())
 		# Measure process time
 		self.t0p = timer.clock()
 		# Measure wall time
@@ -41,16 +44,12 @@ class FEM_Solution(MainSolidFEM.Solution):
 		# set echo level
 		self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
 
-		KratosMultiphysics.Logger.PrintInfo(" ")
+		self.KratosPrintInfo(" ")
 
 		# defining the number of threads:
 		num_threads =  self.GetParallelSize()
-		print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
+		self.KratosPrintInfo("::[KSM Simulation]:: [OMP USING " + str(num_threads) +" THREADS ]")
 		#parallel.PrintOMPInfo()
-
-
-		print(" ")
-		print("::[KSM Simulation]:: [Time Step:", self.ProjectParameters["problem_data"]["time_step"].GetDouble()," echo:", self.echo_level,"]")
 
 		#### Model_part settings start ####
 
@@ -64,7 +63,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 		else:
 			self.main_model_part.ProcessInfo.SetValue(KratosFemDem.IS_DYNAMIC, 0)
 
-		self.time_step  = self.ProjectParameters["problem_data"]["time_step" ].GetDouble()
+		self.time_step  = self.ComputeDeltaTime()
 		self.start_time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
 		self.end_time   = self.ProjectParameters["problem_data"]["end_time"  ].GetDouble()
 
@@ -107,7 +106,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 			for process in assign_materials_processes:
 				process.Execute()
 		else:
-			print(" No Materials.json found ")
+			self.KratosPrintInfo(" No Materials.json found ")
 				
 #============================================================================================================================		  
 	def AddProcesses(self):
@@ -120,7 +119,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 				self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
 		
 		# Obtain the list of the processes to be applied
-		import process_handler
+		import KratosMultiphysics.SolidMechanicsApplication.process_handler
 
 		process_parameters = KratosMultiphysics.Parameters("{}") 
 		process_parameters.AddValue("echo_level", self.ProjectParameters["problem_data"]["echo_level"])
@@ -131,7 +130,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 		if( self.ProjectParameters.Has("output_process_list") ):
 			process_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
 
-		return (process_handler.ProcessHandler(self.Model, process_parameters))
+		return (KratosMultiphysics.SolidMechanicsApplication.process_handler.ProcessHandler(self.Model, process_parameters))
 
 #============================================================================================================================	
 	def Run(self):
@@ -164,10 +163,10 @@ class FEM_Solution(MainSolidFEM.Solution):
 
 		# Print model_part and properties
 		if(self.echo_level > 1):
-			print("")
-			print(self.main_model_part)
+			self.KratosPrintInfo("")
+			self.KratosPrintInfo(self.main_model_part)
 			for properties in self.main_model_part.Properties:
-				print(properties)
+				self.KratosPrintInfo(properties)
 
 		#### START SOLUTION ####
 		self.computing_model_part = self.solver.GetComputingModelPart()
@@ -206,7 +205,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 #============================================================================================================================
 	def InitializeSolutionStep(self):
 
-		KratosMultiphysics.Logger.PrintInfo(" [STEP:",self.step," TIME:", self.time,"]")
+		self.KratosPrintInfo("[STEP: " + str(self.step) + "  --  TIME: " + str(self.time) +  "  --  TIME_STEP: " + str(self.delta_time) + "]")
 
 		# processes to be executed at the begining of the solution step
 		self.model_processes.ExecuteInitializeSolutionStep()
@@ -242,11 +241,11 @@ class FEM_Solution(MainSolidFEM.Solution):
 		# Ending the problem (time integration finished)
 		self.GraphicalOutputExecuteFinalize()		
 		self.model_processes.ExecuteFinalize()
-		KratosMultiphysics.Logger.PrintInfo(" ")
-		KratosMultiphysics.Logger.PrintInfo("=================================================")
-		KratosMultiphysics.Logger.PrintInfo(" - Kratos FemDem Application Calculation End   - ")
-		KratosMultiphysics.Logger.PrintInfo("=================================================")
-		KratosMultiphysics.Logger.PrintInfo(" ")
+		self.KratosPrintInfo(" ")
+		self.KratosPrintInfo("=================================================")
+		self.KratosPrintInfo(" - Kratos FemDem Application Calculation End   - ")
+		self.KratosPrintInfo("=================================================")
+		self.KratosPrintInfo(" ")
 		#### END SOLUTION ####
 		# Measure process time
 		tfp = timer.clock()
@@ -309,5 +308,23 @@ class FEM_Solution(MainSolidFEM.Solution):
 if __name__ == "__main__": 
 	Solution().Run()
 
+#============================================================================================================================
 
+	def ComputeDeltaTime(self):
 
+		if self.ProjectParameters["problem_data"].Has("time_step"):
+			return self.ProjectParameters["problem_data"]["time_step"].GetDouble()
+
+		elif self.ProjectParameters["problem_data"].Has("variable_time_steps"):
+
+			current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+			for key in self.ProjectParameters["problem_data"]["variable_time_steps"].keys():
+				interval_settings = self.ProjectParameters["problem_data"]["variable_time_steps"][key]
+				interval = KratosMultiphysics.IntervalUtility(interval_settings)			
+				# Getting the time step of the interval
+				if interval.IsInInterval(current_time):
+					return interval_settings["time_step"].GetDouble()
+				# If we arrive here we raise an error because the intervals are not well defined
+				raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
+		else:
+			raise Exception("::[MechanicalSolver]:: Time stepping not defined!")

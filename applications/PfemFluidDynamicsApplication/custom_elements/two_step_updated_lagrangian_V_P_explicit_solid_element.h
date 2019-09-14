@@ -16,7 +16,7 @@
 // External includes
 
 
-#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_element.h" 
+#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_element.h"
 
 namespace Kratos
 {
@@ -47,18 +47,18 @@ namespace Kratos
   /**
    */
   /* class TwoStepUpdatedLagrangianVPExplicitSolidElement : public Element */
-  template< unsigned int TDim > 
+  template< unsigned int TDim >
     class TwoStepUpdatedLagrangianVPExplicitSolidElement : public TwoStepUpdatedLagrangianVPExplicitElement<TDim>
     {
-  
+
     public:
       ///@name Type Definitions
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPExplicitSolidElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPExplicitSolidElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPExplicitSolidElement);
 
-      ///base type: 
+      ///base type:
       typedef TwoStepUpdatedLagrangianVPExplicitElement<TDim> BaseType;
 
       /// Node type (default is: Node<3>)
@@ -101,7 +101,7 @@ namespace Kratos
 
       typedef typename BaseType::ElementalVariables ElementalVariables;
 
- 
+
       ///@}
       ///@name Life Cycle
       ///@{
@@ -320,7 +320,7 @@ namespace Kratos
 
       void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
 				const double Weight) override;
-      
+
       void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
 				 const ShapeFunctionsType& rN,
 				 const double Weight){};
@@ -331,15 +331,11 @@ namespace Kratos
 				 const double BoundRHSCoeffAcc,
 				 const double BoundRHSCoeffDev){};
 
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override;
-	
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g) override;
-    
- 
+
+
       double GetThetaMomentum () override{return 1.0;};
 
       double GetThetaContinuity () override{return 1.0;};

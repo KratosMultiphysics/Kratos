@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/condition.h"
+#include "geometries/coupling_geometry.h"
 
 namespace Kratos
 {
@@ -28,10 +29,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
-    typedef Point                                                PointType;
-    typedef Node<3>                                               NodeType;
-    typedef Geometry<NodeType>                                GeometryType;
 
 ///@}
 ///@name  Enum's
@@ -60,9 +57,17 @@ public:
     ///@{
 
     /// Counted pointer of PairedCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PairedCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PairedCondition );
 
     typedef Condition                                                           BaseType;
+
+    typedef Point                                                              PointType;
+
+    typedef Node<3>                                                             NodeType;
+
+    typedef Geometry<NodeType>                                              GeometryType;
+
+    typedef CouplingGeometry<NodeType>                              CouplingGeometryType;
 
     typedef BaseType::VectorType                                              VectorType;
 
@@ -82,26 +87,27 @@ public:
 
     /// Default constructor
     PairedCondition()
-        : Condition(),
-          mpPairedGeometry(nullptr)
+        : Condition()
     {}
 
     // Constructor 1
     PairedCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
-        ) :Condition(NewId, pGeometry),
-           mpPairedGeometry(nullptr)
-    {}
+        ) :Condition(NewId, Kratos::make_shared<CouplingGeometryType>(pGeometry, nullptr))
+    {
+        KRATOS_WARNING_FIRST_N("PairedCondition", 10) << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
+    }
 
     // Constructor 2
     PairedCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
-        ) :Condition( NewId, pGeometry, pProperties ),
-           mpPairedGeometry(nullptr)
-    {}
+        ) :Condition( NewId, Kratos::make_shared<CouplingGeometryType>(pGeometry, nullptr), pProperties )
+    {
+        KRATOS_WARNING_FIRST_N("PairedCondition", 10) << "This class pairs two geometries, please use the other constructor (the one with two geometries as input)" << std::endl;
+    }
 
     // Constructor 3
     PairedCondition(
@@ -110,8 +116,7 @@ public:
         PropertiesType::Pointer pProperties,
         GeometryType::Pointer pPairedGeometry
         )
-        :Condition( NewId, pGeometry, pProperties ),
-         mpPairedGeometry(pPairedGeometry)
+        :Condition( NewId, Kratos::make_shared<CouplingGeometryType>(pGeometry, pPairedGeometry), pProperties )
     {}
 
     ///Copy constructor
@@ -130,12 +135,12 @@ public:
     ///@{
 
     /**
-    * Called at the beginning of each solution step
-    */
+     * @brief Called at the beginning of each solution step
+     */
     void Initialize() override;
 
     /**
-     * Creates a new element pointer from an arry of nodes
+     * @brief Creates a new element pointer from an arry of nodes
      * @param NewId the ID of the new element
      * @param rThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -148,29 +153,29 @@ public:
         ) const override;
 
     /**
-     * Creates a new element pointer from an existing geometry
+     * @brief Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
-     * @param pGeom the  geometry taken to create the condition
+     * @param pGeometry the  geometry taken to create the condition
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Condition::Pointer Create(
         IndexType NewId,
-        GeometryType::Pointer pGeom,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         ) const override;
 
     /**
-     * Creates a new element pointer from an existing geometry
+     * @brief Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
-     * @param pGeom the  geometry taken to create the condition
+     * @param pGeometry the  geometry taken to create the condition
      * @param pProperties the properties assigned to the new element
      * @param pPairedGeom the paired geometry
      * @return a Pointer to the new element
      */
     virtual Condition::Pointer Create(
         IndexType NewId,
-        GeometryType::Pointer pGeom,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         GeometryType::Pointer pPairedGeom
         ) const;
@@ -179,24 +184,40 @@ public:
     ///@name Access
     ///@{
 
-    GeometryType::Pointer pGetPairedGeometry()
+    /**
+     * @brief This method returns the parent geometry
+     * @return The slave geometry (slave in the definition of Popp which is the opposite of the standard)
+     */
+    GeometryType& GetParentGeometry()
     {
-        return mpPairedGeometry;
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
     }
 
-    const GeometryType::Pointer pGetPairedGeometry() const
+    /**
+     * @brief This method returns the parent geometry (constant version)
+     * @return The slave geometry (slave in the definition of Popp which is the opposite of the standard)
+     */
+    GeometryType const& GetParentGeometry() const
     {
-        return mpPairedGeometry;
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
     }
 
+    /**
+     * @brief This method returns the paired geometry
+     * @return The master geometry (master in the definition of Popp which is the opposite of the standard)
+     */
     GeometryType& GetPairedGeometry()
     {
-        return *mpPairedGeometry;
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Slave);
     }
 
+    /**
+     * @brief This method returns the paired geometry (constant version)
+     * @return The master geometry (master in the definition of Popp which is the opposite of the standard)
+     */
     GeometryType const& GetPairedGeometry() const
     {
-        return *mpPairedGeometry;
+        return this->GetGeometry().GetGeometryPart(CouplingGeometryType::Slave);
     }
 
     ///@}
@@ -225,7 +246,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -242,8 +263,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    GeometryType::Pointer mpPairedGeometry; // The geometry of the pair "condition"
 
     ///@}
     ///@name Protected Operators
@@ -301,13 +320,11 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-        rSerializer.save("PairedGeometry", mpPairedGeometry);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-        rSerializer.load("PairedGeometry", mpPairedGeometry);
     }
 
     ///@}

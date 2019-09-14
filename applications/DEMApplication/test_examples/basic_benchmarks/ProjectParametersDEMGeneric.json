@@ -31,7 +31,8 @@
 "VelocityTrapMinZ"                  : 0,
 "RotationOption"                   : true,
 "CleanIndentationsOption"          : true,
-"strategy_parameters" : {
+"solver_settings" : {
+    "strategy"                 : "sphere_strategy",
     "RemoveBallsInitiallyTouchingWalls"          : false
 },
 "RemoveBallsInEmbeddedOption"      : true,

@@ -12,7 +12,7 @@
 
 namespace Kratos {
 
-    void DEM_Dempack::Initialize() {
+    void DEM_Dempack::Initialize(SphericContinuumParticle* owner_sphere) {
 
     KRATOS_TRY
         mHistoryMaxInd              = 0.0; //maximum indentation achieved

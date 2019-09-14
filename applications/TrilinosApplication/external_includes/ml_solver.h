@@ -301,7 +301,7 @@ public:
             }
         }
 
-        r_model_part.GetCommunicator().MinAll(old_ndof);
+        old_ndof = r_model_part.GetCommunicator().GetDataCommunicator().MinAll(old_ndof);
 
         if (old_ndof == -1) {
             mNumDof = 1;
