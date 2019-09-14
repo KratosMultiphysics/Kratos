@@ -4,28 +4,23 @@ import os
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-sys.path.insert(0, '')
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 from importlib import import_module
 
-# Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
-if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
+if IsDistributedRun():
     if "DO_NOT_PARTITION_DOMAIN" in os.environ:
         Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
-        import DEM_procedures_mpi_no_partitions as DEM_procedures
-        import DEM_material_test_script
+        import KratosMultiphysics.DEMApplication.DEM_procedures_mpi_no_partitions as DEM_procedures
     else:
         Logger.PrintInfo("DEM", "Running under OpenMP........")
         from KratosMultiphysics.MetisApplication import *
         from KratosMultiphysics.MPISearchApplication import *
         from KratosMultiphysics.mpi import *
-        import DEM_procedures_mpi as DEM_procedures
-        import DEM_material_test_script_mpi as DEM_material_test_script
+        import KratosMultiphysics.DEMApplication.DEM_procedures_mpi as DEM_procedures
 else:
     Logger.PrintInfo("DEM", "Running under OpenMP........")
-    import DEM_procedures
-    import DEM_material_test_script
+    import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 
 class DEMAnalysisStage(AnalysisStage):
 
@@ -54,8 +49,8 @@ class DEMAnalysisStage(AnalysisStage):
 
     @classmethod
     def GetDefaultInputParameters(self):
-        import dem_default_input_parameters
-        return dem_default_input_parameters.GetDefaultInputParameters()
+        import KratosMultiphysics.DEMApplication.dem_default_input_parameters
+        return KratosMultiphysics.DEMApplication.dem_default_input_parameters.GetDefaultInputParameters()
 
     @classmethod
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
@@ -144,7 +139,7 @@ class DEMAnalysisStage(AnalysisStage):
         return False
 
     def SetAnalyticParticleWatcher(self):
-        from analytic_tools import analytic_data_procedures
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
 
         # is this being used? TODO
@@ -152,7 +147,7 @@ class DEMAnalysisStage(AnalysisStage):
 
 
     def SetAnalyticFaceWatcher(self):
-        from analytic_tools import analytic_data_procedures
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
         self.face_watcher_dict = dict()
         self.face_watcher_analysers = dict()
@@ -234,9 +229,9 @@ class DEMAnalysisStage(AnalysisStage):
 
     def _CreateSolver(self):
         def SetSolverStrategy():
-            strategy = self.DEM_parameters["solver_settings"]["strategy"].GetString()
-            filename = import_module(str(strategy))
-            return filename
+            strategy_file_name = self.DEM_parameters["solver_settings"]["strategy"].GetString()
+            imported_module = import_module("KratosMultiphysics.DEMApplication" + "." + strategy_file_name)
+            return imported_module
 
         return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,
                                                      self.creator_destructor,
@@ -431,12 +426,26 @@ class DEMAnalysisStage(AnalysisStage):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeTimeStep(self): # deprecated
+        message = 'Warning!'
+        message += '\nFunction \'InitializeTimeStep\' is deprecated.'
+        message += '\nIt will be removed after 09/28/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
         self.InitializeSolutionStep()
 
     def InitializeSolutionStep(self):
-        self._BeforeSolveOperations(self.time)
+        super(DEMAnalysisStage, self).InitializeSolutionStep()
+        if self.post_normal_impact_velocity_option:
+            if self.IsCountStep():
+                self.FillAnalyticSubModelPartsWithNewParticles()
+        if self.DEM_parameters["ContactMeshOption"].GetBool():
+            self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
 
     def _BeforeSolveOperations(self, time):
+        message = 'Warning!'
+        message += '\nFunction \'_BeforeSolveOperations\' is deprecated.'
+        message += '\nIt will be removed after 09/28/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
+
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
@@ -458,7 +467,14 @@ class DEMAnalysisStage(AnalysisStage):
 
     def FinalizeSolutionStep(self):
         super(DEMAnalysisStage, self).FinalizeSolutionStep()
-        self.AfterSolveOperations()
+        if self.post_normal_impact_velocity_option:
+            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
+            if self.IsTimeToPrintPostProcess():
+                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
+                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+
+        #Phantom Walls
+        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
 
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -482,6 +498,10 @@ class DEMAnalysisStage(AnalysisStage):
         self.FinalizeTimeStep(self.time)
 
     def AfterSolveOperations(self):
+        message = 'Warning!'
+        message += '\nFunction \'AfterSolveOperations\' is deprecated.'
+        message += '\nIt will be removed after 09/28/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
             if self.IsTimeToPrintPostProcess():
@@ -557,7 +577,7 @@ class DEMAnalysisStage(AnalysisStage):
     def SetGraphicalOutput(self):
         self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
         if self.DEM_parameters["post_vtk_option"].GetBool():
-            import dem_vtk_output
+            import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
             self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):

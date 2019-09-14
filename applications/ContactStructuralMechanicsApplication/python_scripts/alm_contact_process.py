@@ -10,9 +10,14 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ALMContactProcess(Model, settings["Parameters"])
 
+# Import sys
 import sys
 
+# Import base search process
 import KratosMultiphysics.ContactStructuralMechanicsApplication.search_base_process as search_base_process
+
+# Import auxiliar methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
 
 class ALMContactProcess(search_base_process.SearchBaseProcess):
     """This class is used in order to compute the contact using a mortar ALM formulation
@@ -68,6 +73,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "tangent_factor"                : 1.0e0,
             "slip_convergence_coefficient"  : 1.0,
             "slip_augmentation_coefficient" : 1.0,
+            "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "clear_inactive_for_post"       : true,
             "search_parameters"             : {
@@ -81,6 +87,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
+                "normal_orientation_threshold"        : 0.0,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -129,6 +136,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         base_process_settings.AddValue("assume_master_slave", self.contact_settings["assume_master_slave"])
         base_process_settings.AddValue("search_property_ids", self.contact_settings["contact_property_ids"])
         base_process_settings.AddValue("interval", self.contact_settings["interval"])
+        base_process_settings.AddValue("zero_tolerance_factor", self.contact_settings["zero_tolerance_factor"])
         base_process_settings.AddValue("integration_order", self.contact_settings["integration_order"])
         base_process_settings.AddValue("search_parameters", self.contact_settings["search_parameters"])
 
@@ -171,6 +179,14 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
+
+        # If we compute a frictional contact simulation we do an additional check
+        contact_type = self.contact_settings["contact_type"].GetString()
+        if "Frictional" in contact_type:
+            if "PureSlip" in contact_type:
+                self.pure_slip = True
+            else:
+                self.pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.main_model_part)
 
         # We call to the base process
         super(ALMContactProcess, self).ExecuteInitialize()

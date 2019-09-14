@@ -171,8 +171,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-extern template class AdjointSolidElement<TotalLagrangian>;
-
 /**
  * @class KratosStructuralMechanicsApplication
  * @ingroup StructuralMechanicsApplication
@@ -801,7 +799,7 @@ private:
     const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainOrthotropicDamageMohrCoulomb2D;
     const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainOrthotropicDamageModifiedMohrCoulomb2D;
     const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainOrthotropicDamageSimoJu2D;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
