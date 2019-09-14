@@ -8,7 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Tobias Teschemacher
-//  Contributors:    Pooyan Dadvand
+//                   Pooyan Dadvand
 //                   Philipp Bucher
 //
 
@@ -42,17 +42,14 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /**
-     * Geometry as base class.
-     */
+    /// Geometry as base class.
     typedef Geometry<TPointType> BaseType;
     typedef Geometry<TPointType> GeometryType;
 
     typedef typename GeometryType::Pointer GeometryPointer;
+    typedef std::vector<GeometryPointer> GeometryPointerVector;
 
-    /**
-     * Pointer definition of CouplingGeometry
-     */
+    /// Pointer definition of CouplingGeometry
     KRATOS_CLASS_POINTER_DEFINITION( CouplingGeometry );
 
     typedef TPointType PointType;
@@ -61,6 +58,13 @@ public:
     typedef typename BaseType::SizeType SizeType;
 
     typedef typename BaseType::PointsArrayType PointsArrayType;
+
+    ///@}
+    ///@name Public Static Members
+    ///@{
+
+    static constexpr IndexType Master = 0;
+    static constexpr IndexType Slave = 1;
 
     ///@}
     ///@name Life Cycle
@@ -81,7 +85,15 @@ public:
         mpGeometries[1] = pSlaveGeometry;
     }
 
-    explicit CouplingGeometry(const PointsArrayType& ThisPoints)
+    /// Constructor for coupling multiple points.
+    CouplingGeometry(
+        GeometryPointerVector GeometryPointerVector)
+        : BaseType(PointsArrayType(), &(GeometryPointerVector[0]->GetGeometryData()))
+        , mpGeometries(GeometryPointerVector)
+    {
+    }
+
+    explicit CouplingGeometry()
         : BaseType()
     {
     }
@@ -97,6 +109,7 @@ public:
      */
     CouplingGeometry( CouplingGeometry const& rOther )
         : BaseType( rOther )
+        , mpGeometries(rOther.mpGeometries)
     {
     }
 
@@ -115,12 +128,11 @@ public:
     template<class TOtherPointType> explicit CouplingGeometry(
         CouplingGeometry<TOtherPointType> const& rOther )
         : BaseType( rOther )
+        , mpGeometries( rOther.mpGeometries )
     {
     }
 
-    /**
-     * Destructor. Does nothing!!!
-     */
+    /// Destructor
     ~CouplingGeometry() override = default;
 
     ///@}
@@ -141,6 +153,7 @@ public:
     CouplingGeometry& operator=( const CouplingGeometry& rOther )
     {
         BaseType::operator=( rOther );
+        mpGeometries = rOther.mpGeometries;
         return *this;
     }
 
@@ -160,6 +173,7 @@ public:
         CouplingGeometry<TOtherPointType> const & rOther )
     {
         BaseType::operator=( rOther );
+        mpGeometries = rOther.mpGeometries;
         return *this;
     }
 
@@ -170,7 +184,7 @@ public:
     typename BaseType::Pointer Create(
         PointsArrayType const& ThisPoints ) const override
     {
-        return Kratos::make_shared<CouplingGeometry>(ThisPoints);
+        return Kratos::make_shared<CouplingGeometry>();
     }
 
     ///@}
@@ -178,11 +192,11 @@ public:
     ///@{
 
     /**
-    * @brief This function returns the geometry part which is accessable with a
-    * certain index.
+    * @brief This function returns the geometry part which is accessable
+    *        with a certain index.
     * @details Here, 0 is the master, all above 0 is for the slaves
     * of the geometry. Checks if index is available only in debug mode.
-    * @param Index of the geometry part. 0->Master; 1->Slave
+    * @param Index of the geometry part. 0->Master; all bigger than 1->Slave
     * @return geometry, which is connected through the Index
      */
     GeometryType& GetGeometryPart(IndexType Index) const override
@@ -205,6 +219,14 @@ public:
             << Index << " composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
+        KRATOS_ERROR_IF(0 == Index) << "Cannot change master: "
+            << Index << std::endl;
+
+        KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[0]->Dimension())
+            << "Dimension of new entity does not coincide with this coupling geometry. "
+            << "Dimension of new geometry: " << pGeometry->Dimension()
+            << ", dimension of coupling geometry: " << this->Dimension() << std::endl;
+
         mpGeometries[Index] = pGeometry;
     }
 
@@ -218,10 +240,14 @@ public:
         KRATOS_DEBUG_ERROR_IF(mpGeometries[0]->Dimension() != pGeometry->Dimension())
             << "Geometries of different dimensional size!" << std::endl;
 
+        KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[0]->Dimension())
+            << "Dimension of new entity does not coincide with this coupling geometry. "
+            << "Dimension of new geometry: " << pGeometry->Dimension()
+            << ", dimension of coupling geometry: " << this->Dimension() << std::endl;
+
         IndexType new_index = mpGeometries.size();
 
-        mpGeometries.resize(new_index + 1);
-        mpGeometries[new_index] = pGeometry;
+        mpGeometries.push_back(pGeometry);
 
         return new_index;
     }
@@ -290,7 +316,7 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    std::vector<GeometryPointer> mpGeometries;
+    GeometryPointerVector mpGeometries;
 
     ///@}
     ///@name Serialization
@@ -309,8 +335,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("Geometries", mpGeometries);
     }
-
-    CouplingGeometry() : BaseType() {}
 
     ///@}
     ///@name Private Friends

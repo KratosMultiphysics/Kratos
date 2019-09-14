@@ -1198,6 +1198,9 @@ namespace amgcl {
 namespace backend {
 
 template <class Iterator>
+struct is_builtin_vector< amgcl::iterator_range<Iterator> > : std::true_type {};
+
+template <class Iterator>
 struct is_builtin_vector< boost::iterator_range<Iterator> > : std::true_type {};
 
 } // namespace backend
