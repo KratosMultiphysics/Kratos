@@ -13,7 +13,7 @@
 #if !defined(MOR_SECOND_ORDER_IRKA_STRATEGY)
 #define MOR_SECOND_ORDER_IRKA_STRATEGY
 
-// System includes
+// System includesEeigenvalue problem
 
 // External includes
 
@@ -28,13 +28,15 @@
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
 
+// TODO: make this include work
+//#include "EigenSolversApplication/costum_solvers/eigensystem_solver.h"
+//#include "../ExternalSolversApplication/external_includes/feast_solver.h"
+
 //test include eigen matrix
 #include <Eigen/Dense>
 
 namespace Kratos
 {
-
-    using complex = std::complex<double>;
 
 ///@name Kratos Globals
 ///@{
@@ -114,11 +116,6 @@ class MorSecondOrderIRKAStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef TUblasSparseSpace<complex> ComplexSparseSpaceType;
-    typedef TUblasDenseSpace<complex> ComplexDenseSpaceType;
-
-    typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
-
     ///@}
     ///@name Life Cycle
 
@@ -135,7 +132,6 @@ class MorSecondOrderIRKAStrategy
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TLinearSolver::Pointer pNewLinearEigSolver,
-        typename ComplexLinearSolverType::Pointer pNewcomplexLinearSolver,
         vector< double > samplingPoints,
         bool MoveMeshFlag = false)
         : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)  //hier evtl. direkt LU solver //TODO:  
@@ -173,8 +169,6 @@ class MorSecondOrderIRKAStrategy
         mSamplingPoints = samplingPoints;
 
         mpNewLinearEigSolver = pNewLinearEigSolver;
-
-        mpComplexLinearSolver = pNewcomplexLinearSolver;
 
         KRATOS_CATCH("");
     }
@@ -239,17 +233,17 @@ class MorSecondOrderIRKAStrategy
         //KRATOS_WATCH(r_M_size_n)
         //KRATOS_WATCH(r_K_size_n)
         //KRATOS_WATCH(r_D_size_n) // G
-        KRATOS_WATCH(r_b_size_n)
+        //KRATOS_WATCH(r_b_size_n)
         
 
-        std::cout<<"r_D_size_n:\n";
-        for (unsigned int i=0; i<system_size; i++){
-            for(unsigned int j=0; j<system_size; j++){
-                if(std::abs(r_D_size_n(i,j))>1e-11){
-                std::cout<< r_D_size_n(i,j) << " (" << i <<","<< j << ")" << std::endl;
-                }
-            }
-        }
+        // // // std::cout<<"r_D_size_n:\n";
+        // // // for (unsigned int i=0; i<system_size; i++){
+        // // //     for(unsigned int j=0; j<system_size; j++){
+        // // //         if(r_D_size_n(i,j)!=0){
+        // // //         std::cout<< r_D_size_n(i,j) << " (" << i <<","<< j << ")" << std::endl;
+        // // //         }
+        // // //     }
+        // // // }
 
 
         // initialize V (=W, due to symmetry in FEM application)
@@ -271,7 +265,7 @@ class MorSecondOrderIRKAStrategy
 
 
         // step 2 as described in Wyatt 2012, Alg. 5.3.2     
-        // TODO: maybe put this in a function, since this also present in the while loop   
+        // TODO: put this in a function, since this also present in the while loop   
         for( size_t i = 0; i < n_sampling_points; ++i )
         {
             KRATOS_WATCH( mSamplingPoints(i) )
@@ -279,7 +273,6 @@ class MorSecondOrderIRKAStrategy
             
             p_builder_and_solver->GetLinearSystemSolver()->Solve( r_V_h, r_Vr_col, r_b_size_n );
             // multiply here with tangential direction b1, ..., br? Or postpone to QR later?
-            // initial tangent directions unit vectors?
             column(r_Vr, i) = r_Vr_col;
 
         }
@@ -310,25 +303,6 @@ class MorSecondOrderIRKAStrategy
         vector<double> mSamplingPoints_old; // for convergence check; TODO: make complex (also in offline_strategy)
 
 
-
-
-        // initialize eig output
-        TDenseVectorType Eigenvalues;
-        TDenseMatrixType Eigenvectors;
-
-        // initialize linearization matrices
-        auto L1 = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_L1 = *L1;
-        SparseSpaceType::Resize(r_L1, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
-
-        auto L2 = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_L2 = *L2;
-        SparseSpaceType::Resize(r_L2, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
-
-
-
-
-
         int iter = 4;
         int err  = 1;
         // TODO: adapt max iter and tol; additional parameters, settings?
@@ -356,10 +330,28 @@ class MorSecondOrderIRKAStrategy
 
             // step 4 c) polyeig from Matlab
             // generalized or FEAST solver? no special quadratic solver in KRATOS as it seems
-            // use linearization and eig solver --> actuall step 4 b) then
 
+            //TODO:  building the feast solve step here;  after everything works, move the definitions etc.
+            TDenseVectorType Eigenvalues;
+            TDenseMatrixType Eigenvectors;
 
+            // DenseSpaceType::Resize(Eigenvalues, 2*reduced_system_size);
+            // DenseSpaceType::Resize(Eigenvectors,2*reduced_system_size, 2*reduced_system_size);
 
+            // linearize the EV problem, since FEAST can only deal with the generalized problem
+            // auto L = SparseSpaceType::CreateEmptyMatrixPointer();
+            // auto& r_L = *L;
+            // SparseSpaceType::Resize(r_L, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
+
+            auto L1 = SparseSpaceType::CreateEmptyMatrixPointer();
+            auto& r_L1 = *L1;
+            SparseSpaceType::Resize(r_L1, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
+
+            auto L2 = SparseSpaceType::CreateEmptyMatrixPointer();
+            auto& r_L2 = *L2;
+            SparseSpaceType::Resize(r_L2, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
+
+            // "no type named size_type in class shared_ptr"
             //subrange(L1, (size_t) 0, reduced_system_size-1, (size_t) 0, reduced_system_size-1) = r_M_reduced;
             subrange(r_L1, 0, reduced_system_size, 0, reduced_system_size) = r_M_reduced;
 
@@ -382,19 +374,215 @@ class MorSecondOrderIRKAStrategy
 
             subrange(r_L2, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*id_m;
 
+            //r_L1(reduced_system_size,reduced_system_size) = 1;
+
+            //r_L = 
+
+            //KRATOS_WATCH(subrange(r_L1, reduced_system_size-2, reduced_system_size+2, reduced_system_size-2, reduced_system_size+2));
+            //KRATOS_WATCH(subrange(r_L2, reduced_system_size-2, reduced_system_size+2, reduced_system_size-2, reduced_system_size+2));
+
+
+            // // // // // Eigen::Matrix3d t_eig_m3;
+            // // // // // t_eig_m3(0,0) = 2;
+            // // // // // t_eig_m3(0,1) = 1;
+            // // // // // t_eig_m3(0,2) = 1;
+
+            // // // // // t_eig_m3(1,0) = 1;
+            // // // // // t_eig_m3(1,1) = 2;
+            // // // // // t_eig_m3(1,2) = 1;
+
+            // // // // // t_eig_m3(2,0) = 1;
+            // // // // // t_eig_m3(2,1) = 1;
+            // // // // // t_eig_m3(2,2) = 2;
+
+            // // // // // Eigen::Matrix3d t_eig_id3; 
+            // // // // // t_eig_id3 = Eigen::Matrix3d::Identity();
+
+            // // // // // KRATOS_WATCH(t_eig_m3);
+            // // // // // KRATOS_WATCH(t_eig_id3);
+
+            // // // // // Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> eig_test;
+            // // // // // eig_test.compute(t_eig_m3,t_eig_id3);
+            // // // // // KRATOS_WATCH(eig_test.eigenvalues());
+            // // // // // KRATOS_WATCH(eig_test.eigenvectors());
+
+            // -> same results (also correct according to WolframAlpha)
+            // -> ??? happens in eigensystem_solver.h for #eigenvalues>1 ...
+            // -> need to code another wrapper? 
+            // -> maybe also turn to feast then anyway (complex case included)
+            // possible bug (?): 
+            //               replace "int nc = std::min(2 * nroot, nroot + 8);"   //why??
+            //               by/with "int nc = nroot;"
+            //  then it also works via eigensystem_solver.h with #eigenvalues>1
+
+
+
+
+
+
+
+
+
+
+            // DenseSpaceType::Resize(Eigenvalues,  3);
+            // DenseSpaceType::Resize(Eigenvectors, 3, 3);
             
+            // // // // // auto L1_test = SparseSpaceType::CreateEmptyMatrixPointer();
+            // // // // // auto& r_L1_test = *L1_test;
+            // // // // // SparseSpaceType::Resize(r_L1_test, 3, 3);
+            
+            // // // // // auto L2_test = SparseSpaceType::CreateEmptyMatrixPointer();
+            // // // // // auto& r_L2_test = *L2_test;
+            // // // // // SparseSpaceType::Resize(r_L2_test, 3, 3);
+
+            // // // // // for(size_t i = 0; i < 3; ++i){
+            // // // // //     r_L2_test(i,i) = 1;
+            // // // // // }
+
+            // // // // // r_L1_test(0,0) = 2;
+            // // // // // r_L1_test(0,1) = 1;
+            // // // // // r_L1_test(0,2) = 1;
+
+            // // // // // r_L1_test(1,0) = 1;
+            // // // // // r_L1_test(1,1) = 2;
+            // // // // // r_L1_test(1,2) = 1;
+
+            // // // // // r_L1_test(2,0) = 1;
+            // // // // // r_L1_test(2,1) = 1;
+            // // // // // r_L1_test(2,2) = 2;
+
+            // // // // // KRATOS_WATCH(r_L1_test);
+            // // // // // KRATOS_WATCH(r_L2_test);
+
+            //TODO: issue linearized version: not spd
+
+            //TDenseVectorType Eigenvalues_im;
 //TODO: hier #ev setzen GetlinearSystemsolver->setnumev
             p_builder_and_solver_feast->GetLinearSystemSolver()->Solve(
                 r_L2,
                 r_L1,
+                //r_L1_test,
+                //r_L2_test,
+                //r_K_reduced,
+                //r_M_reduced,
                 Eigenvalues,
+                //Eigenvalues_im,
                 Eigenvectors);
 
                 KRATOS_WATCH(Eigenvalues);
+                //KRATOS_WATCH(Eigenvalues_im);
                 KRATOS_WATCH(Eigenvectors);
                 
 
 
+
+            Eigen::Matrix<double,8,8> r_L1_mtype;
+            /*r_L1_mtype << 1.02562,-0.479005,0.0595067,-0.111968,0,0,0,0,
+                          -0.479005,0.485658,-0.21239,0.0710417,0,0,0,0,
+                          0.0595067,-0.21239,0.251714,-0.106319,0,0,0,0,
+                          -0.111968,0.0710417,-0.106319,0.141759,0,0,0,0,
+                          0,0,0,0,1,0,0,0,
+                          0,0,0,0,0,1,0,0,
+                          0,0,0,0,0,0,1,0,
+                          0,0,0,0,0,0,0,1;
+                          */
+
+            // M in L1
+            r_L1_mtype(0,0) = 1.02562; r_L1_mtype(0,1) = -0.479005; r_L1_mtype(0,2) = 0.0595067; r_L1_mtype(0,3) = -0.111968;
+            r_L1_mtype(1,0) = -0.479005; r_L1_mtype(1,1) = 0.485658; r_L1_mtype(1,2) = -0.21239; r_L1_mtype(1,3) = 0.0710417;
+            r_L1_mtype(2,0) = 0.0595067; r_L1_mtype(2,1) = -0.21239; r_L1_mtype(2,2) = 0.251714; r_L1_mtype(2,3) = -0.106319;
+            r_L1_mtype(3,0) = -0.111968; r_L1_mtype(3,1) = 0.0710417; r_L1_mtype(3,2) = -0.106319; r_L1_mtype(3,3) = 0.141759;
+
+            // I in L1
+            r_L1_mtype(4,4) = 1.0; r_L1_mtype(4,5) = 0.0;  r_L1_mtype(4,6) = 0.0;  r_L1_mtype(4,7) = 0.0;
+            r_L1_mtype(5,4) = 0.0; r_L1_mtype(5,5) = 1.0;  r_L1_mtype(5,6) = 0.0;  r_L1_mtype(5,7) = 0.0;
+            r_L1_mtype(6,4) = 0.0; r_L1_mtype(6,5) = 0.0;  r_L1_mtype(6,6) = 1.0;  r_L1_mtype(6,7) = 0.0;
+            r_L1_mtype(7,4) = 0.0; r_L1_mtype(7,5) = 0.0;  r_L1_mtype(7,6) = 0.0;  r_L1_mtype(7,7) = 1.0;
+
+
+            // Rest 0
+            for(int i=4; i<8; i++){
+                for(int j=0; j<4; j++){
+                    r_L1_mtype(i,j) = 0.0;
+                }
+            }
+
+            for(int i=0; i<4; i++){
+                for(int j=4; j<8; j++){
+                    r_L1_mtype(i,j) = 0.0;
+                }
+            }
+
+
+
+            //KRATOS_WATCH(r_L1_mtype);
+
+
+
+            Eigen::Matrix<double,8,8> r_L2_mtype;
+            /*r_L2_mtype << 0,0,0,0,-1,0,0,0,
+                          0,0,0,0,0,-1,0,0,
+                          0,0,0,0,0,0,-1,0,
+                          0,0,0,0,0,0,0,-1,
+                          -1,0,0,0,0,0,0,0,
+                          0,-1,0,0,0,0,0,0,
+                          0,0,-1,0,0,0,0,0,
+                          0,0,0,-1,0,0,0,0;*/
+
+            // K in L2
+            r_L2_mtype(0,4) = 7980.85; r_L2_mtype(0,5) = 5016.95; r_L2_mtype(0,6) = 1188.86; r_L2_mtype(0,7) = 226.714;
+            r_L2_mtype(1,4) = 5016.95; r_L2_mtype(1,5) = 105123; r_L2_mtype(1,6) = 60796.1; r_L2_mtype(1,7) = 16482.2;
+            r_L2_mtype(2,4) = 1188.86; r_L2_mtype(2,5) = 60796.1; r_L2_mtype(2,6) = 456395; r_L2_mtype(2,7) = 251600;
+            r_L2_mtype(3,4) = 226.714; r_L2_mtype(3,5) = 16482.2; r_L2_mtype(3,6) = 251600; r_L2_mtype(3,7) = 1.07785e+06;
+
+            // -I in L2
+            r_L2_mtype(4,0) = -1.0; r_L2_mtype(4,1) = 0.0; r_L2_mtype(4,2) = 0.0; r_L2_mtype(4,3) = 0.0;
+            r_L2_mtype(5,0) = 0.0; r_L2_mtype(5,1) = -1.0; r_L2_mtype(5,2) = 0.0; r_L2_mtype(5,3) = 0.0;
+            r_L2_mtype(6,0) = 0.0; r_L2_mtype(6,1) = 0.0; r_L2_mtype(6,2) = -1.0; r_L2_mtype(6,3) = 0.0;
+            r_L2_mtype(7,0) = 0.0; r_L2_mtype(7,1) = 0.0; r_L2_mtype(7,2) = 0.0; r_L2_mtype(7,3) = -1.0;
+
+
+
+            // Rest 0  (C)
+            for(int i=0; i<4; i++){
+                for(int j=0; j<4; j++){
+                    r_L2_mtype(i,j) = 0.0;
+                }
+            }
+
+            for(int i=4; i<8; i++){
+                for(int j=4; j<8; j++){
+                    r_L2_mtype(i,j) = 0.0;
+                }
+            }
+            
+            //(r_L2_mtype);
+
+
+
+
+
+                //Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> eig_test2;
+                Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> eig_test2;
+            eig_test2.compute(r_L2_mtype,r_L1_mtype);
+            //KRATOS_WATCH(eig_test2.eigenvalues());
+            //KRATOS_WATCH(eig_test2.alphas());
+            //KRATOS_WATCH(eig_test2.betas());
+            //KRATOS_WATCH(eig_test2.eigenvectors());
+
+            //this->AssignVariables(Eigenvalues,Eigenvectors);
+            // // KRATOS_WATCH(Eigenvalues);
+            // // KRATOS_WATCH(Eigenvectors);
+
+
+            // auto& r_pa_test_tmp = eig_test2.eigenvectors();
+            // auto& r_pa_test = prod(r_L2_mtype,r_pa_test_tmp);
+            // KRATOS_WATCH(r_pa_test);
+            // auto& r_pb_test_tmp = eig_test2.eigenvectors();
+            // r_pb_test_tmp = prod(r_L1_mtype,r_pb_test_tmp);
+            // auto& r_pb_test_tmp_val = eig_test2.eigenvalues();
+            // auto& r_pb_test = prod(r_pb_test_tmp_val, r_pb_test_tmp);
+            // KRATOS_WATCH(r_pb_test);
 
 
         // print all rxr matrices for DEBUG
@@ -411,86 +599,15 @@ class MorSecondOrderIRKAStrategy
 
             // step 4 d) shift selection step
             // first r eigenvalues
-            mSamplingPoints = subrange(Eigenvalues, 0, reduced_system_size*2);
+            mSamplingPoints = subrange(Eigenvalues, 0, reduced_system_size);
             KRATOS_WATCH(mSamplingPoints)
-
-        //auto Vrp_col = DenseSpaceType::CreateEmptyVectorPointer();
-        //auto& r_Vr_col = *Vrp_col;
-        //DenseSpaceType::Resize(r_Vr_col, system_size);  // n x 1
-        //DenseSpaceType::Set(r_Vr_col,0.0);
-
-        // *********** complex tests ************** // 
-        /*
-
-        auto test_mat = ComplexDenseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_test_mat = *test_mat;
-        ComplexDenseSpaceType::Resize(r_test_mat, 4,4); 
-        r_test_mat(1,1) = 1.2;
-        r_test_mat(0,3) = 5.7;
-
-        auto test_mat_sp = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_test_mat_sp = *test_mat_sp;
-        ComplexSparseSpaceType::Resize(r_test_mat_sp, 4, 4); // n x n
-        r_test_mat_sp(1,1) = 1.2;
-        r_test_mat_sp(0,3) = 5.7;
-
-        KRATOS_WATCH(r_test_mat);
-        KRATOS_WATCH(r_test_mat_sp);
-
-        complex ev_1(Eigenvalues(0), Eigenvalues(1));
-        KRATOS_WATCH(ev_1);
-
-        identity_matrix<complex> id_m_complex(4);
-        KRATOS_WATCH(id_m_complex); 
-        KRATOS_WATCH(real(id_m_complex)); 
-        KRATOS_WATCH(imag(id_m_complex)); 
-
-        KRATOS_WATCH(ev_1*id_m_complex); 
-        KRATOS_WATCH(real(ev_1*id_m_complex)); 
-        KRATOS_WATCH(imag(ev_1*id_m_complex)); 
-
-        auto comp_col = ComplexDenseSpaceType::CreateEmptyVectorPointer();
-        auto& r_comp_col = *comp_col;
-        ComplexDenseSpaceType::Resize(r_comp_col, 4);  // n x 1
-        ComplexDenseSpaceType::Set(r_comp_col,0.0);
-
-        auto V_h_comp_test = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_V_h_comp_test = *V_h_comp_test;
-        ComplexSparseSpaceType::Resize(r_V_h_comp_test, 4, 4); // n x n
-        
-        auto b_comp = ComplexSparseSpaceType::CreateEmptyVectorPointer();
-        auto& r_b_comp = *b_comp;
-        ComplexSparseSpaceType::Resize(r_b_comp, 4); // n x 1
-        r_b_comp(2) = 1;
-        //r_bsize nx1
-
-        KRATOS_WATCH(r_comp_col);
-
-        // solver here not build for complex input...
-        //p_builder_and_solver->GetLinearSystemSolver()->Solve( r_V_h_comp_test, r_comp_col, r_b_comp );
-        //mpComplexLinearSolver->Initialize( r_V_h_comp_test, r_comp_col, r_b_comp);
-        //mpComplexLinearSolver->Solve( r_V_h_comp_test, r_comp_col, r_b_comp );
-
-        KRATOS_WATCH(r_comp_col);
-
-        */
-
-
-
-            
 
             // step 4 e) as described in Wyatt 2012, Alg. 5.3.2     
             // TODO: put this in a function, since this the same as step 2
             for( size_t i = 0; i < n_sampling_points; ++i )
-            //for( size_t i = 0; i < n_sampling_points*2; i+=4 )
             {
                 //KRATOS_WATCH( mSamplingPoints(i) )
                 r_V_h = std::pow( mSamplingPoints(i), 2.0 ) * r_M_size_n + mSamplingPoints(i) * r_D_size_n + r_K_size_n;
-
-                //complex current_ev(Eigenvalues(i), Eigenvalues(i+1))
-                //KRATOS_WATCH(current_ev);
-
-                //r_V_h = std::pow( current_ev, 2.0 ) * r_M_size_n + current_ev * r_D_size_n + r_K_size_n;
                 
                 p_builder_and_solver->GetLinearSystemSolver()->Solve( r_V_h, r_Vr_col, r_b_size_n );
                 // multiply here with tangential direction b1, ..., br? Or postpone to QR later?
@@ -616,8 +733,6 @@ class MorSecondOrderIRKAStrategy
     vector< double > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
     typename TLinearSolver::Pointer mpNewLinearEigSolver;
-
-    ComplexLinearSolverType::Pointer mpComplexLinearSolver;
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each
