@@ -477,7 +477,11 @@ private:
     int mIndex : 6;
 
     /** Equation identificator of the degree of freedom */
+#if defined (__arm__)
+    EquationIdType mEquationId : 16;
+#else
     EquationIdType mEquationId : 48;
+#endif
 
     /** A pointer to nodal data stored in node which is corresponded to this dof */
     NodalData* mpNodalData;
