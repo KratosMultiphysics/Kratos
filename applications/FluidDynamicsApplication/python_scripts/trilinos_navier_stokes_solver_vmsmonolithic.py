@@ -160,7 +160,8 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
     def Initialize(self):
         ## Construct the communicator
         self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
-        self.turbulence_model_configuration.SetCommunicator(self.EpetraCommunicator)
+        if (self.turbulence_model_configuration is not None):
+            self.turbulence_model_configuration.SetCommunicator(self.EpetraCommunicator)
 
         ## Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
