@@ -599,7 +599,7 @@ namespace Kratos {
                 mpTurbulenceModel->Execute();
 
             //if orthogonal subscales are computed
-            if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
+            if (r_current_process_info[OSS_SWITCH] == 1.0) {
 
                 KRATOS_INFO("Bossak Scheme") << "Computing OSS projections" << std::endl;
 
@@ -627,7 +627,7 @@ namespace Kratos {
                 for(int i=0; i<nel; ++i)
                 {
                     auto elem = elbegin + i;
-                    elem->Calculate(ADVPROJ, output, CurrentProcessInfo);
+                    elem->Calculate(ADVPROJ, output, r_current_process_info);
                 }
 
                 rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
