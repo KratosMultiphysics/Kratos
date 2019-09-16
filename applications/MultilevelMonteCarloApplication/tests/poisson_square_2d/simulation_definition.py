@@ -32,7 +32,7 @@ class SimulationScenario(ConvectionDiffusionAnalysis):
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _CreateSolver(self):
-        import convection_diffusion_stationary_solver
+        from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_stationary_solver
         return convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
 
     """
