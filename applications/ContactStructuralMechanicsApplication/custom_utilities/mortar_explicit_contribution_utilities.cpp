@@ -46,7 +46,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
     // We call the exact integration utility
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
-    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
+    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor);
 
     // The master geometry
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
@@ -191,7 +192,8 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
     // We call the exact integration utility
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
-    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
+    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor);
 
     // The master geometry
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
@@ -383,7 +385,8 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 
     // We call the exact integration utility
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
-    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
+    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor);
 
     // The master geometry
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();

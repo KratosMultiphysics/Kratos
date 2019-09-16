@@ -43,25 +43,7 @@ class MechanicalSolver(PythonSolver):
     settings -- Kratos parameters containing solver settings.
     """
     def __init__(self, model, custom_settings):
-        # temporary warnings, to be removed
-        # this needs to be done before the call to the constructor of the baseclass, bcs there the settings are validated
-        if custom_settings.Has("bodies_list"):
-            custom_settings.RemoveValue("bodies_list")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            KratosMultiphysics.Logger.PrintWarning("Bodies list", warning)
-        if custom_settings.Has("solver_type"):
-            custom_settings.RemoveValue("solver_type")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "solver_type", '
-            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
-            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            KratosMultiphysics.Logger.PrintWarning("Solver type", warning)
-        if custom_settings.Has("time_integration_method"):
-            custom_settings.RemoveValue("time_integration_method")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "time_integration_method", '
-            warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
-            warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            KratosMultiphysics.Logger.PrintWarning("Time integration method", warning)
+        settings_have_smps_for_comp_mp = custom_settings.Has("problem_domain_sub_model_part_list") or custom_settings.Has("processes_sub_model_part_list")
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super(MechanicalSolver, self).__init__(model, custom_settings)
@@ -70,6 +52,11 @@ class MechanicalSolver(PythonSolver):
 
         if model_part_name == "":
             raise Exception('Please specify a model_part name!')
+
+        # for explicitly constructing the computing modelpart as a submodelpart of the mainmodelpart
+        self.use_computing_model_part = custom_settings["use_computing_model_part"].GetBool()
+        if not self.use_computing_model_part and settings_have_smps_for_comp_mp:
+            raise Exception('"problem_domain_sub_model_part_list" and "processes_sub_model_part_list" can only be specified when NOT using a ComputingModelPart! It is recommended Not to use a ComputingModelPart, then the entire Modelpart is used for the computation. At some point always the entire Modelpart will be used!')
 
         # Only needed during the transition of removing the ComputingModelPart
         if self.settings["problem_domain_sub_model_part_list"].size() == 0:
@@ -97,6 +84,7 @@ class MechanicalSolver(PythonSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
+            "solver_type" : "mechanical_solver",
             "model_part_name" : "",
             "domain_size" : -1,
             "echo_level": 0,
@@ -107,6 +95,7 @@ class MechanicalSolver(PythonSolver):
                 "input_filename": "unknown_name"
             },
             "computing_model_part_name" : "computing_domain",
+            "use_computing_model_part" : true,
             "material_import_settings" :{
                 "materials_filename": ""
             },
@@ -237,9 +226,12 @@ class MechanicalSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
-        if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
-            raise Exception("The ComputingModelPart was not created yet!")
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        if self.use_computing_model_part:
+            if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
+                raise Exception("The ComputingModelPart was not created yet!")
+            return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        else:
+            return self.main_model_part
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -311,14 +303,16 @@ class MechanicalSolver(PythonSolver):
 
     def _execute_after_reading(self):
         """Prepare computing model part and import constitutive laws. """
-        # Auxiliary parameters object for the CheckAndPepareModelProcess
-        params = KratosMultiphysics.Parameters("{}")
-        params.AddValue("model_part_name",self.settings["model_part_name"])
-        params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
-        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        # Assign mesh entities from domain and process sub model parts to the computing model part.
-        check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
+        if self.use_computing_model_part:
+            # construct the computing-modelpart
+            # Auxiliary parameters object for the CheckAndPepareModelProcess
+            params = KratosMultiphysics.Parameters("{}")
+            params.AddValue("model_part_name",self.settings["model_part_name"])
+            params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
+            params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
+            params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+            # Assign mesh entities from domain and process sub model parts to the computing model part.
+            check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
 
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
