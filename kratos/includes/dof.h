@@ -136,12 +136,13 @@ public:
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
           mpNodalData(pThisNodalData),
-          mpVariable(&rThisVariable),
           mpReaction(&msNone)
     {
         KRATOS_DEBUG_ERROR_IF_NOT(pThisNodalData->GetSolutionStepData().Has(rThisVariable))
             << "The Dof-Variable " << rThisVariable.Name() << " is not "
             << "in the list of variables" << std::endl;
+
+        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(rThisVariable);
     }
 
     /** Constructor. This constructor takes the same input
@@ -185,6 +186,9 @@ public:
         KRATOS_DEBUG_ERROR_IF_NOT(pThisNodalData->GetSolutionStepData().Has(rThisReaction))
             << "The Reaction-Variable " << rThisReaction.Name() << " is not "
             << "in the list of variables" << std::endl;
+        
+        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(rThisVariable);
+
     }
 
     //This default constructor is needed for pointer vector set
@@ -204,6 +208,7 @@ public:
         : mIsFixed(rOther.mIsFixed),
           mVariableType(rOther.mVariableType),
           mReactionType(rOther.mReactionType),
+          mIndex(rOther.mIndex),
           mEquationId(rOther.mEquationId),
           mpNodalData(rOther.mpNodalData),
           mpVariable(rOther.mpVariable),
@@ -226,6 +231,7 @@ public:
         mIsFixed = rOther.mIsFixed;
         mEquationId = rOther.mEquationId;
         mpNodalData = rOther.mpNodalData;
+        mIndex = rOther.mIndex;
         mpVariable = rOther.mpVariable;
         mpReaction = rOther.mpReaction;
         mVariableType = rOther.mVariableType;

@@ -263,6 +263,19 @@ namespace Kratos
 			mDataSize += static_cast<SizeType>(((block_size - 1) + ThisVariable.Size()) / block_size);
 		}
 
+		int AddDof(VariableData const& ThisDofVariable){
+			int dof_index = -1;
+			for(;dof_index < mDofVriables.size(); dof_index++){
+				if(*mDofVriables[dof_index] == ThisDofVariable)
+					return dof_index;
+			}
+
+			mDofVriables.push_back(&ThisDofVariable);
+			KRATOS_DEBUG_ERROR_IF(mDofVriables.size()>64) << "Adding too many dofs to the node. Each node only can store 64 Dofs." << std::endl;
+
+			return mDofVriables.size() - 1;
+		}
+
 		IndexType Index(IndexType VariableKey) const
 		{
 			return GetPosition(VariableKey);
@@ -354,6 +367,8 @@ namespace Kratos
 		PositionsContainerType mPositions = {static_cast<IndexType>(-1)};
 
 		VariablesContainerType mVariables;
+
+		VariablesContainerType mDofVriables;
 
 		///@}
 		///@name Private Operators
