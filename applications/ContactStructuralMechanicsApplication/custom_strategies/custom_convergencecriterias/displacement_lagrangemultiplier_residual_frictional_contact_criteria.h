@@ -22,6 +22,7 @@
 #include "utilities/color_utilities.h"
 #include "custom_utilities/active_set_utilities.h"
 #include "utilities/constraint_utilities.h"
+#include "custom_utilities/contact_utilities.h"
 
 namespace Kratos
 {
@@ -250,6 +251,13 @@ public:
 
             // Compute the active set
             if (!r_process_info[ACTIVE_SET_COMPUTED]) {
+                // Recompute the WEIGHTED_GAP and WEIGHTED_GAP
+                NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+                VariableUtils().SetHistoricalVariableToZero(WEIGHTED_GAP, r_nodes_array);
+                VariableUtils().SetHistoricalVariableToZero(WEIGHTED_SLIP, r_nodes_array);
+                ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
+
+                // Actually compute active set
                 const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP), this->GetEchoLevel());
 
                 // We save to the process info if the active set has converged
