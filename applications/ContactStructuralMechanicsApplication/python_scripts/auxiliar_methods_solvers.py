@@ -1,17 +1,13 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
-def print_on_rank_zero(*args):
-    # This function will be overridden in the trilinos-solvers
-    KM.Logger.PrintInfo(" ".join(map(str, args)))
+# Import sys
+import sys
 
-def print_warning_on_rank_zero(*args):
-    # This function will be overridden in the trilinos-solvers
-    KM.Logger.PrintWarning(" ".join(map(str, args)))
-
-def AuxiliarContactSettings():
+def  AuxiliarContactSettings():
     contact_settings = KM.Parameters("""
     {
         "contact_settings" :
@@ -55,7 +51,7 @@ def AuxiliarContactSettings():
 
     return contact_settings
 
-def AuxiliarExplicitContactSettings():
+def  AuxiliarExplicitContactSettings():
     contact_settings = KM.Parameters("""
     {
         "contact_settings" :
@@ -71,27 +67,27 @@ def AuxiliarExplicitContactSettings():
 
     return contact_settings
 
-def AuxiliarSetSettings(settings, contact_settings):
+def  AuxiliarSetSettings(settings, contact_settings):
     if not settings["clear_storage"].GetBool():
-        print_on_rank_zero("Clear storage", "Storage must be cleared each step. Switching to True")
+        KM.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
         settings["clear_storage"].SetBool(True)
     if not settings["reform_dofs_at_each_step"].GetBool():
-        print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
+        KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         settings["reform_dofs_at_each_step"].SetBool(True)
     mortar_type = contact_settings["mortar_type"].GetString()
-    if "PenaltyContactFrictional" in mortar_type or "ALMContactFrictional" in mortar_type:
+    if "Frictional" in mortar_type:
         if not settings["buffer_size"].GetInt() < 3:
-            print_on_rank_zero("Reform Buffer Size", "Buffer size requires a size of at least 3. Switching to 3")
+            KM.Logger.PrintInfo("Reform Buffer Size", "Buffer size requires a size of at least 3. Switching to 3")
             settings["buffer_size"].SetInt(3)
 
     return settings
 
-def AuxiliarValidateSettings(solver):
+def  AuxiliarValidateSettings(solver):
     default_settings = solver.GetDefaultSettings()
     default_settings.RecursivelyAddMissingParameters(solver.settings)
     solver.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
-def AuxiliarAddVariables(main_model_part, mortar_type = ""):
+def  AuxiliarAddVariables(main_model_part, mortar_type = ""):
     if mortar_type != "":
         main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)  # Add normal
         main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
@@ -120,7 +116,7 @@ def AuxiliarAddVariables(main_model_part, mortar_type = ""):
             main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add vector LM
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
 
-def AuxiliarAddDofs(main_model_part, mortar_type = ""):
+def  AuxiliarAddDofs(main_model_part, mortar_type = ""):
     if mortar_type == "ALMContactFrictionless":                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
         KM.VariableUtils().AddDof(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, CSMA.WEIGHTED_SCALAR_RESIDUAL, main_model_part)
     elif "ALMContactFrictional" in mortar_type or mortar_type == "ALMContactFrictionlessComponents": # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
@@ -134,7 +130,7 @@ def AuxiliarAddDofs(main_model_part, mortar_type = ""):
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, main_model_part)
         KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, CSMA.WEIGHTED_VECTOR_RESIDUAL_Z, main_model_part)
 
-def AuxiliarSolve(mechanical_solution_strategy):
+def  AuxiliarSolve(mechanical_solution_strategy):
     # The steps of the solve are Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep(), FinalizeSolutionStep()
     mechanical_solution_strategy.Solve()
     # mechanical_solution_strategy.Initialize()
@@ -143,7 +139,7 @@ def AuxiliarSolve(mechanical_solution_strategy):
     # mechanical_solution_strategy.SolveSolutionStep()
     # mechanical_solution_strategy.FinalizeSolutionStep()
 
-def AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, contact_settings):
+def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, contact_settings):
     if settings["time_stepping"].Has("time_step"):
         delta_time = settings["time_stepping"]["time_step"].GetDouble()
         if contact_settings["inner_loop_adaptive"].GetBool():
@@ -168,7 +164,7 @@ def AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, co
     else:
         raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
-def AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_settings):
+def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_settings):
     # Create an auxiliary Kratos parameters object to store the convergence settings.
     if contact_settings["fancy_convergence_criterion"].GetBool():
         table = KM.TableStreamUtility()
@@ -201,13 +197,13 @@ def AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_setti
 
     return conv_params
 
-def AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, linear_solver_settings, linear_solver):
+def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, linear_solver_settings, linear_solver):
     if contact_settings["rescale_linear_solver"].GetBool():
         linear_solver = KM.ScalingSolver(linear_solver, False)
     mortar_type = contact_settings["mortar_type"].GetString()
     if "ALMContactFrictional" in mortar_type or mortar_type == "ALMContactFrictionlessComponents":
         if contact_settings["use_mixed_ulm_solver"].GetBool():
-            print_on_rank_zero("::[Contact Mechanical Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
+            KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
             name_mixed_solver = contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
             if name_mixed_solver == "mixed_ulm_linear_solver":
                 linear_solver_name = settings["linear_solver_settings"]["solver_type"].GetString()
@@ -235,14 +231,20 @@ def AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, line
                 mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
                 return mixed_ulm_solver
             else:
-                print_on_rank_zero("::[Contact Mechanical Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
+                KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
                 return linear_solver
         else:
             return linear_solver
     else:
         return linear_solver
 
-def AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
+def  AuxiliarPureSlipCheck(model_part):
+    # Check if the properties have friction coefficient
+    aux_sum_friction_coeff = sum(prop.GetValue(KM.FRICTION_COEFFICIENT) for prop in model_part.GetProperties() if prop.Has(KM.FRICTION_COEFFICIENT))
+    # Check value
+    return aux_sum_friction_coeff < sys.float_info.epsilon
+
+def  AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")
     return CSMA.LineSearchContactStrategy(computing_model_part,
                                             mechanical_scheme,
@@ -256,7 +258,7 @@ def AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, m
                                             newton_parameters
                                             )
 
-def AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
+def  AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")
     newton_parameters.AddValue("adaptative_strategy", contact_settings["adaptative_strategy"])
     newton_parameters.AddValue("split_factor", contact_settings["split_factor"])

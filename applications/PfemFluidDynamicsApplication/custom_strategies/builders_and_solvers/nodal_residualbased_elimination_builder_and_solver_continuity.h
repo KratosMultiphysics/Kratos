@@ -1473,7 +1473,7 @@ void Build(
 #endif
 	  }
 
-#pragma omp parallel for firstprivate(nelements, ElementalDofList)
+// #pragma omp parallel for firstprivate(nelements, ElementalDofList)
         for (int i = 0; i < static_cast<int>(nelements); i++)
 	  {
             typename ElementsArrayType::iterator it = pElements.begin() + i;

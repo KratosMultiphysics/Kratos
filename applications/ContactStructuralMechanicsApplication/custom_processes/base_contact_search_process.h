@@ -17,9 +17,9 @@
 // External includes
 
 // Project includes
-#include "processes/simple_mortar_mapper_process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "custom_processes/normal_gap_process.h"
 
 /* Custom includes*/
 #include "custom_includes/point_item.h"
@@ -94,7 +94,7 @@ public:
     typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// The type of mapper considered
-    typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, TNumNodesMaster> MapperType;
+    typedef NormalGapProcess<TDim, TNumNodes, TNumNodesMaster> NormalGapProcessType;
 
     /// The definition of zero tolerance
     static constexpr double GapThreshold = 2.0e-3;
@@ -515,20 +515,6 @@ private:
      * @brief This method sets as inactive a node and it sets to zero its LM
      */
     inline void ComputeWeightedReaction();
-
-    /**
-     * @brief This method switchs the flag of an array of nodes
-     * @param rNodes The set of nodes where the flags are reset
-     */
-    static inline void SwitchFlagNodes(NodesArrayType& rNodes)
-    {
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(rNodes.size()); ++i) {
-            auto it_node = rNodes.begin() + i;
-            it_node->Flip(SLAVE);
-            it_node->Flip(MASTER);
-        }
-    }
 
     /**
      * @brief This method creates the auxiliar the pairing
