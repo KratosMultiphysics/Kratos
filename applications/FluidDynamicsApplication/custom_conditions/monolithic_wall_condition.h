@@ -512,7 +512,7 @@ protected:
         for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
         {
             const NodeType& rConstNode = rGeometry[itNode];
-            const double y = rConstNode.GetValue(Y_WALL); // wall distance to use in stress calculation
+            const double y = rConstNode.FastGetSolutionStepValue(DISTANCE); // wall distance to use in stress calculation
             if( y > 0.0 && rConstNode.Is(SLIP) )
             {
                 array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
