@@ -23,7 +23,10 @@ namespace CoSim {
 class MPIComm : public CoSimComm
 {
 public:
-    explicit MPIComm(SettingsType& rSettings);
+    explicit MPIComm(SettingsType& rSettings)
+    {
+        throw std::runtime_error("MPI Communication is not implemented yet");
+    }
 
 };
 

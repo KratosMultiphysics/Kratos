@@ -25,7 +25,10 @@ namespace CoSim {
 class SocketsComm : public CoSimComm
 {
 public:
-    explicit SocketsComm(SettingsType& rSettings);
+    explicit SocketsComm(SettingsType& rSettings)
+    {
+        throw std::runtime_error("Sockets Communication is not implemented yet");
+    }
 
 };
 

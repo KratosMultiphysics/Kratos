@@ -24,7 +24,7 @@ class FileComm : public CoSimComm
 public:
     explicit FileComm(SettingsType& rSettings)
     {
-
+        throw std::runtime_error("Files Communication is not implemented yet");
     }
 
     bool Export(const DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
