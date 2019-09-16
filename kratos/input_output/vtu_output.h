@@ -45,7 +45,7 @@ public:
      * @param rModelPart The modelpart which is used for output
      * @param Parameters Parameters including settings for the output
      */
-    explicit VtuOutput(ModelPart& rModelPart, Parameters ThisParameters);
+    explicit VtuOutput(ModelPart& rModelPart, Parameters ThisParameters = Parameters(R"({})"));
 
     /// Destructor.
     virtual ~VtuOutput() = default;
@@ -100,6 +100,7 @@ protected:
 
     ModelPart& mrModelPart;                        /// The main model part to post process
     VtuOutput::FileFormat mFileFormat;             /// The file format considered
+    std::unordered_map<int, int> mKratosIdToVtkId; /// The map storing the relationship between the Kratos ID and VTK ID
 
     Parameters mOutputSettings;                    /// The configuration parameters
 
