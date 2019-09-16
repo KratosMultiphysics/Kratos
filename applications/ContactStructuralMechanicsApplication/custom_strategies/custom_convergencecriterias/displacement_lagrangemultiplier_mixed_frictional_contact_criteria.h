@@ -282,67 +282,88 @@ public:
                     if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
                         const auto it_node = r_nodes_array.find(it_dof->Id());
-                        const double normal_x = it_node->FastGetSolutionStepValue(NORMAL_X);
 
                         dof_value = it_dof->GetSolutionStepValue(0);
                         dof_incr = rDx[dof_id];
-                        const TDataType normal_dof_value = dof_value * normal_x;
-                        const TDataType normal_dof_incr = dof_incr * normal_x;
 
-                        normal_lm_solution_norm += std::pow(normal_dof_value, 2);
-                        normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
-                            tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                            tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                            ++lm_slip_dof_num;
+                        const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+                        if (mu < std::numeric_limits<double>::epsilon()) {
+                            normal_lm_solution_norm += std::pow(dof_value, 2);
+                            normal_lm_increase_norm += std::pow(dof_incr, 2);
                         } else {
-                            tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                            tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                            ++lm_stick_dof_num;
+                            const double normal_x = it_node->FastGetSolutionStepValue(NORMAL_X);
+                            const TDataType normal_dof_value = dof_value * normal_x;
+                            const TDataType normal_dof_incr = dof_incr * normal_x;
+
+                            normal_lm_solution_norm += std::pow(normal_dof_value, 2);
+                            normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
+                            if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                                tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
+                                tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
+                                ++lm_slip_dof_num;
+                            } else {
+                                tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
+                                tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
+                                ++lm_stick_dof_num;
+                            }
                         }
                         lm_dof_num++;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
                         const auto it_node = r_nodes_array.find(it_dof->Id());
-                        const double normal_y = it_node->FastGetSolutionStepValue(NORMAL_Y);
 
                         dof_value = it_dof->GetSolutionStepValue(0);
                         dof_incr = rDx[dof_id];
-                        const TDataType normal_dof_value = dof_value * normal_y;
-                        const TDataType normal_dof_incr = dof_incr * normal_y;
 
-                        normal_lm_solution_norm += std::pow(normal_dof_value, 2);
-                        normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
-                            tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                            tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                            ++lm_slip_dof_num;
+                        const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+                        if (mu < std::numeric_limits<double>::epsilon()) {
+                            normal_lm_solution_norm += std::pow(dof_value, 2);
+                            normal_lm_increase_norm += std::pow(dof_incr, 2);
                         } else {
-                            tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                            tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                            ++lm_stick_dof_num;
+                            const double normal_y = it_node->FastGetSolutionStepValue(NORMAL_Y);
+                            const TDataType normal_dof_value = dof_value * normal_y;
+                            const TDataType normal_dof_incr = dof_incr * normal_y;
+
+                            normal_lm_solution_norm += std::pow(normal_dof_value, 2);
+                            normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
+                            if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                                tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
+                                tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
+                                ++lm_slip_dof_num;
+                            } else {
+                                tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
+                                tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
+                                ++lm_stick_dof_num;
+                            }
                         }
                         lm_dof_num++;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
                         const auto it_node = r_nodes_array.find(it_dof->Id());
-                        const double normal_z = it_node->FastGetSolutionStepValue(NORMAL_Z);
 
                         dof_value = it_dof->GetSolutionStepValue(0);
                         dof_incr = rDx[dof_id];
-                        const TDataType normal_dof_value = dof_value * normal_z;
-                        const TDataType normal_dof_incr = dof_incr * normal_z;
 
-                        normal_lm_solution_norm += std::pow(normal_dof_value, 2);
-                        normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
-                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
-                            tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                            tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                            ++lm_slip_dof_num;
+                        const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+                        if (mu < std::numeric_limits<double>::epsilon()) {
+                            normal_lm_solution_norm += std::pow(dof_value, 2);
+                            normal_lm_increase_norm += std::pow(dof_incr, 2);
                         } else {
-                            tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
-                            tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
-                            ++lm_stick_dof_num;
+                            const double normal_z = it_node->FastGetSolutionStepValue(NORMAL_Z);
+                            const TDataType normal_dof_value = dof_value * normal_z;
+                            const TDataType normal_dof_incr = dof_incr * normal_z;
+
+                            normal_lm_solution_norm += std::pow(normal_dof_value, 2);
+                            normal_lm_increase_norm += std::pow(normal_dof_incr, 2);
+                            if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP)) {
+                                tangent_lm_slip_solution_norm += std::pow(dof_value - normal_dof_value, 2);
+                                tangent_lm_slip_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
+                                ++lm_slip_dof_num;
+                            } else {
+                                tangent_lm_stick_solution_norm += std::pow(dof_value - normal_dof_value, 2);
+                                tangent_lm_stick_increase_norm += std::pow(dof_incr - normal_dof_incr, 2);
+                                ++lm_stick_dof_num;
+                            }
                         }
                         lm_dof_num++;
                     } else {
