@@ -240,7 +240,7 @@ public:
                                        TSystemVectorType &rDx,
                                        TSystemVectorType &rb) override
   {
-    if (mpTurbulenceModel != 0) // If not null
+    if (mpTurbulenceModel) // If not null
       mpTurbulenceModel->Execute();
 
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
