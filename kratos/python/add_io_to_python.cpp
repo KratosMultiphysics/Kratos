@@ -29,6 +29,7 @@
 
 // Outputs
 #include "input_output/vtk_output.h"
+#include "input_output/vtu_output.h"
 #include "input_output/unv_output.h"
 
 #ifdef JSON_INCLUDED
@@ -313,6 +314,13 @@ void  AddIOToPython(pybind11::module& m)
         .def(py::init< ModelPart&, Parameters >())
         .def("PrintOutput", &VtkOutput::PrintOutput)
         .def_static("GetDefaultParameters", &VtkOutput::GetDefaultParameters)
+        ;
+
+    py::class_<VtuOutput, VtuOutput::Pointer, IO>(m, "VtuOutput")
+        .def(py::init< ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
+        .def("PrintOutput", &VtuOutput::PrintOutput)
+        .def_static("GetDefaultParameters", &VtuOutput::GetDefaultParameters)
         ;
 
     py::class_<UnvOutput, UnvOutput::Pointer>(m, "UnvOutput")
