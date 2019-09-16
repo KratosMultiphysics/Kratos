@@ -11,6 +11,10 @@ class ApplyDistanceModificationProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings):
 
+        msg  = "The python distance modification process is deprecated.\n"
+        msg += "Please use (or implement) the \'distance_modification_settings\' in the \'solver_settings\'.\n"
+        KratosMultiphysics.Logger.PrintWarning("ApplyDistanceModificationProcess",msg)
+
         KratosMultiphysics.Process.__init__(self)
 
         default_parameters = KratosMultiphysics.Parameters( """

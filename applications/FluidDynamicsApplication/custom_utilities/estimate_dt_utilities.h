@@ -199,6 +199,39 @@ public:
         KRATOS_CATCH("")
     }
 
+    /// Calculate each element's CFL for the current time step for the given ModelPart.
+    /**
+     * The elemental CFL is stored in the CFL_NUMBER elemental variable.
+     * To view it in the post-process file, remember to print CFL_NUMBER as a Gauss Point result.
+     */
+    static void CalculateLocalCFL(ModelPart& rModelPart)
+    {
+        KRATOS_TRY;
+
+        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ElementPartition;
+        OpenMPUtils::DivideInPartitions(rModelPart.NumberOfElements(),NumThreads,ElementPartition);
+
+        const double CurrentDt = rModelPart.GetProcessInfo().GetValue(DELTA_TIME);
+
+        #pragma omp parallel
+        {
+            int k = OpenMPUtils::ThisThread();
+            ModelPart::ElementIterator ElemBegin = rModelPart.ElementsBegin() + ElementPartition[k];
+            ModelPart::ElementIterator ElemEnd = rModelPart.ElementsBegin() + ElementPartition[k+1];
+
+            GeometryDataContainer GeometryInfo;
+
+            for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+            {
+                double ElementCFL = EstimateDtUtility<TDim>::CalculateElementCFL(*itElem,GeometryInfo,CurrentDt);
+                itElem->SetValue(CFL_NUMBER,ElementCFL);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
     /// Calculate each element's CFL for the current time step.
     /**
      * The elemental CFL is stored in the CFL_NUMBER elemental variable.
@@ -206,30 +239,7 @@ public:
      */
     void CalculateLocalCFL()
     {
-        KRATOS_TRY;
-
-        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector ElementPartition;
-        OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfElements(),NumThreads,ElementPartition);
-
-        const double CurrentDt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
-
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator ElemBegin = mrModelPart.ElementsBegin() + ElementPartition[k];
-            ModelPart::ElementIterator ElemEnd = mrModelPart.ElementsBegin() + ElementPartition[k+1];
-
-            GeometryDataContainer GeometryInfo;
-
-            for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-            {
-                double ElementCFL = CalculateElementCFL(*itElem,GeometryInfo,CurrentDt);
-                itElem->SetValue(CFL_NUMBER,ElementCFL);
-            }
-        }
-
-        KRATOS_CATCH("")
+        EstimateDtUtility<TDim>::CalculateLocalCFL(mrModelPart);
     }
 
     ///@} // Operators
@@ -258,18 +268,18 @@ private:
     ///@name Private Operations
     ///@{
 
-    double CalculateElementCFL(Element &rElement, GeometryDataContainer& rGeometryInfo, double Dt)
+    static double CalculateElementCFL(Element &rElement, GeometryDataContainer& rGeometryInfo, double Dt)
     {
         double Proj = 0.0;
 
         // Get the element's geometric parameters
-        Geometry< Node<3> >& rGeom = rElement.GetGeometry();
-        GeometryUtils::CalculateGeometryData(rGeom, rGeometryInfo.DN_DX, rGeometryInfo.N, rGeometryInfo.Area);
+        const auto& r_geometry = rElement.GetGeometry();
+        GeometryUtils::CalculateGeometryData(r_geometry, rGeometryInfo.DN_DX, rGeometryInfo.N, rGeometryInfo.Area);
 
         // Elemental Velocity
-        array_1d<double,3> ElementVel = rGeometryInfo.N[0]*rGeom[0].FastGetSolutionStepValue(VELOCITY);
+        array_1d<double,3> ElementVel = rGeometryInfo.N[0]*r_geometry[0].FastGetSolutionStepValue(VELOCITY);
         for (unsigned int i = 1; i < TDim+1; ++i)
-            ElementVel += rGeometryInfo.N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+            ElementVel += rGeometryInfo.N[i]*r_geometry[i].FastGetSolutionStepValue(VELOCITY);
 
         // Calculate u/h as the maximum projection of the velocity along element heights
         for (unsigned int i = 0; i < TDim+1; ++i)
