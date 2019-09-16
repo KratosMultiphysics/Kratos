@@ -711,7 +711,18 @@ void AddUtilitiesToPython(pybind11::module &m)
         .def(py::init<ModelPart& >())
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
+        // .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, const array_1d<double,3>& coords)
+        {
+            Element::Pointer pelem;
+            Vector N(3);
+            bool found = self.FindPointOnMeshSimplified(coords, N, pelem);
+
+            py::tuple my_tuple = py::make_tuple(found, N, pelem);
+            return my_tuple;
+
+        }
+        )
         ;
 
     py::class_< BinBasedFastPointLocator < 3 >, BinBasedFastPointLocator < 3 >::Pointer >(m,"BinBasedFastPointLocator3D")
