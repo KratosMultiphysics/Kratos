@@ -31,6 +31,7 @@
 // Project includes
 #include "includes/kratos_export_api.h"
 #include "includes/code_location.h"
+#include "utilities/stl_vector_io.h"
 
 namespace Kratos
 {

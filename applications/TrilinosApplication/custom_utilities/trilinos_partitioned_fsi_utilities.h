@@ -29,7 +29,7 @@
 // Project includes
 #include "includes/define.h"
 
-#include "../FSIapplication/custom_utilities/partitioned_fsi_utilities.hpp"
+#include "../FSIApplication/custom_utilities/partitioned_fsi_utilities.hpp"
 
 namespace Kratos
 {

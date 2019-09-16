@@ -17,7 +17,15 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
     puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads],"
-    puts $FileVar "        \"fracture_utility\":     [GiD_AccessValue get gendata Fracture_Propagation]"
+    if {[GiD_AccessValue get gendata Initial_Stresses] eq false} {
+        puts $FileVar "        \"fracture_utility\":     [GiD_AccessValue get gendata Fracture_Propagation]"
+    } else {
+        puts $FileVar "        \"fracture_utility\":     [GiD_AccessValue get gendata Fracture_Propagation],"
+        puts $FileVar "        \"initial_stress_utility_settings\":   \{"
+        puts $FileVar "            \"mode\":       \"[GiD_AccessValue get gendata Mode]\","
+        puts $FileVar "            \"initial_input_filename\":   \"initial_$basename\""
+        puts $FileVar "        \}"
+    }
     puts $FileVar "    \},"
 
     ## solver_settings
@@ -278,6 +286,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         AppendOutputVariables PutStrings iGroup Write_Joint_Width NODAL_JOINT_WIDTH
         AppendOutputVariables PutStrings iGroup Write_Damage NODAL_JOINT_DAMAGE
     }
+    AppendOutputVariables PutStrings iGroup Write_Initial_Stress INITIAL_STRESS_TENSOR
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]
     }

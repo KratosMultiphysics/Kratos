@@ -91,11 +91,27 @@ public:
     {
         // The default parameters
         Parameters default_parameters = GetDefaultParameters();
+        const bool origin_are_conditions_is_defined = ThisParameters.Has("origin_are_conditions");
+        const bool destination_are_conditions_is_defined = ThisParameters.Has("destination_are_conditions");
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // Automatic detect the entities
-        if (rOriginModelPart.NumberOfElements() > 0) ThisParameters["origin_are_conditions"].SetBool(false);
-        if (rDestinationModelPart.NumberOfElements() > 0) ThisParameters["destination_are_conditions"].SetBool(false);
+        if (!origin_are_conditions_is_defined) {
+            if (rOriginModelPart.NumberOfElements() > 0) {
+                ThisParameters["origin_are_conditions"].SetBool(false);
+                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "\'origin_are_conditions\' changed to \'False\'. Mapping from elements." << std::endl;
+            } else if (rOriginModelPart.NumberOfConditions() == 0) {
+                KRATOS_ERROR << "No conditions defined on origin model part" << std::endl;
+            }
+        }
+        if (!destination_are_conditions_is_defined) {
+            if (rDestinationModelPart.NumberOfElements() > 0) {
+                ThisParameters["destination_are_conditions"].SetBool(false);
+                KRATOS_WARNING("SimpleMortarMapperProcessWrapper") << "\'destination_are_conditions\' changed to \'False\'. Mapping from elements." << std::endl;
+            } else if (rDestinationModelPart.NumberOfConditions() == 0) {
+                KRATOS_ERROR << "No conditions defined on destination model part" << std::endl;
+            }
+        }
 
         // The condition iterators
         auto& r_geometry_origin = ThisParameters["origin_are_conditions"].GetBool() ? rOriginModelPart.Conditions().begin()->GetGeometry() : rOriginModelPart.Elements().begin()->GetGeometry();
@@ -195,9 +211,20 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Execute method is used to execute the Process algorithms.
+     */
     void Execute() override
     {
         mpMapperProcess->Execute();
+    }
+
+    /**
+     * @details This function will be executed at every time step BEFORE performing the solve phase
+     */
+    void ExecuteInitializeSolutionStep() override
+    {
+        mpMapperProcess->ExecuteInitializeSolutionStep();
     }
 
     ///@}
@@ -276,7 +303,7 @@ protected:
             "origin_are_conditions"            : true,
             "destination_variable_historical"  : true,
             "destination_are_conditions"       : true,
-            "update_interface"                 : false,
+            "update_interface"                 : true,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
                 "bucket_size"                      : 4,

@@ -9,8 +9,6 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SearchBaseProcess(Model, settings["Parameters"])
 
-import sys
-
 # All the processes python processes should be derived from "Process"
 
 class SearchBaseProcess(KM.Process):
@@ -48,6 +46,7 @@ class SearchBaseProcess(KM.Process):
             "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "search_property_ids"         : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
             "interval"                    : [0.0,"End"],
+            "zero_tolerance_factor"       : 1.0,
             "integration_order"           : 2,
             "search_parameters" : {
                 "type_search"                         : "in_radius_with_obb",
@@ -60,6 +59,7 @@ class SearchBaseProcess(KM.Process):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
+                "normal_orientation_threshold"        : 0.0,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -135,6 +135,10 @@ class SearchBaseProcess(KM.Process):
         # We compute NODAL_H that can be used in the search and some values computation
         self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
         self.find_nodal_h.Execute()
+
+        # We check the normals
+        check_normal_process = CSMA.NormalCheckProcess(self.main_model_part)
+        check_normal_process.Execute()
 
         ## We recompute the search factor and the check in function of the relative size of the mesh
         if self.settings["search_parameters"]["adapt_search"].GetBool():
@@ -360,6 +364,7 @@ class SearchBaseProcess(KM.Process):
 
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
+        process_info[CSMA.ZERO_TOLERANCE_FACTOR] = self.settings["zero_tolerance_factor"].GetDouble()
         process_info[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["search_parameters"]["active_check_factor"].GetDouble()
 
     def _initialize_search_values(self):
@@ -634,7 +639,7 @@ class SearchBaseProcess(KM.Process):
 
         if self.preprocess:
             id_prop = self.settings["search_property_ids"][key].GetInt()
-            if (id_prop != 0):
+            if id_prop != 0:
                 sub_search_model_part.SetProperties(self.main_model_part.GetProperties(id_prop))
             else:
                 sub_search_model_part.SetProperties(self.main_model_part.GetProperties())
@@ -643,7 +648,7 @@ class SearchBaseProcess(KM.Process):
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
 
-                if (self.computing_model_part.Is(KM.MODIFIED)):
+                if self.main_model_part.Is(KM.MODIFIED) or self.computing_model_part.Is(KM.MODIFIED):
                     KM.VariableUtils().SetFlag(KM.TO_ERASE, True, partial_model_part.Conditions)
                     partial_model_part.RemoveConditions(KM.TO_ERASE)
 

@@ -361,7 +361,15 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Execute method is used to execute the Process algorithms.
+     */
     void Execute() override;
+
+    /**
+     * @details This function will be executed at every time step BEFORE performing the solve phase
+     */
+    void ExecuteInitializeSolutionStep() override;
 
     /**
      * @brief This method is a direct map between the origin and destination modelpart with custom variables
@@ -813,6 +821,71 @@ private:
     }
 
     /**
+     * @brief This method can be used to clear the unused indexes
+     * @param pIndexesPairs The pointer to indexed objects
+     * @param pGeometricalObject Pointer of a geometrical object
+     * @param rIntegrationUtility An integration utility for mortar
+     * @tparam TClassType The class of index pairs considered
+     */
+    template<class TClassType>
+    void ClearIndexes(
+        typename TClassType::Pointer pIndexesPairs,
+        GeometricalObject::Pointer pGeometricalObject,
+        ExactMortarIntegrationUtilityType& rIntegrationUtility
+        )
+    {
+        // The root model part
+        ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
+
+        // Indexes of the pair to be removed
+        std::vector<IndexType> indexes_to_remove, geometrical_objects_to_erase;
+
+        // Declare auxiliar coordinates
+        GeometryType::CoordinatesArrayType aux_coords;
+
+        // Geometrical values
+        auto& r_slave_geometry = pGeometricalObject->GetGeometry();
+        r_slave_geometry.PointLocalCoordinates(aux_coords, r_slave_geometry.Center());
+        const array_1d<double, 3> slave_normal = r_slave_geometry.UnitNormal(aux_coords);
+
+        for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
+            const IndexType master_id = pIndexesPairs->GetId(it_pair); // MASTER
+
+            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetGeometry() : mOriginModelPart.pGetElement(master_id)->GetGeometry();
+            r_master_geometry.PointLocalCoordinates(aux_coords, r_master_geometry.Center());
+            const array_1d<double, 3> master_normal = r_master_geometry.UnitNormal(aux_coords);
+
+            // Reading integration points
+            std::vector<array_1d<PointType,TDim>> geometrical_objects_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping
+            const bool is_inside = rIntegrationUtility.GetExactIntegration(r_slave_geometry, slave_normal, r_master_geometry, master_normal, geometrical_objects_points_slave);
+
+            if (!is_inside) {
+                indexes_to_remove.push_back(master_id);
+                const IndexType other_id = pIndexesPairs->GetOtherId(it_pair);
+                if (std::is_same<TClassType, IndexMap>::value && other_id != 0) {
+                    geometrical_objects_to_erase.push_back(other_id);
+                }
+            }
+        }
+
+        // Clear indexes
+        for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
+            if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
+                for (auto& id : geometrical_objects_to_erase ) {
+                    auto p_cond = r_root_model_part.pGetCondition(id);
+                    p_cond->Set(TO_ERASE, true);
+                }
+            } else {
+                for (auto& id : geometrical_objects_to_erase ) {
+                    auto p_elem = r_root_model_part.pGetElement(id);
+                    p_elem->Set(TO_ERASE, true);
+                }
+            }
+            pIndexesPairs->RemoveId(indexes_to_remove[i_to_remove]);
+        }
+    }
+
+    /**
      * @brief This method fills the database
      * @param pGeometricalObject Pointer of a geometrical object
      * @param rTreePoints The search tree
@@ -845,6 +918,11 @@ private:
         const SizeType number_points_found = rTreePoints.SearchInRadius(center, search_radius, points_found.begin(), AllocationSize);
 
         if (number_points_found > 0) {
+            // In case of missing is created
+            if (!pGeometricalObject->Has(INDEX_SET))
+                pGeometricalObject->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
+
+            // Accessing to the index set
             IndexSet::Pointer indexes_set = pGeometricalObject->GetValue(INDEX_SET);
 
             for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {

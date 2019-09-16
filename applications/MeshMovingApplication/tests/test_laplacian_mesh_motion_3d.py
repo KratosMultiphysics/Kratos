@@ -8,7 +8,7 @@ class TestCase(MeshMovingTestCase):
         self.domain_size = 3
         self.number_of_nodes_per_elements = 4
         self.solver_type = "laplacian"
-        self.mesh_vel_calc_helper = KM.Newmark()
+        self.mesh_vel_calc_helper = KM.TimeDiscretization.Newmark()
         self.print_reference_results = False
 
         # to suppress many prints
@@ -25,7 +25,7 @@ class TestCase(MeshMovingTestCase):
         self.domain_size = 3
         self.number_of_nodes_per_elements = 8
         self.solver_type = "laplacian"
-        self.mesh_vel_calc_helper = KM.Bossak()
+        self.mesh_vel_calc_helper = KM.TimeDiscretization.Bossak()
         self.print_reference_results = False
 
         # to suppress many prints

@@ -20,6 +20,7 @@
 /* Project includes */
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/variable_utils.h"
 #include "utilities/color_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
@@ -150,6 +151,11 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         BaseType::Initialize(rModelPart);
+
+        // Update normal of the conditions
+        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
+        VariableUtils().SetFlag(CONTACT, true, r_contact_model_part.Nodes());
+        VariableUtils().SetFlag(CONTACT, true, r_contact_model_part.Conditions());
     }
 
     /**
@@ -170,28 +176,28 @@ public:
         ) override
     {
         // The process info
-        const ProcessInfo& process_info = rModelPart.GetProcessInfo();
+        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
         // Computing error
-        if (process_info[DOMAIN_SIZE] == 2) {
-            SPRErrorProcess<2> compute_error_process = ContactSPRErrorProcess<2>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
+        if (r_process_info[DOMAIN_SIZE] == 2) {
+            auto compute_error_process = ContactSPRErrorProcess<2>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
             compute_error_process.Execute();
         } else {
-            SPRErrorProcess<3> compute_error_process = ContactSPRErrorProcess<3>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
+            auto compute_error_process = ContactSPRErrorProcess<3>(rModelPart, mThisParameters["compute_error_extra_parameters"]);
             compute_error_process.Execute();
         }
 
         // We get the estimated error
-        const double estimated_error = process_info[ERROR_RATIO];
+        const double estimated_error = r_process_info[ERROR_RATIO];
 
         // We check if converged
         const bool converged_error = (estimated_error > mErrorTolerance) ? false : true;
 
         if (converged_error) {
-            KRATOS_INFO_IF("ContactErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "NL ITERATION: " << process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << mErrorTolerance << ". " << BOLDFONT(FGRN("No remeshing required")) << std::endl;
+            KRATOS_INFO_IF("ContactErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) << "NL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is under the tolerance prescribed: " << mErrorTolerance << ". " << BOLDFONT(FGRN("No remeshing required")) << std::endl;
         } else {
             KRATOS_INFO_IF("ContactErrorMeshCriteria", rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            << "NL ITERATION: " << process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << mErrorTolerance << ". "<< BOLDFONT(FRED("Remeshing required")) << std::endl;
+            << "NL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << "\tThe error due to the mesh size: " << estimated_error << " is bigger than the tolerance prescribed: " << mErrorTolerance << ". "<< BOLDFONT(FRED("Remeshing required")) << std::endl;
         }
 
         return converged_error;
