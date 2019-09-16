@@ -150,11 +150,8 @@ namespace Kratos
 			// the plane defined by the 3 intersection points.
 			auto &r_geometry = rElement1.GetGeometry();
 			const bool do_plane_approx = (n_cut_edges == r_geometry.WorkingSpaceDimension()) ? false : true;
-			if (rElement1.Id() == 13) {
-				KRATOS_WATCH(do_plane_approx)
-				KRATOS_WATCH(n_cut_edges)
-			}
-			if (do_plane_approx && (int_pts_vector.size() > 1)){
+
+			if (do_plane_approx && (int_pts_vector.size() > TDim)){
 				// Call the plane optimization utility
 				array_1d<double,3> base_pt, normal;
 				ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
@@ -166,7 +163,7 @@ namespace Kratos
 				}
 			} else {
 				// Create a plane with the 3 intersection points (or 2 in 2D)
-				if (int_pts_vector.size()>1) {
+				if (int_pts_vector.size()> (TDim-1)) {
 					Plane3D plane = SetIntersectionPlane(int_pts_vector);
 					// Compute the distance to the intersection plane
 					for (int i = 0; i < number_of_tetrahedra_points; i++) {
@@ -175,7 +172,7 @@ namespace Kratos
 				}
 				else {
 					std::vector<array_1d<double,3>> int_pts_tangent;
-
+					//KRATOS_WATCH(rIntersectedObjects)
 					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[0].Coordinates());
 					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[1].Coordinates());
 					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[2].Coordinates());
@@ -185,13 +182,7 @@ namespace Kratos
 					for (int i = 0; i < number_of_tetrahedra_points; i++) {
 						elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
 					}
-					if (rElement1.Id() == 13) {
-						KRATOS_WATCH(elemental_distances)
-					}
 				}
-
-
-
 			}
 
 			// Correct the distance values orientation
