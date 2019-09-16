@@ -176,7 +176,6 @@ public:
           mReactionType(DofTrait<TDataType, TReactionType>::Id),
           mEquationId(IndexType()),
           mpNodalData(pThisNodalData),
-          mpVariable(&rThisVariable),
           mpReaction(&rThisReaction)
     {
         KRATOS_DEBUG_ERROR_IF_NOT(pThisNodalData->GetSolutionStepData().Has(rThisVariable))
@@ -199,7 +198,6 @@ public:
           mIndex(),
           mEquationId(IndexType()),
           mpNodalData(),
-          mpVariable(nullptr),
           mpReaction(nullptr)
     {
     }
@@ -212,7 +210,6 @@ public:
           mIndex(rOther.mIndex),
           mEquationId(rOther.mEquationId),
           mpNodalData(rOther.mpNodalData),
-          mpVariable(rOther.mpVariable),
           mpReaction(rOther.mpReaction)
     {
     }
@@ -233,7 +230,6 @@ public:
         mEquationId = rOther.mEquationId;
         mpNodalData = rOther.mpNodalData;
         mIndex = rOther.mIndex;
-        mpVariable = rOther.mpVariable;
         mpReaction = rOther.mpReaction;
         mVariableType = rOther.mVariableType;
         mReactionType = rOther.mReactionType;
@@ -283,13 +279,13 @@ public:
 
     TDataType& GetSolutionStepValue(IndexType SolutionStepIndex = 0)
     {
-        return GetReference(*mpVariable, mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
+        return GetReference(GetVariable(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
     }
 
 
     TDataType const& GetSolutionStepValue(IndexType SolutionStepIndex = 0) const
     {
-        return GetReference(*mpVariable, mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
+        return GetReference(GetVariable(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
     }
 
 
@@ -335,7 +331,7 @@ public:
     /** Returns variable assigned to this degree of freedom. */
     const VariableData& GetVariable() const
     {
-        return *mpVariable;
+        return mpNodalData->GetSolutionStepData().pGetVariablesList()->GetDofVariable(mIndex);
     }
 
     /** Returns reaction variable of this degree of freedom. */
@@ -490,11 +486,6 @@ private:
     /** A pointer to nodal data stored in node which is corresponded to this dof */
     NodalData* mpNodalData;
 
-
-    /** Variable of the degree of freedom.
-     */
-    const VariableData* mpVariable;
-
     /** Reaction variable for this degree of freedom.
      */
     const VariableData* mpReaction;
@@ -539,7 +530,6 @@ private:
         rSerializer.save("Is Fixed", static_cast<bool>(mIsFixed));
         rSerializer.save("Equation Id", static_cast<EquationIdType>(mEquationId));
         rSerializer.save("Nodal Data", mpNodalData);
-        rSerializer.save("Variable", mpVariable->Name());
         rSerializer.save("Reaction", mpReaction->Name());
         rSerializer.save("Variable Type", static_cast<int>(mVariableType));
         rSerializer.save("Reaction Type", static_cast<int>(mReactionType));
@@ -555,8 +545,6 @@ private:
         rSerializer.load("Equation Id", equation_id);
         mEquationId = equation_id;
         rSerializer.load("Nodal Data", mpNodalData);
-        rSerializer.load("Variable", name);
-        mpVariable=KratosComponents<VariableData>::pGet(name);
         rSerializer.load("Reaction", name);
         if(name == "NONE")
             mpReaction = &msNone;
