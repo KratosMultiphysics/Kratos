@@ -22,12 +22,10 @@ namespace DataContainers {
     struct Mesh
     {
         std::vector<double> node_coords;
-        std::vector<int> node_ids;
         std::vector<int> connectivities;
-        std::vector<int> element_ids;
-        std::vector<int> element_types;
+        std::vector<int> cell_types;
 
-        const std::string type="Mesh"; // maybe a macro can do this job => #rDataContainer
+        const std::string type="Mesh";
     };
 
     struct ConvergenceSignal
