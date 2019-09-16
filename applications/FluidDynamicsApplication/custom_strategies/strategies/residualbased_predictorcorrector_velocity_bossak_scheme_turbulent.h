@@ -197,6 +197,7 @@ namespace Kratos {
             double NewAlphaBossak,
             double MoveMeshStrategy,
             unsigned int DomainSize,
+            const double RelaxationFactor,
             Process::Pointer pTurbulenceModel)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
@@ -209,6 +210,7 @@ namespace Kratos {
             mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
+            mRelaxationFactor = RelaxationFactor;
 
 
             //Allocate auxiliary memory
@@ -245,6 +247,8 @@ namespace Kratos {
             KRATOS_TRY;
 
             mRotationTool.RotateVelocities(r_model_part);
+
+            TSparseSpace::InplaceMult(Dv, mRelaxationFactor);
 
             mpDofUpdater->UpdateDofs(rDofSet,Dv);
 
@@ -558,22 +562,12 @@ namespace Kratos {
         //*************************************************************************************
         //*************************************************************************************
 
-        void InitializeNonLinIteration(ModelPart& r_model_part,
-                                               TSystemMatrixType& A,
-                                               TSystemVectorType& Dx,
-                                               TSystemVectorType& b) override
-        {
-            KRATOS_TRY
-
-            if (mpTurbulenceModel != 0) // If not null
-                mpTurbulenceModel->Execute();
-
-            KRATOS_CATCH("")
-        }
-
         void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+            if (mpTurbulenceModel != 0) // If not null
+                mpTurbulenceModel->Execute();
 
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
@@ -758,6 +752,7 @@ namespace Kratos {
         double mBetaNewmark;
         double mGammaNewmark;
         double mMeshVelocity;
+        double mRelaxationFactor = 1.0;
 
         double ma0;
         double ma1;
