@@ -12,8 +12,6 @@
 #ifndef KRATOS_CO_SIM_IO_H_INCLUDED
 #define KRATOS_CO_SIM_IO_H_INCLUDED
 
-#define KRATOS_CO_SIM_IO_VERSION 1 // TODO probably this has to be in a different file ...
-
 /*
 This file defines the IO of Kratos-CoSimulation for the exchange of data
 with external solvers.
