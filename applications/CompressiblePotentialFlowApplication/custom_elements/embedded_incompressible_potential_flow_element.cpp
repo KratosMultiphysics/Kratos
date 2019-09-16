@@ -96,10 +96,12 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
         positive_side_weights,
         GeometryData::GI_GAUSS_1);
 
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+
     BoundedMatrix<double,NumNodes,Dim> DN_DX;
     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
         DN_DX=positive_side_sh_func_gradients(i_gauss);
-        noalias(rLeftHandSideMatrix) += prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);;
+        noalias(rLeftHandSideMatrix) += free_stream_density*prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);;
     }
 
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, potential);

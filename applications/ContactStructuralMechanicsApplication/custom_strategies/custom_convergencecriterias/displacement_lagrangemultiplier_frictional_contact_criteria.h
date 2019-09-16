@@ -21,6 +21,7 @@
 #include "utilities/color_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_utilities/active_set_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -261,8 +262,9 @@ public:
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
-                if (it_dof->IsFree()) {
-                    dof_id = it_dof->EquationId();
+                dof_id = it_dof->EquationId();
+
+                if (mActiveDofs[dof_id]) {
                     dof_value = it_dof->GetSolutionStepValue(0);
                     dof_incr = rDx[dof_id];
 
@@ -462,6 +464,26 @@ public:
     }
 
     /**
+     * @brief This function initializes the solution step
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        ) override
+    {
+        // Filling mActiveDofs when MPC exist
+        ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
+    }
+
+    /**
      * @brief This function finalizes the non-linear iteration
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
@@ -551,6 +573,8 @@ private:
     TDataType mLMTangentAbsTolerance;   /// The absolute value threshold for the norm of the LM (tangent)
 
     TDataType mNormalTangentRatio;      /// The ratio to accept a non converged tangent component in case
+
+    std::vector<bool> mActiveDofs;      /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
