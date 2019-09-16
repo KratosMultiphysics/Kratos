@@ -276,6 +276,10 @@ namespace Kratos
 			return mDofVriables.size() - 1;
 		}
 
+		const VariableData& GetDofVariable(int DofIndex) const {
+			return *mDofVriables[DofIndex];
+		}
+
 		IndexType Index(IndexType VariableKey) const
 		{
 			return GetPosition(VariableKey);
