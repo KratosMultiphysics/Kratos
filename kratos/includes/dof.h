@@ -191,15 +191,16 @@ public:
 
     }
 
-    //This default constructor is needed for pointer vector set
+    //This default constructor is needed for serializer
     Dof()
         : mIsFixed(false),
           mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
+          mIndex()
           mpNodalData(),
-          mpVariable(&msNone),
-          mpReaction(&msNone)
+          mpVariable(nullptr),
+          mpReaction(nullptr)
     {
     }
 
