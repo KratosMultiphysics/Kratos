@@ -9,5 +9,15 @@
 //  Main authors:    Philipp Bucher
 //
 
-#define KRATOS_CO_SIM_IO_VERSION_MAJOR 1
-#define KRATOS_CO_SIM_IO_VERSION_MINOR 0
+#ifndef KRATOS_CO_SIM_IO_VERSION_H_INCLUDED
+#define KRATOS_CO_SIM_IO_VERSION_H_INCLUDED
+
+constexpr int GetMajorVersion() {
+    return 1;
+}
+
+constexpr int GetMinorVersion() {
+    return 0;
+}
+
+#endif /* KRATOS_CO_SIM_IO_VERSION_H_INCLUDED */
