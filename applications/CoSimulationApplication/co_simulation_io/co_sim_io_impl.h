@@ -72,16 +72,16 @@ void CoSimIO::Initialize(SettingsType& rSettings)
     const std::string comm_format(rSettings.at("communication_format")); // TODO check if specified, if not set to file
 
     if (comm_format == "file") {
-        mpComm = std::unique_ptr<CoSimComm>(new FileComm(rSettings));
+        mpComm = std::unique_ptr<CoSimComm>(new FileComm(rSettings)); // make_unique is C++14
     } else if (comm_format == "sockets") {
 #ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
-        mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(rSettings));
+        mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(rSettings)); // make_unique is C++14
 #else
         throw std::runtime_error("Support for Sockets was not compiled!");
 #endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
     } else if (comm_format == "mpi") {
 #ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
-        mpComm = std::unique_ptr<CoSimComm>(new MPIComm(rSettings));
+        mpComm = std::unique_ptr<CoSimComm>(new MPIComm(rSettings)); // make_unique is C++14
 #else
         throw std::runtime_error("Support for MPI was not compiled!");
 #endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */
