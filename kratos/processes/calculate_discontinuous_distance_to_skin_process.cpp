@@ -172,7 +172,6 @@ namespace Kratos
 				}
 				else {
 					std::vector<array_1d<double,3>> int_pts_tangent;
-					//KRATOS_WATCH(rIntersectedObjects)
 					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[0].Coordinates());
 					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[1].Coordinates());
 					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[2].Coordinates());
