@@ -478,7 +478,7 @@ private:
 
     /** Equation identificator of the degree of freedom */
 #if defined (__arm__)
-    EquationIdType mEquationId : 16;
+    EquationIdType mEquationId : 32;
 #else
     EquationIdType mEquationId : 48;
 #endif
