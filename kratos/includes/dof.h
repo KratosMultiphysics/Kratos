@@ -196,8 +196,8 @@ public:
         : mIsFixed(false),
           mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
-          mEquationId(IndexType()),
           mIndex(),
+          mEquationId(IndexType()),
           mpNodalData(),
           mpVariable(nullptr),
           mpReaction(nullptr)

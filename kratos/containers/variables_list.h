@@ -264,10 +264,10 @@ namespace Kratos
 		}
 
 		int AddDof(VariableData const& ThisDofVariable){
-			int dof_index = -1;
-			for(;dof_index < mDofVriables.size(); dof_index++){
+			
+			for(std::size_t dof_index = 0 ; dof_index < mDofVriables.size() ; dof_index++){
 				if(*mDofVriables[dof_index] == ThisDofVariable)
-					return dof_index;
+					return static_cast<int>(dof_index);
 			}
 
 			mDofVriables.push_back(&ThisDofVariable);
