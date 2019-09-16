@@ -593,7 +593,7 @@ namespace Kratos {
 
         void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
-            ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             if (mpTurbulenceModel) // If not null
                 mpTurbulenceModel->Execute();
