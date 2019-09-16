@@ -702,7 +702,7 @@ class InsertFluidNodesMesherProcess
       //generating the dofs
       for(Node<3>::DofsContainerType::iterator iii = Reference_dofs.begin(); iii != Reference_dofs.end(); ++iii)
       {
-        Node<3>::DofType& rDof = *iii;
+        Node<3>::DofType& rDof = **iii;
         Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
         //(p_new_dof)->FreeDof();
