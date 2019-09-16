@@ -114,6 +114,8 @@ public:
 
     mRotationTool.RotateVelocities(rModelPart);
 
+    TSparseSpace::InplaceMult(rDx, mVelocityRelaxationFactor);
+
     mpDofUpdater->UpdateDofs(rDofSet,rDx);
 
     mRotationTool.RecoverVelocities(rModelPart);
@@ -140,7 +142,7 @@ public:
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
 
-    AddRelaxation(rCurrentElement->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+    // AddRelaxation(rCurrentElement->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     // apply slip condition
     mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
@@ -168,7 +170,7 @@ public:
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
 
-    AddRelaxation(rCurrentCondition->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+    // AddRelaxation(rCurrentCondition->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     // apply slip condition
     mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
@@ -230,9 +232,6 @@ public:
 
     rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
 
-    if (mpTurbulenceModel != 0) // If not null
-      mpTurbulenceModel->Execute();
-
     KRATOS_CATCH("");
   }
 
@@ -241,6 +240,9 @@ public:
                                        TSystemVectorType &rDx,
                                        TSystemVectorType &rb) override
   {
+    if (mpTurbulenceModel != 0) // If not null
+      mpTurbulenceModel->Execute();
+
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
     //if orthogonal subscales are computed
