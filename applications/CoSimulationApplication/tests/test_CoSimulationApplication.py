@@ -13,6 +13,7 @@ except:
 from co_simulation_test_factory import TestSmallCoSimulationCases
 from co_simulation_test_factory import TestCoSimulationCases
 from test_function_callback_utility import TestGenericCallFunction
+from test_ping_pong_coupling import TestPingPong
 if numpy_available:
     from test_coupling_interface_data import TestCouplingInterfaceData
     from test_data_transfer_operators import TestDataTransferOperators
@@ -38,6 +39,7 @@ def AssembleTestSuites():
     ################################################################################
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGenericCallFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
     if numpy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceData]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
