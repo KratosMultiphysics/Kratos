@@ -395,7 +395,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(r_elem_dist_begin[2], 0.0, 1e-6);
     }
 
- KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangent3D, ASDF)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSinglePointTangent3D, DistanceSuite)
     {
         Model current_model;
 
@@ -415,9 +415,9 @@ namespace Testing {
         const double plane_height = 1.0;
 		ModelPart &skin_part = current_model.CreateModelPart("Skin");
 		skin_part.CreateNewNode(901, -5.0, 5.0, plane_height);
-		skin_part.CreateNewNode(902, 5.0, 5.0, plane_height);
+		skin_part.CreateNewNode(902, -5.0, -5.0, plane_height);
 		skin_part.CreateNewNode(903, 5.0, -5.0, plane_height);
-		skin_part.CreateNewNode(904, -5.0, -5.0, plane_height);
+		skin_part.CreateNewNode(904, 5.0, 5.0, plane_height);
 		Properties::Pointer p_properties = skin_part.CreateNewProperties(0);
 		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
 		skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
@@ -434,7 +434,7 @@ namespace Testing {
             }
         }
 
-        GidIO<> gid_io_fluid("/home/kratos105a/data/branch_cases/distance_test/output/DiscontinuousDistanceProcessSingleTangent3D_vol", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        GidIO<> gid_io_fluid("/home/kratos105a/data/branch_cases/distance_test/output/DiscontinuousDistanceProcessSinglePointTangent3D_vol", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
         gid_io_fluid.InitializeMesh(0.00);
         gid_io_fluid.WriteMesh(fluid_part.GetMesh());
         gid_io_fluid.FinalizeMesh();
@@ -442,7 +442,7 @@ namespace Testing {
 		gid_io_fluid.WriteNodalResultsNonHistorical(DISTANCE, fluid_part.Nodes(), 0);
         gid_io_fluid.FinalizeResults();
 
-        GidIO<> gid_io_skin("/home/kratos105a/data/branch_cases/distance_test/output/DiscontinuousDistanceProcessSingleTangent3D_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        GidIO<> gid_io_skin("/home/kratos105a/data/branch_cases/distance_test/output/DiscontinuousDistanceProcessSinglePointTangent3D_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
         gid_io_skin.InitializeMesh(0.00);
         gid_io_skin.WriteMesh(skin_part.GetMesh());
         gid_io_skin.FinalizeMesh();
@@ -451,10 +451,133 @@ namespace Testing {
 
         // Check values
         const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
-        KRATOS_CHECK_NEAR(r_elem_dist[0], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], -1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], -1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], -1.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], 0.0, 1e-6);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleLineTangent3D, DistanceSuite)
+    {
+        Model current_model;
+
+        // Generate the element
+        ModelPart &fluid_part = current_model.CreateModelPart("Surface");
+        fluid_part.AddNodalSolutionStepVariable(DISTANCE);
+
+        fluid_part.CreateNewNode(1, 0.0 , 0.0, 0.0);
+        fluid_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        fluid_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+        fluid_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+
+        Properties::Pointer p_properties_0(new Properties(0));
+        fluid_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
+
+		// Generate the skin
+		ModelPart &skin_part = current_model.CreateModelPart("Skin");
+		skin_part.CreateNewNode(901, 0.0, -5.0, 5.0);
+		skin_part.CreateNewNode(902, 0.0, -5.0, -5.0);
+		skin_part.CreateNewNode(903, 0.0, 5.0, -5.0);
+		skin_part.CreateNewNode(904, 0.0, 5.0, 5.0);
+		Properties::Pointer p_properties = skin_part.CreateNewProperties(0);
+		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
+
+
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(fluid_part, skin_part);
+        disc_dist_proc.Execute();
+
+        for (auto &elem : fluid_part.Elements()) {
+            const auto elem_dist = elem.GetValue(ELEMENTAL_DISTANCES);
+            for (unsigned int i = 0; i<elem_dist.size(); i++) {
+                elem.GetGeometry()[i].SetValue(DISTANCE, elem_dist[i]);
+            }
+        }
+
+        GidIO<> gid_io_fluid("/home/kratos105a/data/branch_cases/distance_test/output/DiscontinuousDistanceProcessSingleLineTangent3D_vol", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        gid_io_fluid.InitializeMesh(0.00);
+        gid_io_fluid.WriteMesh(fluid_part.GetMesh());
+        gid_io_fluid.FinalizeMesh();
+        gid_io_fluid.InitializeResults(0, fluid_part.GetMesh());
+		gid_io_fluid.WriteNodalResultsNonHistorical(DISTANCE, fluid_part.Nodes(), 0);
+        gid_io_fluid.FinalizeResults();
+
+        GidIO<> gid_io_skin("/home/kratos105a/data/branch_cases/distance_test/output/DiscontinuousDistanceProcessSingleLineTangent3D_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        gid_io_skin.InitializeMesh(0.00);
+        gid_io_skin.WriteMesh(skin_part.GetMesh());
+        gid_io_skin.FinalizeMesh();
+        gid_io_skin.InitializeResults(0, skin_part.GetMesh());
+        gid_io_skin.FinalizeResults();
+
+        // Check values
+        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], 0.0, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[1], 1.0, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[2], 1.0, 1e-6);
         KRATOS_CHECK_NEAR(r_elem_dist[3], 0.0, 1e-6);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessSingleFaceTangent3D, DistanceSuite)
+    {
+        Model current_model;
+
+        // Generate the element
+        ModelPart &fluid_part = current_model.CreateModelPart("Surface");
+        fluid_part.AddNodalSolutionStepVariable(DISTANCE);
+
+        fluid_part.CreateNewNode(1, 0.0 , 0.0, 0.0);
+        fluid_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        fluid_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+        fluid_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+
+        Properties::Pointer p_properties_0(new Properties(0));
+        fluid_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
+
+		// Generate the skin
+        const double plane_height = 0.0;
+		ModelPart &skin_part = current_model.CreateModelPart("Skin");
+		skin_part.CreateNewNode(901, -5.0, 5.0, plane_height);
+		skin_part.CreateNewNode(902, -5.0, -5.0, plane_height);
+		skin_part.CreateNewNode(903, 5.0, -5.0, plane_height);
+		skin_part.CreateNewNode(904, 5.0, 5.0, plane_height);
+		Properties::Pointer p_properties = skin_part.CreateNewProperties(0);
+		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
+
+
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(fluid_part, skin_part);
+        disc_dist_proc.Execute();
+
+        for (auto &elem : fluid_part.Elements()) {
+            const auto elem_dist = elem.GetValue(ELEMENTAL_DISTANCES);
+            for (unsigned int i = 0; i<elem_dist.size(); i++) {
+                elem.GetGeometry()[i].SetValue(DISTANCE, elem_dist[i]);
+            }
+        }
+
+        GidIO<> gid_io_fluid("/home/kratos105a/data/branch_cases/distance_test/output/DiscontinuousDistanceProcessSingleFaceTangent3D_vol", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        gid_io_fluid.InitializeMesh(0.00);
+        gid_io_fluid.WriteMesh(fluid_part.GetMesh());
+        gid_io_fluid.FinalizeMesh();
+        gid_io_fluid.InitializeResults(0, fluid_part.GetMesh());
+		gid_io_fluid.WriteNodalResultsNonHistorical(DISTANCE, fluid_part.Nodes(), 0);
+        gid_io_fluid.FinalizeResults();
+
+        GidIO<> gid_io_skin("/home/kratos105a/data/branch_cases/distance_test/output/DiscontinuousDistanceProcessSingleFaceTangent3D_skin", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        gid_io_skin.InitializeMesh(0.00);
+        gid_io_skin.WriteMesh(skin_part.GetMesh());
+        gid_io_skin.FinalizeMesh();
+        gid_io_skin.InitializeResults(0, skin_part.GetMesh());
+        gid_io_skin.FinalizeResults();
+
+        // Check values
+        const auto &r_elem_dist = (fluid_part.ElementsBegin())->GetValue(ELEMENTAL_DISTANCES);
+        KRATOS_CHECK_NEAR(r_elem_dist[0], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[1], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[2], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(r_elem_dist[3], 1.0, 1e-6);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleTangent3D, ASDF)
@@ -481,9 +604,9 @@ namespace Testing {
         const double plane_height = 0.0;
 		ModelPart &skin_part = current_model.CreateModelPart("Skin");
 		skin_part.CreateNewNode(901, -5.0, 5.0, plane_height);
-		skin_part.CreateNewNode(902, 5.0, 5.0, plane_height);
+		skin_part.CreateNewNode(902, -5.0, -5.0, plane_height);
 		skin_part.CreateNewNode(903, 5.0, -5.0, plane_height);
-		skin_part.CreateNewNode(904, -5.0, -5.0, plane_height);
+		skin_part.CreateNewNode(904, 5.0, 5.0, plane_height);
 		Properties::Pointer p_properties = skin_part.CreateNewProperties(0);
 		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
 		skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
