@@ -741,8 +741,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointElementGetValues,
             values[local_index++] = r_node.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_1);
         }
 
-        RansModellingApplicationTestUtilities::IsVectorsSame(
-            element_values, values, std::numeric_limits<double>::epsilon());
+        RansModellingApplicationTestUtilities::CheckNear(element_values, values);
     }
 }
 
@@ -765,8 +764,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointElementGetFirstDeri
 
         Vector values = ZeroVector(15);
 
-        RansModellingApplicationTestUtilities::IsVectorsSame(
-            element_values, values, std::numeric_limits<double>::epsilon());
+        RansModellingApplicationTestUtilities::CheckNear(element_values, values);
     }
 }
 
@@ -805,8 +803,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjointElementGetSecondDer
                 r_node.FastGetSolutionStepValue(RANS_SCALAR_2_ADJOINT_3);
         }
 
-        RansModellingApplicationTestUtilities::IsVectorsSame(
-            element_values, values, std::numeric_limits<double>::epsilon());
+        RansModellingApplicationTestUtilities::CheckNear(element_values, values);
     }
 }
 
