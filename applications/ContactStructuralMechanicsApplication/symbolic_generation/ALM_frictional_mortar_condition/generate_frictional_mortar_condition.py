@@ -259,7 +259,11 @@ for normalvar in range(normal_combs):
                             augmented_tangent_contact_pressure = - mu[node] * augmented_normal_contact_pressure * TangentSlave.row(node)
                             modified_augmented_tangent_lm = ScaleFactor * LMTangent.row(node) - augmented_tangent_contact_pressure
 
-                            rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
+                            #rv_galerkin -= (ScaleFactor / (PenaltyParameter[node] * TangentFactor)) * modified_augmented_tangent_lm.dot(wLMTangent.row(node))
+
+                            #rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLMTangent.row(node).dot(LMTangent.row(node))) # Frictionless
+                            rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLMTangent.row(node).dot(LMTangent.row(node) - augmented_tangent_contact_pressure/ScaleFactor))
+
                             #if slip == 1: # Objective
                                 #rv_galerkin += DynamicFactor[node] * augmented_tangent_contact_pressure.dot(TangentwSlipObjective.row(node))
                             #else:
