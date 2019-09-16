@@ -12,6 +12,11 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
+from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_configuration import CreateTurbulenceModel
+
+if CheckIfApplicationsAvailable("RANSModellingApplication"):
+    import KratosMultiphysics.RANSModellingApplication as KratosRANS
+
 class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
     def __init__(self,settings):
@@ -271,12 +276,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         if not self.settings["turbulence_model"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
-            # if not empty
-            if CheckIfApplicationsAvailable("RANSModellingApplication"):
-                import KratosMultiphysics.RANSModellingApplication as KratosRANS
-            else:
+            if not CheckIfApplicationsAvailable("RANSModellingApplication"):
                 raise Exception("Please install/compile RANSModellingApplication to use turbulence_model properties")
-            from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_configuration import CreateTurbulenceModel
+
             self.turbulence_model_configuration = CreateTurbulenceModel(model, self.settings["turbulence_model"])
             self.condition_name = self.turbulence_model_configuration.GetFluidVelocityPressureConditionName()
             KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Using " + self.condition_name)
