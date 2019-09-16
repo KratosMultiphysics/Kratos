@@ -8,7 +8,7 @@ def run():
     Tester.RunTestSuite("KratosRANSTestSuite")
     # Tester.RunTestSuite("RANSEvModelsKEpsilonNodalMatrices")
     # Tester.RunTestSuite("RANSEvModelsKEpsilonGaussMatrices")
-    Tester.RunTestSuite("RANSEvModelsKEpsilonElementResidualMatrices")
+    Tester.RunTestSuite("RANSModellingApplicationInterfaces")
     # Tester.RunTestSuite("RANSEvModelsKEpsilonElementMethods")
 
 if __name__ == '__main__':

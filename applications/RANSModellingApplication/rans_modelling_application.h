@@ -179,37 +179,37 @@ private:
     ///@{
 
     /// k-epsilon turbulence model elements
-    const EvmLowReKElement<2, 3> mRANSEVMLowReK2D;
-    const EvmLowReKElement<3, 4> mRANSEVMLowReK3D;
+    const EvmLowReKElement<2, 3> mEVMLowReKElement2D3N;
+    const EvmLowReKElement<3, 4> mEVMLowReKElement3D4N;
 
-    const EvmLowReEpsilonElement<2, 3> mRANSEVMLowReEpsilon2D;
-    const EvmLowReEpsilonElement<3, 4> mRANSEVMLowReEpsilon3D;
+    const EvmLowReEpsilonElement<2, 3> mEVMLowReEpsilonElement2D3N;
+    const EvmLowReEpsilonElement<3, 4> mEVMLowReEpsilonElement3D4N;
 
-    const EvmKElement<2, 3> mRANSEVMK2D;
-    const EvmKElement<3, 4> mRANSEVMK3D;
+    const EvmKElement<2, 3> mEVMKElement2D3N;
+    const EvmKElement<3, 4> mEVMKElement3D4N;
 
-    const EvmEpsilonElement<2, 3> mRANSEVMEpsilon2D;
-    const EvmEpsilonElement<3, 4> mRANSEVMEpsilon3D;
+    const EvmEpsilonElement<2, 3> mEVMEpsilonElement2D3N;
+    const EvmEpsilonElement<3, 4> mEVMEpsilonElement3D4N;
 
     /// k-epsilon turbulence model conditions
-    const EvmEpsilonWallCondition<2> mRansEVMEpsilonWallCondition2D2N;
-    const EvmEpsilonWallCondition<3> mRansEVMEpsilonWallCondition3D3N;
+    const EvmEpsilonWallCondition<2> mEVMEpsilonWallCondition2D2N;
+    const EvmEpsilonWallCondition<3> mEVMEpsilonWallCondition3D3N;
 
-    const EVMVMSMonolithicWallCondition<2> mRansEVMVMSMonolithicWallCondition2D2N;
-    const EVMVMSMonolithicWallCondition<3> mRansEVMVMSMonolithicWallCondition3D3N;
+    const EVMVMSMonolithicWallCondition<2> mEVMVMSMonolithicWallCondition2D2N;
+    const EVMVMSMonolithicWallCondition<3> mEVMVMSMonolithicWallCondition3D3N;
 
     // k-epsilon adjoint elements
-    const EvmEpsilonAdjointElement<2, 3> mRANSEVMEpsilonAdjoint2D;
-    const EvmEpsilonAdjointElement<3, 4> mRANSEVMEpsilonAdjoint3D;
+    const EvmEpsilonAdjointElement<2, 3> mEVMEpsilonAdjointElement2D3N;
+    const EvmEpsilonAdjointElement<3, 4> mEVMEpsilonAdjointElement3D4N;
 
-    const EvmKAdjointElement<2, 3> mRANSEVMKAdjoint2D;
-    const EvmKAdjointElement<3, 4> mRANSEVMKAdjoint3D;
+    const EvmKAdjointElement<2, 3> mEVMKAdjointElement2D3N;
+    const EvmKAdjointElement<3, 4> mEVMKAdjointElement3D4N;
 
-    const EvmKEpsilonVMSAdjointElement<2> mRANSEVMKEpsilonVMSAdjoint2D;
-    const EvmKEpsilonVMSAdjointElement<3> mRANSEVMKEpsilonVMSAdjoint3D;
+    const EvmKEpsilonVMSAdjointElement<2> mEVMKEpsilonVMSAdjointElement2D3N;
+    const EvmKEpsilonVMSAdjointElement<3> mEVMKEpsilonVMSAdjointElement3D4N;
 
-    const EvmMonolithicKEpsilonVMSAdjointElement<2> mRANSEVMMonolithicKEpsilonVMSAdjoint2D;
-    const EvmMonolithicKEpsilonVMSAdjointElement<3> mRANSEVMMonolithicKEpsilonVMSAdjoint3D;
+    const EvmMonolithicKEpsilonVMSAdjointElement<2> mEVMMonolithicKEpsilonVMSAdjointElement2D3N;
+    const EvmMonolithicKEpsilonVMSAdjointElement<3> mEVMMonolithicKEpsilonVMSAdjointElement3D4N;
     ///@}
     ///@name Private Operators
     ///@{

@@ -63,7 +63,7 @@ void GenerateTestModelPart(ModelPart& rModelPart)
     rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
     rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
     std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3};
-    rModelPart.CreateNewElement("RANSEVMK2D3N", 1, elem_nodes, p_elem_prop);
+    rModelPart.CreateNewElement("EVMKElement2D3N", 1, elem_nodes, p_elem_prop);
 
     // Set the VELOCITY and PRESSURE nodal values
     array_1d<double, 3> v_1 = ZeroVector(3);
