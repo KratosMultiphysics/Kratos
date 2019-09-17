@@ -32,7 +32,7 @@ class MainCouplingPfemFemDem_Solution:
         self.RunBeforeSolutionLoopFEMDEM()
         while self.FEMDEM_Solution.time <= self.FEMDEM_Solution.end_time:
             self.SolveSolutionStepPFEM()
-            self.CalculateTimeStepFEMDEM()
+            self.SolveSolutionStepFEMDEM()
 
 #============================================================================================================================
     def SolveSolutionStepPFEM(self):
@@ -49,7 +49,7 @@ class MainCouplingPfemFemDem_Solution:
         self.FEMDEM_Solution.InitializeSolutionStep()
         self.FEMDEM_Solution.SolveSolutionStep()
         self.FEMDEM_Solution.FinalizeSolutionStep()
-        
+
 #============================================================================================================================
     def RunBeforeSolutionLoopFEMDEM(self):
         # Solving the problem (time integration)
@@ -59,3 +59,8 @@ class MainCouplingPfemFemDem_Solution:
 
         if self.FEMDEM_Solution.DoRemeshing:
             self.FEMDEM_Solution.RemeshingProcessMMG.ExecuteBeforeSolutionLoop()
+
+#============================================================================================================================
+    def Finalize(self):
+        self.FEMDEM_Solution.Finalize()
+        self.PFEM_Solution.Finalize()
