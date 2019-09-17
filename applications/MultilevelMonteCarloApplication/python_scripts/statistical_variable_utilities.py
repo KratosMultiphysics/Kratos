@@ -8,12 +8,6 @@ from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 
-"""
-This utility contains the statistics class
-References:
-P. Pébay, T. B. Terriberry, H. Kolla, J. Bennett; Stable, Scalable Formulas for Parallel and Online Computation of Higher-order Multivariate Central Moments with Arbitrary Weights; Comput. Stat.(2016) 31:1305-1325
-M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation; available at MATHICSE technical report no. 23.2017
-"""
 
 """
 auxiliary function of UpdateOnePassCentralMoments of the StatisticalVariable class

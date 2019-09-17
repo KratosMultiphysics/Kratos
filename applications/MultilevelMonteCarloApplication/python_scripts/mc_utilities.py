@@ -30,21 +30,6 @@ try:
 except ImportError:
     import pickle
 
-"""
-This utility contains the functions to perform the Monte Carlo (CMLMC) algorithm
-References:
-M. Pisaroni, F. Nobile, P. Leyland; A Continuation Multi Level Monte Carlo (C-MLMC) method for uncertainty quantification in compressible inviscid aerodynamics; Computer Methods in Applied Mechanics and Engineering, vol 326, pp 20-50, 2017. DOI : 10.1016/j.cma.2017.07.030.
-M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation ;  available as MATHICSE technical report no. 23.2017
-C. Bayer, H. Hoel, E. von Schwerin, R. Tempone; On NonAsymptotyc optimal stopping criteria in Monte Carlo simulations; avaiable at  SIAM Journal on Scientific Computing, 2014, Vol. 36, No. 2 : pp. A869-A885
-"""
-
-
-# TODO: in CheckConvergence convert formulas from unbiased to biased
-# TODO: in [3] formula 4.1 I use unbiased formula, not biased, as sample moments. Check it's fine
-# TODO: now batch_size = difference_number_samples, in future it may have flags for different behaviours
-# TODO: update input and output descriptions after new task formulations
-# TODO: for now batch_size = initial_batch_size, in future it may have flags for different behaviours
-
 
 """
 auxiliary function of AddResults of the MonteCarlo class
