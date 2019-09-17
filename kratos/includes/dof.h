@@ -477,7 +477,7 @@ private:
     int mIndex : 6;
 
     /** Equation identificator of the degree of freedom */
-#if defined (__arm__)
+#if defined (__arm__) // Required to avoid overflow on ARM systems (32 bit)
     EquationIdType mEquationId : 32;
 #else
     EquationIdType mEquationId : 48;
