@@ -188,7 +188,7 @@ public:
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
-        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Elements().ptr_begin();
+        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Conditions().ptr_begin();
 
         // assemble all elements
         #pragma omp parallel for firstprivate(equation_ids_vector, LHS_Contribution, RHS_Contribution, r_current_process_info)
@@ -197,7 +197,8 @@ public:
 
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
-            const bool element_is_active = !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE);
+            const bool element_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
+
             if (element_is_active) {
                 // calculate elemental contribution
                 pScheme->CalculateSystemContributions(
@@ -223,7 +224,7 @@ public:
 
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
-            const bool condition_is_active = !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE);
+            const bool condition_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
             if (condition_is_active) {
                 // calculate elemental contribution
                 pScheme->Condition_CalculateSystemContributions(
@@ -273,8 +274,8 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.ElementsBegin();
-        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.ConditionsBegin();
+        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
+        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Conditions().ptr_begin();
 
         // assemble all elements
         #pragma omp parallel for firstprivate(equation_ids_vector, LHS_Contribution, r_current_process_info)
@@ -466,8 +467,8 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.ElementsBegin();
-        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.ConditionsBegin();
+        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
+        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Conditions().ptr_begin();
 
         // assemble all elements
         #pragma omp parallel for firstprivate(equation_ids_vector, RHS_Contribution, r_current_process_info)
@@ -526,8 +527,8 @@ public:
             rModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * 3;
         temp_dofs_array.reserve(guess_num_dofs);
         BaseType::mDofSet = DofsArrayType();
-        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.ElementsBegin();
-        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.ConditionsBegin();        
+        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
+        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Conditions().ptr_begin();        
 
         // Taking dofs of elements
         for (IndexType i = 0; i < number_of_elements; ++i) {
