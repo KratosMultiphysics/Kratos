@@ -27,4 +27,10 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         parameters["problem_data"]["problem_name"].SetString("PFEM" + problem_name)
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("PFEM" + problem_name)
 
-        super(MainPFEM_for_coupling_solution,self).__init__(model,parameters)
+        super(MainPFEM_for_coupling_solution, self).__init__(model, parameters)
+
+    def Initialize(self):
+        super(MainPFEM_for_coupling_solution, self).Initialize()
+        for node in self.main_model_part.Nodes:
+            print(node.Id)
+        Wait()
