@@ -368,8 +368,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         def ReadModelPart(model_part, file_name, max_node_id, max_elem_id, max_cond_id):
             file_path = self.GetInputFilePath(file_name)
-            print('file_path', self.GetProblemNameWithPath())
-            print('C'*100,file_path)
+
             if not os.path.isfile(file_path + '.mdpa'):
                 self.KratosPrintInfo('Input file ' + file_name + '.mdpa' + ' not found. Continuing.')
                 return

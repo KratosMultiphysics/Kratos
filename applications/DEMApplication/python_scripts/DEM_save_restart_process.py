@@ -36,9 +36,7 @@ class DEMSaveRestartProcess(SaveRestartProcess):
         model_parts = [model[mp.GetString()] for mp in params["model_part_names"]]
         import json
         params_dict = json.loads(params.PrettyPrintJsonString())
-        print(params_dict)
         params_dict["input_filenames"] = [mp.GetString() for mp in params["model_part_names"]]
-        print(params_dict)
         params = Kratos.Parameters(json.dumps(params_dict))
 
         params.RemoveValue("model_part_names")

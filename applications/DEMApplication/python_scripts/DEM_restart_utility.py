@@ -37,7 +37,6 @@ class DEMRestartUtility(RestartUtility):
             settings_copy.AddValue("input_filename", name)
             settings_copy.RemoveValue("input_filenames")
             settings_copy.RemoveValue("input_filenames")
-            print('bbb'*200, name.GetString())
             super(DEMRestartUtility, self).__init__(model.GetModelPart(name.GetString()), settings_copy)
         self.restart_save_location = restart_save_location
         # print('yyyy'*50,self.restart_save_location)
@@ -45,11 +44,9 @@ class DEMRestartUtility(RestartUtility):
 
     def SaveRestart(self):
         for name in self.file_names:
-            print('xdxd'*50,self.raw_path)
             self.raw_path, self.raw_file_name = os.path.split(name)
             #self.raw_path = os.path.join(os.getcwd(), self.raw_path)
             self.raw_path = self.restart_save_location
-            print('self.raw_file_name', self.raw_file_name)
             super(DEMRestartUtility, self).SaveRestart()
 
     def LoadRestart(self,  restart_file_name=""):

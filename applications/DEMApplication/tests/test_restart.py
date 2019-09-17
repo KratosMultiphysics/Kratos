@@ -58,10 +58,10 @@ class DEMRestartTestFactory():
                 for d1, d2 in zip(displacement_save, displacement_load):
                     self.assertAlmostEqual(d1, d2)
 
-# class TestRestartOneBall(DEMRestartTestFactory, KratosUnittest.TestCase):
-#     case_name = "one_ball"
-#     def setUp(self):
-#         super().setUp(TestRestartOneBall.case_name)
+class TestRestartOneBall(DEMRestartTestFactory, KratosUnittest.TestCase):
+    case_name = "one_ball"
+    def setUp(self):
+        super().setUp(TestRestartOneBall.case_name)
 
 class TestRestartTwoBalls(DEMRestartTestFactory, KratosUnittest.TestCase):
     case_name = "two_balls"
@@ -69,10 +69,13 @@ class TestRestartTwoBalls(DEMRestartTestFactory, KratosUnittest.TestCase):
         super().setUp(TestRestartTwoBalls.case_name)
 
 if __name__ == '__main__':
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
+
     suites = KratosUnittest.KratosSuites
+
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     test_list = [
-        # TestRestartOneBall,
+        TestRestartOneBall,
         TestRestartTwoBalls
     ]
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(test_list))
