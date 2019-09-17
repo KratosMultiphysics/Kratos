@@ -21,6 +21,8 @@
 #include "utilities/color_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_utilities/active_set_utilities.h"
+#include "custom_utilities/contact_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -239,6 +241,13 @@ public:
 
             // Compute the active set
             if (!r_process_info[ACTIVE_SET_COMPUTED]) {
+                // Recompute the WEIGHTED_GAP and WEIGHTED_GAP
+                NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+                VariableUtils().SetHistoricalVariableToZero(WEIGHTED_GAP, r_nodes_array);
+                VariableUtils().SetHistoricalVariableToZero(WEIGHTED_SLIP, r_nodes_array);
+                ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
+
+                // Actually compute active set
                 const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputeALMFrictionalActiveSet(rModelPart, mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::PURE_SLIP), this->GetEchoLevel());
 
                 // We save to the process info if the active set has converged
@@ -266,9 +275,9 @@ public:
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
-                if (it_dof->IsFree()) {
-                    dof_id = it_dof->EquationId();
+                dof_id = it_dof->EquationId();
 
+                if (mActiveDofs[dof_id]) {
                     const auto curr_var = it_dof->GetVariable();
                     if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
@@ -504,7 +513,11 @@ public:
         const TSystemVectorType& rb
         ) override
     {
+        // Initialize flags
         mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
+
+        // Filling mActiveDofs when MPC exist
+        ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
     }
 
     /**
@@ -599,6 +612,8 @@ private:
     TDataType mLMTangentAbsTolerance;   /// The absolute value threshold for the norm of the LM (tangent)
 
     TDataType mNormalTangentRatio;      /// The ratio to accept a non converged tangent component in case
+
+    std::vector<bool> mActiveDofs;      /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
