@@ -59,6 +59,13 @@ bool IsNear(const double ValueA, const double ValueB, const double RelTol, const
 
 void CheckNear(const double ValueA, const double ValueB, const double RelTol, const double AbsTol)
 {
+    if (std::abs(ValueA) < AbsTol && std::abs(ValueB) < AbsTol)
+    {
+        KRATOS_WARNING("CheckNear")
+            << "Comparing values smaller than Tolerance. ValueA / ValueB < "
+               "Tolerance [ "
+            << ValueA << " / " << ValueB << " < " << AbsTol << " ]\n";
+    }
     if (!IsNear(ValueA, ValueB, RelTol, AbsTol))
     {
         // Currently KRATOS_ERROR doesn't handle I/O formatting so stringstream
