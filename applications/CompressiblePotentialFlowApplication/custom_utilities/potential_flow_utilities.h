@@ -76,6 +76,9 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
 template <int Dim, int NumNodes>
 const bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
+template <int Dim, int NumNodes>
+const bool CheckWakeConditionXDirection(const Element& rElement, const int& rComponent, const double& rTolerance, const int& rEchoLevel);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 
