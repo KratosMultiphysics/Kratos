@@ -63,7 +63,7 @@ class TurbulenceModelSolver(PythonSolver):
         msg += " Please override it in the derrived class to return a condition name."
         raise Exception(msg)
 
-    def SetCommunicator(self, current_communicator):
+    def SetCommunicator(self, epetra_communicator):
         msg = "Calling the base TurbulenceModelSolver class SetCommunicator method."
-        msg += " Please override it in the derrived class to set the communicator for RANS model parts"
+        msg += " Please override it in the derrived class to set the epetra_communicator for RANS model parts"
         raise Exception(msg)
