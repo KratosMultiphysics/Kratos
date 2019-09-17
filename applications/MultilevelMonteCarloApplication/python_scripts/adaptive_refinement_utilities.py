@@ -31,7 +31,7 @@ class AdaptiveRefinement(object):
         self.parameters_coarse = parameters_coarse
         self.metric_param = metric_param
         self.remesh_param = remesh_param
-        self.problem_type = self.parameters_coarse["problem_data"]["problem_name"].GetString()
+        self.problem_type = self.parameters_coarse["solver_settings"]["solver_type"].GetString()
         self.metric = metric_name
         self.current_level = current_level
 
@@ -54,7 +54,7 @@ class AdaptiveRefinement(object):
             original_interp_error = metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
 
             # problem dependent section
-            if (problem_type == "body_fitted_ellipse"):
+            if (problem_type == "potential_flow"):
                 model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
                 # set NODAL_AREA and NODAL_H as non historical variables
                 KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
@@ -103,7 +103,7 @@ class AdaptiveRefinement(object):
                 #### OLD APPROACH
 
 
-            elif (problem_type == "ProblemZero"):
+            elif (problem_type == "monolithic"):
                 if metric_param.Has("local_gradient_variable"):
                     metric_param.RemoveValue("local_gradient_variable")
                 if current_level > 0:
@@ -125,7 +125,7 @@ class AdaptiveRefinement(object):
                 local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),KratosFluid.AVERAGE_VELOCITY_Y,metric_param)
                 local_gradient.Execute()
 
-            elif (problem_type == "poisson_square_2d"):
+            elif (problem_type == "stationary"):
                 if current_level > 0:
                     coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
                     metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")

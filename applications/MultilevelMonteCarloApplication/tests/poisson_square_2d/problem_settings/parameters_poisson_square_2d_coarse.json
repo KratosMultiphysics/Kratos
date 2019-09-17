@@ -12,6 +12,7 @@
     "solver_settings"          : {
             "model_part_name" : "MainModelPart",
             "domain_size" : 2,
+            "solver_type" : "stationary",
             "echo_level": 0,
             "model_import_settings": {
                 "input_type": "mdpa",
