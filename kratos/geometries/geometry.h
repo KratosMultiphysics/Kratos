@@ -1284,6 +1284,29 @@ public:
     }
 
     /**
+    * @brief This function is necessary for composite geometries. It returns the
+    * geometry part which is accessable with a certain index.
+    * @details This index
+    * is dependent on the derived implementation.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes
+    * @return geometry, which is connected through the Index
+     */
+    virtual GeometryType& GetGeometryPart(IndexType Index) const
+    {
+        KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function."
+            <<" Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @return the number of geometry parts that this geometry contains.
+    */
+    virtual SizeType NumberOfGeometryParts() const
+    {
+        return 0;
+    }
+
+    /**
      * Returns a matrix of the local coordinates of all points
      * @param rResult a Matrix that will be overwritten by the results
      * @return the coordinates of all points of the current geometry

@@ -69,13 +69,12 @@ class MmgProcess(KratosMultiphysics.Process):
                 },
                 "error_metric_parameters"                 :
                 {
-                    "error_threshold"                       : 0.05,
+                    "error_threshold"                       : 1.0e-4,
                     "interpolation_error"                   : 0.04
                 },
                 "set_target_number_of_elements"       : false,
                 "target_number_of_elements"           : 1000,
-                "perform_nodal_h_averaging"           : false,
-                "max_iterations"                      : 3
+                "perform_nodal_h_averaging"           : false
             },
             "discretization_type"                  : "Standard",
             "isosurface_parameters"                :
@@ -295,11 +294,9 @@ class MmgProcess(KratosMultiphysics.Process):
             mesh_dependent_constant = self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if mesh_dependent_constant == 0.0:
                 self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.domain_size/(self.domain_size + 1))**2.0)
-        elif self.strategy == "superconvergent_patch_recovery":
+        elif self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
             self.error_threshold = self.settings["error_strategy_parameters"]["error_metric_parameters"]["error_threshold"].GetDouble()
-            self.estimated_error = 0
-            self.remeshing_cycle = 0
-            self.main_model_part.ProcessInfo[MeshingApplication.EXECUTE_REMESHING] = True
+            self.error_ratio = 0
 
         self.internal_variable_interpolation_list = kratos_utilities.GenerateVariableListFromInput(self.settings["internal_variables_parameters"]["internal_variable_interpolation_list"])
 
@@ -389,7 +386,6 @@ class MmgProcess(KratosMultiphysics.Process):
         # If not previous remesh
         if not self.remesh_executed:
             if not self.initial_remeshing:
-                execute_remesh = False
                 # We need to check if the model part has been modified recently
                 if self.main_model_part.Is(KratosMultiphysics.MODIFIED):
                     self.main_model_part.Set(KratosMultiphysics.MODIFIED, False)
@@ -398,36 +394,15 @@ class MmgProcess(KratosMultiphysics.Process):
                 else:
                     current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
                     if self.interval.IsInInterval(current_time):
-                        if self.remesh_control_type == "step":
-                            self.step += 1
-                            if self.step_frequency > 0:
-                                if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
-                                    if not self.initial_step_done:
-                                        execute_remesh = True
-                                    else:
-                                        if self.step >= self.step_frequency:
-                                            execute_remesh = True
-                        elif self.remesh_control_type == "time":
-                            delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-                            self.time += delta_time
-                            remesh_delta_time = self.__get_delta_time()
-                            if remesh_delta_time > 0:
-                                if not self.initial_step_done:
-                                    execute_remesh = True
-                                else:
-                                    if self.time >= remesh_delta_time:
-                                        execute_remesh = True
-                        else:
-                            raise Exception("{0} Error: remesh_control_type is unreadable".format(self.remesh_control_type))
-
                         # We remesh if needed
-                        if execute_remesh:
-                            if self.settings["blocking_threshold_size"].GetBool():
-                                MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
-                            self._ExecuteRefinement()
-                            self.initial_step_done = True
-                            self.step = 0  # Reset
-                            self.time = 0.0  # Reset
+                        if self.__execute_remesh():
+                            if self.strategy == "Hessian" or self.strategy == "LevelSet":
+                                if self.settings["blocking_threshold_size"].GetBool():
+                                    MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
+                                self._ExecuteRefinement()
+                                self.initial_step_done = True
+                                self.step = 0  # Reset
+                                self.time = 0.0  # Reset
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -435,11 +410,30 @@ class MmgProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        if self.strategy == "superconvergent_patch_recovery":
-            self._ErrorCalculation()
+        if self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            if self.interval.IsInInterval(current_time):
+                if self.__execute_remesh():
+                    self._ErrorCalculation()
+
+                    if self.error_ratio > self.error_threshold:
+                        self._ExecuteRefinement()
+                        self.step = 0  # Reset
+                        self.time = 0.0  # Reset
 
         # Reset flag
         self.remesh_executed = False
+
+    def ExecuteBeforeOutputStep(self):
+        """ This method is executed right before the ouput process computation
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        if self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            if self.interval.IsInInterval(current_time):
+                self._ErrorCalculation()
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -447,12 +441,7 @@ class MmgProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        if self.strategy == "superconvergent_patch_recovery":
-            if self.main_model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE] > self.error_threshold:
-                self.__execute_refinement()
-            self.remeshing_cycle += 1
-            if self.main_model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE] <= self.error_threshold or self.remeshing_cycle > self.params["max_iterations"].GetInt():
-                self.main_model_part.ProcessInfo[MeshingApplication.EXECUTE_REMESHING] = False
+        pass
 
     def _CreateMetricsProcess(self):
         """ This method is responsible to create the metrics of the process
@@ -494,18 +483,18 @@ class MmgProcess(KratosMultiphysics.Process):
                 hessian_parameters["hessian_strategy_parameters"]["non_historical_metric_variable"].SetBool(non_historical_metric_variable)
                 hessian_parameters["hessian_strategy_parameters"]["normalization_factor"].SetDouble(normalization_factor)
                 self.metric_processes.append(MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, current_metric_variable, hessian_parameters))
-        elif self.strategy == "superconvergent_patch_recovery":
+        elif self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
             # Generate SPR process
             self.error_compute = self._GenerateErrorProcess()
 
             # Now we compute the metric
-            error_metric_parameters = KratosMultiphysics.Parameters("""{}""")
+            error_metric_parameters = KratosMultiphysics.Parameters("""{"error_strategy_parameters":{}}""")
             error_metric_parameters.AddValue("minimal_size",self.settings["minimal_size"])
             error_metric_parameters.AddValue("maximal_size",self.settings["maximal_size"])
-            error_metric_parameters.AddValue("target_error",self.settings["error_strategy_parameters"]["error_metric_parameters"]["interpolation_error"])
-            error_metric_parameters.AddValue("set_target_number_of_elements", self.settings["error_strategy_parameters"]["set_target_number_of_elements"])
-            error_metric_parameters.AddValue("target_number_of_elements", self.settings["error_strategy_parameters"]["target_number_of_elements"])
-            error_metric_parameters.AddValue("perform_nodal_h_averaging", self.settings["error_strategy_parameters"]["perform_nodal_h_averaging"])
+            error_metric_parameters["error_strategy_parameters"].AddValue("target_error",self.settings["error_strategy_parameters"]["error_metric_parameters"]["interpolation_error"])
+            error_metric_parameters["error_strategy_parameters"].AddValue("set_target_number_of_elements", self.settings["error_strategy_parameters"]["set_target_number_of_elements"])
+            error_metric_parameters["error_strategy_parameters"].AddValue("target_number_of_elements", self.settings["error_strategy_parameters"]["target_number_of_elements"])
+            error_metric_parameters["error_strategy_parameters"].AddValue("perform_nodal_h_averaging", self.settings["error_strategy_parameters"]["perform_nodal_h_averaging"])
             error_metric_parameters.AddValue("echo_level", self.settings["echo_level"])
 
             if self.domain_size == 2:
@@ -539,7 +528,8 @@ class MmgProcess(KratosMultiphysics.Process):
         self.find_nodal_h.Execute()
 
         # Initialize metric
-        self.initialize_metric.Execute()
+        if self.strategy == "Hessian" or self.strategy == "LevelSet":
+            self.initialize_metric.Execute()
 
         KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Calculating the metrics")
         # Execute metric computation
@@ -597,7 +587,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.error_compute.Execute()
         # Execute metric computation
         self.metric_process.Execute()
-        self.estimated_error = self.main_model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE]
+        self.error_ratio = self.main_model_part.ProcessInfo[KratosMultiphysics.ERROR_RATIO]
 
     def _AuxiliarCallsBeforeRemesh(self):
         """ This method is executed right before execute the remesh
@@ -627,12 +617,43 @@ class MmgProcess(KratosMultiphysics.Process):
 
         # We compute the error
         error_compute_parameters = KratosMultiphysics.Parameters("""{}""")
-        error_compute_parameters.AddValue("stress_vector_variable", self.settings["compute_error_extra_parameters"]["stress_vector_variable"])
+        error_compute_parameters.AddValue("stress_vector_variable", self.settings["error_strategy_parameters"]["compute_error_extra_parameters"]["stress_vector_variable"])
         error_compute_parameters.AddValue("echo_level", self.settings["echo_level"])
         if self.domain_size == 2:
             return StructuralMechanicsApplication.SPRErrorProcess2D(self.main_model_part, error_compute_parameters)
         else:
             return StructuralMechanicsApplication.SPRErrorProcess3D(self.main_model_part, error_compute_parameters)
+
+    def __execute_remesh(self):
+        """ This method returns if we need to execute the remeshing
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        execute_remesh = False
+        if self.remesh_control_type == "step":
+            self.step += 1
+            if self.step_frequency > 0:
+                if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
+                    if not self.initial_step_done:
+                        execute_remesh = True
+                    else:
+                        if self.step >= self.step_frequency:
+                            execute_remesh = True
+        elif self.remesh_control_type == "time":
+            delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            self.time += delta_time
+            remesh_delta_time = self.__get_delta_time()
+            if remesh_delta_time > 0:
+                if not self.initial_step_done:
+                    execute_remesh = True
+                else:
+                    if self.time >= remesh_delta_time:
+                        execute_remesh = True
+        else:
+            raise Exception("{0} Error: remesh_control_type is unreadable".format(self.remesh_control_type))
+
+        return execute_remesh
 
     def __get_delta_time(self):
         """ This method returns the delta time for time managed remeshing
