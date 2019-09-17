@@ -52,7 +52,10 @@ public:
      * @param rModelPart The modelpart which is used for output
      * @param Parameters Parameters including settings for the output
      */
-    explicit VtkOutput(ModelPart& rModelPart, Parameters ThisParameters);
+    explicit VtkOutput(
+        ModelPart& rModelPart,
+        Parameters ThisParameters = Parameters(R"({})" )
+        );
 
     /// Destructor.
     virtual ~VtkOutput() = default;

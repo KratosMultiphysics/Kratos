@@ -91,7 +91,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
             if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
                 BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
                 noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
             } else {

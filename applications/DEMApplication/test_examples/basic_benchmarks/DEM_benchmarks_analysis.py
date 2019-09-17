@@ -7,9 +7,9 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-from DEM_analysis_stage import DEMAnalysisStage
-import plot_variables                # Related to benchmarks in Chung, Ooi
-import DEM_benchmarks_class as DBC
+from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
+import KratosMultiphysics.DEMApplication.plot_variables as plot_variables        # Related to benchmarks in Chung, Ooi
+import KratosMultiphysics.DEMApplication.DEM_benchmarks_class as DBC
 
 sys.path.insert(0,'')
 start = timer.time()

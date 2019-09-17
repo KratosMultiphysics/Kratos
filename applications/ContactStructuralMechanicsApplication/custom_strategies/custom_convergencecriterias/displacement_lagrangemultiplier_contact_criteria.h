@@ -20,6 +20,7 @@
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -214,8 +215,9 @@ public:
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
-                if (it_dof->IsFree()) {
-                    dof_id = it_dof->EquationId();
+                dof_id = it_dof->EquationId();
+
+                if (mActiveDofs[dof_id]) {
                     dof_value = it_dof->GetSolutionStepValue(0);
                     dof_incr = rDx[dof_id];
 
@@ -337,6 +339,26 @@ public:
         }
     }
 
+    /**
+     * @brief This function initializes the solution step
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
+        ) override
+    {
+        // Filling mActiveDofs when MPC exist
+        ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
+    }
+
     ///@}
     ///@name Operations
     ///@{
@@ -398,6 +420,8 @@ private:
 
     TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
     TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
+
+    std::vector<bool> mActiveDofs; /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
