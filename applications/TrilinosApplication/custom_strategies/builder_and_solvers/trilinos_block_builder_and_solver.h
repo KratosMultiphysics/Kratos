@@ -187,10 +187,11 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
-        ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Elements().ptr_begin();
+        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
+        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Elements().ptr_begin();
 
         // assemble all elements
+        #pragma omp parallel for firstprivate(equation_ids_vector, LHS_Contribution, RHS_Contribution, r_current_process_info)
         for (int k = 0; k < nelements; k++) {
             auto it = el_begin + k;            
 
@@ -216,6 +217,7 @@ public:
         RHS_Contribution.resize(0, false);
 
         // assemble all conditions
+        #pragma omp parallel for firstprivate(equation_ids_vector, LHS_Contribution, RHS_Contribution, r_current_process_info)
         for (int k = 0; k < nconditions; k++) {
             auto it = cond_begin + k;
 
@@ -271,12 +273,11 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.ElementsBegin();
-        
-        ModelPart::ConditionsContainerType::ptr_iterator cond_begin =
-            rModelPart.ConditionsBegin();
+        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.ElementsBegin();
+        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.ConditionsBegin();
 
         // assemble all elements
+        #pragma omp parallel for firstprivate(equation_ids_vector, LHS_Contribution, r_current_process_info)
         for (int k = 0; k < nelements; k++) {
             auto it = el_begin + k;
             pScheme->Calculate_LHS_Contribution(*(it.base()), LHS_Contribution,
@@ -292,6 +293,7 @@ public:
         LHS_Contribution.resize(0, 0, false);
 
         // assemble all conditions
+        #pragma omp parallel for firstprivate(equation_ids_vector, LHS_Contribution, r_current_process_info)
         for (int k = 0; k < nconditions; k++) {
             auto it = cond_begin + k;
             // calculate elemental contribution
@@ -464,11 +466,11 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::ptr_iterator cond_begin =
-            rModelPart.ConditionsBegin();
+        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.ElementsBegin();
+        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.ConditionsBegin();
 
         // assemble all elements
+        #pragma omp parallel for firstprivate(equation_ids_vector, RHS_Contribution, r_current_process_info)
         for (int k = 0; k < nelements; k++) {
             auto it = el_begin + k;
             // calculate elemental Right Hand Side Contribution
@@ -481,7 +483,8 @@ public:
 
         RHS_Contribution.resize(0, false);
 
-        // assemble all conditions
+        // assemble all conditions 
+        #pragma omp parallel for firstprivate(equation_ids_vector, RHS_Contribution, r_current_process_info)               
         for (int k = 0; k < nconditions; k++) {
             auto it = cond_begin + k;
             // calculate elemental contribution
@@ -523,10 +526,12 @@ public:
             rModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * 3;
         temp_dofs_array.reserve(guess_num_dofs);
         BaseType::mDofSet = DofsArrayType();
+        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.ElementsBegin();
+        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.ConditionsBegin();        
 
         // Taking dofs of elements
         for (IndexType i = 0; i < number_of_elements; ++i) {
-            auto it_elem = r_elements_array.begin() + i;
+            auto it_elem = el_begin + i;
             pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
             for (typename DofsVectorType::iterator i = dof_list.begin();
                  i != dof_list.end(); ++i)
@@ -535,10 +540,9 @@ public:
 
         // Taking dofs of conditions
         ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
-        const IndexType number_of_conditions =
-            static_cast<int>(r_conditions_array.size());
+        const IndexType number_of_conditions = static_cast<int>(r_conditions_array.size());
         for (IndexType i = 0; i < number_of_conditions; ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+            auto it_cond = cond_begin + i;
             pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
             for (typename DofsVectorType::iterator i = dof_list.begin();
                  i != dof_list.end(); ++i)
