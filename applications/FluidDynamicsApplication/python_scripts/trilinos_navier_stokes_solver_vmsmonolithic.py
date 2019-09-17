@@ -16,9 +16,6 @@ from KratosMultiphysics.mpi.distributed_import_model_part_utility import Distrib
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_solver import CreateTurbulenceModel
 
-if CheckIfApplicationsAvailable("RANSModellingApplication"):
-    import KratosMultiphysics.RANSModellingApplication as KratosRANS
-
 def CreateSolver(model, custom_settings):
     return TrilinosNavierStokesSolverMonolithic(model, custom_settings)
 
@@ -111,8 +108,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         if not self.settings["turbulence_model"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
-            if not CheckIfApplicationsAvailable("RANSModellingApplication"):
-                raise Exception("Please install/compile RANSModellingApplication to use turbulence_model properties")
             self.turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model"], True)
             self.condition_name = self.turbulence_model_solver.GetFluidVelocityPressureConditionName()
             KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic", "Using " + self.condition_name)

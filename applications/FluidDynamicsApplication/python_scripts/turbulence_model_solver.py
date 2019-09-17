@@ -4,10 +4,6 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
-if CheckIfApplicationsAvailable("RANSModellingApplication"):
-    import KratosMultiphysics.RANSModellingApplication as KratosRANS
-
-
 def CreateTurbulenceModel(model, settings, is_distributed = False):
     if not CheckIfApplicationsAvailable("RANSModellingApplication"):
         msg = "Using a turbulence model requires the RANSModellingApplication. "
