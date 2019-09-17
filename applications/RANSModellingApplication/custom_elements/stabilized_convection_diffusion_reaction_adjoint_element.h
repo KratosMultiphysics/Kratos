@@ -3731,6 +3731,18 @@ private:
 
 }; // Class Element
 
+template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
+constexpr unsigned int StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::TMonolithicAssemblyLocalSize;
+
+template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
+constexpr unsigned int StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::TVelPrBlockSize;
+
+template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
+constexpr unsigned int StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::TVelPrLocalSize;
+
+template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
+constexpr bool StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::TMonolithicMatrixConstruction;
+
 ///@}
 ///@name Type Definitions
 ///@{
