@@ -12,8 +12,6 @@ from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factor
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
-
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_solver import CreateTurbulenceModel
 
 def CreateSolver(model, custom_settings):

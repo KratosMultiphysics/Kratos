@@ -5,7 +5,6 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver

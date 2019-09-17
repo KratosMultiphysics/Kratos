@@ -1,6 +1,5 @@
 from __future__ import print_function, absolute_import, division
 
-import KratosMultiphysics as Kratos
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
