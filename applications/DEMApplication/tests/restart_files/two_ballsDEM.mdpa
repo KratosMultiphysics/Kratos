@@ -23,19 +23,6 @@ Begin Nodes
 End Nodes
 
 
-Begin Nodes
-End Nodes
-
-
-Begin Nodes
-End Nodes
-
-
-Begin Nodes
-    2        0.00416       -0.00108        0.00245
-End Nodes
-
-
 Begin Elements SphericParticle3D// GUI group identifier: DEM
         1          1          1
         2          1          2
