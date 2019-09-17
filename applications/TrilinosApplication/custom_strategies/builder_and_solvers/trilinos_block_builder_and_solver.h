@@ -187,20 +187,16 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin =
-            rModelPart.ConditionsBegin();
+        ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
+        ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Elements().ptr_begin();
 
         // assemble all elements
         for (int k = 0; k < nelements; k++) {
-            ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            auto it = el_begin + k;            
 
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
-            bool element_is_active = true;
-            if ((it)->IsDefined(ACTIVE))
-                element_is_active = (it)->Is(ACTIVE);
-
+            const bool element_is_active = !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE);
             if (element_is_active) {
                 // calculate elemental contribution
                 pScheme->CalculateSystemContributions(
@@ -221,14 +217,11 @@ public:
 
         // assemble all conditions
         for (int k = 0; k < nconditions; k++) {
-            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            auto it = cond_begin + k;
 
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
-            bool condition_is_active = true;
-            if ((it)->IsDefined(ACTIVE))
-                condition_is_active = (it)->Is(ACTIVE);
-
+            const bool condition_is_active = !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE);
             if (condition_is_active) {
                 // calculate elemental contribution
                 pScheme->Condition_CalculateSystemContributions(
@@ -278,13 +271,14 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin =
+        ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.ElementsBegin();
+        
+        ModelPart::ConditionsContainerType::ptr_iterator cond_begin =
             rModelPart.ConditionsBegin();
 
         // assemble all elements
         for (int k = 0; k < nelements; k++) {
-            ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            auto it = el_begin + k;
             pScheme->Calculate_LHS_Contribution(*(it.base()), LHS_Contribution,
                                                 equation_ids_vector, r_current_process_info);
 
@@ -299,7 +293,7 @@ public:
 
         // assemble all conditions
         for (int k = 0; k < nconditions; k++) {
-            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            auto it = cond_begin + k;
             // calculate elemental contribution
             pScheme->Condition_Calculate_LHS_Contribution(
                 *(it.base()), LHS_Contribution, equation_ids_vector, r_current_process_info);
@@ -361,7 +355,7 @@ public:
         }
         else {
             TSparseSpace::SetToZero(rDx);
-            KRATOS_WARNING_ALL_RANKS(
+            KRATOS_WARNING(
                 "TrilinosResidualBasedBlockBuilderAndSolver")
                 << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
@@ -470,13 +464,13 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin =
+        ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.ElementsBegin();
+        ModelPart::ConditionsContainerType::ptr_iterator cond_begin =
             rModelPart.ConditionsBegin();
 
         // assemble all elements
         for (int k = 0; k < nelements; k++) {
-            ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            auto it = el_begin + k;
             // calculate elemental Right Hand Side Contribution
             pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution,
                                                 equation_ids_vector, r_current_process_info);
@@ -489,7 +483,7 @@ public:
 
         // assemble all conditions
         for (int k = 0; k < nconditions; k++) {
-            ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            auto it = cond_begin + k;
             // calculate elemental contribution
             pScheme->Condition_Calculate_RHS_Contribution(
                 *(it.base()), RHS_Contribution, equation_ids_vector, r_current_process_info);
