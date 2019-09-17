@@ -15,6 +15,9 @@
 #include <cmath>
 #include <functional>
 #include <random>
+#include <algorithm>
+#include <iomanip>
+#include <sstream>
 
 // External includes
 
@@ -35,53 +38,70 @@ typedef ModelPart::ElementType ElementType;
 typedef Geometry<NodeType> GeometryType;
 typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-void IsValuesRelativelyNear(const double ValueA, const double ValueB, const double Tolerance)
+/**
+ * @brief based on python's math.IsNear()
+ */
+bool IsNear(const double ValueA, const double ValueB, const double RelTol, const double AbsTol)
 {
-    KRATOS_CHECK_IS_FALSE(!std::isfinite(ValueA));
-    KRATOS_CHECK_IS_FALSE(!std::isfinite(ValueB));
-
-    if (abs(ValueA) < std::numeric_limits<double>::epsilon())
+    if (std::isnan(ValueA) || std::isnan(ValueB))
     {
-        KRATOS_CHECK_NEAR(ValueA, ValueB, std::numeric_limits<double>::epsilon());
+        return false;
     }
-    else if (abs(ValueA) < Tolerance && abs(ValueB) < Tolerance)
+    // Special cases inf, -inf or exact:
+    if (ValueA == ValueB)
     {
-        KRATOS_WARNING("IsValuesRelativelyNear")
+        return true;
+    }
+    // Regular floating point number:
+    return std::abs(ValueA - ValueB) <=
+           std::max(RelTol * std::max(std::abs(ValueA), std::abs(ValueB)), AbsTol);
+}
+
+void CheckNear(const double ValueA, const double ValueB, const double RelTol, const double AbsTol)
+{
+    if (std::abs(ValueA) < AbsTol && std::abs(ValueB) < AbsTol)
+    {
+        KRATOS_WARNING("CheckNear")
             << "Comparing values smaller than Tolerance. ValueA / ValueB < "
                "Tolerance [ "
-            << ValueA << " / " << ValueB << " < " << Tolerance << " ]\n";
-        KRATOS_CHECK_NEAR(ValueA, ValueB, Tolerance);
+            << ValueA << " / " << ValueB << " < " << AbsTol << " ]\n";
     }
-    else
+    if (!IsNear(ValueA, ValueB, RelTol, AbsTol))
     {
-        if (std::abs(ValueA - ValueB) > Tolerance)
-        {
-            const double relative_value = (1 - ValueB / ValueA);
-            KRATOS_ERROR_IF(std::abs(relative_value) > Tolerance)
-                << "Check failed because ValueA = " << ValueA
-                << " is not relatively near to ValueB = " << ValueB << " within the tolerance "
-                << Tolerance << ". [ RelativeValue = " << relative_value
-                << " > " << Tolerance << " ]\n";
-        }
+        // Currently KRATOS_ERROR doesn't handle I/O formatting so stringstream
+        // is used here to create the message.
+        std::stringstream msg;
+        msg << std::fixed << std::scientific << std::setprecision(20);
+        msg << "Check failed because\n"
+            << "\t ValueA = " << ValueA << " is not close to\n"
+            << "\t ValueB = " << ValueB << std::setprecision(2) << '\n'
+            << "\t with rel. tol. = " << RelTol << " and abs. tol. = " << AbsTol;
+        KRATOS_ERROR << msg.str();
     }
 }
 
-void IsMatricesSame(const Matrix& rA, const Matrix& rB, const double Tolerance)
+void CheckNear(const Matrix& rA, const Matrix& rB, const double RelTol, const double AbsTol)
 {
-    KRATOS_CHECK_IS_FALSE(rA.size1() != rB.size1());
-    KRATOS_CHECK_IS_FALSE(rA.size2() != rB.size2());
+    KRATOS_ERROR_IF(rA.size1() != rB.size1())
+        << "rA.size1() = " << rA.size1()
+        << " is not equal to rB.size1() = " << rB.size1();
+
+    KRATOS_ERROR_IF(rA.size2() != rB.size2())
+        << "rA.size2() = " << rA.size2()
+        << " is not equal to rB.size2() = " << rB.size2();
 
     for (std::size_t i = 0; i < rA.size1(); ++i)
         for (std::size_t j = 0; j < rA.size2(); ++j)
-            IsValuesRelativelyNear(rA(i, j), rB(i, j), Tolerance);
+            CheckNear(rA(i, j), rB(i, j), RelTol, AbsTol);
 }
 
-void IsVectorsSame(const Vector& rA, const Vector& rB, const double Tolerance)
+void CheckNear(const Vector& rA, const Vector& rB, const double RelTol, const double AbsTol)
 {
-    KRATOS_CHECK_IS_FALSE(rA.size() != rB.size());
+    KRATOS_ERROR_IF(rA.size() != rB.size())
+        << "rA.size() = " << rA.size() << " is not equal to rB.size() = " << rB.size();
 
     for (std::size_t i = 0; i < rA.size(); ++i)
-        IsValuesRelativelyNear(rA[i], rB[i], Tolerance);
+        CheckNear(rA(i), rB(i), RelTol, AbsTol);
 }
 
 void CalculateResidual(Vector& residual, Element& rElement, ProcessInfo& rProcessInfo)
@@ -254,8 +274,8 @@ void RunGaussPointScalarSensitivityTest(
                     if (analytical_sensitivities[j].size() > 0)
                     {
                         const double fd_sensitivity = ((values[j] - values_0[j]) / Delta);
-                        IsValuesRelativelyNear(
-                            fd_sensitivity, analytical_sensitivities[j][i], Tolerance);
+                        CheckNear(fd_sensitivity,
+                                  analytical_sensitivities[j][i], 1e-03, 1e-12);
                     }
                 }
 
@@ -428,8 +448,8 @@ void RunElementResidualScalarSensitivityTest(
                         i_node * local_derivative_size + DerivativesOffset,
                         i_check_eq_node * local_equation_size + EquationOffset + i_check_eq_dim);
 
-                IsValuesRelativelyNear(residual_sensitivity[i_check_equation],
-                                       current_adjoint_shape_sensitivity, Tolerance);
+                CheckNear(residual_sensitivity[i_check_equation],
+                          current_adjoint_shape_sensitivity, 1e-03, 1e-12);
             }
 
             PerturbVariable(r_node) -= Delta;
@@ -543,8 +563,7 @@ void RunNodalScalarSensitivityTest(
             for (int j = 0; j < static_cast<int>(analytical_sensitivities.size()); ++j)
             {
                 const double fd_sensitivity = ((values[j] - values_0[j]) / Delta);
-                IsValuesRelativelyNear(
-                    fd_sensitivity, analytical_sensitivities[j][i], Tolerance);
+                CheckNear(fd_sensitivity, analytical_sensitivities[j][i], 1e-03, 1e-12);
             }
 
             PerturbVariable(r_node) -= Delta;

@@ -25,71 +25,75 @@ namespace Kratos
 {
 KratosRANSModellingApplication::KratosRANSModellingApplication()
     : KratosApplication("RANSModellingApplication"),
-      mRANSEVMLowReK2D(0,
-                       Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
-                           Element::GeometryType::PointsArrayType(3)))),
-      mRANSEVMLowReK3D(0,
-                       Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
-                           Element::GeometryType::PointsArrayType(4)))),
-      mRANSEVMLowReEpsilon2D(0,
-                             Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
-                                 Element::GeometryType::PointsArrayType(3)))),
-      mRANSEVMLowReEpsilon3D(0,
-                             Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
-                                 Element::GeometryType::PointsArrayType(4)))),
-      mRANSEVMK2D(0,
-                  Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
-                      Element::GeometryType::PointsArrayType(3)))),
-      mRANSEVMK3D(0,
-                  Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
-                      Element::GeometryType::PointsArrayType(4)))),
-      mRANSEVMEpsilon2D(0,
-                        Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
-                            Element::GeometryType::PointsArrayType(3)))),
-      mRANSEVMEpsilon3D(0,
-                        Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
-                            Element::GeometryType::PointsArrayType(4)))),
-      mRansEVMEpsilonWallCondition2D2N(
-          0,
-          Element::GeometryType::Pointer(
-              new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-      mRansEVMEpsilonWallCondition3D3N(
-          0,
-          Element::GeometryType::Pointer(
-              new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansEVMVMSMonolithicWallCondition2D2N(
-          0,
-          Element::GeometryType::Pointer(
-              new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-      mRansEVMVMSMonolithicWallCondition3D3N(
-          0,
-          Element::GeometryType::Pointer(
-              new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRANSEVMEpsilonAdjoint2D(0,
-                               Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
-                                   Element::GeometryType::PointsArrayType(3)))),
-      mRANSEVMEpsilonAdjoint3D(0,
-                               Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
-                                   Element::GeometryType::PointsArrayType(4)))),
-      mRANSEVMKAdjoint2D(0,
-                         Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
-                             Element::GeometryType::PointsArrayType(3)))),
-      mRANSEVMKAdjoint3D(0,
-                         Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
-                             Element::GeometryType::PointsArrayType(4)))),
-      mRANSEVMKEpsilonVMSAdjoint2D(
+      mEVMLowReKElement2D3N(0,
+                            Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
+                                Element::GeometryType::PointsArrayType(3)))),
+      mEVMLowReKElement3D4N(0,
+                            Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+                                Element::GeometryType::PointsArrayType(4)))),
+      mEVMLowReEpsilonElement2D3N(
           0,
           Element::GeometryType::Pointer(
               new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRANSEVMKEpsilonVMSAdjoint3D(
+      mEVMLowReEpsilonElement3D4N(
           0,
           Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
               Element::GeometryType::PointsArrayType(4)))),
-      mRANSEVMMonolithicKEpsilonVMSAdjoint2D(
+      mEVMKElement2D3N(0,
+                       Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
+                           Element::GeometryType::PointsArrayType(3)))),
+      mEVMKElement3D4N(0,
+                       Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+                           Element::GeometryType::PointsArrayType(4)))),
+      mEVMEpsilonElement2D3N(0,
+                             Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
+                                 Element::GeometryType::PointsArrayType(3)))),
+      mEVMEpsilonElement3D4N(0,
+                             Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+                                 Element::GeometryType::PointsArrayType(4)))),
+      mEVMEpsilonWallCondition2D2N(
+          0,
+          Element::GeometryType::Pointer(
+              new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+      mEVMEpsilonWallCondition3D3N(
+          0,
+          Element::GeometryType::Pointer(
+              new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mEVMVMSMonolithicWallCondition2D2N(
+          0,
+          Element::GeometryType::Pointer(
+              new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+      mEVMVMSMonolithicWallCondition3D3N(
+          0,
+          Element::GeometryType::Pointer(
+              new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mEVMEpsilonAdjointElement2D3N(
           0,
           Element::GeometryType::Pointer(
               new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRANSEVMMonolithicKEpsilonVMSAdjoint3D(
+      mEVMEpsilonAdjointElement3D4N(
+          0,
+          Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+              Element::GeometryType::PointsArrayType(4)))),
+      mEVMKAdjointElement2D3N(0,
+                              Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
+                                  Element::GeometryType::PointsArrayType(3)))),
+      mEVMKAdjointElement3D4N(0,
+                              Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+                                  Element::GeometryType::PointsArrayType(4)))),
+      mEVMKEpsilonVMSAdjointElement2D3N(
+          0,
+          Element::GeometryType::Pointer(
+              new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mEVMKEpsilonVMSAdjointElement3D4N(
+          0,
+          Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+              Element::GeometryType::PointsArrayType(4)))),
+      mEVMMonolithicKEpsilonVMSAdjointElement2D3N(
+          0,
+          Element::GeometryType::Pointer(
+              new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mEVMMonolithicKEpsilonVMSAdjointElement3D4N(
           0,
           Element::GeometryType::Pointer(
               new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
@@ -148,37 +152,37 @@ void KratosRANSModellingApplication::Register()
     KRATOS_REGISTER_VARIABLE(RANS_AUX_ADJOINT_SCALAR_2)
 
     // Register primal elements
-    KRATOS_REGISTER_ELEMENT("RANSEVMLowReK2D3N", mRANSEVMLowReK2D);
-    KRATOS_REGISTER_ELEMENT("RANSEVMLowReK3D4N", mRANSEVMLowReK3D);
-    KRATOS_REGISTER_ELEMENT("RANSEVMLowReEpsilon2D3N", mRANSEVMLowReEpsilon2D);
-    KRATOS_REGISTER_ELEMENT("RANSEVMLowReEpsilon3D4N", mRANSEVMLowReEpsilon3D);
+    KRATOS_REGISTER_ELEMENT("EVMLowReKElement2D3N", mEVMLowReKElement2D3N);
+    KRATOS_REGISTER_ELEMENT("EVMLowReKElement3D4N", mEVMLowReKElement3D4N);
+    KRATOS_REGISTER_ELEMENT("EVMLowReEpsilonElement2D3N", mEVMLowReEpsilonElement2D3N);
+    KRATOS_REGISTER_ELEMENT("EVMLowReEpsilonElement3D4N", mEVMLowReEpsilonElement3D4N);
 
-    KRATOS_REGISTER_ELEMENT("RANSEVMK2D3N", mRANSEVMK2D);
-    KRATOS_REGISTER_ELEMENT("RANSEVMK3D4N", mRANSEVMK3D);
-    KRATOS_REGISTER_ELEMENT("RANSEVMEpsilon2D3N", mRANSEVMEpsilon2D);
-    KRATOS_REGISTER_ELEMENT("RANSEVMEpsilon3D4N", mRANSEVMEpsilon3D);
+    KRATOS_REGISTER_ELEMENT("EVMKElement2D3N", mEVMKElement2D3N);
+    KRATOS_REGISTER_ELEMENT("EVMKElement3D4N", mEVMKElement3D4N);
+    KRATOS_REGISTER_ELEMENT("EVMEpsilonElement2D3N", mEVMEpsilonElement2D3N);
+    KRATOS_REGISTER_ELEMENT("EVMEpsilonElement3D4N", mEVMEpsilonElement3D4N);
 
-    KRATOS_REGISTER_CONDITION("RANSEVMEpsilonWallCondition2D2N", mRansEVMEpsilonWallCondition2D2N);
-    KRATOS_REGISTER_CONDITION("RANSEVMEpsilonWallCondition3D3N", mRansEVMEpsilonWallCondition3D3N);
+    KRATOS_REGISTER_CONDITION("EVMEpsilonWallCondition2D2N", mEVMEpsilonWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("EVMEpsilonWallCondition3D3N", mEVMEpsilonWallCondition3D3N);
 
-    KRATOS_REGISTER_CONDITION("RANSEVMVMSMonolithicWallCondition2D2N",
-                              mRansEVMVMSMonolithicWallCondition2D2N);
-    KRATOS_REGISTER_CONDITION("RANSEVMVMSMonolithicWallCondition3D3N",
-                              mRansEVMVMSMonolithicWallCondition3D3N);
+    KRATOS_REGISTER_CONDITION("EVMVMSMonolithicWallCondition2D2N",
+                              mEVMVMSMonolithicWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("EVMVMSMonolithicWallCondition3D3N",
+                              mEVMVMSMonolithicWallCondition3D3N);
 
     // Registering adjoint elements
-    KRATOS_REGISTER_ELEMENT("RANSEVMEpsilonAdjoint2D3N", mRANSEVMEpsilonAdjoint2D);
-    KRATOS_REGISTER_ELEMENT("RANSEVMEpsilonAdjoint3D4N", mRANSEVMEpsilonAdjoint3D);
+    KRATOS_REGISTER_ELEMENT("EVMEpsilonAdjointElement2D3N", mEVMEpsilonAdjointElement2D3N);
+    KRATOS_REGISTER_ELEMENT("EVMEpsilonAdjointElement3D4N", mEVMEpsilonAdjointElement3D4N);
 
-    KRATOS_REGISTER_ELEMENT("RANSEVMKAdjoint2D3N", mRANSEVMKAdjoint2D);
-    KRATOS_REGISTER_ELEMENT("RANSEVMKAdjoint3D4N", mRANSEVMKAdjoint3D);
+    KRATOS_REGISTER_ELEMENT("EVMKAdjointElement2D3N", mEVMKAdjointElement2D3N);
+    KRATOS_REGISTER_ELEMENT("EVMKAdjointElement3D4N", mEVMKAdjointElement3D4N);
 
-    KRATOS_REGISTER_ELEMENT("RANSEVMKEpsilonVMSAdjoint2D3N", mRANSEVMKEpsilonVMSAdjoint2D);
-    KRATOS_REGISTER_ELEMENT("RANSEVMKEpsilonVMSAdjoint3D4N", mRANSEVMKEpsilonVMSAdjoint3D);
+    KRATOS_REGISTER_ELEMENT("EVMKEpsilonVMSAdjointElement2D3N", mEVMKEpsilonVMSAdjointElement2D3N);
+    KRATOS_REGISTER_ELEMENT("EVMKEpsilonVMSAdjointElement3D4N", mEVMKEpsilonVMSAdjointElement3D4N);
 
-    KRATOS_REGISTER_ELEMENT("RANSEVMMonolithicKEpsilonVMSAdjoint2D",
-                            mRANSEVMMonolithicKEpsilonVMSAdjoint2D);
-    KRATOS_REGISTER_ELEMENT("RANSEVMMonolithicKEpsilonVMSAdjoint3D",
-                            mRANSEVMMonolithicKEpsilonVMSAdjoint3D);
+    KRATOS_REGISTER_ELEMENT("EVMMonolithicKEpsilonVMSAdjointElement2D3N",
+                            mEVMMonolithicKEpsilonVMSAdjointElement2D3N);
+    KRATOS_REGISTER_ELEMENT("EVMMonolithicKEpsilonVMSAdjointElement3D4N",
+                            mEVMMonolithicKEpsilonVMSAdjointElement3D4N);
 }
 } // namespace Kratos.

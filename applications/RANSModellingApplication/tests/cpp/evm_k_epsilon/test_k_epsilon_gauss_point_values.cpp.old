@@ -38,7 +38,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonGaussTKESensitivities, RANSEvModelsKEps
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("RansSensitivities");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(r_model_part,
-                                                               "RANSEVMK2D3N");
+                                                               "EVMKElement2D3N");
 
     Parameters empty_parameters = Parameters(R"({
         "model_part_name" : "RansSensitivities"
@@ -130,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonGaussEpsilonSensitivities, RANSEvModels
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("RansSensitivities");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(r_model_part,
-                                                               "RANSEVMK2D3N");
+                                                               "EVMKElement2D3N");
 
     Parameters empty_parameters = Parameters(R"({
         "model_part_name" : "RansSensitivities"
@@ -221,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonGaussVelocitySensitivities, RANSEvModel
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("RansSensitivities");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(r_model_part,
-                                                               "RANSEVMK2D3N");
+                                                               "EVMKElement2D3N");
 
     Parameters empty_parameters = Parameters(R"({
         "model_part_name" : "RansSensitivities"

@@ -201,7 +201,7 @@ void EvmKElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RANSEVMK2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
+    CreateEvmUnitTestModelPart("EVMKElement2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
 }
 
 void EvmEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
@@ -216,7 +216,7 @@ void EvmEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RANSEVMEpsilon2D3N",
+    CreateEvmUnitTestModelPart("EVMEpsilonElement2D3N",
                                TURBULENT_ENERGY_DISSIPATION_RATE, rModelPart);
 }
 
@@ -230,7 +230,7 @@ void EvmLowReKElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RANSEVMLowReK2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
+    CreateEvmUnitTestModelPart("EVMLowReKElement2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
 }
 
 void EvmLowReEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
@@ -244,7 +244,7 @@ void EvmLowReEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RANSEVMLowReEpsilon2D3N",
+    CreateEvmUnitTestModelPart("EVMLowReEpsilonElement2D3N",
                                TURBULENT_ENERGY_DISSIPATION_RATE, rModelPart);
 }
 

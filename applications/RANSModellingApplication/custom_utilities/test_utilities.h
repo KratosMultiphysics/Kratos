@@ -32,11 +32,14 @@ typedef ModelPart::ElementType ElementType;
 typedef Geometry<NodeType> GeometryType;
 typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-void IsValuesRelativelyNear(const double ValueA, const double ValueB, const double Tolerance);
+bool IsNear(double ValueA, double ValueB, double RelTol = 1e-09, double AbsTol = 1e-12);
 
-void IsMatricesSame(const Matrix& rA, const Matrix& rB, const double Tolerance);
+void CheckNear(double ValueA, double ValueB, double RelTol = 1e-09, double AbsTol = 1e-12);
 
-void IsVectorsSame(const Vector& rA, const Vector& rB, const double Tolerance);
+void CheckNear(const Matrix& rA, const Matrix& rB, double RelTol = 1e-09, double AbsTol = 1e-12);
+
+void CheckNear(const Vector& rA, const Vector& rB, double RelTol = 1e-09, double AbsTol = 1e-12);
+
 
 void CalculateResidual(Vector& residual, Element& rElement, ProcessInfo& rProcessInfo);
 
