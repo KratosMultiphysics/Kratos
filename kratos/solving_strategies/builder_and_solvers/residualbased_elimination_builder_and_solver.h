@@ -1400,36 +1400,12 @@ private:
         )
     {
         const SizeType local_size = rLHSContribution.size1();
-
         for (IndexType i_local = 0; i_local < local_size; ++i_local) {
             const IndexType i_global = rEquationId[i_local];
-
-            if (i_global < BaseType::mEquationSystemSize) {
-                AssembleRowContributionCompleteOnFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
-            }
-            //note that computation of reactions is not performed here!
-        }
-    }
-
-    /**
-     * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver (designed for the AssembleLHSCompleteOnFreeRows)
-     * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
-     */
-    inline void AssembleRowContributionCompleteOnFreeDofs(
-        TSystemMatrixType& rA,
-        const Matrix& rALocal,
-        const IndexType i,
-        const IndexType i_local,
-        const Element::EquationIdVectorType& EquationId
-        )
-    {
-        SizeType local_size = rALocal.size1();
-        for (IndexType i_local = 0; i_local < local_size; ++i_local) {
-            const IndexType i_global = EquationId[i_local];
             if (i_global < BaseType::mEquationSystemSize) {
                 for (IndexType j_local = 0; j_local < local_size; ++j_local) {
-                    const IndexType j_global = EquationId[j_local];
-                    rA(i_global, j_global) += rALocal(i_local, j_local);
+                    const IndexType j_global = rEquationId[j_local];
+                    rA(i_global, j_global) += rLHSContribution(i_local, j_local);
                 }
             }
         }
