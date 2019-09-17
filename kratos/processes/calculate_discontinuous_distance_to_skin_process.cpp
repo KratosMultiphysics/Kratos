@@ -149,9 +149,9 @@ namespace Kratos
 			// by using the ComputePlaneApproximation utility. Otherwise, the distance is computed using
 			// the plane defined by the 3 intersection points.
 			auto &r_geometry = rElement1.GetGeometry();
-			const bool do_plane_approx = (n_cut_edges == r_geometry.WorkingSpaceDimension()) ? false : true;
+			const bool do_plane_approx = (n_cut_edges == r_geometry.WorkingSpaceDimension() || (int_pts_vector.size() < TDim)) ? false : true;
 
-			if (do_plane_approx && (int_pts_vector.size() > TDim)){
+			if (do_plane_approx){
 				// Call the plane optimization utility
 				array_1d<double,3> base_pt, normal;
 				ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
@@ -162,8 +162,8 @@ namespace Kratos
 					elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
 				}
 			} else {
-				// Create a plane with the 3 intersection points (or 2 in 2D)
-				if (int_pts_vector.size()> (TDim-1)) {
+				if (int_pts_vector.size() >= TDim) {
+					// Create a plane with the 3 intersection points (or 2 in 2D)
 					Plane3D plane = SetIntersectionPlane(int_pts_vector);
 					// Compute the distance to the intersection plane
 					for (int i = 0; i < number_of_tetrahedra_points; i++) {
@@ -171,13 +171,13 @@ namespace Kratos
 					}
 				}
 				else {
+					// Create a plane using the intersected object
 					std::vector<array_1d<double,3>> int_pts_tangent;
 					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[0].Coordinates());
 					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[1].Coordinates());
 					int_pts_tangent.push_back(rIntersectedObjects[0].GetGeometry()[2].Coordinates());
-
 					Plane3D plane = SetIntersectionPlane(int_pts_tangent);
-
+					// Compute the distance to the intersection plane
 					for (int i = 0; i < number_of_tetrahedra_points; i++) {
 						elemental_distances[i] = plane.CalculateSignedDistance(r_geometry[i]);
 					}
@@ -216,7 +216,7 @@ namespace Kratos
 		rIntersectionPointsArray.clear();
 		rCutEdgesVector = std::vector<unsigned int>(n_edges, 0);
 
-		std::vector<array_1d<double,3> > aux_pts_2;
+		std::vector<array_1d<double,3> > aux_intersection_pts;
 		// Check wich edges are intersected
 		for (std::size_t i_edge = 0; i_edge < n_edges; ++i_edge){
 			array_1d<double,3> avg_pt = ZeroVector(3);
@@ -261,7 +261,7 @@ namespace Kratos
 				n_cut_edges++;
 
 				bool is_repeated = false;
-				for (auto aux_pt : aux_pts_2){
+				for (auto aux_pt : aux_intersection_pts){
 					const double aux_dist = norm_2(avg_pt - aux_pt);
 					const double tol_edge = 1e-2*norm_2(r_edges_container[i_edge][0] - r_edges_container[i_edge][1]);
 					if (aux_dist < tol_edge){
@@ -272,7 +272,7 @@ namespace Kratos
 
 				if (!is_repeated){
 					rIntersectionPointsArray.push_back(avg_pt);
-					aux_pts_2.push_back(avg_pt);
+					aux_intersection_pts.push_back(avg_pt);
 				}
 			}
 		}
