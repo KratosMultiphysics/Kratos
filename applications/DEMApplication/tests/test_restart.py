@@ -44,9 +44,10 @@ class DEMRestartTestFactory():
             self.AssertEquality(model_save, model_load)
 
     def AssertEquality(self, model_1, model_2):
-        mp_names_1 = {str(k) for k in model_1.GetModelPartNames()}
-        mp_names_2 = {str(k) for k in model_2.GetModelPartNames()}
-        self.assertEqual(list(mp_names_1), list(mp_names_2))
+        mp_names_1 = set(model_1.GetModelPartNames())
+        mp_names_2 = set(model_2.GetModelPartNames())
+
+        self.assertEqual(mp_names_1, mp_names_2)
 
         for mp_name in model_1.GetModelPartNames():
             mp_save = model_1.GetModelPart(mp_name)
