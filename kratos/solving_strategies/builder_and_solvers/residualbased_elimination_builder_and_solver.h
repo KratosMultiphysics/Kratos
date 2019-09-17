@@ -1423,45 +1423,13 @@ private:
         const Element::EquationIdVectorType& EquationId
         )
     {
-        double* values_vector = rA.value_data().begin();
-        IndexType* index1_vector = rA.index1_data().begin();
-        IndexType* index2_vector = rA.index2_data().begin();
-
-        const IndexType left_limit = index1_vector[i];
-
-        // Find the first entry
-        // We iterate over the equation ids until we find the first equation id to be considered
-        // We count in which component we find an ID
-        IndexType last_pos = 0;
-        IndexType last_found = 0;
-        IndexType counter = 0;
-        for(IndexType j=0; j < EquationId.size(); ++j) {
-            ++counter;
-            const IndexType j_global = EquationId[j];
-            last_pos = ForwardFind(j_global,left_limit,index2_vector);
-            last_found = j_global;
-            break;
-        }
-
-        // If the counter is equal to the size of the EquationID vector that means that only one dof will be considered, if the number is greater means that all the dofs are fixed. If the number is below means that at we have several dofs free to be considered
-        if (counter <= EquationId.size()) {
-            values_vector[last_pos] += rALocal(i_local,counter - 1);
-            // Now find all of the other entries
-            IndexType pos = 0;
-            for(IndexType j = counter; j < EquationId.size(); ++j) {
-                IndexType id_to_find = EquationId[j];
-                if (id_to_find < BaseType::mEquationSystemSize) {
-                    if(id_to_find > last_found)
-                        pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
-                    else if(id_to_find < last_found)
-                        pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
-                    else
-                        pos = last_pos;
-
-                    values_vector[pos] += rALocal(i_local,j);
-
-                    last_found = id_to_find;
-                    last_pos = pos;
+        SizeType local_size = rALocal.size1();
+        for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+            const IndexType i_global = EquationId[i_local];
+            if (i_global < BaseType::mEquationSystemSize) {
+                for (IndexType j_local = 0; j_local < local_size; ++j_local) {
+                    const IndexType j_global = EquationId[j_local];
+                    rA(i_global, j_global) += rALocal(i_local, j_local);
                 }
             }
         }
