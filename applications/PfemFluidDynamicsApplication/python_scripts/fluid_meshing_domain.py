@@ -4,6 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 #import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+from importlib import import_module
 
 
 def CreateMeshingDomain(main_model_part, custom_settings):
@@ -97,7 +98,10 @@ class FluidMeshingDomain(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the meshing strategy
-        meshing_module = __import__(self.settings["meshing_strategy"]["python_module"].GetString())
+        python_module_name = "KratosMultiphysics.PfemFluidDynamicsApplication"
+        full_module_name = python_module_name + "." + self.settings["meshing_strategy"]["python_module"].GetString()
+        meshing_module = import_module(full_module_name)
+        #meshing_module = __import__(self.settings["meshing_strategy"]["python_module"].GetString())
         self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
 
         self.active_remeshing = False

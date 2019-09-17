@@ -1692,39 +1692,39 @@ bool SolveContinuityIteration(unsigned int it,unsigned int maxIt)
         double errorL2TauXY     = sqrt(sumErrorL2TauXY);
 
 
-				std::ofstream myfileVelocity;
+		std::ofstream myfileVelocity;
   	    myfileVelocity.open ("errorL2VelocityFile.txt",std::ios::app);
-				myfileVelocity << currentTime << "\t" << errorL2Velocity << "\n";
+		myfileVelocity << currentTime << "\t" << errorL2Velocity << "\n";
         myfileVelocity.close();
 
-				std::ofstream myfileVelocityX;
+		std::ofstream myfileVelocityX;
   	    myfileVelocityX.open ("errorL2VelocityXFile.txt",std::ios::app);
-				myfileVelocityX << currentTime << "\t" << errorL2VelocityX << "\n";
+		myfileVelocityX << currentTime << "\t" << errorL2VelocityX << "\n";
         myfileVelocityX.close();
 
-				std::ofstream myfileVelocityY;
+		std::ofstream myfileVelocityY;
   	    myfileVelocityY.open ("errorL2VelocityYFile.txt",std::ios::app);
-				myfileVelocityY << currentTime << "\t" << errorL2VelocityY << "\n";
+		myfileVelocityY << currentTime << "\t" << errorL2VelocityY << "\n";
         myfileVelocityY.close();
 
-				std::ofstream myfilePressure;
+		std::ofstream myfilePressure;
   	    myfilePressure.open ("errorL2PressureFile.txt",std::ios::app);
-				myfilePressure << currentTime << "\t" << errorL2Pressure << "\n";
+		myfilePressure << currentTime << "\t" << errorL2Pressure << "\n";
         myfilePressure.close();
 
-				std::ofstream myfileTauXX;
+		std::ofstream myfileTauXX;
   	    myfileTauXX.open ("errorL2TauXXFile.txt",std::ios::app);
-				myfileTauXX << currentTime << "\t" << errorL2TauXX << "\n";
+		myfileTauXX << currentTime << "\t" << errorL2TauXX << "\n";
         myfileTauXX.close();
 
-				std::ofstream myfileTauYY;
+		std::ofstream myfileTauYY;
   	    myfileTauYY.open ("errorL2TauYYFile.txt",std::ios::app);
-				myfileTauYY << currentTime << "\t" << errorL2TauYY << "\n";
+		myfileTauYY << currentTime << "\t" << errorL2TauYY << "\n";
         myfileTauYY.close();
 
-				std::ofstream myfileTauXY;
+		std::ofstream myfileTauXY;
   	    myfileTauXY.open ("errorL2TauXYFile.txt",std::ios::app);
-				myfileTauXY << currentTime << "\t" << errorL2TauXY << "\n";
+		myfileTauXY << currentTime << "\t" << errorL2TauXY << "\n";
         myfileTauXY.close();
     }
 
