@@ -12,6 +12,7 @@
     "solver_settings"          : {
             "model_part_name" : "MainModelPart",
             "domain_size" : 2,
+            "solver_type" : "stationary",
             "echo_level": 0,
             "model_import_settings": {
                 "input_type": "mdpa",
@@ -37,7 +38,7 @@
         "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
-            "model_part_name" : "Subpart_Boundary",
+            "model_part_name" : "MainModelPart.Subpart_Boundary",
             "variable_name"   : "TEMPERATURE",
             "constrained"     : true,
             "value"           : 0.0,

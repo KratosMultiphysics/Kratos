@@ -37,7 +37,7 @@
         "python_module" : "assign_scalar_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
-            "model_part_name" : "Subpart_Boundary",
+            "model_part_name" : "MainModelPart.Subpart_Boundary",
             "variable_name"   : "TEMPERATURE",
             "constrained"     : true,
             "value"           : 0.0,
