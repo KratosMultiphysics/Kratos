@@ -295,46 +295,62 @@ public:
                     if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
                         const auto it_node = r_nodes_array.find(it_dof->Id());
-                        const double normal_x = it_node->FastGetSolutionStepValue(NORMAL_X);
+                        const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
 
-                        const TDataType normal_comp_residual = residual_dof_value * normal_x;
-                        normal_lm_residual_solution_norm += std::pow(normal_comp_residual, 2);
-                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
-                            tangent_lm_slip_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
-                            ++lm_slip_dof_num;
+                        if (mu < std::numeric_limits<double>::epsilon()) {
+                            normal_lm_residual_solution_norm += std::pow(residual_dof_value, 2);
                         } else {
-                            tangent_lm_stick_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
-                            ++lm_stick_dof_num;
+                            const double normal_x = it_node->FastGetSolutionStepValue(NORMAL_X);
+
+                            const TDataType normal_comp_residual = residual_dof_value * normal_x;
+                            normal_lm_residual_solution_norm += std::pow(normal_comp_residual, 2);
+                            if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
+                                tangent_lm_slip_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
+                                ++lm_slip_dof_num;
+                            } else {
+                                tangent_lm_stick_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
+                                ++lm_stick_dof_num;
+                            }
                         }
                         lm_dof_num++;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
                         const auto it_node = r_nodes_array.find(it_dof->Id());
-                        const double normal_y = it_node->FastGetSolutionStepValue(NORMAL_Y);
-
-                        const TDataType normal_comp_residual = residual_dof_value * normal_y;
-                        normal_lm_residual_solution_norm += std::pow(normal_comp_residual, 2);
-                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
-                            tangent_lm_slip_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
-                            ++lm_slip_dof_num;
+                        const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+                        if (mu < std::numeric_limits<double>::epsilon()) {
+                            normal_lm_residual_solution_norm += std::pow(residual_dof_value, 2);
                         } else {
-                            tangent_lm_stick_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
-                            ++lm_stick_dof_num;
+                            const double normal_y = it_node->FastGetSolutionStepValue(NORMAL_Y);
+
+                            const TDataType normal_comp_residual = residual_dof_value * normal_y;
+                            normal_lm_residual_solution_norm += std::pow(normal_comp_residual, 2);
+                            if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
+                                tangent_lm_slip_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
+                                ++lm_slip_dof_num;
+                            } else {
+                                tangent_lm_stick_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
+                                ++lm_stick_dof_num;
+                            }
                         }
                         lm_dof_num++;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
                         const auto it_node = r_nodes_array.find(it_dof->Id());
-                        const double normal_z = it_node->FastGetSolutionStepValue(NORMAL_Z);
-
-                        const TDataType normal_comp_residual = residual_dof_value * normal_z;
-                        normal_lm_residual_solution_norm += std::pow(normal_comp_residual, 2);
-                        if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
-                            tangent_lm_slip_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
-                            ++lm_slip_dof_num;
+                        const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+                        if (mu < std::numeric_limits<double>::epsilon()) {
+                            normal_lm_residual_solution_norm += std::pow(residual_dof_value, 2);
                         } else {
-                            tangent_lm_stick_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
-                            ++lm_stick_dof_num;
+                            const double normal_z = it_node->FastGetSolutionStepValue(NORMAL_Z);
+
+                            const TDataType normal_comp_residual = residual_dof_value * normal_z;
+                            normal_lm_residual_solution_norm += std::pow(normal_comp_residual, 2);
+                            if (it_node->Is(SLIP) || mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PURE_SLIP)) {
+                                tangent_lm_slip_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
+                                ++lm_slip_dof_num;
+                            } else {
+                                tangent_lm_stick_residual_solution_norm += std::pow(residual_dof_value - normal_comp_residual, 2);
+                                ++lm_stick_dof_num;
+                            }
                         }
                         lm_dof_num++;
                     } else {
