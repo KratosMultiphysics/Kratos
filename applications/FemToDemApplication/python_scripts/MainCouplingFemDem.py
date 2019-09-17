@@ -14,8 +14,8 @@ import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 def Wait():
     input("Press Something")
 
+#============================================================================================================================
 class MainCoupledFemDem_Solution:
-
 #============================================================================================================================
     def __init__(self, Model):
         # Initialize solutions
