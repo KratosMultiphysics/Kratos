@@ -8,11 +8,13 @@ import os
 def Wait():
     input("Alejandro -> Press Something")
 
+#============================================================================================================================
 class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamicsAnalysis):
     """
     The derived class for the PfemFluidDynamicsAnalysis
     """
-
+#============================================================================================================================
+#============================================================================================================================
     def __init__(self, model, parameters):
         """
         The constructor of the MainPFEM_for_coupling_solution-Object.
@@ -29,6 +31,7 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
 
         super(MainPFEM_for_coupling_solution, self).__init__(model, parameters)
 
+#============================================================================================================================
     def SetCustomGraphicalOutput(self, custom_parameters):
         """This function sets the settings for the graphical
         output
@@ -45,3 +48,7 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
                                     self.output_settings)
         else:
             return (KratosMultiphysics.Process())
+
+#============================================================================================================================
+    def Initialize(self):
+        
