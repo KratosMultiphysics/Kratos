@@ -50,7 +50,7 @@ namespace Kratos
 /**
  * @brief This struct is used in order to identify when using the hitorical and non historical variables
  */
-struct ComputeCustomNodalGradientSettings
+struct ComputeNodalPotentialFlowVelocityProcessSettings
 {
     // Defining clearer options
     constexpr static bool SaveAsHistoricalVariable = true;
@@ -58,7 +58,7 @@ struct ComputeCustomNodalGradientSettings
 };
 
 /**
- * @class ComputeCustomNodalGradient
+ * @class ComputeNodalPotentialFlowVelocityProcess
  * @ingroup KratosCore
  * @brief Compute Nodal Gradient process
  * @details This process computes the gradient of a certain variable stored in the nodes
@@ -67,29 +67,29 @@ struct ComputeCustomNodalGradientSettings
  * @tparam THistorical If the variable is historical or not
 */
 template<bool THistorical>
-class KRATOS_API(KRATOS_CORE) ComputeCustomNodalGradient
+class KRATOS_API(KRATOS_CORE) ComputeNodalPotentialFlowVelocityProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ComputeCustomNodalGradient
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeCustomNodalGradient);
+    /// Pointer definition of ComputeNodalPotentialFlowVelocityProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ComputeNodalPotentialFlowVelocityProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor. (double)
-    ComputeCustomNodalGradient(
+    ComputeNodalPotentialFlowVelocityProcess(
         ModelPart& rModelPart,
         Variable<array_1d<double,3> >& rGradientVariable,
         Variable<double>& rAreaVariable = NODAL_AREA
         );
 
     /// Destructor.
-    ~ComputeCustomNodalGradient() override
+    ~ComputeNodalPotentialFlowVelocityProcess() override
     {
     }
 
@@ -132,13 +132,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ComputeCustomNodalGradient";
+        return "ComputeNodalPotentialFlowVelocityProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ComputeCustomNodalGradient";
+        rOStream << "ComputeNodalPotentialFlowVelocityProcess";
     }
 
     /// Print object's data.
@@ -251,15 +251,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    ComputeCustomNodalGradient& operator=(ComputeCustomNodalGradient const& rOther);
+    ComputeNodalPotentialFlowVelocityProcess& operator=(ComputeNodalPotentialFlowVelocityProcess const& rOther);
 
     /// Copy constructor.
-    //ComputeCustomNodalGradient(ComputeCustomNodalGradient const& rOther);
+    //ComputeNodalPotentialFlowVelocityProcess(ComputeNodalPotentialFlowVelocityProcess const& rOther);
 
 
     ///@}
 
-}; // Class ComputeCustomNodalGradient
+}; // Class ComputeNodalPotentialFlowVelocityProcess
 
 ///@}
 
@@ -273,11 +273,11 @@ private:
 
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   ComputeCustomNodalGradient& rThis);
+//                                   ComputeNodalPotentialFlowVelocityProcess& rThis);
 //
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ComputeCustomNodalGradient& rThis)
+//                                   const ComputeNodalPotentialFlowVelocityProcess& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;

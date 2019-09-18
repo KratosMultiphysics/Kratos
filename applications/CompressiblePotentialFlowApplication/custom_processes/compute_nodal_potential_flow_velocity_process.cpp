@@ -19,14 +19,14 @@
 /* Project includes */
 #include "utilities/variable_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "compute_custom_nodal_gradient_process.h"
+#include "compute_nodal_potential_flow_velocity_process.h"
 #include "compressible_potential_flow_application_variables.h"
 
 
 namespace Kratos
 {
 template<bool THistorical>
-void ComputeCustomNodalGradient<THistorical>::Execute()
+void ComputeNodalPotentialFlowVelocityProcess<THistorical>::Execute()
 {
     KRATOS_TRY;
 
@@ -148,7 +148,7 @@ void ComputeCustomNodalGradient<THistorical>::Execute()
 /***********************************************************************************/
 
 template<>
-ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsHistoricalVariable>::ComputeCustomNodalGradient(
+ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsHistoricalVariable>::ComputeNodalPotentialFlowVelocityProcess(
     ModelPart& rModelPart,
     Variable<array_1d<double,3> >& rGradientVariable,
     Variable<double>& rAreaVariable)
@@ -172,7 +172,7 @@ ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsHistoricalV
 /***********************************************************************************/
 
 template<>
-ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHistoricalVariable>::ComputeCustomNodalGradient(
+ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsNonHistoricalVariable>::ComputeNodalPotentialFlowVelocityProcess(
     ModelPart& rModelPart,
     Variable<array_1d<double,3> >& rGradientVariable,
     Variable<double>& rAreaVariable)
@@ -199,7 +199,7 @@ ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHistoric
 /***********************************************************************************/
 
 template<>
-void ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsHistoricalVariable>::ClearGradient()
+void ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsHistoricalVariable>::ClearGradient()
 {
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
@@ -213,7 +213,7 @@ void ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsHistor
 /***********************************************************************************/
 
 template <>
-void ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHistoricalVariable>::ClearGradient()
+void ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsNonHistoricalVariable>::ClearGradient()
 {
     const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
 
@@ -229,7 +229,7 @@ void ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHis
 /***********************************************************************************/
 
 template <>
-array_1d<double, 3>& ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsHistoricalVariable>::GetGradient(
+array_1d<double, 3>& ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsHistoricalVariable>::GetGradient(
     Element::GeometryType& rThisGeometry,
     unsigned int i
     )
@@ -242,7 +242,7 @@ array_1d<double, 3>& ComputeCustomNodalGradient<ComputeCustomNodalGradientSettin
 /***********************************************************************************/
 
 template <>
-array_1d<double, 3>& ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHistoricalVariable>::GetGradient(
+array_1d<double, 3>& ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsNonHistoricalVariable>::GetGradient(
     Element::GeometryType& rThisGeometry,
     unsigned int i
     )
@@ -255,7 +255,7 @@ array_1d<double, 3>& ComputeCustomNodalGradient<ComputeCustomNodalGradientSettin
 /***********************************************************************************/
 
 template <>
-void ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsHistoricalVariable>::PonderateGradient()
+void ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsHistoricalVariable>::PonderateGradient()
 {
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
@@ -268,7 +268,7 @@ void ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsHistor
 /***********************************************************************************/
 
 template <>
-void ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHistoricalVariable>::PonderateGradient()
+void ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsNonHistoricalVariable>::PonderateGradient()
 {
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i)
@@ -280,7 +280,7 @@ void ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHis
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsHistoricalVariable>;
-template class ComputeCustomNodalGradient<ComputeCustomNodalGradientSettings::SaveAsNonHistoricalVariable>;
+template class ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsHistoricalVariable>;
+template class ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsNonHistoricalVariable>;
 
 } /* namespace Kratos.*/
