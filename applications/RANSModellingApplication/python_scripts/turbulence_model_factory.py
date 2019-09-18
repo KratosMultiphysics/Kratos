@@ -15,5 +15,5 @@ def Factory(settings, Model):
         raise Exception(msg)
 
     if model_type == "k_epsilon":
-        from evm_k_epsilon_configuration import TurbulenceKEpsilonConfiguration
+        from KratosMultiphysics.RANSModellingApplication.evm_k_epsilon_configuration import TurbulenceKEpsilonConfiguration
         return TurbulenceKEpsilonConfiguration(Model, settings)

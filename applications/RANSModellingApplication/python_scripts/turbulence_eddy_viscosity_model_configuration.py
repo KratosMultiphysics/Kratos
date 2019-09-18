@@ -72,7 +72,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
         self.domain_size = self.fluid_model_part.ProcessInfo[Kratos.
                                                              DOMAIN_SIZE]
 
-        from model_part_factory import CreateDuplicateModelPart
+        from KratosMultiphysics.RANSModellingApplication.model_part_factory import CreateDuplicateModelPart
         for element, condition in zip(self.model_elements_list,
                                       self.model_conditions_list):
             element_name = "{0}{1}D{2}N".format(element, self.domain_size,
