@@ -56,8 +56,8 @@
                     "identifier" : "mass",
                     "type"       : "minimization",
                     "weight"     : 1.0,
-                    "analyzer"            : "kratos",
-                    "response_settings"              :{
+                    "analyzer"   : "kratos",
+                    "response_settings" :{
                         "response_type"          : "mass",
                         "material_import_settings" :{
                             "materials_filename": "material_parameters.json"
@@ -74,7 +74,7 @@
                     "type"       : "maximization",
                     "scaling_factor" : 1e1,
                     "weight"     : 3.0,
-                    "analyzer"      : "external"
+                    "analyzer"   : "external"
                 }]
             }],
             "project_gradient_on_surface_normals" : true
