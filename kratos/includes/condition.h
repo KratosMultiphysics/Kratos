@@ -21,8 +21,8 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
+#include "includes/kratos_parameters.h"
 #include "containers/global_pointers_vector.h"
-
 
 namespace Kratos
 {
@@ -1379,6 +1379,18 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * @param rProcessInfo The current ProcessInfo instance
+     * @return specifications The required specifications/requirements
+     */
+    virtual Parameters GetSpecifications(const ProcessInfo& rProcessInfo) const
+    {
+        const Parameters specifications = Parameters(R"({})");
+        return specifications;
+    }
 
     /// Turn back information as a string.
 
