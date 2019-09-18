@@ -15,6 +15,7 @@
 #if !defined(KRATOS_NURBS_CURVE_TESSELLATION_H_INCLUDED )
 #define  KRATOS_NURBS_CURVE_TESSELLATION_H_INCLUDED
 
+#include "utilities/math_utils.h"
 #include "geometries/geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
 
@@ -32,54 +33,24 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // using Vector = array_1d<double, TCurve::GetDimension()>;
     using Vector = array_1d<double, TWorkingSpaceDimension>;
-    using ParameterPoint = std::pair<double, Vector>;
+
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
     typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> NurbsCurveGeometryType;
     typedef typename GeometryType::IndexType IndexType;
     typedef typename GeometryType::SizeType SizeType;
 
 private:    // static methods
-    static double Cross(const array_1d<double, 2>& VectorU,
-        const array_1d<double, 2>& VectorV)
+    static double DistanceToLine(
+        const typename GeometryType::CoordinatesArrayType& Point, 
+        const typename GeometryType::CoordinatesArrayType& LineA,
+        const typename GeometryType::CoordinatesArrayType& LineB
+        )
     {
-        return VectorV[0] * VectorU[1] - VectorV[1] * VectorU[0];
-    }
+        typename GeometryType::CoordinatesArrayType vector_v = LineA - Point;
+        typename GeometryType::CoordinatesArrayType vector_u = LineB - LineA;
 
-    static array_1d<double, 3> Cross(const array_1d<double, 3>& VectorU,
-        const array_1d<double, 3>& VectorV)
-    {
-        array_1d<double, 3> result;
-        result[0] = VectorV[1] * VectorU[2] - VectorV[2] * VectorU[1];
-        result[1] = VectorV[2] * VectorU[0] - VectorV[0] * VectorU[2];
-        result[2] = VectorV[0] * VectorU[1] - VectorV[1] * VectorU[0];
-        return result;
-    }
-
-    static double Norm(double Value)
-    {
-        return std::abs(Value);
-    }
-
-    static double Norm(const array_1d<double, 2>& Vector)
-    {
-        return std::sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1]);
-    }
-
-    static double Norm(const array_1d<double, 3>& Vector)
-    {
-        return std::sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] +
-            Vector[2] * Vector[2]);
-    }
-
-    static double DistanceToLine(const Vector& Point, const Vector& LineA,
-        const Vector& LineB)
-    {
-        Vector vector_v = LineA - Point;
-        Vector vector_u = LineB - LineA;
-
-        return Norm(Cross(vector_v, vector_u)) / Norm(vector_u);
+        return MathUtils<double>::Norm(MathUtils<double>::CrossProduct(vector_v, vector_u)) / MathUtils<double>::Norm(vector_u);
     }
 
 public:
@@ -88,90 +59,123 @@ public:
     ///@{
 
     /// Conctructor for tessellation of a nurbs curve
-    NurbsCurveTessellation(
-        typename NurbsCurveGeometryType::Pointer pNurbsCurve
-        ):mpNurbsCurve(pNurbsCurve)
+    NurbsCurveTessellation()
     {
     }
 
-    /*static std::vector<ParameterPoint> Compute(const TCurve& Curve,
-        const Interval Domain, const double Tolerance)*/
-    std::vector<ParameterPoint> Compute(const double Tolerance)
-    {
-        std::vector<ParameterPoint> sample_points;
-        std::vector<ParameterPoint> points;
-        typename NurbsCurveGeometryType::CoordinatesArrayType point;
 
-        array_1d<double, 3> result = ZeroVector();
+    /** 
+    * @brief This method tessellates a curve and stores the tessellation in the class
+    * From ANurbs library (https://github.com/oberbichler/ANurbs)
+    * @param pGeometry Pointer to the geometry
+    * @param PolynomialDegree The polynomial degree of the curve
+    * @param DomainInterval The curve interval which is to be tessellated
+    * @param KnotSpanIntervals The knot span intervals laying in the DomainInterval
+    * @param Tolerance Tolerance for the choral error
+    * @see ComputeTessellation
+    */
+    void Tessellate(
+        typename GeometryType::Pointer pGeometry, 
+        int PolynomialDegree,
+        Interval DomainInterval,
+        std::vector<Interval> KnotSpanIntervals,
+        const double Tolerance)
+    {
+        mTesselation = ComputeTessellation<TWorkingSpaceDimension>(
+            pGeometry,
+            PolynomialDegree,
+            DomainInterval,
+            KnotSpanIntervals,
+            Tolerance);
+    }
+
+    /** 
+    * @brief This method returns the tessellation of a curve
+    * From ANurbs library (https://github.com/oberbichler/ANurbs)
+    * @param pGeometry Pointer to the geometry
+    * @param PolynomialDegree The polynomial degree of the curve
+    * @param DomainInterval The curve interval which is to be tessellated
+    * @param KnotSpanIntervals The knot span intervals laying in the DomainInterval
+    * @param Tolerance Tolerance for the choral error
+    * @return std::map<double, typename GeometryType::CoordinatesArrayType> with the coordinates in local and working space
+    * @see ANurbs library (https://github.com/oberbichler/ANurbs)
+    */
+    static std::map<double, typename GeometryType::CoordinatesArrayType> ComputeTessellation(
+        typename GeometryType::Pointer pGeometry,
+        int PolynomialDegree,
+        Interval DomainInterval,
+        std::vector<Interval> KnotSpanIntervals,
+        const double Tolerance
+        )
+    {
+        static std::map<double, typename GeometryType::CoordinatesArrayType> sample_points;
+        static std::map<double, typename GeometryType::CoordinatesArrayType> points;
+
+        typename GeometryType::CoordinatesArrayType point;
+        typename GeometryType::CoordinatesArrayType result;
 
         // compute sample points
 
-        std::vector<Interval> knot_span_intervals = mpNurbsCurve->KnotSpanIntervals();
-
-        for (const auto& span : knot_span_intervals) {
-            const Interval normalized_span = mpNurbsCurve->DomainInterval().GetNormalizedInterval(span);
+        for (const auto& span : KnotSpanIntervals) {
+            const Interval normalized_span = DomainInterval.GetNormalizedInterval(span);
 
             if (normalized_span.GetLength() < 1e-7) {
                 continue;
             }
 
             const double t = normalized_span.GetT0();
-            typename NurbsCurveGeometryType::CoordinatesArrayType t0;
+            typename GeometryType::CoordinatesArrayType t0;
             t0[0] = span.GetT0();
             
-            point = mpNurbsCurve->GlobalCoordinates(result, t0);
+            point = pGeometry->GlobalCoordinates(result, t0);
 
-            sample_points.emplace_back(t, point);
+            // sample_points.emplace_back(t, point);
+            sample_points.insert(std::pair<double, typename GeometryType::CoordinatesArrayType>(t, point));
         }
 
-        typename NurbsCurveGeometryType::CoordinatesArrayType tAtNormalized;
-        tAtNormalized[0] = mpNurbsCurve->DomainInterval().GetParameterAtNormalized(1.0);
+        typename GeometryType::CoordinatesArrayType t_at_normalized;
+        t_at_normalized[0] = DomainInterval.GetParameterAtNormalized(1.0);
 
-        point = mpNurbsCurve->GlobalCoordinates(result, tAtNormalized);
+        point = pGeometry->GlobalCoordinates(result, t_at_normalized);
 
-        sample_points.emplace_back(1.0,point);
-
-        std::sort(std::begin(sample_points), std::end(sample_points),
-            [](const ParameterPoint& lhs, const ParameterPoint& rhs) {
-                return std::get<0>(lhs) > std::get<0>(rhs);
-            }
-        );
+        sample_points.insert(std::pair<double, typename GeometryType::CoordinatesArrayType>(1.0, point));
 
         // compute polyline
 
-        const int n = mpNurbsCurve->PolynomialDegree() * 2 + 1;
+        const int n = PolynomialDegree * 2 + 1;
 
         while (true) {
-            const auto parameter_point_a = sample_points.back();
+            const auto parameter_point_a = *sample_points.rbegin();
 
             const auto t_a = std::get<0>(parameter_point_a);
             const auto point_a = std::get<1>(parameter_point_a);
 
-            sample_points.pop_back();
+            // sample_points.pop_back();
+            sample_points.erase(std::prev(sample_points.end()));
 
-            points.emplace_back(mpNurbsCurve->DomainInterval().GetParameterAtNormalized(t_a), point_a);
+            points.insert(std::pair<double, typename GeometryType::CoordinatesArrayType>(DomainInterval.GetParameterAtNormalized(t_a), point_a));
 
             if (sample_points.size() == 0) {
                 break;
             }
 
             while (true) {
-                const auto parameter_point_b = sample_points.back();
+                const auto parameter_point_b = *sample_points.rbegin();
 
                 const auto t_b = std::get<0>(parameter_point_b);
                 const auto point_b = std::get<1>(parameter_point_b);
 
                 double max_distance {0};
-                ParameterPoint max_point;
+                std::pair<double, typename GeometryType::CoordinatesArrayType> max_point;
 
                 for (int i = 1; i <= n; i++) {
                     const double t = Interval::GetParameterAtNormalized(t_a,
                         t_b, i / double(n + 1));
 
-                    tAtNormalized[0] = mpNurbsCurve->DomainInterval().GetParameterAtNormalized(t);
+                    t_at_normalized[0] = DomainInterval.GetParameterAtNormalized(t);
 
-                    const Vector point = mpNurbsCurve->GlobalCoordinates(
-                        result, tAtNormalized);
+                    point = pGeometry->GlobalCoordinates(
+                        result, t_at_normalized);
 
                     const double distance = DistanceToLine(point, point_a,
                         point_b);
@@ -186,7 +190,7 @@ public:
                     break;
                 }
 
-                sample_points.push_back(max_point);
+                sample_points.insert(max_point);
             }
         }
 
@@ -201,7 +205,7 @@ public:
     ///@name Private Member Variables
     ///@{
 
-    typename NurbsCurveGeometryType::Pointer mpNurbsCurve;
+    static std::map<double, typename GeometryType::CoordinatesArrayType> mTesselation;
 
     ///@}
     ///@name Private Operations
@@ -210,7 +214,7 @@ public:
     ///@}
     ///@name Private Serialization
     ///@{
-
+// 
     friend class Serializer;
 };
 

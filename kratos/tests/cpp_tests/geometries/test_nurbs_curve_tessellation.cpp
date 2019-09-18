@@ -21,9 +21,11 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "containers/pointer_vector.h"
-#include "nurbs_test_utility.h"
+#include "tests/cpp_tests/geometries/test_geometry.h"
 
+#include "containers/pointer_vector.h"
+
+#include "geometries/geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_curve_tessellation.h"
 
@@ -52,50 +54,45 @@ namespace Testing {
         int p = 2;
 
         // Create the 2d nurbs curve
-        auto geometry = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
-
-        /*const auto tessellation =
-            NurbsCurveTessellation<NurbsCurveGeometry<2>>::Compute(geometry,
-                geometry.GetDomain(), 1e-2);*/
+        auto geometry = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(
+            points, 
+            p, 
+            knot_vector);
         
-        auto tessellation_class = NurbsCurveTessellation<2, PointerVector<Point>>(geometry);
+        auto tessellation = NurbsCurveTessellation<2, PointerVector<Point>>::ComputeTessellation(
+            geometry, 
+            geometry->PolynomialDegree(), 
+            geometry->DomainInterval(), 
+            geometry->KnotSpanIntervals(), 
+            1e-2);
 
-        auto tessellation = tessellation_class.Compute(1e-2);
+        std::map<double, array_1d<double, 3>>::iterator it;
+        // std::vector<std::pair<double, array_1d<double, 3>>>::iterator it;
 
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[0].second,
-            NurbsTestUtility::Point2D(0.0000000,  0.000000));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[1].second,
-            NurbsTestUtility::Point2D(0.2421875,  0.218750));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[2].second,
-            NurbsTestUtility::Point2D(0.4687500,  0.375000));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[3].second,
-            NurbsTestUtility::Point2D(0.6796875,  0.468750));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[4].second,
-            NurbsTestUtility::Point2D(0.8750000,  0.500000));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[5].second,
-            NurbsTestUtility::Point2D(1.0546875,  0.468750));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[6].second,
-            NurbsTestUtility::Point2D(1.2187500,  0.375000));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[7].second,
-            NurbsTestUtility::Point2D(1.3671875,  0.218750));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[8].second,
-            NurbsTestUtility::Point2D(1.5000000,  0.000000));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[9].second,
-            NurbsTestUtility::Point2D(1.6328125, -0.234375));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[10].second,
-            NurbsTestUtility::Point2D(1.7812500, -0.437500));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[11].second,
-            NurbsTestUtility::Point2D(1.9453125, -0.609375));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[12].second,
-            NurbsTestUtility::Point2D(2.1250000, -0.750000));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[13].second,
-            NurbsTestUtility::Point2D(2.3203125, -0.859375));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[14].second,
-            NurbsTestUtility::Point2D(2.5312500, -0.937500));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[15].second,
-            NurbsTestUtility::Point2D(2.7578125, -0.984375));
-        NurbsTestUtility::ArrayAlmostEqual(tessellation[16].second,
-            NurbsTestUtility::Point2D(3.0000000, -1.000000));
+        double point_expected[17][3] = {{0.0, 0.0,  0.0}, 
+                                        {0.125, 0.2421875,  0.21875},
+                                        {0.25, 0.46875,  0.375},
+                                        {0.375, 0.6796875,  0.46875},
+                                        {0.5, 0.875,  0.5},
+                                        {0.625, 1.0546875,  0.46875},
+                                        {0.75, 1.21875,  0.375},
+                                        {0.875, 1.3671875,  0.21875},
+                                        {1.0, 1.5,  0.0},
+                                        {1.125, 1.6328125, -0.234375},
+                                        {1.25, 1.78125, -0.4375},
+                                        {1.375, 1.9453125, -0.609375},
+                                        {1.5, 2.125, -0.75},
+                                        {1.625, 2.3203125, -0.859375},
+                                        {1.75, 2.53125, -0.9375},
+                                        {1.875, 2.7578125, -0.984375},
+                                        {2.0, 3.0, -1.0}};
+
+        unsigned counter = 0;
+        for (it = tessellation.begin(); it != tessellation.end(); it++) {
+            KRATOS_CHECK_NEAR(it->first,point_expected[counter][0], TOLERANCE);
+            KRATOS_CHECK_VECTOR_NEAR(it->second, Point(point_expected[counter][1], point_expected[counter][2]), TOLERANCE)
+            counter++;
+        }
     }
 
 } // namespace Testing.
