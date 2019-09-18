@@ -1343,6 +1343,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_TRY
 
         Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        const double sigma_3_average = fabs(r_process_info[SIGMA_3_AVERAGE]);
+        const double percentage_of_stress = 0.1; // 10%, obv
 
         #pragma omp parallel for
         for (int k = 0; k < (int)rElements.size(); k++){
@@ -1352,7 +1355,20 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             if ((*particle_pointer_it)->Is(BLOCKED)) continue;
             if ((*particle_pointer_it)->Is(DEMFlags::STICKY)) continue;
 
-            if ((*particle_pointer_it)->Is(DEMFlags::IS_SAND_PRODUCTION)) {
+            Element* p_element = particle_pointer_it->get();
+            SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
+            BoundedMatrix<double, 3, 3> stress_tensor = (*(pDemElem->mSymmStressTensor));
+            Vector principal_stresses(3);
+            noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod(stress_tensor);
+            const double particle_sigma_3 = fabs(*std::min_element(principal_stresses.begin(), principal_stresses.end()));
+
+            bool the_particle_plays_a_structural_role = (particle_sigma_3 > percentage_of_stress * sigma_3_average);
+
+            // TODO: Do this correctly using the latest Ignasi's json
+            the_particle_plays_a_structural_role = false;
+            //
+
+            if ((*particle_pointer_it)->Is(DEMFlags::IS_SAND_PRODUCTION) && !the_particle_plays_a_structural_role) {
                 (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
                 (*particle_pointer_it)->Set(TO_ERASE);
             }

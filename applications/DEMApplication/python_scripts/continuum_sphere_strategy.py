@@ -78,6 +78,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, POISSON_EFFECT_OPTION, self.poisson_effect_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_NUMBER_OF_INTACT_BONDS_TO_CONSIDER_A_SPHERE_BROKEN, self.max_number_of_intact_bonds_to_consider_a_sphere_broken)
+        self.spheres_model_part.ProcessInfo.SetValue(SIGMA_3_AVERAGE, 0.0)
 
         for properties in self.spheres_model_part.Properties:
             ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]

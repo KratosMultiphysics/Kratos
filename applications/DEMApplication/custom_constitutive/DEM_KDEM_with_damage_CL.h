@@ -94,12 +94,12 @@ namespace Kratos {
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEM_KDEM_soft_torque)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
         virtual void load(Serializer& rSerializer) override {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEM_KDEM_soft_torque)
                     //rSerializer.load("MyMemberName",myMember);
         }
     };
