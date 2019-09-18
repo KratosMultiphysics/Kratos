@@ -16,8 +16,8 @@
 		}
   },
   "refinement_mmg" : {
-    "initialize_entities"     : false,
-		"save_external_files" : false,
-		"echo_level"          : 0
+	  "initialize_entities" : false,
+	  "save_external_files" : false,
+	  "echo_level"          : 0
 	}
 }
