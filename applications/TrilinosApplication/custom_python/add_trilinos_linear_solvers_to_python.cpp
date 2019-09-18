@@ -32,9 +32,18 @@
 #include "Teuchos_ParameterList.hpp"
 
 #include "external_includes/epetra_default_setter.h"
+
+#ifdef TRILINOS_ENABLE_AZTEC_SOLVER
 #include "external_includes/aztec_solver.h"
+#endif
+
+#ifdef TRILINOS_ENABLE_AMESOS_SOLVER
 #include "external_includes/amesos_solver.h"
+#endif
+
+#ifdef TRILINOS_ENABLE_ML_SOLVER
 #include "external_includes/ml_solver.h"
+#endif
 
 #include "external_includes/amgcl_mpi_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
@@ -70,6 +79,7 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("SetDefaults", &EpetraDefaultSetter::SetDefaults)
         ;
 
+#ifdef TRILINOS_ENABLE_AZTEC_SOLVER
     typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
     py::class_<AztecSolverType, typename AztecSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AztecSolver")
@@ -79,6 +89,14 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("__str__", PrintObject<AztecSolverType>)
         ;
 
+    py::enum_<AztecScalingType>(m,"AztecScalingType")
+        .value("NoScaling", NoScaling)
+        .value("LeftScaling", LeftScaling)
+        .value("SymmetricScaling", SymmetricScaling)
+        ;
+#endif
+
+#ifdef TRILINOS_ENABLE_AMESOS_SOLVER
     typedef AmesosSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmesosSolverType;
     py::class_<AmesosSolverType, typename AmesosSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmesosSolver").def( py::init<const std::string&, Teuchos::ParameterList& >())
@@ -87,7 +105,9 @@ void  AddLinearSolvers(pybind11::module& m)
         .def_static("HasSolver", &AmesosSolverType::HasSolver)
         .def("__str__", PrintObject<AmesosSolverType>)
         ;
+#endif
 
+#ifdef TRILINOS_ENABLE_ML_SOLVER
     typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;
     py::class_<MLSolverType, typename MLSolverType::Pointer, TrilinosLinearSolverType >
     (m,"MultiLevelSolver").def( py::init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
@@ -96,6 +116,12 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("SetReformPrecAtEachStep", &MLSolverType::SetReformPrecAtEachStep)
         .def("__str__", PrintObject<MLSolverType>)
         ;
+
+    py::enum_<MLSolverType::ScalingType>(m,"MLSolverScalingType")
+        .value("NoScaling", MLSolverType::NoScaling)
+        .value("LeftScaling", MLSolverType::LeftScaling)
+        ;
+#endif
 
     typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
     py::class_<AmgclMPISolverType, typename AmgclMPISolverType::Pointer, TrilinosLinearSolverType >
@@ -109,17 +135,6 @@ void  AddLinearSolvers(pybind11::module& m)
     (m,"AmgclMPISchurComplementSolver")
         .def( py::init<Parameters>())
         .def("__str__", PrintObject<AmgclMPISchurComplementSolverType>)
-        ;
-
-    py::enum_<AztecScalingType>(m,"AztecScalingType")
-        .value("NoScaling", NoScaling)
-        .value("LeftScaling", LeftScaling)
-        .value("SymmetricScaling", SymmetricScaling)
-        ;
-
-    py::enum_<MLSolverType::ScalingType>(m,"MLSolverScalingType")
-        .value("NoScaling", MLSolverType::NoScaling)
-        .value("LeftScaling", MLSolverType::LeftScaling)
         ;
 
     typedef LinearSolverFactory< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverFactoryType;
