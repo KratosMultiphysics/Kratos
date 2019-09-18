@@ -36,5 +36,3 @@ void SetEpetraDefaults(Teuchos::ParameterList& rParameterlist, const std::string
 
 }  // namespace TrilinosSolverUtilities.
 }  // namespace Kratos.
-
-#endif // KRATOS_TRILINOS_SOLVER_UTILITIES_H_INCLUDED defined
