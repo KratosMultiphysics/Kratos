@@ -296,6 +296,9 @@ public:
         void CopyScalarVarToPreviousTimeStep(ModelPart& rModelPart, const Variable< double >& rVar)
         {
             KRATOS_TRY
+            KRATOS_WARNING("BFECCConvection")
+            << "Using deprecated method BFECCConvection::CopyScalarVarToPreviousTimeStep" << std::endl
+            << "Please, use BFECCConvection::CopyVariableToPreviousTimeStep instead." << std::endl;
             ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
             vector<unsigned int> node_partition;
             #ifdef _OPENMP
@@ -326,5 +329,3 @@ private:
 } // namespace Kratos.
 
 #endif // KRATOS_BFECC_CONVECTION_INCLUDED  defined
-
-
