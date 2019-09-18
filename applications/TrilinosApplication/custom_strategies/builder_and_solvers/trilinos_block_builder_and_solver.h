@@ -178,7 +178,7 @@ public:
         const int nelements = static_cast<int>(rModelPart.Elements().size());
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
         // Resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(*BaseType::mpReactionsVector); // TODO: Check if required
+        TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
         // Contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -265,7 +265,7 @@ public:
         const int nelements = static_cast<int>(rModelPart.Elements().size());
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
         // Resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(*BaseType::mpReactionsVector); // TODO: Check if required
+        TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
         // Contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -458,7 +458,7 @@ public:
         const int nelements = static_cast<int>(rModelPart.Elements().size());
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
         // Resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(*BaseType::mpReactionsVector); // TODO: Check if required
+        TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
         // Contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
@@ -518,7 +518,6 @@ public:
         // Gets the array of elements from the modeler
         ElementsArrayType& r_elements_array =
             rModelPart.GetCommunicator().LocalMesh().Elements();
-        const IndexType number_of_elements = static_cast<int>(r_elements_array.size());
         DofsVectorType dof_list;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -527,27 +526,22 @@ public:
             rModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * 3;
         temp_dofs_array.reserve(guess_num_dofs);
         BaseType::mDofSet = DofsArrayType();
-        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
-        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Conditions().ptr_begin();        
 
         // Taking dofs of elements
-        for (IndexType i = 0; i < number_of_elements; ++i) {
-            auto it_elem = el_begin + i;
+        for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
             pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i = dof_list.begin();
-                 i != dof_list.end(); ++i)
-                temp_dofs_array.push_back(i->get());
+            for (typename DofsVectorType::iterator i_dof = dof_list.begin();
+                 i_dof != dof_list.end(); ++i_dof)
+                temp_dofs_array.push_back(i_dof->get());
         }
 
         // Taking dofs of conditions
-        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
-        const IndexType number_of_conditions = static_cast<int>(r_conditions_array.size());
-        for (IndexType i = 0; i < number_of_conditions; ++i) {
-            auto it_cond = cond_begin + i;
+        auto& r_conditions_array = rModelPart.Conditions();
+        for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
             pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
-            for (typename DofsVectorType::iterator i = dof_list.begin();
-                 i != dof_list.end(); ++i)
-                temp_dofs_array.push_back(i->get());
+            for (typename DofsVectorType::iterator i_dof = dof_list.begin();
+                 i_dof != dof_list.end(); ++i_dof)
+                temp_dofs_array.push_back(i_dof->get());
         }
 
         temp_dofs_array.Unique();
@@ -656,12 +650,9 @@ public:
             if (temp_size < 1000)
                 temp_size = 1000;
             std::vector<int> temp(temp_size, 0);
+            // TODO: Check if these should be local elements and conditions
             auto& r_elements_array = rModelPart.Elements();
-            const IndexType number_of_elements =
-                static_cast<IndexType>(r_elements_array.size());
             auto& r_conditions_array = rModelPart.Conditions();
-            const IndexType number_of_conditions =
-                static_cast<IndexType>(r_conditions_array.size());
             // generate map - use the "temp" array here
             for (IndexType i = 0; i != number_of_local_dofs; i++)
                 temp[i] = mFirstMyId + i;
@@ -673,8 +664,7 @@ public:
             ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // assemble all elements
-            for (IndexType i = 0; i < number_of_elements; ++i) {
-                auto it_elem = r_elements_array.begin() + i;
+            for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
                 pScheme->EquationId(*(it_elem.base()), equation_ids_vector,
                                     r_current_process_info);
 
@@ -697,8 +687,7 @@ public:
             }
 
             // assemble all conditions
-            for (IndexType i = 0; i < number_of_conditions; ++i) {
-                auto it_cond = r_conditions_array.begin() + i;
+            for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
                 pScheme->Condition_EquationId(
                     *(it_cond.base()), equation_ids_vector, r_current_process_info);
 
