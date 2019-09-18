@@ -404,7 +404,7 @@ public:
                 //find to which edge (condition) of the origin mesh this point belongs
                 for(PointIterator i=res.begin(); i!=res.begin() + static_cast<int>(n_points_in_radius) ; i++)
                 {
-                    WeakPointerVector< Condition >& neighb_conds = (*i)->GetValue(NEIGHBOUR_CONDITIONS);
+                    GlobalPointersVector< Condition >& neighb_conds = (*i)->GetValue(NEIGHBOUR_CONDITIONS);
 
                     for (unsigned int ii=0; ii<neighb_conds.size(); ii++)
                     {

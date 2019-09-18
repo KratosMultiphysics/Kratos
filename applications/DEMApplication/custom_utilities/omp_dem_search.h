@@ -172,7 +172,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
 //                   
 //                   for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
 //                   {
-//                       Element::Pointer elem = Kratos::dynamic_pointer_cast<Element>(*it);
+//                       Element::Pointer elem = dynamic_pointer_cast<Element>(*it);
 //                       rResults[i].push_back(elem);
 //                       rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
 //                   }
@@ -516,7 +516,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   
                   for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
                   {
-                      Condition::Pointer elem = Kratos::dynamic_pointer_cast<Condition>(*it);
+                      Condition::Pointer elem = dynamic_pointer_cast<Condition>(*it);
                       rResults[i].push_back(elem);
                       rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
                   }
@@ -572,7 +572,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   
                   for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
                   {
-                      Condition::Pointer elem = Kratos::dynamic_pointer_cast<Condition>(*it);
+                      Condition::Pointer elem = dynamic_pointer_cast<Condition>(*it);
                       rResults[i].push_back(elem);
                       rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
                   }
@@ -628,7 +628,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   
                   for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
                   {
-                      Element::Pointer elem = Kratos::dynamic_pointer_cast<Element>(*it);
+                      Element::Pointer elem = dynamic_pointer_cast<Element>(*it);
                       rResults[i].push_back(elem);
                       rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
                   }
@@ -684,7 +684,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   
                   for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
                   {
-                      Element::Pointer elem = Kratos::dynamic_pointer_cast<Element>(*it);
+                      Element::Pointer elem = dynamic_pointer_cast<Element>(*it);
                       rResults[i].push_back(elem);
                       rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
                   }

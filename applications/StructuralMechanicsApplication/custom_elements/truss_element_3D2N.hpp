@@ -43,7 +43,7 @@ namespace Kratos
         ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TrussElement3D2N);
 
 
         typedef Element BaseType;
@@ -273,8 +273,7 @@ namespace Kratos
          * @param rSaveInternalVariables Boolean to save internal constit. law variables
          */
         virtual BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo,
-            const bool rSaveInternalVariables);
+            const ProcessInfo& rCurrentProcessInfo);
 
 private:
     /**

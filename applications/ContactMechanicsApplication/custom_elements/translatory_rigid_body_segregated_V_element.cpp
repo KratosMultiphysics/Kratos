@@ -61,7 +61,7 @@ TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(T
 
 Element::Pointer TranslatoryRigidBodySegregatedVElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<TranslatoryRigidBodySegregatedVElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+  return Kratos::make_intrusive<TranslatoryRigidBodySegregatedVElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -78,7 +78,7 @@ Element::Pointer TranslatoryRigidBodySegregatedVElement::Clone(IndexType NewId, 
   NewElement.SetFlags(this->GetFlags());
   NewElement.mStepVariable = mStepVariable;
 
-  return Kratos::make_shared<TranslatoryRigidBodySegregatedVElement>(NewElement);
+  return Kratos::make_intrusive<TranslatoryRigidBodySegregatedVElement>(NewElement);
 
 }
 

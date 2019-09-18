@@ -96,6 +96,8 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
             rRightHandSideVector[k * 3 + 1] += force[1] * weights_vector[k];
             rRightHandSideVector[k * 3 + 2] += force[2] * weights_vector[k];
         }
+
+        //AddForcesDueToTorque(rRightHandSideVector, r_shape_functions_values, weights_vector, force, p_particle);
     }
 
     std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
@@ -110,6 +112,66 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
             rRightHandSideVector[k * 3 + 1] += -force[1] * weights_vector[k];
             rRightHandSideVector[k * 3 + 2] += -force[2] * weights_vector[k];
         }
+    }
+}
+
+void RigidFace3D::AddForcesDueToTorque(VectorType& rRightHandSideVector, Vector& r_shape_functions_values, std::vector<double>& weights_vector, array_1d<double, 3>& force, SphericParticle* p_particle) {
+    DEMIntegrationScheme& dem_scheme = p_particle->GetTranslationalIntegrationScheme();
+    GluedToWallScheme* p_glued_scheme = dynamic_cast<GluedToWallScheme*>(&dem_scheme);
+    array_1d<double, 3> inner_point = ZeroVector(3);
+    for(size_t j=0; j<r_shape_functions_values.size(); j++) {
+        noalias(inner_point) += weights_vector[j] * GetGeometry()[j];
+    }
+    array_1d<double, 3> unit_normal;
+    noalias(unit_normal) = GetGeometry().UnitNormal(GetGeometry()[0]);
+
+    array_1d<double, 3> normal_force;
+    const double dot_product_force_unit_normal = force[0]*unit_normal[0] + force[1]*unit_normal[1] + force[2]*unit_normal[2];
+    noalias(normal_force) = dot_product_force_unit_normal * unit_normal;
+    array_1d<double, 3> tangential_force;
+    noalias(tangential_force) = force - normal_force;
+    const double modulus_of_tangential_force = MathUtils<double>::Norm3(tangential_force);
+    array_1d<double, 3> torque;
+    array_1d<double, 3> inner_to_ball = p_glued_scheme->GetDistanceSignedWithNormal() * unit_normal;
+    MathUtils<double>::CrossProduct(torque, inner_to_ball, tangential_force);
+    array_1d<double, 3> unit_tangential_force = tangential_force;
+    double aux_inv_modulus = 1.0 / modulus_of_tangential_force;
+    unit_tangential_force[0] *= aux_inv_modulus;
+    unit_tangential_force[1] *= aux_inv_modulus;
+    unit_tangential_force[2] *= aux_inv_modulus;
+    array_1d<double, 3> unit_perpendicular_to_tangential_force;
+    MathUtils<double>::CrossProduct(unit_perpendicular_to_tangential_force, unit_normal, tangential_force);
+    aux_inv_modulus = 1.0 / MathUtils<double>::Norm3(unit_perpendicular_to_tangential_force);
+    unit_perpendicular_to_tangential_force[0] *= aux_inv_modulus;
+    unit_perpendicular_to_tangential_force[1] *= aux_inv_modulus;
+    unit_perpendicular_to_tangential_force[2] *= aux_inv_modulus;
+    const double modulus_of_torque = MathUtils<double>::Norm3(torque);
+    array_1d<double, 3> inner_to_node;
+    noalias(inner_to_node) = GetGeometry()[0] - inner_point;
+    const double d1 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
+    const double dp1 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    noalias(inner_to_node) = GetGeometry()[1] - inner_point;
+    const double d2 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
+    const double dp2 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    noalias(inner_to_node) = GetGeometry()[2] - inner_point;
+    const double d3 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
+    const double dp3 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    const double aux = 1.0 / (dp2 - dp3);
+    const double f1 = -1.0 * modulus_of_torque / (d1 - d2*dp1*aux + d2*dp3*aux - d3 + d3*dp1*aux - d3*dp3*aux);
+    const double f2 = (dp3-dp1)*f1*aux;
+    const double f3 = -f1 -f2;
+
+    std::vector<array_1d<double, 3> > forces_due_to_torque;
+    forces_due_to_torque.resize(3);
+    noalias(forces_due_to_torque[0]) = f1 * unit_normal;
+    noalias(forces_due_to_torque[1]) = f2 * unit_normal;
+    noalias(forces_due_to_torque[2]) = f3 * unit_normal;
+
+    const unsigned int number_of_nodes = GetGeometry().size();
+    for (unsigned int k=0; k< number_of_nodes; k++) {
+        rRightHandSideVector[k * 3 + 0] += forces_due_to_torque[k][0];
+        rRightHandSideVector[k * 3 + 1] += forces_due_to_torque[k][1];;
+        rRightHandSideVector[k * 3 + 2] += forces_due_to_torque[k][2];;
     }
 }
 

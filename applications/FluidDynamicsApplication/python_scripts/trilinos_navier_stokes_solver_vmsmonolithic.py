@@ -5,20 +5,21 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
 
 # Import applications
-import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD     # Fluid dynamics application
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
-import navier_stokes_solver_vmsmonolithic
-import trilinos_import_model_part_utility
+from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic
+from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(model, custom_settings):
     return TrilinosNavierStokesSolverMonolithic(model, custom_settings)
 
 class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
-    def _ValidateSettings(self, settings):
+    @classmethod
+    def GetDefaultSettings(cls):
         ## Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -72,28 +73,35 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "turbulence_model": "None"
         }""")
 
-        settings = self._BackwardsCompatibilityHelper(settings)
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultSettings())
+        return default_settings
 
     def __init__(self, model, custom_settings):
-        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
-
+        self._validate_settings_in_baseclass=True # To be removed eventually
         # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
+        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
 
         self.formulation = navier_stokes_solver_vmsmonolithic.StabilizedFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
-        self.min_buffer_size = 2
+        self.element_integrates_in_time = self.formulation.element_integrates_in_time
+
+        scheme_type = self.settings["time_scheme"].GetString()
+        if scheme_type == "bossak":
+            self.min_buffer_size = 2
+        elif scheme_type == "bdf2":
+            self.min_buffer_size = 3
+        else:
+            msg  = "Unknown time_scheme option found in project parameters:\n"
+            msg += "\"" + scheme_type + "\"\n"
+            msg += "Accepted values are \"bossak\" or \"bdf2\".\n"
+            raise Exception(msg)
 
         ## Construct the linear solver
-        import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        if self._IsPrintingRank():
-            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.Print("Construction of TrilinosNavierStokesSolverMonolithic finished.")
+        KratosMultiphysics.Logger.Print("Construction of TrilinosNavierStokesSolverMonolithic finished.")
 
 
     def AddVariables(self):
@@ -102,35 +110,27 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        KratosMPI.mpi.world.barrier()
 
-        if self._IsPrintingRank():
-            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.Print("Variables for the VMS fluid Trilinos solver added correctly in each processor.")
+        KratosMultiphysics.Logger.Print("Variables for the VMS fluid Trilinos solver added correctly in each processor.")
 
     def ImportModelPart(self):
-        ## Construct the Trilinos import model part utility
-        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        ## Construct the MPI import model part utility
+        self.distributed_model_part_importer = DistributedImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
-        self.trilinos_model_part_importer.ImportModelPart()
+        self.distributed_model_part_importer.ImportModelPart()
 
-        if self._IsPrintingRank():
-            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
 
     def PrepareModelPart(self):
         super(TrilinosNavierStokesSolverMonolithic,self).PrepareModelPart()
-        ## Construct Trilinos the communicators
-        self.trilinos_model_part_importer.CreateCommunicators()
+        ## Construct the MPI communicators
+        self.distributed_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
         ## Base class DOFs addition
         super(TrilinosNavierStokesSolverMonolithic, self).AddDofs()
-        KratosMPI.mpi.world.barrier()
 
-        if self._IsPrintingRank():
-            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.Print("DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
+        KratosMultiphysics.Logger.Print("DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
 
 
     def Initialize(self):
@@ -153,15 +153,35 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         ## Creating the Trilinos time scheme
-        if (self.settings["turbulence_model"].GetString() == "None"):
-            if self.settings["consider_periodic_conditions"].GetBool() == True:
-                self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
-                                                                                                          self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                                                          KratosCFD.PATCH_INDEX)
+        if (self.element_integrates_in_time):
+            # "Fake" scheme for those cases in where the element manages the time integration
+            # It is required to perform the nodal update once the current time step is solved
+            self.time_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(
+                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1)
+            # In case the BDF2 scheme is used inside the element, set the time discretization utility to compute the BDF coefficients
+            if (self.settings["time_scheme"].GetString() == "bdf2"):
+                time_order = self.settings["time_order"].GetInt()
+                if time_order == 2:
+                    self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+                else:
+                    raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
             else:
-                self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
-                                                                                                          self.settings["move_mesh_strategy"].GetInt(),
-                                                                                                          self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                err_msg = "Requested elemental time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
+                err_msg += "Available options are: \"bdf2\""
+                raise Exception(err_msg)
+        else:
+            if (self.settings["turbulence_model"].GetString() == "None"):
+                if self.settings["consider_periodic_conditions"].GetBool() == True:
+                    self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.settings["alpha"].GetDouble(),
+                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                        KratosCFD.PATCH_INDEX)
+                else:
+                    self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.settings["alpha"].GetDouble(),
+                        self.settings["move_mesh_strategy"].GetInt(),
+                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
 
         ## Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
@@ -198,9 +218,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
         (self.solver).Initialize()
 
-        if self._IsPrintingRank():
-            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.Print("Monolithic MPI solver initialization finished.")
+        KratosMultiphysics.Logger.Print("Monolithic MPI solver initialization finished.")
 
     def Finalize(self):
         self.solver.Clear()

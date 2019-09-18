@@ -26,7 +26,6 @@
 #include "custom_processes/metrics_error_process.h"
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
-#include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
 #include "custom_processes/multiscale_refining_process.h"
 
 #ifdef INCLUDE_MMG
@@ -62,12 +61,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Parameters>())
     ;
 
-    // The process to recover internal variables
-    py::class_<IntegrationValuesExtrapolationToNodesProcess, IntegrationValuesExtrapolationToNodesProcess::Pointer, Process>(m, "IntegrationValuesExtrapolationToNodesProcess")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    ;
-
     /* METRICS PROCESSES */
     // Fast metric initializer
     py::class_<MetricFastInit<2>, MetricFastInit<2>::Pointer, Process>(m, "MetricFastInit2D")
@@ -91,6 +84,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     // HESSIAN PROCESS
     py::class_<ComputeHessianSolMetricProcess, ComputeHessianSolMetricProcess::Pointer, Process>(m, "ComputeHessianSolMetricProcess")
+    .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&>())
     .def(py::init<ModelPart&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ComponentType&>())
@@ -144,21 +138,27 @@ void  AddProcessesToPython(pybind11::module& m)
     /* MMG PROCESS */
 #ifdef INCLUDE_MMG
     // 2D
-    py::class_<MmgProcess<MMGLibray::MMG2D>, MmgProcess<MMGLibray::MMG2D>::Pointer, Process>(m, "MmgProcess2D")
+    py::class_<MmgProcess<MMGLibrary::MMG2D>, MmgProcess<MMGLibrary::MMG2D>::Pointer, Process>(m, "MmgProcess2D")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &MmgProcess<MMGLibrary::MMG2D>::OutputMdpa)
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMG2D>::CleanSuperfluousNodes)
     ;
 
     // 3D
-    py::class_<MmgProcess<MMGLibray::MMG3D>, MmgProcess<MMGLibray::MMG3D>::Pointer, Process>(m, "MmgProcess3D")
+    py::class_<MmgProcess<MMGLibrary::MMG3D>, MmgProcess<MMGLibrary::MMG3D>::Pointer, Process>(m, "MmgProcess3D")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &MmgProcess<MMGLibrary::MMG3D>::OutputMdpa)
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMG3D>::CleanSuperfluousNodes)
     ;
 
     // 3D surfaces
-    py::class_<MmgProcess<MMGLibray::MMGS>, MmgProcess<MMGLibray::MMGS>::Pointer, Process>(m, "MmgProcess3DSurfaces")
+    py::class_<MmgProcess<MMGLibrary::MMGS>, MmgProcess<MMGLibrary::MMGS>::Pointer, Process>(m, "MmgProcess3DSurfaces")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &MmgProcess<MMGLibrary::MMGS>::OutputMdpa)
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMGS>::CleanSuperfluousNodes)
     ;
 #endif
 }

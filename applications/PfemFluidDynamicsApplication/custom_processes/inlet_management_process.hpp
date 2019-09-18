@@ -60,8 +60,8 @@ public:
   typedef ModelPart::PropertiesType       PropertiesType;
   typedef ConditionType::GeometryType       GeometryType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
     ///@}
     ///@name Life Cycle

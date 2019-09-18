@@ -22,11 +22,11 @@ namespace Kratos {
     }
 
     double InviscidForceLaw::ComputeParticleAccelerationNumber(const double particle_radius,
-                                                               const array_1d<double, 3>& slip_velocity,
-                                                               const array_1d<double, 3>& slip_acceleration)
+                                                               const array_1d<double, 3>& minus_slip_velocity,
+                                                               const array_1d<double, 3>& minus_slip_acceleration)
     {
-        const double norm_of_slip_vel = SWIMMING_MODULUS_3(slip_velocity);
-        return SWIMMING_POW_3(norm_of_slip_vel) / std::abs(2 * particle_radius * SWIMMING_INNER_PRODUCT_3(slip_velocity, slip_acceleration));
+        const double norm_of_slip_vel = SWIMMING_MODULUS_3(minus_slip_velocity);
+        return SWIMMING_POW_3(norm_of_slip_vel) / std::abs(2 * particle_radius * SWIMMING_INNER_PRODUCT_3(minus_slip_velocity, minus_slip_acceleration));
     }
 
 } // namespace Kratos

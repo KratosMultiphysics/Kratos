@@ -206,6 +206,10 @@ std::size_t TestModelPartFactory::AddElements(std::string const& rElement, std::
     const auto& r_elem = KratosComponents<Element>::Get(rElement);
     std::vector<ModelPart::IndexType> node_ids(r_elem.GetGeometry().size());
     std::size_t start_index = (mrTestModelPart.NumberOfElements() > 0) ? mrTestModelPart.Elements().back().Id() : 0;
+    if (!mrTestModelPart.HasProperties(1))
+    {
+        mrTestModelPart.CreateNewProperties(1);
+    }
     for (std::size_t i = 0; i < NumElems; ++i)
     {
         for (std::size_t j = 0; j < r_elem.GetGeometry().size(); ++j)
@@ -220,6 +224,10 @@ std::size_t TestModelPartFactory::AddConditions(std::string const& rCondition, s
     const auto& r_cond = KratosComponents<Condition>::Get(rCondition);
     std::vector<ModelPart::IndexType> node_ids(r_cond.GetGeometry().size());
     std::size_t start_index = (mrTestModelPart.NumberOfConditions() > 0) ? mrTestModelPart.Conditions().back().Id() : 0;
+    if (!mrTestModelPart.HasProperties(1))
+    {
+        mrTestModelPart.CreateNewProperties(1);
+    }
     for (std::size_t i = 0; i < NumConds; ++i)
     {
         for (std::size_t j = 0; j < r_cond.GetGeometry().size(); ++j)

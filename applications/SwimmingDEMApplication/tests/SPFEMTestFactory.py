@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from swimming_DEM_PFEM_analysis import SDEMPFEMAnalysis
+from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_PFEM_analysis import SDEMPFEMAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:

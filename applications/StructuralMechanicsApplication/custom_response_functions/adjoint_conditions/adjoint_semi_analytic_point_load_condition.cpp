@@ -120,7 +120,10 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "There is no scalar design variable available!" << std::endl;
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
+        const SizeType num_dofs = number_of_nodes * dimension;
+        rOutput = ZeroMatrix(0, num_dofs);
 
         KRATOS_CATCH( "" )
     }
@@ -132,12 +135,12 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+        const SizeType mat_size = number_of_nodes * dimension;
+
         if( rDesignVariable == POINT_LOAD )
         {
-            const SizeType number_of_nodes = this->GetGeometry().size();
-            const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
-            const SizeType mat_size = number_of_nodes * dimension;
-
             if ((rOutput.size1() != mat_size) || (rOutput.size2() != mat_size))
                 rOutput.resize(mat_size, mat_size, false);
 
@@ -145,9 +148,14 @@ namespace Kratos
             for(IndexType i = 0; i < mat_size; ++i)
                 rOutput(i,i) = 1.0;
         }
+        else if( rDesignVariable == SHAPE_SENSITIVITY )
+        {
+            rOutput = ZeroMatrix(mat_size, mat_size);
+        }
         else
-            if ((rOutput.size1() != 0) || (rOutput.size2() != 0))
-                rOutput.resize(0, 0, false);
+        {
+            rOutput = ZeroMatrix(0, mat_size);
+        }
 
         KRATOS_CATCH( "" )
     }
@@ -180,7 +188,7 @@ namespace Kratos
     }
 
     // TODO find out what to do with KRATOS_API
-    template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSemiAnalyticPointLoadCondition<PointLoadCondition>;
+    template class AdjointSemiAnalyticPointLoadCondition<PointLoadCondition>;
 
 } // Namespace Kratos
 

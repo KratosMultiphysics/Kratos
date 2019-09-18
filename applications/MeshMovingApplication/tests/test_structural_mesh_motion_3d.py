@@ -8,7 +8,7 @@ class TestCase(MeshMovingTestCase):
         self.domain_size = 3
         self.number_of_nodes_per_elements = 4
         self.solver_type = "structural_similarity"
-        self.mesh_vel_calc_helper = KM.BDF2()
+        self.mesh_vel_calc_helper = KM.TimeDiscretization.BDF2()
         self.print_reference_results = False
 
         # to suppress many prints
@@ -25,7 +25,7 @@ class TestCase(MeshMovingTestCase):
         self.domain_size = 3
         self.number_of_nodes_per_elements = 8
         self.solver_type = "structural_similarity"
-        self.mesh_vel_calc_helper = KM.Bossak(-0.1)
+        self.mesh_vel_calc_helper = KM.TimeDiscretization.Bossak(-0.1)
         self.print_reference_results = False
 
         # to suppress many prints

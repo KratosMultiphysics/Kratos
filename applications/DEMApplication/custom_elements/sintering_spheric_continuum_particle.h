@@ -27,11 +27,11 @@ namespace Kratos {
     public:
 
         /// Pointer definition of SinteringSphericContinuumParticle
-        KRATOS_CLASS_POINTER_DEFINITION(SinteringSphericContinuumParticle);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SinteringSphericContinuumParticle);
 
-        typedef WeakPointerVector<Element> ParticleWeakVectorType;
+        typedef GlobalPointersVector<Element> ParticleWeakVectorType;
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+        typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
         typedef Node <3> NodeType;
         typedef Geometry<NodeType>::PointsArrayType NodesArrayType;

@@ -40,16 +40,10 @@ namespace Kratos {
 
             KRATOS_TRY
 
-            ModelPart::NodesContainerType::iterator node_it_begin = r_structural_skin_model_part.NodesBegin();
-            ModelPart::NodesContainerType::iterator node_it_end = r_structural_skin_model_part.NodesEnd();
             #pragma omp parallel for
             for (int i=0; i<(int)r_structural_skin_model_part.Nodes().size(); i++) {
                 auto node_it = r_structural_skin_model_part.NodesBegin() + i;
                 array_1d<double, 3>& node_rhs = node_it->FastGetSolutionStepValue(DEM_SURFACE_LOAD);
-                array_1d<double, 3>& node_rhs_old = node_it->FastGetSolutionStepValue(DEM_SURFACE_LOAD_OLD);
-                array_1d<double, 3>& node_rhs_old2 = node_it->FastGetSolutionStepValue(DEM_SURFACE_LOAD_OLD2);
-                noalias(node_rhs_old2) = node_rhs_old;
-                noalias(node_rhs_old) = node_rhs;
                 node_rhs = ZeroVector(3);
             }
 
@@ -59,9 +53,6 @@ namespace Kratos {
         void CalculateDEMFaceLoads(ModelPart& r_structural_skin_model_part, const double DEM_delta_time, const double FEM_delta_time) {
 
             KRATOS_TRY
-
-            ModelPart::NodesContainerType::iterator node_it_begin = r_structural_skin_model_part.NodesBegin();
-            ModelPart::NodesContainerType::iterator node_it_end   = r_structural_skin_model_part.NodesEnd();
 
             static bool nodal_area_already_computed = false;
 

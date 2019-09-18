@@ -11,7 +11,7 @@
 #define  KRATOS_TRIGEN_GLASS_MODELER_H_INCLUDED
 
 
- 
+
 // System includes
 #include <string>
 #include <iostream>
@@ -28,7 +28,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/node_erase_process.h"
 #include "spatial_containers/spatial_containers.h"
 
@@ -137,34 +137,34 @@ public:
         ThisModelPart.Elements().clear();
 	//REFINING EDGES FOR GLASS SIMULATION PROCESSES
 	//NOTE: INBLOW SURFACE IS MARKED WITH FLAG_VARIABLE=1 and OUTER SURFACE IS MARKED WITH IS_INTERFACE=1.. BOTH ARE IS_FREE_SURFACE
-	int id = (ThisModelPart.Nodes().end() - 1)->Id() + 1;		
+	int id = (ThisModelPart.Nodes().end() - 1)->Id() + 1;
 	for(ModelPart::ConditionsContainerType::iterator ic = ThisModelPart.ConditionsBegin() ; ic != ThisModelPart.ConditionsEnd() ; ic++)
 	{
 
 		if (ic->GetGeometry().size()==2)
 		{
-		unsigned int n_fs=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);			
+		unsigned int n_fs=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);
 		n_fs+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE);
-								
+
 		//THIS REFINES THE NODES OF INTERBAL ELEMENTS OF THE SURFACE WHERE THE INBLOW IS: FLAG_VAR=1
 		if (n_fs==ic->GetGeometry().size())
 				{
-				double x0=ic->GetGeometry()[0].X(); 	double y0=ic->GetGeometry()[0].Y(); 	
-				double x1=ic->GetGeometry()[1].X(); 	double y1=ic->GetGeometry()[1].Y(); 	
+				double x0=ic->GetGeometry()[0].X(); 	double y0=ic->GetGeometry()[0].Y();
+				double x1=ic->GetGeometry()[1].X(); 	double y1=ic->GetGeometry()[1].Y();
 
 
 				double edge=sqrt((x0-x1)*(x0-x1)+(y0-y1)*(y0-y1));
 
 				double nodal_h=ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
 				nodal_h+=ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
-				
+
 				nodal_h*=0.5;
 				//if the edge of the facet (condition) is too long, we split it into two by adding a node in the middle
-				
+
 
 				Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
-				
-				double factor=1.25;	
+
+				double factor=1.25;
 				if (edge>factor*nodal_h)
 					{
 					id++;
@@ -174,15 +174,15 @@ public:
 
 					//putting the new node also in an auxiliary list
 					//KRATOS_WATCH("adding nodes AT THE EDGE==================================")
-																							
-					
+
+
 					//std::cout << "new node id = " << pnode->Id() << std::endl;
 					//generating the dofs
 					for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
 						{
 						Node<3>::DofType& rDof = *iii;
 						Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
-						
+
 						(p_new_dof)->FreeDof();
 						}
 					Geometry<Node<3> >& geom = ic->GetGeometry();
@@ -194,7 +194,7 @@ public:
 					//KRATOS_WATCH("Added node at the EDGE")
 					}
 
-				
+
 
 				}
 			}
@@ -274,7 +274,7 @@ public:
             Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
             for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
             {
-                iii->SetId(i+1);
+                iii->SetEquationId(i+1);
 //                                    iii->Id() = i+1;
             }
         }
@@ -600,12 +600,12 @@ public:
             int base = ( iii->Id() - 1 )*3;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-            WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+            GlobalPointersVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
             for(int i = 0; i<3; i++)
             {
                 int index = out2.neighborlist[base+i];
                 if(index > 0)
-                    neighb(i) = *((el_begin + index-1).base());
+                    neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1));
                 else
                     neighb(i) = Element::WeakPointer();
             }
@@ -852,8 +852,8 @@ private:
 
 
             if(number_of_structure_nodes!=3) //if it is = 3 it is a completely fixed element -> do not add it
-            {	
-		
+            {
+
 //                if ((nfs != 0 || nfluid != 3) && n_int==0) //in this case it is close to the surface so i should use alpha shape
                 if (nfs != 0 || nfluid != 3) //in this case it is close to the surface so i should use alpha shape
                 {
@@ -878,10 +878,10 @@ private:
 		double bigger_alpha = my_alpha*2.0;
 		    if( AlphaShape(bigger_alpha,temp) && number_of_structure_nodes!=3)
                     {
-			//KRATOS_WATCH ("PRESRVING INTERFACE ELEMENT")			  	
+			//KRATOS_WATCH ("PRESRVING INTERFACE ELEMENT")
                         preserved_list1[el] = true;
                         number_of_preserved_elems += 1;
-// 							
+//
                     }
 
 
@@ -892,14 +892,14 @@ private:
                     double bigger_alpha = my_alpha*10.0;
                     if( AlphaShape(bigger_alpha,temp) && number_of_structure_nodes!=3)
                     {
- 						  	
+
                         preserved_list1[el] = true;
                         number_of_preserved_elems += 1;
-// 							
+//
                     }
                 }
             }
-		
+
             else
                 preserved_list1[el] = false;
 
@@ -1210,47 +1210,47 @@ private:
 		//KRATOS_WATCH(buffer_size)
 
 		for(unsigned int step = 0; step<buffer_size; step++)
-		{	
-				
+		{
+
 			//getting the data of the solution step
-			double* step_data = (pnode)->SolutionStepData().Data(step);		
-			
-											
+			double* step_data = (pnode)->SolutionStepData().Data(step);
+
+
 			double* node0_data = geom[0].SolutionStepData().Data(step);
-			double* node1_data = geom[1].SolutionStepData().Data(step);						
-				
+			double* node1_data = geom[1].SolutionStepData().Data(step);
+
 			//copying this data in the position of the vector we are interested in
 			for(unsigned int j= 0; j<step_data_size; j++)
-				{ 
+				{
 
 					step_data[j] = 0.5*(node0_data[j] + node1_data[j]);
-								
 
-				}						
+
+				}
 			}
 			//now we assure that the flag variables are set coorect!! since we add nodes inside of the fluid volume only
 			//we manually reset the IS_BOUNDARY, IS_FLUID, IS_STRUCTURE, IS_FREE_SURFACE values in a right way
-			//not to have values, like 0.33 0.66 resulting if we would have been interpolating them in the same way 		
-			//as the normal variables, like Velocity etc		
-			
+			//not to have values, like 0.33 0.66 resulting if we would have been interpolating them in the same way
+			//as the normal variables, like Velocity etc
+
 			//pnode->FastGetSolutionStepValue(IS_BOUNDARY)=1.0;
-			//pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=1.0;			
+			//pnode->FastGetSolutionStepValue(FLAG_VARIABLE)=1.0;
 
 			pnode->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)=0.0;
 			pnode->FastGetSolutionStepValue(IS_BOUNDARY)=1.0;
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=1.0;
 			pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
 			pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;
-			
+
 
 			pnode->Set(TO_ERASE,false);
-			
+
 			if (pnode->FastGetSolutionStepValue(IS_INTERFACE)>0.99)
 				pnode->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
-			else 
+			else
 				pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
 
-							
+
 
 		}
 
@@ -1357,7 +1357,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIGEN_GLASS_MODELER_H_INCLUDED  defined 
+#endif // KRATOS_TRIGEN_GLASS_MODELER_H_INCLUDED  defined
 
 
 

@@ -23,6 +23,8 @@
 #include "includes/kratos_components.h"
 #include "includes/element.h"
 #include "elements/mesh_element.h"
+#include "elements/distance_calculation_element_simplex.h"
+#include "elements/levelset_convection_element_simplex.h"
 #include "includes/condition.h"
 #include "conditions/mesh_condition.h"
 #include "includes/periodic_condition.h"
@@ -86,14 +88,14 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     virtual void Register()
     {
-        RegisterVariables();
+        RegisterKratosCore();
     }
 
-    void RegisterVariables();
+    void RegisterKratosCore();
 
     ///////////////////////////////////////////////////////////////////
-    void
-    RegisterDeprecatedVariables();  //TODO: remove, this variables should not be there
+    void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
+    void RegisterDeprecatedVariables();  //TODO: remove, this variables should not be there
     void RegisterC2CVariables();                  //TODO: move to application
     void RegisterCFDVariables();                  //TODO: move to application
     void RegisterALEVariables();                  //TODO: move to application
@@ -102,6 +104,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     void RegisterFSIVariables();                  //TODO: move to application
     void RegisterMATVariables();                  //TODO: move to application
     void RegisterLegacyStructuralAppVariables();  //TODO: move to application
+    void RegisterGlobalPointerVariables();
 
     const std::string& Name() const { return mApplicationName; }
 
@@ -406,6 +409,12 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D6N;
     const MeshElement mElement3D8N;
     const MeshElement mElement3D10N;
+
+    const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
+    const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
+
+    const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
+    const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;

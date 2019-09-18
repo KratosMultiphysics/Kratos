@@ -122,6 +122,32 @@ defaults = """
 }
 """
 
+incomplete = """
+{
+    "level1": {
+    },
+    "new_default_obj": {
+        "aaa": "string",
+        "bbb": false,
+        "ccc": 22
+    },
+    "new_default_value": -123.0,
+    "string_value": "hello"
+}"""
+
+incomplete_with_extra_parameter = """
+{
+    "level1": {
+        "new_sublevel": "this should only be assigned in recursive"
+    },
+    "new_default_obj": {
+        "aaa": "string",
+        "bbb": false,
+        "ccc": 22
+    },
+    "new_default_value": -123.0,
+    "string_value": "hello"
+}"""
 
 expected_validation_output = """{
     "bool_value": true,
@@ -333,6 +359,61 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(kp.PrettyPrintJsonString(), expected_validation_output)
 
         self.assertEqual(kp["level1"]["tmp"].GetDouble(), 5.0)  # not 2, since kp overwrites the defaults
+
+    def test_add_missing_parameters(self):
+        # only missing parameters are added, no complaints if there already exist more than in the defaults
+        kp = Parameters(json_string)
+        tmp = Parameters(incomplete_with_extra_parameter)
+
+        kp.AddMissingParameters(tmp)
+
+        self.assertEqual(kp["new_default_obj"]["aaa"].GetString(), "string")
+        self.assertEqual(kp["string_value"].GetString(), "hello")
+        self.assertFalse(kp["level1"].Has("new_sublevel"))
+
+    def test_recursively_add_missing_parameters(self):
+        # only missing parameters are added, no complaints if there already exist more than in the defaults
+        kp = Parameters(json_string)
+        tmp = Parameters(incomplete_with_extra_parameter)
+
+        kp.RecursivelyAddMissingParameters(tmp)
+
+        self.assertTrue(kp["level1"].Has("new_sublevel"))
+        self.assertEqual(kp["level1"]["new_sublevel"].GetString(), "this should only be assigned in recursive")
+
+    def test_validate_defaults(self):
+        # only parameters from defaults are validated, no new values are added
+        kp = Parameters(incomplete_with_extra_parameter)
+        tmp = Parameters(defaults)
+
+        kp.ValidateDefaults(tmp)
+
+        self.assertFalse(kp.Has("bool_value"))
+        self.assertFalse(kp.Has("double_value"))
+        self.assertTrue(kp.Has("level1"))
+
+    def test_recursively_validate_defaults(self):
+        # only parameters from defaults are validated, no new values are added
+        kp = Parameters(incomplete)
+        tmp = Parameters(defaults)
+
+        kp.RecursivelyValidateDefaults(tmp)
+
+        self.assertFalse(kp.Has("bool_value"))
+        self.assertFalse(kp.Has("double_value"))
+        self.assertTrue(kp.Has("level1"))
+
+
+    def test_recursively_validate_defaults_fails(self):
+        # only parameters from defaults are validated, no new values are added
+        kp = Parameters(incomplete_with_extra_parameter)
+        tmp = Parameters(defaults)
+
+        with self.assertRaises(RuntimeError):
+            kp.RecursivelyValidateDefaults(tmp)
+
+        # sub_level
+        self.assertFalse(kp["level1"].Has("tmp"))
 
     def test_add_value(self):
         kp = Parameters("{}")
@@ -693,7 +774,6 @@ class TestParameters(KratosUnittest.TestCase):
         serializer.Load("ParametersSerialization",loaded_parameters)
 
         self.assertEqual(check, loaded_parameters.WriteJsonString())
-
 
 
 if __name__ == '__main__':

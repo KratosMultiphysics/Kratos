@@ -9,12 +9,12 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.mpi import *
 
-import DEM_material_test_script
+import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 class MaterialTest(DEM_material_test_script.MaterialTest):
 
-  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, RigidFace_model_part):
-      super(MaterialTest,self).__init__(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, RigidFace_model_part)
+  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
+      super(MaterialTest,self).__init__(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
   def Initialize(self):
       super(MaterialTest,self).Initialize()
@@ -99,7 +99,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
     prepare_check_gath = [0,0,0,0]
     self.total_check = 0
 
-    for smp in self.RigidFace_model_part.SubModelParts:
+    for smp in self.rigid_face_model_part.SubModelParts:
         if smp[TOP]:
             self.top_mesh_nodes = smp.Nodes
             prepare_check[0] = 1

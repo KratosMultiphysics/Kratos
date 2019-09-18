@@ -72,8 +72,8 @@ void AALMAdaptPenaltyValueProcess::Execute()
                     it_node->SetValue(INITIAL_PENALTY, penalty_parameter * (std::sqrt(std::abs(current_gap)/max_gap - 1.0) + 1.0));
             } else
                 it_node->SetValue(INITIAL_PENALTY, penalty_parameter);
-            } else {
-                it_node->SetValue(INITIAL_PENALTY, penalty_parameter);
+        } else {
+            it_node->SetValue(INITIAL_PENALTY, penalty_parameter);
         }
     }
 

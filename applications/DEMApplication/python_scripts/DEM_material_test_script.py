@@ -10,12 +10,12 @@ from KratosMultiphysics.DEMApplication import *
 
 class MaterialTest(object):
 
-  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, RigidFace_model_part):
+  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
       self.parameters = DEM_parameters
       self.graphs_path = graphs_path
       self.post_path = post_path
       self.spheres_model_part = spheres_model_part
-      self.RigidFace_model_part = RigidFace_model_part
+      self.rigid_face_model_part = rigid_face_model_part
       self.Procedures = weakref.proxy(procedures)
       self.solver = weakref.proxy(solver)
 
@@ -156,7 +156,7 @@ class MaterialTest(object):
             self.graph_export_volumetric   = open(absolute_path_to_file, 'w')
             #self.graph_export_volumetric = open(self.problem_name+"_graph_VOL.grf",'w')
 
-        self.Procedures.KRATOSprint ('Initial Height of the Model: ' + str(self.height)+'\n')
+        self.Procedures.KratosPrintInfo('Initial Height of the Model: ' + str(self.height)+'\n')
 
         (self.xtop_area,self.xbot_area,self.xlat_area,self.xtopcorner_area,self.xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
 
@@ -286,11 +286,11 @@ class MaterialTest(object):
 
         if(len(self.XLAT)==0):
 
-            self.Procedures.KRATOSprint("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES" + "\n")
+            self.Procedures.KratosPrintWarning("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES" + "\n")
 
         else:
 
-            self.Procedures.KRATOSprint("End "+ str(h) + "x" + str(d) + "Cylinder Skin Determination" + "\n")
+            self.Procedures.KratosPrintInfo("End "+ str(h) + "x" + str(d) + "Cylinder Skin Determination" + "\n")
 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, y_top_total, weight_top, y_bot_total, weight_bot)
 
@@ -322,14 +322,14 @@ class MaterialTest(object):
 
               element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
-      self.Procedures.KRATOSprint("End 30x15 Bts Skin Determination" + "\n")
+      self.Procedures.KratosPrintInfo("End 30x15 Bts Skin Determination" + "\n")
 
   def PrepareDataForGraph(self):
 
     prepare_check = [0,0,0,0]
     self.total_check = 0
 
-    for smp in self.RigidFace_model_part.SubModelParts:
+    for smp in self.rigid_face_model_part.SubModelParts:
         if smp[TOP]:
             self.top_mesh_nodes = smp.Nodes
             prepare_check[0] = 1
@@ -352,7 +352,7 @@ class MaterialTest(object):
 
     if(math.fabs(self.total_check)!=2):
 
-      self.Procedures.KRATOSprint(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
+      self.Procedures.KratosPrintWarning(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
 
   def MeasureForcesAndPressure(self):
 
@@ -417,7 +417,7 @@ class MaterialTest(object):
 
   def PrintGraph(self, time):
 
-    for smp in self.RigidFace_model_part.SubModelParts:
+    for smp in self.rigid_face_model_part.SubModelParts:
         if smp[TOP]:
             self.mesh_nodes = smp.Nodes
 
@@ -484,7 +484,7 @@ class MaterialTest(object):
     absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_Parameter_chart.grf")
     data_extract_for_print = open(absolute_path_to_file,"r")
     for line in data_extract_for_print.readlines():
-        self.Procedures.KRATOSprint(line)
+        self.Procedures.KratosPrintInfo(line)
     data_extract_for_print.close()
 
   def FinalizeGraphs(self):
@@ -647,7 +647,7 @@ class MaterialTest(object):
         self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_mean*1e6)
         ii+=1
 
-    self.Procedures.KRATOSprint(self.sigma_ratio_table)
+    self.Procedures.KratosPrintInfo(self.sigma_ratio_table)
     OrientationChart.close()
 
   def ApplyLateralPressure(self, Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
@@ -758,7 +758,7 @@ class MaterialTest(object):
 
 
   def PoissonMeasure(self):
-      self.Procedures.KRATOSprint("Not Working now")
+      self.Procedures.KratosPrintWarning("Not Working now")
 
     #left_nodes = list()
     #right_nodes = list()

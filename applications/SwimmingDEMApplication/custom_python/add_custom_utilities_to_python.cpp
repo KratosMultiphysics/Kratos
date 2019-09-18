@@ -83,6 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_utilities/mesh_rotation_utility.h"
 #include "custom_utilities/renumbering_nodes_utility.h"
+#include "custom_utilities/stationarity_check.h"
 
 namespace Kratos{
 
@@ -371,6 +372,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 //    RecoverGradientScalar RecoverSuperconvergentGradientScalar = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 //    RecoverGradientComponent RecoverSuperconvergentGradientComponent = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 
+    py::class_<FlowStationarityCheck> (m, "FlowStationarityCheck")
+        .def(py::init<ModelPart& , const double>())
+        .def("AssessStationarity", &FlowStationarityCheck::AssessStationarity)
+        .def("GetCharacteristicPressureDerivative", &FlowStationarityCheck::GetCharacteristicPressureDerivative)
+        .def("GetCurrentPressureDerivative", &FlowStationarityCheck::GetCurrentPressureDerivative)
+        .def("GetTolerance", &FlowStationarityCheck::GetTolerance)
+        .def("GetTransienceMeasure", &FlowStationarityCheck::GetTransienceMeasure)
+        ;
 
     py::class_<DerivativeRecovery <3> > (m, "DerivativeRecoveryTool3D")
         .def(py::init<ModelPart&, Parameters&>())
@@ -396,7 +405,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
 
     py::class_<BassetForceTools> (m, "BassetForceTools")
-        .def(py::init<>())
+        .def(py::init<Parameters&>())
         .def("FillDaitcheVectors", &BassetForceTools::FillDaitcheVectors)
         .def("FillHinsbergVectors", &BassetForceTools::FillHinsbergVectors)
         .def("AppendIntegrands", &BassetForceTools::AppendIntegrands)
@@ -408,7 +417,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<Parameters&>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
+        .def("ImposeVelocityOnDEMFromFieldToAuxVelocity", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromFieldToAuxVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ComputePostProcessResults)
@@ -421,7 +430,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<Parameters&>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
+        .def("ImposeVelocityOnDEMFromFieldToAuxVelocity", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ImposeVelocityOnDEMFromFieldToAuxVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ComputePostProcessResults)
@@ -432,11 +441,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<BinBasedDEMFluidCoupledMapping <3, SphericParticle> > (m, "BinBasedDEMFluidCoupledMapping3D")
         .def(py::init<Parameters&>())
-        .def("InterpolateVelocityOnSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocityOnSlipVelocity)
+        .def("InterpolateVelocityOnAuxVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocityOnAuxVelocity)
+        .def("ImposeVelocityOnDEMFromFieldToAuxVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeVelocityOnDEMFromFieldToAuxVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromFluidMesh)
-        .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromNewestFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ComputePostProcessResults)
@@ -448,11 +456,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping3D")
         .def(py::init<Parameters&>())
-        .def("InterpolateVelocityOnSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateVelocityOnSlipVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
-        .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromNewestFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeFlowOnDEMFromField)
-        .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::ComputePostProcessResults)

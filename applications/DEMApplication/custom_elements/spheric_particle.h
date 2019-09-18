@@ -33,14 +33,14 @@ class KRATOS_API(DEM_APPLICATION) SphericParticle : public DiscreteElement
 public:
 
 /// Pointer definition of SphericParticle
-KRATOS_CLASS_POINTER_DEFINITION(SphericParticle);
+KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SphericParticle);
 
-typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
-typedef WeakPointerVector<Element> ParticleWeakVectorType;
+typedef GlobalPointersVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 /// Default constructor.
 ModelPart* mpInlet;
 SphericParticle();
@@ -131,7 +131,7 @@ void TransformNeighbourCoorsToClosestInPeriodicDomain(const ProcessInfo& r_proce
 virtual bool CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_buffer);
 
 using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
-virtual void Initialize(const ProcessInfo& r_process_info);
+virtual void Initialize(const ProcessInfo& r_process_info) override;
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
 virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_process_info);
 using DiscreteElement::CalculateRightHandSide; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
@@ -218,14 +218,6 @@ virtual double GetParticleKNormal();
 void   SetParticleKNormalFromProperties(double* particle_k_normal);
 virtual double GetParticleKTangential();
 void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
-
-//Dependent Friction
-virtual double GetParticleContactRadius();
-void   SetParticleContactRadiusFromProperties(double* particle_contact_radius);
-virtual double GetParticleMaxStress();
-void   SetParticleMaxStressFromProperties(double* particle_max_stress);
-virtual double GetParticleGamma();
-void   SetParticleGammaFromProperties(double* particle_gamma);
 
 array_1d<double, 3>& GetForce();
 

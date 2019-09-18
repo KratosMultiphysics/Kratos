@@ -66,35 +66,44 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The matrix type
     typedef Matrix MatrixType;
 
+    /// The vector type
     typedef Vector VectorType;
 
+    /// The size type
     typedef std::size_t SizeType;
 
+    /// The index type
     typedef std::size_t IndexType;
 
+    /// The indirect array type
     typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
+    /// The machine precision
     static constexpr TDataType ZeroTolerance = std::numeric_limits<TDataType>::epsilon();
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /* Constructor */
-
-
-    /** Destructor */
-
     ///@}
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This function returns the machine precision
+     * @return The corresponding epsilon for the TDataType
+     */
+    static inline TDataType GetZeroTolerance()
+    {
+        return ZeroTolerance;
+    }
 
     /**
      * @brief This function calculates the number of elements between first and last.
@@ -102,7 +111,6 @@ public:
      * @param rSecondData Second element
      * @return Distance Number of elements
      */
-
     static TDataType Distance(
         const TDataType& rFirstData,
         const TDataType& rSecondData
@@ -848,12 +856,13 @@ public:
      * @param b Second input vector
      * @return The resulting vector
      */
-    static inline Vector CrossProduct(
-        const Vector& a,
-        const Vector& b
+    template<class T>
+    static inline T CrossProduct(
+        const T& a,
+        const T& b
         )
     {
-        Vector c(3);
+        T c(a);
 
         c[0] = a[1]*b[2] - a[2]*b[1];
         c[1] = a[2]*b[0] - a[0]*b[2];
@@ -1240,16 +1249,16 @@ public:
     static inline TMatrixType StressVectorToTensor(const TVector& rStressVector)
     {
         KRATOS_TRY;
-        TMatrixType stress_tensor;
+
+        const SizeType matrix_size = rStressVector.size() == 3 ? 2 : 3;
+        TMatrixType stress_tensor(matrix_size, matrix_size);
 
         if (rStressVector.size()==3) {
-            stress_tensor.resize(2,2,false);
             stress_tensor(0,0) = rStressVector[0];
             stress_tensor(0,1) = rStressVector[2];
             stress_tensor(1,0) = rStressVector[2];
             stress_tensor(1,1) = rStressVector[1];
         } else if (rStressVector.size()==4) {
-            stress_tensor.resize(3,3,false);
             stress_tensor(0,0) = rStressVector[0];
             stress_tensor(0,1) = rStressVector[3];
             stress_tensor(0,2) = 0.0;
@@ -1260,7 +1269,6 @@ public:
             stress_tensor(2,1) = 0.0;
             stress_tensor(2,2) = rStressVector[2];
         } else if (rStressVector.size()==6) {
-            stress_tensor.resize(3,3,false);
             stress_tensor(0,0) = rStressVector[0];
             stress_tensor(0,1) = rStressVector[3];
             stress_tensor(0,2) = rStressVector[5];
@@ -1293,39 +1301,37 @@ public:
     {
         KRATOS_TRY;
 
-        TMatrixType Tensor;
+        const SizeType matrix_size = rVector.size() == 3 ? 2 : 3;
+        TMatrixType tensor(matrix_size, matrix_size);
 
         if (rVector.size() == 3) {
-            Tensor.resize(2,2,false);
-            Tensor(0,0) = rVector[0];
-            Tensor(0,1) = rVector[2];
-            Tensor(1,0) = rVector[2];
-            Tensor(1,1) = rVector[1];
+            tensor(0,0) = rVector[0];
+            tensor(0,1) = rVector[2];
+            tensor(1,0) = rVector[2];
+            tensor(1,1) = rVector[1];
         } else if (rVector.size() == 4) {
-            Tensor.resize(3,3,false);
-            Tensor(0,0) = rVector[0];
-            Tensor(0,1) = rVector[3];
-            Tensor(0,2) = 0.0;
-            Tensor(1,0) = rVector[3];
-            Tensor(1,1) = rVector[1];
-            Tensor(1,2) = 0.0;
-            Tensor(2,0) = 0.0;
-            Tensor(2,1) = 0.0;
-            Tensor(2,2) = rVector[2];
+            tensor(0,0) = rVector[0];
+            tensor(0,1) = rVector[3];
+            tensor(0,2) = 0.0;
+            tensor(1,0) = rVector[3];
+            tensor(1,1) = rVector[1];
+            tensor(1,2) = 0.0;
+            tensor(2,0) = 0.0;
+            tensor(2,1) = 0.0;
+            tensor(2,2) = rVector[2];
         } else if (rVector.size() == 6) {
-            Tensor.resize(3,3,false);
-            Tensor(0,0) = rVector[0];
-            Tensor(0,1) = rVector[3];
-            Tensor(0,2) = rVector[5];
-            Tensor(1,0) = rVector[3];
-            Tensor(1,1) = rVector[1];
-            Tensor(1,2) = rVector[4];
-            Tensor(2,0) = rVector[5];
-            Tensor(2,1) = rVector[4];
-            Tensor(2,2) = rVector[2];
+            tensor(0,0) = rVector[0];
+            tensor(0,1) = rVector[3];
+            tensor(0,2) = rVector[5];
+            tensor(1,0) = rVector[3];
+            tensor(1,1) = rVector[1];
+            tensor(1,2) = rVector[4];
+            tensor(2,0) = rVector[5];
+            tensor(2,1) = rVector[4];
+            tensor(2,2) = rVector[2];
         }
 
-        return Tensor;
+        return tensor;
 
         KRATOS_CATCH("");
     }
@@ -1360,17 +1366,15 @@ public:
     {
         KRATOS_TRY
 
-        TMatrixType strain_tensor;
+        const SizeType matrix_size = rStrainVector.size() == 3 ? 2 : 3;
+        TMatrixType strain_tensor(matrix_size, matrix_size);
 
         if (rStrainVector.size()==3) {
-            strain_tensor.resize(2,2, false);
-
             strain_tensor(0,0) = rStrainVector[0];
             strain_tensor(0,1) = 0.5*rStrainVector[2];
             strain_tensor(1,0) = 0.5*rStrainVector[2];
             strain_tensor(1,1) = rStrainVector[1];
         } else if (rStrainVector.size()==4) {
-            strain_tensor.resize(3,3, false);
             strain_tensor(0,0) = rStrainVector[0];
             strain_tensor(0,1) = 0.5*rStrainVector[3];
             strain_tensor(0,2) = 0;
@@ -1381,7 +1385,6 @@ public:
             strain_tensor(2,1) = 0;
             strain_tensor(2,2) = rStrainVector[2];
         } else if (rStrainVector.size()==6) {
-            strain_tensor.resize(3,3, false);
             strain_tensor(0,0) = rStrainVector[0];
             strain_tensor(0,1) = 0.5*rStrainVector[3];
             strain_tensor(0,2) = 0.5*rStrainVector[5];
@@ -1391,8 +1394,6 @@ public:
             strain_tensor(2,0) = 0.5*rStrainVector[5];
             strain_tensor(2,1) = 0.5*rStrainVector[4];
             strain_tensor(2,2) = rStrainVector[2];
-
-
         }
 
         return strain_tensor;
@@ -1422,8 +1423,6 @@ public:
     {
         KRATOS_TRY;
 
-        Vector StrainVector;
-
         if(rSize == 0) {
             if(rStrainTensor.size1() == 2) {
                 rSize = 3;
@@ -1432,28 +1431,27 @@ public:
             }
         }
 
+        Vector strain_vector(rSize);
+
         if (rSize == 3) {
-            StrainVector.resize(3,false);
-            StrainVector[0] = rStrainTensor(0,0);
-            StrainVector[1] = rStrainTensor(1,1);
-            StrainVector[2] = 2.0*rStrainTensor(0,1);
+            strain_vector[0] = rStrainTensor(0,0);
+            strain_vector[1] = rStrainTensor(1,1);
+            strain_vector[2] = 2.0*rStrainTensor(0,1);
         } else if (rSize == 4) {
-            StrainVector.resize(4,false);
-            StrainVector[0] = rStrainTensor(0,0);
-            StrainVector[1] = rStrainTensor(1,1);
-            StrainVector[2] = rStrainTensor(2,2);
-            StrainVector[3] = 2.0*rStrainTensor(0,1);
+            strain_vector[0] = rStrainTensor(0,0);
+            strain_vector[1] = rStrainTensor(1,1);
+            strain_vector[2] = rStrainTensor(2,2);
+            strain_vector[3] = 2.0*rStrainTensor(0,1);
         } else if (rSize == 6) {
-            StrainVector.resize(6,false);
-            StrainVector[0] = rStrainTensor(0,0);
-            StrainVector[1] = rStrainTensor(1,1);
-            StrainVector[2] = rStrainTensor(2,2);
-            StrainVector[3] = 2.0*rStrainTensor(0,1);
-            StrainVector[4] = 2.0*rStrainTensor(1,2);
-            StrainVector[5] = 2.0*rStrainTensor(0,2);
+            strain_vector[0] = rStrainTensor(0,0);
+            strain_vector[1] = rStrainTensor(1,1);
+            strain_vector[2] = rStrainTensor(2,2);
+            strain_vector[3] = 2.0*rStrainTensor(0,1);
+            strain_vector[4] = 2.0*rStrainTensor(1,2);
+            strain_vector[5] = 2.0*rStrainTensor(0,2);
         }
 
-        return StrainVector;
+        return strain_vector;
 
         KRATOS_CATCH("");
      }
@@ -1480,39 +1478,35 @@ public:
     {
         KRATOS_TRY;
 
-        TVector StressVector;
-
         if(rSize == 0) {
             if(rStressTensor.size1() == 2) {
                 rSize = 3;
-            }
-            else if(rStressTensor.size1() == 3) {
+            } else if(rStressTensor.size1() == 3) {
                 rSize = 6;
             }
         }
 
+        TVector stress_vector(rSize);
+
         if (rSize == 3) {
-            if (StressVector.size() != 3) StressVector.resize(3,false);
-            StressVector[0] = rStressTensor(0,0);
-            StressVector[1] = rStressTensor(1,1);
-            StressVector[2] = rStressTensor(0,1);
+            stress_vector[0] = rStressTensor(0,0);
+            stress_vector[1] = rStressTensor(1,1);
+            stress_vector[2] = rStressTensor(0,1);
         } else if (rSize == 4) {
-            if (StressVector.size() != 4) StressVector.resize(4,false);
-            StressVector[0] = rStressTensor(0,0);
-            StressVector[1] = rStressTensor(1,1);
-            StressVector[2] = rStressTensor(2,2);
-            StressVector[3] = rStressTensor(0,1);
+            stress_vector[0] = rStressTensor(0,0);
+            stress_vector[1] = rStressTensor(1,1);
+            stress_vector[2] = rStressTensor(2,2);
+            stress_vector[3] = rStressTensor(0,1);
         } else if (rSize == 6) {
-            if (StressVector.size() != 6) StressVector.resize(6,false);
-            StressVector[0] = rStressTensor(0,0);
-            StressVector[1] = rStressTensor(1,1);
-            StressVector[2] = rStressTensor(2,2);
-            StressVector[3] = rStressTensor(0,1);
-            StressVector[4] = rStressTensor(1,2);
-            StressVector[5] = rStressTensor(0,2);
+            stress_vector[0] = rStressTensor(0,0);
+            stress_vector[1] = rStressTensor(1,1);
+            stress_vector[2] = rStressTensor(2,2);
+            stress_vector[3] = rStressTensor(0,1);
+            stress_vector[4] = rStressTensor(1,2);
+            stress_vector[5] = rStressTensor(0,2);
         }
 
-        return StressVector;
+        return stress_vector;
 
         KRATOS_CATCH("");
      }
@@ -1536,8 +1530,6 @@ public:
     {
         KRATOS_TRY;
 
-        Vector vector;
-
         if(rSize == 0) {
             if(rTensor.size1() == 2) {
                 rSize = 3;
@@ -1546,20 +1538,19 @@ public:
             }
         }
 
+        Vector vector(rSize);
+
         if (rSize == 3) {
-            vector.resize(3,false);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(0,1);
 
         } else if (rSize==4) {
-            vector.resize(4,false);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(2,2);
             vector[3]= rTensor(0,1);
         } else if (rSize==6) {
-            vector.resize(6);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(2,2);
@@ -1602,7 +1593,7 @@ public:
 
         // Direct multiplication
         // noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
-        
+
         // Manual multiplication
         rA.clear();
         for(IndexType k = 0; k< rD.size1(); ++k) {
@@ -1647,7 +1638,7 @@ public:
 
         // Direct multiplication
         // noalias(rA) = prod(rB, MatrixType(prod(rD, trans(rB))));
-        
+
         // Manual multiplication
         rA.clear();
         for(IndexType k = 0; k< rD.size1(); ++k) {

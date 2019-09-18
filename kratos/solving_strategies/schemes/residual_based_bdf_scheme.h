@@ -19,8 +19,9 @@
 /* External includes */
 
 /* Project includes */
-#include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "includes/checks.h"
+#include "utilities/time_discretization.h"
+#include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 
 namespace Kratos
 {
@@ -87,6 +88,8 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                  BaseType;
 
+    typedef typename BaseType::Pointer                                 BaseTypePointer;
+
     typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
 
     typedef typename ImplicitBaseType::TDataType                             TDataType;
@@ -105,11 +108,8 @@ public:
 
     typedef ModelPart::NodesContainerType                               NodesArrayType;
 
-    typedef ModelPart::ElementsContainerType                         ElementsArrayType;
-
-    typedef ModelPart::ConditionsContainerType                     ConditionsArrayType;
-
-    typedef typename BaseType::Pointer                                 BaseTypePointer;
+    /// Definition of epsilon
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -122,7 +122,8 @@ public:
      */
     explicit ResidualBasedBDFScheme(const std::size_t Order = 2)
         :ImplicitBaseType(),
-         mOrder(Order)
+         mOrder(Order),
+         mpBDFUtility(Kratos::make_unique<TimeDiscretization::BDF>(Order))
     {
         // Allocate auxiliary memory
         const std::size_t num_threads = OpenMPUtils::GetNumThreads();
@@ -145,7 +146,10 @@ public:
         ,mOrder(rOther.mOrder)
         ,mBDF(rOther.mBDF)
         ,mVector(rOther.mVector)
+        ,mpBDFUtility(nullptr)
     {
+        Kratos::unique_ptr<TimeDiscretization::BDF> auxiliar_pointer = Kratos::make_unique<TimeDiscretization::BDF>(mOrder);
+        mpBDFUtility.swap(auxiliar_pointer);
     }
 
     /**
@@ -175,25 +179,24 @@ public:
      * \f[ u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u\f]
      * @param rModelPart The model of the problem to solve
      * @param rDofSet Set of all primary variables
-     * @param A LHS matrix
-     * @param Dx incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
      */
-
     void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY;
 
         // Update of displacement (by DOF)
-        mpDofUpdater->UpdateDofs(rDofSet,Dx);
+        mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
-        UpdateDerivatives(rModelPart, rDofSet,A, Dx, b);
+        UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
         KRATOS_CATCH( "" );
     }
@@ -203,17 +206,16 @@ public:
      * @details It predicts the solution for the current step x = xold + vold * Dt
      * @param rModelPart The model of the problem to solve
      * @param rDofSet set of all primary variables
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      */
-
     void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY;
@@ -226,95 +228,39 @@ public:
     /**
      * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
      * @param rModelPart The model of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      * @todo I cannot find the formula for the higher orders with variable time step. I tried to deduce by myself but the result was very unstable
      */
-
     void InitializeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY;
 
-        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        ImplicitBaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
+        ImplicitBaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        const double delta_time = current_process_info[DELTA_TIME];
-        const double previous_delta_time = current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+        mpBDFUtility->ComputeAndSaveBDFCoefficients(r_current_process_info);
+        mBDF = r_current_process_info[BDF_COEFFICIENTS];
 
-        // Calculate the BDF coefficients
-        const double rho = previous_delta_time / delta_time;
-        double time_coeff = 0.0;
-        for (std::size_t i_rho = 0; i_rho < mOrder; ++i_rho)
-            time_coeff += delta_time * std::pow(rho, i_rho);
-        time_coeff = 1.0/time_coeff;
-
-        // We compute the BDF coefficients
-        switch(mOrder) {
-            case 1 : mBDF[0] =  time_coeff * rho; //coefficient for step n+1 (1Dt if Dt is constant)
-                     mBDF[1] = -time_coeff * rho; //coefficient for step n (-1Dt if Dt is constant)
-                     break;
-            case 2 : mBDF[0] =  time_coeff * (std::pow(rho, 2) + 2.0 * rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
-                     mBDF[1] = -time_coeff * (std::pow(rho, 2) + 2.0 * rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
-                     mBDF[2] =  time_coeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
-                     break;
-            case 3 : mBDF[0] =  11.0/(6.0 * delta_time); //coefficient for step n+1 (11/6Dt if Dt is constant)
-                     mBDF[1] = -18.0/(6.0 * delta_time);; //coefficient for step n (-18/6Dt if Dt is constant)
-                     mBDF[2] =  9.0/(6.0 * delta_time);; //coefficient for step n-1 (9/6Dt if Dt is constant)
-                     mBDF[3] = -2.0/(6.0 * delta_time);; //coefficient for step n-2 (2/6Dt if Dt is constant)
-                     break;
-            case 4 : mBDF[0] =  25.0/(12.0 * delta_time); //coefficient for step n+1 (25/12Dt if Dt is constant)
-                     mBDF[1] = -48.0/(12.0 * delta_time); //coefficient for step n (-48/12Dt if Dt is constant)
-                     mBDF[2] =  36.0/(12.0 * delta_time); //coefficient for step n-1 (36/12Dt if Dt is constant)
-                     mBDF[3] = -16.0/(12.0 * delta_time); //coefficient for step n-2 (16/12Dt if Dt is constant)
-                     mBDF[4] =  3.0/(12.0 * delta_time); //coefficient for step n-3 (3/12Dt if Dt is constant)
-                     break;
-            case 5 : mBDF[0] =  137.0/(60.0 * delta_time); //coefficient for step n+1 (137/60Dt if Dt is constant)
-                     mBDF[1] = -300.0/(60.0 * delta_time); //coefficient for step n (-300/60Dt if Dt is constant)
-                     mBDF[2] =  300.0/(60.0 * delta_time); //coefficient for step n-1 (300/60Dt if Dt is constant)
-                     mBDF[3] = -200.0/(60.0 * delta_time); //coefficient for step n-2 (-200/60Dt if Dt is constant)
-                     mBDF[4] =  75.0/(60.0 * delta_time); //coefficient for step n-3 (75/60Dt if Dt is constant)
-                     mBDF[5] =  -12.0/(60.0 * delta_time); //coefficient for step n-4 (-12/60Dt if Dt is constant)
-                     break;
-            case 6 : mBDF[0] =  147.0/(60.0 * delta_time); //coefficient for step n+1 (147/60Dt if Dt is constant)
-                     mBDF[1] = -360.0/(60.0 * delta_time); //coefficient for step n (-360/60Dt if Dt is constant)
-                     mBDF[2] =  450.0/(60.0 * delta_time); //coefficient for step n-1 (450/60Dt if Dt is constant)
-                     mBDF[3] = -400.0/(60.0 * delta_time); //coefficient for step n-2 (-400/60Dt if Dt is constant)
-                     mBDF[4] =  225.0/(60.0 * delta_time); //coefficient for step n-3 (225/60Dt if Dt is constant)
-                     mBDF[5] = -72.0/(60.0 * delta_time); //coefficient for step n-4 (-72/60Dt if Dt is constant)
-                     mBDF[6] =  10.0/(60.0 * delta_time); //coefficient for step n-5 (10/60Dt if Dt is constant)
-                     break;
-            default : KRATOS_ERROR << "Methods with order > 6 are not zero-stable so they cannot be used" << std::endl;
-        }
-
-        const double tolerance = 1.0e-24;
-        if (mOrder > 2 && std::abs(delta_time - previous_delta_time) > tolerance)
-            std::cout << "For higher orders than 2 the time step is assumed to be constant. Sorry for the inconveniences" << std::endl;
-
-        // Adding to the process info
-        Vector bdf_vector(mOrder + 1);
-        for (std::size_t i_order = 0; i_order < mOrder + 1; ++i_order)
-            bdf_vector[i_order] = mBDF[i_order];
-        current_process_info(BDF_COEFFICIENTS) = bdf_vector;
+        KRATOS_WARNING_IF("ResidualBasedBDFScheme", mOrder > 2)
+        << "For higher orders than 2 the time step is assumed to be constant.\n";
 
         KRATOS_CATCH( "" );
     }
 
     /**
-     * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided.
-     * @details Checks can be "expensive" as the function is designed
-     * to catch user's errors.
+     * @brief This function is designed to be called once to perform all the checks needed on the input provided.
+     * @details Checks can be "expensive" as the function is designed to catch user's errors.
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-
     int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
@@ -386,9 +332,11 @@ protected:
         std::vector< Vector > dot2un0; /// Second derivative
     };
 
-    const std::size_t mOrder; /// The integration order
-    Vector mBDF; /// The BDF coefficients
-    GeneralVectors mVector; /// The structure containing the  derivatives
+    const std::size_t mOrder;                      /// The integration order
+    Vector mBDF;                                   /// The BDF coefficients
+    GeneralVectors mVector;                        /// The structure containing the  derivatives
+    Kratos::unique_ptr<TimeDiscretization::BDF> mpBDFUtility; /// Utility to compute BDF coefficients
+
 
     ///@}
     ///@name Protected Operators
@@ -402,24 +350,27 @@ protected:
      * @brief Performing the update of the derivatives
      * @param rModelPart The model of the problem to solve
      * @param rDofSet Set of all primary variables
-     * @param A LHS matrix
-     * @param Dx incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
      */
     inline void UpdateDerivatives(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         )
     {
         // Updating time derivatives (nodally for efficiency)
         const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
 
+        // Getting first node iterator
+        const auto it_node_begin = rModelPart.Nodes().begin();
+
         #pragma omp parallel for
         for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = rModelPart.Nodes().begin() + i;
+            auto it_node = it_node_begin + i;
 
             UpdateFirstDerivative(it_node);
             UpdateSecondDerivative(it_node);
@@ -430,7 +381,6 @@ protected:
      * @brief Updating first time derivative (velocity)
      * @param itNode the node interator
      */
-
     virtual inline void UpdateFirstDerivative(NodesArrayType::iterator itNode)
     {
         KRATOS_ERROR << "Calling base BDF class" << std::endl;
@@ -440,7 +390,6 @@ protected:
      * @brief Updating second time derivative (acceleration)
      * @param itNode the node interator
      */
-
     virtual inline void UpdateSecondDerivative(NodesArrayType::iterator itNode)
     {
         KRATOS_ERROR << "Calling base BDF class" << std::endl;
@@ -449,27 +398,26 @@ protected:
     /**
      * @brief It adds the dynamic LHS contribution of the elements
      * \f[ LHS = \frac{d(-RHS)}{d(u_{n0})} = c_0^2\mathbf{M} + c_0 \mathbf{D} + \mathbf{K} \f]
-     * @param LHS_Contribution The dynamic contribution for the LHS
-     * @param D The damping matrix
-     * @param M The mass matrix
+     * @param rLHS_Contribution The dynamic contribution for the LHS
+     * @param rD The damping matrix
+     * @param rM The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void AddDynamicsToLHS(
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemMatrixType& D,
-        LocalSystemMatrixType& M,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemMatrixType& rD,
+        LocalSystemMatrixType& rM,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
         // Adding mass contribution to the dynamic stiffness
-        if (M.size1() != 0) { // if M matrix declared
-            noalias(LHS_Contribution) += M * std::pow(mBDF[0], 2);
+        if (rM.size1() != 0) { // if M matrix declared
+            noalias(rLHS_Contribution) += rM * std::pow(mBDF[0], 2);
         }
 
         // Adding  damping contribution
-        if (D.size1() != 0) { // if D matrix declared
-            noalias(LHS_Contribution) += D * mBDF[0];
+        if (rD.size1() != 0) { // if D matrix declared
+            noalias(rLHS_Contribution) += rD * mBDF[0];
         }
     }
 
@@ -477,33 +425,32 @@ protected:
      * @brief It adds the dynamic RHS contribution of the objects
      * \f[ \mathbf{b} - \mathbf{M} a - \mathbf{D} v \f]
      * @param rObject The object to compute
-     * @param RHS_Contribution The dynamic contribution for the RHS
-     * @param D The damping matrix
-     * @param M The mass matrix
+     * @param rRHS_Contribution The dynamic contribution for the RHS
+     * @param rD The damping matrix
+     * @param rM The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-
     template <typename TObjectType>
     void TemplateAddDynamicsToRHS(
         TObjectType rObject,
-        LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& D,
-        LocalSystemMatrixType& M,
+        LocalSystemVectorType& rRHS_Contribution,
+        LocalSystemMatrixType& rD,
+        LocalSystemMatrixType& rM,
         ProcessInfo& rCurrentProcessInfo
         )
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
         // Adding inertia contribution
-        if (M.size1() != 0) {
+        if (rM.size1() != 0) {
             rObject->GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
-            noalias(RHS_Contribution) -= prod(M, mVector.dot2un0[this_thread]);
+            noalias(rRHS_Contribution) -= prod(rM, mVector.dot2un0[this_thread]);
         }
 
         // Adding damping contribution
-        if (D.size1() != 0) {
+        if (rD.size1() != 0) {
             rObject->GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
-            noalias(RHS_Contribution) -= prod(D, mVector.dotun0[this_thread]);
+            noalias(rRHS_Contribution) -= prod(rD, mVector.dotun0[this_thread]);
         }
     }
 
@@ -516,16 +463,15 @@ protected:
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void AddDynamicsToRHS(
         Element::Pointer pElement,
-        LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& D,
-        LocalSystemMatrixType& M,
+        LocalSystemVectorType& rRHS_Contribution,
+        LocalSystemMatrixType& rD,
+        LocalSystemMatrixType& rM,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        TemplateAddDynamicsToRHS<Element::Pointer>(pElement, RHS_Contribution, D, M, rCurrentProcessInfo);
+        TemplateAddDynamicsToRHS<Element::Pointer>(pElement, rRHS_Contribution, rD, rM, rCurrentProcessInfo);
     }
 
     /**
@@ -537,16 +483,15 @@ protected:
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void AddDynamicsToRHS(
         Condition::Pointer pCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& D,
-        LocalSystemMatrixType& M,
+        LocalSystemVectorType& rRHS_Contribution,
+        LocalSystemMatrixType& rD,
+        LocalSystemMatrixType& rM,
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        TemplateAddDynamicsToRHS<Condition::Pointer>(pCondition, RHS_Contribution, D, M, rCurrentProcessInfo);
+        TemplateAddDynamicsToRHS<Condition::Pointer>(pCondition, rRHS_Contribution, rD, rM, rCurrentProcessInfo);
     }
 
     ///@}

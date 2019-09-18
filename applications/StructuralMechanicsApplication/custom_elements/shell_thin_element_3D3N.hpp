@@ -23,8 +23,6 @@
 
 namespace Kratos
 {
-
-
 ///@name Kratos Globals
 ///@{
 ///@}
@@ -63,7 +61,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(ShellThinElement3D3N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D3N);
 
     typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -119,7 +117,7 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-        ) const override;
+    ) const override;
 
     /**
      * @brief Creates a new element
@@ -132,7 +130,7 @@ public:
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-        ) const override;
+    ) const override;
 
     void Initialize() override;
 
@@ -146,21 +144,21 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-	// More results calculation on integration points to interface with python
-	void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-		std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    // More results calculation on integration points to interface with python
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-		std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                      std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-		3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
-		const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
+                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     // Calculate functions
     void Calculate(const Variable<Matrix >& rVariable,
-        Matrix& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
+                   Matrix& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
 
@@ -249,8 +247,8 @@ private:
 
         VectorType generalizedStrains;  /*!< generalized strain vector at the current integration point */
         VectorType generalizedStresses; /*!< generalized stress vector at the current integration point */
-		std::vector<VectorType> rlaminateStrains;	/*!< laminate strain vector at all surfaces at the current integration point */
-		std::vector<VectorType> rlaminateStresses;	/*!< laminate stress vector at all surfaces at the current integration point */
+        std::vector<VectorType> rlaminateStrains;	/*!< laminate strain vector at all surfaces at the current integration point */
+        std::vector<VectorType> rlaminateStresses;	/*!< laminate stress vector at all surfaces at the current integration point */
 
         VectorType N; /*!< shape function vector at the current integration point */
 
@@ -284,18 +282,18 @@ private:
     ///@name Private Operations
     ///@{
 
-	void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& ijob, bool& bGlobal);
+    void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& ijob, bool& bGlobal);
 
-	void CalculateStressesFromForceResultants(VectorType& rstresses,
-		const double& rthickness);
+    void CalculateStressesFromForceResultants(VectorType& rstresses,
+            const double& rthickness);
 
-	void CalculateLaminaStrains(CalculationData& data);
+    void CalculateLaminaStrains(CalculationData& data);
 
-	void CalculateLaminaStresses(CalculationData& data);
+    void CalculateLaminaStresses(CalculationData& data);
 
-	double CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
+    double CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
-	void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
+    void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
 
     void DecimalCorrection(Vector& a);
 
@@ -316,10 +314,10 @@ private:
     void AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag) override;
+                      VectorType& rRightHandSideVector,
+                      const ProcessInfo& rCurrentProcessInfo,
+                      const bool CalculateStiffnessMatrixFlag,
+                      const bool CalculateResidualVectorFlag) override;
 
     bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
