@@ -36,6 +36,10 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         if custom_parameters.Has("output_configuration"):
             from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_gid_output_process import GiDOutputProcess
             self.output_settings = custom_parameters["output_configuration"]
+            self.output_settings["result_file_configuration"].RemoveValue("nodal_results")
+            self.output_settings["result_file_configuration"].AddValue("nodal_results", self.project_parameters["output_configuration"]["result_file_configuration"]["nodal_results"])
+            self.output_settings["result_file_configuration"].RemoveValue("gauss_point_results")
+            self.output_settings["result_file_configuration"].AddValue("gauss_point_results", self.project_parameters["output_configuration"]["result_file_configuration"]["gauss_point_results"])
             return GiDOutputProcess(self.post_process_model_part,
                                     self.problem_name,
                                     self.output_settings)
