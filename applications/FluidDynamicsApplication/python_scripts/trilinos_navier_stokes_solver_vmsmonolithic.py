@@ -71,7 +71,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "periodic": "periodic",
             "regularization_coef": 1000,
             "move_mesh_flag": false,
-            "turbulence_model": {}
+            "turbulence_model_solver_settings": {}
         }""")
 
         default_settings.AddMissingParameters(super(TrilinosNavierStokesSolverMonolithic, cls).GetDefaultSettings())
@@ -105,10 +105,11 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         ## Construct the linear solver
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        if not self.settings["turbulence_model"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
-            self.turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model"], True)
+        ## Construct the turbulence model solver
+        if not self.settings["turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
+            self.turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model_solver_settings"], True)
             self.condition_name = self.turbulence_model_solver.GetFluidVelocityPressureConditionName()
-            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic", "Using " + self.condition_name)
+            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic", "Using " + self.condition_name + " as wall condition")
         else:
             self.turbulence_model_solver = None
 
@@ -219,7 +220,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                                 self.settings["alpha"].GetDouble(),
                                 self.settings["move_mesh_strategy"].GetInt(),
                                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                self.settings["turbulence_model"]["velocity_pressure_relaxation_factor"].GetDouble(),
+                                self.settings["turbulence_model_solver_settings"]["velocity_pressure_relaxation_factor"].GetDouble(),
                                 self.turbulence_model_solver.GetTurbulenceSolvingProcess())
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":

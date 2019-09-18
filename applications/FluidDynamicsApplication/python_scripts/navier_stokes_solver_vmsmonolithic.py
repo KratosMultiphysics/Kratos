@@ -197,7 +197,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "move_mesh_flag": false,
-            "turbulence_model": {}
+            "turbulence_model_solver_settings": {}
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultSettings())
@@ -271,10 +271,11 @@ class NavierStokesSolverMonolithic(FluidSolver):
         ## Construct the linear solver
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        if not self.settings["turbulence_model"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
-            self.turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model"])
+        ## Construct the turbulence model solver
+        if not self.settings["turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
+            self.turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model_solver_settings"])
             self.condition_name = self.turbulence_model_solver.GetFluidVelocityPressureConditionName()
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Using " + self.condition_name)
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Using " + self.condition_name + " as wall condition")
         else:
             self.turbulence_model_solver = None
 
@@ -304,7 +305,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
 
         # Adding variables required for the turbulence modelling
-        if self.turbulence_model_solver is not None:
+        if self.turbulence_model_solver:
             self.turbulence_model_solver.fluid_model_part = self.main_model_part
             self.turbulence_model_solver.AddVariables()
 
@@ -316,7 +317,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def AddDofs(self):
         super(NavierStokesSolverMonolithic, self).AddDofs()
 
-        if self.turbulence_model_solver is not None:
+        if self.turbulence_model_solver:
             self.turbulence_model_solver.AddDofs()
 
     def PrepareModelPart(self):
@@ -325,7 +326,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         super(NavierStokesSolverMonolithic, self).PrepareModelPart()
 
-        if self.turbulence_model_solver is not None:
+        if self.turbulence_model_solver:
             self.turbulence_model_solver.PrepareModelPart()
 
     def Initialize(self):
@@ -398,7 +399,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
                                 self.settings["alpha"].GetDouble(),
                                 self.settings["move_mesh_strategy"].GetInt(),
                                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                self.settings["turbulence_model"]["velocity_pressure_relaxation_factor"].GetDouble(),
+                                self.settings["turbulence_model_solver_settings"]["velocity_pressure_relaxation_factor"].GetDouble(),
                                 self.turbulence_model_solver.GetTurbulenceSolvingProcess())
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
@@ -440,19 +441,19 @@ class NavierStokesSolverMonolithic(FluidSolver):
             # Perform the solver InitializeSolutionStep
             (self.solver).InitializeSolutionStep()
 
-            if (self.turbulence_model_solver is not None):
+            if (self.turbulence_model_solver):
                 self.turbulence_model_solver.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(NavierStokesSolverMonolithic, self).FinalizeSolutionStep()
 
-        if (self.turbulence_model_solver is not None):
+        if (self.turbulence_model_solver):
             self.turbulence_model_solver.FinalizeSolutionStep()
 
     def Check(self):
         super(NavierStokesSolverMonolithic, self).Check()
 
-        if (self.turbulence_model_solver is not None):
+        if (self.turbulence_model_solver):
             self.turbulence_model_solver.Check()
 
     def _set_physical_properties(self):
