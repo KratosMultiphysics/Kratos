@@ -30,17 +30,17 @@ class MainCouplingPfemFemDem_Solution:
 #============================================================================================================================
     def RunMainTemporalLoop(self):
         self.RunBeforeSolutionLoopFEMDEM()
-        while self.FEMDEM_Solution.time <= self.FEMDEM_Solution.end_time:
+        while self.FEMDEM_Solution.FEM_Solution.time <= self.FEMDEM_Solution.FEM_Solution.end_time:
             self.SolveSolutionStepPFEM()
             self.SolveSolutionStepFEMDEM()
 
 #============================================================================================================================
     def SolveSolutionStepPFEM(self):
-        self.PFEM_Solution.time = self._GetSolver().AdvanceInTime(self.time)
+        self.PFEM_Solution.time = self.PFEM_Solution._GetSolver().AdvanceInTime(self.PFEM_Solution.time)
         self.PFEM_Solution.InitializeSolutionStep()
         self.PFEM_Solution._GetSolver().Predict()
         is_converged = self.PFEM_Solution._GetSolver().SolveSolutionStep()
-        self.PFEM_Solution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+        # self.PFEM_Solution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
         self.PFEM_Solution.FinalizeSolutionStep()
         self.PFEM_Solution.OutputSolutionStep()
 
