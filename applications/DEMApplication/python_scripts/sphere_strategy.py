@@ -327,8 +327,6 @@ class ExplicitStrategy(object):
         (self.cplusplus_strategy).SolveSolutionStep()
         return True
 
-        return True
-
     def AdvanceInTime(self, time):
         """This function updates and return the current simulation time
         """
