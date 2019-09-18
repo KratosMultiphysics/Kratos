@@ -5,8 +5,13 @@ import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem    as MainCoupl
 import KratosMultiphysics.FemToDemApplication.MainPFEM_for_coupling as MainPFEM_for_coupling
 
 def Wait():
-    input("Press Something")
+    input("PFEM-FEMDEM -> Press Something")
 
+def KratosPrintInfo(message):
+    """This function prints info on screen
+    """
+    KratosMultiphysics.Logger.Print(message, label="")
+    KratosMultiphysics.Logger.Flush()
 #============================================================================================================================
 class MainCouplingPfemFemDem_Solution:
 #============================================================================================================================
@@ -38,14 +43,21 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def SolveSolutionStep(self):
+        KratosPrintInfo("=============================================")
+        KratosPrintInfo("=== SOLVING PFEM PART OF THE CALCULATION ====")
+        KratosPrintInfo("=============================================")
         self.SolveSolutionStepPFEM()
         # transfer pressure forces -> TODO
         # self.TransferPressureForces()
+        KratosPrintInfo("================================================")
+        KratosPrintInfo("=== SOLVING FEM-DEM PART OF THE CALCULATION ====")
+        KratosPrintInfo("================================================")
         self.SolveSolutionStepFEMDEM()
 
 #============================================================================================================================
     def SolveSolutionStepPFEM(self):
         is_converged = self.PFEM_Solution._GetSolver().SolveSolutionStep()
+        # self.PFEM_Solution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
 
 #============================================================================================================================
     def SolveSolutionStepFEMDEM(self):
@@ -65,7 +77,6 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def FinalizeSolutionStep(self):
-        # self.PFEM_Solution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
         self.PFEM_Solution.FinalizeSolutionStep()
         self.PFEM_Solution.OutputSolutionStep()
         self.FEMDEM_Solution.FinalizeSolutionStep()
