@@ -94,12 +94,17 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def InitializeSolutionStep(self):
+        self.UpdateDeltaTimeInSolutions()
         self.PFEM_Solution.time = self.PFEM_Solution._GetSolver().AdvanceInTime(self.PFEM_Solution.time)
         self.PFEM_Solution.InitializeSolutionStep()
         self.PFEM_Solution._GetSolver().Predict()
         self.FEMDEM_Solution.InitializeSolutionStep()
 
         # We set the same delta time to all the solutions
-        # self.PFEM_Solution.delta_time = self.FEMDEM_Solution.delta_time
+        self.UpdateDeltaTimeInSolutions()
 
 #============================================================================================================================
+    def UpdateDeltaTimeInSolutions(self):
+        FEM_delta_time = self.FEMDEM_Solution.FEM_Solution.delta_time
+        self.PFEM_Solution.delta_time = FEM_delta_time
+        self.PFEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = FEM_delta_time
