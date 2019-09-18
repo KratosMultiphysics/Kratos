@@ -951,6 +951,8 @@ public:
         if(rModelPart.NumberOfNodes() != 0)
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Solution step data ";
 
+        rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar, nullptr);
+
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
             auto it_node = rModelPart.NodesBegin() + k;
@@ -988,6 +990,8 @@ public:
         CheckVariableExists(rVar, rModelPart.Nodes());
         CheckVariableExists(rReactionVar, rModelPart.Nodes());
     #endif
+
+        rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar, &rReactionVar);
 
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
