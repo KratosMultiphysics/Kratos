@@ -1194,11 +1194,14 @@ protected:
 
         for (IndexType i_local = 0; i_local < local_size; ++i_local) {
             const IndexType i_global = rEquationId[i_local];
-
             if (i_global < BaseType::mEquationSystemSize) {
-                AssembleRowContributionFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
+                for (IndexType j_local = 0; j_local < local_size; ++j_local) {
+                    const IndexType j_global = rEquationId[j_local];
+                    if (j_global < BaseType::mEquationSystemSize) {
+                        rA(i_global, j_global) += rLHSContribution(i_local, j_local);
+                    }
+                }
             }
-            //note that computation of reactions is not performed here!
         }
     }
 
