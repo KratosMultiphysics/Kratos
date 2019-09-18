@@ -778,10 +778,10 @@ void VtkOutput::WriteIntegrationScalarContainerVariable(
     const SizeType integration_points_number = r_integration_points.size();
 
     double aux_value;
-    for (auto& r_entity : rContainer) { // TODO: CalculateValuesOnIntegrationPoints should be const methods
+    for (auto& r_entity : rContainer) { // TODO: CalculateOnIntegrationPoints should be const methods
         aux_value = 0.0;
         std::vector<TVarType> aux_result(integration_points_number);
-        r_entity.CalculateValuesOnIntegrationPoints(rVariable, aux_result, r_process_info);
+        r_entity.CalculateOnIntegrationPoints(rVariable, aux_result, r_process_info);
         for (const double value : aux_result) {
             aux_value += value;
         }
@@ -842,10 +842,10 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
     const SizeType integration_points_number = r_integration_points.size();
 
     TVarType aux_value;
-    for (auto& r_entity : rContainer) { // TODO: CalculateValuesOnIntegrationPoints should be const methods
+    for (auto& r_entity : rContainer) { // TODO: CalculateOnIntegrationPoints should be const methods
         aux_value = rVariable.Zero();
         std::vector<TVarType> aux_result(integration_points_number);
-        r_entity.CalculateValuesOnIntegrationPoints(rVariable, aux_result, r_process_info);
+        r_entity.CalculateOnIntegrationPoints(rVariable, aux_result, r_process_info);
         for (const TVarType& r_value : aux_result) {
             noalias(aux_value) += r_value;
         }
