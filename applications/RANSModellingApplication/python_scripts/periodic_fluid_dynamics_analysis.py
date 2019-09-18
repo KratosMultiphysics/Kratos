@@ -4,10 +4,13 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import 
 from KratosMultiphysics.RANSModellingApplication.fluid_solver_no_replace import FluidSolverNoReplace
 from KratosMultiphysics.RANSModellingApplication.trilinos_fluid_solver_no_replace import TrilinosFluidSolverNoReplace
 
+
 class PeriodicFluidDynamicsAnalysis(FluidDynamicsAnalysis):
     def _CreateSolver(self):
-        if self.project_parameters["problem_data"]["parallel_type"].GetString() == "OpenMP":
-            return FluidSolverNoReplace(self.model,self.project_parameters["solver_settings"])
+        if self.project_parameters["problem_data"]["parallel_type"].GetString(
+        ) == "OpenMP":
+            return FluidSolverNoReplace(
+                self.model, self.project_parameters["solver_settings"])
         else:
-            return TrilinosFluidSolverNoReplace(self.model,self.project_parameters["solver_settings"])
-
+            return TrilinosFluidSolverNoReplace(
+                self.model, self.project_parameters["solver_settings"])

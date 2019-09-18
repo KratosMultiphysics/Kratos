@@ -7,7 +7,8 @@ import KratosMultiphysics
 import KratosMultiphysics as Kratos
 
 # Import base class file
-from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic, StabilizedFormulation
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
+
 
 class FluidSolverNoReplace(NavierStokesSolverMonolithic):
     def PrepareModelPart(self):
@@ -16,7 +17,8 @@ class FluidSolverNoReplace(NavierStokesSolverMonolithic):
             self.main_model_part.SetBufferSize(self.min_buffer_size)
             self._set_physical_properties()
 
-        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
+        if not self.model.HasModelPart(
+                self.settings["model_part_name"].GetString()):
             self.model.AddModelPart(self.main_model_part)
 
         if self.turbulence_model_configuration:
@@ -24,5 +26,3 @@ class FluidSolverNoReplace(NavierStokesSolverMonolithic):
 
     def GetComputingModelPart(self):
         return self.main_model_part
-
-

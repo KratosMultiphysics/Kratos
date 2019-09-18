@@ -16,7 +16,8 @@ def CreateDuplicateModelPart(origin_modelpart, destination_modelpart_name,
         connectivity_preserve_modeler.GenerateModelPart(
             origin_modelpart, model_part, element_name, condition_name)
 
-    Kratos.Logger.PrintInfo("RANSModelPartFactory", "Created " + destination_modelpart_name)
+    Kratos.Logger.PrintInfo("RANSModelPartFactory",
+                            "Created " + destination_modelpart_name)
     return model.GetModelPart(destination_modelpart_name)
 
 
@@ -24,7 +25,8 @@ def ApplyFlagsToNodeList(nodes, flag_name, value):
     allowed_flag_names = ["inlet", "outlet", "structure", "none"]
 
     if not flag_name in allowed_flag_names:
-        raise Exception("Unknown flag name: " + flag_name + ". Allowed flag names are: " + allowed_flag_names)
+        raise Exception("Unknown flag name: " + flag_name +
+                        ". Allowed flag names are: " + allowed_flag_names)
 
     variable_utils = Kratos.VariableUtils()
     if (flag_name == "inlet"):
@@ -34,11 +36,13 @@ def ApplyFlagsToNodeList(nodes, flag_name, value):
     elif (flag_name == "structure"):
         variable_utils.SetFlag(Kratos.STRUCTURE, value, nodes)
 
+
 def ApplyFlagsToConditionsList(conditions, flag_name, value):
     allowed_flag_names = ["inlet", "outlet", "structure", "none"]
 
     if not flag_name in allowed_flag_names:
-        raise Exception("Unknown flag name: " + flag_name + ". Allowed flag names are: " + allowed_flag_names)
+        raise Exception("Unknown flag name: " + flag_name +
+                        ". Allowed flag names are: " + allowed_flag_names)
 
     variable_utils = Kratos.VariableUtils()
     if (flag_name == "inlet"):
