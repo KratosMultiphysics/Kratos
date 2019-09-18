@@ -164,6 +164,7 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
+        array_1d <double, TNumNodes> AuxMVector;
         array_1d <double, TNumNodes> AuxMVector1;
         array_1d <double, TNumNodes> AuxMVector2;
 
@@ -180,6 +181,10 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
         // We are not considering MMatrixAux2, which is the h term
         MMatrixAux += MMatrixAux1 ;
 
+        /////////////////////////////////////////////////////////////////////////
+        // To make the M matrix consistent uncomment the next 2 lines and comment the for loop next
+
+        // noalias(AuxMVector) = AuxMVector1 + AuxMVector2;
         // noalias(rLeftHandSideMatrix) += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
     }
 
