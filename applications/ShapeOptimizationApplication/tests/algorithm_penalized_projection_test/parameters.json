@@ -38,7 +38,7 @@
             "type"            : "=",
             "reference"       : "specified_value",
             "reference_value" : 0,
-            "analyzer"            : "external",
+            "analyzer"        : "external",
             "project_gradient_on_surface_normals" : true
         }],
         "design_variables" : {
