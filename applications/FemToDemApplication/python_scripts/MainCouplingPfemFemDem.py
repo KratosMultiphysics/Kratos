@@ -1,6 +1,8 @@
 from __future__ import print_function, absolute_import, division  #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics
+import KratosMultiphysics as KM
+import KratosMultiphysics.FemToDemApplication as FEMDEM
+import KratosMultiphysics.PfemFluidDynamicsApplication as PFEM
 import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem    as MainCouplingFemDem
 import KratosMultiphysics.FemToDemApplication.MainPFEM_for_coupling as MainPFEM_for_coupling
 
@@ -10,8 +12,8 @@ def Wait():
 def KratosPrintInfo(message):
     """This function prints info on screen
     """
-    KratosMultiphysics.Logger.Print(message, label="")
-    KratosMultiphysics.Logger.Flush()
+    KM.Logger.Print(message, label="")
+    KM.Logger.Flush()
 #============================================================================================================================
 class MainCouplingPfemFemDem_Solution:
 #============================================================================================================================
@@ -96,6 +98,19 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def InitializeSolutionStep(self):
+        # self.ComputeSkinFEMDEMGeometry()
+        # for node in self.FEMDEM_Solution.FEM_Solution.main_model_part.GetSubModelPart("SkinDEMModelPart").Nodes:
+        #     PFEM_node = self.PFEM_Solution.main_model_part.GetNode(node.Id)
+        #     PFEM_node.Set(KM.RIGID, True)
+            # print("    ",node.Id)
+
+
+
+
+        # for node in self.PFEM_Solution.main_model_part.Nodes:
+        #     if node.Is(KM.RIGID):
+        #         print(node.Id)
+        # Wait()
         self.UpdateDeltaTimeInSolutions()
         self.PFEM_Solution.time = self.PFEM_Solution._GetSolver().AdvanceInTime(self.PFEM_Solution.time)
         self.PFEM_Solution.InitializeSolutionStep()
@@ -109,4 +124,14 @@ class MainCouplingPfemFemDem_Solution:
     def UpdateDeltaTimeInSolutions(self):
         FEM_delta_time = self.FEMDEM_Solution.FEM_Solution.delta_time
         self.PFEM_Solution.delta_time = FEM_delta_time
-        self.PFEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = FEM_delta_time
+        self.PFEM_Solution.main_model_part.ProcessInfo[KM.DELTA_TIME] = FEM_delta_time
+
+#============================================================================================================================
+    def ComputeSkinFEMDEMGeometry(self):
+        if self.FEMDEM_Solution.domain_size == 2:
+            skin_detection_process = KM.SkinDetectionProcess2D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
+                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)
+        else: # 3D
+            skin_detection_process = KM.SkinDetectionProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
+                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)
+        skin_detection_process.Execute()
