@@ -51,7 +51,7 @@ VtkOutput::VtkOutput(
     }
 
     // Adding GP variables to nodal data variables list
-    if(mOutputSettings["gauss_point_variables"].size() > 0) {
+    if(mOutputSettings["gauss_point_variables_extrapolated_to_nodes"].size() > 0) {
         Parameters gauss_intergration_param_non_hist = Parameters(R"(
         {
             "echo_level"                 : 0,
@@ -61,9 +61,9 @@ VtkOutput::VtkOutput(
             "extrapolate_non_historical" : true
         })");
 
-        gauss_intergration_param_non_hist.SetValue("list_of_variables", mOutputSettings["gauss_point_variables"]);
+        gauss_intergration_param_non_hist.SetValue("list_of_variables", mOutputSettings["gauss_point_variables_extrapolated_to_nodes"]);
 
-        for(auto const& gauss_var : mOutputSettings["gauss_point_variables"])
+        for(auto const& gauss_var : mOutputSettings["gauss_point_variables_extrapolated_to_nodes"])
             mOutputSettings["nodal_data_value_variables"].Append(gauss_var);
 
         // Making the gauss point to nodes process if any gauss point result is requested for
@@ -84,7 +84,7 @@ VtkOutput::VtkOutput(
 
 void VtkOutput::PrepareGaussPointResults()
 {
-    if(mOutputSettings["gauss_point_variables"].size() > 0){
+    if(mOutputSettings["gauss_point_variables_extrapolated_to_nodes"].size() > 0){
         mpGaussToNodesProcess->Execute();
     }
 }
@@ -442,8 +442,8 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
         // write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfElements() << "\n";
         const bool write_properties_id = mOutputSettings["write_properties_id"].GetBool();
-        Parameters gauss_point_variables = mOutputSettings["gauss_point_variables_in_elements"];
-        const SizeType number_gauss_points_variables = gauss_point_variables.size();
+        Parameters gauss_point_variables_extrapolated_to_nodes = mOutputSettings["gauss_point_variables_in_elements"];
+        const SizeType number_gauss_points_variables = gauss_point_variables_extrapolated_to_nodes.size();
         rFileStream << "FIELD FieldData " << element_data_value_variables.size() + element_flags.size() + (write_properties_id ? 1 : 0) + number_gauss_points_variables << "\n";
         for (IndexType entry = 0; entry < element_data_value_variables.size(); ++entry) {
             const std::string& r_element_result_name = element_data_value_variables[entry].GetString();
@@ -467,8 +467,8 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
         }
 
         // Direct write GP values
-        for (IndexType entry = 0; entry < gauss_point_variables.size(); ++entry) {
-            const std::string& r_condition_result_name = gauss_point_variables[entry].GetString();
+        for (IndexType entry = 0; entry < gauss_point_variables_extrapolated_to_nodes.size(); ++entry) {
+            const std::string& r_condition_result_name = gauss_point_variables_extrapolated_to_nodes[entry].GetString();
             WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Elements(),rFileStream);
         }
     }
@@ -490,8 +490,8 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
         // Write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfConditions() << "\n";
         const bool write_properties_id = mOutputSettings["write_properties_id"].GetBool();
-        Parameters gauss_point_variables = mOutputSettings["gauss_point_variables_in_elements"];
-        const SizeType number_gauss_points_variables = gauss_point_variables.size();
+        Parameters gauss_point_variables_extrapolated_to_nodes = mOutputSettings["gauss_point_variables_in_elements"];
+        const SizeType number_gauss_points_variables = gauss_point_variables_extrapolated_to_nodes.size();
         rFileStream << "FIELD FieldData " << condition_results.size() + condition_flags.size() + (write_properties_id ? 1 : 0) + number_gauss_points_variables << "\n";
         for (IndexType entry = 0; entry < condition_results.size(); ++entry) {
             const std::string& r_condition_result_name = condition_results[entry].GetString();
@@ -515,8 +515,8 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
         }
 
         // Direct write GP values
-        for (IndexType entry = 0; entry < gauss_point_variables.size(); ++entry) {
-            const std::string& r_condition_result_name = gauss_point_variables[entry].GetString();
+        for (IndexType entry = 0; entry < gauss_point_variables_extrapolated_to_nodes.size(); ++entry) {
+            const std::string& r_condition_result_name = gauss_point_variables_extrapolated_to_nodes[entry].GetString();
             WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
         }
     }
@@ -977,26 +977,26 @@ Parameters VtkOutput::GetDefaultParameters()
     // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
     Parameters default_parameters = Parameters(R"(
     {
-        "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "file_format"                        : "ascii",
-        "output_precision"                   : 7,
-        "output_control_type"                : "step",
-        "output_frequency"                   : 1.0,
-        "output_sub_model_parts"             : false,
-        "folder_name"                        : "VTK_Output",
-        "custom_name_prefix"                 : "",
-        "save_output_files_in_folder"        : true,
-        "write_deformed_configuration"       : false,
-        "write_properties_id"                : false,
-        "nodal_solution_step_data_variables" : [],
-        "nodal_data_value_variables"         : [],
-        "nodal_flags"                        : [],
-        "element_data_value_variables"       : [],
-        "element_flags"                      : [],
-        "condition_data_value_variables"     : [],
-        "condition_flags"                    : [],
-        "gauss_point_variables"              : [],
-        "gauss_point_variables_in_elements"  : []
+        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                                 : "ascii",
+        "output_precision"                            : 7,
+        "output_control_type"                         : "step",
+        "output_frequency"                            : 1.0,
+        "output_sub_model_parts"                      : false,
+        "folder_name"                                 : "VTK_Output",
+        "custom_name_prefix"                          : "",
+        "save_output_files_in_folder"                 : true,
+        "write_deformed_configuration"                : false,
+        "write_properties_id"                         : false,
+        "nodal_solution_step_data_variables"          : [],
+        "nodal_data_value_variables"                  : [],
+        "nodal_flags"                                 : [],
+        "element_data_value_variables"                : [],
+        "element_flags"                               : [],
+        "condition_data_value_variables"              : [],
+        "condition_flags"                             : [],
+        "gauss_point_variables_extrapolated_to_nodes" : [],
+        "gauss_point_variables_in_elements"           : []
     })" );
 
     return default_parameters;
