@@ -15,6 +15,7 @@ class MainCouplingPfemFemDem_Solution:
         # Initialize solutions of the FEMDEM and PFEM
         self.FEMDEM_Solution = MainCouplingFemDem.MainCoupledFemDem_Solution(Model)
         self.PFEM_Solution = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, PFEMparameters)
+        # self.ImposeIdenticalTimeStepInApplications()
 
 #============================================================================================================================
     def Run(self):
@@ -31,24 +32,26 @@ class MainCouplingPfemFemDem_Solution:
     def RunMainTemporalLoop(self):
         self.RunBeforeSolutionLoopFEMDEM()
         while self.FEMDEM_Solution.FEM_Solution.time <= self.FEMDEM_Solution.FEM_Solution.end_time:
-            self.SolveSolutionStepPFEM()
-            self.SolveSolutionStepFEMDEM()
+            self.InitializeSolutionStep()
+            self.SolveSolutionStep()
+            self.FinalizeSolutionStep()
+
+#============================================================================================================================
+    def SolveSolutionStep(self):
+        self.SolveSolutionStepPFEM()
+        # transfer pressure forces -> TODO
+        # self.TransferPressureForces()
+        self.SolveSolutionStepFEMDEM()
 
 #============================================================================================================================
     def SolveSolutionStepPFEM(self):
-        self.PFEM_Solution.time = self.PFEM_Solution._GetSolver().AdvanceInTime(self.PFEM_Solution.time)
-        self.PFEM_Solution.InitializeSolutionStep()
-        self.PFEM_Solution._GetSolver().Predict()
         is_converged = self.PFEM_Solution._GetSolver().SolveSolutionStep()
-        # self.PFEM_Solution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
-        self.PFEM_Solution.FinalizeSolutionStep()
-        self.PFEM_Solution.OutputSolutionStep()
 
 #============================================================================================================================
     def SolveSolutionStepFEMDEM(self):
-        self.FEMDEM_Solution.InitializeSolutionStep()
+        # self.FEMDEM_Solution.InitializeSolutionStep()
         self.FEMDEM_Solution.SolveSolutionStep()
-        self.FEMDEM_Solution.FinalizeSolutionStep()
+        # self.FEMDEM_Solution.FinalizeSolutionStep()
 
 #============================================================================================================================
     def RunBeforeSolutionLoopFEMDEM(self):
@@ -61,6 +64,25 @@ class MainCouplingPfemFemDem_Solution:
             self.FEMDEM_Solution.RemeshingProcessMMG.ExecuteBeforeSolutionLoop()
 
 #============================================================================================================================
+    def FinalizeSolutionStep(self):
+        # self.PFEM_Solution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+        self.PFEM_Solution.FinalizeSolutionStep()
+        self.PFEM_Solution.OutputSolutionStep()
+        self.FEMDEM_Solution.FinalizeSolutionStep()
+
+#============================================================================================================================
     def Finalize(self):
         self.FEMDEM_Solution.Finalize()
         self.PFEM_Solution.Finalize()
+
+#============================================================================================================================
+    def InitializeSolutionStep(self):
+        self.PFEM_Solution.time = self.PFEM_Solution._GetSolver().AdvanceInTime(self.PFEM_Solution.time)
+        self.PFEM_Solution.InitializeSolutionStep()
+        self.PFEM_Solution._GetSolver().Predict()
+        self.FEMDEM_Solution.InitializeSolutionStep()
+
+        # We set the same delta time to all the solutions
+        # self.PFEM_Solution.delta_time = self.FEMDEM_Solution.delta_time
+
+#============================================================================================================================
