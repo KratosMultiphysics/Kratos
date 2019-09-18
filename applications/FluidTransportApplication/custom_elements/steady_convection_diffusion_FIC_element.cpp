@@ -741,7 +741,16 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 
         if (TNumNodes == 3)
         {
-            rVariables.lsc = std::sqrt(2.0) * rVariables.lv;
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                array_1d <double, 3> AuxNodeNormal = rGeom[i].FastGetSolutionStepValue(NORMAL);
+                double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
+
+                if (NormAuxNodeNormal > rVariables.LowTolerance)
+                {
+                    rVariables.lsc = std::sqrt(2.0) * rVariables.lv;
+                }
+            }
         }
     }
     else
@@ -768,6 +777,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.HighTolerance);
 
+        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
     }
     else
     {
@@ -777,7 +787,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
         }
         else
         {
-            rVariables.Peclet = NormVel * rVariables.lv / (2.0 * rVariables.AuxDiffusion);
+            rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
         }
 
         rVariables.OmegaV = rVariables.absorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion;
@@ -840,6 +850,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 
     noalias(rVariables.DifMatrixS) = (rVariables.absorption / (TNumNodes + 1)) * BaricenterMatrix;
 
+    //TODO : if element is not 3-noded triangles or 4-noded quadrilaters, Ds = 0
 
     //////////////////////////////////////////////////////
     // Calculate Dr
@@ -1644,6 +1655,9 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddAdvecti
 
     noalias(rLeftHandSideMatrix) += prod(rVariables.AdvMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
 
+    // noalias(rVariables.AdvMatrixAux) = rVariables.rho_dot_c * outer_prod(rVariables.VelInter,rVariables.N);
+
+    // noalias(rLeftHandSideMatrix) -= prod(trans(rVariables.GradNT),rVariables.AdvMatrixAux)*rVariables.IntegrationCoefficient;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1712,7 +1726,10 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSAdve
 
     noalias(rRightHandSideVector) -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
 
-     //rVariables.Aux1 -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
+    // noalias(rVariables.AdvMatrixAux) = rVariables.rho_dot_c * outer_prod(rVariables.VelInter,rVariables.N);
+    // noalias(rVariables.AdvMatrixAuxTwo) = prod(trans(rVariables.GradNT),rVariables.AdvMatrixAux)*rVariables.IntegrationCoefficient;
+
+    // noalias(rRightHandSideVector) += prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
 
 }
 //----------------------------------------------------------------------------------------
