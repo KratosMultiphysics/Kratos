@@ -39,6 +39,10 @@ class MainCouplingPfemFemDem_Solution:
         KratosPrintInfo("")
         self.PFEM_Solution.Initialize()
 
+        # We copy the output params in the PFEM
+        self.PFEM_Solution.graphical_output = self.PFEM_Solution.SetCustomGraphicalOutput(self.FEMDEM_Solution.FEM_Solution.ProjectParameters)
+        self.PFEM_Solution.GraphicalOutputExecuteInitialize()
+
 #============================================================================================================================
     def RunMainTemporalLoop(self):
         self.RunBeforeSolutionLoopFEMDEM()
@@ -67,9 +71,7 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def SolveSolutionStepFEMDEM(self):
-        # self.FEMDEM_Solution.InitializeSolutionStep()
         self.FEMDEM_Solution.SolveSolutionStep()
-        # self.FEMDEM_Solution.FinalizeSolutionStep()
 
 #============================================================================================================================
     def RunBeforeSolutionLoopFEMDEM(self):

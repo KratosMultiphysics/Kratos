@@ -28,3 +28,16 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("PFEM" + problem_name)
 
         super(MainPFEM_for_coupling_solution, self).__init__(model, parameters)
+
+    def SetCustomGraphicalOutput(self, custom_parameters):
+        """This function sets the settings for the graphical
+        output
+        """
+        if custom_parameters.Has("output_configuration"):
+            from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_gid_output_process import GiDOutputProcess
+            self.output_settings = custom_parameters["output_configuration"]
+            return GiDOutputProcess(self.post_process_model_part,
+                                    self.problem_name,
+                                    self.output_settings)
+        else:
+            return (KratosMultiphysics.Process())
