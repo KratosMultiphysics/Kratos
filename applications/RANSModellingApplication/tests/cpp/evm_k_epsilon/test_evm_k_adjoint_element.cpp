@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMKAdjointElement2D3N_Calculate_RANS_TURBULENT_ENERGY
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart,
-        calculate_sensitivity_matrix, perturb_variable, 1e-8, 1e-5);
+        calculate_sensitivity_matrix, perturb_variable, 1e-8, 1e-3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EVMKAdjointElement2D3N_CalculateSecondDerivativesLHS,

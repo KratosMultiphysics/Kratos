@@ -279,7 +279,7 @@ void RunGaussPointScalarSensitivityTest(
                     {
                         const double fd_sensitivity = ((values[j] - values_0[j]) / Delta);
                         CheckNear(fd_sensitivity,
-                                  analytical_sensitivities[j][i], Tolerance, Tolerance);
+                                  analytical_sensitivities[j][i], Tolerance, 1e-12);
                     }
                 }
 
@@ -453,7 +453,7 @@ void RunElementResidualScalarSensitivityTest(
                         i_check_eq_node * local_equation_size + EquationOffset + i_check_eq_dim);
 
                 CheckNear(residual_sensitivity[i_check_equation],
-                          current_adjoint_shape_sensitivity, Tolerance, Tolerance);
+                          current_adjoint_shape_sensitivity, Tolerance, 1e-12);
             }
 
             PerturbVariable(r_node) -= Delta;
@@ -567,7 +567,7 @@ void RunNodalScalarSensitivityTest(
             for (int j = 0; j < static_cast<int>(analytical_sensitivities.size()); ++j)
             {
                 const double fd_sensitivity = ((values[j] - values_0[j]) / Delta);
-                CheckNear(fd_sensitivity, analytical_sensitivities[j][i], Tolerance, Tolerance);
+                CheckNear(fd_sensitivity, analytical_sensitivities[j][i], Tolerance, 1e-12);
             }
 
             PerturbVariable(r_node) -= Delta;
