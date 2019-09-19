@@ -120,9 +120,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
         ;
 
-    auto mod_trilinos_solver_utils = m.def_submodule("TrilinosSolverUtilities");
-    mod_trilinos_solver_utils.def("SetTeuchosParameters", &TrilinosSolverUtilities::SetTeuchosParameters );
-
     typedef SolverSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSettingsType;
     typedef void (BaseSettingsType::*BuildTurbModelType)(BaseSettingsType::TurbulenceModelLabel const&, TrilinosLinearSolverType::Pointer, const double, const unsigned int);
     typedef void (BaseSettingsType::*PassTurbModelType)(Process::Pointer);
