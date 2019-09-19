@@ -1003,6 +1003,12 @@ public:
     {
     }
 
+    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+                          std::vector< array_1d<double, 6 > >& Output,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
                           std::vector< Vector >& Output,
                           const ProcessInfo& rCurrentProcessInfo)
