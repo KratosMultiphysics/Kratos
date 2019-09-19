@@ -241,7 +241,7 @@ class PfemFluidSolver(PythonSolver):
         if( self.settings.Has("bodies_list") ):
             params.AddValue("bodies_list",self.settings["bodies_list"])
 
-        self.CheckAndPrepareModelProcess()
+        self.CheckAndPrepareModelProcess(params)
         self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
 
         current_buffer_size = self.main_model_part.GetBufferSize()
@@ -267,7 +267,7 @@ class PfemFluidSolver(PythonSolver):
         print ("::[Pfem Fluid Solver]:: Model reading finished.")
 
 
-    def CheckAndPrepareModelProcess(self):
+    def CheckAndPrepareModelProcess(self, params):
         # CheckAndPrepareModelProcess creates the fluid_computational model part
         from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_check_and_prepare_model_process_fluid
         pfem_check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
