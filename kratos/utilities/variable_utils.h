@@ -704,6 +704,9 @@ public:
             // First we do a check
             CheckVariableExists(rVar, rNodes);
 
+            // I assume that all the nodes sharing the same varibles list from modelpart
+            rNodes.begin()->pGetVariablesList()->AddDof(&rVar, nullptr);
+
             if(IsFixed == true) {
                 #pragma omp parallel for
                 for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
