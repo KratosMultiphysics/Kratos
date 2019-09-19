@@ -148,12 +148,12 @@ public:
                 }
 
                 //store correction
-                iparticle->GetValue(rVar) = 1.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5 * phi_old;
+                iparticle->SetValue(rVar, 1.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5 * phi_old);
 //                 iparticle->FastGetSolutionStepValue(rVar) = iparticle->GetValue(rVar) - 0.5 * (phi2 - iparticle->FastGetSolutionStepValue(rVar,1));
             }
             else
             {
-                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1);
+                iparticle->SetValue(rVar, iparticle->FastGetSolutionStepValue(rVar,1));
             }
         }
 
@@ -241,8 +241,8 @@ public:
                     Geometry< Node < 3 > >& geom = pelement->GetGeometry();
 
                     //this factors get inverted from the other case
-                   const double old_step_factor = static_cast<double>(substep)/subdivisions;
-                   const double new_step_factor = (1.0 - old_step_factor);
+                    const double old_step_factor = static_cast<double>(substep)/subdivisions;
+                    const double new_step_factor = (1.0 - old_step_factor);
 
                     noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[0].FastGetSolutionStepValue(conv_var,1));
                     for (unsigned int k = 1; k < geom.size(); k++)
@@ -256,13 +256,11 @@ public:
 
 
                 }
-             else
-                 break;
+            else
+                break;
             }
         }
-
-                return is_found;
-
+        return is_found;
     }
 
 
