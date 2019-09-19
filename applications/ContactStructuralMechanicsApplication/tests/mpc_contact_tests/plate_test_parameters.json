@@ -85,18 +85,7 @@
                 "check_variables"      : ["DISPLACEMENT_X"],
                 "input_file_name"      : "mpc_contact_tests/plate_test_results.json",
                 "model_part_name"      : "Structure.CONTACT_Contact_slave_Auto1",
-                "time_frequency"       : 0.0
-            }
-        },{
-            "python_module"   : "from_json_check_result_process",
-            "kratos_module" : "KratosMultiphysics",
-            "help"                  : "",
-            "process_name"          : "FromJsonCheckResultProcess",
-            "Parameters"            : {
-                "check_variables"      : ["REACTION"],
-                "input_file_name"      : "mpc_contact_tests/plate_test_results_LM.json",
-                "model_part_name"      : "Structure.CONTACT_Contact_slave_Auto1",
-                "relative_tolerance"   : 1e-5,
+                "check_for_flag"       : "ACTIVE",
                 "time_frequency"       : 0.0
             }
         }
@@ -111,17 +100,6 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X"],
             "output_file_name"     : "mpc_contact_tests/plate_test_results.json",
-            "model_part_name"      : "Structure.CONTACT_Contact_slave_Auto1",
-            "time_frequency"       : 0.0
-        }
-    },{
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables"     : ["REACTION"],
-            "output_file_name"     : "mpc_contact_tests/plate_test_results_LM.json",
             "model_part_name"      : "Structure.CONTACT_Contact_slave_Auto1",
             "time_frequency"       : 0.0
         }
