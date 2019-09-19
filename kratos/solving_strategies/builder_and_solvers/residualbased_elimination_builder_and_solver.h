@@ -739,7 +739,7 @@ public:
 
         dof_temp.reserve(dofs_aux_list[0].size());
         for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); ++it) {
-            dof_temp.push_back(it->get());
+            dof_temp.push_back(*it);
         }
         dof_temp.Sort();
 
