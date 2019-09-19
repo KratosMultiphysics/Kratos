@@ -112,6 +112,7 @@ namespace Kratos
                 bool exist = std::find(std::begin(nodes_set), std::end(nodes_set), r_geom[i_node]) != std::end(nodes_set);
                 if (!exist){
                     // we delete the condition (and break from loop) if at least one node it is not in main model part
+                    KRATOS_INFO("\t CleanConditions") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;
                     cond->Set(TO_ERASE, true);
                     break;
                 }
@@ -130,7 +131,7 @@ namespace Kratos
 
 		auto& r_skin_model_part = mrModelPart.GetSubModelPart("SKIN_ISOSURFACE");
 		auto& r_skin_nodes_array = r_skin_model_part.Nodes();
-		std::set<int> skin_nodes_set(begin(r_skin_nodes_array), end(r_skin_nodes_array));    // we conver the array into a set
+		// std::set<int> skin_nodes_set(begin(r_skin_nodes_array), end(r_skin_nodes_array));    // we conver the array into a set
 
 		auto& r_bottom_model_part = mrModelPart.GetSubModelPart("BottomModelPart");
 		auto& r_bottom_conditions_array = r_bottom_model_part.Conditions();
@@ -141,19 +142,20 @@ namespace Kratos
 
 			int count = 0;
 			for (unsigned int i_node = 0; i_node < r_geom.size(); ++i_node) {
-				bool exist_in_skin = std::find(std::begin(skin_nodes_set), std::end(skin_nodes_set), r_geom[i_node]) != std::end(skin_nodes_set);
+                bool exist_in_skin = std::find(std::begin(r_skin_nodes_array), std::end(r_skin_nodes_array), r_geom[i_node]) != std::end(r_skin_nodes_array);
+				// bool exist_in_skin = std::find(std::begin(skin_nodes_set), std::end(skin_nodes_set), r_geom[i_node]) != std::end(skin_nodes_set);
 				if (exist_in_skin) {
 					count++;
 				}
 			}
 			if (count == 3) {
-				KRATOS_INFO("CleanConditionsAngles") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;
+				KRATOS_INFO("\t CleanConditionsAngles") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;
 				cond->Set(TO_ERASE, true);
 			}
 		}
 		mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 		const int final_cond = mrModelPart.Conditions().size();
-        KRATOS_INFO("\n CleanConditionsAngles") << "In total " << (initial_cond - final_cond) <<" superfluous conditions were cleared" << std::endl;
+        KRATOS_INFO("\nCleanConditionsAngles") << "In total " << (initial_cond - final_cond) <<" superfluous conditions were cleared" << std::endl;
 	}
 
 
