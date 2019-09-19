@@ -1,0 +1,17 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 80.0,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "solver_wrappers.sdof.sdof_solver_wrapper",
+        "solver_wrapper_settings" : {
+            "input_file"  : "pure_sdof/ProjectParametersSdof"
+        }
+    }
+}

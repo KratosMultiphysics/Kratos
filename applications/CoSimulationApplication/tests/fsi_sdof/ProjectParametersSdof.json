@@ -15,7 +15,13 @@
         "acceleration": 0.0
      },
      "boundary_conditions":{
-        "external_load": 0.0
+        "load_impulse" : 0.0,
+        "omega_force"        : 0.0,
+        "omega_root_point_displacement": 0.8,
+        "excitation_function_force": "A * cos(omega * t)",
+        "excitation_function_root_point_displacement":"A * cos(omega * t)",
+        "amplitude_root_point_displacement": 0.0,
+        "amplitude_force": 0.0
      },
      "solver_parameters": {
          "buffer_size": 3

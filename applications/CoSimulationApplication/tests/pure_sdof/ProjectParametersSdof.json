@@ -1,0 +1,33 @@
+{
+    "system_parameters":{
+        "mass": 30.0,
+        "stiffness" : 100.0,
+        "damping": 5.0
+    },
+    "time_integration_parameters":{
+        "alpha_m":  0.0,
+        "alpha_f":  0.0,
+        "time_step": 0.01
+    },
+     "initial_values":{
+        "displacement": 0.0,
+        "velocity": 0.0,
+        "acceleration": 0.0
+     },
+     "boundary_conditions":{
+        "load_impulse" : 0.0,
+        "omega_force"        : 0.0,
+        "omega_root_point_displacement": 0.8,
+        "excitation_function_force": "A",
+        "excitation_function_root_point_displacement": "A * cos(omega * t)",
+        "amplitude_root_point_displacement": 0.01,
+        "amplitude_force": 10.0
+         },
+     "solver_parameters": {
+         "buffer_size": 2
+     },
+     "output_parameters":{
+        "write_output_file": true,
+        "file_name": "pure_sdof/results_sdof.dat"
+     }
+}

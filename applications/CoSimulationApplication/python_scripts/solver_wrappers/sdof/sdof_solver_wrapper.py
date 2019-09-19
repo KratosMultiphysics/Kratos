@@ -39,9 +39,16 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
 
 
     def SolveSolutionStep(self):
-        self._sdof_solver.SetData("LOAD", self.mp[KM.FORCE_Y])
+        self._sdof_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self.mp[KM.DISPLACEMENT_X], 0)
+        self._sdof_solver.SetSolutionStepValue("LOAD", self.mp[KM.FORCE_Y], 0)
         self._sdof_solver.SolveSolutionStep()
-        self.mp[KM.DISPLACEMENT_Y] = self._sdof_solver.GetData("DISPLACEMENT")
+        self.mp[KM.DISPLACEMENT_Y] = self._sdof_solver.GetSolutionStepValue("DISPLACEMENT", 0)
+        self.mp[KM.VELOCITY_Y] = self._sdof_solver.GetSolutionStepValue("VELOCITY", 0)
+        self.mp[KM.ACCELERATION_Y] = self._sdof_solver.GetSolutionStepValue("ACCELERATION", 0)
+        self.mp[KM.REACTION_Y] = self._sdof_solver.GetSolutionStepValue("REACTION", 0)
+
+
+
 
     def GetBufferSize(self):
         self._sdof_solver.GetBufferSize()
