@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
-from save_restart_process import SaveRestartProcess
-import DEM_restart_utility
+from KratosMultiphysics.save_restart_process import SaveRestartProcess
+from KratosMultiphysics.DEMApplication import DEM_restart_utility
 
 def Factory(settings, Model):
     if(type(settings) != Kratos.Parameters):

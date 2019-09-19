@@ -66,7 +66,7 @@
     "output_processes" : {
         "restart_processes" : [
             {
-            "python_module"   : "DEM_save_restart_process",
+            "python_module"   : "DEMApplication.DEM_save_restart_process",
             "kratos_module"   : "KratosMultiphysics",
             "process_name"    : "DEMSaveRestartProcess",
             "Parameters"            : {

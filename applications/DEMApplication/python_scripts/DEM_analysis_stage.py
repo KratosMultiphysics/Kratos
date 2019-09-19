@@ -5,6 +5,8 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
+
 from importlib import import_module
 
 if IsDistributedRun():
@@ -83,7 +85,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.KratosPrintInfo = self.procedures.KratosPrintInfo
 
         # Creating necessary directories:
-        self.problem_name = self.GetProblemTypeFilename()
+        self.problem_name = self.GetProblemTypeFileName()
 
         [self.post_path,
         self.data_and_results,
@@ -330,27 +332,50 @@ class DEMAnalysisStage(AnalysisStage):
     def GetProblemNameWithPath(self):
         return os.path.join(self.mdpas_folder_path, self.DEM_parameters["problem_name"].GetString())
 
-    def GetMpFilename(self):
+    def GetDiscreteElementsInputFileTag(self):
         return 'DEM'
 
-    def GetInletFilename(self):
+    def GetDEMInletInputFileTag(self):
         return 'DEM_Inlet'
 
-    def GetFemFilename(self):
+    def GetDEMWallsInputFileTag(self):
         return 'DEM_FEM_boundary'
 
-    def GetClusterFilename(self):
+    def GetDEMClustersInputFileTag(self):
         return 'DEM_Clusters'
 
-    def GetInputFilePath(self, file_name):
-        return self.GetProblemNameWithPath() + file_name
+    def GetDiscreteElementsInputFilePath(self):
+        return self.GetInputFilePath(self.GetDiscreteElementsInputFileTag())
 
-    def GetProblemTypeFilename(self):
+    def GetDEMInletInputFilePath(self):
+        return self.GetInputFilePath(self.GetDEMInletInputFileTag())
+
+    def GetDEMWallsInputFilePath(self):
+        return self.GetInputFilePath(self.GetDEMWallsInputFileTag())
+
+    def GetDEMClustersInputFilePath(self):
+        return self.GetInputFilePath(self.GetDEMClustersInputFileTag())
+
+    def GetMpFilePath(self):
+        return GetInputFilePath('DEM')
+
+    def GetInletFilePath(self):
+        return GetInputFilePath('DEM_Inlet')
+
+    def GetFemFilePath(self):
+        return GetInputFilePath('DEM_FEM_boundary')
+
+    def GetClusterFilePath(self):
+        return GetInputFilePath('DEM_Clusters')
+
+    def GetInputFilePath(self, file_tag=''):
+        return self.GetProblemNameWithPath() + file_tag
+
+    def GetProblemTypeFileName(self):
         return self.DEM_parameters["problem_name"].GetString()
 
     def ReadModelPartsFromRestartFile(self, model_part_import_settings):
         Logger.PrintInfo('DEM', 'Loading model parts from restart file...')
-        from DEM_restart_utility import DEMRestartUtility
         DEMRestartUtility(self.model, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
         Logger.PrintInfo('DEM', 'Finished loading model parts from restart file.')
 
@@ -361,11 +386,11 @@ class DEMAnalysisStage(AnalysisStage):
             max_cond_id = max(max_cond_id, self.creator_destructor.FindMaxConditionIdInModelPart(model_part))
             return max_node_id, max_elem_id, max_cond_id
 
-        def ReadModelPart(model_part, file_name, max_node_id, max_elem_id, max_cond_id):
-            file_path = self.GetInputFilePath(file_name)
+        def ReadModelPart(model_part, file_tag, max_node_id, max_elem_id, max_cond_id):
+            file_path = self.GetInputFilePath(file_tag)
 
             if not os.path.isfile(file_path + '.mdpa'):
-                self.KratosPrintInfo('Input file ' + file_name + '.mdpa' + ' not found. Continuing.')
+                self.KratosPrintInfo('Input file ' + file_tag + '.mdpa' + ' not found. Continuing.')
                 return
 
             if model_part.Name == 'SpheresPart':
@@ -388,15 +413,15 @@ class DEMAnalysisStage(AnalysisStage):
 
             model_part_io.ReadModelPart(model_part)
 
-        ReadModelPart(self.spheres_model_part, self.GetMpFilename(), max_node_id, max_elem_id, max_cond_id)
+        ReadModelPart(self.spheres_model_part, self.GetDiscreteElementsInputFileTag(), max_node_id, max_elem_id, max_cond_id)
         max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.spheres_model_part)
         old_max_elem_id_spheres = max_elem_id
 
-        ReadModelPart(self.rigid_face_model_part, self.GetFemFilename(), max_node_id, max_elem_id, max_cond_id)
+        ReadModelPart(self.rigid_face_model_part, self.GetDEMWallsInputFileTag(), max_node_id, max_elem_id, max_cond_id)
 
         max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.rigid_face_model_part)
 
-        ReadModelPart(self.cluster_model_part, self.GetClusterFilename(), max_node_id, max_elem_id, max_cond_id)
+        ReadModelPart(self.cluster_model_part, self.GetDEMClustersInputFileTag(), max_node_id, max_elem_id, max_cond_id)
 
         max_elem_id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
 
@@ -406,7 +431,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.cluster_model_part)
 
-        ReadModelPart(self.dem_inlet_model_part, self.GetInletFilename(), max_node_id, max_elem_id, max_cond_id)
+        ReadModelPart(self.dem_inlet_model_part, self.GetDEMInletInputFileTag(), max_node_id, max_elem_id, max_cond_id)
 
     def ReadModelParts(self, max_node_id=0, max_elem_id=0, max_cond_id=0):
 

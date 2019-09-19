@@ -2,7 +2,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
-from restart_utility import RestartUtility
+from KratosMultiphysics.restart_utility import RestartUtility
+
 # Other imports
 import os
 
