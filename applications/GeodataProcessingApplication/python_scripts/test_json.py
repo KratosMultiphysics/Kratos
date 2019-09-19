@@ -60,8 +60,13 @@ print("06")
 
 # we set "boundary_conditions_process_list" array
 inlet_name = "INLET"
+outlet_name = "OUTLET"
+slip_name = ["Slip", "Slip_2"]		# it can be a string or a list of strings
+noslip_name = "NoSlip"				# it can be a string or a list of strings
+
 settings["processes"].RemoveValue("boundary_conditions_process_list")	# to avoid duplicates
 settings["processes"].AddEmptyArray("boundary_conditions_process_list")
+# inlet
 inlet_process_1 = KratosMultiphysics.Parameters("""
 				{
 					"python_module" : "apply_inlet_process",
@@ -81,15 +86,76 @@ inlet_process_2 = KratosMultiphysics.Parameters("""
 					"python_module" : "apply_inlet_process",
 					"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
 					"Parameters"    : {
-						"model_part_name" : "FluidModelPart.""" + str(inlet_name) + """"",
+						"model_part_name" : "FluidModelPart.""" + str(inlet_name) + """",
 						"variable_name"   : "VELOCITY",
 						"modulus"         : 0.5,
 						"direction"       : "automatic_inwards_normal",
 						"interval"        : [1,"End"]
 					}
-				}
-			""")
+				} """)
 settings["processes"]["boundary_conditions_process_list"].Append(inlet_process_2)
+
+# outlet
+outlet_process = KratosMultiphysics.Parameters("""
+				{
+					"python_module" : "apply_outlet_process",
+					"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+					"Parameters"    : {
+						"model_part_name" : "FluidModelPart.""" + str(outlet_name) + """",
+						"variable_name"   : "PRESSURE",
+						"constrained"        : true,
+						"value"              : 0.0,
+						"hydrostatic_outlet" : false,
+						"h_top"              : 0.0
+					}
+				} """)
+settings["processes"]["boundary_conditions_process_list"].Append(outlet_process)
+
+# slip (it can be a string or a list of strings)
+if (isinstance(slip_name, list)):
+	for i_slip in slip_name:
+		slip_process = KratosMultiphysics.Parameters("""
+						{
+							"python_module" : "apply_slip_process",
+							"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+							"Parameters"    : {
+								"model_part_name" : "FluidModelPart.""" + str(i_slip) + """"
+							}
+						} """)
+		settings["processes"]["boundary_conditions_process_list"].Append(slip_process)
+elif (isinstance(slip_name, str)):
+	slip_process = KratosMultiphysics.Parameters("""
+					{
+						"python_module" : "apply_slip_process",
+						"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+						"Parameters"    : {
+							"model_part_name" : "FluidModelPart.""" + str(slip_name) + """"
+						}
+					} """)
+	settings["processes"]["boundary_conditions_process_list"].Append(slip_process)
+
+# noslip (it can be a string or a list of strings)
+if (isinstance(noslip_name, list)):
+	for i_noslip in noslip_name:
+		noslip_process = KratosMultiphysics.Parameters("""
+						{
+							"python_module" : "apply_noslip_process",
+							"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+							"Parameters"    : {
+								"model_part_name" : "FluidModelPart.""" + str(i_noslip) + """"
+							}
+						} """)
+		settings["processes"]["boundary_conditions_process_list"].Append(noslip_process)
+elif (isinstance(noslip_name, str)):
+	noslip_process = KratosMultiphysics.Parameters("""
+					{
+						"python_module" : "apply_noslip_process",
+						"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+						"Parameters"    : {
+							"model_part_name" : "FluidModelPart.""" + str(noslip_name) + """"
+						}
+					} """)
+	settings["processes"]["boundary_conditions_process_list"].Append(noslip_process)
 
 # # we set processes/boundary_conditions_process_list/Parameters/model_part_name (Inlet)
 # inlet_name = "AAAAAAAAA"
