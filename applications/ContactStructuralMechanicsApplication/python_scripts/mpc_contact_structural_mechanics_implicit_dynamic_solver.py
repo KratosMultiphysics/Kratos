@@ -19,7 +19,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import convergence_criter
 def GetDefaults():
     this_defaults = KratosMultiphysics.Parameters("""
     {
-        "contact_settings" :
+        "mpc_contact_settings" :
         {
             "contact_type"                  : "Frictionless",
             "simplified_semi_smooth_newton" : false,
@@ -52,8 +52,8 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         # Construct the base solver.
         super(MPCContactImplicitMechanicalSolver, self).__init__(model, custom_settings)
 
-        self.contact_settings = self.settings["contact_settings"]
-        self.contact_settings.RecursivelyAddMissingParameters(GetDefaults()["contact_settings"])
+        self.mpc_contact_settings = self.settings["mpc_contact_settings"]
+        self.mpc_contact_settings.RecursivelyAddMissingParameters(GetDefaults()["mpc_contact_settings"])
 
         # Setting the parameters
         if not self.settings["compute_reactions"].GetBool():
@@ -74,7 +74,7 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         super(MPCContactImplicitMechanicalSolver, self).AddVariables()
 
         # We add the contact related variables
-        contact_type = self.contact_settings["contact_type"].GetString()
+        contact_type = self.mpc_contact_settings["contact_type"].GetString()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)  # Add normal
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H) # Add nodal size variable
         self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)  # Add normal contact gap
@@ -87,14 +87,14 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         super(MPCContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
 
         # We set the flag INTERACTION
-        if self.contact_settings["simplified_semi_smooth_newton"].GetBool():
+        if self.mpc_contact_settings["simplified_semi_smooth_newton"].GetBool():
             computing_model_part = self.GetComputingModelPart()
             computing_model_part.ProcessInfo.Set(KratosMultiphysics.INTERACTION, True)
 
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactImplicitMechanicalSolver]:: ", "Finished initialization.")
 
     def ComputeDeltaTime(self):
-        return auxiliar_methods_solvers.AuxiliarComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.contact_settings)
+        return auxiliar_methods_solvers.AuxiliarComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.mpc_contact_settings)
 
     #### Private functions ####
 
@@ -115,9 +115,9 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         self.mechanical_convergence_criterion = self.get_convergence_criterion()
         self.builder_and_solver = self.get_builder_and_solver()
         newton_parameters = KratosMultiphysics.Parameters("""{}""")
-        newton_parameters.AddValue("inner_loop_iterations", self.contact_settings["inner_loop_iterations"])
-        newton_parameters.AddValue("update_each_nl_iteration", self.contact_settings["update_each_nl_iteration"])
-        newton_parameters.AddValue("enforce_ntn", self.contact_settings["enforce_ntn"])
+        newton_parameters.AddValue("inner_loop_iterations", self.mpc_contact_settings["inner_loop_iterations"])
+        newton_parameters.AddValue("update_each_nl_iteration", self.mpc_contact_settings["update_each_nl_iteration"])
+        newton_parameters.AddValue("enforce_ntn", self.mpc_contact_settings["enforce_ntn"])
         return ContactStructuralMechanicsApplication.ResidualBasedNewtonRaphsonMPCContactStrategy(computing_model_part,
                                                                     self.mechanical_scheme,
                                                                     self.linear_solver,
