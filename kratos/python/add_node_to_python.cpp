@@ -140,7 +140,7 @@ void  AddNodeToPython(pybind11::module& m)
     .def("__str__", PrintObject<IndexedObject>)
     ;
 
-    py::class_<Dof<double>, Dof<double>::Pointer>(m,"Dof")
+    py::class_<Dof<double>>(m,"Dof")
     ;
 
     typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, Flags > NodeBinderType;

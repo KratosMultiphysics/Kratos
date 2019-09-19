@@ -3399,8 +3399,8 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
         NodeType::Pointer p_node = CreateNode(rModelPart, i_node, ref, is_required);
 
         // Set the DOFs in the nodes
-        for (auto& r_dof : rDofs)
-            p_node->pAddDof(r_dof);
+        for (auto it_dof = rDofs.begin(); it_dof != rDofs.end(); ++it_dof)
+            p_node->pAddDof(**it_dof);
 
         if (ref != 0) color_nodes[static_cast<IndexType>(ref)].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
     }

@@ -244,6 +244,12 @@ private:
     ///@name Private Operations
     ///@{
 
+		void CopyDofs(Node<3>::DofsContainerType const& From, Node<3>::DofsContainerType& To){
+			for(auto& p_dof : From){
+				To.push_back(Kratos::unique_ptr<Dof<double>>(new Dof<double>(*p_dof)));
+			}
+		}
+
 
   void SelectEdgeToRefine2D( Element::GeometryType& Element,
 			     std::vector<array_1d<double,3> >& NewPositions,
@@ -374,9 +380,9 @@ private:
 	NodesIDToInterpolate[CountNodes][0]=Element[FirstEdgeNode[maxCount]].GetId();
 	NodesIDToInterpolate[CountNodes][1]=Element[SecondEdgeNode[maxCount]].GetId();
 	if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-	  NewDofs[CountNodes]=Element[SecondEdgeNode[maxCount]].GetDofs();
+		CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
 	}else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-	  NewDofs[CountNodes]=Element[FirstEdgeNode[maxCount]].GetDofs();
+		CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
 	}else{
 	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 	}
@@ -407,9 +413,9 @@ private:
 		  NodesIDToInterpolate[nn][0]=Element[FirstEdgeNode[maxCount]].GetId();
 		  NodesIDToInterpolate[nn][1]=Element[SecondEdgeNode[maxCount]].GetId();
 		  if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-		    NewDofs[nn]=Element[SecondEdgeNode[maxCount]].GetDofs();
+			  CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
 		  }else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-		    NewDofs[nn]=Element[FirstEdgeNode[maxCount]].GetDofs();
+			  CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
 		  }else{
 		    std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 		  }
@@ -588,9 +594,9 @@ private:
 	NodesIDToInterpolate[CountNodes][0]=Element[FirstEdgeNode[maxCount]].GetId();
 	NodesIDToInterpolate[CountNodes][1]=Element[SecondEdgeNode[maxCount]].GetId();
 	if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-	  NewDofs[CountNodes]=Element[SecondEdgeNode[maxCount]].GetDofs();
+		CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
 	}else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-	  NewDofs[CountNodes]=Element[FirstEdgeNode[maxCount]].GetDofs();
+		CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
 	}else{
 	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 	}
@@ -621,9 +627,9 @@ private:
 		  NodesIDToInterpolate[nn][0]=Element[FirstEdgeNode[maxCount]].GetId();
 		  NodesIDToInterpolate[nn][1]=Element[SecondEdgeNode[maxCount]].GetId();
 		  if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-		    NewDofs[nn]=Element[SecondEdgeNode[maxCount]].GetDofs();
+			  CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
 		  }else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-		    NewDofs[nn]=Element[FirstEdgeNode[maxCount]].GetDofs();
+			  CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
 		  }else{
 		    std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 		  }
@@ -698,7 +704,7 @@ private:
 
  	for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
  	  {
- 	    Node<3>::DofType& rDof = *iii;
+ 	    Node<3>::DofType& rDof = **iii;
  	    Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
  	    // (p_new_dof)->FreeDof();
  	  }
