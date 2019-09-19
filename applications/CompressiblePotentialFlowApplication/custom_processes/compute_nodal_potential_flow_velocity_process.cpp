@@ -18,7 +18,6 @@
 
 /* Project includes */
 #include "utilities/variable_utils.h"
-#include "utilities/geometry_utilities.h"
 #include "compute_nodal_potential_flow_velocity_process.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
@@ -43,8 +42,6 @@ void ComputeNodalPotentialFlowVelocityProcess::Execute()
 
     // Current domain size
     const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-    const array_1d<double, 3> free_stream_velocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
 
     // Iterate over the elements
     #pragma omp parallel for firstprivate(N)
