@@ -386,7 +386,7 @@ public:
         mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable, p_reaction);
     }
 
-    bool HasReaction()
+    bool HasReaction() const
     {
         return (mpNodalData->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex) != nullptr);
     }
@@ -522,31 +522,37 @@ private:
 
     void save(Serializer& rSerializer) const 
     {
-        rSerializer.save("Is Fixed", static_cast<bool>(mIsFixed));
-        rSerializer.save("Equation Id", static_cast<EquationIdType>(mEquationId));
-        rSerializer.save("Nodal Data", mpNodalData);
-        rSerializer.save("Variable Type", static_cast<int>(mVariableType));
-        rSerializer.save("Reaction Type", static_cast<int>(mReactionType));
+        rSerializer.save("IsFixed", static_cast<bool>(mIsFixed));
+        rSerializer.save("EquationId", static_cast<EquationIdType>(mEquationId));
+        rSerializer.save("NodalData", mpNodalData);
+        rSerializer.save("VariableType", static_cast<int>(mVariableType));
+        rSerializer.save("ReactionType", static_cast<int>(mReactionType));
+        rSerializer.save("Index", static_cast<int>(mIndex));
+
     }
 
     void load(Serializer& rSerializer) 
     {
         std::string name;
         bool is_fixed;
-        rSerializer.load("Is Fixed", is_fixed);
+        rSerializer.load("IsFixed", is_fixed);
         mIsFixed=is_fixed;
         EquationIdType equation_id;
-        rSerializer.load("Equation Id", equation_id);
+        rSerializer.load("EquationId", equation_id);
         mEquationId = equation_id;
-        rSerializer.load("Nodal Data", mpNodalData);
+        rSerializer.load("NodalData", mpNodalData);
 
         int variable_type;
         int reaction_type;
-        rSerializer.load("Variable Type", variable_type);
-        rSerializer.load("Reaction Type", reaction_type);
+        rSerializer.load("VariableType", variable_type);
+        rSerializer.load("ReactionType", reaction_type);
 
         mVariableType = variable_type;
         mReactionType = reaction_type;
+
+        int index;
+        rSerializer.load("Index", index);
+        mIndex = index;
     }
     ///@}
     ///@name Private Operations
