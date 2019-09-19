@@ -47,7 +47,7 @@ class ApplyPotentialFlowHessianRemeshingProcess(KratosMultiphysics.Process):
 
         if self.metric_parameters["hessian_strategy_parameters"].Has("non_historical_metric_variable"):
             if not self.metric_parameters["hessian_strategy_parameters"]["non_historical_metric_variable"].GetBool():
-               raise(Exception("Potential Flow remeshing process uses non historical"))
+               raise(Exception("Potential Flow remeshing process uses non historical velocity variable!"))
         else:
             self.metric_parameters["hessian_strategy_parameters"].AddEmptyValue("non_historical_metric_variable")
             self.metric_parameters["hessian_strategy_parameters"]["non_historical_metric_variable"].SetBool(True)
