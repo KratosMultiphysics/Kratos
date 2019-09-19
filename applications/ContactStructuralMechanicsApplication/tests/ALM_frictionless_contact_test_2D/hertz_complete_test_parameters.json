@@ -39,8 +39,6 @@
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
         },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_body_lower","Parts_body_upper"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part","DISPLACEMENT_bc_fix","LineLoad2D_bc_friction","LinePressure2D_bc_pressure","Parts_body_lower","Parts_body_upper"],
         "rotation_dofs"                      : false
     },
     "processes" : {
@@ -51,7 +49,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_bc_fix",
+                "model_part_name" : "Structure.DISPLACEMENT_bc_fix",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -64,7 +62,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "LinePressure2D_bc_pressure",
+                "model_part_name" : "Structure.LinePressure2D_bc_pressure",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,null,0.0]
@@ -85,7 +83,7 @@
             "process_name"          : "ApplyScalarOnConditionsProcess",
             "Parameters"            : {
                 "mesh_id"           : 0,
-                "model_part_name"   : "LinePressure2D_bc_pressure",
+                "model_part_name"   : "Structure.LinePressure2D_bc_pressure",
                 "variable_name"     : "LINE_LOAD",
                 "direction"         : [0.0, -1.0, 0.0],
                 "modulus"           : "5.0e-1*t/1.1"
@@ -114,7 +112,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictionless_contact_test_2D/hertz_complete_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 0.5
             }
         }
@@ -159,7 +157,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hertz_complete_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 0.5
         }
     }
