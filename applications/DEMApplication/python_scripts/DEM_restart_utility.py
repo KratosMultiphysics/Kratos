@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.restart_utility import RestartUtility
-
+from KratosMultiphysics import kratos_utilities
 # Other imports
 import os
 
@@ -55,6 +55,4 @@ class DEMRestartUtility(RestartUtility):
             self.raw_path, self.raw_file_name = os.path.split(name)
             self.raw_path = os.path.join(os.getcwd(), self.raw_path)
             super(DEMRestartUtility, self).LoadRestart()
-
-            import shutil
-            shutil.rmtree(self._RestartUtility__GetFolderPathLoad())
+            kratos_utilities.DeleteDirectoryIfExisting(self._RestartUtility__GetFolderPathLoad())

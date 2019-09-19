@@ -176,6 +176,7 @@ class ExplicitStrategy(object):
 
         self.SetContinuumType()
 
+    @classmethod
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
         restart_settings.RemoveValue("input_type")

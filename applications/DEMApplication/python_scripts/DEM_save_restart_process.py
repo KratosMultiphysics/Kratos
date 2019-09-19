@@ -3,9 +3,10 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.save_restart_process import SaveRestartProcess
 from KratosMultiphysics.DEMApplication import DEM_restart_utility
+import json
 
 def Factory(settings, Model):
-    if(type(settings) != Kratos.Parameters):
+    if not isinstance(settings, Kratos.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return DEMSaveRestartProcess(Model, settings["Parameters"])
 
@@ -33,8 +34,6 @@ class DEMSaveRestartProcess(SaveRestartProcess):
         self.remove_files = params["remove_restart_folder_after_reading"].GetBool()
         params.RemoveValue("help")
         params.RemoveValue("remove_restart_folder_after_reading")
-        model_parts = [model[mp.GetString()] for mp in params["model_part_names"]]
-        import json
         params_dict = json.loads(params.PrettyPrintJsonString())
         params_dict["input_filenames"] = [mp.GetString() for mp in params["model_part_names"]]
         params = Kratos.Parameters(json.dumps(params_dict))

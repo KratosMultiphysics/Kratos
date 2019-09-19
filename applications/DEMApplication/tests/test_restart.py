@@ -3,17 +3,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.DEMApplication import DEM_analysis_stage
 import os
 
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, the_type, value, traceback):
-        os.chdir(self.currentPath)
-
 # Defining a generic Test, that is not actually KratosUnittest
 class DEMRestartTestFactory():
 
@@ -28,7 +17,7 @@ class DEMRestartTestFactory():
     def test_execution(self):
         # Within this location context:
 
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+        with KratosUnittest.WorkFolderScope(os.path.dirname(os.path.realpath(__file__)),''):
             model_save = Kratos.Model()
             model_load = Kratos.Model()
             save_analysis = DEM_analysis_stage.DEMAnalysisStage(model_save, self.project_parameters_save)
