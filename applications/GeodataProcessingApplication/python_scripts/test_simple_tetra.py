@@ -37,7 +37,7 @@ def ComputeLimit(skin_model_part):
 
 
 start_time = time.time()
-num_test = "45_september_simple_tetra_DEBUG"
+num_test = "53_september_simple_tetra_DEBUG"
 print("\n\nTEST ", num_test, "\n\n")
 
 # we create a new folders for this test
@@ -51,8 +51,8 @@ if not os.path.exists("cfd_data/test_{}/gid_file/Ascii".format(num_test)):
 	os.mkdir("cfd_data/test_{}/gid_file/Ascii".format(num_test))
 if not os.path.exists("cfd_data/test_{}/stl_file".format(num_test)):
 	os.mkdir("cfd_data/test_{}/stl_file".format(num_test))
-# if not os.path.exists("cfd_data/test_{}/analysis_file".format(num_test)):
-# 	os.mkdir("cfd_data/test_{}/analysis_file".format(num_test))
+if not os.path.exists("cfd_data/test_{}/analysis_file".format(num_test)):
+	os.mkdir("cfd_data/test_{}/analysis_file".format(num_test))
 if not os.path.exists("cfd_data/test_{}/mdpa_file".format(num_test)):
 	os.mkdir("cfd_data/test_{}/mdpa_file".format(num_test))
 
@@ -203,9 +203,51 @@ building.SubtractBuildingMOD(0.1, 10.0, 0.1, "exponential", "ISOSURFACE", "true"
 building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/09_Box_buildings_subtracted_3_1".format(num_test), "GiD_PostAscii")
 building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/09_Box_buildings_subtracted_3_1".format(num_test), "GiD_PostBinary")
 
+stop_01 = time.time()
 # we delete the condition if at least one node it is not in main model part
 main_model_part = building.GetGeoModelPart()
 KratosGeo.CleaningUtilities(main_model_part).CleanConditions()
+stop_02 = time.time()
+print("CleanConditions done in {} s".format(stop_02-stop_01))
+
+# we set the geo model part to save the GiD file and mdpa file
+building.SetGeoModelPart(main_model_part)
+
+# we write the GiD file
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/10_Box_buildings_after_CleanConditions".format(num_test), "GiD_PostAscii")
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/10_Box_buildings_after_CleanConditions".format(num_test), "GiD_PostBinary")
+# writing file mdpa
+mdpa_out_name = "cfd_data/test_{}/mdpa_file/10_Box_buildings_after_CleanConditions".format(num_test)
+building.WriteMdpaOutput(mdpa_out_name)
+print("*************************************************************************")
+
+# we set the main_model_part to run CleanConditionsAngles
+main_model_part = building.GetGeoModelPart()
+
+stop_03 = time.time()
+# we delete the condition in the angles
+KratosGeo.CleaningUtilities(main_model_part).CleanConditionsAngles()
+stop_04 = time.time()
+print("CleanConditionsAngles done in {} s".format(stop_04-stop_03))
+
+# we set the geo model part to save the GiD file and mdpa file
+building.SetGeoModelPart(main_model_part)
+
+# we write the GiD file
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/11_Box_buildings_after_CleanConditionsAngles".format(num_test), "GiD_PostAscii")
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/11_Box_buildings_after_CleanConditionsAngles".format(num_test), "GiD_PostBinary")
+# writing file mdpa
+mdpa_out_name = "cfd_data/test_{}/mdpa_file/11_Box_buildings_after_CleanConditionsAngles".format(num_test)
+building.WriteMdpaOutput(mdpa_out_name)
+
+
+# copy ProjectParameters.json file from example to fill with information about this case
+from shutil import copyfile
+src_path = "data/parameters/ProjectParameters.json"
+dest_path = "cfd_data/test_{}/analysis_file".format(num_test)
+copyfile(src_path, dest_path)
+
+# fill json file with current information
 
 
 # #
@@ -232,13 +274,6 @@ KratosGeo.CleaningUtilities(main_model_part).CleanConditions()
 
 # print("\n*** ModelPart ***\n", building.GetGeoModelPart())
 # #
-
-
-building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/10_Box_buildings_subtracted_3_2".format(num_test), "GiD_PostAscii")
-building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/10_Box_buildings_subtracted_3_2".format(num_test), "GiD_PostBinary")
-# writing file mdpa
-mdpa_out_name = "cfd_data/test_{}/mdpa_file/10_Box_buildings_subtracted_3_after_CleanConditions".format(num_test)
-building.WriteMdpaOutput(mdpa_out_name)
 
 
 
