@@ -52,6 +52,7 @@ class SearchBaseProcess(KM.Process):
             "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "search_property_ids"         : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
             "interval"                    : [0.0,"End"],
+            "zero_tolerance_factor"       : 1.0,
             "integration_order"           : 2,
             "search_parameters" : {
                 "type_search"                         : "in_radius_with_obb",
@@ -73,6 +74,7 @@ class SearchBaseProcess(KM.Process):
                     "bounding_box_factor"             : 0.1,
                     "debug_obb"                       : false,
                     "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "build_from_bounding_box"         : true,
                     "lower_bounding_box_coefficient"  : 0.0,
                     "higher_bounding_box_coefficient" : 1.0
                 }
@@ -387,6 +389,7 @@ class SearchBaseProcess(KM.Process):
 
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
+        process_info[CSMA.ZERO_TOLERANCE_FACTOR] = self.settings["zero_tolerance_factor"].GetDouble()
         process_info[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["search_parameters"]["active_check_factor"].GetDouble()
 
     def _initialize_search_values(self):
