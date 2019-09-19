@@ -31,7 +31,6 @@
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
 
-#include "external_includes/epetra_default_setter.h"
 #include "external_includes/aztec_solver.h"
 #include "external_includes/amesos_solver.h"
 #include "external_includes/ml_solver.h"
@@ -64,11 +63,6 @@ void  AddLinearSolvers(pybind11::module& m)
     py::class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer > (m,"TrilinosLinearSolver")
         .def(py::init<>())
         .def("Solve", Solve);
-
-    py::class_<EpetraDefaultSetter>(m,"EpetraDefaultSetter")
-        .def( py::init<>())
-        .def("SetDefaults", &EpetraDefaultSetter::SetDefaults)
-        ;
 
     typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
     py::class_<AztecSolverType, typename AztecSolverType::Pointer, TrilinosLinearSolverType >
