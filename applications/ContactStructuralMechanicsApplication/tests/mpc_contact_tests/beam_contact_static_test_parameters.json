@@ -12,7 +12,6 @@
         "domain_size"                        : 3,
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
-        "time_integration_method"            : "implicit",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "mpc_contact_tests/beam_contact_static_test"
