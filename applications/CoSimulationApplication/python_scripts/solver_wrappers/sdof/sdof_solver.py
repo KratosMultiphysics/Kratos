@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
+from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 # Other imports
@@ -26,11 +27,11 @@ class SDoFSolver(object):
                 "system_parameters":{
                     "mass"      : 100.0,
                     "stiffness" : 4000.0,
-                    "damping"   : 6000.0
+                    "damping"   : 0.0
                 },
                 "time_integration_parameters":{
-                    "alpha_m"   : -0.5,
-                    "alpha_f"   : -0.5,
+                    "alpha_m"   : -0.3,
+                    "alpha_f"   : 0.0,
                     "start_time": 0.0,
                     "time_step" : 0.05
                 },
@@ -40,12 +41,19 @@ class SDoFSolver(object):
                     "acceleration"  : 0.0
                 },
                 "boundary_conditions":{
-                    "external_load" : 0.0
+                    "load_impulse" : 0.0,
+                    "omega_force"        : 0.0,
+                    "omega_root_point_displacement"        : 0.0,
+                    "excitation_function_force": "A * sin(omega * t)",
+                    "excitation_function_root_point_displacement": "A * sin(omega * t)",
+                    "amplitude_root_point_displacement": 0.0,
+                    "amplitude_force": 0.0
                 },
                 "solver_parameters": {
-                    "buffer_size"   : 3
+                    "buffer_size"   : 2
                 },
                 "output_parameters":{
+                    "write_output_file": True,
                     "file_name" : "sdof_solver/results_sdof.dat"
                 }}
 
@@ -63,83 +71,145 @@ class SDoFSolver(object):
         self.initial_displacement = parameters["initial_values"]["displacement"]
         self.initial_velocity = parameters["initial_values"]["velocity"]
 
-        self.force = parameters["boundary_conditions"]["external_load"]
+        self.excitation_function_force = parameters["boundary_conditions"]["excitation_function_force"]
+        self.excitation_function_root_point_displacement = parameters["boundary_conditions"]["excitation_function_root_point_displacement"]
+        self.load_impulse = parameters["boundary_conditions"]["load_impulse"]
+        self.omega_force = parameters["boundary_conditions"]["omega_force"]
+        self.omega_root_point_displacmenent = parameters["boundary_conditions"]["omega_root_point_displacement"]
+        self.amplitude_root_point_displacement = parameters["boundary_conditions"]["amplitude_root_point_displacement"]
+        self.amplitude_force = parameters["boundary_conditions"]["amplitude_force"]
+
+
 
         #calculate initial acceleration
-        factor = self.force - self.stiffness * self.initial_displacement
+        factor = self.load_impulse - self.stiffness * self.initial_displacement
         self.initial_acceleration = (1/self.mass) * factor
 
-        beta = 0.25 * (1- self.alpha_m + self.alpha_f)**2
-        gamma =  0.50 - self.alpha_m + self.alpha_f
+        self.beta = 0.25 * (1- self.alpha_m + self.alpha_f)**2
+        self.gamma =  0.50 - self.alpha_m + self.alpha_f
 
-        self.LHS = np.array([[1.0, 0.0, -self.delta_t**2 * beta],
-                              [0.0, 1.0, -self.delta_t * gamma],
-                              [(1-self.alpha_f)*self.stiffness,
+        self.LHS = np.array([[1.0, 0.0, -self.delta_t**2 * self.beta],
+                             [0.0, 1.0, -self.delta_t * self.gamma],
+                             [(1-self.alpha_f)*self.stiffness,
                                (1-self.alpha_f) * self.damping,
                                (1-self.alpha_m) * self.mass]])
 
-        self.RHS_matrix = np.array([[1.0, self.delta_t, self.delta_t**2 * (0.5 - beta)],
-                                     [0.0, 1.0, self.delta_t*(1-gamma)],
-                                     [-self.alpha_f * self.stiffness,
+        self.RHS_matrix = np.array([[1.0, self.delta_t, self.delta_t**2 * (0.5 - self.beta)],
+                                    [0.0, 1.0, self.delta_t*(1-self.gamma)],
+                                    [-self.alpha_f * self.stiffness,
                                       -self.alpha_f * self.damping,
                                       -self.alpha_m * self.mass]])
 
         self.buffer_size = parameters["solver_parameters"]["buffer_size"]
-
         self.output_file_name = parameters["output_parameters"]["file_name"]
+        self.write_output_file = parameters["output_parameters"]["write_output_file"]
+
 
 
     def Initialize(self):
+        #solution buffer
         self.x = np.zeros((3, self.buffer_size))
+        #values at the root point buffer
+        self.x_f = np.zeros((3, self.buffer_size))
 
         initial_values = np.array([self.initial_displacement,
                                    self.initial_velocity,
                                    self.initial_acceleration])
         self.dx = initial_values
+        self.dx_f = np.zeros(3)
+        self.time = self.start_time
 
         #x and dx contain: [displacement, velocity, acceleration]
-
-        if os.path.isfile(self.output_file_name):
-            os.remove(self.output_file_name)
+        if self.write_output_file:
+            if os.path.isfile(self.output_file_name):
+                os.remove(self.output_file_name)
+            self.InitializeOutput()
 
         #apply external load as an initial impulse
         self.load_vector = np.array([0,
                                      0,
-                                     self.force])
+                                     self.load_impulse])
 
-        self.time = self.start_time
+
+    def InitializeOutput(self):
+        with open(self.output_file_name, "w") as results_sdof:
+            results_sdof.write("time"+ " " +
+                               "displacement" + " " +
+                               "velocity" + " " +
+                               "acceleration" + " " +
+                               "root point displacement" + " " +
+                               "root point velocity" + " " +
+                               "root point acceleration" + " " +
+                               "relative displacement" + " " +
+                               "relative velocity" + " " +
+                               "relative accleration" +"\n")
+        self.OutputSolutionStep()
 
     def OutputSolutionStep(self):
-        with open(self.output_file_name, "a") as results_sdof:
-            #outputs displacements
-            results_sdof.write(str(self.time) + "\t" + str(self.dx[0]) + "\n")
+        if self.write_output_file:
+            with open(self.output_file_name, "a") as results_sdof:
+                #outputs results
+                results_sdof.write(str(np.around(self.time, 3)) + " " +
+                                str(self.dx[0]) + " " +
+                                str(self.dx[1]) + " " +
+                                str(self.dx[2]) + " " +
+                                str(self.dx_f[0]) + " " +
+                                str(self.dx_f[1]) + " " +
+                                str(self.dx_f[2]) + " " +
+                                str(self.dx[0] - self.dx_f[0]) + " " +
+                                str(self.dx[1] - self.dx_f[1]) + " " +
+                                str(self.dx[2] - self.dx_f[2]) + "\n")
+        else:
+            pass
 
     def AdvanceInTime(self, current_time):
         # similar to the Kratos CloneTimeStep function
         # advances values along the buffer axis (so rolling columns) using numpy's roll
         self.x = np.roll(self.x,1,axis=1)
+        self.x_f = np.roll(self.x_f,1,axis=1)
         # overwriting at the buffer_idx=0 the newest values
-        #buffer_idx = 0
-        #self.x[:,buffer_idx] = self.dx
-        self.x[:,0] = self.dx
+        buffer_idx = 0
+        self.x[:,buffer_idx] = self.dx
+        self.x_f[:,buffer_idx] = self.dx_f
 
         self.time = current_time + self.delta_t
         return self.time
 
-    def SolveSolutionStep(self):
-        ## PMT: ToDo: check with Andreas what this intends to do
-        #b = self.RHS_matrix @ self.x[:,0]
-        b = np.dot(self.RHS_matrix,self.x[:,0])
+    def CalculateEquivalentForceFromRootPointExcitation(self, d_f):
+        #d_f = self.root_point_displacement
+        v_f = self.x_f[1,0] + self.delta_t * (self.gamma * d_f + (1-self.gamma) * self.x_f[2,0])
+        a_f = 1/(self.delta_t**2 * self.beta) * (d_f - self.x_f[0,1])\
+            - 1/(self.delta_t * self.beta) * self.x_f[1,0]\
+            + (1-1/(2*self.beta)) * self.x_f[2,0]
+        self.dx_f = np.array([d_f, v_f, a_f])
+        b_f = np.array([0.0, 0.0, d_f * self.stiffness + v_f * self.damping])
+        return b_f
 
-        #external load only for testing
+    def ApplyRootPointExcitation(self):
+        scope_vars = {'t' : self.time, 'omega': self.omega_root_point_displacmenent, 'A': self.amplitude_root_point_displacement}
+        return GenericCallFunction(self.excitation_function_root_point_displacement, scope_vars, check=False)
+
+    def ApplyForceExcitation(self):
+        scope_vars = {'t' : self.time, 'omega': self.omega_force, 'A': self.amplitude_force}
+        return GenericCallFunction(self.excitation_function_force, scope_vars, check=False)
+
+    def SolveSolutionStep(self):
+        b = self.RHS_matrix @ self.x[:,0]
+        #external load
+        excitation_load = self.ApplyForceExcitation()
+        self.load_vector[-1] += excitation_load
         b += self.load_vector
+        #root point displacement
+        d_f_excitation = self.ApplyRootPointExcitation()
+        d_f = d_f_excitation + self.root_point_displacement
+        b_f = self.CalculateEquivalentForceFromRootPointExcitation(d_f)
+        b += b_f
         self.dx = np.linalg.solve(self.LHS, b)
 
-    def GetBufferSize(self):
-        return self.buffer_size
-
-    def GetDeltaTime(self):
-        return self.delta_t
+    def CalculateReaction(self, buffer_idx=0):
+        reaction = self.damping * (self.x[1,buffer_idx] - self.x_f[1,buffer_idx]) \
+                 + self.stiffness * (self.x[0,buffer_idx] - self.x_f[0,buffer_idx])
+        return reaction
 
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
         if identifier == "DISPLACEMENT":
@@ -148,6 +218,8 @@ class SDoFSolver(object):
             return self.x[:,buffer_idx][1]
         elif identifier == "ACCELERATION":
             return self.x[:,buffer_idx][2]
+        elif identifier == "REACTION":
+            return self.CalculateReaction()
         else:
             raise Exception("Identifier is unknown!")
 
@@ -158,27 +230,10 @@ class SDoFSolver(object):
             self.x[:,buffer_idx][1] = value
         elif identifier == "ACCELERATION":
             self.x[:,buffer_idx][2] = value
-        else:
-            raise Exception("Identifier is unknown!")
-
-    def SetData(self, identifier, data):
-        if identifier == "LOAD":
-            # last index is the external force
-            self.load_vector[-1] = data
-        elif identifier == "DISPLACEMENT":
-            # first index is displacement
-            # maybe use buffer index
-            self.SetSolutionStepValue("DISPLACEMENT", data, 0)
-        else:
-            raise Exception("Identifier is unknown!")
-
-    def GetData(self, identifier):
-        if identifier == "LOAD":
-            # last index is the external force
-            return self.load_vector[-1]
-        elif identifier == "DISPLACEMENT":
-            # first index is displacement
-            return self.GetSolutionStepValue("DISPLACEMENT", 0)
+        elif identifier == "LOAD":
+            self.load_vector[-1] = value
+        elif identifier == "ROOT_POINT_DISPLACEMENT":
+            self.root_point_displacement = value
         else:
             raise Exception("Identifier is unknown!")
 
