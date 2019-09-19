@@ -30,7 +30,6 @@
 #include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
 #include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
-#include "custom_utilities/trilinos_solver_utilities.h"
 
 // External includes
 #include "../FSIApplication/custom_utilities/aitken_convergence_accelerator.hpp"
