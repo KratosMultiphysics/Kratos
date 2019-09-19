@@ -39,8 +39,10 @@ void TransferNodalForcesToFem::Execute()
         auto& r_geometry = it_cond->GetGeometry();
         const int id_node = r_geometry[0].Id();
 
-        if (mrModelPart.GetNode(id_node).GetValue(IS_DEM)) {
-            const array_1d<double,3>& dem_forces = mrDEMModelPart.GetNode(id_node).GetSolutionStepValue(TOTAL_FORCES);
+        auto& r_node = mrModelPart.GetNode(id_node);
+        if (r_node.GetValue(IS_DEM)) {
+            auto spheric_particle_associated = r_node.GetValue(DEM_PARTICLE_POINTER);
+            const array_1d<double, 3>& dem_forces = (spheric_particle_associated->GetGeometry()[0]).GetSolutionStepValue(TOTAL_FORCES);
             it_cond->SetValue(FORCE_LOAD, dem_forces);
         }
     }

@@ -42,13 +42,13 @@ void GenerateDemProcess::Execute()
         bool is_active = true;
         if (it_elem->IsDefined(ACTIVE))
             is_active = it_elem->Is(ACTIVE);
-        bool dem_generated = it_elem->GetValue(DEM_GENERATED);
+        const bool dem_generated = it_elem->GetValue(DEM_GENERATED);
 
         if (!is_active && !dem_generated) {
             auto p_DEM_properties = mrDEMModelPart.pGetProperties(1);
-			auto& r_node0 = r_geom[0];
-			auto& r_node1 = r_geom[1];
-			auto& r_node2 = r_geom[2];
+			const auto& r_node0 = r_geom[0];
+			const auto& r_node1 = r_geom[1];
+			const auto& r_node2 = r_geom[2];
             const double dist01 = this->CalculateDistanceBetweenNodes(r_node0, r_node1);
             const double dist02 = this->CalculateDistanceBetweenNodes(r_node0, r_node2);
             const double dist12 = this->CalculateDistanceBetweenNodes(r_node1, r_node2);
@@ -111,9 +111,10 @@ void GenerateDemProcess::CreateDEMParticle(
     NodeType& rNode
 )
 {
-    mParticleCreator.CreateSphericParticle(mrDEMModelPart, Id, Coordinates, pProperties, Radius, "SphericParticle3D");
+    auto SphericParticle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, "SphericParticle3D");
     rNode.SetValue(IS_DEM, true);
     rNode.SetValue(RADIUS, Radius);
+    rNode.SetValue(DEM_PARTICLE_POINTER, SphericParticle);
 }
 
 
