@@ -51,10 +51,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, const double, const bool>())
         ;
 
-    py::class_<ApplyFarFieldProcess, ApplyFarFieldProcess::Pointer, Process >
-        (m, "ApplyFarFieldProcess")
-        .def(py::init<ModelPart&, const double, const bool>())
-        ;
+    py::class_<ComputeNodalPotentialFlowVelocityProcess, ComputeNodalPotentialFlowVelocityProcess::Pointer, Process>
+        (m,"ComputeNodalPotentialFlowVelocityProcess")
+        .def(py::init<ModelPart&>())
+    ;
 }
 
 }  // namespace Python.
