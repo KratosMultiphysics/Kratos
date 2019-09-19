@@ -21,8 +21,14 @@ class MainCouplingPfemFemDem_Solution:
     def __init__(self, Model, PFEMparameters):
         # Initialize solutions of the FEMDEM and PFEM
         self.FEMDEM_Solution = MainCouplingFemDem.MainCoupledFemDem_Solution(Model)
-        self.PFEM_Solution = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, PFEMparameters)
-        # self.ImposeIdenticalTimeStepInApplications()
+        self.FEMDEM_Solution.Initialize()
+        self.PFEM_Solution   = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, self.FEMDEM_Solution.FEM_Solution.main_model_part, PFEMparameters)
+        KratosPrintInfo("   ___                  _          _            _ _   _         ___  ___  __        ")
+        KratosPrintInfo("  / __\___  _   _ _ __ | | ___  __| | __      _(_) |_| |__     / _ \/ __\/__\/\/\   ")
+        KratosPrintInfo(" / /  / _ \| | | | '_ \| |/ _ \/ _` | \ \ /\ / / | __| '_ \   / /_)/ _\ /_\ /    \  ")
+        KratosPrintInfo("/ /__| (_) | |_| | |_) | |  __/ (_| |  \ V  V /| | |_| | | | / ___/ /  //__/ /\/\ \ ")
+        KratosPrintInfo("\____/\___/ \__,_| .__/|_|\___|\__,_|   \_/\_/ |_|\__|_| |_| \/   \/   \__/\/    \/ ")
+        KratosPrintInfo("")
 
 #============================================================================================================================
     def Run(self):
@@ -32,13 +38,7 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def Initialize(self):
-        self.FEMDEM_Solution.Initialize()
-        KratosPrintInfo("   ___                  _          _            _ _   _         ___  ___  __        ")
-        KratosPrintInfo("  / __\___  _   _ _ __ | | ___  __| | __      _(_) |_| |__     / _ \/ __\/__\/\/\   ")
-        KratosPrintInfo(" / /  / _ \| | | | '_ \| |/ _ \/ _` | \ \ /\ / / | __| '_ \   / /_)/ _\ /_\ /    \  ")
-        KratosPrintInfo("/ /__| (_) | |_| | |_) | |  __/ (_| |  \ V  V /| | |_| | | | / ___/ /  //__/ /\/\ \ ")
-        KratosPrintInfo("\____/\___/ \__,_| .__/|_|\___|\__,_|   \_/\_/ |_|\__|_| |_| \/   \/   \__/\/    \/ ")
-        KratosPrintInfo("")
+        # Now we storage the FEM modelpart in the PFEM_Solution
         self.PFEM_Solution.Initialize()
 
         # We copy the output params in the PFEM
@@ -98,19 +98,6 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def InitializeSolutionStep(self):
-        # self.ComputeSkinFEMDEMGeometry()
-        # for node in self.FEMDEM_Solution.FEM_Solution.main_model_part.GetSubModelPart("SkinDEMModelPart").Nodes:
-        #     PFEM_node = self.PFEM_Solution.main_model_part.GetNode(node.Id)
-        #     PFEM_node.Set(KM.RIGID, True)
-            # print("    ",node.Id)
-
-
-
-
-        # for node in self.PFEM_Solution.main_model_part.Nodes:
-        #     if node.Is(KM.RIGID):
-        #         print(node.Id)
-        # Wait()
         self.UpdateDeltaTimeInSolutions()
         self.PFEM_Solution.time = self.PFEM_Solution._GetSolver().AdvanceInTime(self.PFEM_Solution.time)
         self.PFEM_Solution.InitializeSolutionStep()

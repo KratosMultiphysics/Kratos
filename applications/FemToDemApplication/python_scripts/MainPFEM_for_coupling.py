@@ -4,6 +4,7 @@ import KratosMultiphysics
 import time as timer
 import KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_dynamics_analysis as PfemFluidDynamicsAnalysis
 import os
+from importlib import import_module
 
 def Wait():
     input("Alejandro -> Press Something")
@@ -15,7 +16,7 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
     """
 #============================================================================================================================
 #============================================================================================================================
-    def __init__(self, model, parameters):
+    def __init__(self, model, FEM_model_part, parameters):
         """
         The constructor of the MainPFEM_for_coupling_solution-Object.
         Keyword arguments:
@@ -28,6 +29,8 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         problem_name = parameters["problem_data"]["problem_name"].GetString()
         parameters["problem_data"]["problem_name"].SetString("PFEM" + problem_name)
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("PFEM" + problem_name)
+
+        self.FEM_model_part = FEM_model_part
 
         super(MainPFEM_for_coupling_solution, self).__init__(model, parameters)
 
@@ -50,5 +53,11 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
             return (KratosMultiphysics.Process())
 
 #============================================================================================================================
-    def Initialize(self):
-        
+    def _CreateSolver(self):
+        """Create the solver
+        """
+        python_module_name = "KratosMultiphysics.FemToDemApplication"
+        full_module_name = python_module_name + "." + "pfem_fluid_solver_for_coupling"
+        solver_module = import_module(full_module_name)
+        solver = solver_module.CreateSolver(self.model, self.FEM_model_part, self.project_parameters["solver_settings"])
+        return solver
