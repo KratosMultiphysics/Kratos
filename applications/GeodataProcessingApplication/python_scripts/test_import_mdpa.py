@@ -16,7 +16,7 @@ import time
 import os
 
 start_time = time.time()
-num_test = "37_september_import_mdpa"
+num_test = "54_september_import_mdpa"
 print("\n\nTEST ", num_test, "\n\n")
 
 # we create a new folders for this test
@@ -50,17 +50,11 @@ importer._InitializeModelPart("test_model")
 terrain_model_part = importer.ModelPart
 # model_part_in = "data/mdpa_file/05_Box_buildings_subtracted_1"
 # model_part_in = "data/mdpa_file/09_Box_buildings_subtracted_3_before_CleanConditions"
-model_part_in = "data/mdpa_file/domain_10_sept_2019_2/10_Box_buildings_mod"
+model_part_in = "data/mdpa_file/check/11_Box_buildings_after_CleanConditionsAngles"
 KratosMultiphysics.ModelPartIO(model_part_in).ReadModelPart(terrain_model_part)
 
 
 print(terrain_model_part)
-
-# we delete a Condition
-cond_Id = 7689
-cond = terrain_model_part.GetCondition(cond_Id)
-cond.Set(KratosMultiphysics.TO_ERASE, True)
-terrain_model_part.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
 
 
 # sub_model_name = "SKIN_ISOSURFACE"
@@ -96,10 +90,10 @@ terrain_model_part.RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
 
 
 mesher.SetGeoModelPart(terrain_model_part)
-mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/10_Box_buildings_subtracted_3_after_CleanConditions".format(num_test), "GiD_PostAscii")
-mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/10_Box_buildings_subtracted_3_after_CleanConditions".format(num_test), "GiD_PostBinary")
+mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/11_Box_buildings_after_CleanConditionsAngles".format(num_test), "GiD_PostAscii")
+mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/11_Box_buildings_after_CleanConditionsAngles".format(num_test), "GiD_PostBinary")
 # writing file mdpa
-mdpa_out_name = "cfd_data/test_{}/mdpa_file/10_Box_buildings_subtracted_3_after_CleanConditions".format(num_test)
+mdpa_out_name = "cfd_data/test_{}/mdpa_file/11_Box_buildings_after_CleanConditionsAngles".format(num_test)
 mesher.WriteMdpaOutput(mdpa_out_name)
 
 
