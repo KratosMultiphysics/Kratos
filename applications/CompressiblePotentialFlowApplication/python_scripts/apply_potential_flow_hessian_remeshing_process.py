@@ -64,7 +64,7 @@ class ApplyPotentialFlowHessianRemeshingProcess(KratosMultiphysics.Process):
 
     def __ComputeNodalVelocity(self):
 
-        nodal_velocity_process = KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeNonNodalPotentialFlowVelocityProcess(self.main_model_part, KratosMultiphysics.VELOCITY, KratosMultiphysics.NODAL_AREA)
+        nodal_velocity_process = KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeNodalPotentialFlowVelocityProcess(self.main_model_part)
         nodal_velocity_process.Execute()
 
     def __ComputeHessianMetric(self):
