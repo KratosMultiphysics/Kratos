@@ -53,7 +53,7 @@ def CreateSolver(model, custom_settings):
         raise Exception("Parallelism is neither OpenMP nor MPI")
 
     if solver_settings.Has("mpc_contact_settings"): # this is a mpc contact problem
-        solver_module_name = "mpc_contact_" + solver_module_name
+        solver_module_name = "mpc_" + solver_module_name
 
     module_full = 'KratosMultiphysics.ContactStructuralMechanicsApplication.' + solver_module_name
     solver = import_module(module_full).CreateSolver(model, solver_settings)
