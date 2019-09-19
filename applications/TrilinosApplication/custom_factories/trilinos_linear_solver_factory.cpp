@@ -17,15 +17,15 @@
 // // Linear solvers
 #include "trilinos_linear_solver_factory.h"
 
-#ifdef TRILINOS_ENABLE_AZTEC_SOLVER
+#ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER
 #include "external_includes/aztec_solver.h"
 #endif
 
-#ifdef TRILINOS_ENABLE_AMESOS_SOLVER
+#ifndef TRILINOS_EXCLUDE_AMESOS_SOLVER
 #include "external_includes/amesos_solver.h"
 #endif
 
-#ifdef TRILINOS_ENABLE_ML_SOLVER
+#ifndef TRILINOS_EXCLUDE_ML_SOLVER
 #include "external_includes/ml_solver.h"
 #endif
 
@@ -39,7 +39,7 @@ void RegisterTrilinosLinearSolvers()
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 
-#ifdef TRILINOS_ENABLE_AZTEC_SOLVER
+#ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER
     typedef AztecSolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > AztecSolverType;
     static auto AztecSolverFactory = TrilinosLinearSolverFactory<
@@ -52,7 +52,7 @@ void RegisterTrilinosLinearSolvers()
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("gmres",    AztecSolverFactory);
 #endif
 
-#ifdef TRILINOS_ENABLE_AMESOS_SOLVER
+#ifndef TRILINOS_EXCLUDE_AMESOS_SOLVER
     typedef AmesosSolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > AmesosSolverType;
     static auto AmesosSolverFactory = TrilinosLinearSolverFactory<
@@ -65,7 +65,7 @@ void RegisterTrilinosLinearSolvers()
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("mumps",         AmesosSolverFactory);
 #endif
 
-#ifdef TRILINOS_ENABLE_ML_SOLVER
+#ifndef TRILINOS_EXCLUDE_ML_SOLVER
     typedef MultiLevelSolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > MLSolverType;
     static auto MultiLevelSolverFactory = TrilinosLinearSolverFactory<

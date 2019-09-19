@@ -33,15 +33,15 @@
 
 #include "external_includes/epetra_default_setter.h"
 
-#ifdef TRILINOS_ENABLE_AZTEC_SOLVER
+#ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER
 #include "external_includes/aztec_solver.h"
 #endif
 
-#ifdef TRILINOS_ENABLE_AMESOS_SOLVER
+#ifndef TRILINOS_EXCLUDE_AMESOS_SOLVER
 #include "external_includes/amesos_solver.h"
 #endif
 
-#ifdef TRILINOS_ENABLE_ML_SOLVER
+#ifndef TRILINOS_EXCLUDE_ML_SOLVER
 #include "external_includes/ml_solver.h"
 #endif
 
@@ -79,7 +79,7 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("SetDefaults", &EpetraDefaultSetter::SetDefaults)
         ;
 
-#ifdef TRILINOS_ENABLE_AZTEC_SOLVER
+#ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER
     typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
     py::class_<AztecSolverType, typename AztecSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AztecSolver")
@@ -96,7 +96,7 @@ void  AddLinearSolvers(pybind11::module& m)
         ;
 #endif
 
-#ifdef TRILINOS_ENABLE_AMESOS_SOLVER
+#ifndef TRILINOS_EXCLUDE_AMESOS_SOLVER
     typedef AmesosSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmesosSolverType;
     py::class_<AmesosSolverType, typename AmesosSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmesosSolver").def( py::init<const std::string&, Teuchos::ParameterList& >())
@@ -107,7 +107,7 @@ void  AddLinearSolvers(pybind11::module& m)
         ;
 #endif
 
-#ifdef TRILINOS_ENABLE_ML_SOLVER
+#ifndef TRILINOS_EXCLUDE_ML_SOLVER
     typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;
     py::class_<MLSolverType, typename MLSolverType::Pointer, TrilinosLinearSolverType >
     (m,"MultiLevelSolver").def( py::init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
