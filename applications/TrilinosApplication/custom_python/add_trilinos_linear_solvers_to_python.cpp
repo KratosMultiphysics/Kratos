@@ -95,6 +95,7 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("SetScalingType", &MLSolverType::SetScalingType)
         .def("SetReformPrecAtEachStep", &MLSolverType::SetReformPrecAtEachStep)
         .def("__str__", PrintObject<MLSolverType>)
+        .def_static("SetDefaults", &MLSolverType::SetDefaults)
         ;
 
     typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
