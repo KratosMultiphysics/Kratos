@@ -69,7 +69,7 @@ namespace Kratos
  * @tparam TNumNodesMaster The number of nodes of the master
  */
 template< const SizeType TDim, const SizeType TNumNodes,const SizeType TNumNodesMaster = TNumNodes>
-class KRATOS_API(MPC_CONTACT_APPLICATION) MPCMortarContactCondition
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) MPCMortarContactCondition
     : public PairedCondition
 {
 public:

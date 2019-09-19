@@ -49,7 +49,7 @@ namespace Kratos
  * @details This constraint is based on LinearMasterSlaveConstraint. It adds additional consideration related with contact
  * @author Vicente Mataix Ferrandiz
  */
-class ContactMasterSlaveConstraint
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ContactMasterSlaveConstraint
     :  public LinearMasterSlaveConstraint
 {
 public:

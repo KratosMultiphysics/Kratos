@@ -48,7 +48,7 @@ namespace Kratos
  * @brief This process is a wrapper forMPCContactSearchProcess
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(MPC_CONTACT_APPLICATION) MPCContactSearchWrapperProcess
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) MPCContactSearchWrapperProcess
     : public Process
 {
 public:
