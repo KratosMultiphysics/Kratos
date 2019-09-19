@@ -122,7 +122,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     auto mod_trilinos_solver_utils = m.def_submodule("TrilinosSolverUtilities");
     mod_trilinos_solver_utils.def("SetTeuchosParameters", &TrilinosSolverUtilities::SetTeuchosParameters );
-    mod_trilinos_solver_utils.def("SetEpetraDefaults", &TrilinosSolverUtilities::SetEpetraDefaults );
 
     typedef SolverSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSettingsType;
     typedef void (BaseSettingsType::*BuildTurbModelType)(BaseSettingsType::TurbulenceModelLabel const&, TrilinosLinearSolverType::Pointer, const double, const unsigned int);

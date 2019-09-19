@@ -25,8 +25,6 @@ namespace TrilinosSolverUtilities {
 
 void SetTeuchosParameters(const Parameters rSettings, Teuchos::ParameterList& rParameterlist);
 
-void SetEpetraDefaults(Teuchos::ParameterList& rParameterlist, const std::string& rSettingsName);
-
 }  // namespace TrilinosSolverUtilities.
 }  // namespace Kratos.
 

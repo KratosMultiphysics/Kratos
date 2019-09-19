@@ -43,11 +43,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    EpetraDefaultSetter()
-    {
-        KRATOS_WARNING("DEPRECATION") << "\"EpetraDefaultSetter\" is deprecated, please use \"TrilinosSolverUtilities::SetEpetraDefaults\"" << std::endl;
-    }
-
     /// Copy constructor.
     EpetraDefaultSetter(EpetraDefaultSetter const& rOther) = delete;
 
