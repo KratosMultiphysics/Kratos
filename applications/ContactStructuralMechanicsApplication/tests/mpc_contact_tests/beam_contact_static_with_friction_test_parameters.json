@@ -62,7 +62,7 @@
         }],
         "contact_process_list"     : [{
             "python_module" : "mpc_contact_process",
-            "kratos_module" : "MPCContactApplication",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
             "process_name"  : "MPCContactProcess",
             "Parameters"    : {
                 "model_part_name"     : "Structure",

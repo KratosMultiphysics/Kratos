@@ -78,7 +78,7 @@
         "contact_process_list" :[
         {
             "python_module" : "mpc_contact_process",
-            "kratos_module" : "MPCContactApplication",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
             "help"          : "This process computes the contact between different surfaces",
             "process_name"  : "MPCContactProcess",
             "Parameters"            : {
