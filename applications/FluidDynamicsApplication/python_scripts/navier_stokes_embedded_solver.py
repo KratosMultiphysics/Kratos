@@ -373,7 +373,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
         # Set the distance modification process
         self.__GetDistanceModificationProcess().ExecuteInitialize()
-        self.__GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+        self.__GetDistanceModificationProcess().ExecuteBeforeSolutionLoop()
 
         # For the primitive Ausas formulation, set the find nodal neighbours process
         # Recall that the Ausas condition requires the nodal neighbours.
