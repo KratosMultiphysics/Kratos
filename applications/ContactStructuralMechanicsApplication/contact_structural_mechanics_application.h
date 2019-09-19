@@ -38,6 +38,10 @@
 #include "custom_conditions/penalty_frictional_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_axisym_condition.h"
 #include "custom_conditions/penalty_frictional_mortar_contact_axisym_condition.h"
+#include "custom_conditions/mpc_mortar_contact_condition.h"
+
+/* CONSTRAINTS */
+#include "custom_master_slave_constraints/contact_master_slave_constraint.h"
 
 namespace Kratos
 {
@@ -287,6 +291,16 @@ private:
     const PenaltyMethodFrictionalMortarContactCondition<3, 3, true,  4> mPenaltyNVFrictionalMortarContactCondition3D3N4N;
     const PenaltyMethodFrictionalMortarContactCondition<3, 4, false, 3> mPenaltyFrictionalMortarContactCondition3D4N3N;
     const PenaltyMethodFrictionalMortarContactCondition<3, 4, true,  3> mPenaltyNVFrictionalMortarContactCondition3D4N3N;
+
+    // MPC Conditions
+    const MPCMortarContactCondition<2, 2> mMPCMortarContactCondition2D2N;
+    const MPCMortarContactCondition<3, 3, 3> mMPCMortarContactCondition3D3N;
+    const MPCMortarContactCondition<3, 4, 4> mMPCMortarContactCondition3D4N;
+    const MPCMortarContactCondition<3, 3, 4> mMPCMortarContactCondition3D3N4N;
+    const MPCMortarContactCondition<3, 4, 3> mMPCMortarContactCondition3D4N3N;
+
+    /// Constraints
+    const ContactMasterSlaveConstraint mContactMasterSlaveConstraint;
 
     ///@}
     ///@name Private Operators

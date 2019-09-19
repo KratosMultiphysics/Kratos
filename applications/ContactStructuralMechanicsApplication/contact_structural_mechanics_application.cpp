@@ -108,7 +108,16 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     mPenaltyFrictionalMortarContactCondition3D3N4N( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
     mPenaltyNVFrictionalMortarContactCondition3D3N4N( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
     mPenaltyFrictionalMortarContactCondition3D4N3N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
-    mPenaltyNVFrictionalMortarContactCondition3D4N3N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3))))
+    mPenaltyNVFrictionalMortarContactCondition3D4N3N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
+    // 2D MPC
+    mMPCMortarContactCondition2D2N( 0, GeometryPointerType(new LineType(PointsArrayType(2))), nullptr, GeometryPointerType(new LineType(PointsArrayType(2)))),
+    // 3D MPC
+    mMPCMortarContactCondition3D3N( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
+    mMPCMortarContactCondition3D4N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
+    mMPCMortarContactCondition3D3N4N( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
+    mMPCMortarContactCondition3D4N3N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
+    // Master-Slave Constraint
+    mContactMasterSlaveConstraint()
     {}
 
 void KratosContactStructuralMechanicsApplication::Register()
@@ -237,6 +246,15 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionalMortarContactCondition3D3N4N", mPenaltyNVFrictionalMortarContactCondition3D3N4N );
     KRATOS_REGISTER_CONDITION( "PenaltyFrictionalMortarContactCondition3D4N3N", mPenaltyFrictionalMortarContactCondition3D4N3N );
     KRATOS_REGISTER_CONDITION( "PenaltyNVFrictionalMortarContactCondition3D4N3N", mPenaltyNVFrictionalMortarContactCondition3D4N3N );
+    // MPC conditions
+    KRATOS_REGISTER_CONDITION( "MPCMortarContactCondition2D2N", mMPCMortarContactCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "MPCMortarContactCondition3D3N", mMPCMortarContactCondition3D3N );
+    KRATOS_REGISTER_CONDITION( "MPCMortarContactCondition3D4N", mMPCMortarContactCondition3D4N );
+    KRATOS_REGISTER_CONDITION( "MPCMortarContactCondition3D3N4N", mMPCMortarContactCondition3D3N4N );
+    KRATOS_REGISTER_CONDITION( "MPCMortarContactCondition3D4N3N", mMPCMortarContactCondition3D4N3N );
+
+    // Register constraints
+    KRATOS_REGISTER_CONSTRAINT("ContactMasterSlaveConstraint",mContactMasterSlaveConstraint);
 }
 
 }  // namespace Kratos.
