@@ -16,7 +16,6 @@ from geo_building import GeoBuilding
 # we read the JSON file for the CFD analysis
 input_string = open("data/parameters/test/ProjectParameters.json",'r').read()
 settings = KratosMultiphysics.Parameters(input_string)
-print(settings.PrettyPrintJsonString()); input()
 print("01")
 
 # we set "problem_name"
@@ -28,13 +27,14 @@ print("02")
 
 # we set "output_name"
 problem_name = "ABC"
-settings["output_processes"]["gid_output"]["Parameters"].AddEmptyValue("output_name")
-settings["output_processes"]["gid_output"]["Parameters"]["output_name"].SetString(problem_name)
+gid_output = settings["output_processes"]["gid_output"]		# gid_output is an array with only one element (where there all the entries are)
+gid_output[0]["Parameters"].AddEmptyValue("output_name")
+gid_output[0]["Parameters"]["output_name"].SetString(problem_name)
 
 print("03")
 
 # we set "model_import_settings"
-input_filename = "10_Box_buildings_subtracted_3_after_CleanConditions"
+input_filename = "CUSTOM_NAME"
 settings["solver_settings"]["model_import_settings"].AddEmptyValue("input_filename")
 settings["solver_settings"]["model_import_settings"]["input_filename"].SetString(input_filename)
 
@@ -44,15 +44,67 @@ print("04")
 volume_name = "Parts_Fluid"
 settings["solver_settings"].AddEmptyValue("volume_model_part_name")
 settings["solver_settings"]["volume_model_part_name"].SetString(volume_name)
-# # we set "skin_parts"
-# skin_name = ["Inlet", "Outlet", "BottomModelPart", "TopModelPart", "SKIN_ISOSURFACE"]
-# settings["solver_settings"].AddEmptyValue("skin_parts")
-# settings["solver_settings"]["skin_parts"].SetString(skin_name)
 
 print("05")
 
-# we set sub mdoel part name
-sub_model_inlet = "FluidModelPart.Inlet"
-settings["processes"]["boundary_conditions_process_list"]["Parameters"].AddEmptyValue("model_part_name")
-settings["processes"]["boundary_conditions_process_list"]["Parameters"]["model_part_name"].SetString(sub_model_inlet)
+# we set "skin_parts"
+skin_name_custom = ["Inlet", "Outlet", "BottomModelPart", "TopModelPart", "SKIN_ISOSURFACE"]
+settings["solver_settings"].RemoveValue("skin_parts")	# to avoid duplicates
+settings["solver_settings"].AddEmptyArray("skin_parts")
 
+for i in range(len(skin_name_custom)):
+	settings["solver_settings"]["skin_parts"].Append(skin_name_custom[i])
+
+print("06")
+
+
+# we set "boundary_conditions_process_list" array
+inlet_name = "INLET"
+settings["processes"].RemoveValue("boundary_conditions_process_list")	# to avoid duplicates
+settings["processes"].AddEmptyArray("boundary_conditions_process_list")
+inlet_process_1 = KratosMultiphysics.Parameters("""
+				{
+					"python_module" : "apply_inlet_process",
+					"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+					"Parameters"    : {
+						"model_part_name" : "FluidModelPart.""" + str(inlet_name) + """",
+						"variable_name"   : "VELOCITY",
+						"modulus"         : 1.0,
+						"direction"       : "automatic_inwards_normal",
+						"interval"        : [0,1]
+					}
+				} """)
+settings["processes"]["boundary_conditions_process_list"].Append(inlet_process_1)
+
+inlet_process_2 = KratosMultiphysics.Parameters("""
+				{
+					"python_module" : "apply_inlet_process",
+					"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+					"Parameters"    : {
+						"model_part_name" : "FluidModelPart.""" + str(inlet_name) + """"",
+						"variable_name"   : "VELOCITY",
+						"modulus"         : 0.5,
+						"direction"       : "automatic_inwards_normal",
+						"interval"        : [1,"End"]
+					}
+				}
+			""")
+settings["processes"]["boundary_conditions_process_list"].Append(inlet_process_2)
+
+# # we set processes/boundary_conditions_process_list/Parameters/model_part_name (Inlet)
+# inlet_name = "AAAAAAAAA"
+# bc_list = settings["processes"]["boundary_conditions_process_list"]		# bc_list is an array with only one element (where there all the entries are)
+# bc_list[0]["Parameters"].AddEmptyValue("model_part_name")
+# bc_list[0]["Parameters"]["model_part_name"].SetString("FluidModelPart.{}".format(inlet_name))
+
+# bc_list[1]["Parameters"].AddEmptyValue("model_part_name")
+# bc_list[1]["Parameters"]["model_part_name"].SetString("FluidModelPart.{}".format(inlet_name))
+
+# outlet_name = "BBBBBBBB"
+# bc_list[2]["Parameters"].AddEmptyValue("model_part_name")
+# bc_list[2]["Parameters"]["model_part_name"].SetString("FluidModelPart.{}".format(outlet_name))
+
+# print(settings.PrettyPrintJsonString())
+f = open("data/parameters/test/ProjectParameters_MOD.json",'w')
+f.write(settings.PrettyPrintJsonString())
+f.close()
