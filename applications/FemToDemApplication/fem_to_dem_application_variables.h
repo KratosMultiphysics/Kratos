@@ -21,9 +21,11 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos
 {
+	KRATOS_DEFINE_VARIABLE(SphericParticle*, DEM_PARTICLE_POINTER)
 	KRATOS_DEFINE_VARIABLE(bool, VOLUME_COUNTED)
 	KRATOS_DEFINE_VARIABLE(bool, FRAGILE)
 	KRATOS_DEFINE_VARIABLE(double, COHESION)
