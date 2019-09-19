@@ -29,6 +29,7 @@ class FEM_for_coupling_Solution(MainFemDem.FEM_Solution):
 		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.EQUIVALENT_STRESS_VM)
 		self.main_model_part.AddNodalSolutionStepVariable(KratosFemDem.DISPLACEMENT_INCREMENT)
 		self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+		self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
 
 		
 		# Read model_part (note: the buffer_size is set here) (restart is read here)
