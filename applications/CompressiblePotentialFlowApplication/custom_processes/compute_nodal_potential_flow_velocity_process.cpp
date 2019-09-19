@@ -42,6 +42,7 @@ void ComputeNodalPotentialFlowVelocityProcess::Execute()
 
     // Current domain size
     const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    KRATOS_ERROR_IF(dimension != 2 && dimension !=3) << "Dimension has to be either 2 or 3! Current dimension: " << dimension << std::endl;
 
     // Iterate over the elements
     #pragma omp parallel for firstprivate(N)
