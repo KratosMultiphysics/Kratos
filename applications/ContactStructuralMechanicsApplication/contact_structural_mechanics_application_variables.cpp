@@ -22,6 +22,10 @@ typedef array_1d<double,3> Vector3;
 typedef Geometry<Node<3>> GeometryType;
 
 // VARIABLES
+// MPC Contact related variables
+KRATOS_CREATE_VARIABLE( MasterSlaveConstraint::Pointer, CONSTRAINT_POINTER )      // Pointer to the constraint of the condition
+KRATOS_CREATE_VARIABLE( double, REACTION_CHECK_STIFFNESS_FACTOR )                 // The reaction factor to be considered on the tension check
+
 /* Mortar method general variables */
 KRATOS_CREATE_VARIABLE( int , INNER_LOOP_ITERATION )                              // The number of loops in the simplified semi-smooth inner iteration
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                         // The integration order computed in the contact

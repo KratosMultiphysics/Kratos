@@ -21,6 +21,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/mapping_variables.h"
+#include "includes/master_slave_constraint.h"
 #include "custom_frictional_laws/frictional_law_with_derivative.h"
 
 namespace Kratos
@@ -55,6 +56,10 @@ namespace Kratos
 ///@{
 
 // VARIABLES
+// MPC Contact related variables
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, MasterSlaveConstraint::Pointer, CONSTRAINT_POINTER )     // Pointer to the constraint of the condition
+KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, double, REACTION_CHECK_STIFFNESS_FACTOR )                // The reaction factor to be considered on the tension check
+
 /* Mortar method */
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, int , INNER_LOOP_ITERATION )                             // The number of loops in the simplified semi-smooth inner iteration
 KRATOS_DEFINE_APPLICATION_VARIABLE( CONTACT_STRUCTURAL_MECHANICS_APPLICATION, int , INTEGRATION_ORDER_CONTACT )                        // The integration order computed in the contact

@@ -117,6 +117,10 @@ void KratosContactStructuralMechanicsApplication::Register()
     KratosApplication::Register();
 
     // VARIABLES
+    // MPC Contact related variables
+    KRATOS_REGISTER_VARIABLE( CONSTRAINT_POINTER )                                    // Pointer to the constraint of the condition
+    KRATOS_REGISTER_VARIABLE( REACTION_CHECK_STIFFNESS_FACTOR )                       // The reaction factor to be considered on the tension check
+
     /* Mortar method general variables */
     KRATOS_REGISTER_VARIABLE( INNER_LOOP_ITERATION )                                  // The number of loops in the simplified semi-smooth inner iteration
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                             // The integration order computed in the contact
