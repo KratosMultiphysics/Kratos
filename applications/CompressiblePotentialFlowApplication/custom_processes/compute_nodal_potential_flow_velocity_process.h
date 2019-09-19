@@ -7,12 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Marc Nunez, based on R.Rossi and V.Mataix work
+//
 //
 
-#if !defined(KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED )
-#define  KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED
+#if !defined(KRATOS_COMPUTE_NODAL_POTENTIAL_FLOW_VELOCITY_PROCESS_INCLUDED )
+#define  KRATOS_COMPUTE_NODAL_POTENTIAL_FLOW_VELOCITY_INCLUDED
 
 // System includes
 
@@ -32,9 +32,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -47,27 +44,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * @brief This struct is used in order to identify when using the hitorical and non historical variables
- */
-struct ComputeNodalPotentialFlowVelocityProcessSettings
-{
-    // Defining clearer options
-    constexpr static bool SaveAsHistoricalVariable = true;
-    constexpr static bool SaveAsNonHistoricalVariable = false;
-};
 
-/**
- * @class ComputeNodalPotentialFlowVelocityProcess
- * @ingroup KratosCore
- * @brief Compute Nodal Gradient process
- * @details This process computes the gradient of a certain variable stored in the nodes
- * @author Riccardo Rossi
- * @author Vicente Mataix Ferrandiz
- * @tparam THistorical If the variable is historical or not
-*/
-template<bool THistorical>
-class KRATOS_API(KRATOS_CORE) ComputeNodalPotentialFlowVelocityProcess
+class KRATOS_API(CompressiblePotentialFlowApplication) ComputeNodalPotentialFlowVelocityProcess
     : public Process
 {
 public:
@@ -83,9 +61,7 @@ public:
 
     /// Default constructor. (double)
     ComputeNodalPotentialFlowVelocityProcess(
-        ModelPart& rModelPart,
-        Variable<array_1d<double,3> >& rGradientVariable,
-        Variable<double>& rAreaVariable = NODAL_AREA
+        ModelPart& rModelPart
         );
 
     /// Destructor.
@@ -201,10 +177,6 @@ private:
     ///@{
 
     ModelPart& mrModelPart;                                      /// The main model part
-    std::vector<Variable<double>*> mrOriginVariableDoubleList;   /// The scalar variable list to compute
-    std::vector<ComponentType*> mrOriginVariableComponentsList;  /// The scalar variable list to compute (components)
-    Variable<array_1d<double,3> >& mrGradientVariable;           /// The resultant gradient variable
-    Variable<double>& mrAreaVariable;                            /// The auxiliar area variable
 
     ///@}
     ///@name Private Operators
@@ -271,20 +243,6 @@ private:
 ///@name Input and output
 ///@{
 
-/// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   ComputeNodalPotentialFlowVelocityProcess& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ComputeNodalPotentialFlowVelocityProcess& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
 ///@}
 
 }  // namespace Kratos.

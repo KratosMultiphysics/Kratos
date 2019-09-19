@@ -7,8 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Marc Nunez, based on R.Rossi and V.Mataix work
+//
 //
 //
 
@@ -21,12 +21,13 @@
 #include "utilities/geometry_utilities.h"
 #include "compute_nodal_potential_flow_velocity_process.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 
 namespace Kratos
 {
-template<bool THistorical>
-void ComputeNodalPotentialFlowVelocityProcess<THistorical>::Execute()
+
+void ComputeNodalPotentialFlowVelocityProcess::Execute()
 {
     KRATOS_TRY;
 
@@ -34,7 +35,7 @@ void ComputeNodalPotentialFlowVelocityProcess<THistorical>::Execute()
     ClearGradient();
 
     // Auxiliar containers
-    Matrix DN_DX, J0;
+    Matrix DN_DX;
     Vector N;
 
     // First element iterator
@@ -44,28 +45,19 @@ void ComputeNodalPotentialFlowVelocityProcess<THistorical>::Execute()
     const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
     const array_1d<double, 3> free_stream_velocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
-    const double free_stream_velocity_norm = inner_prod(free_stream_velocity, free_stream_velocity);
-
-
-
 
     // Iterate over the elements
-    #pragma omp parallel for firstprivate(DN_DX,  N, J0)
+    #pragma omp parallel for firstprivate(N)
     for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
         auto it_elem = it_element_begin + i_elem;
         auto& r_geometry = it_elem->GetGeometry();
 
         // Current geometry information
-        const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_geometry.PointsNumber();
 
         // Resize if needed
-        if (DN_DX.size1() != number_of_nodes || DN_DX.size2() != dimension)
-            DN_DX.resize(number_of_nodes, dimension);
         if (N.size() != number_of_nodes)
             N.resize(number_of_nodes);
-        if (J0.size1() != dimension || J0.size2() != local_space_dimension)
-            J0.resize(dimension, local_space_dimension);
 
         // The integration points
         const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
@@ -73,46 +65,29 @@ void ComputeNodalPotentialFlowVelocityProcess<THistorical>::Execute()
         const std::size_t number_of_integration_points = r_integration_points.size();
 
         Vector values(number_of_nodes);
-        if (it_elem->GetValue(WAKE)){
-            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node){
-                double distance = r_geometry[i_node].GetValue(WAKE_DISTANCE);
-                if (distance>0)
-                    values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-                else
-                    values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-            }
-        }else{
-            if (it_elem->GetValue(KUTTA)){
-                for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node){
-                    if (r_geometry[i_node].GetValue(TRAILING_EDGE))
-                        values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-                    else
-                        values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-                }
-            }else{
-                for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
-                    values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-            }
-        }
 
         // The containers of the shape functions and the local gradients
-        const Matrix& rNcontainer = r_geometry.ShapeFunctionsValues(r_integration_method);
-        const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(r_integration_method);
+        const Matrix& rNmatrix = r_geometry.ShapeFunctionsValues(r_integration_method);
 
-        for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+        for ( IndexType i_gauss = 0; i_gauss < number_of_integration_points; ++i_gauss ) {
             // Getting the shape functions
-            noalias(N) = row(rNcontainer, point_number);
+            noalias(N) = row(rNmatrix, i_gauss);
 
-            // Getting the jacobians and local gradients
-            GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], J0);
-            double detJ0;
-            Matrix InvJ0;
-            MathUtils<double>::GeneralizedInvertMatrix(J0, InvJ0, detJ0);
-            const Matrix& rDN_De = rDN_DeContainer[point_number];
-            GeometryUtils::ShapeFunctionsGradients(rDN_De, InvJ0, DN_DX);
+            Vector detJ0;
+            GeometryData::ShapeFunctionsGradientsType DN_DX;
+            r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DX, detJ0, r_integration_method);
 
-            const Vector grad = prod(trans(DN_DX), values);
-            const double gauss_point_volume = r_integration_points[point_number].Weight() * detJ0;
+            const auto r_element = *it_elem;
+            Vector velocity_vector(3);
+            if (dimension == 2) { // 2D
+                velocity_vector = PotentialFlowUtilities::ComputeVelocity<2, 3>(r_element);
+            } else if (dimension == 3) { // 3D
+                velocity_vector = PotentialFlowUtilities::ComputeVelocity<3, 4>(r_element);
+            }
+            const Vector grad = velocity_vector;
+
+
+            const double gauss_point_volume = r_integration_points[i_gauss].Weight() * detJ0[i_gauss];
 
             for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
                 array_1d<double, 3>& r_gradient = GetGradient(r_geometry, i_node);
@@ -121,7 +96,7 @@ void ComputeNodalPotentialFlowVelocityProcess<THistorical>::Execute()
                     r_gradient[k] += N[i_node] * gauss_point_volume*grad[k];
                 }
 
-                double& vol = r_geometry[i_node].GetValue(mrAreaVariable);
+                double& vol = r_geometry[i_node].GetValue(NODAL_AREA);
 
                 #pragma omp atomic
                 vol += N[i_node] * gauss_point_volume;
@@ -131,156 +106,57 @@ void ComputeNodalPotentialFlowVelocityProcess<THistorical>::Execute()
 
     PonderateGradient();
 
-    for(int i_node=0; i_node<static_cast<int>(mrModelPart.Nodes().size()); ++i_node) {
-        auto it_node=mrModelPart.NodesBegin()+i_node;
-        auto nodal_velocity = it_node->FastGetSolutionStepValue(mrGradientVariable);
-
-        double pressure_coefficient = (free_stream_velocity_norm - inner_prod(nodal_velocity, nodal_velocity)) /
-                free_stream_velocity_norm; // 0.5*(norm_2(free_stream_velocity) - norm_2(v));
-        it_node->GetValue(PRESSURE_COEFFICIENT) = pressure_coefficient;
-    }
-
-
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsHistoricalVariable>::ComputeNodalPotentialFlowVelocityProcess(
-    ModelPart& rModelPart,
-    Variable<array_1d<double,3> >& rGradientVariable,
-    Variable<double>& rAreaVariable)
-    :mrModelPart(rModelPart), mrGradientVariable(rGradientVariable), mrAreaVariable(rAreaVariable)
+ComputeNodalPotentialFlowVelocityProcess::ComputeNodalPotentialFlowVelocityProcess(
+    ModelPart& rModelPart)
+    :mrModelPart(rModelPart)
 {
     KRATOS_TRY
 
-    // We push the list of double variables
-
-    VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
     // In case the area or gradient variable is not initialized we initialize it
     auto& r_nodes = rModelPart.Nodes();
-    if (!r_nodes.begin()->Has( rAreaVariable )) {
-        VariableUtils().SetNonHistoricalVariable(rAreaVariable, 0.0, r_nodes);
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsNonHistoricalVariable>::ComputeNodalPotentialFlowVelocityProcess(
-    ModelPart& rModelPart,
-    Variable<array_1d<double,3> >& rGradientVariable,
-    Variable<double>& rAreaVariable)
-    :mrModelPart(rModelPart), mrGradientVariable(rGradientVariable), mrAreaVariable(rAreaVariable)
-{
-    KRATOS_TRY
-
-
-    // In case the area or gradient variable is not initialized we initialize it
-    auto& r_nodes = rModelPart.Nodes();
-    if (!r_nodes.begin()->Has( rGradientVariable )) {
+    if (!r_nodes.begin()->Has(VELOCITY)) {
         const array_1d<double,3> zero_vector = ZeroVector(3);
-        VariableUtils().SetNonHistoricalVariable(rGradientVariable, zero_vector, r_nodes);
+        VariableUtils().SetNonHistoricalVariable(VELOCITY, zero_vector, r_nodes);
     }
-    if (!r_nodes.begin()->Has( rAreaVariable )) {
-        VariableUtils().SetNonHistoricalVariable(rAreaVariable, 0.0, r_nodes);
+    if (!r_nodes.begin()->Has(NODAL_AREA)) {
+        VariableUtils().SetNonHistoricalVariable(NODAL_AREA, 0.0, r_nodes);
     }
 
     KRATOS_CATCH("")
 }
 
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsHistoricalVariable>::ClearGradient()
-{
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->SetValue(mrAreaVariable, 0.0);
-        it_node->FastGetSolutionStepValue(mrGradientVariable).clear();
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-void ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsNonHistoricalVariable>::ClearGradient()
+void ComputeNodalPotentialFlowVelocityProcess::ClearGradient()
 {
     const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->SetValue(mrAreaVariable, 0.0);
-        it_node->SetValue(mrGradientVariable, aux_zero_vector);
+        it_node->SetValue(NODAL_AREA, 0.0);
+        it_node->SetValue(VELOCITY, aux_zero_vector);
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-array_1d<double, 3>& ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsHistoricalVariable>::GetGradient(
+array_1d<double, 3>& ComputeNodalPotentialFlowVelocityProcess::GetGradient(
     Element::GeometryType& rThisGeometry,
     unsigned int i
     )
 {
-    array_1d<double, 3>& val = rThisGeometry[i].FastGetSolutionStepValue(mrGradientVariable);
+    array_1d<double, 3>& val = rThisGeometry[i].GetValue(VELOCITY);
     return val;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-array_1d<double, 3>& ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsNonHistoricalVariable>::GetGradient(
-    Element::GeometryType& rThisGeometry,
-    unsigned int i
-    )
-{
-    array_1d<double, 3>& val = rThisGeometry[i].GetValue(mrGradientVariable);
-    return val;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-void ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsHistoricalVariable>::PonderateGradient()
-{
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node = mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <>
-void ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsNonHistoricalVariable>::PonderateGradient()
+void ComputeNodalPotentialFlowVelocityProcess::PonderateGradient()
 {
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i)
     {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->GetValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
+        it_node->GetValue(VELOCITY) /= it_node->GetValue(NODAL_AREA);
     }
 }
-/***********************************************************************************/
-/***********************************************************************************/
-
-template class ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsHistoricalVariable>;
-template class ComputeNodalPotentialFlowVelocityProcess<ComputeNodalPotentialFlowVelocityProcessSettings::SaveAsNonHistoricalVariable>;
 
 } /* namespace Kratos.*/
