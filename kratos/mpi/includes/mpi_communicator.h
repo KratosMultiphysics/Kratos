@@ -272,7 +272,7 @@ template<> struct SendTools< Node<3>::DofsContainerType >
         unsigned int i = 0;
         for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
         {
-            *(pBuffer + i) = i_dof->EquationId();
+            *(pBuffer + i) = (*i_dof)->EquationId();
             ++i;
         }
     }
@@ -282,7 +282,7 @@ template<> struct SendTools< Node<3>::DofsContainerType >
         unsigned int i = 0;
         for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
         {
-            i_dof->SetEquationId(*(pBuffer + i));
+            (*i_dof)->SetEquationId(*(pBuffer + i));
             ++i;
         }
     }
