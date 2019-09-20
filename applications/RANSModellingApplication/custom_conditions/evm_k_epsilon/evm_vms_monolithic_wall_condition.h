@@ -283,13 +283,98 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void ApplyLogarithmicWallLaw(MatrixType& rLocalMatrix,
+                      VectorType& rLocalVector,
+		      ProcessInfo& rCurrentProcessInfo)
+    {
+        GeometryType& rGeometry = this->GetGeometry();
+        const size_t BlockSize = TDim + 1;
+        const double NodalFactor = 1.0 / double(TDim);
+
+        double area = NodalFactor * rGeometry.DomainSize();
+        // DomainSize() is the way to ask the geometry's length/area/volume (whatever is relevant for its dimension) without asking for the number of spatial dimensions first
+
+        for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+        {
+            const NodeType& rConstNode = rGeometry[itNode];
+            const double y = rConstNode.FastGetSolutionStepValue(DISTANCE); // wall distance to use in stress calculation
+            if( y > 0.0 && rConstNode.Is(SLIP) )
+            {
+                array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+                const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
+                Vel -= VelMesh;
+                const double Ikappa = 1.0/0.41; // inverse of Von Karman's kappa
+                const double B = 5.2;
+                const double limit_yplus = 10.9931899; // limit between linear and log regions
+
+                const double rho = rGeometry[itNode].FastGetSolutionStepValue(DENSITY);
+                const double nu = rGeometry[itNode].FastGetSolutionStepValue(VISCOSITY);
+
+                double wall_vel = 0.0;
+                for (size_t d = 0; d < TDim; d++)
+                {
+                    wall_vel += Vel[d]*Vel[d];
+                }
+                wall_vel = sqrt(wall_vel);
+
+                if (wall_vel > 1e-12) // do not bother if velocity is zero
+                {
+
+                    // linear region
+                    double utau = sqrt(wall_vel * nu / y);
+                    double yplus = y * utau / nu;
+
+                    // log region
+                    if (yplus > limit_yplus)
+                    {
+
+                        // wall_vel / utau = 1/kappa * log(yplus) + B
+                        // this requires solving a nonlinear problem:
+                        // f(utau) = utau*(1/kappa * log(y*utau/nu) + B) - wall_vel = 0
+                        // note that f'(utau) = 1/kappa * log(y*utau/nu) + B + 1/kappa
+
+                        unsigned int iter = 0;
+                        double dx = 1e10;
+                        const double tol = 1e-6;
+                        double uplus = Ikappa * log(yplus) + B;
+
+                        while(iter < 100 && fabs(dx) > tol * utau)
+                        {
+                            // Newton-Raphson iteration
+                            double f = utau * uplus - wall_vel;
+                            double df = uplus + Ikappa;
+                            dx = f/df;
+
+                            // Update variables
+                            utau -= dx;
+                            yplus = y * utau / nu;
+                            uplus = Ikappa * log(yplus) + B;
+                            ++iter;
+                        }
+                        if (iter == 100)
+                        {
+                            std::cout << "Warning: wall condition Newton-Raphson did not converge. Residual is " << dx << std::endl;
+                        }
+                    }
+                    const double Tmp = area * utau * utau * rho / wall_vel;
+                    for (size_t d = 0; d < TDim; d++)
+                    {
+                        size_t k = itNode*BlockSize+d;
+                        rLocalVector[k] -= Vel[d] * Tmp;
+                        rLocalMatrix(k,k) += Tmp;
+                    }
+                }
+            }
+        }
+    }
+
     void ApplyWallLaw(MatrixType& rLocalMatrix,
                       VectorType& rLocalVector,
                       ProcessInfo& rCurrentProcessInfo) override
     {
         if (!rCurrentProcessInfo[IS_CO_SOLVING_PROCESS_ACTIVE])
         {
-            BaseType::ApplyWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
+            this->ApplyLogarithmicWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
             return;
         }
 
