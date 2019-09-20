@@ -212,24 +212,41 @@ class AnalysisStage(object):
         """
         solver = self._GetSolver()
         processes = self._GetListOfProcesses()
+
+        reinitialize_requirement = self.GetReInitializeRequired()
+
+        # Clear solver
         solver.Clear()
 
-        self.ModifyInitialProperties()
-        self.ModifyInitialGeometry()
+        # Some initilizations
+        if reinitialize_requirement == "fully_reinitialize":
+            # Some initial calls
+            self.ModifyInitialProperties()
+            self.ModifyInitialGeometry()
 
-        # WE RECOMPUTE THE PROCESSES AGAIN
-        ## Processes initialization
-        for process in processes:
-            process.ExecuteInitialize()
+            # Processes initialization
+            for process in processes:
+                process.ExecuteInitialize()
 
-        # WE INITIALIZE THE SOLVER
-        solver.Initialize()
+            # WE INITIALIZE THE SOLVER
+            solver.Initialize()
 
-        # Call check
-        self.Check()
+            # Call check
+            self.Check()
 
-        # Modify after initialize
-        self.ModifyAfterSolverInitialize()
+            # Modify after initialize
+            self.ModifyAfterSolverInitialize()
+        elif reinitialize_requirement == "reinitilize_elements_and_conditions":
+            # Processes initialization
+            for process in processes:
+                process.ExecuteInitialize()
+
+            # Initilize elements and conditions
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                KratosMultiphysics.EntitiesUtilities.InitializeEntities(self.model.GetModelPart(model_part_name))
+        else:
+            raise Exception("The following option is not implemented for the ReInitializeSolver: " + reinitialize_requirement)
 
         ## Processes before the loop
         for process in processes:
@@ -238,6 +255,14 @@ class AnalysisStage(object):
         ## Processes of initialize the solution step
         for process in processes:
             process.ExecuteInitializeSolutionStep()
+
+    def GetReInitializeRequired(self):
+        """ This returns the initilization requirement. By default only elements and conditions are initialized
+
+            Keyword arguments:
+            self It signifies an instance of a class.
+        """
+        return "reinitilize_elements_and_conditions"
 
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
