@@ -100,7 +100,7 @@ void PairedCondition::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void PairedCondition::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void PairedCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
