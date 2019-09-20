@@ -5,7 +5,6 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-from kratos_utilities import CheckIfApplicationsAvailable
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
@@ -249,9 +248,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self._validate_settings_in_baseclass=True # To be removed eventually
         custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
 
         self.formulation = StabilizedFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
