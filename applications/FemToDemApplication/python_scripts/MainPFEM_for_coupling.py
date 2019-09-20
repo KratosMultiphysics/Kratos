@@ -61,3 +61,5 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         solver_module = import_module(full_module_name)
         solver = solver_module.CreateSolver(self.model, self.FEM_model_part, self.project_parameters["solver_settings"])
         return solver
+        
+#============================================================================================================================

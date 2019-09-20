@@ -17,5 +17,7 @@ class PfemFluidSolverForCoupling(pfem_fluid_solver.PfemFluidSolver):
 #============================================================================================================================
     def CheckAndPrepareModelProcess(self, params):
         # CheckAndPrepareModelProcess creates the fluid_computational model part
-        pfem_check_and_p
+        pfem_check_and_prepare_model_process_fluid_for_coupling.CheckAndPrepareModelProcessForCoupling(self.main_model_part,
+                                                                                                       self.FEM_model_part,
+                                                                                                       params).Execute()
 #============================================================================================================================
