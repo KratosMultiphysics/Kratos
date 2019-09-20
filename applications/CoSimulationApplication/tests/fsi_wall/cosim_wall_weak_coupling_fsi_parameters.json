@@ -59,7 +59,7 @@
             "fluid":
             {
                 "type" : "solver_wrappers.kratos.fluid_dynamics_wrapper",
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "input_file"  : "fsi_wall/ProjectParametersCFD"
                 },
                 "data" : {
@@ -72,18 +72,13 @@
                         "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "variable_name" : "REACTION",
                         "dimension" : 2
-                    },
-                    "velocity" : {
-                        "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
-                        "variable_name" : "VELOCITY",
-                        "dimension" : 2
                     }
                 }
             },
             "structure" :
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "input_file"  : "fsi_wall/ProjectParametersCSM"
                 },
                 "data" : {
@@ -95,11 +90,6 @@
                     "load" : {
                         "model_part_name" : "Structure.GENERIC_FSI_Interface",
                         "variable_name" : "POINT_LOAD",
-                        "dimension" : 2
-                    },
-                    "velocity" : {
-                        "model_part_name" : "Structure.GENERIC_FSI_Interface",
-                        "variable_name" : "VELOCITY",
                         "dimension" : 2
                     }
                 }

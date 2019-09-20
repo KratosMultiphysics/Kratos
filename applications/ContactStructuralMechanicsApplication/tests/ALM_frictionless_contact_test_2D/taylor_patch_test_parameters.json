@@ -38,16 +38,7 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_foundation","Parts_punch"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part",
-                                                "Parts_foundation",
-                                                "Parts_punch",
-                                                "DISPLACEMENT_fixed_support",
-                                                "DISPLACEMENT_rolling_support_y",
-                                                "DISPLACEMENT_rolling_support_x",
-                                                "LineLoad2D_line_load"
-                                                ]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -57,7 +48,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_fixed_support",
+                "model_part_name" : "Structure.DISPLACEMENT_fixed_support",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -69,7 +60,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_rolling_support_y",
+                "model_part_name" : "Structure.DISPLACEMENT_rolling_support_y",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -81,7 +72,7 @@
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_rolling_support_x",
+                "model_part_name" : "Structure.DISPLACEMENT_rolling_support_x",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,0.0,0.0]
@@ -95,7 +86,7 @@
             "process_name"          : "ApplyVectorOnConditionsProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "LineLoad2D_line_load",
+                "model_part_name" : "Structure.LineLoad2D_line_load",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : 10,
                 "direction"       : [0.0,-1.0,0.0]
@@ -123,7 +114,7 @@
             "Parameters"            : {
                 "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
                 "input_file_name"     : "ALM_frictionless_contact_test_2D/taylor_patch_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 1.0
             }
         }
@@ -168,7 +159,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/taylor_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 1.00
         }
     }

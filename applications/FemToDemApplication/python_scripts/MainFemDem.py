@@ -119,7 +119,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 				self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
 		
 		# Obtain the list of the processes to be applied
-		import process_handler
+		import KratosMultiphysics.SolidMechanicsApplication.process_handler
 
 		process_parameters = KratosMultiphysics.Parameters("{}") 
 		process_parameters.AddValue("echo_level", self.ProjectParameters["problem_data"]["echo_level"])
@@ -130,7 +130,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 		if( self.ProjectParameters.Has("output_process_list") ):
 			process_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
 
-		return (process_handler.ProcessHandler(self.Model, process_parameters))
+		return (KratosMultiphysics.SolidMechanicsApplication.process_handler.ProcessHandler(self.Model, process_parameters))
 
 #============================================================================================================================	
 	def Run(self):
