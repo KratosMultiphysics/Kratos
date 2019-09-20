@@ -28,6 +28,7 @@
 #include "geometries/geometry_data.h"
 #include "geometries/point.h"
 #include "containers/pointer_vector.h"
+#include "containers/data_value_container.h"
 
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
@@ -300,7 +301,8 @@ public:
     */
     Geometry( const Geometry& rOther )
         : mpGeometryData( rOther.mpGeometryData ),
-          mPoints( rOther.mPoints)
+          mPoints( rOther.mPoints),
+          mData(rOther.mData)
     {
     }
 
@@ -317,7 +319,9 @@ public:
     source geometry's points too.
     */
     template<class TOtherPointType> Geometry( Geometry<TOtherPointType> const & rOther )
-        : mpGeometryData(rOther.mpGeometryData)
+        : mpGeometryData(rOther.mpGeometryData),
+          mData(rOther.mData)
+
     {
         mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
@@ -353,6 +357,7 @@ public:
     {
         mpGeometryData = rOther.mpGeometryData;
         mPoints = rOther.mPoints;
+        mData = rOther.mData;
 
         return *this;
     }
@@ -514,6 +519,67 @@ public:
     virtual const PointPointerContainerType& GetContainer() const
     {
         return mPoints.GetContainer();
+    }
+
+    ///@}
+    ///@name Data Container
+    ///@{
+
+    /**
+     * Access Data:
+     */
+    DataValueContainer& GetData()
+    {
+      return mData;
+    }
+
+    DataValueContainer const& GetData() const
+    {
+      return mData;
+    }
+
+    void SetData(DataValueContainer const& rThisData)
+    {
+      mData = rThisData;
+    }
+
+    /**
+     * Check if the Data exists with Has(..) methods:
+     */
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    template<class TAdaptorType> bool Has(
+        const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    /**
+     * Set Data with SetValue and the Variable to set:
+     */
+    template<class TVariableType> void SetValue(
+        const TVariableType& rThisVariable,
+        typename TVariableType::Type const& rValue)
+    {
+        mData.SetValue(rThisVariable, rValue);
+    }
+
+    /**
+     * Get Data with GetValue and the Variable to get:
+     */
+    template<class TVariableType> typename TVariableType::Type& GetValue(
+        const TVariableType& rThisVariable)
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
+    template<class TVariableType> typename TVariableType::Type const& GetValue(
+        const TVariableType& rThisVariable) const
+    {
+        return mData.GetValue(rThisVariable);
     }
 
     ///@}
@@ -2957,6 +3023,9 @@ private:
     static const GeometryDimension msGeometryDimension;
 
     PointsArrayType mPoints;
+
+    DataValueContainer mData;
+
   
     ///@}
     ///@name Serialization
@@ -2967,12 +3036,14 @@ private:
     virtual void save( Serializer& rSerializer ) const
     {
         rSerializer.save( "Points", mPoints);
+        rSerializer.save("Data", mData);
     }
 
     virtual void load( Serializer& rSerializer )
     {
         rSerializer.load( "Points", mPoints );
-    }
+        rSerializer.load("Data", mData);
+   }
 
 
     ///@}
