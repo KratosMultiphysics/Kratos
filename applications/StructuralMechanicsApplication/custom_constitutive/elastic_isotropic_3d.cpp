@@ -171,38 +171,6 @@ void ElasticIsotropic3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Paramet
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool ElasticIsotropic3D::Has(const Variable<bool>& rThisVariable)
-{
-    if (rThisVariable == REQUIRES_MATERIAL_INITIALIZATION) {
-        return true;
-    } else if (rThisVariable == REQUIRES_MATERIAL_FINALIZATION) {
-        return true;
-    } else {
-        return BaseType::Has(rThisVariable);
-    }
-
-    return false;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool& ElasticIsotropic3D::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
-{
-    if (rThisVariable == REQUIRES_MATERIAL_INITIALIZATION) {
-        rValue = false;
-    } else if (rThisVariable == REQUIRES_MATERIAL_FINALIZATION) {
-        rValue = false;
-    } else {
-        return BaseType::GetValue(rThisVariable, rValue);
-    }
-
-    return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     // Small deformation so we can call the Cauchy method

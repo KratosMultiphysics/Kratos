@@ -240,19 +240,20 @@ public:
     void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (boolean)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
      */
-    bool Has(const Variable<bool>& rThisVariable) override;
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
 
     /**
-     * @brief Returns the value of a specified variable (boolean)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
      */
-    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return false;
+    }
 
     /**
      * @brief It calculates the value of a specified variable (double case)
