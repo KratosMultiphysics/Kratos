@@ -7,8 +7,9 @@ import os
 class DEMRestartTestFactory():
 
     def setUp(self, case_name=""):
-        with open('restart_files/' + case_name + 'ProjectParametersDEM.json', 'r') as parameter_file:
-            self.project_parameters_save = Kratos.Parameters(parameter_file.read())
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            with open('restart_files/' + case_name + 'ProjectParametersDEM.json', 'r') as parameter_file:
+                self.project_parameters_save = Kratos.Parameters(parameter_file.read())
 
         # Now clone the settings after the common settings are set
         self.project_parameters_load = self.project_parameters_save.Clone()
@@ -17,7 +18,7 @@ class DEMRestartTestFactory():
     def test_execution(self):
         # Within this location context:
 
-        with KratosUnittest.WorkFolderScope(os.path.dirname(os.path.realpath(__file__)),''):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             model_save = Kratos.Model()
             model_load = Kratos.Model()
             save_analysis = DEM_analysis_stage.DEMAnalysisStage(model_save, self.project_parameters_save)
