@@ -7,7 +7,11 @@ from KratosMultiphysics.json_output_process import JsonOutputProcess
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
+import os
 import math
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class BFECCConvectionTest(UnitTest.TestCase):
     def setUp(self):
@@ -118,7 +122,7 @@ class BFECCConvectionTest(UnitTest.TestCase):
                         "model_part_name": "MainModelPart",
                         "time_frequency": 0.0
                 }''')
-                json_output_settings["output_file_name"].SetString(self.reference_file + "_results.json")
+                json_output_settings["output_file_name"].SetString(GetFilePath("BFECCConvectionTest/" + self.reference_file + "_results.json"))
                 json_output_process = JsonOutputProcess(self.model, json_output_settings)
                 json_output_process.ExecuteInitialize()
                 json_output_process.ExecuteBeforeSolutionLoop()
@@ -130,7 +134,7 @@ class BFECCConvectionTest(UnitTest.TestCase):
                     "model_part_name"      : "MainModelPart",
                     "time_frequency"       : 0.0
                 }''')
-                json_check_parameters["input_file_name"].SetString(self.reference_file + "_results.json")
+                json_check_parameters["input_file_name"].SetString(GetFilePath("BFECCConvectionTest/" + self.reference_file + "_results.json"))
                 json_check_process = FromJsonCheckResultProcess(self.model, json_check_parameters)
                 json_check_process.ExecuteInitialize()
                 json_check_process.ExecuteBeforeSolutionLoop()
