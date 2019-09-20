@@ -782,7 +782,7 @@ public:
         const IndexType distance = it_end - it_begin;
         if(Position < distance) {
             it = it_begin + Position;
-            if( (it)->GetVariable() == rDofVariable) {
+            if( (*it)->GetVariable() == rDofVariable) {
                 return **it;
             }
         }
@@ -1152,7 +1152,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        NodalData* p_nodal_data = &mNodalData; 
+        NodalData* p_nodal_data = &mNodalData;
         rSerializer.load("NodalData", p_nodal_data);
         rSerializer.load("Data", mData);
         rSerializer.load("Initial Position", mInitialPosition);
