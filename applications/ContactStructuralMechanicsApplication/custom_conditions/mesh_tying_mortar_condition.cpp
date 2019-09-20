@@ -100,9 +100,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 
     // The master geometry
     GeometryType& r_master_geometry = this->GetPairedGeometry();
-    GeometryType::CoordinatesArrayType aux_coords;
-    r_master_geometry.PointLocalCoordinates(aux_coords, r_master_geometry.Center());
-    const array_1d<double, 3>& r_normal_master = r_master_geometry.UnitNormal(aux_coords);
+    const array_1d<double, 3>& r_normal_master = this->GetPairedNormal();
+
     // Initialize general variables for the current master element
     rVariables.Initialize();
 
@@ -178,7 +177,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 {
     KRATOS_TRY;
 
-    // NOTE: Add things if necessary
+    BaseType::InitializeSolutionStep(rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
 }
@@ -191,7 +190,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 {
     KRATOS_TRY;
 
-    // NOTE: Add things if necessary
+    BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
 }
@@ -204,7 +203,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Finalize
 {
     KRATOS_TRY;
 
-    // NOTE: Add things if necessary
+    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
 }
@@ -217,7 +216,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Finalize
 {
     KRATOS_TRY;
 
-    // TODO: Add things if necessary
+    BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
 }
