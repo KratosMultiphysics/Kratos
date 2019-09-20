@@ -35,7 +35,6 @@
 #include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
-#include "custom_strategies/schemes/trilinos_residualbased_simple_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
@@ -44,6 +43,7 @@
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
+#include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_simple_steady_scheme.h"
 
 // Response function
 #include "response_functions/adjoint_response_function.h"
@@ -156,7 +156,7 @@ void  AddSchemes(pybind11::module& m)
         .def(py::init<double,double,unsigned int >())
         .def(py::init<double,unsigned int, const Variable<int>&>())
         ;
-    typedef TrilinosResidualBasedSimpleSteadyScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedSimpleSteadyScheme;
+    typedef ResidualBasedSimpleSteadyScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedSimpleSteadyScheme;
     py::class_ < TrilinosResidualBasedSimpleSteadyScheme, typename TrilinosResidualBasedSimpleSteadyScheme::Pointer,TrilinosBaseSchemeType >
         (m,"TrilinosResidualBasedSimpleSteadyScheme")
         .def(py::init<double, double, unsigned int, Process::Pointer >())
