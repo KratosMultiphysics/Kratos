@@ -179,6 +179,86 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy (Constit
 /***********************************************************************************/
 /***********************************************************************************/
 
+void HyperElasticIsotropicNeoHookean3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK1(rValues);
+//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rValues);
+//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy(rValues);
+//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff(rValues);
+//     rValues.Reset(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK1(rValues);
+//     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rValues);
+//     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy(rValues);
+//     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+//     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff(rValues);
+//     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 double& HyperElasticIsotropicNeoHookean3D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
