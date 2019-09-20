@@ -135,18 +135,15 @@ public:
                 for (typename DofsArrayType::iterator itDof = DofBegin;
                      itDof != DofEnd; ++itDof)
                 {
-                    if (itDof->IsFree())
+                    if (itDof->IsFree() && itDof->GetSolutionStepValue(PARTITION_INDEX) == my_pid)
                     {
                         DofId = itDof->EquationId();
                         DofValue = itDof->GetSolutionStepValue(0);
                         DofIncr = TSparseSpace::GetValue(Dx, DofId);
 
-                        if (itDof->GetSolutionStepValue(PARTITION_INDEX) == my_pid)
-                        {
-                            solution_norm += DofValue * DofValue;
-                            increase_norm += DofIncr * DofIncr;
-                            dof_num += 1;
-                        }
+                        solution_norm += DofValue * DofValue;
+                        increase_norm += DofIncr * DofIncr;
+                        dof_num += 1;
                     }
                 }
             }
