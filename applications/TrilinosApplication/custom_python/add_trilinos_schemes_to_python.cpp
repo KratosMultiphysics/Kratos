@@ -33,8 +33,6 @@
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
-#include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
@@ -75,7 +73,6 @@ void  AddSchemes(pybind11::module& m)
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
-    typedef ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedIncrementalUpdateStaticSchemeType;
 
 //********************************************************************
     //********************************************************************
@@ -116,14 +113,6 @@ void  AddSchemes(pybind11::module& m)
            );
 
     py::class_ <
-        TrilinosResidualBasedNewmarkScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosResidualBasedNewmarkScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >
-           (
-               m,"TrilinosResidualBasedNewmarkScheme").def(py::init<double >()
-           );
-
-    py::class_ <
         ResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType > (m,"TrilinosResidualBasedBossakDisplacementScheme")
@@ -161,13 +150,6 @@ void  AddSchemes(pybind11::module& m)
         typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >(m,"TrilinosResidualBasedPredictorCorrectorBDFScheme")
         .def(py::init<unsigned int, Kratos::Flags& >() );
-
-    py::class_ <
-        TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosResidualBasedIncrementalUpdateStaticSchemeType >
-        (m,"TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme")
-        .def(py::init< >());
 
     typedef GearScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> GearSchemeBaseType;
 
