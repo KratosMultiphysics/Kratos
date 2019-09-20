@@ -204,7 +204,6 @@ protected:
     void ApplyConstraints(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType &rA,
-        TSystemVectorType &rDx,
         TSystemVectorType &rb,
         ModelPart &rModelPart) override
     {
