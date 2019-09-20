@@ -36,18 +36,15 @@
 #include "utilities/mortar_utilities.h"
 #include "utilities/read_materials_utility.h"
 #include "includes/global_pointer_variables.h"
-
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/divide_elem_utils.h"
 #include "utilities/timer.h"
-
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "utilities/embedded_skin_utility.h"
 #include "utilities/geometry_tester.h"
 #include "utilities/cutting_utility.h"
-
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/interval_utility.h"
 #include "utilities/table_stream_utility.h"
@@ -60,6 +57,8 @@
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/time_discretization.h"
 #include "utilities/geometrical_transformation_utilities.h"
+#include "utilities/entities_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -1041,6 +1040,18 @@ void AddUtilitiesToPython(pybind11::module &m)
     auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
     mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
     mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
+
+    // ConstraintUtilities
+    auto constraint_utilities = m.def_submodule("ConstraintUtilities");
+    constraint_utilities.def("ResetSlaveDofs", &ConstraintUtilities::ResetSlaveDofs );
+    constraint_utilities.def("ApplyConstraints", &ConstraintUtilities::ApplyConstraints );
+
+    // EntitiesUtilities
+    auto entities_utilities = m.def_submodule("EntitiesUtilities");
+    entities_utilities.def("InitializeEntities", &EntitiesUtilities::InitializeEntities );
+    entities_utilities.def("InitializeConditions", &EntitiesUtilities::InitializeConditions );
+    entities_utilities.def("InitializeElements", &EntitiesUtilities::InitializeElements );
+    entities_utilities.def("InitializeMasterSlaveConstraints", &EntitiesUtilities::InitializeMasterSlaveConstraints );
 }
 
 } // namespace Python.

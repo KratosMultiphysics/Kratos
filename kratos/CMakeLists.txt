@@ -89,6 +89,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_redistribution_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/auxiliar_model_part_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/time_discretization.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/entities_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/constraint_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/sensitivity_builder.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/mortar_utilities.cpp;
