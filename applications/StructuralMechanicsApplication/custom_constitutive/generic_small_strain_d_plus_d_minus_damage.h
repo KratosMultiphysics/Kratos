@@ -6,8 +6,8 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo 
-//  
+//  Main authors:    Alejandro Cornejo
+//
 //
 
 #if !defined(KRATOS_GENERIC_SMALL_STRAIN_D_PLUS_D_MINUS_DAMAGE_H_INCLUDED)
@@ -32,7 +32,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -50,7 +50,7 @@ namespace Kratos
  * @brief This class is the base class which define all the constitutive laws for damage in small deformation
  * @details This class considers a constitutive law integrator as an intermediate utility to compute the damage
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
- * @author Alejandro Cornejo 
+ * @author Alejandro Cornejo
  */
 template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainDplusDminusDamage
@@ -65,7 +65,7 @@ public:
 
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorTensionType::VoigtSize;
-    
+
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
@@ -74,10 +74,10 @@ public:
 
     /// The node definition
     typedef Node<3> NodeType;
-    
+
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
-    
+
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -170,8 +170,8 @@ public:
      * @param F_compression = uniaxial_stress_tension - threshold
      */
     bool IntegrateStressTensionIfNecessary(
-        const double F_tension, 
-        DamageParameters& Parameters, 
+        const double F_tension,
+        DamageParameters& Parameters,
         array_1d<double, VoigtSize>& IntegratedStressVectorTension,
         ConstitutiveLaw::Parameters& rValues
         );
@@ -181,7 +181,7 @@ public:
      * @param F_compression = uniaxial_stress_compression - threshold
      */
     bool IntegrateStressCompressionIfNecessary(
-        const double F_compression, 
+        const double F_compression,
         DamageParameters& Parameters,
         array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
         ConstitutiveLaw::Parameters& rValues
@@ -260,7 +260,7 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector> &rThisVariable) override;
-    
+
     /**
      * @brief Returns whether this constitutive Law has specified variable (Matrix)
      * @param rThisVariable the variable to be checked for
@@ -314,6 +314,14 @@ public:
         ) override;
 
     /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
+
+    /**
      * @brief Returns the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -337,7 +345,7 @@ public:
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
-        
+
     /**
      * @brief Returns the value of a specified variable (matrix)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -527,7 +535,7 @@ private:
 
     ///@}
 
-}; // Class 
+}; // Class
 
 } // namespace Kratos
 #endif

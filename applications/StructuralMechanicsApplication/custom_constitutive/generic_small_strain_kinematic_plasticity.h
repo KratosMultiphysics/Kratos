@@ -6,8 +6,8 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo 
-//  Collaborator:    
+//  Main authors:    Alejandro Cornejo
+//  Collaborator:
 //
 
 #if !defined(KRATOS_GENERIC_SMALL_STRAIN_KINEMATIC_PLASTICITY_H_INCLUDED)
@@ -32,7 +32,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -51,7 +51,7 @@ namespace Kratos
  * @brief This class is the base class which define all the constitutive laws for kinematic plasticity in small deformation
  * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
- * @author Alejandro Cornejo 
+ * @author Alejandro Cornejo
  */
 template <class TConstLawIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainKinematicPlasticity
@@ -66,16 +66,16 @@ public:
 
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
-    
+
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
     /// Counted pointer of GenericSmallStrainKinematicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainKinematicPlasticity);
-    
+
     /// The node definition
     typedef Node<3> NodeType;
-    
+
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
 
@@ -215,7 +215,7 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector> &rThisVariable) override;
-    
+
     /**
      * @brief Returns whether this constitutive Law has specified variable (Matrix)
      * @param rThisVariable the variable to be checked for
@@ -281,6 +281,14 @@ public:
         ) override;
 
     /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
+
+    /**
      * @brief Returns the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -304,7 +312,7 @@ public:
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
-        
+
     /**
      * @brief Returns the value of a specified variable (matrix)
      * @param rParameterValues the needed parameters for the CL calculation

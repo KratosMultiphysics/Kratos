@@ -7,7 +7,7 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Sergio Jimenez/Alejandro Cornejo/Lucia Barbu
-//  Collaborator:    
+//  Collaborator:
 //
 
 #if !defined(KRATOS_GENERIC_SMALL_STRAIN_HIGH_CYCLE_FATIGUE_LAW_H_INCLUDED)
@@ -30,7 +30,7 @@ namespace Kratos
 
 // The size type definition
 typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -63,16 +63,16 @@ public:
 
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
-    
+
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainHighCycleFatigueLaw);
 
     /// The node definition
     typedef Node<3> NodeType;
-    
+
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
-    
+
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -90,7 +90,7 @@ public:
     {
     }
 
-    GenericSmallStrainHighCycleFatigueLaw(  const double FatigueReductionFactor, 
+    GenericSmallStrainHighCycleFatigueLaw(  const double FatigueReductionFactor,
                                             const double PreviousStress0,
                                             const double PreviousStress1,
                                             const double MaxStress,
@@ -122,15 +122,15 @@ public:
     GenericSmallStrainHighCycleFatigueLaw(const GenericSmallStrainHighCycleFatigueLaw &rOther)
         : GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>(rOther),
             mFatigueReductionFactor(rOther.mFatigueReductionFactor),
-            mPreviousStresses(rOther.mPreviousStresses), 
-            mMaxStress(rOther.mMaxStress), 
-            mMinStress(rOther.mMinStress),  
-            mPreviousMaxStress(rOther.mPreviousMaxStress),  
-            mPreviousMinStress(rOther.mPreviousMinStress),  
-            mNumberOfCyclesGlobal(rOther.mNumberOfCyclesGlobal), 
-            mNumberOfCyclesLocal(rOther.mNumberOfCyclesLocal), 
-            mFatigueReductionParameter(rOther.mFatigueReductionParameter), 
-            mStressVector(rOther.mStressVector), 
+            mPreviousStresses(rOther.mPreviousStresses),
+            mMaxStress(rOther.mMaxStress),
+            mMinStress(rOther.mMinStress),
+            mPreviousMaxStress(rOther.mPreviousMaxStress),
+            mPreviousMinStress(rOther.mPreviousMinStress),
+            mNumberOfCyclesGlobal(rOther.mNumberOfCyclesGlobal),
+            mNumberOfCyclesLocal(rOther.mNumberOfCyclesLocal),
+            mFatigueReductionParameter(rOther.mFatigueReductionParameter),
+            mStressVector(rOther.mStressVector),
             mMaxDetected(rOther.mMaxDetected),
             mMinDetected(rOther.mMinDetected),
             mWohlerStress(rOther.mWohlerStress)
@@ -179,7 +179,7 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<double>& rThisVariable, 
+        const Variable<double>& rThisVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -189,7 +189,7 @@ public:
      * @param rValue new value of the specified variable
      */
     void SetValue(
-        const Variable<int>& rThisVariable, 
+        const Variable<int>& rThisVariable,
         const int& rValue);
 
     /**
@@ -199,7 +199,7 @@ public:
      * @return rValue output: the value of the specified variable
      */
     double& GetValue(
-        const Variable<double>& rThisVariable, 
+        const Variable<double>& rThisVariable,
         double& rValue) override;
 
     /**
@@ -209,8 +209,16 @@ public:
      * @return rValue output: the value of the specified variable
      */
     int& GetValue(
-        const Variable<int>& rThisVariable, 
+        const Variable<int>& rThisVariable,
         int& rValue) override;
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
 
     /**
      * @brief Returns the value of a specified variable (matrix)
@@ -268,7 +276,7 @@ protected:
     ///@{
 
     ///@}
-    
+
     ///@name Protected member Variables
     ///@{
 
@@ -298,7 +306,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    ///@}    
+    ///@}
     ///@name Access
     ///@{
     double GetFatigueReductionFactor() {return mFatigueReductionFactor;}
@@ -339,7 +347,7 @@ private:
 
     double GetWohlerStress() {return mWohlerStress;}
     void SetWohlerStress(const double toWohlerStress) {mWohlerStress = toWohlerStress;}
-    
+
     ///@}
     ///@name Member Variables
     ///@{
