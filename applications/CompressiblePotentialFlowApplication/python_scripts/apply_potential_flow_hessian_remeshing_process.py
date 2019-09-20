@@ -64,7 +64,7 @@ class ApplyPotentialFlowHessianRemeshingProcess(KratosMultiphysics.Process):
 
     def __ComputeNodalVelocity(self):
 
-        nodal_velocity_process = KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeNodalPotentialFlowVelocityProcess(self.main_model_part)
+        nodal_velocity_process = CPFApp.ComputeNodalPotentialFlowVelocityProcess(self.main_model_part)
         nodal_velocity_process.Execute()
 
     def __ComputeHessianMetric(self):
@@ -72,13 +72,13 @@ class ApplyPotentialFlowHessianRemeshingProcess(KratosMultiphysics.Process):
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.main_model_part)
         find_nodal_h.Execute()
 
-        metric_x = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, KratosMultiphysics.VELOCITY_X, self.metric_parameters)
+        metric_x = KratosMeshing.ComputeHessianSolMetricProcess(self.main_model_part, KratosMultiphysics.VELOCITY_X, self.metric_parameters)
         metric_x.Execute()
-        metric_y = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, KratosMultiphysics.VELOCITY_Y, self.metric_parameters)
+        metric_y = KratosMeshing.ComputeHessianSolMetricProcess(self.main_model_part, KratosMultiphysics.VELOCITY_Y, self.metric_parameters)
         metric_y.Execute()
 
         if (self.domain_size == 3):
-            metric_z = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, KratosMultiphysics.VELOCITY_Z, self.metric_parameters)
+            metric_z = KratosMeshing.ComputeHessianSolMetricProcess(self.main_model_part, KratosMultiphysics.VELOCITY_Z, self.metric_parameters)
             metric_z.Execute()
 
     def __RemoveSubModelParts(self):
