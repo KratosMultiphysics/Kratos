@@ -203,9 +203,9 @@ protected:
 
     void ApplyConstraints(
         typename TSchemeType::Pointer pScheme,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rb,
-        ModelPart &rModelPart) override
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb) override
     {
         KRATOS_TRY
 
