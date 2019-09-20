@@ -303,7 +303,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
 
         # Adding variables required for the turbulence modelling
-        if self._turbulence_model_solver:
+        if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.fluid_model_part = self.main_model_part
             self._turbulence_model_solver.AddVariables()
 
@@ -315,7 +315,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def AddDofs(self):
         super(NavierStokesSolverMonolithic, self).AddDofs()
 
-        if self._turbulence_model_solver:
+        if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.AddDofs()
 
     def PrepareModelPart(self):
@@ -324,7 +324,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         super(NavierStokesSolverMonolithic, self).PrepareModelPart()
 
-        if self._turbulence_model_solver:
+        if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.PrepareModelPart()
 
     def Initialize(self):
@@ -364,7 +364,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 err_msg += "Available options are: \"bdf2\""
                 raise Exception(err_msg)
         else:
-            if (self._turbulence_model_solver is None):
+            if not hasattr(self, "_turbulence_model_solver"):
                 # Bossak time integration scheme
                 if self.settings["time_scheme"].GetString() == "bossak":
                     if self.settings["consider_periodic_conditions"].GetBool() == True:

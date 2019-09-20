@@ -139,7 +139,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
         self.distributed_model_part_importer.CreateCommunicators()
 
-        if self._turbulence_model_solver is not None:
+        if hasattr(self, "_turbulence_model_solver"):
             self._turbulence_model_solver.PrepareModelPart()
 
     def AddDofs(self):
@@ -193,7 +193,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 err_msg += "Available options are: \"bdf2\""
                 raise Exception(err_msg)
         else:
-            if (self._turbulence_model_solver is None):
+            if not hasattr(self, "_turbulence_model_solver"):
                 if self.settings["time_scheme"].GetString() == "bossak":
                     if self.settings["consider_periodic_conditions"].GetBool() == True:
                         self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
