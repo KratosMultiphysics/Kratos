@@ -26,6 +26,7 @@ class CouplingInterfaceData(object):
         self.settings = custom_settings
         self.model = model
         self.name = name
+        self.is_outdated = True
         self.model_part_name = self.settings["model_part_name"].GetString()
         if self.model_part_name == "":
             raise Exception('No "model_part_name" was specified!')
@@ -78,8 +79,12 @@ class CouplingInterfaceData(object):
                         cs_tools.cs_print_warning('CouplingInterfaceData', '"DOMAIN_SIZE" ({}) of ModelPart "{}" does not match dimension ({})'.format(domain_size, self.model_part_name, self.dimension))
 
         if self.location == "node_historical":
-            if not self.GetModelPart().HasNodalSolutionStepVariable(self.variable):
-                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(self.variable.Name(), self.model_part_name))
+            if self.variable_type == "Component":
+                var_to_check = self.variable.GetSourceVariable()
+            else:
+                var_to_check = self.variable
+            if not self.GetModelPart().HasNodalSolutionStepVariable(var_to_check):
+                raise Exception('"{}" is missing as SolutionStepVariable in ModelPart "{}"'.format(var_to_check.Name(), self.model_part_name))
 
     def __str__(self):
         self_str =  'CouplingInterfaceData:\n'

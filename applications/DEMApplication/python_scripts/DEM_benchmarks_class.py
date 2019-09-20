@@ -247,7 +247,6 @@ def extend_datafile_list(arg):
 
 def delete_current_benchmark_data():
     for to_erase_file in files_to_delete_list:
-        print(files_to_delete_list)
         try:
             os.remove(to_erase_file)
         except OSError:

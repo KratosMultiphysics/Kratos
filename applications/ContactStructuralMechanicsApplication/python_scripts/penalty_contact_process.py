@@ -55,6 +55,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "tangent_factor"                : 1.0e-3,
             "slip_convergence_coefficient"  : 1.0,
             "slip_augmentation_coefficient" : 1.0,
+            "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "clear_inactive_for_post"       : true,
             "search_parameters"             : {
@@ -68,6 +69,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
+                "normal_orientation_threshold"        : 0.0,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -76,6 +78,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                     "bounding_box_factor"             : 0.1,
                     "debug_obb"                       : false,
                     "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "build_from_bounding_box"         : true,
                     "lower_bounding_box_coefficient"  : 0.0,
                     "higher_bounding_box_coefficient" : 1.0
                 }

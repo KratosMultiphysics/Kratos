@@ -60,6 +60,8 @@ from test_dynamic_schemes import FastDynamicSchemesTests as TFastDynamicSchemesT
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 # Eigenvalues Postprocessing Process test
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
+# Eigensolver with Constraints test
+from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
 # local-axis visualization tests
 from test_local_axis_visualization import TestLocalAxisVisualization as TTestLocalAxisVisualization
 # Test adjoint elements
@@ -285,6 +287,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TFastDynamicSchemesTests]))
     # Eigenvalues Postprocessing Process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
     # local-axis visualization tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
     # Adjoint Elements
