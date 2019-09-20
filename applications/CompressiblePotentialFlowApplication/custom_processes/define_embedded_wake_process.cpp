@@ -12,7 +12,7 @@
 
 
 #include "define_embedded_wake_process.h"
-#include "processes/calculate_distance_to_skin_process.h"
+#include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
 
@@ -45,9 +45,7 @@ void DefineEmbeddedWakeProcess::Execute()
 
 void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
 
-    // TEMPORARILY USING CONTINUOUS DISTANCE PROCESS
-    // TO BE CHANGED TO DISCONTINOUS PROCESS
-    CalculateDistanceToSkinProcess<2> distance_calculator(mrModelPart, mrWakeModelPart);
+    CalculateDiscontinuousDistanceToSkinProcess<2> distance_calculator(mrModelPart, mrWakeModelPart);
     distance_calculator.Execute();
 }
 
