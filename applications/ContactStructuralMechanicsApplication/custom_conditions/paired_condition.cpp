@@ -86,7 +86,7 @@ void PairedCondition::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    BaseType::InitializeSolutionStep();
+    BaseType::InitializeSolutionStep(rCurrentProcessInfo);
 
     // The normal of the paired condition
     const auto& r_paired_geometry = GetPairedGeometry();
@@ -104,7 +104,7 @@ void PairedCondition::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    BaseType::InitializeNonLinearIteration();
+    BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
 
     // We update the normals if necessary
     const auto normal_variation = rCurrentProcessInfo.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(rCurrentProcessInfo.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
