@@ -31,7 +31,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -68,6 +68,9 @@ public:
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
+    /// Counted pointer of GenericYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage);
+
     /// The node definition
     typedef Node<3> NodeType;
 
@@ -76,13 +79,6 @@ public:
 
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
-
-    // Adding the respective using to avoid overload conflicts
-    using BaseType::Has;
-    using BaseType::GetValue;
-
-    /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage);
 
     ///@}
     ///@name Life Cycle
@@ -216,7 +212,7 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector> &rThisVariable) override;
-
+    
     /**
      * @brief Returns whether this constitutive Law has specified variable (Matrix)
      * @param rThisVariable the variable to be checked for
@@ -293,7 +289,7 @@ public:
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
-
+        
     /**
      * @brief Returns the value of a specified variable (matrix)
      * @param rParameterValues the needed parameters for the CL calculation
