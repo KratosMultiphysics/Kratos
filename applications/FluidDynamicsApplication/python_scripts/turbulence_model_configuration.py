@@ -14,7 +14,7 @@ def CreateTurbulenceModel(model, settings, parallel_type = "OpenMP"):
         msg += "Please re-install/re-compile with RANSModellingApplication."
         raise Exception(msg)
 
-    from turbulence_model_factory import Factory
+    from KratosMultiphysics.RANSModellingApplication.turbulence_model_factory import Factory
     return Factory(settings, model, parallel_type)
 
 class TurbulenceModelConfiguration(PythonSolver):

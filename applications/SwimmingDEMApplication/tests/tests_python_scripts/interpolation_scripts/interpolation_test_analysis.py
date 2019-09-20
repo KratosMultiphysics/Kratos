@@ -14,7 +14,7 @@ class InterpolationTestAnalysis(SwimmingDEMAnalysis):
         return SDP.Counter(is_dead = 1)
 
     def _CreateSolver(self):
-        import interpolation_test_solver as sdem_solver
+        import tests_python_scripts.interpolation_scripts.interpolation_test_solver as sdem_solver
         return sdem_solver.InterpolationTestSolver(self.model,
                                                    self.project_parameters,
                                                    self.GetFieldUtility(),

@@ -47,15 +47,6 @@
             "velocity_pressure_relaxation_factor": 1.0,
             "auxiliar_process_list": [
                 {
-                    "python_module": "apply_custom_process",
-                    "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "LogarithmicYPlusCalculationProcess",
-                    "Parameters": {
-                        "model_part_name": "FluidModelPart",
-                        "echo_level": 0
-                    }
-                },
-                {
                     "python_module": "process_factory",
                     "kratos_module": "KratosMultiphysics",
                     "process_name": "ApplyConstantScalarValueProcess",
@@ -63,27 +54,6 @@
                         "model_part_name": "FluidModelPart.Slip2D",
                         "variable_name": "RANS_Y_PLUS",
                         "value" : 17.25677
-                    }
-                },
-                {
-                    "python_module": "apply_custom_process",
-                    "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "CheckScalarBoundsProcess",
-                    "Parameters": {
-                        "model_part_name": "FluidModelPart",
-                        "variable_name": "RANS_Y_PLUS"
-                    }
-                },
-                {
-                    "python_module": "apply_custom_process",
-                    "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "ClipScalarVariableProcess",
-                    "Parameters": {
-                        "model_part_name": "FluidModelPart",
-                        "variable_name": "RANS_Y_PLUS",
-                        "echo_level": 1,
-                        "min_value": 17.25677,
-                        "max_value": 1e+30
                     }
                 },
                 {
@@ -102,42 +72,6 @@
                     "Parameters": {
                         "model_part_name": "FluidModelPart.Slip2D",
                         "echo_level": 0
-                    }
-                },
-                {
-                    "python_module": "apply_custom_process",
-                    "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "CheckScalarBoundsProcess",
-                    "Parameters": {
-                        "model_part_name": "FluidModelPart",
-                        "variable_name": "RANS_Y_PLUS"
-                    }
-                },
-                {
-                    "python_module": "apply_custom_process",
-                    "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "CheckScalarBoundsProcess",
-                    "Parameters": {
-                        "model_part_name": "FluidModelPart",
-                        "variable_name": "TURBULENT_KINETIC_ENERGY"
-                    }
-                },
-                {
-                    "python_module": "apply_custom_process",
-                    "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "CheckScalarBoundsProcess",
-                    "Parameters": {
-                        "model_part_name": "FluidModelPart",
-                        "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE"
-                    }
-                },
-                {
-                    "python_module": "apply_custom_process",
-                    "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "CheckScalarBoundsProcess",
-                    "Parameters": {
-                        "model_part_name": "FluidModelPart",
-                        "variable_name": "TURBULENT_VISCOSITY"
                     }
                 },
                 {
@@ -171,7 +105,7 @@
                     "echo_level": 1,
                     "relaxation_factor": 1.0,
                     "linear_solver_settings": {
-                        "solver_type": "EigenSolversApplication.sparse_lu"
+                        "solver_type": "skyline_lu_factorization"
                     }
                 },
                 "turbulent_energy_dissipation_rate_settings": {
@@ -182,7 +116,7 @@
                     "echo_level": 1,
                     "relaxation_factor": 1.0,
                     "linear_solver_settings": {
-                        "solver_type": "EigenSolversApplication.sparse_lu"
+                        "solver_type": "skyline_lu_factorization"
                     }
                 },
                 "flow_parameters": {
@@ -204,76 +138,9 @@
                 "kratos_module": "KratosMultiphysics.RANSModellingApplication",
                 "process_name": "ApplyFlagProcess",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
-                    "echo_level": 0,
-                    "flag_variable_name": "INLET"
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "ApplyFlagProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.Outlet2D_outlet",
-                    "echo_level": 0,
-                    "flag_variable_name": "OUTLET"
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "ApplyFlagProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.Slip2D",
-                    "echo_level": 0,
-                    "flag_variable_name": "STRUCTURE"
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "ApplyFlagProcess",
-                "Parameters": {
                     "model_part_name": "FluidModelPart.Slip2D",
                     "echo_level": 0,
                     "flag_variable_name": "SLIP"
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "FindNodalNeighboursProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart"
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "FindConditionParentProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.Slip2D",
-                    "echo_level": 2
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "WallDistanceCalculationProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "echo_level": 2
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "ApplyScalarCellCenteredAveragingProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.Slip2D",
-                    "echo_level": 2,
-                    "input_variable_name": "DISTANCE",
-                    "output_variable_name": "DISTANCE"
                 }
             },
             {
@@ -304,14 +171,6 @@
                     "model_part_name": "FluidModelPart",
                     "variable_name": "KINEMATIC_VISCOSITY",
                     "value": 1.51312e-5
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "CalculateNormalsProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart"
                 }
             }
         ],

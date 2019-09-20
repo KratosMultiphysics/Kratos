@@ -142,13 +142,14 @@ def  AuxiliarSolve(mechanical_solution_strategy):
 def  AuxiliarComputeDeltaTime(main_model_part, computing_model_part, settings, contact_settings):
     if settings["time_stepping"].Has("time_step"):
         delta_time = settings["time_stepping"]["time_step"].GetDouble()
-        if contact_settings["inner_loop_adaptive"].GetBool():
-            process_info = computing_model_part.ProcessInfo
-            if process_info.Has(CSMA.INNER_LOOP_ITERATION):
-                inner_iterations = process_info[CSMA.INNER_LOOP_ITERATION]
-                if inner_iterations > 1:
-                    delta_time = delta_time/float(inner_iterations)
-                    KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
+        if contact_settings.Has("inner_loop_adaptive"):
+            if contact_settings["inner_loop_adaptive"].GetBool():
+                process_info = computing_model_part.ProcessInfo
+                if process_info.Has(CSMA.INNER_LOOP_ITERATION):
+                    inner_iterations = process_info[CSMA.INNER_LOOP_ITERATION]
+                    if inner_iterations > 1:
+                        delta_time = delta_time/float(inner_iterations)
+                        KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
         return delta_time
     elif settings["time_stepping"].Has("time_step_intervals"):
         current_time = main_model_part.ProcessInfo[KM.TIME]

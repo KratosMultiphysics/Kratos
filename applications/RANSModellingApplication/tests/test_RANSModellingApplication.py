@@ -42,12 +42,11 @@ def AssembleTestSuites():
     nightSuite.addTest(CustomProcessTest('testLogarithmicYPlusCalculationProcess'))
     nightSuite.addTest(CustomProcessTest('testNutKEpsilonHighReCalculationProcess'))
     nightSuite.addTest(EvmKEpsilonTest('testBackwardFacingStepKEpsilonTransient'))
-
-    # nightSuite.addTest(EvmKEpsilonTest('testCylinderTransient')) #TODO: Has a convergence problem, therefore gives a race condition
+    nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteady'))
+    nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTest(EvmKEpsilonTest('testChannelTransient'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']

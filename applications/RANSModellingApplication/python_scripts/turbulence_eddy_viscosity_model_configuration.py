@@ -3,6 +3,7 @@ import KratosMultiphysics.RANSModellingApplication as KratosRANS
 import math
 
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+from KratosMultiphysics.RANSModellingApplication.model_part_factory import CreateDuplicateModelPart
 
 if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
     import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -91,7 +92,6 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelConfiguration):
 
         original_condition_name = self.GetFluidVelocityPressureConditionName()
 
-        from model_part_factory import CreateDuplicateModelPart
         for element, condition in zip(self.model_elements_list,
                                       self.model_conditions_list):
             element_name = "{0}{1}D{2}N".format(element, self.domain_size,

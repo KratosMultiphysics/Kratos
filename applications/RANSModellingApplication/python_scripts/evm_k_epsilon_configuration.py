@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
-from turbulence_eddy_viscosity_model_configuration import TurbulenceEddyViscosityModelConfiguration
+from KratosMultiphysics.RANSModellingApplication.turbulence_eddy_viscosity_model_configuration import TurbulenceEddyViscosityModelConfiguration
 
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
