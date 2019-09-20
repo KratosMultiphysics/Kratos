@@ -284,7 +284,7 @@ protected:
                         }
                         FormulateChimera(background_patch_param, slave_patch_param, is_main_background);
                         //KRATOS_INFO("Formulating Chimera for the combination :: \n") << "Background" << background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
-                        delete mPointLocatorsMap.at(background_patch_param["model_part_name"].GetString());
+                        mPointLocatorsMap.erase(background_patch_param["model_part_name"].GetString());
                     }
                 }
             }
