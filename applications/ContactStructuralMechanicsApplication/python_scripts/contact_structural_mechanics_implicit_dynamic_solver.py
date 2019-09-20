@@ -11,6 +11,9 @@ from KratosMultiphysics.StructuralMechanicsApplication import structural_mechani
 # Import auxiliar methods
 from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
 
+# Import the contact convergence criteria factory
+from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_convergence_criteria_factory import ContactConvergenceCriteriaFactory
+
 def CreateSolver(model, custom_settings):
     return ContactImplicitMechanicalSolver(model, custom_settings)
 
@@ -81,13 +84,13 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         super(ContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
 
         # No verbosity from strategy
-        if self.contact_settings["silent_strategy"].GetBool() is True:
+        if self.contact_settings["silent_strategy"].GetBool():
             mechanical_solution_strategy = self.get_mechanical_solution_strategy()
             mechanical_solution_strategy.SetEchoLevel(0)
 
         # We set the flag INTERACTION
         computing_model_part = self.GetComputingModelPart()
-        if self.contact_settings["simplified_semi_smooth_newton"].GetBool() is True:
+        if self.contact_settings["simplified_semi_smooth_newton"].GetBool():
             computing_model_part.Set(KM.INTERACTION, False)
         else:
             computing_model_part.Set(KM.INTERACTION, True)
@@ -110,15 +113,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
             CSMA.ContactUtilities.CheckActivity(computing_model_part)
 
     def ComputeDeltaTime(self):
-        delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
-        if self.contact_settings["inner_loop_adaptive"].GetBool():
-            process_info = self.GetComputingModelPart().ProcessInfo
-            if process_info.Has(CSMA.INNER_LOOP_ITERATION):
-                inner_iterations = process_info[CSMA.INNER_LOOP_ITERATION]
-                if inner_iterations > 1:
-                    delta_time = delta_time/float(inner_iterations)
-                    KM.Logger.PrintInfo("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
-        return delta_time
+        return auxiliar_methods_solvers.AuxiliarComputeDeltaTime(self.main_model_part, self.GetComputingModelPart(), self.settings, self.contact_settings)
 
     def AddProcessesList(self, processes_list):
         self.processes_list = CSMA.ProcessFactoryUtility(processes_list)
@@ -133,8 +128,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         return auxiliar_methods_solvers.AuxiliarCreateConvergenceParameters(self.main_model_part, self.settings, self.contact_settings)
 
     def _create_convergence_criterion(self):
-        from KratosMultiphysics.ContactStructuralMechanicsApplication import contact_convergence_criteria_factory
-        convergence_criterion = contact_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
+        convergence_criterion = ContactConvergenceCriteriaFactory(self.main_model_part, self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):

@@ -3,14 +3,14 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
-from sphere_strategy import ExplicitStrategy
+from KratosMultiphysics.DEMApplication.sphere_strategy import ExplicitStrategy
 BaseStrategy = ExplicitStrategy
 
 class SwimmingStrategy(BaseStrategy):
 
     @staticmethod
     def SDEMEvaluateString(name):
-        return eval('SDEM.' + name)
+        return getattr(SDEM, name)
 
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, parameters, procedures):
         self.project_parameters = parameters

@@ -19,14 +19,14 @@ import KratosMultiphysics
 import shutil
 import os
 
-from design_logger_gid import DesignLoggerGID
-from design_logger_unv import DesignLoggerUNV
-from design_logger_vtk import DesignLoggerVTK
+from .design_logger_gid import DesignLoggerGID
+from .design_logger_unv import DesignLoggerUNV
+from .design_logger_vtk import DesignLoggerVTK
 
-from value_logger_steepest_descent import ValueLoggerSteepestDescent
-from value_logger_penalized_projection import ValueLoggerPenalizedProjection
-from value_logger_trust_region import ValueLoggerTrustRegion
-from value_logger_bead_optimization import ValueLoggerBeadOptimization
+from .value_logger_steepest_descent import ValueLoggerSteepestDescent
+from .value_logger_penalized_projection import ValueLoggerPenalizedProjection
+from .value_logger_trust_region import ValueLoggerTrustRegion
+from .value_logger_bead_optimization import ValueLoggerBeadOptimization
 
 # ==============================================================================
 def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
@@ -125,11 +125,7 @@ class DataLogger():
         self.ValueLogger.FinalizeLogging()
 
     # --------------------------------------------------------------------------
-    def GetValue( self, key, iteration ):
-        return self.ValueLogger.GetValue(key, iteration)
-
-    # --------------------------------------------------------------------------
-    def GetValueHistory( self, key ):
-        return self.ValueLogger.GetValueHistory(key)
+    def GetValues( self, key ):
+        return self.ValueLogger.GetValues(key)
 
 # ==============================================================================

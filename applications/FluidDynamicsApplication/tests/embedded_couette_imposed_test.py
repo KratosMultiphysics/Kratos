@@ -1,7 +1,10 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.process_factory as process_factory
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 have_external_solvers = KratosUtilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
 
@@ -56,7 +59,6 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
             self.model = KratosMultiphysics.Model()
 
             ## Solver construction
-            import python_solvers_wrapper_fluid
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
             ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
@@ -76,7 +78,6 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
             self.solver.Initialize()
 
             ## Processes construction
-            import process_factory
             self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["gravity"] )
             self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["processes"]["boundary_conditions_process_list"] )
 
@@ -98,7 +99,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                 distance = self.distance - node.Z
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
 
-        # Set the ELEMENTAL_VELOCITY in the intersected elements
+        # Set the EMBEDDED_VELOCITY in the intersected elements nodes
         for elem in self.main_model_part.Elements:
             n_pos = 0
             n_neg = 0
@@ -109,8 +110,8 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
                     n_pos += 1
 
             if ((n_pos != 0) and (n_neg != 0)):
-                embedded_velocity = KratosMultiphysics.Vector([self.embedded_velocity,0.0,0.0])
-                elem.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY,embedded_velocity)
+                for node in elem.GetNodes():
+                    node.SetValue(KratosMultiphysics.EMBEDDED_VELOCITY, [self.embedded_velocity, 0.0, 0.0])
 
     def setUpNoSlipBoundaryConditions(self):
         # Set the inlet function

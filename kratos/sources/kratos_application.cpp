@@ -55,8 +55,8 @@
 #include "geometries/hexahedra_3d_27.h"
 
 /* Factories */
-#include "includes/standard_linear_solver_factory.h"
-#include "includes/standard_preconditioner_factory.h"
+#include "factories/standard_linear_solver_factory.h"
+#include "factories/standard_preconditioner_factory.h"
 
 namespace Kratos {
 typedef Node<3> NodeType;

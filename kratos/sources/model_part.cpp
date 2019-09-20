@@ -27,18 +27,17 @@ KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
 /// Default constructor.
-ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel) : ModelPart("Default", pVariablesList, rOwnerModel) { }
+ModelPart::ModelPart(VariablesList::Pointer pVariablesList, Model& rOwnerModel) : ModelPart("Default", pVariablesList, rOwnerModel) { }
 
 /// Constructor with name
-ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList, Model& rOwnerModel) : ModelPart(NewName, 1, pVariablesList, rOwnerModel) { }
+ModelPart::ModelPart(std::string const& NewName,VariablesList::Pointer pVariablesList, Model& rOwnerModel) : ModelPart(NewName, 1, pVariablesList, rOwnerModel) { }
 
 /// Constructor with name and bufferSize
-ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariablesList, Model& rOwnerModel)
+ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList::Pointer pVariablesList, Model& rOwnerModel)
     : DataValueContainer()
     , Flags()
     , mBufferSize(NewBufferSize)
     , mpProcessInfo(new ProcessInfo())
-    , mIndices(NewBufferSize, 0)
     , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
@@ -232,7 +231,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
 
 /** Inserts a node in the mesh with ThisIndex.
 */
-ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, ModelPart::IndexType ThisIndex)
+ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y, double z, VariablesList::Pointer pNewVariablesList, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
     if (IsSubModelPart())
@@ -1552,9 +1551,8 @@ std::vector<std::string> ModelPart::GetSubModelPartNames()
 {
     std::vector<std::string> SubModelPartsNames;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        SubModelPartsNames.push_back(i_sub_model_part->Name());
+    for(auto& r_sub_model_part : mSubModelParts) {
+        SubModelPartsNames.push_back(r_sub_model_part.Name());
     }
 
     return SubModelPartsNames;
@@ -1566,9 +1564,8 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
-    {
-        i_sub_model_part->mBufferSize = NewBufferSize;
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
     }
 
     mBufferSize = NewBufferSize;
@@ -1582,6 +1579,15 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
         node_iterator->SetBufferSize(mBufferSize);
     }
 
+}
+
+void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
+{
+    for(auto& r_sub_model_part : mSubModelParts) {
+        r_sub_model_part.SetBufferSizeSubModelParts(NewBufferSize);
+    }
+
+    mBufferSize = NewBufferSize;
 }
 
 /// run input validation

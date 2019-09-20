@@ -1,14 +1,9 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
 import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
-# Import subprocess
-import subprocess
 
 # Using kratos_utilities
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -27,6 +22,7 @@ sys.path.insert(0, GetFilePath('../../../kratos/tests/'))
 ## SMALL TESTS
 # Exact integration tests
 from test_process_factory import TestProcessFactory as TTestProcessFactory
+from test_check_normals_process import TestCheckNormals as TTestCheckNormals
 from test_double_curvature_integration import TestDoubleCurvatureIntegration as TTestDoubleCurvatureIntegration
 from test_dynamic_search import TestDynamicSearch as TTestDynamicSearch
 from test_mortar_mapper import TestMortarMapperCore as TTestMortarMapperCore
@@ -41,6 +37,7 @@ from SmallTests import SimplePatchTestThreeDMeshTying          as TSimplePatchTe
 
 # ALM frictionless tests
 from SmallTests import ALMHyperSimplePatchTestContact                              as TALMHyperSimplePatchTestContact
+from SmallTests import ALMHyperSimplePatchTrianglesTestContact                     as TALMHyperSimplePatchTrianglesTestContact
 from SmallTests import ALMHyperSimplePatchTestWithEliminationContact               as TALMHyperSimplePatchTestWithEliminationContact
 from SmallTests import ALMHyperSimplePatchTestWithEliminationWithConstraintContact as TALMHyperSimplePatchTestWithEliminationWithConstraintContact
 from SmallTests import ALMHyperSimpleSlopePatchTestContact                         as TALMHyperSimpleSlopePatchTestContact
@@ -85,6 +82,11 @@ from SmallTests import ComponentsALMThreeDPatchNotMatchingTestContact           
 
 # ALM frictional tests
 from SmallTests import ALMHyperSimplePatchFrictionalTestContact                      as TALMHyperSimplePatchFrictionalTestContact
+from SmallTests import ALMNoFrictionHyperSimplePatchFrictionalTestContact            as TALMNoFrictionHyperSimplePatchFrictionalTestContact
+from SmallTests import ALMPerfectStickHyperSimplePatchFrictionalTestContact          as TALMPerfectStickHyperSimplePatchFrictionalTestContact
+from SmallTests import ALMThresholdSlipHyperSimplePatchFrictionalTestContact         as TALMThresholdSlipHyperSimplePatchFrictionalTestContact
+from SmallTests import ALMHyperSimplePatchFrictionalSlipTestContact                  as TALMHyperSimplePatchFrictionalSlipTestContact
+from SmallTests import ALMHyperSimplePatchFrictionalStickTestContact                 as TALMHyperSimplePatchFrictionalStickTestContact
 
 # Penalty frictional tests
 from SmallTests import PenaltyNoFrictionHyperSimplePatchFrictionalTestContact        as TPenaltyNoFrictionHyperSimplePatchFrictionalTestContact
@@ -98,19 +100,21 @@ from SmallTests import PenaltyHyperSimplePatchFrictionalStickTestContact        
 from NightlyTests import ALMTaylorPatchTestContact           as TALMTaylorPatchTestContact
 from NightlyTests import ALMHertzSimpleTestContact           as TALMHertzSimpleTestContact
 from NightlyTests import ALMHertzSimpleSphereTestContact     as TALMHertzSimpleSphereTestContact
-from NightlyTests import ALMHertzSphereTestContact           as TALMHertzSphereTestContact
+#from NightlyTests import ALMHertzSphereTestContact           as TALMHertzSphereTestContact
 from NightlyTests import ALMHertzCompleteTestContact         as TALMHertzCompleteTestContact
 
 # Components ALM frictionless tests
 from NightlyTests import ComponentsALMTaylorPatchTestContact           as TComponentsALMTaylorPatchTestContact
 from NightlyTests import ComponentsALMHertzSimpleTestContact           as TComponentsALMHertzSimpleTestContact
 from NightlyTests import ComponentsALMHertzSimpleSphereTestContact     as TComponentsALMHertzSimpleSphereTestContact
-from NightlyTests import ComponentsALMHertzSphereTestContact           as TComponentsALMHertzSphereTestContact
+#from NightlyTests import ComponentsALMHertzSphereTestContact           as TComponentsALMHertzSphereTestContact
 from NightlyTests import ComponentsALMHertzCompleteTestContact         as TComponentsALMHertzCompleteTestContact
 
-# ALM frictionless tests
-from NightlyTests import ALMTaylorPatchFrictionalTestContact           as TALMTaylorPatchFrictionalTestContact
+# ALM frictional tests
 from NightlyTests import ALMPureFrictionalTestContact                  as TALMPureFrictionalTestContact
+from NightlyTests import ALMBasicFrictionTestContact                   as TALMBasicFrictionTestContact
+from NightlyTests import ALMStaticEvolutionLoadFrictionTestContact     as TALMStaticEvolutionLoadFrictionTestContact
+from NightlyTests import ALMEvolutionLoadFrictionTestContact           as TALMEvolutionLoadFrictionTestContact
 
 ## VALIDATION TESTS
 from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacementPatchTestHexa
@@ -119,8 +123,8 @@ from ValidationTests import LargeDisplacementPatchTestHexa as TLargeDisplacement
 from ValidationTests import ALMTaylorPatchDynamicTestContact as TALMTaylorPatchDynamicTestContact
 from ValidationTests import ALMMeshMovingMatchingTestContact    as TALMMeshMovingMatchingTestContact
 from ValidationTests import ALMMeshMovingNotMatchingTestContact as TALMMeshMovingNotMatchingTestContact
-from ValidationTests import ALMIroningTestContact    as TALMIroningTestContact
-from ValidationTests import ALMIroningDieTestContact as TALMIroningDieTestContact
+#from ValidationTests import ALMIroningTestContact    as TALMIroningTestContact
+#from ValidationTests import ALMIroningDieTestContact as TALMIroningDieTestContact
 from ValidationTests import ALMLargeDisplacementPatchTestTetra as TALMLargeDisplacementPatchTestTetra
 from ValidationTests import ALMLargeDisplacementPatchTestHexa as TALMLargeDisplacementPatchTestHexa
 from ValidationTests import ALMMultiLayerContactTest as TALMMultiLayerContactTest
@@ -132,6 +136,12 @@ from ValidationTests import ComponentsALMMeshMovingNotMatchingTestContact as TCo
 from ValidationTests import ComponentsALMLargeDisplacementPatchTestTetra as TComponentsALMLargeDisplacementPatchTestTetra
 from ValidationTests import ComponentsALMLargeDisplacementPatchTestHexa as TComponentsALMLargeDisplacementPatchTestHexa
 from ValidationTests import ComponentsALMMultiLayerContactTest as TComponentsALMMultiLayerContactTest
+
+# ALM frictional tests
+from ValidationTests import ALMTaylorPatchFrictionalTestContact                   as TALMTaylorPatchFrictionalTestContact
+from ValidationTests import ALMMeshMovingMatchingTestFrictionalPureSlipContact    as TALMMeshMovingMatchingTestFrictionalPureSlipContact
+from ValidationTests import ALMMeshMovingNotMatchingTestFrictionalPureSlipContact as TALMMeshMovingNotMatchingTestFrictionalPureSlipContact
+from ValidationTests import ALMHertzTestFrictionalContact                         as TALMHertzTestFrictionalContact
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -151,10 +161,14 @@ def AssembleTestSuites():
     smallSuite = suites['small']
 
     # Create a test suit with the selected tests plus all small tests
-    nightSuite = suites['nightly']
+    nightlySuite = suites['nightly']
+
+    ### BEGIN SMALL SUITE ###
 
     # Test ProcessFactoryUtility
     smallSuite.addTest(TTestProcessFactory('test_process_factory'))
+    smallSuite.addTest(TTestCheckNormals('test_check_normals'))
+    smallSuite.addTest(TTestCheckNormals('test_check_normals_quads'))
     smallSuite.addTest(TTestProcessFactory('test_processes_list_factory'))
 
     # Mesh tying tests
@@ -167,6 +181,7 @@ def AssembleTestSuites():
 
     # ALM frictionless tests
     smallSuite.addTest(TALMHyperSimplePatchTestContact('test_execution'))
+    smallSuite.addTest(TALMHyperSimplePatchTrianglesTestContact('test_execution'))
     smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationContact('test_execution'))
     smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
     smallSuite.addTest(TALMHyperSimpleSlopePatchTestContact('test_execution'))
@@ -206,6 +221,11 @@ def AssembleTestSuites():
 
     # ALM frictional tests
     smallSuite.addTest(TALMHyperSimplePatchFrictionalTestContact('test_execution'))
+    smallSuite.addTest(TALMNoFrictionHyperSimplePatchFrictionalTestContact('test_execution'))
+    smallSuite.addTest(TALMPerfectStickHyperSimplePatchFrictionalTestContact('test_execution'))
+    smallSuite.addTest(TALMThresholdSlipHyperSimplePatchFrictionalTestContact('test_execution'))
+    smallSuite.addTest(TALMHyperSimplePatchFrictionalSlipTestContact('test_execution'))
+    smallSuite.addTest(TALMHyperSimplePatchFrictionalStickTestContact('test_execution'))
 
     # Penalty frictional tests
     smallSuite.addTest(TPenaltyNoFrictionHyperSimplePatchFrictionalTestContact('test_execution'))
@@ -214,43 +234,53 @@ def AssembleTestSuites():
     smallSuite.addTest(TPenaltyHyperSimplePatchFrictionalSlipTestContact('test_execution'))
     smallSuite.addTest(TPenaltyHyperSimplePatchFrictionalStickTestContact('test_execution'))
 
+    ### END SMALL SUITE ###
+
+    ### BEGIN NIGHTLY SUITE ###
+
     # Fill with all small tests
-    nightSuite.addTests(smallSuite)
+    nightlySuite.addTests(smallSuite)
 
     # Exact integration tests
-    nightSuite.addTest(TTestDoubleCurvatureIntegration('test_moving_mesh_integration_quad'))
+    nightlySuite.addTest(TTestDoubleCurvatureIntegration('test_moving_mesh_integration_quad'))
 
     # Mortar mapping
-    nightSuite.addTest(TTestMortarMapperCore('test_less_basic_mortar_mapping_triangle'))
-    nightSuite.addTest(TTestMortarMapperCore('test_simple_curvature_mortar_mapping_triangle'))
+    nightlySuite.addTest(TTestMortarMapperCore('test_less_basic_mortar_mapping_triangle'))
+    nightlySuite.addTest(TTestMortarMapperCore('test_simple_curvature_mortar_mapping_triangle'))
 
     # ALM frictionless tests
-    nightSuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
-    nightSuite.addTest(TALMThreeDPatchNotMatchingTestContact('test_execution'))
-    nightSuite.addTest(TALMTaylorPatchTestContact('test_execution'))
-    nightSuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
+    nightlySuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
+    nightlySuite.addTest(TALMThreeDPatchNotMatchingTestContact('test_execution'))
+    nightlySuite.addTest(TALMTaylorPatchTestContact('test_execution'))
+    nightlySuite.addTest(TALMHertzSimpleSphereTestContact('test_execution'))
 
     # Components ALM frictionless tests
-    nightSuite.addTest(TComponentsALMTThreeDPatchMatchingTestContact('test_execution'))
-    nightSuite.addTest(TComponentsALMThreeDPatchNotMatchingTestContact('test_execution'))
-    nightSuite.addTest(TComponentsALMTaylorPatchTestContact('test_execution'))
-    nightSuite.addTest(TComponentsALMHertzSimpleSphereTestContact('test_execution'))
+    nightlySuite.addTest(TComponentsALMTThreeDPatchMatchingTestContact('test_execution'))
+    nightlySuite.addTest(TComponentsALMThreeDPatchNotMatchingTestContact('test_execution'))
+    nightlySuite.addTest(TComponentsALMTaylorPatchTestContact('test_execution'))
+    nightlySuite.addTest(TComponentsALMHertzSimpleSphereTestContact('test_execution'))
 
     # ALM frictional tests
-    nightSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
-    nightSuite.addTest(TALMPureFrictionalTestContact('test_execution'))
+    nightlySuite.addTest(TALMPureFrictionalTestContact('test_execution'))
+    nightlySuite.addTest(TALMBasicFrictionTestContact('test_execution'))
+    nightlySuite.addTest(TALMStaticEvolutionLoadFrictionTestContact('test_execution'))
+    nightlySuite.addTest(TALMEvolutionLoadFrictionTestContact('test_execution'))
+
+    ### END VALIDATION SUITE ###
+
+    ### BEGIN VALIDATION SUITE ###
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTests(nightSuite)
+    validationSuite.addTests(nightlySuite)
 
     # ALM frictionless tests
-    #nightSuite.addTest(TALMHertzSphereTestContact('test_execution'))
+    #nightlySuite.addTest(TALMHertzSphereTestContact('test_execution'))
     validationSuite.addTest(TALMHertzSimpleTestContact('test_execution'))
     validationSuite.addTest(TALMHertzCompleteTestContact('test_execution'))
 
     # Components ALM frictionless tests
-    #nightSuite.addTest(TComponentsALMHertzSphereTestContact('test_execution'))
+    #nightlySuite.addTest(TComponentsALMHertzSphereTestContact('test_execution'))
     validationSuite.addTest(TComponentsALMHertzSimpleTestContact('test_execution'))
     validationSuite.addTest(TComponentsALMHertzCompleteTestContact('test_execution'))
 
@@ -270,6 +300,7 @@ def AssembleTestSuites():
     validationSuite.addTest(TTestMortarMapperCore('test_mortar_mapping_triangle'))
     validationSuite.addTest(TTestMortarMapperCore('test_mortar_mapping_quad'))
 
+    # Some large displacement tests
     validationSuite.addTest(TLargeDisplacementPatchTestHexa('test_execution'))
 
     # ALM frictionless tests
@@ -290,14 +321,22 @@ def AssembleTestSuites():
     validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestHexa('test_execution'))
     validationSuite.addTest(TComponentsALMMultiLayerContactTest('test_execution'))
 
+    # ALM frictional tests
+    validationSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
+    validationSuite.addTest(TALMMeshMovingMatchingTestFrictionalPureSlipContact('test_execution'))
+    validationSuite.addTest(TALMMeshMovingNotMatchingTestFrictionalPureSlipContact('test_execution'))
+    validationSuite.addTest(TALMHertzTestFrictionalContact('test_execution'))
+
+    ### END VALIDATION ###
+
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite) # Already contains the smallSuite
+    allSuite.addTests(nightlySuite) # Already contains the smallSuite
     validationSuite.addTests(allSuite) # Validation contains all
-    
+
     # Manual list for debugging
     #allSuite.addTests(
-    #KratosUnittest.TestLoader().loadTestsFromTestCases([
+        #KratosUnittest.TestLoader().loadTestsFromTestCases([
             #### STANDALONE
             #TTestProcessFactory,
             #TTestDoubleCurvatureIntegration,
@@ -311,6 +350,7 @@ def AssembleTestSuites():
             #TSimplestPatchTestThreeDQuadTriMeshTying,
             #TSimplePatchTestThreeDMeshTying,
             #TALMHyperSimplePatchTestContact,
+            #TALMHyperSimplePatchTrianglesTestContact,
             #TALMHyperSimplePatchTestWithEliminationContact,
             #TALMHyperSimplePatchTestWithEliminationWithConstraintContact,
             #TALMHyperSimpleSlopePatchTestContact,
@@ -349,6 +389,11 @@ def AssembleTestSuites():
             #TComponentsALMTThreeDPatchMatchingTestContact,
             #TComponentsALMThreeDPatchNotMatchingTestContact,
             #TALMHyperSimplePatchFrictionalTestContact,
+            #TALMNoFrictionHyperSimplePatchFrictionalTestContact,
+            #TALMPerfectStickHyperSimplePatchFrictionalTestContact,
+            #TALMThresholdSlipHyperSimplePatchFrictionalTestContact,
+            #TALMHyperSimplePatchFrictionalSlipTestContact,
+            #TALMHyperSimplePatchFrictionalStickTestContact,
             #TPenaltyNoFrictionHyperSimplePatchFrictionalTestContact,
             #TPenaltyPerfectStickHyperSimplePatchFrictionalTestContact,
             #TPenaltyThresholdSlipHyperSimplePatchFrictionalTestContact,
@@ -365,14 +410,20 @@ def AssembleTestSuites():
             #TComponentsALMHertzSimpleSphereTestContact,
             ######TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             #TComponentsALMHertzCompleteTestContact,
-            #TALMTaylorPatchFrictionalTestContact,
             #TALMPureFrictionalTestContact,
+            #TALMBasicFrictionTestContact,
+            #TALMStaticEvolutionLoadFrictionTestContact,
+            #TALMEvolutionLoadFrictionTestContact,
             ##### VALIDATION
             #TALMTaylorPatchDynamicTestContact,
             #TALMMeshMovingMatchingTestContact,
             #TALMMeshMovingNotMatchingTestContact,
-            ###TALMIroningTestContact,
-            ###TALMIroningDieTestContact,
+            #TALMTaylorPatchFrictionalTestContact,
+            #TALMMeshMovingMatchingTestFrictionalPureSlipContact,
+            #TALMMeshMovingNotMatchingTestFrictionalPureSlipContact,
+            #TALMHertzTestFrictionalContact,
+            #####TALMIroningTestContact,
+            #####TALMIroningDieTestContact,
             #TLargeDisplacementPatchTestHexa,
             #TALMLargeDisplacementPatchTestTetra,
             #TALMLargeDisplacementPatchTestHexa,

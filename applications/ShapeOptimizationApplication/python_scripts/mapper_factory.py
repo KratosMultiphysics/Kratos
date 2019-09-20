@@ -12,12 +12,12 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # ==============================================================================
 def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
-    default_settings = Parameters("""
+    default_settings = KM.Parameters("""
     {
         "filter_function_type"       : "linear",
         "filter_radius"              : 0.000000000001,
@@ -37,11 +37,11 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         if mapper_settings["improved_integration"].GetBool():
              raise ValueError ("Matrix free mapper does not yet allow for an improved integration!")
         else:
-            return MapperVertexMorphingMatrixFree(origin_model_part, destination_model_part, mapper_settings)
+            return KSO.MapperVertexMorphingMatrixFree(origin_model_part, destination_model_part, mapper_settings)
     else:
         if mapper_settings["improved_integration"].GetBool():
-            return MapperVertexMorphingImprovedIntegration(origin_model_part, destination_model_part, mapper_settings)
+            return KSO.MapperVertexMorphingImprovedIntegration(origin_model_part, destination_model_part, mapper_settings)
         else:
-            return MapperVertexMorphing(origin_model_part, destination_model_part, mapper_settings)
+            return KSO.MapperVertexMorphing(origin_model_part, destination_model_part, mapper_settings)
 
 # ==============================================================================

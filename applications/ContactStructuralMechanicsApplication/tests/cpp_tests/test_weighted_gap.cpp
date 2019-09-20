@@ -141,9 +141,10 @@ namespace Kratos
             for (auto p_slave_cond : slave_conds) {
                 for (auto p_master_cond : master_conds) {
                     id_cond++;
-                    Condition::Pointer p_auxiliar_condition = r_computing_contact_model_part.CreateNewCondition("ALMFrictionalMortarContactCondition2D2N", id_cond, p_slave_cond->GetGeometry(), p_cond_prop);
+                    const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition2D2N"));
+                    Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop, p_master_cond->pGetGeometry());
                     // We set the geometrical values
-                    p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, p_master_cond->pGetGeometry());
+                    r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
                     p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
                     p_auxiliar_condition->SetValue(PAIRED_NORMAL, p_master_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
@@ -296,9 +297,10 @@ namespace Kratos
             for (auto p_slave_cond : slave_conds) {
                 for (auto p_master_cond : master_conds) {
                     id_cond++;
-                    Condition::Pointer p_auxiliar_condition = r_computing_contact_model_part.CreateNewCondition("ALMFrictionalMortarContactCondition3D4N", id_cond, p_slave_cond->GetGeometry(), p_cond_prop_0);
+                    const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition3D4N"));
+                    Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
                     // We set the geometrical values
-                    p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, p_master_cond->pGetGeometry());
+                    r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
                     p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
                     p_auxiliar_condition->SetValue(PAIRED_NORMAL, p_master_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
@@ -519,9 +521,10 @@ namespace Kratos
             for (auto p_slave_cond : slave_conds) {
                 for (auto p_master_cond : master_conds) {
                     id_cond++;
-                    Condition::Pointer p_auxiliar_condition = r_computing_contact_model_part.CreateNewCondition("ALMFrictionalMortarContactCondition3D4N", id_cond, p_slave_cond->GetGeometry(), p_cond_prop_0);
+                    const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition3D4N"));
+                    Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
                     // We set the geometrical values
-                    p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, p_master_cond->pGetGeometry());
+                    r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
                     p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
                     p_auxiliar_condition->SetValue(PAIRED_NORMAL, p_master_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
@@ -592,12 +595,12 @@ namespace Kratos
                 p_node_2->Set(ACTIVE, true);
             }
 
-            std::size_t r_cond = 0;
+            std::size_t id_cond = 0;
             std::vector<Condition::Pointer> slave_conds;
             for (std::size_t i = 0; i < NumberOfDivisions; i++) {
-                r_cond++;
+                id_cond++;
                 const std::size_t ref_id = (2 * i)+1;
-                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", r_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop_0);
+                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", id_cond, {{ref_id, ref_id + 1, ref_id + 3, ref_id + 2}}, p_cond_prop_0);
                 r_slave_model_part.AddCondition(p_cond);
                 p_cond->Set(SLAVE, true);
                 p_cond->Set(MASTER, false);
@@ -654,10 +657,10 @@ namespace Kratos
             IndexSet this_set;
             std::vector<Condition::Pointer> master_conds;
             for (std::size_t i = 0; i < count - 1; i++) {
-                r_cond++;
-                this_set.AddId(r_cond);
+                id_cond++;
+                this_set.AddId(id_cond);
                 const std::size_t ref_id = (2 * (i + NumberOfDivisions + 1)+1);
-                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", r_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop_1);
+                Condition::Pointer p_cond = rModelPart.CreateNewCondition("Condition3D4N", id_cond, {{ref_id +2, ref_id + 3, ref_id + 1, ref_id}}, p_cond_prop_1);
                 r_master_model_part.AddCondition(p_cond);
                 p_cond->Set(SLAVE, false);
                 p_cond->Set(MASTER, true);
@@ -669,9 +672,9 @@ namespace Kratos
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
-            for(auto& r_cond : rModelPart.Conditions()) {
-                if (r_cond.Is(SLAVE))
-                    r_cond.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
+            for(auto& id_cond : rModelPart.Conditions()) {
+                if (id_cond.Is(SLAVE))
+                    id_cond.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
             }
 
             // We set the auxiliar Coordinates
@@ -706,14 +709,15 @@ namespace Kratos
             // We set the database
             auto& r_process_info = rModelPart.GetProcessInfo();
             ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
-            for (auto& r_slave_cond : slave_conds) {
-                for (auto& r_master_cond : master_conds) {
-                    r_cond++;
-                    Condition::Pointer p_auxiliar_condition = r_computing_contact_model_part.CreateNewCondition("ALMFrictionalMortarContactCondition3D4N", r_cond, r_slave_cond->GetGeometry(), p_cond_prop_0);
+            for (auto p_slave_cond : slave_conds) {
+                for (auto p_master_cond : master_conds) {
+                    id_cond++;
+                    const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("ALMFrictionalMortarContactCondition3D4N"));
+                    Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(id_cond, p_slave_cond->pGetGeometry(), p_cond_prop_0, p_master_cond->pGetGeometry());
                     // We set the geometrical values
-                    p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, r_master_cond->pGetGeometry());
-                    p_auxiliar_condition->SetValue(NORMAL, r_slave_cond->GetValue(NORMAL));
-                    p_auxiliar_condition->SetValue(PAIRED_NORMAL, r_master_cond->GetValue(NORMAL));
+                    r_computing_contact_model_part.AddCondition(p_auxiliar_condition);
+                    p_auxiliar_condition->SetValue(NORMAL, p_slave_cond->GetValue(NORMAL));
+                    p_auxiliar_condition->SetValue(PAIRED_NORMAL, p_master_cond->GetValue(NORMAL));
                     // We activate the condition and initialize it
                     p_auxiliar_condition->Set(SLAVE, true);
                     p_auxiliar_condition->Set(ACTIVE, true);
@@ -922,7 +926,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -933,7 +937,7 @@ namespace Kratos
                     }
                 }
             }
-//             KRATOS_CHECK(counter != 0);
+            KRATOS_CHECK(counter != 0);
         }
 
         /**
@@ -978,7 +982,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1035,7 +1039,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1046,7 +1050,7 @@ namespace Kratos
                     }
                 }
             }
-//             KRATOS_CHECK(counter != 0);
+            KRATOS_CHECK(counter != 0);
         }
 
         /**
@@ -1092,7 +1096,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1155,7 +1159,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = - delta_x;
+            slip[0] = delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1219,7 +1223,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = - delta_x;
+            slip[0] = delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1234,7 +1238,7 @@ namespace Kratos
                     }
                 }
             }
-//             KRATOS_CHECK(counter != 0);
+            KRATOS_CHECK(counter != 0);
         }
 
         /**
@@ -1287,7 +1291,7 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = - delta_x;
+            slip[0] = delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
@@ -1302,7 +1306,7 @@ namespace Kratos
                     }
                 }
             }
-//             KRATOS_CHECK(counter != 0);
+            KRATOS_CHECK(counter != 0);
         }
 
         /**
@@ -1345,18 +1349,19 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
                     if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
-                        const auto weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
+                        const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
+
                         KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                         ++counter;
                     }
                 }
             }
-//             KRATOS_CHECK(counter != 0);
+            KRATOS_CHECK(counter != 0);
         }
 
         /**
@@ -1400,18 +1405,19 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip = ZeroVector(3);
-            slip[0] = delta_x;
+            slip[0] = - delta_x;
             std::size_t counter = 0;
             for (auto& r_node : r_model_part.Nodes()) {
                 if (r_node.Is(SLAVE)) {
                     if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
-                        const auto weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
+                        const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
+
                         KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                         ++counter;
                     }
                 }
             }
-//             KRATOS_CHECK(counter != 0);
+            KRATOS_CHECK(counter != 0);
         }
 
     } // namespace Testing

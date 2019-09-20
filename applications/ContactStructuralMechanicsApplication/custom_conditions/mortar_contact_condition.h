@@ -27,7 +27,7 @@
 /* Utilities */
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "custom_utilities/derivatives_utilities.h"
-#include "custom_utilities/logging_settings.hpp"
+// #include "custom_utilities/logging_settings.hpp"
 
 /* Geometries */
 #include "geometries/line_2d_2.h"
@@ -461,7 +461,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 

@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -68,7 +69,7 @@ class convergence_criterion:
         # Convergence criteria without rotation DOFs
         else:
             if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
-                self.mechanical_convergence_criterion = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+                self.mechanical_convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
             elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criterion"):
                 if(component_wise == True):
@@ -94,5 +95,11 @@ class convergence_criterion:
                     Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                 Residual.SetEchoLevel(echo_level)
                 self.mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "FemDem_Residual_criterion"):
+                if(component_wise == True):
+                    self.mechanical_convergence_criterion = KratosSolid.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
+                else:
+                    self.mechanical_convergence_criterion = KratosFemDem.FemDemResidualCriteria(R_RT, R_AT)
+                self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
             else:
                 raise Exception("Unsupported \"convergence_criterion\" : " + convergence_criterion_parameters["convergence_criterion"].GetString())

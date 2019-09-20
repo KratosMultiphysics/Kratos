@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "custom_utilities/contact_utilities.h"
 #include "custom_conditions/mortar_contact_condition.h"
 
 namespace Kratos
@@ -56,10 +57,14 @@ namespace Kratos
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNormalVariation If we are consider normal variation
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster = TNumNodes>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AugmentedLagrangianMethodFrictionalMortarContactCondition
-    : public MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation>
+    : public MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
@@ -68,7 +73,7 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionalMortarContactCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionalMortarContactCondition );
 
-    typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation> BaseType;
+    typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation, TNumNodesMaster>         BaseType;
 
     typedef Condition                                                                                             ConditionBaseType;
 
@@ -86,7 +91,7 @@ public:
 
     typedef typename BaseType::ConditionArrayListType                                                        ConditionArrayListType;
 
-    typedef MortarOperator<TNumNodes>                                                                   MortarBaseConditionMatrices;
+    typedef MortarOperator<TNumNodes, TNumNodesMaster>                                                  MortarBaseConditionMatrices;
 
     typedef typename ConditionBaseType::VectorType                                                                       VectorType;
 
@@ -112,9 +117,15 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                   DecompositionType;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation>                                          DerivativeDataType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>                         DerivativeDataType;
 
-    static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodes);
+    static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodesMaster);
+
+    static constexpr IndexType StepSlip = TNormalVariation ? 0 : 1;
+
+    static constexpr double OperatorThreshold = 1.0e-3;
+
+    static constexpr double TangentCoefficient = 1.0;
 
     ///@}
     ///@name Life Cycle
@@ -176,6 +187,12 @@ public:
     void Initialize() override;
 
     /**
+     * @brief Called at the begining of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
     * @brief Called at the ending of each solution step
     * @param rCurrentProcessInfo the current process info instance
     */
@@ -223,7 +240,7 @@ public:
         ) const override;
 
     /**
-     * this is called during the assembling process in order
+     * @brief This is called during the assembling process in order
      * to calculate the condition contribution in explicit calculation.
      * NodalData is modified Inside the function, so the
      * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION
@@ -297,7 +314,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         PrintInfo(rOStream);
-        this->GetGeometry().PrintData(rOStream);
+        this->GetParentGeometry().PrintData(rOStream);
         this->GetPairedGeometry().PrintData(rOStream);
     }
 
@@ -314,6 +331,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    bool mPreviousMortarOperatorsInitialized = false;     /// In order to know iw we need to initialize the previous operators
 
     MortarBaseConditionMatrices mPreviousMortarOperators; /// These are the mortar operators from the previous converged step, necessary for a consistent definition of the slip
 
@@ -393,7 +412,7 @@ protected:
     {
         // The friction coefficient
         array_1d<double, TNumNodes> friction_coeffient_vector;
-        auto& geom = this->GetGeometry();
+        auto& geom = this->GetParentGeometry();
 
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
             friction_coeffient_vector[i_node] = geom[i_node].GetValue(FRICTION_COEFFICIENT);
@@ -434,34 +453,10 @@ private:
     ///@{
 
     /**
-     * @brief It calculates the matrix containing the tangent vector of the slip (for frictional contact)
-     * @param ThisNodes The geometry to calculate
-     * @return tangent_matrix The matrix containing the tangent vectors of the slip
+     * @brief It computes the previous mortar operators
+     * @param rCurrentProcessInfo The current process information
      */
-
-    static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrixSlip(const GeometryType& ThisNodes) {
-        /* DEFINITIONS */
-        // Zero tolerance
-        const double zero_tolerance = std::numeric_limits<double>::epsilon();
-        // Tangent matrix
-        BoundedMatrix<double, TNumNodes, TDim> tangent_matrix;
-
-        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            const array_1d<double, 3>& slip = ThisNodes[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
-            const double norm_slip = norm_2(slip);
-            if (norm_slip > zero_tolerance) { // Non zero slip
-                const array_1d<double, 3> tangent_slip = slip/norm_slip;
-                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
-                    tangent_matrix(i_node, i_dof) = tangent_slip[i_dof];
-            } else { // We consider the tangent direction as auxiliar
-                const array_1d<double, 3>& tangent_xi = ThisNodes[i_node].GetValue(TANGENT_XI);
-                for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
-                    tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
-            }
-        }
-
-        return tangent_matrix;
-    }
+    void ComputePreviousMortarOperators( ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Private  Access
@@ -482,12 +477,14 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+        rSerializer.save("PreviousMortarOperatorsInitialized", mPreviousMortarOperatorsInitialized);
         rSerializer.save("PreviousMortarOperators", mPreviousMortarOperators);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+        rSerializer.load("PreviousMortarOperatorsInitialized", mPreviousMortarOperatorsInitialized);
         rSerializer.load("PreviousMortarOperators", mPreviousMortarOperators);
     }
 

@@ -15,13 +15,9 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     add_definitions( -DTETLIBRARY )
     add_definitions( -DUSE_TETGEN_NONFREE_TPL )
     include_directories(${TETGEN_INCLUDES})
-    #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
-    #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
 ##add subdirectories for compilation of dependent libraries
-#add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
 
 ## generate variables with the sources
@@ -55,6 +51,7 @@ endif(${INCLUDE_MMG} MATCHES ON)
 set (KRATOS_MESHING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
