@@ -12,11 +12,11 @@
 from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
 import time as timer
-from mesh_controller_base import MeshController
+from .mesh_controller_base import MeshController
 
 # ==============================================================================
 class MeshControllerBasicUpdating(MeshController):
@@ -28,8 +28,8 @@ class MeshControllerBasicUpdating(MeshController):
     def UpdateMeshAccordingInputVariable(self, variable):
         print("\n> Starting to update the mesh")
         startTime = timer.time()
-        MeshControllerUtilities(self.OptimizationModelPart).UpdateMeshAccordingInputVariable(variable)
-        MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(variable)
+        KSO.MeshControllerUtilities(self.OptimizationModelPart).UpdateMeshAccordingInputVariable(variable)
+        KSO.MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(variable)
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
 # ==============================================================================

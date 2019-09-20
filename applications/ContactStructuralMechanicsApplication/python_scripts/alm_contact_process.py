@@ -73,6 +73,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "tangent_factor"                : 1.0e0,
             "slip_convergence_coefficient"  : 1.0,
             "slip_augmentation_coefficient" : 1.0,
+            "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "clear_inactive_for_post"       : true,
             "search_parameters"             : {
@@ -95,6 +96,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                     "bounding_box_factor"             : 0.1,
                     "debug_obb"                       : false,
                     "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "build_from_bounding_box"         : true,
                     "lower_bounding_box_coefficient"  : 0.0,
                     "higher_bounding_box_coefficient" : 1.0
                 }
@@ -135,6 +137,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         base_process_settings.AddValue("assume_master_slave", self.contact_settings["assume_master_slave"])
         base_process_settings.AddValue("search_property_ids", self.contact_settings["contact_property_ids"])
         base_process_settings.AddValue("interval", self.contact_settings["interval"])
+        base_process_settings.AddValue("zero_tolerance_factor", self.contact_settings["zero_tolerance_factor"])
         base_process_settings.AddValue("integration_order", self.contact_settings["integration_order"])
         base_process_settings.AddValue("search_parameters", self.contact_settings["search_parameters"])
 

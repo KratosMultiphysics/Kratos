@@ -15,25 +15,21 @@
 #if !defined(KRATOS_PROPERTIES_H_INCLUDED )
 #define  KRATOS_PROPERTIES_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 #include <cstddef>
 #include <unordered_map>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
+#include "utilities/indexed_object.h"
 #include "containers/data_value_container.h"
 #include "includes/process_info.h"
 #include "includes/table.h"
-
 
 namespace Kratos
 {
@@ -57,15 +53,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Properties encapsulates data shared by different Elements or Conditions
 /**
- * Properties encapsulates data shared by different Elements or Conditions. It can store any type of data and provides a variable base access to them.
- *  These are all parameters that can be shared between Element. Usually material parameters are common for a set of element, so this category of data is referred as properties.
+ * @class Properties
+ * @ingroup KratosCore
+ * @brief Properties encapsulates data shared by different Elements or Conditions. It can store any type of data and provides a variable base access to them.
+ * @details These are all parameters that can be shared between Element. Usually material parameters are common for a set of element, so this category of data is referred as properties.
  * But in general it can be any common parameter for a group of Elements. Sharing these data as properties reduces the memory used by the application and also helps updating them if necessary.
  * As mentioned before Properties is a shared data container between Elements or Conditions. In finite element problems there are several parameters which are the same for a set of elements and conditions.
  * Thermal conductivity, elasticity of the material and viscosity of the fluid are examples of these parameters. Properties holds these data and is shared by elements or Conditions. This eliminates memory overhead due to redundant copies of these data for each element and Condition. Properties also can be used to access nodal data if it is necessary.
  * It is important to mention that accessing the nodal data via Properties is not the same as accessing it via Node. When user asks Properties for a variable data in a Node, the process starts with finding the variable in the Properties data container and if it does not exist then get it from Node.
  * This means that the priority of data is with the one stored in Properties and then in Node.
+ * @author Pooyan Dadvand
  */
 class Properties : public IndexedObject
 {
@@ -91,16 +89,33 @@ public:
 
     typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
+    /// Properties container. A vector set of properties with their Id's as key.
+    typedef PointerVectorSet<Properties, IndexedObject> SubPropertiesContainerType;
+
+    /** Iterator over the properties. This iterator is an indirect
+    iterator over Properties::Pointer which turn back a reference to
+    properties by * operator and not a pointer for more convenient
+    usage. */
+    typedef typename SubPropertiesContainerType::iterator SubPropertiesIterator;
+
+    /** Const iterator over the properties. This iterator is an indirect
+    iterator over Properties::Pointer which turn back a reference to
+    properties by * operator and not a pointer for more convenient
+    usage. */
+    typedef typename SubPropertiesContainerType::const_iterator SubPropertiesConstantIterator;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    explicit Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables() {}
+    explicit Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList() {}
+
+    /// Default of properties with subproperties
+    explicit Properties(IndexType NewId, SubPropertiesContainerType SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList) {}
 
     /// Copy constructor.
-    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables) {}
+    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropertiesList(rOther.mSubPropertiesList) {}
 
     /// Destructor.
     ~Properties() override {}
@@ -116,6 +131,7 @@ public:
         BaseType::operator=(rOther);
         mData = rOther.mData;
         mTables = rOther.mTables;
+        mSubPropertiesList = rOther.mSubPropertiesList;
         return *this;
     }
 
@@ -278,30 +294,316 @@ public:
         return result_key;
     }
 
+    /**
+     * @brief This method returns the number of subproperties
+     * @return The current number of subproperties
+     */
+    std::size_t NumberOfSubproperties() const
+    {
+        return mSubPropertiesList.size();
+    }
+
+    /**
+     * @brief This method insert a new property into the list of subproperties
+     * @param pNewSubProperty The new property to be added
+     */
+    void AddSubProperties(Properties::Pointer pNewSubProperty)
+    {
+        KRATOS_DEBUG_ERROR_IF(this->HasSubProperties(pNewSubProperty->Id())) << "SubProperties with ID: " << pNewSubProperty->Id() << " already defined" << std::endl;
+        mSubPropertiesList.insert(mSubPropertiesList.begin(), pNewSubProperty);
+    }
+
+    /**
+     * @brief This method checks if the subproperty exists from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return True if there is such subproperty, false otherwise
+     */
+    bool HasSubProperties(const IndexType SubPropertyIndex) const
+    {
+        return mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end();
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The pointer to the subproperty of interest
+     */
+    Properties::Pointer pGetSubProperties(const IndexType SubPropertyIndex)
+    {
+        // Looking into the database
+        SubPropertiesIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        if (property_iterator != mSubPropertiesList.end()) {
+            return *(property_iterator.base());
+        } else {
+            KRATOS_ERROR << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
+            return nullptr;
+        }
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id (constant version)
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The pointer to the subproperty of interest
+     */
+    const Properties::Pointer pGetSubProperties(const IndexType SubPropertyIndex) const
+    {
+        // Looking into the database
+        SubPropertiesConstantIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        if (property_iterator != mSubPropertiesList.end()) {
+            return *(property_iterator.base());
+        } else {
+            KRATOS_ERROR << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
+            return nullptr;
+        }
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The reference to the subproperty of interest
+     */
+    Properties& GetSubProperties(const IndexType SubPropertyIndex)
+    {
+        // Looking into the database
+        SubPropertiesIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        if (property_iterator != mSubPropertiesList.end()) {
+            return *(property_iterator);
+        } else {
+            KRATOS_ERROR << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << " creating a new one with ID: " << SubPropertyIndex << std::endl;
+            return *this;
+        }
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id (constant version)
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The reference to the subproperty of interest
+     */
+    const Properties& GetSubProperties(const IndexType SubPropertyIndex) const
+    {
+        // Looking into the database
+        if (mSubPropertiesList.find(SubPropertyIndex) != mSubPropertiesList.end()) {
+            return *(mSubPropertiesList.find(SubPropertyIndex));
+        } else {
+            KRATOS_ERROR << "Subproperty ID: " << SubPropertyIndex << " is not defined on the current Properties ID: " << this->Id() << std::endl;
+        }
+    }
+
+    /**
+     * @brief This method checks if the subproperty exists from the address corresponding to the proper structure of indexes
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return True if there is such subproperty, false otherwise
+     */
+    bool HasSubProperties(const std::string& rAddress) const
+    {
+        const auto indexes = TrimComponentName(rAddress);
+        const std::size_t number_indexes = indexes.size();
+        if (number_indexes > 0) {
+            if (this->HasSubProperties(indexes[0])) {
+                Properties::Pointer p_property_interest = pGetSubProperties(indexes[0]);
+                for (IndexType i_index = 1; i_index < number_indexes; ++i_index) {
+                    if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
+                        return false;
+                    } else {
+                        p_property_interest = pGetSubProperties(indexes[i_index]);
+                    }
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            KRATOS_WARNING("Properties") << "Giving an address pointing directly to this Properties, extension expected of at least one component" << std::endl;
+            return false;
+        }
+    }
+
+    /**
+     * @brief This method gets the subproperty from the address corresponding to the proper structure of indexes
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return The pointer to the subproperty of interest
+     */
+    Properties::Pointer pGetSubProperties(const std::string& rAddress)
+    {
+        const auto indexes = TrimComponentName(rAddress);
+        const std::size_t number_indexes = indexes.size();
+
+        // Iterating over subproperties
+        if (number_indexes > 0) {
+            if (this->HasSubProperties(indexes[0])) {
+                Properties::Pointer p_property_interest = pGetSubProperties(indexes[0]);
+                for (IndexType i_index = 1; i_index < number_indexes; ++i_index) {
+                    if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
+                        KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+                    } else {
+                        p_property_interest = pGetSubProperties(indexes[i_index]);
+                    }
+                }
+                return p_property_interest;
+            } else {
+                KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[0] << std::endl;
+            }
+        } else {
+            KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least one component" << std::endl;
+        }
+    }
+
+    /**
+     * @brief This method gets the subproperty from the address corresponding to the proper structure of indexes (constant version)
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return The pointer to the subproperty of interest
+     */
+    const Properties::Pointer pGetSubProperties(const std::string& rAddress) const
+    {
+        const auto indexes = TrimComponentName(rAddress);
+        const std::size_t number_indexes = indexes.size();
+
+        // Iterating over subproperties
+        if (number_indexes > 0) {
+            if (this->HasSubProperties(indexes[0])) {
+                Properties::Pointer p_property_interest = pGetSubProperties(indexes[0]);
+                for (IndexType i_index = 1; i_index < number_indexes; ++i_index) {
+                    if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
+                        KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+                    } else {
+                        p_property_interest = pGetSubProperties(indexes[i_index]);
+                    }
+                }
+                return p_property_interest;
+            } else {
+                KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[0] << std::endl;
+            }
+        } else {
+            KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least one component" << std::endl;
+        }
+    }
+
+    /**
+     * @brief This method gets the subproperty from the address corresponding to the proper structure of indexes
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return The reference to the subproperty of interest
+     */
+    Properties& GetSubProperties(const std::string& rAddress)
+    {
+        const auto indexes = TrimComponentName(rAddress);
+        const std::size_t number_indexes = indexes.size();
+
+        // Iterating over subproperties
+        if (number_indexes > 0) {
+            if (this->HasSubProperties(indexes[0])) {
+                Properties::Pointer p_property_interest = pGetSubProperties(indexes[0]);
+                for (IndexType i_index = 1; i_index < number_indexes; ++i_index) {
+                    if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
+                        KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+                    } else {
+                        p_property_interest = pGetSubProperties(indexes[i_index]);
+                    }
+                }
+                return *p_property_interest;
+            } else {
+                KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[0] << std::endl;
+            }
+        } else {
+            KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least one component" << std::endl;
+        }
+    }
+
+    /**
+     * @brief This method gets the subproperty from the address corresponding to the proper structure of indexes (constant version)
+     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
+     * @return The reference to the subproperty of interest
+     */
+    const Properties& GetSubProperties(const std::string& rAddress) const
+    {
+        const auto indexes = TrimComponentName(rAddress);
+        const std::size_t number_indexes = indexes.size();
+
+        // Iterating over subproperties
+        if (number_indexes > 0) {
+            if (this->HasSubProperties(indexes[0])) {
+                Properties::Pointer p_property_interest = pGetSubProperties(indexes[0]);
+                for (IndexType i_index = 1; i_index < number_indexes; ++i_index) {
+                    if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
+                        KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
+                    } else {
+                        p_property_interest = pGetSubProperties(indexes[i_index]);
+                    }
+                }
+                return *p_property_interest;
+            } else {
+                KRATOS_ERROR << "First index is wrong, does not correspond with any sub Properties Id: " << this->Id() << "." << indexes[0] << std::endl;
+            }
+        } else {
+            KRATOS_ERROR << "Giving an address pointing directly to this Properties, extension expected of at least one component" << std::endl;
+        }
+    }
+
+    /**
+     * @brief This method returns the whole list of subproperties
+     * @return The whole lis of subproperties
+     */
+    SubPropertiesContainerType& GetSubProperties()
+    {
+        return SubPropertiesList();
+    }
+
+    /**
+     * @brief This method returns the whole list of subproperties
+     * @return The whole lis of subproperties
+     */
+    SubPropertiesContainerType const& GetSubProperties() const
+    {
+        return SubPropertiesList();
+    }
+
+    /**
+     * @brief This method set the whole list of subproperties
+     * @param rSubPropertiesList The list of subproperties
+     */
+    void SetSubProperties(SubPropertiesContainerType& rSubPropertiesList)
+    {
+        mSubPropertiesList = rSubPropertiesList;
+    }
+
     ///@}
     ///@name Access
     ///@{
 
+    /**
+     * @brief This method returns the whole data container
+     * @return Data container
+     */
     ContainerType& Data()
     {
         return mData;
     }
 
+    /**
+     * @brief This method returns the whole data container (constant)
+     * @return Data container
+     */
     ContainerType const& Data() const
     {
         return mData;
     }
 
+    /**
+     * @brief This method returns the tables
+     * @return The whole lis of tables
+     */
     TablesContainerType& Tables()
     {
         return mTables;
     }
 
+    /**
+     * @brief This method returns the tables (constant)
+     * @return The whole lis of tables
+     */
     TablesContainerType const& Tables() const
     {
         return mTables;
     }
-
 
     ///@}
     ///@name Inquiry
@@ -341,6 +643,12 @@ public:
     {
         mData.PrintData(rOStream);
         rOStream << "This properties contains " << mTables.size() << " tables";
+        if (mSubPropertiesList.size() > 0) {
+            rOStream << "\nThis properties contains the following subproperties " << mSubPropertiesList.size() << " subproperties" << std::endl;
+            for (auto& r_subprop : mSubPropertiesList) {
+                r_subprop.PrintData(rOStream);
+            }
+        }
     }
 
 
@@ -397,8 +705,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ContainerType mData;
-    TablesContainerType mTables;
+    ContainerType mData;                        /// The data stored on the properties
+
+    TablesContainerType mTables;                /// The tables contained on the properties
+
+    SubPropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
 
     ///@}
     ///@name Private Operators
@@ -409,6 +720,24 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method trims a string in the different components to access recursively to any subproperty
+     * @param rStringName The given name to be trimmed
+     * @return The list of indexes
+     */
+    std::vector<IndexType> TrimComponentName(const std::string& rStringName) const
+    {
+        std::vector<IndexType> list_indexes;
+
+        std::stringstream ss(rStringName);
+        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
+            list_indexes.push_back(std::stoi(index_string));
+        }
+
+        KRATOS_ERROR_IF(list_indexes.size() == 0) << "Properties:: Empty list of indexes when reading suproperties" << std::endl;
+
+        return list_indexes;
+    }
 
     ///@}
     ///@name Serialization
@@ -421,6 +750,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.save("Data", mData);
         rSerializer.save("Tables", mTables);
+        rSerializer.save("SubPropertiesList", mSubPropertiesList);
     }
 
     void load(Serializer& rSerializer) override
@@ -428,12 +758,30 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.load("Data", mData);
         rSerializer.load("Tables", mTables);
+        rSerializer.load("SubPropertiesList", mSubPropertiesList);
     }
 
     ///@}
     ///@name Private  Access
     ///@{
 
+    /**
+     * @brief This method returns the whole list of subproperties (constant)
+     * @return The whole lis of subproperties
+     */
+    SubPropertiesContainerType& SubPropertiesList()
+    {
+        return mSubPropertiesList;
+    }
+
+    /**
+     * @brief This method returns the whole list of subproperties (constant)
+     * @return The whole lis of subproperties
+     */
+    SubPropertiesContainerType const& SubPropertiesList() const
+    {
+        return mSubPropertiesList;
+    }
 
     ///@}
     ///@name Private Inquiry
@@ -480,5 +828,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_PROPERTIES_H_INCLUDED  defined
-
-

@@ -33,6 +33,7 @@
 #include "custom_processes/advanced_contact_search_process.h"
 #include "custom_processes/find_intersected_geometrical_objects_with_obb_for_contact_search_process.h"
 #include "custom_processes/normal_gap_process.h"
+#include "custom_processes/normal_check_process.h"
 
 namespace Kratos
 {
@@ -237,6 +238,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<NormalGapProcess<3, 4, 3>, typename NormalGapProcess<3, 4, 3>::Pointer, Process>(m, "NormalGapProcess3D4N3N")
     .def(py::init<ModelPart&, ModelPart&>())
     .def(py::init<ModelPart&, ModelPart&, const bool>())
+    ;
+
+    // Normal check process
+    py::class_<NormalCheckProcess, NormalCheckProcess::Pointer, Process>(m, "NormalCheckProcess")
+    .def(py::init<ModelPart&>())
     ;
 
     // FindIntersectedGeometricalObjectsWithOBBContactSearchProcess
