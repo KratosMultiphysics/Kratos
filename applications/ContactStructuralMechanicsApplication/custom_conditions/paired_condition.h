@@ -238,7 +238,7 @@ public:
      */
     void SetPairedNormal(const array_1d<double, 3>& rPairedNormal)
     {
-        return mPairedNormal = rPairedNormal;
+        noalias(mPairedNormal) = rPairedNormal;
     }
 
     /**
