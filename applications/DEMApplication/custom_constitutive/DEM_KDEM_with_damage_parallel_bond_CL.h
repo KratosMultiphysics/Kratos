@@ -97,11 +97,15 @@ namespace Kratos {
             DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) override;
 
+        double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
+
         double mUnbondedNormalElasticConstant;
         double mUnbondedTangentialElasticConstant;
         double mViscoDampingLocalContactForce[3];
         double mBondedScalingFactor = 0.0;
         double mUnbondedScalingFactor = 0.0;
+        //double mKn = 1.372e+07;
+        //double mKt = 1.372e+07;
 
     private:
 
