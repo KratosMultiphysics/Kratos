@@ -13,7 +13,7 @@
         "solver_type": "Monolithic",
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "channel_flow_periodic_k_epsilon"
+            "input_filename": "periodic_k_epsilon_channel_flow"
         },
         "echo_level": 0,
         "compute_reactions": true,

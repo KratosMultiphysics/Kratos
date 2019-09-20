@@ -1,3 +1,4 @@
+import os
 import KratosMultiphysics as km
 import KratosMultiphysics.FluidDynamicsApplication as kfd
 import KratosMultiphysics.RANSModellingApplication
@@ -20,6 +21,7 @@ class EvmKEpsilonTest(UnitTest.TestCase):
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name)
+            kratos_utilities.DeleteTimeFiles(".")
 
     def testChannelFlowKEpsilonTransientMPI(self):
         work_folder = "ChannelFlowTest"
@@ -28,12 +30,18 @@ class EvmKEpsilonTest(UnitTest.TestCase):
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name)
 
+            for file_name in os.listdir():
+                if file_name.startswith("channel_flow_") and file_name.endswith(".mdpa"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+            kratos_utilities.DeleteTimeFiles(".")
+
     def testChannelFlowKEpsilonSteady(self):
         work_folder = "ChannelFlowTest"
         settings_file_name = "channel_flow_k_epsilon_steady_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name)
+            kratos_utilities.DeleteTimeFiles(".")
 
     def testChannelFlowKEpsilonSteadyMPI(self):
         work_folder = "ChannelFlowTest"
@@ -42,12 +50,18 @@ class EvmKEpsilonTest(UnitTest.TestCase):
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name)
 
+            for file_name in os.listdir():
+                if file_name.startswith("channel_flow_") and file_name.endswith(".mdpa"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+            kratos_utilities.DeleteTimeFiles(".")
+
     def testChannelFlowKEpsilonSteadyPeriodic(self):
         work_folder = "ChannelFlowTest"
         settings_file_name = "channel_flow_k_epsilon_steady_periodic_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name, True)
+            kratos_utilities.DeleteTimeFiles(".")
 
     def _runTest(self,settings_file_name, is_periodic = False):
         model = km.Model()
