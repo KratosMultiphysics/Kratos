@@ -100,7 +100,10 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 
     // The master geometry
     GeometryType& r_master_geometry = this->GetPairedGeometry();
-    const array_1d<double, 3>& r_normal_master = this->GetValue(PAIRED_NORMAL);
+    GeometryType::CoordinatesArrayType aux_coords;
+    r_master_geometry.PointLocalCoordinates(aux_coords, r_master_geometry.Center());
+    const array_1d<double, 3>& r_normal_master = r_master_geometry.UnitNormal(aux_coords);
+
     // Initialize general variables for the current master element
     rVariables.Initialize();
 
