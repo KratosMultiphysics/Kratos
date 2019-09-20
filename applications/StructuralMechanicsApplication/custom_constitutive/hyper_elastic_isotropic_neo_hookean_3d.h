@@ -176,56 +176,20 @@ public:
     void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
-     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @see Parameters
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
      */
-    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
 
     /**
-     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @see Parameters
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
      */
-    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of Kirchhoff stresses
-     * @see Parameters
-     */
-    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Initialize the material response in terms of Cauchy stresses
-     * @see Parameters
-     */
-    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-      * @brief Updates the material response: Cauchy stresses and Internal Variables
-      * @param rValues The Internalvalues of the law
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
-
-    /**
-      * @brief Updates the material response: Cauchy stresses and Internal Variables
-      * @param rValues The Internalvalues of the law
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
-
-    /**
-      * @brief Updates the material response: Cauchy stresses and Internal Variables
-      * @param rValues The Internalvalues of the law
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues)  override;
-
-    /**
-      * @brief Updates the material response: Cauchy stresses and Internal Variables
-      * @param rValues The Internalvalues of the law
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return false;
+    }
 
     /**
      * @brief It calculates the value of a specified variable (double)
