@@ -1534,7 +1534,7 @@ void Build(
         Doftemp.reserve(dofs_aux_list[0].size());
         for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); it++)
 	  {
-            Doftemp.push_back(it->get());
+            Doftemp.push_back((*it));
 	  }
         Doftemp.Sort();
 

@@ -101,7 +101,8 @@ public:
     ///@{
 
     /// Pointer definition of Dof
-    KRATOS_CLASS_POINTER_DEFINITION(Dof);
+    //KRATOS_CLASS_POINTER_DEFINITION(Dof);
+    using Pointer=Dof*;
 
     typedef std::size_t IndexType;
 
