@@ -28,7 +28,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -40,7 +40,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -53,7 +53,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pMasterGeom) const
 {
-    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties, pMasterGeom );
+    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -81,7 +81,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
@@ -89,12 +89,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
     const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 2, 2>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -301,14 +301,14 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         rLocalLHS(7,6)+=clhs114*clhs86;
         rLocalLHS(7,7)+=clhs115*clhs86;
         rLocalLHS(7,8)+=-clhs116*clhs86;
-        rLocalLHS(8,0)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs0 - clhs19 - clhs20 + clhs21 + clhs22) + clhs17);
-        rLocalLHS(8,1)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs0 - clhs32 - clhs33 + clhs34 + clhs35) + clhs31);
-        rLocalLHS(8,2)+=-ScaleFactor*(-NormalSlave(0,0)*(-clhs44 - clhs45 + clhs46 + clhs47 + clhs8) + clhs42);
-        rLocalLHS(8,3)+=-ScaleFactor*(-NormalSlave(0,1)*(-clhs55 - clhs56 + clhs57 + clhs58 + clhs8) + clhs54);
-        rLocalLHS(8,4)+=-ScaleFactor*clhs65;
-        rLocalLHS(8,5)+=-ScaleFactor*clhs71;
-        rLocalLHS(8,6)+=-ScaleFactor*clhs77;
-        rLocalLHS(8,7)+=-ScaleFactor*clhs83;
+        rLocalLHS(8,0)+=ScaleFactor*(-NormalSlave(0,0)*(clhs0 - clhs19 - clhs20 + clhs21 + clhs22) + clhs17);
+        rLocalLHS(8,1)+=ScaleFactor*(-NormalSlave(0,1)*(clhs0 - clhs32 - clhs33 + clhs34 + clhs35) + clhs31);
+        rLocalLHS(8,2)+=ScaleFactor*(-NormalSlave(0,0)*(-clhs44 - clhs45 + clhs46 + clhs47 + clhs8) + clhs42);
+        rLocalLHS(8,3)+=ScaleFactor*(-NormalSlave(0,1)*(-clhs55 - clhs56 + clhs57 + clhs58 + clhs8) + clhs54);
+        rLocalLHS(8,4)+=ScaleFactor*clhs65;
+        rLocalLHS(8,5)+=ScaleFactor*clhs71;
+        rLocalLHS(8,6)+=ScaleFactor*clhs77;
+        rLocalLHS(8,7)+=ScaleFactor*clhs83;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -505,14 +505,14 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         rLocalLHS(7,6)+=clhs114*clhs86;
         rLocalLHS(7,7)+=clhs115*clhs86;
         rLocalLHS(7,9)+=-clhs116*clhs86;
-        rLocalLHS(9,0)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs0 - clhs19 - clhs20 + clhs21 + clhs22) + clhs17);
-        rLocalLHS(9,1)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs0 - clhs32 - clhs33 + clhs34 + clhs35) + clhs31);
-        rLocalLHS(9,2)+=-ScaleFactor*(-NormalSlave(1,0)*(-clhs44 - clhs45 + clhs46 + clhs47 + clhs8) + clhs42);
-        rLocalLHS(9,3)+=-ScaleFactor*(-NormalSlave(1,1)*(-clhs55 - clhs56 + clhs57 + clhs58 + clhs8) + clhs54);
-        rLocalLHS(9,4)+=-ScaleFactor*clhs65;
-        rLocalLHS(9,5)+=-ScaleFactor*clhs71;
-        rLocalLHS(9,6)+=-ScaleFactor*clhs77;
-        rLocalLHS(9,7)+=-ScaleFactor*clhs83;
+        rLocalLHS(9,0)+=ScaleFactor*(-NormalSlave(1,0)*(clhs0 - clhs19 - clhs20 + clhs21 + clhs22) + clhs17);
+        rLocalLHS(9,1)+=ScaleFactor*(-NormalSlave(1,1)*(clhs0 - clhs32 - clhs33 + clhs34 + clhs35) + clhs31);
+        rLocalLHS(9,2)+=ScaleFactor*(-NormalSlave(1,0)*(-clhs44 - clhs45 + clhs46 + clhs47 + clhs8) + clhs42);
+        rLocalLHS(9,3)+=ScaleFactor*(-NormalSlave(1,1)*(-clhs55 - clhs56 + clhs57 + clhs58 + clhs8) + clhs54);
+        rLocalLHS(9,4)+=ScaleFactor*clhs65;
+        rLocalLHS(9,5)+=ScaleFactor*clhs71;
+        rLocalLHS(9,6)+=ScaleFactor*clhs77;
+        rLocalLHS(9,7)+=ScaleFactor*clhs83;
     }
 }
 
@@ -534,7 +534,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -542,12 +542,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -1247,24 +1247,24 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalLHS(17,16)+=clhs239*clhs337;
         rLocalLHS(17,17)+=clhs239*clhs338;
         rLocalLHS(17,18)+=-clhs239*clhs339;
-        rLocalLHS(18,0)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs0 - clhs28 - clhs30 - clhs32 + clhs33 + clhs35 + clhs37) + clhs38);
-        rLocalLHS(18,1)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs0 - clhs45 - clhs47 - clhs49 + clhs50 + clhs52 + clhs54) + clhs55);
-        rLocalLHS(18,2)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs0 - clhs60 - clhs62 - clhs64 + clhs65 + clhs67 + clhs69) + clhs70);
-        rLocalLHS(18,3)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs10 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85) + clhs86);
-        rLocalLHS(18,4)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs10 + clhs100 - clhs91 - clhs93 - clhs95 + clhs96 + clhs98) + clhs101);
-        rLocalLHS(18,5)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs10 - clhs106 - clhs108 - clhs110 + clhs111 + clhs113 + clhs115) + clhs116);
-        rLocalLHS(18,6)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs12 - clhs122 - clhs124 - clhs126 + clhs127 + clhs129 + clhs131) + clhs132);
-        rLocalLHS(18,7)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs12 - clhs137 - clhs139 - clhs141 + clhs142 + clhs144 + clhs146) + clhs147);
-        rLocalLHS(18,8)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs12 - clhs152 - clhs154 - clhs156 + clhs157 + clhs159 + clhs161) + clhs162);
-        rLocalLHS(18,9)+=-ScaleFactor*clhs171;
-        rLocalLHS(18,10)+=-ScaleFactor*clhs179;
-        rLocalLHS(18,11)+=-ScaleFactor*clhs187;
-        rLocalLHS(18,12)+=-ScaleFactor*clhs195;
-        rLocalLHS(18,13)+=-ScaleFactor*clhs203;
-        rLocalLHS(18,14)+=-ScaleFactor*clhs211;
-        rLocalLHS(18,15)+=-ScaleFactor*clhs219;
-        rLocalLHS(18,16)+=-ScaleFactor*clhs227;
-        rLocalLHS(18,17)+=-ScaleFactor*clhs235;
+        rLocalLHS(18,0)+=ScaleFactor*(-NormalSlave(0,0)*(clhs0 - clhs28 - clhs30 - clhs32 + clhs33 + clhs35 + clhs37) + clhs38);
+        rLocalLHS(18,1)+=ScaleFactor*(-NormalSlave(0,1)*(clhs0 - clhs45 - clhs47 - clhs49 + clhs50 + clhs52 + clhs54) + clhs55);
+        rLocalLHS(18,2)+=ScaleFactor*(-NormalSlave(0,2)*(clhs0 - clhs60 - clhs62 - clhs64 + clhs65 + clhs67 + clhs69) + clhs70);
+        rLocalLHS(18,3)+=ScaleFactor*(-NormalSlave(0,0)*(clhs10 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85) + clhs86);
+        rLocalLHS(18,4)+=ScaleFactor*(-NormalSlave(0,1)*(clhs10 + clhs100 - clhs91 - clhs93 - clhs95 + clhs96 + clhs98) + clhs101);
+        rLocalLHS(18,5)+=ScaleFactor*(-NormalSlave(0,2)*(clhs10 - clhs106 - clhs108 - clhs110 + clhs111 + clhs113 + clhs115) + clhs116);
+        rLocalLHS(18,6)+=ScaleFactor*(-NormalSlave(0,0)*(clhs12 - clhs122 - clhs124 - clhs126 + clhs127 + clhs129 + clhs131) + clhs132);
+        rLocalLHS(18,7)+=ScaleFactor*(-NormalSlave(0,1)*(clhs12 - clhs137 - clhs139 - clhs141 + clhs142 + clhs144 + clhs146) + clhs147);
+        rLocalLHS(18,8)+=ScaleFactor*(-NormalSlave(0,2)*(clhs12 - clhs152 - clhs154 - clhs156 + clhs157 + clhs159 + clhs161) + clhs162);
+        rLocalLHS(18,9)+=ScaleFactor*clhs171;
+        rLocalLHS(18,10)+=ScaleFactor*clhs179;
+        rLocalLHS(18,11)+=ScaleFactor*clhs187;
+        rLocalLHS(18,12)+=ScaleFactor*clhs195;
+        rLocalLHS(18,13)+=ScaleFactor*clhs203;
+        rLocalLHS(18,14)+=ScaleFactor*clhs211;
+        rLocalLHS(18,15)+=ScaleFactor*clhs219;
+        rLocalLHS(18,16)+=ScaleFactor*clhs227;
+        rLocalLHS(18,17)+=ScaleFactor*clhs235;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -1954,24 +1954,24 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalLHS(17,16)+=clhs239*clhs337;
         rLocalLHS(17,17)+=clhs239*clhs338;
         rLocalLHS(17,19)+=-clhs239*clhs339;
-        rLocalLHS(19,0)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs0 - clhs28 - clhs30 - clhs32 + clhs33 + clhs35 + clhs37) + clhs38);
-        rLocalLHS(19,1)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs0 - clhs45 - clhs47 - clhs49 + clhs50 + clhs52 + clhs54) + clhs55);
-        rLocalLHS(19,2)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs0 - clhs60 - clhs62 - clhs64 + clhs65 + clhs67 + clhs69) + clhs70);
-        rLocalLHS(19,3)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs10 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85) + clhs86);
-        rLocalLHS(19,4)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs10 + clhs100 - clhs91 - clhs93 - clhs95 + clhs96 + clhs98) + clhs101);
-        rLocalLHS(19,5)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs10 - clhs106 - clhs108 - clhs110 + clhs111 + clhs113 + clhs115) + clhs116);
-        rLocalLHS(19,6)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs12 - clhs122 - clhs124 - clhs126 + clhs127 + clhs129 + clhs131) + clhs132);
-        rLocalLHS(19,7)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs12 - clhs137 - clhs139 - clhs141 + clhs142 + clhs144 + clhs146) + clhs147);
-        rLocalLHS(19,8)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs12 - clhs152 - clhs154 - clhs156 + clhs157 + clhs159 + clhs161) + clhs162);
-        rLocalLHS(19,9)+=-ScaleFactor*clhs171;
-        rLocalLHS(19,10)+=-ScaleFactor*clhs179;
-        rLocalLHS(19,11)+=-ScaleFactor*clhs187;
-        rLocalLHS(19,12)+=-ScaleFactor*clhs195;
-        rLocalLHS(19,13)+=-ScaleFactor*clhs203;
-        rLocalLHS(19,14)+=-ScaleFactor*clhs211;
-        rLocalLHS(19,15)+=-ScaleFactor*clhs219;
-        rLocalLHS(19,16)+=-ScaleFactor*clhs227;
-        rLocalLHS(19,17)+=-ScaleFactor*clhs235;
+        rLocalLHS(19,0)+=ScaleFactor*(-NormalSlave(1,0)*(clhs0 - clhs28 - clhs30 - clhs32 + clhs33 + clhs35 + clhs37) + clhs38);
+        rLocalLHS(19,1)+=ScaleFactor*(-NormalSlave(1,1)*(clhs0 - clhs45 - clhs47 - clhs49 + clhs50 + clhs52 + clhs54) + clhs55);
+        rLocalLHS(19,2)+=ScaleFactor*(-NormalSlave(1,2)*(clhs0 - clhs60 - clhs62 - clhs64 + clhs65 + clhs67 + clhs69) + clhs70);
+        rLocalLHS(19,3)+=ScaleFactor*(-NormalSlave(1,0)*(clhs10 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85) + clhs86);
+        rLocalLHS(19,4)+=ScaleFactor*(-NormalSlave(1,1)*(clhs10 + clhs100 - clhs91 - clhs93 - clhs95 + clhs96 + clhs98) + clhs101);
+        rLocalLHS(19,5)+=ScaleFactor*(-NormalSlave(1,2)*(clhs10 - clhs106 - clhs108 - clhs110 + clhs111 + clhs113 + clhs115) + clhs116);
+        rLocalLHS(19,6)+=ScaleFactor*(-NormalSlave(1,0)*(clhs12 - clhs122 - clhs124 - clhs126 + clhs127 + clhs129 + clhs131) + clhs132);
+        rLocalLHS(19,7)+=ScaleFactor*(-NormalSlave(1,1)*(clhs12 - clhs137 - clhs139 - clhs141 + clhs142 + clhs144 + clhs146) + clhs147);
+        rLocalLHS(19,8)+=ScaleFactor*(-NormalSlave(1,2)*(clhs12 - clhs152 - clhs154 - clhs156 + clhs157 + clhs159 + clhs161) + clhs162);
+        rLocalLHS(19,9)+=ScaleFactor*clhs171;
+        rLocalLHS(19,10)+=ScaleFactor*clhs179;
+        rLocalLHS(19,11)+=ScaleFactor*clhs187;
+        rLocalLHS(19,12)+=ScaleFactor*clhs195;
+        rLocalLHS(19,13)+=ScaleFactor*clhs203;
+        rLocalLHS(19,14)+=ScaleFactor*clhs211;
+        rLocalLHS(19,15)+=ScaleFactor*clhs219;
+        rLocalLHS(19,16)+=ScaleFactor*clhs227;
+        rLocalLHS(19,17)+=ScaleFactor*clhs235;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -2661,24 +2661,24 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalLHS(17,16)+=clhs239*clhs337;
         rLocalLHS(17,17)+=clhs239*clhs338;
         rLocalLHS(17,20)+=-clhs239*clhs339;
-        rLocalLHS(20,0)+=-ScaleFactor*(-NormalSlave(2,0)*(clhs0 - clhs28 - clhs30 - clhs32 + clhs33 + clhs35 + clhs37) + clhs38);
-        rLocalLHS(20,1)+=-ScaleFactor*(-NormalSlave(2,1)*(clhs0 - clhs45 - clhs47 - clhs49 + clhs50 + clhs52 + clhs54) + clhs55);
-        rLocalLHS(20,2)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs0 - clhs60 - clhs62 - clhs64 + clhs65 + clhs67 + clhs69) + clhs70);
-        rLocalLHS(20,3)+=-ScaleFactor*(-NormalSlave(2,0)*(clhs10 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85) + clhs86);
-        rLocalLHS(20,4)+=-ScaleFactor*(-NormalSlave(2,1)*(clhs10 + clhs100 - clhs91 - clhs93 - clhs95 + clhs96 + clhs98) + clhs101);
-        rLocalLHS(20,5)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs10 - clhs106 - clhs108 - clhs110 + clhs111 + clhs113 + clhs115) + clhs116);
-        rLocalLHS(20,6)+=-ScaleFactor*(-NormalSlave(2,0)*(clhs12 - clhs122 - clhs124 - clhs126 + clhs127 + clhs129 + clhs131) + clhs132);
-        rLocalLHS(20,7)+=-ScaleFactor*(-NormalSlave(2,1)*(clhs12 - clhs137 - clhs139 - clhs141 + clhs142 + clhs144 + clhs146) + clhs147);
-        rLocalLHS(20,8)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs12 - clhs152 - clhs154 - clhs156 + clhs157 + clhs159 + clhs161) + clhs162);
-        rLocalLHS(20,9)+=-ScaleFactor*clhs171;
-        rLocalLHS(20,10)+=-ScaleFactor*clhs179;
-        rLocalLHS(20,11)+=-ScaleFactor*clhs187;
-        rLocalLHS(20,12)+=-ScaleFactor*clhs195;
-        rLocalLHS(20,13)+=-ScaleFactor*clhs203;
-        rLocalLHS(20,14)+=-ScaleFactor*clhs211;
-        rLocalLHS(20,15)+=-ScaleFactor*clhs219;
-        rLocalLHS(20,16)+=-ScaleFactor*clhs227;
-        rLocalLHS(20,17)+=-ScaleFactor*clhs235;
+        rLocalLHS(20,0)+=ScaleFactor*(-NormalSlave(2,0)*(clhs0 - clhs28 - clhs30 - clhs32 + clhs33 + clhs35 + clhs37) + clhs38);
+        rLocalLHS(20,1)+=ScaleFactor*(-NormalSlave(2,1)*(clhs0 - clhs45 - clhs47 - clhs49 + clhs50 + clhs52 + clhs54) + clhs55);
+        rLocalLHS(20,2)+=ScaleFactor*(-NormalSlave(2,2)*(clhs0 - clhs60 - clhs62 - clhs64 + clhs65 + clhs67 + clhs69) + clhs70);
+        rLocalLHS(20,3)+=ScaleFactor*(-NormalSlave(2,0)*(clhs10 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85) + clhs86);
+        rLocalLHS(20,4)+=ScaleFactor*(-NormalSlave(2,1)*(clhs10 + clhs100 - clhs91 - clhs93 - clhs95 + clhs96 + clhs98) + clhs101);
+        rLocalLHS(20,5)+=ScaleFactor*(-NormalSlave(2,2)*(clhs10 - clhs106 - clhs108 - clhs110 + clhs111 + clhs113 + clhs115) + clhs116);
+        rLocalLHS(20,6)+=ScaleFactor*(-NormalSlave(2,0)*(clhs12 - clhs122 - clhs124 - clhs126 + clhs127 + clhs129 + clhs131) + clhs132);
+        rLocalLHS(20,7)+=ScaleFactor*(-NormalSlave(2,1)*(clhs12 - clhs137 - clhs139 - clhs141 + clhs142 + clhs144 + clhs146) + clhs147);
+        rLocalLHS(20,8)+=ScaleFactor*(-NormalSlave(2,2)*(clhs12 - clhs152 - clhs154 - clhs156 + clhs157 + clhs159 + clhs161) + clhs162);
+        rLocalLHS(20,9)+=ScaleFactor*clhs171;
+        rLocalLHS(20,10)+=ScaleFactor*clhs179;
+        rLocalLHS(20,11)+=ScaleFactor*clhs187;
+        rLocalLHS(20,12)+=ScaleFactor*clhs195;
+        rLocalLHS(20,13)+=ScaleFactor*clhs203;
+        rLocalLHS(20,14)+=ScaleFactor*clhs211;
+        rLocalLHS(20,15)+=ScaleFactor*clhs219;
+        rLocalLHS(20,16)+=ScaleFactor*clhs227;
+        rLocalLHS(20,17)+=ScaleFactor*clhs235;
     }
 }
 
@@ -2700,7 +2700,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -2708,12 +2708,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -3903,30 +3903,30 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalLHS(23,22)+=clhs389*clhs569;
         rLocalLHS(23,23)+=clhs389*clhs570;
         rLocalLHS(23,24)+=-clhs389*clhs571;
-        rLocalLHS(24,0)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs0 - clhs36 - clhs38 - clhs40 - clhs42 + clhs43 + clhs45 + clhs47 + clhs49) + clhs50);
-        rLocalLHS(24,1)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs0 - clhs57 - clhs59 - clhs61 - clhs63 + clhs64 + clhs66 + clhs68 + clhs70) + clhs71);
-        rLocalLHS(24,2)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs0 - clhs76 - clhs78 - clhs80 - clhs82 + clhs83 + clhs85 + clhs87 + clhs89) + clhs90);
-        rLocalLHS(24,3)+=-ScaleFactor*(-NormalSlave(0,0)*(-clhs100 - clhs102 + clhs103 + clhs105 + clhs107 + clhs109 + clhs12 - clhs96 - clhs98) + clhs110);
-        rLocalLHS(24,4)+=-ScaleFactor*(-NormalSlave(0,1)*(-clhs115 - clhs117 - clhs119 + clhs12 - clhs121 + clhs122 + clhs124 + clhs126 + clhs128) + clhs129);
-        rLocalLHS(24,5)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs12 - clhs134 - clhs136 - clhs138 - clhs140 + clhs141 + clhs143 + clhs145 + clhs147) + clhs148);
-        rLocalLHS(24,6)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs14 - clhs154 - clhs156 - clhs158 - clhs160 + clhs161 + clhs163 + clhs165 + clhs167) + clhs168);
-        rLocalLHS(24,7)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs14 - clhs173 - clhs175 - clhs177 - clhs179 + clhs180 + clhs182 + clhs184 + clhs186) + clhs187);
-        rLocalLHS(24,8)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs14 - clhs192 - clhs194 - clhs196 - clhs198 + clhs199 + clhs201 + clhs203 + clhs205) + clhs206);
-        rLocalLHS(24,9)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs16 - clhs212 - clhs214 - clhs216 - clhs218 + clhs219 + clhs221 + clhs223 + clhs225) + clhs226);
-        rLocalLHS(24,10)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs16 - clhs231 - clhs233 - clhs235 - clhs237 + clhs238 + clhs240 + clhs242 + clhs244) + clhs245);
-        rLocalLHS(24,11)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs16 - clhs250 - clhs252 - clhs254 - clhs256 + clhs257 + clhs259 + clhs261 + clhs263) + clhs264);
-        rLocalLHS(24,12)+=-ScaleFactor*clhs275;
-        rLocalLHS(24,13)+=-ScaleFactor*clhs285;
-        rLocalLHS(24,14)+=-ScaleFactor*clhs295;
-        rLocalLHS(24,15)+=-ScaleFactor*clhs305;
-        rLocalLHS(24,16)+=-ScaleFactor*clhs315;
-        rLocalLHS(24,17)+=-ScaleFactor*clhs325;
-        rLocalLHS(24,18)+=-ScaleFactor*clhs335;
-        rLocalLHS(24,19)+=-ScaleFactor*clhs345;
-        rLocalLHS(24,20)+=-ScaleFactor*clhs355;
-        rLocalLHS(24,21)+=-ScaleFactor*clhs365;
-        rLocalLHS(24,22)+=-ScaleFactor*clhs375;
-        rLocalLHS(24,23)+=-ScaleFactor*clhs385;
+        rLocalLHS(24,0)+=ScaleFactor*(-NormalSlave(0,0)*(clhs0 - clhs36 - clhs38 - clhs40 - clhs42 + clhs43 + clhs45 + clhs47 + clhs49) + clhs50);
+        rLocalLHS(24,1)+=ScaleFactor*(-NormalSlave(0,1)*(clhs0 - clhs57 - clhs59 - clhs61 - clhs63 + clhs64 + clhs66 + clhs68 + clhs70) + clhs71);
+        rLocalLHS(24,2)+=ScaleFactor*(-NormalSlave(0,2)*(clhs0 - clhs76 - clhs78 - clhs80 - clhs82 + clhs83 + clhs85 + clhs87 + clhs89) + clhs90);
+        rLocalLHS(24,3)+=ScaleFactor*(-NormalSlave(0,0)*(-clhs100 - clhs102 + clhs103 + clhs105 + clhs107 + clhs109 + clhs12 - clhs96 - clhs98) + clhs110);
+        rLocalLHS(24,4)+=ScaleFactor*(-NormalSlave(0,1)*(-clhs115 - clhs117 - clhs119 + clhs12 - clhs121 + clhs122 + clhs124 + clhs126 + clhs128) + clhs129);
+        rLocalLHS(24,5)+=ScaleFactor*(-NormalSlave(0,2)*(clhs12 - clhs134 - clhs136 - clhs138 - clhs140 + clhs141 + clhs143 + clhs145 + clhs147) + clhs148);
+        rLocalLHS(24,6)+=ScaleFactor*(-NormalSlave(0,0)*(clhs14 - clhs154 - clhs156 - clhs158 - clhs160 + clhs161 + clhs163 + clhs165 + clhs167) + clhs168);
+        rLocalLHS(24,7)+=ScaleFactor*(-NormalSlave(0,1)*(clhs14 - clhs173 - clhs175 - clhs177 - clhs179 + clhs180 + clhs182 + clhs184 + clhs186) + clhs187);
+        rLocalLHS(24,8)+=ScaleFactor*(-NormalSlave(0,2)*(clhs14 - clhs192 - clhs194 - clhs196 - clhs198 + clhs199 + clhs201 + clhs203 + clhs205) + clhs206);
+        rLocalLHS(24,9)+=ScaleFactor*(-NormalSlave(0,0)*(clhs16 - clhs212 - clhs214 - clhs216 - clhs218 + clhs219 + clhs221 + clhs223 + clhs225) + clhs226);
+        rLocalLHS(24,10)+=ScaleFactor*(-NormalSlave(0,1)*(clhs16 - clhs231 - clhs233 - clhs235 - clhs237 + clhs238 + clhs240 + clhs242 + clhs244) + clhs245);
+        rLocalLHS(24,11)+=ScaleFactor*(-NormalSlave(0,2)*(clhs16 - clhs250 - clhs252 - clhs254 - clhs256 + clhs257 + clhs259 + clhs261 + clhs263) + clhs264);
+        rLocalLHS(24,12)+=ScaleFactor*clhs275;
+        rLocalLHS(24,13)+=ScaleFactor*clhs285;
+        rLocalLHS(24,14)+=ScaleFactor*clhs295;
+        rLocalLHS(24,15)+=ScaleFactor*clhs305;
+        rLocalLHS(24,16)+=ScaleFactor*clhs315;
+        rLocalLHS(24,17)+=ScaleFactor*clhs325;
+        rLocalLHS(24,18)+=ScaleFactor*clhs335;
+        rLocalLHS(24,19)+=ScaleFactor*clhs345;
+        rLocalLHS(24,20)+=ScaleFactor*clhs355;
+        rLocalLHS(24,21)+=ScaleFactor*clhs365;
+        rLocalLHS(24,22)+=ScaleFactor*clhs375;
+        rLocalLHS(24,23)+=ScaleFactor*clhs385;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -5106,30 +5106,30 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalLHS(23,22)+=clhs389*clhs569;
         rLocalLHS(23,23)+=clhs389*clhs570;
         rLocalLHS(23,25)+=-clhs389*clhs571;
-        rLocalLHS(25,0)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs0 - clhs36 - clhs38 - clhs40 - clhs42 + clhs43 + clhs45 + clhs47 + clhs49) + clhs50);
-        rLocalLHS(25,1)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs0 - clhs57 - clhs59 - clhs61 - clhs63 + clhs64 + clhs66 + clhs68 + clhs70) + clhs71);
-        rLocalLHS(25,2)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs0 - clhs76 - clhs78 - clhs80 - clhs82 + clhs83 + clhs85 + clhs87 + clhs89) + clhs90);
-        rLocalLHS(25,3)+=-ScaleFactor*(-NormalSlave(1,0)*(-clhs100 - clhs102 + clhs103 + clhs105 + clhs107 + clhs109 + clhs12 - clhs96 - clhs98) + clhs110);
-        rLocalLHS(25,4)+=-ScaleFactor*(-NormalSlave(1,1)*(-clhs115 - clhs117 - clhs119 + clhs12 - clhs121 + clhs122 + clhs124 + clhs126 + clhs128) + clhs129);
-        rLocalLHS(25,5)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs12 - clhs134 - clhs136 - clhs138 - clhs140 + clhs141 + clhs143 + clhs145 + clhs147) + clhs148);
-        rLocalLHS(25,6)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs14 - clhs154 - clhs156 - clhs158 - clhs160 + clhs161 + clhs163 + clhs165 + clhs167) + clhs168);
-        rLocalLHS(25,7)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs14 - clhs173 - clhs175 - clhs177 - clhs179 + clhs180 + clhs182 + clhs184 + clhs186) + clhs187);
-        rLocalLHS(25,8)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs14 - clhs192 - clhs194 - clhs196 - clhs198 + clhs199 + clhs201 + clhs203 + clhs205) + clhs206);
-        rLocalLHS(25,9)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs16 - clhs212 - clhs214 - clhs216 - clhs218 + clhs219 + clhs221 + clhs223 + clhs225) + clhs226);
-        rLocalLHS(25,10)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs16 - clhs231 - clhs233 - clhs235 - clhs237 + clhs238 + clhs240 + clhs242 + clhs244) + clhs245);
-        rLocalLHS(25,11)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs16 - clhs250 - clhs252 - clhs254 - clhs256 + clhs257 + clhs259 + clhs261 + clhs263) + clhs264);
-        rLocalLHS(25,12)+=-ScaleFactor*clhs275;
-        rLocalLHS(25,13)+=-ScaleFactor*clhs285;
-        rLocalLHS(25,14)+=-ScaleFactor*clhs295;
-        rLocalLHS(25,15)+=-ScaleFactor*clhs305;
-        rLocalLHS(25,16)+=-ScaleFactor*clhs315;
-        rLocalLHS(25,17)+=-ScaleFactor*clhs325;
-        rLocalLHS(25,18)+=-ScaleFactor*clhs335;
-        rLocalLHS(25,19)+=-ScaleFactor*clhs345;
-        rLocalLHS(25,20)+=-ScaleFactor*clhs355;
-        rLocalLHS(25,21)+=-ScaleFactor*clhs365;
-        rLocalLHS(25,22)+=-ScaleFactor*clhs375;
-        rLocalLHS(25,23)+=-ScaleFactor*clhs385;
+        rLocalLHS(25,0)+=ScaleFactor*(-NormalSlave(1,0)*(clhs0 - clhs36 - clhs38 - clhs40 - clhs42 + clhs43 + clhs45 + clhs47 + clhs49) + clhs50);
+        rLocalLHS(25,1)+=ScaleFactor*(-NormalSlave(1,1)*(clhs0 - clhs57 - clhs59 - clhs61 - clhs63 + clhs64 + clhs66 + clhs68 + clhs70) + clhs71);
+        rLocalLHS(25,2)+=ScaleFactor*(-NormalSlave(1,2)*(clhs0 - clhs76 - clhs78 - clhs80 - clhs82 + clhs83 + clhs85 + clhs87 + clhs89) + clhs90);
+        rLocalLHS(25,3)+=ScaleFactor*(-NormalSlave(1,0)*(-clhs100 - clhs102 + clhs103 + clhs105 + clhs107 + clhs109 + clhs12 - clhs96 - clhs98) + clhs110);
+        rLocalLHS(25,4)+=ScaleFactor*(-NormalSlave(1,1)*(-clhs115 - clhs117 - clhs119 + clhs12 - clhs121 + clhs122 + clhs124 + clhs126 + clhs128) + clhs129);
+        rLocalLHS(25,5)+=ScaleFactor*(-NormalSlave(1,2)*(clhs12 - clhs134 - clhs136 - clhs138 - clhs140 + clhs141 + clhs143 + clhs145 + clhs147) + clhs148);
+        rLocalLHS(25,6)+=ScaleFactor*(-NormalSlave(1,0)*(clhs14 - clhs154 - clhs156 - clhs158 - clhs160 + clhs161 + clhs163 + clhs165 + clhs167) + clhs168);
+        rLocalLHS(25,7)+=ScaleFactor*(-NormalSlave(1,1)*(clhs14 - clhs173 - clhs175 - clhs177 - clhs179 + clhs180 + clhs182 + clhs184 + clhs186) + clhs187);
+        rLocalLHS(25,8)+=ScaleFactor*(-NormalSlave(1,2)*(clhs14 - clhs192 - clhs194 - clhs196 - clhs198 + clhs199 + clhs201 + clhs203 + clhs205) + clhs206);
+        rLocalLHS(25,9)+=ScaleFactor*(-NormalSlave(1,0)*(clhs16 - clhs212 - clhs214 - clhs216 - clhs218 + clhs219 + clhs221 + clhs223 + clhs225) + clhs226);
+        rLocalLHS(25,10)+=ScaleFactor*(-NormalSlave(1,1)*(clhs16 - clhs231 - clhs233 - clhs235 - clhs237 + clhs238 + clhs240 + clhs242 + clhs244) + clhs245);
+        rLocalLHS(25,11)+=ScaleFactor*(-NormalSlave(1,2)*(clhs16 - clhs250 - clhs252 - clhs254 - clhs256 + clhs257 + clhs259 + clhs261 + clhs263) + clhs264);
+        rLocalLHS(25,12)+=ScaleFactor*clhs275;
+        rLocalLHS(25,13)+=ScaleFactor*clhs285;
+        rLocalLHS(25,14)+=ScaleFactor*clhs295;
+        rLocalLHS(25,15)+=ScaleFactor*clhs305;
+        rLocalLHS(25,16)+=ScaleFactor*clhs315;
+        rLocalLHS(25,17)+=ScaleFactor*clhs325;
+        rLocalLHS(25,18)+=ScaleFactor*clhs335;
+        rLocalLHS(25,19)+=ScaleFactor*clhs345;
+        rLocalLHS(25,20)+=ScaleFactor*clhs355;
+        rLocalLHS(25,21)+=ScaleFactor*clhs365;
+        rLocalLHS(25,22)+=ScaleFactor*clhs375;
+        rLocalLHS(25,23)+=ScaleFactor*clhs385;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -6309,30 +6309,30 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalLHS(23,22)+=clhs389*clhs569;
         rLocalLHS(23,23)+=clhs389*clhs570;
         rLocalLHS(23,26)+=-clhs389*clhs571;
-        rLocalLHS(26,0)+=-ScaleFactor*(-NormalSlave(2,0)*(clhs0 - clhs36 - clhs38 - clhs40 - clhs42 + clhs43 + clhs45 + clhs47 + clhs49) + clhs50);
-        rLocalLHS(26,1)+=-ScaleFactor*(-NormalSlave(2,1)*(clhs0 - clhs57 - clhs59 - clhs61 - clhs63 + clhs64 + clhs66 + clhs68 + clhs70) + clhs71);
-        rLocalLHS(26,2)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs0 - clhs76 - clhs78 - clhs80 - clhs82 + clhs83 + clhs85 + clhs87 + clhs89) + clhs90);
-        rLocalLHS(26,3)+=-ScaleFactor*(-NormalSlave(2,0)*(-clhs100 - clhs102 + clhs103 + clhs105 + clhs107 + clhs109 + clhs12 - clhs96 - clhs98) + clhs110);
-        rLocalLHS(26,4)+=-ScaleFactor*(-NormalSlave(2,1)*(-clhs115 - clhs117 - clhs119 + clhs12 - clhs121 + clhs122 + clhs124 + clhs126 + clhs128) + clhs129);
-        rLocalLHS(26,5)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs12 - clhs134 - clhs136 - clhs138 - clhs140 + clhs141 + clhs143 + clhs145 + clhs147) + clhs148);
-        rLocalLHS(26,6)+=-ScaleFactor*(-NormalSlave(2,0)*(clhs14 - clhs154 - clhs156 - clhs158 - clhs160 + clhs161 + clhs163 + clhs165 + clhs167) + clhs168);
-        rLocalLHS(26,7)+=-ScaleFactor*(-NormalSlave(2,1)*(clhs14 - clhs173 - clhs175 - clhs177 - clhs179 + clhs180 + clhs182 + clhs184 + clhs186) + clhs187);
-        rLocalLHS(26,8)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs14 - clhs192 - clhs194 - clhs196 - clhs198 + clhs199 + clhs201 + clhs203 + clhs205) + clhs206);
-        rLocalLHS(26,9)+=-ScaleFactor*(-NormalSlave(2,0)*(clhs16 - clhs212 - clhs214 - clhs216 - clhs218 + clhs219 + clhs221 + clhs223 + clhs225) + clhs226);
-        rLocalLHS(26,10)+=-ScaleFactor*(-NormalSlave(2,1)*(clhs16 - clhs231 - clhs233 - clhs235 - clhs237 + clhs238 + clhs240 + clhs242 + clhs244) + clhs245);
-        rLocalLHS(26,11)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs16 - clhs250 - clhs252 - clhs254 - clhs256 + clhs257 + clhs259 + clhs261 + clhs263) + clhs264);
-        rLocalLHS(26,12)+=-ScaleFactor*clhs275;
-        rLocalLHS(26,13)+=-ScaleFactor*clhs285;
-        rLocalLHS(26,14)+=-ScaleFactor*clhs295;
-        rLocalLHS(26,15)+=-ScaleFactor*clhs305;
-        rLocalLHS(26,16)+=-ScaleFactor*clhs315;
-        rLocalLHS(26,17)+=-ScaleFactor*clhs325;
-        rLocalLHS(26,18)+=-ScaleFactor*clhs335;
-        rLocalLHS(26,19)+=-ScaleFactor*clhs345;
-        rLocalLHS(26,20)+=-ScaleFactor*clhs355;
-        rLocalLHS(26,21)+=-ScaleFactor*clhs365;
-        rLocalLHS(26,22)+=-ScaleFactor*clhs375;
-        rLocalLHS(26,23)+=-ScaleFactor*clhs385;
+        rLocalLHS(26,0)+=ScaleFactor*(-NormalSlave(2,0)*(clhs0 - clhs36 - clhs38 - clhs40 - clhs42 + clhs43 + clhs45 + clhs47 + clhs49) + clhs50);
+        rLocalLHS(26,1)+=ScaleFactor*(-NormalSlave(2,1)*(clhs0 - clhs57 - clhs59 - clhs61 - clhs63 + clhs64 + clhs66 + clhs68 + clhs70) + clhs71);
+        rLocalLHS(26,2)+=ScaleFactor*(-NormalSlave(2,2)*(clhs0 - clhs76 - clhs78 - clhs80 - clhs82 + clhs83 + clhs85 + clhs87 + clhs89) + clhs90);
+        rLocalLHS(26,3)+=ScaleFactor*(-NormalSlave(2,0)*(-clhs100 - clhs102 + clhs103 + clhs105 + clhs107 + clhs109 + clhs12 - clhs96 - clhs98) + clhs110);
+        rLocalLHS(26,4)+=ScaleFactor*(-NormalSlave(2,1)*(-clhs115 - clhs117 - clhs119 + clhs12 - clhs121 + clhs122 + clhs124 + clhs126 + clhs128) + clhs129);
+        rLocalLHS(26,5)+=ScaleFactor*(-NormalSlave(2,2)*(clhs12 - clhs134 - clhs136 - clhs138 - clhs140 + clhs141 + clhs143 + clhs145 + clhs147) + clhs148);
+        rLocalLHS(26,6)+=ScaleFactor*(-NormalSlave(2,0)*(clhs14 - clhs154 - clhs156 - clhs158 - clhs160 + clhs161 + clhs163 + clhs165 + clhs167) + clhs168);
+        rLocalLHS(26,7)+=ScaleFactor*(-NormalSlave(2,1)*(clhs14 - clhs173 - clhs175 - clhs177 - clhs179 + clhs180 + clhs182 + clhs184 + clhs186) + clhs187);
+        rLocalLHS(26,8)+=ScaleFactor*(-NormalSlave(2,2)*(clhs14 - clhs192 - clhs194 - clhs196 - clhs198 + clhs199 + clhs201 + clhs203 + clhs205) + clhs206);
+        rLocalLHS(26,9)+=ScaleFactor*(-NormalSlave(2,0)*(clhs16 - clhs212 - clhs214 - clhs216 - clhs218 + clhs219 + clhs221 + clhs223 + clhs225) + clhs226);
+        rLocalLHS(26,10)+=ScaleFactor*(-NormalSlave(2,1)*(clhs16 - clhs231 - clhs233 - clhs235 - clhs237 + clhs238 + clhs240 + clhs242 + clhs244) + clhs245);
+        rLocalLHS(26,11)+=ScaleFactor*(-NormalSlave(2,2)*(clhs16 - clhs250 - clhs252 - clhs254 - clhs256 + clhs257 + clhs259 + clhs261 + clhs263) + clhs264);
+        rLocalLHS(26,12)+=ScaleFactor*clhs275;
+        rLocalLHS(26,13)+=ScaleFactor*clhs285;
+        rLocalLHS(26,14)+=ScaleFactor*clhs295;
+        rLocalLHS(26,15)+=ScaleFactor*clhs305;
+        rLocalLHS(26,16)+=ScaleFactor*clhs315;
+        rLocalLHS(26,17)+=ScaleFactor*clhs325;
+        rLocalLHS(26,18)+=ScaleFactor*clhs335;
+        rLocalLHS(26,19)+=ScaleFactor*clhs345;
+        rLocalLHS(26,20)+=ScaleFactor*clhs355;
+        rLocalLHS(26,21)+=ScaleFactor*clhs365;
+        rLocalLHS(26,22)+=ScaleFactor*clhs375;
+        rLocalLHS(26,23)+=ScaleFactor*clhs385;
     }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
@@ -7512,30 +7512,30 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalLHS(23,22)+=clhs389*clhs569;
         rLocalLHS(23,23)+=clhs389*clhs570;
         rLocalLHS(23,27)+=-clhs389*clhs571;
-        rLocalLHS(27,0)+=-ScaleFactor*(-NormalSlave(3,0)*(clhs0 - clhs36 - clhs38 - clhs40 - clhs42 + clhs43 + clhs45 + clhs47 + clhs49) + clhs50);
-        rLocalLHS(27,1)+=-ScaleFactor*(-NormalSlave(3,1)*(clhs0 - clhs57 - clhs59 - clhs61 - clhs63 + clhs64 + clhs66 + clhs68 + clhs70) + clhs71);
-        rLocalLHS(27,2)+=-ScaleFactor*(-NormalSlave(3,2)*(clhs0 - clhs76 - clhs78 - clhs80 - clhs82 + clhs83 + clhs85 + clhs87 + clhs89) + clhs90);
-        rLocalLHS(27,3)+=-ScaleFactor*(-NormalSlave(3,0)*(-clhs100 - clhs102 + clhs103 + clhs105 + clhs107 + clhs109 + clhs12 - clhs96 - clhs98) + clhs110);
-        rLocalLHS(27,4)+=-ScaleFactor*(-NormalSlave(3,1)*(-clhs115 - clhs117 - clhs119 + clhs12 - clhs121 + clhs122 + clhs124 + clhs126 + clhs128) + clhs129);
-        rLocalLHS(27,5)+=-ScaleFactor*(-NormalSlave(3,2)*(clhs12 - clhs134 - clhs136 - clhs138 - clhs140 + clhs141 + clhs143 + clhs145 + clhs147) + clhs148);
-        rLocalLHS(27,6)+=-ScaleFactor*(-NormalSlave(3,0)*(clhs14 - clhs154 - clhs156 - clhs158 - clhs160 + clhs161 + clhs163 + clhs165 + clhs167) + clhs168);
-        rLocalLHS(27,7)+=-ScaleFactor*(-NormalSlave(3,1)*(clhs14 - clhs173 - clhs175 - clhs177 - clhs179 + clhs180 + clhs182 + clhs184 + clhs186) + clhs187);
-        rLocalLHS(27,8)+=-ScaleFactor*(-NormalSlave(3,2)*(clhs14 - clhs192 - clhs194 - clhs196 - clhs198 + clhs199 + clhs201 + clhs203 + clhs205) + clhs206);
-        rLocalLHS(27,9)+=-ScaleFactor*(-NormalSlave(3,0)*(clhs16 - clhs212 - clhs214 - clhs216 - clhs218 + clhs219 + clhs221 + clhs223 + clhs225) + clhs226);
-        rLocalLHS(27,10)+=-ScaleFactor*(-NormalSlave(3,1)*(clhs16 - clhs231 - clhs233 - clhs235 - clhs237 + clhs238 + clhs240 + clhs242 + clhs244) + clhs245);
-        rLocalLHS(27,11)+=-ScaleFactor*(-NormalSlave(3,2)*(clhs16 - clhs250 - clhs252 - clhs254 - clhs256 + clhs257 + clhs259 + clhs261 + clhs263) + clhs264);
-        rLocalLHS(27,12)+=-ScaleFactor*clhs275;
-        rLocalLHS(27,13)+=-ScaleFactor*clhs285;
-        rLocalLHS(27,14)+=-ScaleFactor*clhs295;
-        rLocalLHS(27,15)+=-ScaleFactor*clhs305;
-        rLocalLHS(27,16)+=-ScaleFactor*clhs315;
-        rLocalLHS(27,17)+=-ScaleFactor*clhs325;
-        rLocalLHS(27,18)+=-ScaleFactor*clhs335;
-        rLocalLHS(27,19)+=-ScaleFactor*clhs345;
-        rLocalLHS(27,20)+=-ScaleFactor*clhs355;
-        rLocalLHS(27,21)+=-ScaleFactor*clhs365;
-        rLocalLHS(27,22)+=-ScaleFactor*clhs375;
-        rLocalLHS(27,23)+=-ScaleFactor*clhs385;
+        rLocalLHS(27,0)+=ScaleFactor*(-NormalSlave(3,0)*(clhs0 - clhs36 - clhs38 - clhs40 - clhs42 + clhs43 + clhs45 + clhs47 + clhs49) + clhs50);
+        rLocalLHS(27,1)+=ScaleFactor*(-NormalSlave(3,1)*(clhs0 - clhs57 - clhs59 - clhs61 - clhs63 + clhs64 + clhs66 + clhs68 + clhs70) + clhs71);
+        rLocalLHS(27,2)+=ScaleFactor*(-NormalSlave(3,2)*(clhs0 - clhs76 - clhs78 - clhs80 - clhs82 + clhs83 + clhs85 + clhs87 + clhs89) + clhs90);
+        rLocalLHS(27,3)+=ScaleFactor*(-NormalSlave(3,0)*(-clhs100 - clhs102 + clhs103 + clhs105 + clhs107 + clhs109 + clhs12 - clhs96 - clhs98) + clhs110);
+        rLocalLHS(27,4)+=ScaleFactor*(-NormalSlave(3,1)*(-clhs115 - clhs117 - clhs119 + clhs12 - clhs121 + clhs122 + clhs124 + clhs126 + clhs128) + clhs129);
+        rLocalLHS(27,5)+=ScaleFactor*(-NormalSlave(3,2)*(clhs12 - clhs134 - clhs136 - clhs138 - clhs140 + clhs141 + clhs143 + clhs145 + clhs147) + clhs148);
+        rLocalLHS(27,6)+=ScaleFactor*(-NormalSlave(3,0)*(clhs14 - clhs154 - clhs156 - clhs158 - clhs160 + clhs161 + clhs163 + clhs165 + clhs167) + clhs168);
+        rLocalLHS(27,7)+=ScaleFactor*(-NormalSlave(3,1)*(clhs14 - clhs173 - clhs175 - clhs177 - clhs179 + clhs180 + clhs182 + clhs184 + clhs186) + clhs187);
+        rLocalLHS(27,8)+=ScaleFactor*(-NormalSlave(3,2)*(clhs14 - clhs192 - clhs194 - clhs196 - clhs198 + clhs199 + clhs201 + clhs203 + clhs205) + clhs206);
+        rLocalLHS(27,9)+=ScaleFactor*(-NormalSlave(3,0)*(clhs16 - clhs212 - clhs214 - clhs216 - clhs218 + clhs219 + clhs221 + clhs223 + clhs225) + clhs226);
+        rLocalLHS(27,10)+=ScaleFactor*(-NormalSlave(3,1)*(clhs16 - clhs231 - clhs233 - clhs235 - clhs237 + clhs238 + clhs240 + clhs242 + clhs244) + clhs245);
+        rLocalLHS(27,11)+=ScaleFactor*(-NormalSlave(3,2)*(clhs16 - clhs250 - clhs252 - clhs254 - clhs256 + clhs257 + clhs259 + clhs261 + clhs263) + clhs264);
+        rLocalLHS(27,12)+=ScaleFactor*clhs275;
+        rLocalLHS(27,13)+=ScaleFactor*clhs285;
+        rLocalLHS(27,14)+=ScaleFactor*clhs295;
+        rLocalLHS(27,15)+=ScaleFactor*clhs305;
+        rLocalLHS(27,16)+=ScaleFactor*clhs315;
+        rLocalLHS(27,17)+=ScaleFactor*clhs325;
+        rLocalLHS(27,18)+=ScaleFactor*clhs335;
+        rLocalLHS(27,19)+=ScaleFactor*clhs345;
+        rLocalLHS(27,20)+=ScaleFactor*clhs355;
+        rLocalLHS(27,21)+=ScaleFactor*clhs365;
+        rLocalLHS(27,22)+=ScaleFactor*clhs375;
+        rLocalLHS(27,23)+=ScaleFactor*clhs385;
     }
 }
 
@@ -7557,7 +7557,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -7565,12 +7565,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -8511,27 +8511,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalLHS(20,19)+=clhs322*clhs458;
         rLocalLHS(20,20)+=clhs322*clhs459;
         rLocalLHS(20,21)+=-clhs322*clhs460;
-        rLocalLHS(21,0)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs0 - clhs32 - clhs34 - clhs36 + clhs37 + clhs39 + clhs41 + clhs43) + clhs44);
-        rLocalLHS(21,1)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60 + clhs62) + clhs63);
-        rLocalLHS(21,2)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs0 - clhs68 - clhs70 - clhs72 + clhs73 + clhs75 + clhs77 + clhs79) + clhs80);
-        rLocalLHS(21,3)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs10 - clhs86 - clhs88 - clhs90 + clhs91 + clhs93 + clhs95 + clhs97) + clhs98);
-        rLocalLHS(21,4)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs10 - clhs103 - clhs105 - clhs107 + clhs108 + clhs110 + clhs112 + clhs114) + clhs115);
-        rLocalLHS(21,5)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs10 - clhs120 - clhs122 - clhs124 + clhs125 + clhs127 + clhs129 + clhs131) + clhs132);
-        rLocalLHS(21,6)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs12 - clhs138 - clhs140 - clhs142 + clhs143 + clhs145 + clhs147 + clhs149) + clhs150);
-        rLocalLHS(21,7)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs12 - clhs155 - clhs157 - clhs159 + clhs160 + clhs162 + clhs164 + clhs166) + clhs167);
-        rLocalLHS(21,8)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs12 - clhs172 - clhs174 - clhs176 + clhs177 + clhs179 + clhs181 + clhs183) + clhs184);
-        rLocalLHS(21,9)+=-ScaleFactor*(-NormalSlave(0,0)*(clhs14 - clhs190 - clhs192 - clhs194 + clhs195 + clhs197 + clhs199 + clhs201) + clhs202);
-        rLocalLHS(21,10)+=-ScaleFactor*(-NormalSlave(0,1)*(clhs14 - clhs207 - clhs209 - clhs211 + clhs212 + clhs214 + clhs216 + clhs218) + clhs219);
-        rLocalLHS(21,11)+=-ScaleFactor*(-NormalSlave(0,2)*(clhs14 - clhs224 - clhs226 - clhs228 + clhs229 + clhs231 + clhs233 + clhs235) + clhs236);
-        rLocalLHS(21,12)+=-ScaleFactor*clhs246;
-        rLocalLHS(21,13)+=-ScaleFactor*clhs255;
-        rLocalLHS(21,14)+=-ScaleFactor*clhs264;
-        rLocalLHS(21,15)+=-ScaleFactor*clhs273;
-        rLocalLHS(21,16)+=-ScaleFactor*clhs282;
-        rLocalLHS(21,17)+=-ScaleFactor*clhs291;
-        rLocalLHS(21,18)+=-ScaleFactor*clhs300;
-        rLocalLHS(21,19)+=-ScaleFactor*clhs309;
-        rLocalLHS(21,20)+=-ScaleFactor*clhs318;
+        rLocalLHS(21,0)+=ScaleFactor*(-NormalSlave(0,0)*(clhs0 - clhs32 - clhs34 - clhs36 + clhs37 + clhs39 + clhs41 + clhs43) + clhs44);
+        rLocalLHS(21,1)+=ScaleFactor*(-NormalSlave(0,1)*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60 + clhs62) + clhs63);
+        rLocalLHS(21,2)+=ScaleFactor*(-NormalSlave(0,2)*(clhs0 - clhs68 - clhs70 - clhs72 + clhs73 + clhs75 + clhs77 + clhs79) + clhs80);
+        rLocalLHS(21,3)+=ScaleFactor*(-NormalSlave(0,0)*(clhs10 - clhs86 - clhs88 - clhs90 + clhs91 + clhs93 + clhs95 + clhs97) + clhs98);
+        rLocalLHS(21,4)+=ScaleFactor*(-NormalSlave(0,1)*(clhs10 - clhs103 - clhs105 - clhs107 + clhs108 + clhs110 + clhs112 + clhs114) + clhs115);
+        rLocalLHS(21,5)+=ScaleFactor*(-NormalSlave(0,2)*(clhs10 - clhs120 - clhs122 - clhs124 + clhs125 + clhs127 + clhs129 + clhs131) + clhs132);
+        rLocalLHS(21,6)+=ScaleFactor*(-NormalSlave(0,0)*(clhs12 - clhs138 - clhs140 - clhs142 + clhs143 + clhs145 + clhs147 + clhs149) + clhs150);
+        rLocalLHS(21,7)+=ScaleFactor*(-NormalSlave(0,1)*(clhs12 - clhs155 - clhs157 - clhs159 + clhs160 + clhs162 + clhs164 + clhs166) + clhs167);
+        rLocalLHS(21,8)+=ScaleFactor*(-NormalSlave(0,2)*(clhs12 - clhs172 - clhs174 - clhs176 + clhs177 + clhs179 + clhs181 + clhs183) + clhs184);
+        rLocalLHS(21,9)+=ScaleFactor*(-NormalSlave(0,0)*(clhs14 - clhs190 - clhs192 - clhs194 + clhs195 + clhs197 + clhs199 + clhs201) + clhs202);
+        rLocalLHS(21,10)+=ScaleFactor*(-NormalSlave(0,1)*(clhs14 - clhs207 - clhs209 - clhs211 + clhs212 + clhs214 + clhs216 + clhs218) + clhs219);
+        rLocalLHS(21,11)+=ScaleFactor*(-NormalSlave(0,2)*(clhs14 - clhs224 - clhs226 - clhs228 + clhs229 + clhs231 + clhs233 + clhs235) + clhs236);
+        rLocalLHS(21,12)+=ScaleFactor*clhs246;
+        rLocalLHS(21,13)+=ScaleFactor*clhs255;
+        rLocalLHS(21,14)+=ScaleFactor*clhs264;
+        rLocalLHS(21,15)+=ScaleFactor*clhs273;
+        rLocalLHS(21,16)+=ScaleFactor*clhs282;
+        rLocalLHS(21,17)+=ScaleFactor*clhs291;
+        rLocalLHS(21,18)+=ScaleFactor*clhs300;
+        rLocalLHS(21,19)+=ScaleFactor*clhs309;
+        rLocalLHS(21,20)+=ScaleFactor*clhs318;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -9462,27 +9462,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalLHS(20,19)+=clhs322*clhs458;
         rLocalLHS(20,20)+=clhs322*clhs459;
         rLocalLHS(20,22)+=-clhs322*clhs460;
-        rLocalLHS(22,0)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs0 - clhs32 - clhs34 - clhs36 + clhs37 + clhs39 + clhs41 + clhs43) + clhs44);
-        rLocalLHS(22,1)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60 + clhs62) + clhs63);
-        rLocalLHS(22,2)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs0 - clhs68 - clhs70 - clhs72 + clhs73 + clhs75 + clhs77 + clhs79) + clhs80);
-        rLocalLHS(22,3)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs10 - clhs86 - clhs88 - clhs90 + clhs91 + clhs93 + clhs95 + clhs97) + clhs98);
-        rLocalLHS(22,4)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs10 - clhs103 - clhs105 - clhs107 + clhs108 + clhs110 + clhs112 + clhs114) + clhs115);
-        rLocalLHS(22,5)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs10 - clhs120 - clhs122 - clhs124 + clhs125 + clhs127 + clhs129 + clhs131) + clhs132);
-        rLocalLHS(22,6)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs12 - clhs138 - clhs140 - clhs142 + clhs143 + clhs145 + clhs147 + clhs149) + clhs150);
-        rLocalLHS(22,7)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs12 - clhs155 - clhs157 - clhs159 + clhs160 + clhs162 + clhs164 + clhs166) + clhs167);
-        rLocalLHS(22,8)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs12 - clhs172 - clhs174 - clhs176 + clhs177 + clhs179 + clhs181 + clhs183) + clhs184);
-        rLocalLHS(22,9)+=-ScaleFactor*(-NormalSlave(1,0)*(clhs14 - clhs190 - clhs192 - clhs194 + clhs195 + clhs197 + clhs199 + clhs201) + clhs202);
-        rLocalLHS(22,10)+=-ScaleFactor*(-NormalSlave(1,1)*(clhs14 - clhs207 - clhs209 - clhs211 + clhs212 + clhs214 + clhs216 + clhs218) + clhs219);
-        rLocalLHS(22,11)+=-ScaleFactor*(-NormalSlave(1,2)*(clhs14 - clhs224 - clhs226 - clhs228 + clhs229 + clhs231 + clhs233 + clhs235) + clhs236);
-        rLocalLHS(22,12)+=-ScaleFactor*clhs246;
-        rLocalLHS(22,13)+=-ScaleFactor*clhs255;
-        rLocalLHS(22,14)+=-ScaleFactor*clhs264;
-        rLocalLHS(22,15)+=-ScaleFactor*clhs273;
-        rLocalLHS(22,16)+=-ScaleFactor*clhs282;
-        rLocalLHS(22,17)+=-ScaleFactor*clhs291;
-        rLocalLHS(22,18)+=-ScaleFactor*clhs300;
-        rLocalLHS(22,19)+=-ScaleFactor*clhs309;
-        rLocalLHS(22,20)+=-ScaleFactor*clhs318;
+        rLocalLHS(22,0)+=ScaleFactor*(-NormalSlave(1,0)*(clhs0 - clhs32 - clhs34 - clhs36 + clhs37 + clhs39 + clhs41 + clhs43) + clhs44);
+        rLocalLHS(22,1)+=ScaleFactor*(-NormalSlave(1,1)*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60 + clhs62) + clhs63);
+        rLocalLHS(22,2)+=ScaleFactor*(-NormalSlave(1,2)*(clhs0 - clhs68 - clhs70 - clhs72 + clhs73 + clhs75 + clhs77 + clhs79) + clhs80);
+        rLocalLHS(22,3)+=ScaleFactor*(-NormalSlave(1,0)*(clhs10 - clhs86 - clhs88 - clhs90 + clhs91 + clhs93 + clhs95 + clhs97) + clhs98);
+        rLocalLHS(22,4)+=ScaleFactor*(-NormalSlave(1,1)*(clhs10 - clhs103 - clhs105 - clhs107 + clhs108 + clhs110 + clhs112 + clhs114) + clhs115);
+        rLocalLHS(22,5)+=ScaleFactor*(-NormalSlave(1,2)*(clhs10 - clhs120 - clhs122 - clhs124 + clhs125 + clhs127 + clhs129 + clhs131) + clhs132);
+        rLocalLHS(22,6)+=ScaleFactor*(-NormalSlave(1,0)*(clhs12 - clhs138 - clhs140 - clhs142 + clhs143 + clhs145 + clhs147 + clhs149) + clhs150);
+        rLocalLHS(22,7)+=ScaleFactor*(-NormalSlave(1,1)*(clhs12 - clhs155 - clhs157 - clhs159 + clhs160 + clhs162 + clhs164 + clhs166) + clhs167);
+        rLocalLHS(22,8)+=ScaleFactor*(-NormalSlave(1,2)*(clhs12 - clhs172 - clhs174 - clhs176 + clhs177 + clhs179 + clhs181 + clhs183) + clhs184);
+        rLocalLHS(22,9)+=ScaleFactor*(-NormalSlave(1,0)*(clhs14 - clhs190 - clhs192 - clhs194 + clhs195 + clhs197 + clhs199 + clhs201) + clhs202);
+        rLocalLHS(22,10)+=ScaleFactor*(-NormalSlave(1,1)*(clhs14 - clhs207 - clhs209 - clhs211 + clhs212 + clhs214 + clhs216 + clhs218) + clhs219);
+        rLocalLHS(22,11)+=ScaleFactor*(-NormalSlave(1,2)*(clhs14 - clhs224 - clhs226 - clhs228 + clhs229 + clhs231 + clhs233 + clhs235) + clhs236);
+        rLocalLHS(22,12)+=ScaleFactor*clhs246;
+        rLocalLHS(22,13)+=ScaleFactor*clhs255;
+        rLocalLHS(22,14)+=ScaleFactor*clhs264;
+        rLocalLHS(22,15)+=ScaleFactor*clhs273;
+        rLocalLHS(22,16)+=ScaleFactor*clhs282;
+        rLocalLHS(22,17)+=ScaleFactor*clhs291;
+        rLocalLHS(22,18)+=ScaleFactor*clhs300;
+        rLocalLHS(22,19)+=ScaleFactor*clhs309;
+        rLocalLHS(22,20)+=ScaleFactor*clhs318;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -10413,27 +10413,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalLHS(20,19)+=clhs322*clhs458;
         rLocalLHS(20,20)+=clhs322*clhs459;
         rLocalLHS(20,23)+=-clhs322*clhs460;
-        rLocalLHS(23,0)+=-ScaleFactor*(-NormalSlave(2,0)*(clhs0 - clhs32 - clhs34 - clhs36 + clhs37 + clhs39 + clhs41 + clhs43) + clhs44);
-        rLocalLHS(23,1)+=-ScaleFactor*(-NormalSlave(2,1)*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60 + clhs62) + clhs63);
-        rLocalLHS(23,2)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs0 - clhs68 - clhs70 - clhs72 + clhs73 + clhs75 + clhs77 + clhs79) + clhs80);
-        rLocalLHS(23,3)+=-ScaleFactor*(-NormalSlave(2,0)*(clhs10 - clhs86 - clhs88 - clhs90 + clhs91 + clhs93 + clhs95 + clhs97) + clhs98);
-        rLocalLHS(23,4)+=-ScaleFactor*(-NormalSlave(2,1)*(clhs10 - clhs103 - clhs105 - clhs107 + clhs108 + clhs110 + clhs112 + clhs114) + clhs115);
-        rLocalLHS(23,5)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs10 - clhs120 - clhs122 - clhs124 + clhs125 + clhs127 + clhs129 + clhs131) + clhs132);
-        rLocalLHS(23,6)+=-ScaleFactor*(-NormalSlave(2,0)*(clhs12 - clhs138 - clhs140 - clhs142 + clhs143 + clhs145 + clhs147 + clhs149) + clhs150);
-        rLocalLHS(23,7)+=-ScaleFactor*(-NormalSlave(2,1)*(clhs12 - clhs155 - clhs157 - clhs159 + clhs160 + clhs162 + clhs164 + clhs166) + clhs167);
-        rLocalLHS(23,8)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs12 - clhs172 - clhs174 - clhs176 + clhs177 + clhs179 + clhs181 + clhs183) + clhs184);
-        rLocalLHS(23,9)+=-ScaleFactor*(-NormalSlave(2,0)*(clhs14 - clhs190 - clhs192 - clhs194 + clhs195 + clhs197 + clhs199 + clhs201) + clhs202);
-        rLocalLHS(23,10)+=-ScaleFactor*(-NormalSlave(2,1)*(clhs14 - clhs207 - clhs209 - clhs211 + clhs212 + clhs214 + clhs216 + clhs218) + clhs219);
-        rLocalLHS(23,11)+=-ScaleFactor*(-NormalSlave(2,2)*(clhs14 - clhs224 - clhs226 - clhs228 + clhs229 + clhs231 + clhs233 + clhs235) + clhs236);
-        rLocalLHS(23,12)+=-ScaleFactor*clhs246;
-        rLocalLHS(23,13)+=-ScaleFactor*clhs255;
-        rLocalLHS(23,14)+=-ScaleFactor*clhs264;
-        rLocalLHS(23,15)+=-ScaleFactor*clhs273;
-        rLocalLHS(23,16)+=-ScaleFactor*clhs282;
-        rLocalLHS(23,17)+=-ScaleFactor*clhs291;
-        rLocalLHS(23,18)+=-ScaleFactor*clhs300;
-        rLocalLHS(23,19)+=-ScaleFactor*clhs309;
-        rLocalLHS(23,20)+=-ScaleFactor*clhs318;
+        rLocalLHS(23,0)+=ScaleFactor*(-NormalSlave(2,0)*(clhs0 - clhs32 - clhs34 - clhs36 + clhs37 + clhs39 + clhs41 + clhs43) + clhs44);
+        rLocalLHS(23,1)+=ScaleFactor*(-NormalSlave(2,1)*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60 + clhs62) + clhs63);
+        rLocalLHS(23,2)+=ScaleFactor*(-NormalSlave(2,2)*(clhs0 - clhs68 - clhs70 - clhs72 + clhs73 + clhs75 + clhs77 + clhs79) + clhs80);
+        rLocalLHS(23,3)+=ScaleFactor*(-NormalSlave(2,0)*(clhs10 - clhs86 - clhs88 - clhs90 + clhs91 + clhs93 + clhs95 + clhs97) + clhs98);
+        rLocalLHS(23,4)+=ScaleFactor*(-NormalSlave(2,1)*(clhs10 - clhs103 - clhs105 - clhs107 + clhs108 + clhs110 + clhs112 + clhs114) + clhs115);
+        rLocalLHS(23,5)+=ScaleFactor*(-NormalSlave(2,2)*(clhs10 - clhs120 - clhs122 - clhs124 + clhs125 + clhs127 + clhs129 + clhs131) + clhs132);
+        rLocalLHS(23,6)+=ScaleFactor*(-NormalSlave(2,0)*(clhs12 - clhs138 - clhs140 - clhs142 + clhs143 + clhs145 + clhs147 + clhs149) + clhs150);
+        rLocalLHS(23,7)+=ScaleFactor*(-NormalSlave(2,1)*(clhs12 - clhs155 - clhs157 - clhs159 + clhs160 + clhs162 + clhs164 + clhs166) + clhs167);
+        rLocalLHS(23,8)+=ScaleFactor*(-NormalSlave(2,2)*(clhs12 - clhs172 - clhs174 - clhs176 + clhs177 + clhs179 + clhs181 + clhs183) + clhs184);
+        rLocalLHS(23,9)+=ScaleFactor*(-NormalSlave(2,0)*(clhs14 - clhs190 - clhs192 - clhs194 + clhs195 + clhs197 + clhs199 + clhs201) + clhs202);
+        rLocalLHS(23,10)+=ScaleFactor*(-NormalSlave(2,1)*(clhs14 - clhs207 - clhs209 - clhs211 + clhs212 + clhs214 + clhs216 + clhs218) + clhs219);
+        rLocalLHS(23,11)+=ScaleFactor*(-NormalSlave(2,2)*(clhs14 - clhs224 - clhs226 - clhs228 + clhs229 + clhs231 + clhs233 + clhs235) + clhs236);
+        rLocalLHS(23,12)+=ScaleFactor*clhs246;
+        rLocalLHS(23,13)+=ScaleFactor*clhs255;
+        rLocalLHS(23,14)+=ScaleFactor*clhs264;
+        rLocalLHS(23,15)+=ScaleFactor*clhs273;
+        rLocalLHS(23,16)+=ScaleFactor*clhs282;
+        rLocalLHS(23,17)+=ScaleFactor*clhs291;
+        rLocalLHS(23,18)+=ScaleFactor*clhs300;
+        rLocalLHS(23,19)+=ScaleFactor*clhs309;
+        rLocalLHS(23,20)+=ScaleFactor*clhs318;
     }
 }
 
@@ -10455,7 +10455,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -10463,12 +10463,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -11312,27 +11312,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalLHS(20,19)+=clhs225*clhs361;
         rLocalLHS(20,20)+=clhs225*clhs362;
         rLocalLHS(20,21)+=-clhs225*clhs363;
-        rLocalLHS(21,0)+=-ScaleFactor*clhs37;
-        rLocalLHS(21,1)+=-ScaleFactor*clhs48;
-        rLocalLHS(21,2)+=-ScaleFactor*clhs57;
-        rLocalLHS(21,3)+=-ScaleFactor*clhs67;
-        rLocalLHS(21,4)+=-ScaleFactor*clhs76;
-        rLocalLHS(21,5)+=-ScaleFactor*clhs85;
-        rLocalLHS(21,6)+=-ScaleFactor*clhs95;
-        rLocalLHS(21,7)+=-ScaleFactor*clhs104;
-        rLocalLHS(21,8)+=-ScaleFactor*clhs113;
-        rLocalLHS(21,9)+=-ScaleFactor*clhs122;
-        rLocalLHS(21,10)+=-ScaleFactor*clhs131;
-        rLocalLHS(21,11)+=-ScaleFactor*clhs140;
-        rLocalLHS(21,12)+=-ScaleFactor*clhs149;
-        rLocalLHS(21,13)+=-ScaleFactor*clhs158;
-        rLocalLHS(21,14)+=-ScaleFactor*clhs167;
-        rLocalLHS(21,15)+=-ScaleFactor*clhs176;
-        rLocalLHS(21,16)+=-ScaleFactor*clhs185;
-        rLocalLHS(21,17)+=-ScaleFactor*clhs194;
-        rLocalLHS(21,18)+=-ScaleFactor*clhs203;
-        rLocalLHS(21,19)+=-ScaleFactor*clhs212;
-        rLocalLHS(21,20)+=-ScaleFactor*clhs221;
+        rLocalLHS(21,0)+=ScaleFactor*clhs37;
+        rLocalLHS(21,1)+=ScaleFactor*clhs48;
+        rLocalLHS(21,2)+=ScaleFactor*clhs57;
+        rLocalLHS(21,3)+=ScaleFactor*clhs67;
+        rLocalLHS(21,4)+=ScaleFactor*clhs76;
+        rLocalLHS(21,5)+=ScaleFactor*clhs85;
+        rLocalLHS(21,6)+=ScaleFactor*clhs95;
+        rLocalLHS(21,7)+=ScaleFactor*clhs104;
+        rLocalLHS(21,8)+=ScaleFactor*clhs113;
+        rLocalLHS(21,9)+=ScaleFactor*clhs122;
+        rLocalLHS(21,10)+=ScaleFactor*clhs131;
+        rLocalLHS(21,11)+=ScaleFactor*clhs140;
+        rLocalLHS(21,12)+=ScaleFactor*clhs149;
+        rLocalLHS(21,13)+=ScaleFactor*clhs158;
+        rLocalLHS(21,14)+=ScaleFactor*clhs167;
+        rLocalLHS(21,15)+=ScaleFactor*clhs176;
+        rLocalLHS(21,16)+=ScaleFactor*clhs185;
+        rLocalLHS(21,17)+=ScaleFactor*clhs194;
+        rLocalLHS(21,18)+=ScaleFactor*clhs203;
+        rLocalLHS(21,19)+=ScaleFactor*clhs212;
+        rLocalLHS(21,20)+=ScaleFactor*clhs221;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -12166,27 +12166,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalLHS(20,19)+=clhs225*clhs361;
         rLocalLHS(20,20)+=clhs225*clhs362;
         rLocalLHS(20,22)+=-clhs225*clhs363;
-        rLocalLHS(22,0)+=-ScaleFactor*clhs37;
-        rLocalLHS(22,1)+=-ScaleFactor*clhs48;
-        rLocalLHS(22,2)+=-ScaleFactor*clhs57;
-        rLocalLHS(22,3)+=-ScaleFactor*clhs67;
-        rLocalLHS(22,4)+=-ScaleFactor*clhs76;
-        rLocalLHS(22,5)+=-ScaleFactor*clhs85;
-        rLocalLHS(22,6)+=-ScaleFactor*clhs95;
-        rLocalLHS(22,7)+=-ScaleFactor*clhs104;
-        rLocalLHS(22,8)+=-ScaleFactor*clhs113;
-        rLocalLHS(22,9)+=-ScaleFactor*clhs122;
-        rLocalLHS(22,10)+=-ScaleFactor*clhs131;
-        rLocalLHS(22,11)+=-ScaleFactor*clhs140;
-        rLocalLHS(22,12)+=-ScaleFactor*clhs149;
-        rLocalLHS(22,13)+=-ScaleFactor*clhs158;
-        rLocalLHS(22,14)+=-ScaleFactor*clhs167;
-        rLocalLHS(22,15)+=-ScaleFactor*clhs176;
-        rLocalLHS(22,16)+=-ScaleFactor*clhs185;
-        rLocalLHS(22,17)+=-ScaleFactor*clhs194;
-        rLocalLHS(22,18)+=-ScaleFactor*clhs203;
-        rLocalLHS(22,19)+=-ScaleFactor*clhs212;
-        rLocalLHS(22,20)+=-ScaleFactor*clhs221;
+        rLocalLHS(22,0)+=ScaleFactor*clhs37;
+        rLocalLHS(22,1)+=ScaleFactor*clhs48;
+        rLocalLHS(22,2)+=ScaleFactor*clhs57;
+        rLocalLHS(22,3)+=ScaleFactor*clhs67;
+        rLocalLHS(22,4)+=ScaleFactor*clhs76;
+        rLocalLHS(22,5)+=ScaleFactor*clhs85;
+        rLocalLHS(22,6)+=ScaleFactor*clhs95;
+        rLocalLHS(22,7)+=ScaleFactor*clhs104;
+        rLocalLHS(22,8)+=ScaleFactor*clhs113;
+        rLocalLHS(22,9)+=ScaleFactor*clhs122;
+        rLocalLHS(22,10)+=ScaleFactor*clhs131;
+        rLocalLHS(22,11)+=ScaleFactor*clhs140;
+        rLocalLHS(22,12)+=ScaleFactor*clhs149;
+        rLocalLHS(22,13)+=ScaleFactor*clhs158;
+        rLocalLHS(22,14)+=ScaleFactor*clhs167;
+        rLocalLHS(22,15)+=ScaleFactor*clhs176;
+        rLocalLHS(22,16)+=ScaleFactor*clhs185;
+        rLocalLHS(22,17)+=ScaleFactor*clhs194;
+        rLocalLHS(22,18)+=ScaleFactor*clhs203;
+        rLocalLHS(22,19)+=ScaleFactor*clhs212;
+        rLocalLHS(22,20)+=ScaleFactor*clhs221;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -13020,27 +13020,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalLHS(20,19)+=clhs225*clhs361;
         rLocalLHS(20,20)+=clhs225*clhs362;
         rLocalLHS(20,23)+=-clhs225*clhs363;
-        rLocalLHS(23,0)+=-ScaleFactor*clhs37;
-        rLocalLHS(23,1)+=-ScaleFactor*clhs48;
-        rLocalLHS(23,2)+=-ScaleFactor*clhs57;
-        rLocalLHS(23,3)+=-ScaleFactor*clhs67;
-        rLocalLHS(23,4)+=-ScaleFactor*clhs76;
-        rLocalLHS(23,5)+=-ScaleFactor*clhs85;
-        rLocalLHS(23,6)+=-ScaleFactor*clhs95;
-        rLocalLHS(23,7)+=-ScaleFactor*clhs104;
-        rLocalLHS(23,8)+=-ScaleFactor*clhs113;
-        rLocalLHS(23,9)+=-ScaleFactor*clhs122;
-        rLocalLHS(23,10)+=-ScaleFactor*clhs131;
-        rLocalLHS(23,11)+=-ScaleFactor*clhs140;
-        rLocalLHS(23,12)+=-ScaleFactor*clhs149;
-        rLocalLHS(23,13)+=-ScaleFactor*clhs158;
-        rLocalLHS(23,14)+=-ScaleFactor*clhs167;
-        rLocalLHS(23,15)+=-ScaleFactor*clhs176;
-        rLocalLHS(23,16)+=-ScaleFactor*clhs185;
-        rLocalLHS(23,17)+=-ScaleFactor*clhs194;
-        rLocalLHS(23,18)+=-ScaleFactor*clhs203;
-        rLocalLHS(23,19)+=-ScaleFactor*clhs212;
-        rLocalLHS(23,20)+=-ScaleFactor*clhs221;
+        rLocalLHS(23,0)+=ScaleFactor*clhs37;
+        rLocalLHS(23,1)+=ScaleFactor*clhs48;
+        rLocalLHS(23,2)+=ScaleFactor*clhs57;
+        rLocalLHS(23,3)+=ScaleFactor*clhs67;
+        rLocalLHS(23,4)+=ScaleFactor*clhs76;
+        rLocalLHS(23,5)+=ScaleFactor*clhs85;
+        rLocalLHS(23,6)+=ScaleFactor*clhs95;
+        rLocalLHS(23,7)+=ScaleFactor*clhs104;
+        rLocalLHS(23,8)+=ScaleFactor*clhs113;
+        rLocalLHS(23,9)+=ScaleFactor*clhs122;
+        rLocalLHS(23,10)+=ScaleFactor*clhs131;
+        rLocalLHS(23,11)+=ScaleFactor*clhs140;
+        rLocalLHS(23,12)+=ScaleFactor*clhs149;
+        rLocalLHS(23,13)+=ScaleFactor*clhs158;
+        rLocalLHS(23,14)+=ScaleFactor*clhs167;
+        rLocalLHS(23,15)+=ScaleFactor*clhs176;
+        rLocalLHS(23,16)+=ScaleFactor*clhs185;
+        rLocalLHS(23,17)+=ScaleFactor*clhs194;
+        rLocalLHS(23,18)+=ScaleFactor*clhs203;
+        rLocalLHS(23,19)+=ScaleFactor*clhs212;
+        rLocalLHS(23,20)+=ScaleFactor*clhs221;
     }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
@@ -13874,27 +13874,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalLHS(20,19)+=clhs225*clhs361;
         rLocalLHS(20,20)+=clhs225*clhs362;
         rLocalLHS(20,24)+=-clhs225*clhs363;
-        rLocalLHS(24,0)+=-ScaleFactor*clhs37;
-        rLocalLHS(24,1)+=-ScaleFactor*clhs48;
-        rLocalLHS(24,2)+=-ScaleFactor*clhs57;
-        rLocalLHS(24,3)+=-ScaleFactor*clhs67;
-        rLocalLHS(24,4)+=-ScaleFactor*clhs76;
-        rLocalLHS(24,5)+=-ScaleFactor*clhs85;
-        rLocalLHS(24,6)+=-ScaleFactor*clhs95;
-        rLocalLHS(24,7)+=-ScaleFactor*clhs104;
-        rLocalLHS(24,8)+=-ScaleFactor*clhs113;
-        rLocalLHS(24,9)+=-ScaleFactor*clhs122;
-        rLocalLHS(24,10)+=-ScaleFactor*clhs131;
-        rLocalLHS(24,11)+=-ScaleFactor*clhs140;
-        rLocalLHS(24,12)+=-ScaleFactor*clhs149;
-        rLocalLHS(24,13)+=-ScaleFactor*clhs158;
-        rLocalLHS(24,14)+=-ScaleFactor*clhs167;
-        rLocalLHS(24,15)+=-ScaleFactor*clhs176;
-        rLocalLHS(24,16)+=-ScaleFactor*clhs185;
-        rLocalLHS(24,17)+=-ScaleFactor*clhs194;
-        rLocalLHS(24,18)+=-ScaleFactor*clhs203;
-        rLocalLHS(24,19)+=-ScaleFactor*clhs212;
-        rLocalLHS(24,20)+=-ScaleFactor*clhs221;
+        rLocalLHS(24,0)+=ScaleFactor*clhs37;
+        rLocalLHS(24,1)+=ScaleFactor*clhs48;
+        rLocalLHS(24,2)+=ScaleFactor*clhs57;
+        rLocalLHS(24,3)+=ScaleFactor*clhs67;
+        rLocalLHS(24,4)+=ScaleFactor*clhs76;
+        rLocalLHS(24,5)+=ScaleFactor*clhs85;
+        rLocalLHS(24,6)+=ScaleFactor*clhs95;
+        rLocalLHS(24,7)+=ScaleFactor*clhs104;
+        rLocalLHS(24,8)+=ScaleFactor*clhs113;
+        rLocalLHS(24,9)+=ScaleFactor*clhs122;
+        rLocalLHS(24,10)+=ScaleFactor*clhs131;
+        rLocalLHS(24,11)+=ScaleFactor*clhs140;
+        rLocalLHS(24,12)+=ScaleFactor*clhs149;
+        rLocalLHS(24,13)+=ScaleFactor*clhs158;
+        rLocalLHS(24,14)+=ScaleFactor*clhs167;
+        rLocalLHS(24,15)+=ScaleFactor*clhs176;
+        rLocalLHS(24,16)+=ScaleFactor*clhs185;
+        rLocalLHS(24,17)+=ScaleFactor*clhs194;
+        rLocalLHS(24,18)+=ScaleFactor*clhs203;
+        rLocalLHS(24,19)+=ScaleFactor*clhs212;
+        rLocalLHS(24,20)+=ScaleFactor*clhs221;
     }
 }
 
@@ -13916,7 +13916,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
@@ -13924,12 +13924,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
     const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 2, 2>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -13940,7 +13940,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
     const array_1d<BoundedMatrix<double, 2, 2>, 8>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 2, 2>, 8>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-   const array_1d<BoundedMatrix<double, 2, 2>,  (2 * 2)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
+    const array_1d<BoundedMatrix<double, 2, 2>, 4>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
 
     // NODE 0
@@ -14148,14 +14148,14 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         rLocalLHS(7,6)+=DynamicFactor[0]*(-clhs123*clhs84 + clhs126*clhs88 - clhs86*clhs98);
         rLocalLHS(7,7)+=DynamicFactor[0]*(-clhs123*clhs91 + clhs126*clhs95 - clhs93*clhs98);
         rLocalLHS(7,8)+=-clhs125*clhs97;
-        rLocalLHS(8,0)+=-ScaleFactor*(-clhs2*(clhs0 - clhs23 - clhs24 + clhs25 + clhs26) + clhs21);
-        rLocalLHS(8,1)+=-ScaleFactor*(-clhs11*(clhs0 - clhs36 - clhs37 + clhs38 + clhs39) + clhs35);
-        rLocalLHS(8,2)+=-ScaleFactor*(-clhs2*(-clhs48 - clhs49 + clhs50 + clhs51 + clhs9) + clhs46);
-        rLocalLHS(8,3)+=-ScaleFactor*(-clhs11*(-clhs59 - clhs60 + clhs61 + clhs62 + clhs9) + clhs58);
-        rLocalLHS(8,4)+=-ScaleFactor*clhs73;
-        rLocalLHS(8,5)+=-ScaleFactor*clhs81;
-        rLocalLHS(8,6)+=-ScaleFactor*clhs88;
-        rLocalLHS(8,7)+=-ScaleFactor*clhs95;
+        rLocalLHS(8,0)+=ScaleFactor*(-clhs2*(clhs0 - clhs23 - clhs24 + clhs25 + clhs26) + clhs21);
+        rLocalLHS(8,1)+=ScaleFactor*(-clhs11*(clhs0 - clhs36 - clhs37 + clhs38 + clhs39) + clhs35);
+        rLocalLHS(8,2)+=ScaleFactor*(-clhs2*(-clhs48 - clhs49 + clhs50 + clhs51 + clhs9) + clhs46);
+        rLocalLHS(8,3)+=ScaleFactor*(-clhs11*(-clhs59 - clhs60 + clhs61 + clhs62 + clhs9) + clhs58);
+        rLocalLHS(8,4)+=ScaleFactor*clhs73;
+        rLocalLHS(8,5)+=ScaleFactor*clhs81;
+        rLocalLHS(8,6)+=ScaleFactor*clhs88;
+        rLocalLHS(8,7)+=ScaleFactor*clhs95;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -14362,14 +14362,14 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         rLocalLHS(7,6)+=DynamicFactor[1]*(-clhs123*clhs84 + clhs126*clhs88 - clhs86*clhs98);
         rLocalLHS(7,7)+=DynamicFactor[1]*(-clhs123*clhs91 + clhs126*clhs95 - clhs93*clhs98);
         rLocalLHS(7,9)+=-clhs125*clhs97;
-        rLocalLHS(9,0)+=-ScaleFactor*(-clhs2*(clhs0 - clhs23 - clhs24 + clhs25 + clhs26) + clhs21);
-        rLocalLHS(9,1)+=-ScaleFactor*(-clhs11*(clhs0 - clhs36 - clhs37 + clhs38 + clhs39) + clhs35);
-        rLocalLHS(9,2)+=-ScaleFactor*(-clhs2*(-clhs48 - clhs49 + clhs50 + clhs51 + clhs9) + clhs46);
-        rLocalLHS(9,3)+=-ScaleFactor*(-clhs11*(-clhs59 - clhs60 + clhs61 + clhs62 + clhs9) + clhs58);
-        rLocalLHS(9,4)+=-ScaleFactor*clhs73;
-        rLocalLHS(9,5)+=-ScaleFactor*clhs81;
-        rLocalLHS(9,6)+=-ScaleFactor*clhs88;
-        rLocalLHS(9,7)+=-ScaleFactor*clhs95;
+        rLocalLHS(9,0)+=ScaleFactor*(-clhs2*(clhs0 - clhs23 - clhs24 + clhs25 + clhs26) + clhs21);
+        rLocalLHS(9,1)+=ScaleFactor*(-clhs11*(clhs0 - clhs36 - clhs37 + clhs38 + clhs39) + clhs35);
+        rLocalLHS(9,2)+=ScaleFactor*(-clhs2*(-clhs48 - clhs49 + clhs50 + clhs51 + clhs9) + clhs46);
+        rLocalLHS(9,3)+=ScaleFactor*(-clhs11*(-clhs59 - clhs60 + clhs61 + clhs62 + clhs9) + clhs58);
+        rLocalLHS(9,4)+=ScaleFactor*clhs73;
+        rLocalLHS(9,5)+=ScaleFactor*clhs81;
+        rLocalLHS(9,6)+=ScaleFactor*clhs88;
+        rLocalLHS(9,7)+=ScaleFactor*clhs95;
     }
 }
 
@@ -14391,7 +14391,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -14399,12 +14399,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -14415,7 +14415,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
     const array_1d<BoundedMatrix<double, 3, 3>, 18>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 3, 3>, 18>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-   const array_1d<BoundedMatrix<double, 3, 3>,  (3 * 3)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
+    const array_1d<BoundedMatrix<double, 3, 3>, 9>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
 
     // NODE 0
@@ -15112,24 +15112,24 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalLHS(17,16)+=DynamicFactor[0]*(-clhs247*clhs341 - clhs250*clhs269 + clhs253*clhs345);
         rLocalLHS(17,17)+=DynamicFactor[0]*(-clhs257*clhs341 - clhs260*clhs269 + clhs263*clhs345);
         rLocalLHS(17,18)+=-clhs268*clhs343;
-        rLocalLHS(18,0)+=-ScaleFactor*(-clhs2*(clhs0 - clhs34 - clhs36 - clhs38 + clhs39 + clhs41 + clhs43) + clhs44);
-        rLocalLHS(18,1)+=-ScaleFactor*(-clhs15*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60) + clhs61);
-        rLocalLHS(18,2)+=-ScaleFactor*(-clhs23*(clhs0 - clhs66 - clhs68 - clhs70 + clhs71 + clhs73 + clhs75) + clhs76);
-        rLocalLHS(18,3)+=-ScaleFactor*(-clhs2*(clhs11 - clhs82 - clhs84 - clhs86 + clhs87 + clhs89 + clhs91) + clhs92);
-        rLocalLHS(18,4)+=-ScaleFactor*(clhs107 - clhs15*(-clhs101 + clhs102 + clhs104 + clhs106 + clhs11 - clhs97 - clhs99));
-        rLocalLHS(18,5)+=-ScaleFactor*(clhs122 - clhs23*(clhs11 - clhs112 - clhs114 - clhs116 + clhs117 + clhs119 + clhs121));
-        rLocalLHS(18,6)+=-ScaleFactor*(clhs138 - clhs2*(-clhs128 + clhs13 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137));
-        rLocalLHS(18,7)+=-ScaleFactor*(-clhs15*(clhs13 - clhs143 - clhs145 - clhs147 + clhs148 + clhs150 + clhs152) + clhs153);
-        rLocalLHS(18,8)+=-ScaleFactor*(clhs168 - clhs23*(clhs13 - clhs158 - clhs160 - clhs162 + clhs163 + clhs165 + clhs167));
-        rLocalLHS(18,9)+=-ScaleFactor*clhs182;
-        rLocalLHS(18,10)+=-ScaleFactor*clhs193;
-        rLocalLHS(18,11)+=-ScaleFactor*clhs203;
-        rLocalLHS(18,12)+=-ScaleFactor*clhs213;
-        rLocalLHS(18,13)+=-ScaleFactor*clhs223;
-        rLocalLHS(18,14)+=-ScaleFactor*clhs233;
-        rLocalLHS(18,15)+=-ScaleFactor*clhs243;
-        rLocalLHS(18,16)+=-ScaleFactor*clhs253;
-        rLocalLHS(18,17)+=-ScaleFactor*clhs263;
+        rLocalLHS(18,0)+=ScaleFactor*(-clhs2*(clhs0 - clhs34 - clhs36 - clhs38 + clhs39 + clhs41 + clhs43) + clhs44);
+        rLocalLHS(18,1)+=ScaleFactor*(-clhs15*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60) + clhs61);
+        rLocalLHS(18,2)+=ScaleFactor*(-clhs23*(clhs0 - clhs66 - clhs68 - clhs70 + clhs71 + clhs73 + clhs75) + clhs76);
+        rLocalLHS(18,3)+=ScaleFactor*(-clhs2*(clhs11 - clhs82 - clhs84 - clhs86 + clhs87 + clhs89 + clhs91) + clhs92);
+        rLocalLHS(18,4)+=ScaleFactor*(clhs107 - clhs15*(-clhs101 + clhs102 + clhs104 + clhs106 + clhs11 - clhs97 - clhs99));
+        rLocalLHS(18,5)+=ScaleFactor*(clhs122 - clhs23*(clhs11 - clhs112 - clhs114 - clhs116 + clhs117 + clhs119 + clhs121));
+        rLocalLHS(18,6)+=ScaleFactor*(clhs138 - clhs2*(-clhs128 + clhs13 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137));
+        rLocalLHS(18,7)+=ScaleFactor*(-clhs15*(clhs13 - clhs143 - clhs145 - clhs147 + clhs148 + clhs150 + clhs152) + clhs153);
+        rLocalLHS(18,8)+=ScaleFactor*(clhs168 - clhs23*(clhs13 - clhs158 - clhs160 - clhs162 + clhs163 + clhs165 + clhs167));
+        rLocalLHS(18,9)+=ScaleFactor*clhs182;
+        rLocalLHS(18,10)+=ScaleFactor*clhs193;
+        rLocalLHS(18,11)+=ScaleFactor*clhs203;
+        rLocalLHS(18,12)+=ScaleFactor*clhs213;
+        rLocalLHS(18,13)+=ScaleFactor*clhs223;
+        rLocalLHS(18,14)+=ScaleFactor*clhs233;
+        rLocalLHS(18,15)+=ScaleFactor*clhs243;
+        rLocalLHS(18,16)+=ScaleFactor*clhs253;
+        rLocalLHS(18,17)+=ScaleFactor*clhs263;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -15825,24 +15825,24 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalLHS(17,16)+=DynamicFactor[1]*(-clhs247*clhs341 - clhs250*clhs269 + clhs253*clhs345);
         rLocalLHS(17,17)+=DynamicFactor[1]*(-clhs257*clhs341 - clhs260*clhs269 + clhs263*clhs345);
         rLocalLHS(17,19)+=-clhs268*clhs343;
-        rLocalLHS(19,0)+=-ScaleFactor*(-clhs2*(clhs0 - clhs34 - clhs36 - clhs38 + clhs39 + clhs41 + clhs43) + clhs44);
-        rLocalLHS(19,1)+=-ScaleFactor*(-clhs15*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60) + clhs61);
-        rLocalLHS(19,2)+=-ScaleFactor*(-clhs23*(clhs0 - clhs66 - clhs68 - clhs70 + clhs71 + clhs73 + clhs75) + clhs76);
-        rLocalLHS(19,3)+=-ScaleFactor*(-clhs2*(clhs11 - clhs82 - clhs84 - clhs86 + clhs87 + clhs89 + clhs91) + clhs92);
-        rLocalLHS(19,4)+=-ScaleFactor*(clhs107 - clhs15*(-clhs101 + clhs102 + clhs104 + clhs106 + clhs11 - clhs97 - clhs99));
-        rLocalLHS(19,5)+=-ScaleFactor*(clhs122 - clhs23*(clhs11 - clhs112 - clhs114 - clhs116 + clhs117 + clhs119 + clhs121));
-        rLocalLHS(19,6)+=-ScaleFactor*(clhs138 - clhs2*(-clhs128 + clhs13 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137));
-        rLocalLHS(19,7)+=-ScaleFactor*(-clhs15*(clhs13 - clhs143 - clhs145 - clhs147 + clhs148 + clhs150 + clhs152) + clhs153);
-        rLocalLHS(19,8)+=-ScaleFactor*(clhs168 - clhs23*(clhs13 - clhs158 - clhs160 - clhs162 + clhs163 + clhs165 + clhs167));
-        rLocalLHS(19,9)+=-ScaleFactor*clhs182;
-        rLocalLHS(19,10)+=-ScaleFactor*clhs193;
-        rLocalLHS(19,11)+=-ScaleFactor*clhs203;
-        rLocalLHS(19,12)+=-ScaleFactor*clhs213;
-        rLocalLHS(19,13)+=-ScaleFactor*clhs223;
-        rLocalLHS(19,14)+=-ScaleFactor*clhs233;
-        rLocalLHS(19,15)+=-ScaleFactor*clhs243;
-        rLocalLHS(19,16)+=-ScaleFactor*clhs253;
-        rLocalLHS(19,17)+=-ScaleFactor*clhs263;
+        rLocalLHS(19,0)+=ScaleFactor*(-clhs2*(clhs0 - clhs34 - clhs36 - clhs38 + clhs39 + clhs41 + clhs43) + clhs44);
+        rLocalLHS(19,1)+=ScaleFactor*(-clhs15*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60) + clhs61);
+        rLocalLHS(19,2)+=ScaleFactor*(-clhs23*(clhs0 - clhs66 - clhs68 - clhs70 + clhs71 + clhs73 + clhs75) + clhs76);
+        rLocalLHS(19,3)+=ScaleFactor*(-clhs2*(clhs11 - clhs82 - clhs84 - clhs86 + clhs87 + clhs89 + clhs91) + clhs92);
+        rLocalLHS(19,4)+=ScaleFactor*(clhs107 - clhs15*(-clhs101 + clhs102 + clhs104 + clhs106 + clhs11 - clhs97 - clhs99));
+        rLocalLHS(19,5)+=ScaleFactor*(clhs122 - clhs23*(clhs11 - clhs112 - clhs114 - clhs116 + clhs117 + clhs119 + clhs121));
+        rLocalLHS(19,6)+=ScaleFactor*(clhs138 - clhs2*(-clhs128 + clhs13 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137));
+        rLocalLHS(19,7)+=ScaleFactor*(-clhs15*(clhs13 - clhs143 - clhs145 - clhs147 + clhs148 + clhs150 + clhs152) + clhs153);
+        rLocalLHS(19,8)+=ScaleFactor*(clhs168 - clhs23*(clhs13 - clhs158 - clhs160 - clhs162 + clhs163 + clhs165 + clhs167));
+        rLocalLHS(19,9)+=ScaleFactor*clhs182;
+        rLocalLHS(19,10)+=ScaleFactor*clhs193;
+        rLocalLHS(19,11)+=ScaleFactor*clhs203;
+        rLocalLHS(19,12)+=ScaleFactor*clhs213;
+        rLocalLHS(19,13)+=ScaleFactor*clhs223;
+        rLocalLHS(19,14)+=ScaleFactor*clhs233;
+        rLocalLHS(19,15)+=ScaleFactor*clhs243;
+        rLocalLHS(19,16)+=ScaleFactor*clhs253;
+        rLocalLHS(19,17)+=ScaleFactor*clhs263;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -16538,24 +16538,24 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalLHS(17,16)+=DynamicFactor[2]*(-clhs247*clhs341 - clhs250*clhs269 + clhs253*clhs345);
         rLocalLHS(17,17)+=DynamicFactor[2]*(-clhs257*clhs341 - clhs260*clhs269 + clhs263*clhs345);
         rLocalLHS(17,20)+=-clhs268*clhs343;
-        rLocalLHS(20,0)+=-ScaleFactor*(-clhs2*(clhs0 - clhs34 - clhs36 - clhs38 + clhs39 + clhs41 + clhs43) + clhs44);
-        rLocalLHS(20,1)+=-ScaleFactor*(-clhs15*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60) + clhs61);
-        rLocalLHS(20,2)+=-ScaleFactor*(-clhs23*(clhs0 - clhs66 - clhs68 - clhs70 + clhs71 + clhs73 + clhs75) + clhs76);
-        rLocalLHS(20,3)+=-ScaleFactor*(-clhs2*(clhs11 - clhs82 - clhs84 - clhs86 + clhs87 + clhs89 + clhs91) + clhs92);
-        rLocalLHS(20,4)+=-ScaleFactor*(clhs107 - clhs15*(-clhs101 + clhs102 + clhs104 + clhs106 + clhs11 - clhs97 - clhs99));
-        rLocalLHS(20,5)+=-ScaleFactor*(clhs122 - clhs23*(clhs11 - clhs112 - clhs114 - clhs116 + clhs117 + clhs119 + clhs121));
-        rLocalLHS(20,6)+=-ScaleFactor*(clhs138 - clhs2*(-clhs128 + clhs13 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137));
-        rLocalLHS(20,7)+=-ScaleFactor*(-clhs15*(clhs13 - clhs143 - clhs145 - clhs147 + clhs148 + clhs150 + clhs152) + clhs153);
-        rLocalLHS(20,8)+=-ScaleFactor*(clhs168 - clhs23*(clhs13 - clhs158 - clhs160 - clhs162 + clhs163 + clhs165 + clhs167));
-        rLocalLHS(20,9)+=-ScaleFactor*clhs182;
-        rLocalLHS(20,10)+=-ScaleFactor*clhs193;
-        rLocalLHS(20,11)+=-ScaleFactor*clhs203;
-        rLocalLHS(20,12)+=-ScaleFactor*clhs213;
-        rLocalLHS(20,13)+=-ScaleFactor*clhs223;
-        rLocalLHS(20,14)+=-ScaleFactor*clhs233;
-        rLocalLHS(20,15)+=-ScaleFactor*clhs243;
-        rLocalLHS(20,16)+=-ScaleFactor*clhs253;
-        rLocalLHS(20,17)+=-ScaleFactor*clhs263;
+        rLocalLHS(20,0)+=ScaleFactor*(-clhs2*(clhs0 - clhs34 - clhs36 - clhs38 + clhs39 + clhs41 + clhs43) + clhs44);
+        rLocalLHS(20,1)+=ScaleFactor*(-clhs15*(clhs0 - clhs51 - clhs53 - clhs55 + clhs56 + clhs58 + clhs60) + clhs61);
+        rLocalLHS(20,2)+=ScaleFactor*(-clhs23*(clhs0 - clhs66 - clhs68 - clhs70 + clhs71 + clhs73 + clhs75) + clhs76);
+        rLocalLHS(20,3)+=ScaleFactor*(-clhs2*(clhs11 - clhs82 - clhs84 - clhs86 + clhs87 + clhs89 + clhs91) + clhs92);
+        rLocalLHS(20,4)+=ScaleFactor*(clhs107 - clhs15*(-clhs101 + clhs102 + clhs104 + clhs106 + clhs11 - clhs97 - clhs99));
+        rLocalLHS(20,5)+=ScaleFactor*(clhs122 - clhs23*(clhs11 - clhs112 - clhs114 - clhs116 + clhs117 + clhs119 + clhs121));
+        rLocalLHS(20,6)+=ScaleFactor*(clhs138 - clhs2*(-clhs128 + clhs13 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137));
+        rLocalLHS(20,7)+=ScaleFactor*(-clhs15*(clhs13 - clhs143 - clhs145 - clhs147 + clhs148 + clhs150 + clhs152) + clhs153);
+        rLocalLHS(20,8)+=ScaleFactor*(clhs168 - clhs23*(clhs13 - clhs158 - clhs160 - clhs162 + clhs163 + clhs165 + clhs167));
+        rLocalLHS(20,9)+=ScaleFactor*clhs182;
+        rLocalLHS(20,10)+=ScaleFactor*clhs193;
+        rLocalLHS(20,11)+=ScaleFactor*clhs203;
+        rLocalLHS(20,12)+=ScaleFactor*clhs213;
+        rLocalLHS(20,13)+=ScaleFactor*clhs223;
+        rLocalLHS(20,14)+=ScaleFactor*clhs233;
+        rLocalLHS(20,15)+=ScaleFactor*clhs243;
+        rLocalLHS(20,16)+=ScaleFactor*clhs253;
+        rLocalLHS(20,17)+=ScaleFactor*clhs263;
     }
 }
 
@@ -16577,7 +16577,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -16585,12 +16585,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -16601,7 +16601,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
     const array_1d<BoundedMatrix<double, 4, 4>, 24>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 4, 4>, 24>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-   const array_1d<BoundedMatrix<double, 4, 3>,  (4 * 3)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
+    const array_1d<BoundedMatrix<double, 4, 3>, 12>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
 
     // NODE 0
@@ -17763,30 +17763,30 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalLHS(23,22)+=DynamicFactor[0]*(-clhs399*clhs548 - clhs403*clhs425 + clhs407*clhs552);
         rLocalLHS(23,23)+=DynamicFactor[0]*(-clhs411*clhs548 - clhs415*clhs425 + clhs419*clhs552);
         rLocalLHS(23,24)+=-clhs424*clhs550;
-        rLocalLHS(24,0)+=-ScaleFactor*(-clhs2*(clhs0 - clhs42 - clhs44 - clhs46 - clhs48 + clhs49 + clhs51 + clhs53 + clhs55) + clhs56);
-        rLocalLHS(24,1)+=-ScaleFactor*(-clhs19*(clhs0 - clhs63 - clhs65 - clhs67 - clhs69 + clhs70 + clhs72 + clhs74 + clhs76) + clhs77);
-        rLocalLHS(24,2)+=-ScaleFactor*(-clhs29*(clhs0 - clhs82 - clhs84 - clhs86 - clhs88 + clhs89 + clhs91 + clhs93 + clhs95) + clhs96);
-        rLocalLHS(24,3)+=-ScaleFactor*(clhs116 - clhs2*(-clhs102 - clhs104 - clhs106 - clhs108 + clhs109 + clhs111 + clhs113 + clhs115 + clhs13));
-        rLocalLHS(24,4)+=-ScaleFactor*(clhs135 - clhs19*(-clhs121 - clhs123 - clhs125 - clhs127 + clhs128 + clhs13 + clhs130 + clhs132 + clhs134));
-        rLocalLHS(24,5)+=-ScaleFactor*(clhs154 - clhs29*(clhs13 - clhs140 - clhs142 - clhs144 - clhs146 + clhs147 + clhs149 + clhs151 + clhs153));
-        rLocalLHS(24,6)+=-ScaleFactor*(clhs174 - clhs2*(clhs15 - clhs160 - clhs162 - clhs164 - clhs166 + clhs167 + clhs169 + clhs171 + clhs173));
-        rLocalLHS(24,7)+=-ScaleFactor*(-clhs19*(clhs15 - clhs179 - clhs181 - clhs183 - clhs185 + clhs186 + clhs188 + clhs190 + clhs192) + clhs193);
-        rLocalLHS(24,8)+=-ScaleFactor*(clhs212 - clhs29*(clhs15 - clhs198 - clhs200 - clhs202 - clhs204 + clhs205 + clhs207 + clhs209 + clhs211));
-        rLocalLHS(24,9)+=-ScaleFactor*(-clhs2*(clhs17 - clhs218 - clhs220 - clhs222 - clhs224 + clhs225 + clhs227 + clhs229 + clhs231) + clhs232);
-        rLocalLHS(24,10)+=-ScaleFactor*(-clhs19*(clhs17 - clhs237 - clhs239 - clhs241 - clhs243 + clhs244 + clhs246 + clhs248 + clhs250) + clhs251);
-        rLocalLHS(24,11)+=-ScaleFactor*(clhs270 - clhs29*(clhs17 - clhs256 - clhs258 - clhs260 - clhs262 + clhs263 + clhs265 + clhs267 + clhs269));
-        rLocalLHS(24,12)+=-ScaleFactor*clhs286;
-        rLocalLHS(24,13)+=-ScaleFactor*clhs299;
-        rLocalLHS(24,14)+=-ScaleFactor*clhs311;
-        rLocalLHS(24,15)+=-ScaleFactor*clhs323;
-        rLocalLHS(24,16)+=-ScaleFactor*clhs335;
-        rLocalLHS(24,17)+=-ScaleFactor*clhs347;
-        rLocalLHS(24,18)+=-ScaleFactor*clhs359;
-        rLocalLHS(24,19)+=-ScaleFactor*clhs371;
-        rLocalLHS(24,20)+=-ScaleFactor*clhs383;
-        rLocalLHS(24,21)+=-ScaleFactor*clhs395;
-        rLocalLHS(24,22)+=-ScaleFactor*clhs407;
-        rLocalLHS(24,23)+=-ScaleFactor*clhs419;
+        rLocalLHS(24,0)+=ScaleFactor*(-clhs2*(clhs0 - clhs42 - clhs44 - clhs46 - clhs48 + clhs49 + clhs51 + clhs53 + clhs55) + clhs56);
+        rLocalLHS(24,1)+=ScaleFactor*(-clhs19*(clhs0 - clhs63 - clhs65 - clhs67 - clhs69 + clhs70 + clhs72 + clhs74 + clhs76) + clhs77);
+        rLocalLHS(24,2)+=ScaleFactor*(-clhs29*(clhs0 - clhs82 - clhs84 - clhs86 - clhs88 + clhs89 + clhs91 + clhs93 + clhs95) + clhs96);
+        rLocalLHS(24,3)+=ScaleFactor*(clhs116 - clhs2*(-clhs102 - clhs104 - clhs106 - clhs108 + clhs109 + clhs111 + clhs113 + clhs115 + clhs13));
+        rLocalLHS(24,4)+=ScaleFactor*(clhs135 - clhs19*(-clhs121 - clhs123 - clhs125 - clhs127 + clhs128 + clhs13 + clhs130 + clhs132 + clhs134));
+        rLocalLHS(24,5)+=ScaleFactor*(clhs154 - clhs29*(clhs13 - clhs140 - clhs142 - clhs144 - clhs146 + clhs147 + clhs149 + clhs151 + clhs153));
+        rLocalLHS(24,6)+=ScaleFactor*(clhs174 - clhs2*(clhs15 - clhs160 - clhs162 - clhs164 - clhs166 + clhs167 + clhs169 + clhs171 + clhs173));
+        rLocalLHS(24,7)+=ScaleFactor*(-clhs19*(clhs15 - clhs179 - clhs181 - clhs183 - clhs185 + clhs186 + clhs188 + clhs190 + clhs192) + clhs193);
+        rLocalLHS(24,8)+=ScaleFactor*(clhs212 - clhs29*(clhs15 - clhs198 - clhs200 - clhs202 - clhs204 + clhs205 + clhs207 + clhs209 + clhs211));
+        rLocalLHS(24,9)+=ScaleFactor*(-clhs2*(clhs17 - clhs218 - clhs220 - clhs222 - clhs224 + clhs225 + clhs227 + clhs229 + clhs231) + clhs232);
+        rLocalLHS(24,10)+=ScaleFactor*(-clhs19*(clhs17 - clhs237 - clhs239 - clhs241 - clhs243 + clhs244 + clhs246 + clhs248 + clhs250) + clhs251);
+        rLocalLHS(24,11)+=ScaleFactor*(clhs270 - clhs29*(clhs17 - clhs256 - clhs258 - clhs260 - clhs262 + clhs263 + clhs265 + clhs267 + clhs269));
+        rLocalLHS(24,12)+=ScaleFactor*clhs286;
+        rLocalLHS(24,13)+=ScaleFactor*clhs299;
+        rLocalLHS(24,14)+=ScaleFactor*clhs311;
+        rLocalLHS(24,15)+=ScaleFactor*clhs323;
+        rLocalLHS(24,16)+=ScaleFactor*clhs335;
+        rLocalLHS(24,17)+=ScaleFactor*clhs347;
+        rLocalLHS(24,18)+=ScaleFactor*clhs359;
+        rLocalLHS(24,19)+=ScaleFactor*clhs371;
+        rLocalLHS(24,20)+=ScaleFactor*clhs383;
+        rLocalLHS(24,21)+=ScaleFactor*clhs395;
+        rLocalLHS(24,22)+=ScaleFactor*clhs407;
+        rLocalLHS(24,23)+=ScaleFactor*clhs419;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -18947,30 +18947,30 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalLHS(23,22)+=DynamicFactor[1]*(-clhs399*clhs548 - clhs403*clhs425 + clhs407*clhs552);
         rLocalLHS(23,23)+=DynamicFactor[1]*(-clhs411*clhs548 - clhs415*clhs425 + clhs419*clhs552);
         rLocalLHS(23,25)+=-clhs424*clhs550;
-        rLocalLHS(25,0)+=-ScaleFactor*(-clhs2*(clhs0 - clhs42 - clhs44 - clhs46 - clhs48 + clhs49 + clhs51 + clhs53 + clhs55) + clhs56);
-        rLocalLHS(25,1)+=-ScaleFactor*(-clhs19*(clhs0 - clhs63 - clhs65 - clhs67 - clhs69 + clhs70 + clhs72 + clhs74 + clhs76) + clhs77);
-        rLocalLHS(25,2)+=-ScaleFactor*(-clhs29*(clhs0 - clhs82 - clhs84 - clhs86 - clhs88 + clhs89 + clhs91 + clhs93 + clhs95) + clhs96);
-        rLocalLHS(25,3)+=-ScaleFactor*(clhs116 - clhs2*(-clhs102 - clhs104 - clhs106 - clhs108 + clhs109 + clhs111 + clhs113 + clhs115 + clhs13));
-        rLocalLHS(25,4)+=-ScaleFactor*(clhs135 - clhs19*(-clhs121 - clhs123 - clhs125 - clhs127 + clhs128 + clhs13 + clhs130 + clhs132 + clhs134));
-        rLocalLHS(25,5)+=-ScaleFactor*(clhs154 - clhs29*(clhs13 - clhs140 - clhs142 - clhs144 - clhs146 + clhs147 + clhs149 + clhs151 + clhs153));
-        rLocalLHS(25,6)+=-ScaleFactor*(clhs174 - clhs2*(clhs15 - clhs160 - clhs162 - clhs164 - clhs166 + clhs167 + clhs169 + clhs171 + clhs173));
-        rLocalLHS(25,7)+=-ScaleFactor*(-clhs19*(clhs15 - clhs179 - clhs181 - clhs183 - clhs185 + clhs186 + clhs188 + clhs190 + clhs192) + clhs193);
-        rLocalLHS(25,8)+=-ScaleFactor*(clhs212 - clhs29*(clhs15 - clhs198 - clhs200 - clhs202 - clhs204 + clhs205 + clhs207 + clhs209 + clhs211));
-        rLocalLHS(25,9)+=-ScaleFactor*(-clhs2*(clhs17 - clhs218 - clhs220 - clhs222 - clhs224 + clhs225 + clhs227 + clhs229 + clhs231) + clhs232);
-        rLocalLHS(25,10)+=-ScaleFactor*(-clhs19*(clhs17 - clhs237 - clhs239 - clhs241 - clhs243 + clhs244 + clhs246 + clhs248 + clhs250) + clhs251);
-        rLocalLHS(25,11)+=-ScaleFactor*(clhs270 - clhs29*(clhs17 - clhs256 - clhs258 - clhs260 - clhs262 + clhs263 + clhs265 + clhs267 + clhs269));
-        rLocalLHS(25,12)+=-ScaleFactor*clhs286;
-        rLocalLHS(25,13)+=-ScaleFactor*clhs299;
-        rLocalLHS(25,14)+=-ScaleFactor*clhs311;
-        rLocalLHS(25,15)+=-ScaleFactor*clhs323;
-        rLocalLHS(25,16)+=-ScaleFactor*clhs335;
-        rLocalLHS(25,17)+=-ScaleFactor*clhs347;
-        rLocalLHS(25,18)+=-ScaleFactor*clhs359;
-        rLocalLHS(25,19)+=-ScaleFactor*clhs371;
-        rLocalLHS(25,20)+=-ScaleFactor*clhs383;
-        rLocalLHS(25,21)+=-ScaleFactor*clhs395;
-        rLocalLHS(25,22)+=-ScaleFactor*clhs407;
-        rLocalLHS(25,23)+=-ScaleFactor*clhs419;
+        rLocalLHS(25,0)+=ScaleFactor*(-clhs2*(clhs0 - clhs42 - clhs44 - clhs46 - clhs48 + clhs49 + clhs51 + clhs53 + clhs55) + clhs56);
+        rLocalLHS(25,1)+=ScaleFactor*(-clhs19*(clhs0 - clhs63 - clhs65 - clhs67 - clhs69 + clhs70 + clhs72 + clhs74 + clhs76) + clhs77);
+        rLocalLHS(25,2)+=ScaleFactor*(-clhs29*(clhs0 - clhs82 - clhs84 - clhs86 - clhs88 + clhs89 + clhs91 + clhs93 + clhs95) + clhs96);
+        rLocalLHS(25,3)+=ScaleFactor*(clhs116 - clhs2*(-clhs102 - clhs104 - clhs106 - clhs108 + clhs109 + clhs111 + clhs113 + clhs115 + clhs13));
+        rLocalLHS(25,4)+=ScaleFactor*(clhs135 - clhs19*(-clhs121 - clhs123 - clhs125 - clhs127 + clhs128 + clhs13 + clhs130 + clhs132 + clhs134));
+        rLocalLHS(25,5)+=ScaleFactor*(clhs154 - clhs29*(clhs13 - clhs140 - clhs142 - clhs144 - clhs146 + clhs147 + clhs149 + clhs151 + clhs153));
+        rLocalLHS(25,6)+=ScaleFactor*(clhs174 - clhs2*(clhs15 - clhs160 - clhs162 - clhs164 - clhs166 + clhs167 + clhs169 + clhs171 + clhs173));
+        rLocalLHS(25,7)+=ScaleFactor*(-clhs19*(clhs15 - clhs179 - clhs181 - clhs183 - clhs185 + clhs186 + clhs188 + clhs190 + clhs192) + clhs193);
+        rLocalLHS(25,8)+=ScaleFactor*(clhs212 - clhs29*(clhs15 - clhs198 - clhs200 - clhs202 - clhs204 + clhs205 + clhs207 + clhs209 + clhs211));
+        rLocalLHS(25,9)+=ScaleFactor*(-clhs2*(clhs17 - clhs218 - clhs220 - clhs222 - clhs224 + clhs225 + clhs227 + clhs229 + clhs231) + clhs232);
+        rLocalLHS(25,10)+=ScaleFactor*(-clhs19*(clhs17 - clhs237 - clhs239 - clhs241 - clhs243 + clhs244 + clhs246 + clhs248 + clhs250) + clhs251);
+        rLocalLHS(25,11)+=ScaleFactor*(clhs270 - clhs29*(clhs17 - clhs256 - clhs258 - clhs260 - clhs262 + clhs263 + clhs265 + clhs267 + clhs269));
+        rLocalLHS(25,12)+=ScaleFactor*clhs286;
+        rLocalLHS(25,13)+=ScaleFactor*clhs299;
+        rLocalLHS(25,14)+=ScaleFactor*clhs311;
+        rLocalLHS(25,15)+=ScaleFactor*clhs323;
+        rLocalLHS(25,16)+=ScaleFactor*clhs335;
+        rLocalLHS(25,17)+=ScaleFactor*clhs347;
+        rLocalLHS(25,18)+=ScaleFactor*clhs359;
+        rLocalLHS(25,19)+=ScaleFactor*clhs371;
+        rLocalLHS(25,20)+=ScaleFactor*clhs383;
+        rLocalLHS(25,21)+=ScaleFactor*clhs395;
+        rLocalLHS(25,22)+=ScaleFactor*clhs407;
+        rLocalLHS(25,23)+=ScaleFactor*clhs419;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -20131,30 +20131,30 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalLHS(23,22)+=DynamicFactor[2]*(-clhs399*clhs548 - clhs403*clhs425 + clhs407*clhs552);
         rLocalLHS(23,23)+=DynamicFactor[2]*(-clhs411*clhs548 - clhs415*clhs425 + clhs419*clhs552);
         rLocalLHS(23,26)+=-clhs424*clhs550;
-        rLocalLHS(26,0)+=-ScaleFactor*(-clhs2*(clhs0 - clhs42 - clhs44 - clhs46 - clhs48 + clhs49 + clhs51 + clhs53 + clhs55) + clhs56);
-        rLocalLHS(26,1)+=-ScaleFactor*(-clhs19*(clhs0 - clhs63 - clhs65 - clhs67 - clhs69 + clhs70 + clhs72 + clhs74 + clhs76) + clhs77);
-        rLocalLHS(26,2)+=-ScaleFactor*(-clhs29*(clhs0 - clhs82 - clhs84 - clhs86 - clhs88 + clhs89 + clhs91 + clhs93 + clhs95) + clhs96);
-        rLocalLHS(26,3)+=-ScaleFactor*(clhs116 - clhs2*(-clhs102 - clhs104 - clhs106 - clhs108 + clhs109 + clhs111 + clhs113 + clhs115 + clhs13));
-        rLocalLHS(26,4)+=-ScaleFactor*(clhs135 - clhs19*(-clhs121 - clhs123 - clhs125 - clhs127 + clhs128 + clhs13 + clhs130 + clhs132 + clhs134));
-        rLocalLHS(26,5)+=-ScaleFactor*(clhs154 - clhs29*(clhs13 - clhs140 - clhs142 - clhs144 - clhs146 + clhs147 + clhs149 + clhs151 + clhs153));
-        rLocalLHS(26,6)+=-ScaleFactor*(clhs174 - clhs2*(clhs15 - clhs160 - clhs162 - clhs164 - clhs166 + clhs167 + clhs169 + clhs171 + clhs173));
-        rLocalLHS(26,7)+=-ScaleFactor*(-clhs19*(clhs15 - clhs179 - clhs181 - clhs183 - clhs185 + clhs186 + clhs188 + clhs190 + clhs192) + clhs193);
-        rLocalLHS(26,8)+=-ScaleFactor*(clhs212 - clhs29*(clhs15 - clhs198 - clhs200 - clhs202 - clhs204 + clhs205 + clhs207 + clhs209 + clhs211));
-        rLocalLHS(26,9)+=-ScaleFactor*(-clhs2*(clhs17 - clhs218 - clhs220 - clhs222 - clhs224 + clhs225 + clhs227 + clhs229 + clhs231) + clhs232);
-        rLocalLHS(26,10)+=-ScaleFactor*(-clhs19*(clhs17 - clhs237 - clhs239 - clhs241 - clhs243 + clhs244 + clhs246 + clhs248 + clhs250) + clhs251);
-        rLocalLHS(26,11)+=-ScaleFactor*(clhs270 - clhs29*(clhs17 - clhs256 - clhs258 - clhs260 - clhs262 + clhs263 + clhs265 + clhs267 + clhs269));
-        rLocalLHS(26,12)+=-ScaleFactor*clhs286;
-        rLocalLHS(26,13)+=-ScaleFactor*clhs299;
-        rLocalLHS(26,14)+=-ScaleFactor*clhs311;
-        rLocalLHS(26,15)+=-ScaleFactor*clhs323;
-        rLocalLHS(26,16)+=-ScaleFactor*clhs335;
-        rLocalLHS(26,17)+=-ScaleFactor*clhs347;
-        rLocalLHS(26,18)+=-ScaleFactor*clhs359;
-        rLocalLHS(26,19)+=-ScaleFactor*clhs371;
-        rLocalLHS(26,20)+=-ScaleFactor*clhs383;
-        rLocalLHS(26,21)+=-ScaleFactor*clhs395;
-        rLocalLHS(26,22)+=-ScaleFactor*clhs407;
-        rLocalLHS(26,23)+=-ScaleFactor*clhs419;
+        rLocalLHS(26,0)+=ScaleFactor*(-clhs2*(clhs0 - clhs42 - clhs44 - clhs46 - clhs48 + clhs49 + clhs51 + clhs53 + clhs55) + clhs56);
+        rLocalLHS(26,1)+=ScaleFactor*(-clhs19*(clhs0 - clhs63 - clhs65 - clhs67 - clhs69 + clhs70 + clhs72 + clhs74 + clhs76) + clhs77);
+        rLocalLHS(26,2)+=ScaleFactor*(-clhs29*(clhs0 - clhs82 - clhs84 - clhs86 - clhs88 + clhs89 + clhs91 + clhs93 + clhs95) + clhs96);
+        rLocalLHS(26,3)+=ScaleFactor*(clhs116 - clhs2*(-clhs102 - clhs104 - clhs106 - clhs108 + clhs109 + clhs111 + clhs113 + clhs115 + clhs13));
+        rLocalLHS(26,4)+=ScaleFactor*(clhs135 - clhs19*(-clhs121 - clhs123 - clhs125 - clhs127 + clhs128 + clhs13 + clhs130 + clhs132 + clhs134));
+        rLocalLHS(26,5)+=ScaleFactor*(clhs154 - clhs29*(clhs13 - clhs140 - clhs142 - clhs144 - clhs146 + clhs147 + clhs149 + clhs151 + clhs153));
+        rLocalLHS(26,6)+=ScaleFactor*(clhs174 - clhs2*(clhs15 - clhs160 - clhs162 - clhs164 - clhs166 + clhs167 + clhs169 + clhs171 + clhs173));
+        rLocalLHS(26,7)+=ScaleFactor*(-clhs19*(clhs15 - clhs179 - clhs181 - clhs183 - clhs185 + clhs186 + clhs188 + clhs190 + clhs192) + clhs193);
+        rLocalLHS(26,8)+=ScaleFactor*(clhs212 - clhs29*(clhs15 - clhs198 - clhs200 - clhs202 - clhs204 + clhs205 + clhs207 + clhs209 + clhs211));
+        rLocalLHS(26,9)+=ScaleFactor*(-clhs2*(clhs17 - clhs218 - clhs220 - clhs222 - clhs224 + clhs225 + clhs227 + clhs229 + clhs231) + clhs232);
+        rLocalLHS(26,10)+=ScaleFactor*(-clhs19*(clhs17 - clhs237 - clhs239 - clhs241 - clhs243 + clhs244 + clhs246 + clhs248 + clhs250) + clhs251);
+        rLocalLHS(26,11)+=ScaleFactor*(clhs270 - clhs29*(clhs17 - clhs256 - clhs258 - clhs260 - clhs262 + clhs263 + clhs265 + clhs267 + clhs269));
+        rLocalLHS(26,12)+=ScaleFactor*clhs286;
+        rLocalLHS(26,13)+=ScaleFactor*clhs299;
+        rLocalLHS(26,14)+=ScaleFactor*clhs311;
+        rLocalLHS(26,15)+=ScaleFactor*clhs323;
+        rLocalLHS(26,16)+=ScaleFactor*clhs335;
+        rLocalLHS(26,17)+=ScaleFactor*clhs347;
+        rLocalLHS(26,18)+=ScaleFactor*clhs359;
+        rLocalLHS(26,19)+=ScaleFactor*clhs371;
+        rLocalLHS(26,20)+=ScaleFactor*clhs383;
+        rLocalLHS(26,21)+=ScaleFactor*clhs395;
+        rLocalLHS(26,22)+=ScaleFactor*clhs407;
+        rLocalLHS(26,23)+=ScaleFactor*clhs419;
     }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
@@ -21315,30 +21315,30 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalLHS(23,22)+=DynamicFactor[3]*(-clhs399*clhs548 - clhs403*clhs425 + clhs407*clhs552);
         rLocalLHS(23,23)+=DynamicFactor[3]*(-clhs411*clhs548 - clhs415*clhs425 + clhs419*clhs552);
         rLocalLHS(23,27)+=-clhs424*clhs550;
-        rLocalLHS(27,0)+=-ScaleFactor*(-clhs2*(clhs0 - clhs42 - clhs44 - clhs46 - clhs48 + clhs49 + clhs51 + clhs53 + clhs55) + clhs56);
-        rLocalLHS(27,1)+=-ScaleFactor*(-clhs19*(clhs0 - clhs63 - clhs65 - clhs67 - clhs69 + clhs70 + clhs72 + clhs74 + clhs76) + clhs77);
-        rLocalLHS(27,2)+=-ScaleFactor*(-clhs29*(clhs0 - clhs82 - clhs84 - clhs86 - clhs88 + clhs89 + clhs91 + clhs93 + clhs95) + clhs96);
-        rLocalLHS(27,3)+=-ScaleFactor*(clhs116 - clhs2*(-clhs102 - clhs104 - clhs106 - clhs108 + clhs109 + clhs111 + clhs113 + clhs115 + clhs13));
-        rLocalLHS(27,4)+=-ScaleFactor*(clhs135 - clhs19*(-clhs121 - clhs123 - clhs125 - clhs127 + clhs128 + clhs13 + clhs130 + clhs132 + clhs134));
-        rLocalLHS(27,5)+=-ScaleFactor*(clhs154 - clhs29*(clhs13 - clhs140 - clhs142 - clhs144 - clhs146 + clhs147 + clhs149 + clhs151 + clhs153));
-        rLocalLHS(27,6)+=-ScaleFactor*(clhs174 - clhs2*(clhs15 - clhs160 - clhs162 - clhs164 - clhs166 + clhs167 + clhs169 + clhs171 + clhs173));
-        rLocalLHS(27,7)+=-ScaleFactor*(-clhs19*(clhs15 - clhs179 - clhs181 - clhs183 - clhs185 + clhs186 + clhs188 + clhs190 + clhs192) + clhs193);
-        rLocalLHS(27,8)+=-ScaleFactor*(clhs212 - clhs29*(clhs15 - clhs198 - clhs200 - clhs202 - clhs204 + clhs205 + clhs207 + clhs209 + clhs211));
-        rLocalLHS(27,9)+=-ScaleFactor*(-clhs2*(clhs17 - clhs218 - clhs220 - clhs222 - clhs224 + clhs225 + clhs227 + clhs229 + clhs231) + clhs232);
-        rLocalLHS(27,10)+=-ScaleFactor*(-clhs19*(clhs17 - clhs237 - clhs239 - clhs241 - clhs243 + clhs244 + clhs246 + clhs248 + clhs250) + clhs251);
-        rLocalLHS(27,11)+=-ScaleFactor*(clhs270 - clhs29*(clhs17 - clhs256 - clhs258 - clhs260 - clhs262 + clhs263 + clhs265 + clhs267 + clhs269));
-        rLocalLHS(27,12)+=-ScaleFactor*clhs286;
-        rLocalLHS(27,13)+=-ScaleFactor*clhs299;
-        rLocalLHS(27,14)+=-ScaleFactor*clhs311;
-        rLocalLHS(27,15)+=-ScaleFactor*clhs323;
-        rLocalLHS(27,16)+=-ScaleFactor*clhs335;
-        rLocalLHS(27,17)+=-ScaleFactor*clhs347;
-        rLocalLHS(27,18)+=-ScaleFactor*clhs359;
-        rLocalLHS(27,19)+=-ScaleFactor*clhs371;
-        rLocalLHS(27,20)+=-ScaleFactor*clhs383;
-        rLocalLHS(27,21)+=-ScaleFactor*clhs395;
-        rLocalLHS(27,22)+=-ScaleFactor*clhs407;
-        rLocalLHS(27,23)+=-ScaleFactor*clhs419;
+        rLocalLHS(27,0)+=ScaleFactor*(-clhs2*(clhs0 - clhs42 - clhs44 - clhs46 - clhs48 + clhs49 + clhs51 + clhs53 + clhs55) + clhs56);
+        rLocalLHS(27,1)+=ScaleFactor*(-clhs19*(clhs0 - clhs63 - clhs65 - clhs67 - clhs69 + clhs70 + clhs72 + clhs74 + clhs76) + clhs77);
+        rLocalLHS(27,2)+=ScaleFactor*(-clhs29*(clhs0 - clhs82 - clhs84 - clhs86 - clhs88 + clhs89 + clhs91 + clhs93 + clhs95) + clhs96);
+        rLocalLHS(27,3)+=ScaleFactor*(clhs116 - clhs2*(-clhs102 - clhs104 - clhs106 - clhs108 + clhs109 + clhs111 + clhs113 + clhs115 + clhs13));
+        rLocalLHS(27,4)+=ScaleFactor*(clhs135 - clhs19*(-clhs121 - clhs123 - clhs125 - clhs127 + clhs128 + clhs13 + clhs130 + clhs132 + clhs134));
+        rLocalLHS(27,5)+=ScaleFactor*(clhs154 - clhs29*(clhs13 - clhs140 - clhs142 - clhs144 - clhs146 + clhs147 + clhs149 + clhs151 + clhs153));
+        rLocalLHS(27,6)+=ScaleFactor*(clhs174 - clhs2*(clhs15 - clhs160 - clhs162 - clhs164 - clhs166 + clhs167 + clhs169 + clhs171 + clhs173));
+        rLocalLHS(27,7)+=ScaleFactor*(-clhs19*(clhs15 - clhs179 - clhs181 - clhs183 - clhs185 + clhs186 + clhs188 + clhs190 + clhs192) + clhs193);
+        rLocalLHS(27,8)+=ScaleFactor*(clhs212 - clhs29*(clhs15 - clhs198 - clhs200 - clhs202 - clhs204 + clhs205 + clhs207 + clhs209 + clhs211));
+        rLocalLHS(27,9)+=ScaleFactor*(-clhs2*(clhs17 - clhs218 - clhs220 - clhs222 - clhs224 + clhs225 + clhs227 + clhs229 + clhs231) + clhs232);
+        rLocalLHS(27,10)+=ScaleFactor*(-clhs19*(clhs17 - clhs237 - clhs239 - clhs241 - clhs243 + clhs244 + clhs246 + clhs248 + clhs250) + clhs251);
+        rLocalLHS(27,11)+=ScaleFactor*(clhs270 - clhs29*(clhs17 - clhs256 - clhs258 - clhs260 - clhs262 + clhs263 + clhs265 + clhs267 + clhs269));
+        rLocalLHS(27,12)+=ScaleFactor*clhs286;
+        rLocalLHS(27,13)+=ScaleFactor*clhs299;
+        rLocalLHS(27,14)+=ScaleFactor*clhs311;
+        rLocalLHS(27,15)+=ScaleFactor*clhs323;
+        rLocalLHS(27,16)+=ScaleFactor*clhs335;
+        rLocalLHS(27,17)+=ScaleFactor*clhs347;
+        rLocalLHS(27,18)+=ScaleFactor*clhs359;
+        rLocalLHS(27,19)+=ScaleFactor*clhs371;
+        rLocalLHS(27,20)+=ScaleFactor*clhs383;
+        rLocalLHS(27,21)+=ScaleFactor*clhs395;
+        rLocalLHS(27,22)+=ScaleFactor*clhs407;
+        rLocalLHS(27,23)+=ScaleFactor*clhs419;
     }
 }
 
@@ -21360,7 +21360,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -21368,12 +21368,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -21384,7 +21384,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
     const array_1d<BoundedMatrix<double, 3, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-   const array_1d<BoundedMatrix<double, 3, 3>,  (3 * 3)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
+    const array_1d<BoundedMatrix<double, 3, 3>, 9>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
 
     // NODE 0
@@ -22343,27 +22343,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalLHS(20,19)+=-DynamicFactor[0]*(clhs351*clhs483 + clhs354*clhs450 + clhs358*clhs487);
         rLocalLHS(20,20)+=-DynamicFactor[0]*(clhs362*clhs483 + clhs365*clhs450 + clhs369*clhs487);
         rLocalLHS(20,21)+=-clhs374*clhs485;
-        rLocalLHS(21,0)+=-ScaleFactor*(-clhs3*(clhs0 - clhs57 - clhs59 - clhs61 + clhs62 + clhs64 + clhs66 + clhs68) + clhs69);
-        rLocalLHS(21,1)+=-ScaleFactor*(-clhs24*(clhs0 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85 + clhs87) + clhs88);
-        rLocalLHS(21,2)+=-ScaleFactor*(clhs105 - clhs39*(clhs0 + clhs100 + clhs102 + clhs104 - clhs93 - clhs95 - clhs97 + clhs98));
-        rLocalLHS(21,3)+=-ScaleFactor*(clhs123 - clhs3*(-clhs111 - clhs113 - clhs115 + clhs116 + clhs118 + clhs120 + clhs122 + clhs16));
-        rLocalLHS(21,4)+=-ScaleFactor*(clhs140 - clhs24*(-clhs128 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137 + clhs139 + clhs16));
-        rLocalLHS(21,5)+=-ScaleFactor*(clhs157 - clhs39*(-clhs145 - clhs147 - clhs149 + clhs150 + clhs152 + clhs154 + clhs156 + clhs16));
-        rLocalLHS(21,6)+=-ScaleFactor*(clhs175 - clhs3*(-clhs163 - clhs165 - clhs167 + clhs168 + clhs170 + clhs172 + clhs174 + clhs19));
-        rLocalLHS(21,7)+=-ScaleFactor*(clhs192 - clhs24*(-clhs180 - clhs182 - clhs184 + clhs185 + clhs187 + clhs189 + clhs19 + clhs191));
-        rLocalLHS(21,8)+=-ScaleFactor*(clhs209 - clhs39*(clhs19 - clhs197 - clhs199 - clhs201 + clhs202 + clhs204 + clhs206 + clhs208));
-        rLocalLHS(21,9)+=-ScaleFactor*(clhs227 - clhs3*(-clhs215 - clhs217 - clhs219 + clhs22 + clhs220 + clhs222 + clhs224 + clhs226));
-        rLocalLHS(21,10)+=-ScaleFactor*(-clhs24*(clhs22 - clhs232 - clhs234 - clhs236 + clhs237 + clhs239 + clhs241 + clhs243) + clhs244);
-        rLocalLHS(21,11)+=-ScaleFactor*(clhs261 - clhs39*(clhs22 - clhs249 - clhs251 - clhs253 + clhs254 + clhs256 + clhs258 + clhs260));
-        rLocalLHS(21,12)+=ScaleFactor*clhs280;
-        rLocalLHS(21,13)+=ScaleFactor*clhs292;
-        rLocalLHS(21,14)+=ScaleFactor*clhs303;
-        rLocalLHS(21,15)+=ScaleFactor*clhs314;
-        rLocalLHS(21,16)+=ScaleFactor*clhs325;
-        rLocalLHS(21,17)+=ScaleFactor*clhs336;
-        rLocalLHS(21,18)+=ScaleFactor*clhs347;
-        rLocalLHS(21,19)+=ScaleFactor*clhs358;
-        rLocalLHS(21,20)+=ScaleFactor*clhs369;
+        rLocalLHS(21,0)+=ScaleFactor*(-clhs3*(clhs0 - clhs57 - clhs59 - clhs61 + clhs62 + clhs64 + clhs66 + clhs68) + clhs69);
+        rLocalLHS(21,1)+=ScaleFactor*(-clhs24*(clhs0 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85 + clhs87) + clhs88);
+        rLocalLHS(21,2)+=ScaleFactor*(clhs105 - clhs39*(clhs0 + clhs100 + clhs102 + clhs104 - clhs93 - clhs95 - clhs97 + clhs98));
+        rLocalLHS(21,3)+=ScaleFactor*(clhs123 - clhs3*(-clhs111 - clhs113 - clhs115 + clhs116 + clhs118 + clhs120 + clhs122 + clhs16));
+        rLocalLHS(21,4)+=ScaleFactor*(clhs140 - clhs24*(-clhs128 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137 + clhs139 + clhs16));
+        rLocalLHS(21,5)+=ScaleFactor*(clhs157 - clhs39*(-clhs145 - clhs147 - clhs149 + clhs150 + clhs152 + clhs154 + clhs156 + clhs16));
+        rLocalLHS(21,6)+=ScaleFactor*(clhs175 - clhs3*(-clhs163 - clhs165 - clhs167 + clhs168 + clhs170 + clhs172 + clhs174 + clhs19));
+        rLocalLHS(21,7)+=ScaleFactor*(clhs192 - clhs24*(-clhs180 - clhs182 - clhs184 + clhs185 + clhs187 + clhs189 + clhs19 + clhs191));
+        rLocalLHS(21,8)+=ScaleFactor*(clhs209 - clhs39*(clhs19 - clhs197 - clhs199 - clhs201 + clhs202 + clhs204 + clhs206 + clhs208));
+        rLocalLHS(21,9)+=ScaleFactor*(clhs227 - clhs3*(-clhs215 - clhs217 - clhs219 + clhs22 + clhs220 + clhs222 + clhs224 + clhs226));
+        rLocalLHS(21,10)+=ScaleFactor*(-clhs24*(clhs22 - clhs232 - clhs234 - clhs236 + clhs237 + clhs239 + clhs241 + clhs243) + clhs244);
+        rLocalLHS(21,11)+=ScaleFactor*(clhs261 - clhs39*(clhs22 - clhs249 - clhs251 - clhs253 + clhs254 + clhs256 + clhs258 + clhs260));
+        rLocalLHS(21,12)+=-ScaleFactor*clhs280;
+        rLocalLHS(21,13)+=-ScaleFactor*clhs292;
+        rLocalLHS(21,14)+=-ScaleFactor*clhs303;
+        rLocalLHS(21,15)+=-ScaleFactor*clhs314;
+        rLocalLHS(21,16)+=-ScaleFactor*clhs325;
+        rLocalLHS(21,17)+=-ScaleFactor*clhs336;
+        rLocalLHS(21,18)+=-ScaleFactor*clhs347;
+        rLocalLHS(21,19)+=-ScaleFactor*clhs358;
+        rLocalLHS(21,20)+=-ScaleFactor*clhs369;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -23321,27 +23321,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalLHS(20,19)+=-DynamicFactor[1]*(clhs351*clhs483 + clhs354*clhs450 + clhs358*clhs487);
         rLocalLHS(20,20)+=-DynamicFactor[1]*(clhs362*clhs483 + clhs365*clhs450 + clhs369*clhs487);
         rLocalLHS(20,22)+=-clhs374*clhs485;
-        rLocalLHS(22,0)+=-ScaleFactor*(-clhs3*(clhs0 - clhs57 - clhs59 - clhs61 + clhs62 + clhs64 + clhs66 + clhs68) + clhs69);
-        rLocalLHS(22,1)+=-ScaleFactor*(-clhs24*(clhs0 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85 + clhs87) + clhs88);
-        rLocalLHS(22,2)+=-ScaleFactor*(clhs105 - clhs39*(clhs0 + clhs100 + clhs102 + clhs104 - clhs93 - clhs95 - clhs97 + clhs98));
-        rLocalLHS(22,3)+=-ScaleFactor*(clhs123 - clhs3*(-clhs111 - clhs113 - clhs115 + clhs116 + clhs118 + clhs120 + clhs122 + clhs16));
-        rLocalLHS(22,4)+=-ScaleFactor*(clhs140 - clhs24*(-clhs128 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137 + clhs139 + clhs16));
-        rLocalLHS(22,5)+=-ScaleFactor*(clhs157 - clhs39*(-clhs145 - clhs147 - clhs149 + clhs150 + clhs152 + clhs154 + clhs156 + clhs16));
-        rLocalLHS(22,6)+=-ScaleFactor*(clhs175 - clhs3*(-clhs163 - clhs165 - clhs167 + clhs168 + clhs170 + clhs172 + clhs174 + clhs19));
-        rLocalLHS(22,7)+=-ScaleFactor*(clhs192 - clhs24*(-clhs180 - clhs182 - clhs184 + clhs185 + clhs187 + clhs189 + clhs19 + clhs191));
-        rLocalLHS(22,8)+=-ScaleFactor*(clhs209 - clhs39*(clhs19 - clhs197 - clhs199 - clhs201 + clhs202 + clhs204 + clhs206 + clhs208));
-        rLocalLHS(22,9)+=-ScaleFactor*(clhs227 - clhs3*(-clhs215 - clhs217 - clhs219 + clhs22 + clhs220 + clhs222 + clhs224 + clhs226));
-        rLocalLHS(22,10)+=-ScaleFactor*(-clhs24*(clhs22 - clhs232 - clhs234 - clhs236 + clhs237 + clhs239 + clhs241 + clhs243) + clhs244);
-        rLocalLHS(22,11)+=-ScaleFactor*(clhs261 - clhs39*(clhs22 - clhs249 - clhs251 - clhs253 + clhs254 + clhs256 + clhs258 + clhs260));
-        rLocalLHS(22,12)+=ScaleFactor*clhs280;
-        rLocalLHS(22,13)+=ScaleFactor*clhs292;
-        rLocalLHS(22,14)+=ScaleFactor*clhs303;
-        rLocalLHS(22,15)+=ScaleFactor*clhs314;
-        rLocalLHS(22,16)+=ScaleFactor*clhs325;
-        rLocalLHS(22,17)+=ScaleFactor*clhs336;
-        rLocalLHS(22,18)+=ScaleFactor*clhs347;
-        rLocalLHS(22,19)+=ScaleFactor*clhs358;
-        rLocalLHS(22,20)+=ScaleFactor*clhs369;
+        rLocalLHS(22,0)+=ScaleFactor*(-clhs3*(clhs0 - clhs57 - clhs59 - clhs61 + clhs62 + clhs64 + clhs66 + clhs68) + clhs69);
+        rLocalLHS(22,1)+=ScaleFactor*(-clhs24*(clhs0 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85 + clhs87) + clhs88);
+        rLocalLHS(22,2)+=ScaleFactor*(clhs105 - clhs39*(clhs0 + clhs100 + clhs102 + clhs104 - clhs93 - clhs95 - clhs97 + clhs98));
+        rLocalLHS(22,3)+=ScaleFactor*(clhs123 - clhs3*(-clhs111 - clhs113 - clhs115 + clhs116 + clhs118 + clhs120 + clhs122 + clhs16));
+        rLocalLHS(22,4)+=ScaleFactor*(clhs140 - clhs24*(-clhs128 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137 + clhs139 + clhs16));
+        rLocalLHS(22,5)+=ScaleFactor*(clhs157 - clhs39*(-clhs145 - clhs147 - clhs149 + clhs150 + clhs152 + clhs154 + clhs156 + clhs16));
+        rLocalLHS(22,6)+=ScaleFactor*(clhs175 - clhs3*(-clhs163 - clhs165 - clhs167 + clhs168 + clhs170 + clhs172 + clhs174 + clhs19));
+        rLocalLHS(22,7)+=ScaleFactor*(clhs192 - clhs24*(-clhs180 - clhs182 - clhs184 + clhs185 + clhs187 + clhs189 + clhs19 + clhs191));
+        rLocalLHS(22,8)+=ScaleFactor*(clhs209 - clhs39*(clhs19 - clhs197 - clhs199 - clhs201 + clhs202 + clhs204 + clhs206 + clhs208));
+        rLocalLHS(22,9)+=ScaleFactor*(clhs227 - clhs3*(-clhs215 - clhs217 - clhs219 + clhs22 + clhs220 + clhs222 + clhs224 + clhs226));
+        rLocalLHS(22,10)+=ScaleFactor*(-clhs24*(clhs22 - clhs232 - clhs234 - clhs236 + clhs237 + clhs239 + clhs241 + clhs243) + clhs244);
+        rLocalLHS(22,11)+=ScaleFactor*(clhs261 - clhs39*(clhs22 - clhs249 - clhs251 - clhs253 + clhs254 + clhs256 + clhs258 + clhs260));
+        rLocalLHS(22,12)+=-ScaleFactor*clhs280;
+        rLocalLHS(22,13)+=-ScaleFactor*clhs292;
+        rLocalLHS(22,14)+=-ScaleFactor*clhs303;
+        rLocalLHS(22,15)+=-ScaleFactor*clhs314;
+        rLocalLHS(22,16)+=-ScaleFactor*clhs325;
+        rLocalLHS(22,17)+=-ScaleFactor*clhs336;
+        rLocalLHS(22,18)+=-ScaleFactor*clhs347;
+        rLocalLHS(22,19)+=-ScaleFactor*clhs358;
+        rLocalLHS(22,20)+=-ScaleFactor*clhs369;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -24299,27 +24299,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalLHS(20,19)+=-DynamicFactor[2]*(clhs351*clhs483 + clhs354*clhs450 + clhs358*clhs487);
         rLocalLHS(20,20)+=-DynamicFactor[2]*(clhs362*clhs483 + clhs365*clhs450 + clhs369*clhs487);
         rLocalLHS(20,23)+=-clhs374*clhs485;
-        rLocalLHS(23,0)+=-ScaleFactor*(-clhs3*(clhs0 - clhs57 - clhs59 - clhs61 + clhs62 + clhs64 + clhs66 + clhs68) + clhs69);
-        rLocalLHS(23,1)+=-ScaleFactor*(-clhs24*(clhs0 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85 + clhs87) + clhs88);
-        rLocalLHS(23,2)+=-ScaleFactor*(clhs105 - clhs39*(clhs0 + clhs100 + clhs102 + clhs104 - clhs93 - clhs95 - clhs97 + clhs98));
-        rLocalLHS(23,3)+=-ScaleFactor*(clhs123 - clhs3*(-clhs111 - clhs113 - clhs115 + clhs116 + clhs118 + clhs120 + clhs122 + clhs16));
-        rLocalLHS(23,4)+=-ScaleFactor*(clhs140 - clhs24*(-clhs128 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137 + clhs139 + clhs16));
-        rLocalLHS(23,5)+=-ScaleFactor*(clhs157 - clhs39*(-clhs145 - clhs147 - clhs149 + clhs150 + clhs152 + clhs154 + clhs156 + clhs16));
-        rLocalLHS(23,6)+=-ScaleFactor*(clhs175 - clhs3*(-clhs163 - clhs165 - clhs167 + clhs168 + clhs170 + clhs172 + clhs174 + clhs19));
-        rLocalLHS(23,7)+=-ScaleFactor*(clhs192 - clhs24*(-clhs180 - clhs182 - clhs184 + clhs185 + clhs187 + clhs189 + clhs19 + clhs191));
-        rLocalLHS(23,8)+=-ScaleFactor*(clhs209 - clhs39*(clhs19 - clhs197 - clhs199 - clhs201 + clhs202 + clhs204 + clhs206 + clhs208));
-        rLocalLHS(23,9)+=-ScaleFactor*(clhs227 - clhs3*(-clhs215 - clhs217 - clhs219 + clhs22 + clhs220 + clhs222 + clhs224 + clhs226));
-        rLocalLHS(23,10)+=-ScaleFactor*(-clhs24*(clhs22 - clhs232 - clhs234 - clhs236 + clhs237 + clhs239 + clhs241 + clhs243) + clhs244);
-        rLocalLHS(23,11)+=-ScaleFactor*(clhs261 - clhs39*(clhs22 - clhs249 - clhs251 - clhs253 + clhs254 + clhs256 + clhs258 + clhs260));
-        rLocalLHS(23,12)+=ScaleFactor*clhs280;
-        rLocalLHS(23,13)+=ScaleFactor*clhs292;
-        rLocalLHS(23,14)+=ScaleFactor*clhs303;
-        rLocalLHS(23,15)+=ScaleFactor*clhs314;
-        rLocalLHS(23,16)+=ScaleFactor*clhs325;
-        rLocalLHS(23,17)+=ScaleFactor*clhs336;
-        rLocalLHS(23,18)+=ScaleFactor*clhs347;
-        rLocalLHS(23,19)+=ScaleFactor*clhs358;
-        rLocalLHS(23,20)+=ScaleFactor*clhs369;
+        rLocalLHS(23,0)+=ScaleFactor*(-clhs3*(clhs0 - clhs57 - clhs59 - clhs61 + clhs62 + clhs64 + clhs66 + clhs68) + clhs69);
+        rLocalLHS(23,1)+=ScaleFactor*(-clhs24*(clhs0 - clhs76 - clhs78 - clhs80 + clhs81 + clhs83 + clhs85 + clhs87) + clhs88);
+        rLocalLHS(23,2)+=ScaleFactor*(clhs105 - clhs39*(clhs0 + clhs100 + clhs102 + clhs104 - clhs93 - clhs95 - clhs97 + clhs98));
+        rLocalLHS(23,3)+=ScaleFactor*(clhs123 - clhs3*(-clhs111 - clhs113 - clhs115 + clhs116 + clhs118 + clhs120 + clhs122 + clhs16));
+        rLocalLHS(23,4)+=ScaleFactor*(clhs140 - clhs24*(-clhs128 - clhs130 - clhs132 + clhs133 + clhs135 + clhs137 + clhs139 + clhs16));
+        rLocalLHS(23,5)+=ScaleFactor*(clhs157 - clhs39*(-clhs145 - clhs147 - clhs149 + clhs150 + clhs152 + clhs154 + clhs156 + clhs16));
+        rLocalLHS(23,6)+=ScaleFactor*(clhs175 - clhs3*(-clhs163 - clhs165 - clhs167 + clhs168 + clhs170 + clhs172 + clhs174 + clhs19));
+        rLocalLHS(23,7)+=ScaleFactor*(clhs192 - clhs24*(-clhs180 - clhs182 - clhs184 + clhs185 + clhs187 + clhs189 + clhs19 + clhs191));
+        rLocalLHS(23,8)+=ScaleFactor*(clhs209 - clhs39*(clhs19 - clhs197 - clhs199 - clhs201 + clhs202 + clhs204 + clhs206 + clhs208));
+        rLocalLHS(23,9)+=ScaleFactor*(clhs227 - clhs3*(-clhs215 - clhs217 - clhs219 + clhs22 + clhs220 + clhs222 + clhs224 + clhs226));
+        rLocalLHS(23,10)+=ScaleFactor*(-clhs24*(clhs22 - clhs232 - clhs234 - clhs236 + clhs237 + clhs239 + clhs241 + clhs243) + clhs244);
+        rLocalLHS(23,11)+=ScaleFactor*(clhs261 - clhs39*(clhs22 - clhs249 - clhs251 - clhs253 + clhs254 + clhs256 + clhs258 + clhs260));
+        rLocalLHS(23,12)+=-ScaleFactor*clhs280;
+        rLocalLHS(23,13)+=-ScaleFactor*clhs292;
+        rLocalLHS(23,14)+=-ScaleFactor*clhs303;
+        rLocalLHS(23,15)+=-ScaleFactor*clhs314;
+        rLocalLHS(23,16)+=-ScaleFactor*clhs325;
+        rLocalLHS(23,17)+=-ScaleFactor*clhs336;
+        rLocalLHS(23,18)+=-ScaleFactor*clhs347;
+        rLocalLHS(23,19)+=-ScaleFactor*clhs358;
+        rLocalLHS(23,20)+=-ScaleFactor*clhs369;
     }
 }
 
@@ -24341,7 +24341,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -24349,12 +24349,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -24365,7 +24365,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
     const array_1d<BoundedMatrix<double, 4, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-   const array_1d<BoundedMatrix<double, 4, 3>,  (4 * 3)> DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
+    const array_1d<BoundedMatrix<double, 4, 3>, 12>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
 
     // NODE 0
@@ -25189,27 +25189,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalLHS(20,19)+=DynamicFactor[0]*(-clhs237*clhs348 - clhs241*clhs261 + clhs244*clhs352);
         rLocalLHS(20,20)+=DynamicFactor[0]*(-clhs248*clhs348 - clhs252*clhs261 + clhs255*clhs352);
         rLocalLHS(20,21)+=-clhs260*clhs350;
-        rLocalLHS(21,0)+=-ScaleFactor*clhs43;
-        rLocalLHS(21,1)+=-ScaleFactor*clhs54;
-        rLocalLHS(21,2)+=-ScaleFactor*clhs63;
-        rLocalLHS(21,3)+=-ScaleFactor*clhs73;
-        rLocalLHS(21,4)+=-ScaleFactor*clhs82;
-        rLocalLHS(21,5)+=-ScaleFactor*clhs91;
-        rLocalLHS(21,6)+=-ScaleFactor*clhs101;
-        rLocalLHS(21,7)+=-ScaleFactor*clhs110;
-        rLocalLHS(21,8)+=-ScaleFactor*clhs119;
-        rLocalLHS(21,9)+=-ScaleFactor*clhs133;
-        rLocalLHS(21,10)+=-ScaleFactor*clhs145;
-        rLocalLHS(21,11)+=-ScaleFactor*clhs156;
-        rLocalLHS(21,12)+=-ScaleFactor*clhs167;
-        rLocalLHS(21,13)+=-ScaleFactor*clhs178;
-        rLocalLHS(21,14)+=-ScaleFactor*clhs189;
-        rLocalLHS(21,15)+=-ScaleFactor*clhs200;
-        rLocalLHS(21,16)+=-ScaleFactor*clhs211;
-        rLocalLHS(21,17)+=-ScaleFactor*clhs222;
-        rLocalLHS(21,18)+=-ScaleFactor*clhs233;
-        rLocalLHS(21,19)+=-ScaleFactor*clhs244;
-        rLocalLHS(21,20)+=-ScaleFactor*clhs255;
+        rLocalLHS(21,0)+=ScaleFactor*clhs43;
+        rLocalLHS(21,1)+=ScaleFactor*clhs54;
+        rLocalLHS(21,2)+=ScaleFactor*clhs63;
+        rLocalLHS(21,3)+=ScaleFactor*clhs73;
+        rLocalLHS(21,4)+=ScaleFactor*clhs82;
+        rLocalLHS(21,5)+=ScaleFactor*clhs91;
+        rLocalLHS(21,6)+=ScaleFactor*clhs101;
+        rLocalLHS(21,7)+=ScaleFactor*clhs110;
+        rLocalLHS(21,8)+=ScaleFactor*clhs119;
+        rLocalLHS(21,9)+=ScaleFactor*clhs133;
+        rLocalLHS(21,10)+=ScaleFactor*clhs145;
+        rLocalLHS(21,11)+=ScaleFactor*clhs156;
+        rLocalLHS(21,12)+=ScaleFactor*clhs167;
+        rLocalLHS(21,13)+=ScaleFactor*clhs178;
+        rLocalLHS(21,14)+=ScaleFactor*clhs189;
+        rLocalLHS(21,15)+=ScaleFactor*clhs200;
+        rLocalLHS(21,16)+=ScaleFactor*clhs211;
+        rLocalLHS(21,17)+=ScaleFactor*clhs222;
+        rLocalLHS(21,18)+=ScaleFactor*clhs233;
+        rLocalLHS(21,19)+=ScaleFactor*clhs244;
+        rLocalLHS(21,20)+=ScaleFactor*clhs255;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -26032,27 +26032,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalLHS(20,19)+=DynamicFactor[1]*(-clhs237*clhs348 - clhs241*clhs261 + clhs244*clhs352);
         rLocalLHS(20,20)+=DynamicFactor[1]*(-clhs248*clhs348 - clhs252*clhs261 + clhs255*clhs352);
         rLocalLHS(20,22)+=-clhs260*clhs350;
-        rLocalLHS(22,0)+=-ScaleFactor*clhs43;
-        rLocalLHS(22,1)+=-ScaleFactor*clhs54;
-        rLocalLHS(22,2)+=-ScaleFactor*clhs63;
-        rLocalLHS(22,3)+=-ScaleFactor*clhs73;
-        rLocalLHS(22,4)+=-ScaleFactor*clhs82;
-        rLocalLHS(22,5)+=-ScaleFactor*clhs91;
-        rLocalLHS(22,6)+=-ScaleFactor*clhs101;
-        rLocalLHS(22,7)+=-ScaleFactor*clhs110;
-        rLocalLHS(22,8)+=-ScaleFactor*clhs119;
-        rLocalLHS(22,9)+=-ScaleFactor*clhs133;
-        rLocalLHS(22,10)+=-ScaleFactor*clhs145;
-        rLocalLHS(22,11)+=-ScaleFactor*clhs156;
-        rLocalLHS(22,12)+=-ScaleFactor*clhs167;
-        rLocalLHS(22,13)+=-ScaleFactor*clhs178;
-        rLocalLHS(22,14)+=-ScaleFactor*clhs189;
-        rLocalLHS(22,15)+=-ScaleFactor*clhs200;
-        rLocalLHS(22,16)+=-ScaleFactor*clhs211;
-        rLocalLHS(22,17)+=-ScaleFactor*clhs222;
-        rLocalLHS(22,18)+=-ScaleFactor*clhs233;
-        rLocalLHS(22,19)+=-ScaleFactor*clhs244;
-        rLocalLHS(22,20)+=-ScaleFactor*clhs255;
+        rLocalLHS(22,0)+=ScaleFactor*clhs43;
+        rLocalLHS(22,1)+=ScaleFactor*clhs54;
+        rLocalLHS(22,2)+=ScaleFactor*clhs63;
+        rLocalLHS(22,3)+=ScaleFactor*clhs73;
+        rLocalLHS(22,4)+=ScaleFactor*clhs82;
+        rLocalLHS(22,5)+=ScaleFactor*clhs91;
+        rLocalLHS(22,6)+=ScaleFactor*clhs101;
+        rLocalLHS(22,7)+=ScaleFactor*clhs110;
+        rLocalLHS(22,8)+=ScaleFactor*clhs119;
+        rLocalLHS(22,9)+=ScaleFactor*clhs133;
+        rLocalLHS(22,10)+=ScaleFactor*clhs145;
+        rLocalLHS(22,11)+=ScaleFactor*clhs156;
+        rLocalLHS(22,12)+=ScaleFactor*clhs167;
+        rLocalLHS(22,13)+=ScaleFactor*clhs178;
+        rLocalLHS(22,14)+=ScaleFactor*clhs189;
+        rLocalLHS(22,15)+=ScaleFactor*clhs200;
+        rLocalLHS(22,16)+=ScaleFactor*clhs211;
+        rLocalLHS(22,17)+=ScaleFactor*clhs222;
+        rLocalLHS(22,18)+=ScaleFactor*clhs233;
+        rLocalLHS(22,19)+=ScaleFactor*clhs244;
+        rLocalLHS(22,20)+=ScaleFactor*clhs255;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -26875,27 +26875,27 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalLHS(20,19)+=DynamicFactor[2]*(-clhs237*clhs348 - clhs241*clhs261 + clhs244*clhs352);
         rLocalLHS(20,20)+=DynamicFactor[2]*(-clhs248*clhs348 - clhs252*clhs261 + clhs255*clhs352);
         rLocalLHS(20,23)+=-clhs260*clhs350;
-        rLocalLHS(23,0)+=-ScaleFactor*clhs43;
-        rLocalLHS(23,1)+=-ScaleFactor*clhs54;
-        rLocalLHS(23,2)+=-ScaleFactor*clhs63;
-        rLocalLHS(23,3)+=-ScaleFactor*clhs73;
-        rLocalLHS(23,4)+=-ScaleFactor*clhs82;
-        rLocalLHS(23,5)+=-ScaleFactor*clhs91;
-        rLocalLHS(23,6)+=-ScaleFactor*clhs101;
-        rLocalLHS(23,7)+=-ScaleFactor*clhs110;
-        rLocalLHS(23,8)+=-ScaleFactor*clhs119;
-        rLocalLHS(23,9)+=-ScaleFactor*clhs133;
-        rLocalLHS(23,10)+=-ScaleFactor*clhs145;
-        rLocalLHS(23,11)+=-ScaleFactor*clhs156;
-        rLocalLHS(23,12)+=-ScaleFactor*clhs167;
-        rLocalLHS(23,13)+=-ScaleFactor*clhs178;
-        rLocalLHS(23,14)+=-ScaleFactor*clhs189;
-        rLocalLHS(23,15)+=-ScaleFactor*clhs200;
-        rLocalLHS(23,16)+=-ScaleFactor*clhs211;
-        rLocalLHS(23,17)+=-ScaleFactor*clhs222;
-        rLocalLHS(23,18)+=-ScaleFactor*clhs233;
-        rLocalLHS(23,19)+=-ScaleFactor*clhs244;
-        rLocalLHS(23,20)+=-ScaleFactor*clhs255;
+        rLocalLHS(23,0)+=ScaleFactor*clhs43;
+        rLocalLHS(23,1)+=ScaleFactor*clhs54;
+        rLocalLHS(23,2)+=ScaleFactor*clhs63;
+        rLocalLHS(23,3)+=ScaleFactor*clhs73;
+        rLocalLHS(23,4)+=ScaleFactor*clhs82;
+        rLocalLHS(23,5)+=ScaleFactor*clhs91;
+        rLocalLHS(23,6)+=ScaleFactor*clhs101;
+        rLocalLHS(23,7)+=ScaleFactor*clhs110;
+        rLocalLHS(23,8)+=ScaleFactor*clhs119;
+        rLocalLHS(23,9)+=ScaleFactor*clhs133;
+        rLocalLHS(23,10)+=ScaleFactor*clhs145;
+        rLocalLHS(23,11)+=ScaleFactor*clhs156;
+        rLocalLHS(23,12)+=ScaleFactor*clhs167;
+        rLocalLHS(23,13)+=ScaleFactor*clhs178;
+        rLocalLHS(23,14)+=ScaleFactor*clhs189;
+        rLocalLHS(23,15)+=ScaleFactor*clhs200;
+        rLocalLHS(23,16)+=ScaleFactor*clhs211;
+        rLocalLHS(23,17)+=ScaleFactor*clhs222;
+        rLocalLHS(23,18)+=ScaleFactor*clhs233;
+        rLocalLHS(23,19)+=ScaleFactor*clhs244;
+        rLocalLHS(23,20)+=ScaleFactor*clhs255;
     }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
@@ -27718,34 +27718,39 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalLHS(20,19)+=DynamicFactor[3]*(-clhs237*clhs348 - clhs241*clhs261 + clhs244*clhs352);
         rLocalLHS(20,20)+=DynamicFactor[3]*(-clhs248*clhs348 - clhs252*clhs261 + clhs255*clhs352);
         rLocalLHS(20,24)+=-clhs260*clhs350;
-        rLocalLHS(24,0)+=-ScaleFactor*clhs43;
-        rLocalLHS(24,1)+=-ScaleFactor*clhs54;
-        rLocalLHS(24,2)+=-ScaleFactor*clhs63;
-        rLocalLHS(24,3)+=-ScaleFactor*clhs73;
-        rLocalLHS(24,4)+=-ScaleFactor*clhs82;
-        rLocalLHS(24,5)+=-ScaleFactor*clhs91;
-        rLocalLHS(24,6)+=-ScaleFactor*clhs101;
-        rLocalLHS(24,7)+=-ScaleFactor*clhs110;
-        rLocalLHS(24,8)+=-ScaleFactor*clhs119;
-        rLocalLHS(24,9)+=-ScaleFactor*clhs133;
-        rLocalLHS(24,10)+=-ScaleFactor*clhs145;
-        rLocalLHS(24,11)+=-ScaleFactor*clhs156;
-        rLocalLHS(24,12)+=-ScaleFactor*clhs167;
-        rLocalLHS(24,13)+=-ScaleFactor*clhs178;
-        rLocalLHS(24,14)+=-ScaleFactor*clhs189;
-        rLocalLHS(24,15)+=-ScaleFactor*clhs200;
-        rLocalLHS(24,16)+=-ScaleFactor*clhs211;
-        rLocalLHS(24,17)+=-ScaleFactor*clhs222;
-        rLocalLHS(24,18)+=-ScaleFactor*clhs233;
-        rLocalLHS(24,19)+=-ScaleFactor*clhs244;
-        rLocalLHS(24,20)+=-ScaleFactor*clhs255;
+        rLocalLHS(24,0)+=ScaleFactor*clhs43;
+        rLocalLHS(24,1)+=ScaleFactor*clhs54;
+        rLocalLHS(24,2)+=ScaleFactor*clhs63;
+        rLocalLHS(24,3)+=ScaleFactor*clhs73;
+        rLocalLHS(24,4)+=ScaleFactor*clhs82;
+        rLocalLHS(24,5)+=ScaleFactor*clhs91;
+        rLocalLHS(24,6)+=ScaleFactor*clhs101;
+        rLocalLHS(24,7)+=ScaleFactor*clhs110;
+        rLocalLHS(24,8)+=ScaleFactor*clhs119;
+        rLocalLHS(24,9)+=ScaleFactor*clhs133;
+        rLocalLHS(24,10)+=ScaleFactor*clhs145;
+        rLocalLHS(24,11)+=ScaleFactor*clhs156;
+        rLocalLHS(24,12)+=ScaleFactor*clhs167;
+        rLocalLHS(24,13)+=ScaleFactor*clhs178;
+        rLocalLHS(24,14)+=ScaleFactor*clhs189;
+        rLocalLHS(24,15)+=ScaleFactor*clhs200;
+        rLocalLHS(24,16)+=ScaleFactor*clhs211;
+        rLocalLHS(24,17)+=ScaleFactor*clhs222;
+        rLocalLHS(24,18)+=ScaleFactor*clhs233;
+        rLocalLHS(24,19)+=ScaleFactor*clhs244;
+        rLocalLHS(24,20)+=ScaleFactor*clhs255;
     }
 }
+
 
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
 /***************************** BEGIN AD REPLACEMENT ********************************/
+/***********************************************************************************/
+
+
+/***********************************************************************************/
 /***********************************************************************************/
 
 template<>
@@ -27762,7 +27767,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
@@ -27770,12 +27775,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
     const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 2, 2>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -27808,7 +27813,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         rLocalRHS[5]+=NormalSlave(0,1)*crhs8;
         rLocalRHS[6]+=NormalSlave(0,0)*crhs9;
         rLocalRHS[7]+=NormalSlave(0,1)*crhs9;
-        rLocalRHS[8]+=ScaleFactor*crhs4;
+        rLocalRHS[8]+=-ScaleFactor*crhs4;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -27834,7 +27839,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         rLocalRHS[5]+=NormalSlave(1,1)*crhs8;
         rLocalRHS[6]+=NormalSlave(1,0)*crhs9;
         rLocalRHS[7]+=NormalSlave(1,1)*crhs9;
-        rLocalRHS[9]+=ScaleFactor*crhs4;
+        rLocalRHS[9]+=-ScaleFactor*crhs4;
     }
 }
 
@@ -27855,7 +27860,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -27863,12 +27868,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -27915,7 +27920,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalRHS[15]+=NormalSlave(0,0)*crhs13;
         rLocalRHS[16]+=NormalSlave(0,1)*crhs13;
         rLocalRHS[17]+=NormalSlave(0,2)*crhs13;
-        rLocalRHS[18]+=ScaleFactor*crhs6;
+        rLocalRHS[18]+=-ScaleFactor*crhs6;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -27955,7 +27960,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalRHS[15]+=NormalSlave(1,0)*crhs13;
         rLocalRHS[16]+=NormalSlave(1,1)*crhs13;
         rLocalRHS[17]+=NormalSlave(1,2)*crhs13;
-        rLocalRHS[19]+=ScaleFactor*crhs6;
+        rLocalRHS[19]+=-ScaleFactor*crhs6;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -27995,7 +28000,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalRHS[15]+=NormalSlave(2,0)*crhs13;
         rLocalRHS[16]+=NormalSlave(2,1)*crhs13;
         rLocalRHS[17]+=NormalSlave(2,2)*crhs13;
-        rLocalRHS[20]+=ScaleFactor*crhs6;
+        rLocalRHS[20]+=-ScaleFactor*crhs6;
     }
 }
 
@@ -28016,7 +28021,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -28024,12 +28029,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -28086,7 +28091,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalRHS[21]+=NormalSlave(0,0)*crhs17;
         rLocalRHS[22]+=NormalSlave(0,1)*crhs17;
         rLocalRHS[23]+=NormalSlave(0,2)*crhs17;
-        rLocalRHS[24]+=ScaleFactor*crhs8;
+        rLocalRHS[24]+=-ScaleFactor*crhs8;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -28136,7 +28141,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalRHS[21]+=NormalSlave(1,0)*crhs17;
         rLocalRHS[22]+=NormalSlave(1,1)*crhs17;
         rLocalRHS[23]+=NormalSlave(1,2)*crhs17;
-        rLocalRHS[25]+=ScaleFactor*crhs8;
+        rLocalRHS[25]+=-ScaleFactor*crhs8;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -28186,7 +28191,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalRHS[21]+=NormalSlave(2,0)*crhs17;
         rLocalRHS[22]+=NormalSlave(2,1)*crhs17;
         rLocalRHS[23]+=NormalSlave(2,2)*crhs17;
-        rLocalRHS[26]+=ScaleFactor*crhs8;
+        rLocalRHS[26]+=-ScaleFactor*crhs8;
     }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
@@ -28236,7 +28241,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalRHS[21]+=NormalSlave(3,0)*crhs17;
         rLocalRHS[22]+=NormalSlave(3,1)*crhs17;
         rLocalRHS[23]+=NormalSlave(3,2)*crhs17;
-        rLocalRHS[27]+=ScaleFactor*crhs8;
+        rLocalRHS[27]+=-ScaleFactor*crhs8;
     }
 }
 
@@ -28257,7 +28262,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -28265,12 +28270,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -28322,7 +28327,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalRHS[18]+=NormalSlave(0,0)*crhs15;
         rLocalRHS[19]+=NormalSlave(0,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(0,2)*crhs15;
-        rLocalRHS[21]+=-ScaleFactor*crhs7;
+        rLocalRHS[21]+=ScaleFactor*crhs7;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -28367,7 +28372,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalRHS[18]+=NormalSlave(1,0)*crhs15;
         rLocalRHS[19]+=NormalSlave(1,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(1,2)*crhs15;
-        rLocalRHS[22]+=-ScaleFactor*crhs7;
+        rLocalRHS[22]+=ScaleFactor*crhs7;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -28412,7 +28417,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalRHS[18]+=NormalSlave(2,0)*crhs15;
         rLocalRHS[19]+=NormalSlave(2,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(2,2)*crhs15;
-        rLocalRHS[23]+=-ScaleFactor*crhs7;
+        rLocalRHS[23]+=ScaleFactor*crhs7;
     }
 }
 
@@ -28433,7 +28438,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -28441,12 +28446,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -28498,7 +28503,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalRHS[18]+=NormalSlave(0,0)*crhs15;
         rLocalRHS[19]+=NormalSlave(0,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(0,2)*crhs15;
-        rLocalRHS[21]+=ScaleFactor*crhs7;
+        rLocalRHS[21]+=-ScaleFactor*crhs7;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -28543,7 +28548,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalRHS[18]+=NormalSlave(1,0)*crhs15;
         rLocalRHS[19]+=NormalSlave(1,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(1,2)*crhs15;
-        rLocalRHS[22]+=ScaleFactor*crhs7;
+        rLocalRHS[22]+=-ScaleFactor*crhs7;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -28588,7 +28593,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalRHS[18]+=NormalSlave(2,0)*crhs15;
         rLocalRHS[19]+=NormalSlave(2,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(2,2)*crhs15;
-        rLocalRHS[23]+=ScaleFactor*crhs7;
+        rLocalRHS[23]+=-ScaleFactor*crhs7;
     }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
@@ -28633,7 +28638,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalRHS[18]+=NormalSlave(3,0)*crhs15;
         rLocalRHS[19]+=NormalSlave(3,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(3,2)*crhs15;
-        rLocalRHS[24]+=ScaleFactor*crhs7;
+        rLocalRHS[24]+=-ScaleFactor*crhs7;
     }
 }
 
@@ -28654,7 +28659,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
@@ -28662,12 +28667,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
     const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 2, 2>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -28702,7 +28707,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         rLocalRHS[5]+=crhs10*crhs5;
         rLocalRHS[6]+=crhs0*crhs11;
         rLocalRHS[7]+=crhs11*crhs5;
-        rLocalRHS[8]+=ScaleFactor*crhs6;
+        rLocalRHS[8]+=-ScaleFactor*crhs6;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -28730,7 +28735,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         rLocalRHS[5]+=crhs10*crhs5;
         rLocalRHS[6]+=crhs0*crhs11;
         rLocalRHS[7]+=crhs11*crhs5;
-        rLocalRHS[9]+=ScaleFactor*crhs6;
+        rLocalRHS[9]+=-ScaleFactor*crhs6;
     }
 }
 
@@ -28751,7 +28756,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -28759,12 +28764,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -28814,7 +28819,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalRHS[15]+=crhs0*crhs16;
         rLocalRHS[16]+=crhs16*crhs7;
         rLocalRHS[17]+=crhs16*crhs8;
-        rLocalRHS[18]+=ScaleFactor*crhs9;
+        rLocalRHS[18]+=-ScaleFactor*crhs9;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -28857,7 +28862,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalRHS[15]+=crhs0*crhs16;
         rLocalRHS[16]+=crhs16*crhs7;
         rLocalRHS[17]+=crhs16*crhs8;
-        rLocalRHS[19]+=ScaleFactor*crhs9;
+        rLocalRHS[19]+=-ScaleFactor*crhs9;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -28900,7 +28905,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalRHS[15]+=crhs0*crhs16;
         rLocalRHS[16]+=crhs16*crhs7;
         rLocalRHS[17]+=crhs16*crhs8;
-        rLocalRHS[20]+=ScaleFactor*crhs9;
+        rLocalRHS[20]+=-ScaleFactor*crhs9;
     }
 }
 
@@ -28921,7 +28926,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -28929,12 +28934,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -28994,7 +28999,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalRHS[21]+=crhs0*crhs20;
         rLocalRHS[22]+=crhs20*crhs9;
         rLocalRHS[23]+=crhs10*crhs20;
-        rLocalRHS[24]+=ScaleFactor*crhs11;
+        rLocalRHS[24]+=-ScaleFactor*crhs11;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -29047,7 +29052,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalRHS[21]+=crhs0*crhs20;
         rLocalRHS[22]+=crhs20*crhs9;
         rLocalRHS[23]+=crhs10*crhs20;
-        rLocalRHS[25]+=ScaleFactor*crhs11;
+        rLocalRHS[25]+=-ScaleFactor*crhs11;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -29100,7 +29105,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalRHS[21]+=crhs0*crhs20;
         rLocalRHS[22]+=crhs20*crhs9;
         rLocalRHS[23]+=crhs10*crhs20;
-        rLocalRHS[26]+=ScaleFactor*crhs11;
+        rLocalRHS[26]+=-ScaleFactor*crhs11;
     }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
@@ -29153,7 +29158,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalRHS[21]+=crhs0*crhs20;
         rLocalRHS[22]+=crhs20*crhs9;
         rLocalRHS[23]+=crhs10*crhs20;
-        rLocalRHS[27]+=ScaleFactor*crhs11;
+        rLocalRHS[27]+=-ScaleFactor*crhs11;
     }
 }
 
@@ -29174,7 +29179,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
@@ -29182,12 +29187,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -29242,7 +29247,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalRHS[18]+=crhs0*crhs18;
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
-        rLocalRHS[21]+=-ScaleFactor*crhs10;
+        rLocalRHS[21]+=ScaleFactor*crhs10;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -29290,7 +29295,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalRHS[18]+=crhs0*crhs18;
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
-        rLocalRHS[22]+=-ScaleFactor*crhs10;
+        rLocalRHS[22]+=ScaleFactor*crhs10;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -29338,7 +29343,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalRHS[18]+=crhs0*crhs18;
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
-        rLocalRHS[23]+=-ScaleFactor*crhs10;
+        rLocalRHS[23]+=ScaleFactor*crhs10;
     }
 }
 
@@ -29359,7 +29364,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
@@ -29367,12 +29372,12 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
 
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
 
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
 
@@ -29427,7 +29432,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalRHS[18]+=crhs0*crhs18;
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
-        rLocalRHS[21]+=ScaleFactor*crhs10;
+        rLocalRHS[21]+=-ScaleFactor*crhs10;
     }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
@@ -29475,7 +29480,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalRHS[18]+=crhs0*crhs18;
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
-        rLocalRHS[22]+=ScaleFactor*crhs10;
+        rLocalRHS[22]+=-ScaleFactor*crhs10;
     }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
@@ -29523,7 +29528,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalRHS[18]+=crhs0*crhs18;
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
-        rLocalRHS[23]+=ScaleFactor*crhs10;
+        rLocalRHS[23]+=-ScaleFactor*crhs10;
     }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
@@ -29571,9 +29576,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalRHS[18]+=crhs0*crhs18;
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
-        rLocalRHS[24]+=ScaleFactor*crhs10;
+        rLocalRHS[24]+=-ScaleFactor*crhs10;
     }
 }
+
 
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
@@ -29604,7 +29610,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -29612,7 +29618,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 
     // Slave Nodes  Lambda Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE ).EquationId( );
     }
 
@@ -29648,7 +29654,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Y );
         if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Z );
@@ -29656,7 +29662,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 
     // Slave Nodes Lambda Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave )  {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE );
     }
 
@@ -29681,7 +29687,7 @@ int AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,T
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
-        Node<3> &rnode = this->GetGeometry()[i];
+        Node<3> &rnode = this->GetParentGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE,rnode)
 

@@ -6,6 +6,9 @@ Begin Properties 0
 End Properties
 
 Begin Properties 1
+CONSTITUTIVE_LAW Newtonian2DLaw
+DENSITY 1.0
+DYNAMIC_VISCOSITY 0.01
 End Properties
 
 Begin Nodes

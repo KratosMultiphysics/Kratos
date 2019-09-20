@@ -33,7 +33,7 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
     )
 {
     // We take the geometry GP from the core
-    const double tolerance = 1.0e3 * ZeroTolerance;
+    const double tolerance = 1.0e3 * mZeroToleranceFactor * ZeroTolerance;
 
     double total_weight = 0.0;
     array_1d<double, 2> auxiliar_coordinates = ZeroVector(2);
@@ -183,7 +183,7 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     array_1d<bool, 3> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -205,7 +205,7 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry);
@@ -271,7 +271,7 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
     array_1d<bool, 4> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -287,7 +287,7 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry);
@@ -353,7 +353,7 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
     array_1d<bool, 4> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<4>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<4>(all_inside_master, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -381,7 +381,7 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
 
         // We check if the nodes are inside
         array_1d<bool, 3> all_inside_slave;
-        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside_slave, slave_geometry);
@@ -455,7 +455,7 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
     array_1d<bool, 3> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<3>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<3>(all_inside_master, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -478,7 +478,7 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
 
         // We check if the nodes are inside
         array_1d<bool, 4> all_inside_slave;
-        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside_slave, slave_geometry);
@@ -504,7 +504,7 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
     )
 {
     // We take the geometry GP from the core
-    const double tolerance = 1.0e3 * ZeroTolerance;
+    const double tolerance = 1.0e3 * mZeroToleranceFactor * ZeroTolerance;
 
     double total_weight = 0.0;
     array_1d<double, 2> auxiliar_coordinates = ZeroVector(2);
@@ -664,7 +664,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
     array_1d<bool, 3> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -686,7 +686,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
@@ -752,7 +752,7 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
     array_1d<bool, 4> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -768,7 +768,7 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
@@ -834,7 +834,7 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
     array_1d<bool, 4> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<4>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<4>(all_inside_master, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -862,7 +862,7 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
 
         // We check if the nodes are inside
         array_1d<bool, 3> all_inside_slave;
-        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside_slave, slave_geometry, PointBelongs::Slave);
@@ -936,7 +936,7 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
     array_1d<bool, 3> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<3>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<3>(all_inside_master, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -959,7 +959,7 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
 
         // We check if the nodes are inside
         array_1d<bool, 4> all_inside_slave;
-        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside_slave, slave_geometry, PointBelongs::Slave);
@@ -1054,10 +1054,10 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
 {
     rArea = 0.0;
 
+    std::vector<PointType::Pointer> points_array( TDim);  // The points are stored as local coordinates, we calculate the global coordinates of this points
+    PointType global_point;
     for (IndexType i_geom = 0; i_geom < rConditionsPointsSlave.size(); ++i_geom) {
-        std::vector<PointType::Pointer> points_array( TDim);  // The points are stored as local coordinates, we calculate the global coordinates of this points
         for (IndexType i_node = 0; i_node < TDim; ++i_node) {
-            PointType global_point;
             rOriginalSlaveGeometry.GlobalCoordinates(global_point, rConditionsPointsSlave[i_geom][i_node]);
             points_array[i_node] = Kratos::make_shared<PointType>(global_point);
         }
@@ -1390,8 +1390,8 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
         rConditionsPointsSlave.resize((list_size - 2));
 
         IndexType aux_elem_index = 0;
+        ArrayTriangleType points_locals_slave, points_locals_master;
         for (IndexType elem = 0; elem < list_size - 2; ++elem) { // NOTE: We always have two points less that the number of nodes
-            ArrayTriangleType points_locals_slave, points_locals_master;
 
             points_locals_slave[0] = rPointList[0];
             points_locals_slave[1] = rPointList[index_vector[elem + 0] + 1];

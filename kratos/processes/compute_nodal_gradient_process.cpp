@@ -65,12 +65,22 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
         const std::size_t number_of_integration_points = r_integration_points.size();
 
         Vector values(number_of_nodes);
-        if (mrOriginVariableDoubleList.size() > 0) {
-            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
-                values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(*mrOriginVariableDoubleList[0]);
+        if (!mNonHistoricalVariable) {
+            if (mpOriginVariableDoubleList.size() > 0) {
+                for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
+                    values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(*mpOriginVariableDoubleList[0]);
+            } else {
+                for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
+                    values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(*mpOriginVariableComponentsList[0]);
+            }
         } else {
-            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
-                values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(*mrOriginVariableComponentsList[0]);
+            if (mpOriginVariableDoubleList.size() > 0) {
+                for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
+                    values[i_node] = r_geometry[i_node].GetValue(*mpOriginVariableDoubleList[0]);
+            } else {
+                for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
+                    values[i_node] = r_geometry[i_node].GetValue(*mpOriginVariableComponentsList[0]);
+            }
         }
 
         // The containers of the shape functions and the local gradients
@@ -99,7 +109,7 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
                     r_gradient[k] += N[i_node] * gauss_point_volume*grad[k];
                 }
 
-                double& vol = r_geometry[i_node].GetValue(mrAreaVariable);
+                double& vol = r_geometry[i_node].GetValue(*mpAreaVariable);
 
                 #pragma omp atomic
                 vol += N[i_node] * gauss_point_volume;
@@ -118,17 +128,137 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
 template<>
 ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::ComputeNodalGradientProcess(
     ModelPart& rModelPart,
-    Variable<double>& rOriginVariable,
-    Variable<array_1d<double,3> >& rGradientVariable,
-    Variable<double>& rAreaVariable)
-    :mrModelPart(rModelPart), mrGradientVariable(rGradientVariable), mrAreaVariable(rAreaVariable)
+    Parameters ThisParameters
+    ) : mrModelPart(rModelPart)
+{
+    KRATOS_TRY
+
+    // We check the parameters
+    Parameters default_parameters = GetDefaultParameters();
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    // We get the gradient variable
+    const std::string& r_origin_variable_name = ThisParameters["origin_variable"].GetString();
+
+    // We push the list of double variables
+    if (KratosComponents<Variable<double>>::Has(r_origin_variable_name)) {
+        mpOriginVariableDoubleList.push_back(&KratosComponents<Variable<double>>::Get(r_origin_variable_name));
+    } else if (KratosComponents<ComponentType>::Has(r_origin_variable_name)) {
+        mpOriginVariableComponentsList.push_back(&KratosComponents<ComponentType>::Get(r_origin_variable_name));
+    } else {
+        KRATOS_ERROR << "Only components and doubles are allowed as variables" << std::endl;
+    }
+
+    // Setting the non-historical flag
+    mNonHistoricalVariable = ThisParameters["non_historical_gradient_variable"].GetBool();
+
+    // Additional checks
+    if (!mNonHistoricalVariable) {
+        if (mpOriginVariableDoubleList.size() > 0) {
+            VariableUtils().CheckVariableExists(*mpOriginVariableDoubleList[0], mrModelPart.Nodes());
+        } else {
+            VariableUtils().CheckVariableExists(*mpOriginVariableComponentsList[0], mrModelPart.Nodes());
+        }
+    } else {
+        if (mpOriginVariableDoubleList.size() > 0) {
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableDoubleList[0])) << "Variable " << r_origin_variable_name << " not defined on non-historial database" << std::endl;
+        } else {
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableComponentsList[0])) << "Variable " << r_origin_variable_name << " not defined on non-historial database" << std::endl;
+        }
+    }
+    VariableUtils().CheckVariableExists(*mpGradientVariable, mrModelPart.Nodes());
+    // In case the area or gradient variable is not initialized we initialize it
+    auto& r_nodes = rModelPart.Nodes();
+    if (!r_nodes.begin()->Has( *mpAreaVariable )) {
+        VariableUtils().SetNonHistoricalVariable(*mpAreaVariable, 0.0, r_nodes);
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::ComputeNodalGradientProcess(
+    ModelPart& rModelPart,
+    Parameters ThisParameters
+    ) : mrModelPart(rModelPart)
+{
+    KRATOS_TRY
+
+    // We check the parameters
+    Parameters default_parameters = GetDefaultParameters();
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    // We get the gradient variable
+    const std::string& r_origin_variable_name = ThisParameters["origin_variable"].GetString();
+
+    // We push the list of double variables
+    if (KratosComponents<Variable<double>>::Has(r_origin_variable_name)) {
+        mpOriginVariableDoubleList.push_back(&KratosComponents<Variable<double>>::Get(r_origin_variable_name));
+    } else if (KratosComponents<ComponentType>::Has(r_origin_variable_name)) {
+        mpOriginVariableComponentsList.push_back(&KratosComponents<ComponentType>::Get(r_origin_variable_name));
+    } else {
+        KRATOS_ERROR << "Only components and doubles are allowed as variables" << std::endl;
+    }
+
+    // Setting the non-historical flag
+    mNonHistoricalVariable = ThisParameters["non_historical_origin_variable"].GetBool();
+
+    // Additional checks
+    if (!mNonHistoricalVariable) {
+        if (mpOriginVariableDoubleList.size() > 0) {
+            VariableUtils().CheckVariableExists(*mpOriginVariableDoubleList[0], mrModelPart.Nodes());
+        } else {
+            VariableUtils().CheckVariableExists(*mpOriginVariableComponentsList[0], mrModelPart.Nodes());
+        }
+    } else {
+        if (mpOriginVariableDoubleList.size() > 0) {
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableDoubleList[0])) << "Variable " << r_origin_variable_name << " not defined on non-historial database" << std::endl;
+        } else {
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(*mpOriginVariableComponentsList[0])) << "Variable " << r_origin_variable_name << " not defined on non-historial database" << std::endl;
+        }
+    }
+    // In case the area or gradient variable is not initialized we initialize it
+    auto& r_nodes = rModelPart.Nodes();
+    if (!r_nodes.begin()->Has( *mpGradientVariable )) {
+        const array_1d<double,3> zero_vector = ZeroVector(3);
+        VariableUtils().SetNonHistoricalVariable(*mpGradientVariable, zero_vector, r_nodes);
+    }
+    if (!r_nodes.begin()->Has( *mpAreaVariable )) {
+        VariableUtils().SetNonHistoricalVariable(*mpAreaVariable, 0.0, r_nodes);
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::ComputeNodalGradientProcess(
+    ModelPart& rModelPart,
+    const Variable<double>& rOriginVariable,
+    const Variable<array_1d<double,3> >& rGradientVariable,
+    const Variable<double>& rAreaVariable,
+    const bool NonHistoricalVariable
+    ) : mrModelPart(rModelPart),
+        mpGradientVariable(&rGradientVariable),
+        mpAreaVariable(&rAreaVariable),
+        mNonHistoricalVariable(NonHistoricalVariable)
 {
     KRATOS_TRY
 
     // We push the list of double variables
-    mrOriginVariableDoubleList.push_back(&rOriginVariable);
+    mpOriginVariableDoubleList.push_back(&rOriginVariable);
 
-    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    // Doing several checks
+    if (!mNonHistoricalVariable) {
+        VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    } else {
+        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(rOriginVariable)) << "Variable " << rOriginVariable.Name() << " not defined on non-historial database" << std::endl;
+    }
     VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
     // In case the area or gradient variable is not initialized we initialize it
     auto& r_nodes = rModelPart.Nodes();
@@ -145,17 +275,26 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistorica
 template<>
 ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::ComputeNodalGradientProcess(
     ModelPart& rModelPart,
-    Variable<double>& rOriginVariable,
-    Variable<array_1d<double,3> >& rGradientVariable,
-    Variable<double>& rAreaVariable)
-    :mrModelPart(rModelPart), mrGradientVariable(rGradientVariable), mrAreaVariable(rAreaVariable)
+    const Variable<double>& rOriginVariable,
+    const Variable<array_1d<double,3> >& rGradientVariable,
+    const Variable<double>& rAreaVariable,
+    const bool NonHistoricalVariable
+    ) : mrModelPart(rModelPart),
+        mpGradientVariable(&rGradientVariable),
+        mpAreaVariable(&rAreaVariable),
+        mNonHistoricalVariable(NonHistoricalVariable)
 {
     KRATOS_TRY
 
     // We push the list of double variables
-    mrOriginVariableDoubleList.push_back(&rOriginVariable);
+    mpOriginVariableDoubleList.push_back(&rOriginVariable);
 
-    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    // Doing several checks
+    if (!mNonHistoricalVariable) {
+        VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    } else {
+        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(rOriginVariable)) << "Variable " << rOriginVariable.Name() << " not defined on non-historial database" << std::endl;
+    }
     // In case the area or gradient variable is not initialized we initialize it
     auto& r_nodes = rModelPart.Nodes();
     if (!r_nodes.begin()->Has( rGradientVariable )) {
@@ -175,17 +314,26 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
 template<>
 ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::ComputeNodalGradientProcess(
     ModelPart& rModelPart,
-    ComponentType& rOriginVariable,
-    Variable<array_1d<double,3> >& rGradientVariable,
-    Variable<double>& rAreaVariable)
-    :mrModelPart(rModelPart), mrGradientVariable(rGradientVariable), mrAreaVariable(rAreaVariable)
+    const ComponentType& rOriginVariable,
+    const Variable<array_1d<double,3> >& rGradientVariable,
+    const Variable<double>& rAreaVariable,
+    const bool NonHistoricalVariable
+    ) : mrModelPart(rModelPart),
+        mpGradientVariable(&rGradientVariable),
+        mpAreaVariable(&rAreaVariable),
+        mNonHistoricalVariable(NonHistoricalVariable)
 {
     KRATOS_TRY
 
     // We push the components list
-    mrOriginVariableComponentsList.push_back(&rOriginVariable);
+    mpOriginVariableComponentsList.push_back(&rOriginVariable);
 
-    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    // Doing several checks
+    if (!mNonHistoricalVariable) {
+        VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    } else {
+        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(rOriginVariable)) << "Variable " << rOriginVariable.Name() << " not defined on non-historial database" << std::endl;
+    }
     VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
     // In case the area or gradient variable is not initialized we initialize it
     auto& r_nodes = rModelPart.Nodes();
@@ -202,17 +350,26 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistorica
 template<>
 ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::ComputeNodalGradientProcess(
     ModelPart& rModelPart,
-    ComponentType& rOriginVariable,
-    Variable<array_1d<double,3> >& rGradientVariable,
-    Variable<double>& rAreaVariable)
-    :mrModelPart(rModelPart), mrGradientVariable(rGradientVariable), mrAreaVariable(rAreaVariable)
+    const ComponentType& rOriginVariable,
+    const Variable<array_1d<double,3> >& rGradientVariable,
+    const Variable<double>& rAreaVariable,
+    const bool NonHistoricalVariable
+    ) : mrModelPart(rModelPart),
+        mpGradientVariable(&rGradientVariable),
+        mpAreaVariable(&rAreaVariable),
+        mNonHistoricalVariable(NonHistoricalVariable)
 {
     KRATOS_TRY
 
     // We push the components list
-    mrOriginVariableComponentsList.push_back(&rOriginVariable);
+    mpOriginVariableComponentsList.push_back(&rOriginVariable);
 
-    VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    // Doing several checks
+    if (!mNonHistoricalVariable) {
+        VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
+    } else {
+        KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().begin()->Has(rOriginVariable)) << "Variable " << rOriginVariable.Name() << " not defined on non-historial database" << std::endl;
+    }
     // In case the area or gradient variable is not initialized we initialize it
     auto& r_nodes = rModelPart.Nodes();
     if (!r_nodes.begin()->Has( rGradientVariable )) {
@@ -232,11 +389,13 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
 template<>
 void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::ClearGradient()
 {
+    const auto it_node_begin = mrModelPart.NodesBegin();
+
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->SetValue(mrAreaVariable, 0.0);
-        it_node->FastGetSolutionStepValue(mrGradientVariable).clear();
+        auto it_node=it_node_begin + i;
+        it_node->SetValue(*mpAreaVariable, 0.0);
+        it_node->FastGetSolutionStepValue(*mpGradientVariable).clear();
     }
 }
 
@@ -247,12 +406,13 @@ template <>
 void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::ClearGradient()
 {
     const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
+    const auto it_node_begin = mrModelPart.NodesBegin();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->SetValue(mrAreaVariable, 0.0);
-        it_node->SetValue(mrGradientVariable, aux_zero_vector);
+        auto it_node= it_node_begin + i;
+        it_node->SetValue(*mpAreaVariable, 0.0);
+        it_node->SetValue(*mpGradientVariable, aux_zero_vector);
     }
 }
 
@@ -265,8 +425,7 @@ array_1d<double, 3>& ComputeNodalGradientProcess<ComputeNodalGradientProcessSett
     unsigned int i
     )
 {
-    array_1d<double, 3>& val = rThisGeometry[i].FastGetSolutionStepValue(mrGradientVariable);
-    return val;
+    return rThisGeometry[i].FastGetSolutionStepValue(*mpGradientVariable);
 }
 
 /***********************************************************************************/
@@ -278,8 +437,7 @@ array_1d<double, 3>& ComputeNodalGradientProcess<ComputeNodalGradientProcessSett
     unsigned int i
     )
 {
-    array_1d<double, 3>& val = rThisGeometry[i].GetValue(mrGradientVariable);
-    return val;
+    return rThisGeometry[i].GetValue(*mpGradientVariable);
 }
 
 /***********************************************************************************/
@@ -288,10 +446,12 @@ array_1d<double, 3>& ComputeNodalGradientProcess<ComputeNodalGradientProcessSett
 template <>
 void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::PonderateGradient()
 {
+    const auto it_node_begin = mrModelPart.NodesBegin();
+
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node = mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
+        auto it_node = it_node_begin + i;
+        it_node->FastGetSolutionStepValue(*mpGradientVariable) /= it_node->GetValue(*mpAreaVariable);
     }
 }
 
@@ -301,13 +461,30 @@ void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHist
 template <>
 void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::PonderateGradient()
 {
+    const auto it_node_begin = mrModelPart.NodesBegin();
+
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i)
-    {
-        auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->GetValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
+    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
+        auto it_node = it_node_begin + i;
+        it_node->GetValue(*mpGradientVariable) /= it_node->GetValue(*mpAreaVariable);
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool THistorical>
+Parameters ComputeNodalGradientProcess<THistorical>::GetDefaultParameters() const
+{
+    Parameters default_parameters = Parameters(R"(
+    {
+        "origin_variable"                : "PLEASE_DEFINE_A_VARIABLE",
+        "non_historical_origin_variable" :  false
+    })" );
+
+    return default_parameters;
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

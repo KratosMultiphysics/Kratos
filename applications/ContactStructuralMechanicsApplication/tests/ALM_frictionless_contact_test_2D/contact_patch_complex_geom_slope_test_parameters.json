@@ -22,8 +22,7 @@
         },
         "contact_settings":
         {
-            "mortar_type"                    : "ALMContactFrictionless",
-            "ensure_contact"                 : true
+            "mortar_type"                    : "ALMContactFrictionless"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -38,9 +37,6 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["Structure","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1","SelfWeight2D_Self_weight_Auto1"],
-        "rotation_dofs"                      : false,
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
         }
@@ -53,7 +49,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -65,7 +61,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,null,0.0],
                 "interval"        : [0.0,"End"]
@@ -79,7 +75,7 @@
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "SelfWeight2D_Self_weight_Auto1",
+                "model_part_name" : "Structure.SelfWeight2D_Self_weight_Auto1",
                 "variable_name"   : "VOLUME_ACCELERATION",
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0],
@@ -107,7 +103,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_slope_test_results.json",
-                "model_part_name"      : "CONTACT_Contact_Auto1",
+                "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
                 "time_frequency"       : 1.00
             }
         }
@@ -122,7 +118,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_slope_test_results.json",
-            "model_part_name"      : "CONTACT_Contact_Auto1",
+            "model_part_name"      : "Structure.CONTACT_Contact_Auto1",
             "time_frequency"       : 1.00
         }
     }

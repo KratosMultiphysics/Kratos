@@ -271,7 +271,7 @@ public:
 
     //     return p_clone;
     // }
-    
+
 //     /**
 //      * @brief Lumping factors for the calculation of the lumped mass matrix
 //      * @param rResult Vector containing the lumping factors
@@ -340,19 +340,9 @@ public:
         return 0.00;
     }
 
-
-//      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
-//              {
-//                 //rResult.Geometry() = *(this);
-//                 BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
-//              }
-
-
-
     ///@}
     ///@name Jacobian
     ///@{
-
 
     /** Jacobians for given  method. This method
     calculate jacobians matrices in all integrations points of
@@ -637,11 +627,13 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Member Variables
     ///@{
 
-   
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -711,7 +703,7 @@ private:
     // Default constructor needed for serialization only
     Point2D():BaseType( PointsArrayType(), &msGeometryData ) {}
 
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{
@@ -752,18 +744,18 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 template<class TPointType>
-const GeometryData Point2D<TPointType>::msGeometryData( 2,
-        2,
-        0,
+const GeometryData Point2D<TPointType>::msGeometryData(
+        &msGeometryDimension,
         GeometryData::GI_GAUSS_1,
         Point2D<TPointType>::AllIntegrationPoints(),
         Point2D<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients());
 
+template<class TPointType>
+const GeometryDimension Point2D<TPointType>::msGeometryDimension(
+    2, 2, 0);
+
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_2D_H_INCLUDED  defined 
-
-
+#endif // KRATOS_LINE_2D_H_INCLUDED  defined

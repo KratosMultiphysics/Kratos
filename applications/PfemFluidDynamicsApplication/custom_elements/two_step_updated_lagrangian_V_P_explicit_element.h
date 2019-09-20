@@ -384,11 +384,7 @@ namespace Kratos
       double GetThetaMomentum () override{return 1.0;};
 
       double GetThetaContinuity () override{return 1.0;};
-
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override{};
-
+     
       /// Add integration point contribution to the mass matrix.
       /**
        * A constistent mass matrix is used.

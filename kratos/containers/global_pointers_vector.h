@@ -457,6 +457,8 @@ private:
     {
         if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
         {
+            
+
             std::size_t pointer_size = sizeof(GlobalPointer<TDataType> );
 
             std::string data;
@@ -475,7 +477,7 @@ private:
             for(const auto& item : mData)
                 rSerializer.save("Gp", item);
         }
-}
+    }
 
     void load(Serializer& rSerializer)
     {
@@ -509,8 +511,7 @@ private:
                 this->push_back(p);
             }
         }
-
-}
+    }
 
 
     ///@}

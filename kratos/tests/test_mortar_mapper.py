@@ -3,8 +3,13 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics import from_json_check_result_process
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.vtk_output_process import VtkOutputProcess
+
 import os
 import math
+from decimal import Decimal
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -13,7 +18,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous):
+    def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous, origin_are_conditions, destination_are_conditions):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         self.model = KratosMultiphysics.Model()
 
@@ -55,10 +60,14 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
             "max_number_iterations"            : 10,
             "integration_order"                : 2,
             "origin_variable"                  : "TEMPERATURE",
-            "discontinuous_interface"          : false
+            "discontinuous_interface"          : false,
+            "origin_are_conditions"            : true,
+            "destination_are_conditions"       : true
         }
         """)
         map_parameters["discontinuous_interface"].SetBool(discontinuous)
+        map_parameters["origin_are_conditions"].SetBool(origin_are_conditions)
+        map_parameters["destination_are_conditions"].SetBool(destination_are_conditions)
 
         if pure_implicit:
             #linear_solver = ExternalSolversApplication.SuperLUSolver()
@@ -70,17 +79,15 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         map_parameters["origin_variable"].SetString("DISPLACEMENT")
         self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess(self.model_part_master, self.model_part_slave, map_parameters, linear_solver)
 
-    def _mapper_tests(self, input_filename, num_nodes, master_num_nodes, pure_implicit = False, inverted = False, discontinuous = False):
+    def _mapper_tests(self, input_filename, num_nodes, master_num_nodes, pure_implicit = False, inverted = False, discontinuous = False, origin_are_conditions = True, destination_are_conditions = True):
 
-        self.__base_test_mapping(input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous)
+        self.__base_test_mapping(input_filename, num_nodes, master_num_nodes, pure_implicit, inverted, discontinuous, origin_are_conditions, destination_are_conditions)
 
         self.mortar_mapping_double.Execute()
         self.mortar_mapping_vector.Execute()
 
         # Debug postprocess file
         #self.__post_process()
-
-        import from_json_check_result_process
 
         check_parameters = KratosMultiphysics.Parameters("""
         {
@@ -149,16 +156,15 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
 
     def test_mortar_mapping_quad_tri(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
-        self._mapper_tests(input_filename, 4, 3)
+        self._mapper_tests(input_filename, 4, 3, False, False, False, False, True)
 
     def test_mortar_mapping_tri_quad(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_double_curvature_integration_triangle_quadrilateral"
-        self._mapper_tests(input_filename, 3, 4, False, True)
+        self._mapper_tests(input_filename, 3, 4, False, True, False, True, False)
 
     def __post_process(self, debug = "GiD"):
 
         if debug == "GiD":
-            from gid_output_process import GiDOutputProcess
             self.gid_output = GiDOutputProcess(self.main_model_part,
                                         "gid_output",
                                         KratosMultiphysics.Parameters("""
@@ -184,7 +190,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
             self.gid_output.ExecuteFinalizeSolutionStep()
             self.gid_output.ExecuteFinalize()
         elif debug == "VTK":
-            from vtk_output_process import VtkOutputProcess
             self.vtk_output_process = VtkOutputProcess(self.model,
                                         KratosMultiphysics.Parameters("""{
                                                 "model_part_name"                    : "Main",
@@ -241,7 +246,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         model_part_io.WriteModelPart(self.main_model_part)
 
     def __sci_str(self, x):
-        from decimal import Decimal
         s = 10*Decimal(str(x))
         s = ('{:.' + str(len(s.normalize().as_tuple().digits) - 1) + 'E}').format(s)
         s = s.replace('E+','D0')

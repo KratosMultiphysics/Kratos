@@ -20,9 +20,9 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
-#include "utilities/math_utils.h"
+#include "includes/variables.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
 
 namespace Kratos
 {
@@ -44,6 +44,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+class ModelPart; // forward-declaring to not having to include it here
 
 /**
  * @brief This struct is used in order to identify when using the historical and non historical variables
@@ -169,7 +171,7 @@ namespace MortarUtilities
     }
 
     /**
-     * @brief It computes the mean of the r_normal in the condition in all the nodes
+     * @brief It computes the mean of the normal in the condition in all the nodes
      * @param rModelPart The model part to compute
      * @param ComputeConditions If computed over conditions or elements
      */
@@ -179,20 +181,104 @@ namespace MortarUtilities
         );
 
     /**
-     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the r_normal
-     * @param rContainer reference to the objective container
+     * @brief It computes the tangent in all the nodes of the model part
+     * @param rModelPart The model part to compute
+     * @param pSlipVariable The pointer to the slip variable
+     * @param SlipCoefficient The slip contribution
+     * @param SlipAlways Uses the slip even in case that LM are available
+     */
+    void KRATOS_API(KRATOS_CORE) ComputeNodesTangentModelPart(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double, 3>>* pSlipVariable = NULL,
+        const double SlipCoefficient = 1.0,
+        const bool SlipAlways = false
+        );
+
+    /**
+     * @brief It computes the tangent in all the nodes of the model part from its normal
+     * @param rModelPart The model part to compute
+     */
+    void KRATOS_API(KRATOS_CORE) ComputeNodesTangentFromNormalModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief It computes the tangent on the given node using the normal provided
+     * @param rNode The node where to compute the tangent
+     * @param rNormal The normal vector
+     * @param Dimension The current working dimension
+     */
+    void KRATOS_API(KRATOS_CORE) ComputeTangentsFromNormal(
+        NodeType& rNode,
+        const array_1d<double, 3>& rNormal,
+        const std::size_t Dimension = 3
+        );
+
+    /**
+     * @brief It computes the tangent on the given node using the LM direction and Slip direction
+     * @param rNode The node where to compute the tangent
+     * @param StepLM The considered step slip
+     * @param pSlipVariable The pointer to the slip variable
+     * @param SlipCoefficient The slip contribution
+     * @param Dimension The current working dimension
+     */
+    void KRATOS_API(KRATOS_CORE) ComputeTangentNodeWithLMAndSlip(
+        NodeType& rNode,
+        const std::size_t StepLM = 0,
+        const Variable<array_1d<double, 3>>* pSlipVariable = NULL,
+        const double SlipCoefficient = 1.0,
+        const std::size_t Dimension = 3
+        );
+
+    /**
+     * @brief It computes the tangent on the given node using the Slip direction
+     * @param rNode The node where to compute the tangent
+     * @param StepLM The considered step slip
+     * @param pSlipVariable The pointer to the slip variable
+     * @param SlipCoefficient The slip contribution
+     * @param Dimension The current working dimension
+     */
+    void KRATOS_API(KRATOS_CORE) ComputeTangentNodeWithSlip(
+        NodeType& rNode,
+        const std::size_t StepLM = 0,
+        const Variable<array_1d<double, 3>>* pSlipVariable = NULL,
+        const double SlipCoefficient = 1.0,
+        const std::size_t Dimension = 3
+        );
+
+    /**
+     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the normal when certain flag is active
+     * @param rContainer Reference to the objective container
+     * @param Flag The flag of the entities inverted
      */
     template<class TContainerType>
-    void InvertNormal(TContainerType& rContainer) {
+    void InvertNormalForFlag(
+        TContainerType& rContainer,
+        const Flags Flag
+        )
+    {
+        bool to_invert = false;
         const auto it_cont_begin = rContainer.begin();
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(to_invert)
         for(int i = 0; i < static_cast<int>(rContainer.size()); ++i) {
             auto it_cont = it_cont_begin + i;
-            GeometryType& r_geometry = it_cont->GetGeometry();
+            to_invert = Flag == Flags() ? true : it_cont->IsDefined(Flag) ? it_cont->Is(Flag) : false;
 
-            auto& data_geom = r_geometry.GetContainer();
-            std::reverse(data_geom.begin(), data_geom.end());
+            if (to_invert) {
+                GeometryType& r_geometry = it_cont->GetGeometry();
+
+                auto& data_geom = r_geometry.GetContainer();
+                std::reverse(data_geom.begin(), data_geom.end());
+            }
         }
+    }
+
+    /**
+     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the normal
+     * @param rContainer Reference to the objective container
+     */
+    template<class TContainerType>
+    void InvertNormal(TContainerType& rContainer)
+    {
+        InvertNormalForFlag(rContainer, Flags());
     }
 
     /**
@@ -231,65 +317,21 @@ namespace MortarUtilities
     }
 
     /**
-     * @brief It calculates the matrix containing the tangent vector of the LM (for frictional contact)
+     * @brief It calculates the matrix containing the tangent vector TANGENT_XI
      * @param rGeometry The geometry to calculate
-     * @param StepLM The considered step slip
      * @return tangent_matrix The matrix containing the tangent vectors of the LM
      */
     template< SizeType TNumNodes, SizeType TDim>
-    BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrix(
-        const GeometryType& rGeometry,
-        const std::size_t StepLM = 0
-        )
+    BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrix(const GeometryType& rGeometry)
     {
-        /* DEFINITIONS */
-        // Zero tolerance
-        const double zero_tolerance = std::numeric_limits<double>::epsilon();
         // Tangent matrix
         BoundedMatrix<double, TNumNodes, TDim> tangent_matrix;
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            const array_1d<double, 3>& r_lm = rGeometry[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, StepLM);
-            if (norm_2(r_lm) > zero_tolerance) { // Non zero LM
-                const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL, StepLM);
-                const array_1d<double, 3> tangent_lm = r_lm - inner_prod(r_lm, r_normal) * r_normal;
-                if (norm_2(tangent_lm) > zero_tolerance) {
-                    const array_1d<double, 3> tangent = tangent_lm/norm_2(tangent_lm);
-                    for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
-                        tangent_matrix(i_node, i_dof) = tangent[i_dof];
-                } else {
-                    const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL, StepLM);
-                    array_1d<double, 3> tangent_xi, tangent_eta;
-                    MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-                    if (TDim == 3) {
-                        for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
-                            tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
-                    } else  {
-                        if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
-                            for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
-                                tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
-                        } else {
-                            for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
-                                tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
-                        }
-                    }
-                }
-            } else { // In case of zero LM
-                const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL, StepLM);
-                array_1d<double, 3> tangent_xi, tangent_eta;
-                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-                if (TDim == 3) {
-                    for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
-                        tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
-                } else  {
-                    if (std::abs(tangent_xi[2]) > std::numeric_limits<double>::epsilon()) {
-                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
-                            tangent_matrix(i_node, i_dof) = tangent_eta[i_dof];
-                    } else {
-                        for (std::size_t i_dof = 0; i_dof < 2; ++i_dof)
-                            tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
-                    }
-                }
+            const auto& r_node = rGeometry[i_node];
+            const auto& r_tangent = r_node.GetValue(TANGENT_XI);
+            for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof) {
+                tangent_matrix(i_node, i_dof) = r_tangent[i_dof];
             }
         }
 

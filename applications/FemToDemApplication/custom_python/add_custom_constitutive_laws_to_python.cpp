@@ -1,15 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics FemDem Application
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
 // System includes
 #include <pybind11/pybind11.h>
-//#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // External includes
 
@@ -23,7 +25,6 @@
 #include "includes/condition.h"
 #include "includes/properties.h"
 
-//#include "python/pointer_vector_set_python_interface.h"
 #include "python/variable_indexing_python.h"
 #include "python/add_mesh_to_python.h"
 
