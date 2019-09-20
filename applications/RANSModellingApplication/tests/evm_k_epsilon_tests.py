@@ -21,9 +21,23 @@ class EvmKEpsilonTest(UnitTest.TestCase):
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name)
 
+    def testChannelFlowKEpsilonTransientMPI(self):
+        work_folder = "ChannelFlowTest"
+        settings_file_name = "channel_flow_k_epsilon_transient_mpi_parameters.json"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            self._runTest(settings_file_name)
+
     def testChannelFlowKEpsilonSteady(self):
         work_folder = "ChannelFlowTest"
         settings_file_name = "channel_flow_k_epsilon_steady_parameters.json"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            self._runTest(settings_file_name)
+
+    def testChannelFlowKEpsilonSteadyMPI(self):
+        work_folder = "ChannelFlowTest"
+        settings_file_name = "channel_flow_k_epsilon_steady_mpi_parameters.json"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
             self._runTest(settings_file_name)

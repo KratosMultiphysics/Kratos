@@ -67,7 +67,7 @@ if __name__ == '__main__':
         import KratosMultiphysics.mpi as KratosMPI
         import KratosMultiphysics.MetisApplication as MetisApplication
         import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_FluidDynamicsApplication_mpi.py"], stdout=subprocess.PIPE)
+        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_RANSModellingApplication_mpi.py"], stdout=subprocess.PIPE)
         p.wait()
         KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
     except ImportError:
