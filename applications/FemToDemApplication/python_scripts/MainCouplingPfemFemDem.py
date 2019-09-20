@@ -22,7 +22,8 @@ class MainCouplingPfemFemDem_Solution:
         # Initialize solutions of the FEMDEM and PFEM
         self.FEMDEM_Solution = MainCouplingFemDem.MainCoupledFemDem_Solution(Model)
         self.FEMDEM_Solution.Initialize()
-        self.PFEM_Solution   = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, self.FEMDEM_Solution.FEM_Solution.main_model_part, PFEMparameters)
+
+        self.PFEM_Solution = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, self.FEMDEM_Solution.FEM_Solution.main_model_part, PFEMparameters)
         KratosPrintInfo("   ___                  _          _            _ _   _         ___  ___  __        ")
         KratosPrintInfo("  / __\___  _   _ _ __ | | ___  __| | __      _(_) |_| |__     / _ \/ __\/__\/\/\   ")
         KratosPrintInfo(" / /  / _ \| | | | '_ \| |/ _ \/ _` | \ \ /\ / / | __| '_ \   / /_)/ _\ /_\ /    \  ")
