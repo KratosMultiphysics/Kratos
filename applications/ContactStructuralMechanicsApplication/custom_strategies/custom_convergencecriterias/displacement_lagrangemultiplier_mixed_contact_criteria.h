@@ -20,7 +20,6 @@
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
-#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -218,9 +217,8 @@ public:
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
-                dof_id = it_dof->EquationId();
-
-                if (mActiveDofs[dof_id]) {
+                if (it_dof->IsFree()) {
+                    dof_id = it_dof->EquationId();
 
                     const auto curr_var = it_dof->GetVariable();
                     if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
@@ -370,11 +368,7 @@ public:
         const TSystemVectorType& rb
         ) override
     {
-        // Initialize flag
         mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
-
-        // Filling mActiveDofs when MPC exist
-        ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
     }
 
     ///@}
@@ -440,8 +434,6 @@ private:
 
     TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
     TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
-
-    std::vector<bool> mActiveDofs;  /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators

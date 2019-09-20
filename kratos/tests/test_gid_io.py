@@ -4,8 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
-from KratosMultiphysics import compare_two_files_check_process
+from gid_output_process import GiDOutputProcess
 
 import os
 
@@ -61,6 +60,7 @@ class TestGidIO(KratosUnittest.TestCase):
         return model_part
 
     def __Check(self,output_file,reference_file):
+        import compare_two_files_check_process
 
         ## Settings string in json format
         params = KratosMultiphysics.Parameters("""

@@ -462,14 +462,14 @@ private:
             Point::CoordinatesArrayType aux_coords;
 
             // We update the paired normal
-            GeometryType& r_parent_geometry = it_cond->GetGeometry().GetGeometryPart(0);
-            aux_coords = r_parent_geometry.PointLocalCoordinates(aux_coords, r_parent_geometry.Center());
-            it_cond->SetValue(NORMAL, r_parent_geometry.UnitNormal(aux_coords));
+            GeometryType& this_geometry = it_cond->GetGeometry();
+            aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
+            it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
 
             // We update the paired normal
-            auto& r_paired_geometry = it_cond->GetGeometry().GetGeometryPart(1);
-            aux_coords = r_paired_geometry.PointLocalCoordinates(aux_coords, r_paired_geometry.Center());
-            it_cond->SetValue(PAIRED_NORMAL, r_paired_geometry.UnitNormal(aux_coords));
+            GeometryType::Pointer p_paired_geometry = it_cond->GetValue(PAIRED_GEOMETRY);
+            aux_coords = p_paired_geometry->PointLocalCoordinates(aux_coords, p_paired_geometry->Center());
+            it_cond->SetValue(PAIRED_NORMAL, p_paired_geometry->UnitNormal(aux_coords));
         }
     }
 

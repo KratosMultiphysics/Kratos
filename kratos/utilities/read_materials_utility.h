@@ -49,7 +49,6 @@ namespace Kratos {
  * @brief Process to read constitutive law and material properties from a json file
  * @details This process reads constitutive law and material properties from a json file
  * and assign them to elements and conditions.
- * The definition includes the creation of subproperties
  * @author Marcelo Raschi
  * @author Vicente Mataix Ferrandiz
  */
@@ -197,28 +196,6 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method creates a property from configuration parameters
-     * @param Data The parameters containing all the configurations of the materials
-     * @param pNewProperty The pointer to the new property created
-     */
-    void CreateProperty(
-        Parameters Data,
-        Properties::Pointer& pNewProperty
-        );
-
-    /**
-     * @brief This method creates a list of subproperties and it assigns to the father property from configuration parameters
-     * @param rModelPart The currently computed model part
-     * @param Data The parameters containing all the configurations of the materials
-     * @param pNewProperty The pointer to the new property created
-     */
-    void CreateSubProperties(
-        ModelPart& rModelPart,
-        Parameters Data,
-        Properties::Pointer& pNewProperty
-        );
 
     /**
      * @brief This method assigns the properties to the model parts

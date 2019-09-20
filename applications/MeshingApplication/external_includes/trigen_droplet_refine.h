@@ -249,7 +249,7 @@ public:
 			    //generating the dofs
 			    for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
 			    {
-				Node<3>::DofType& rDof = **iii;
+				Node<3>::DofType& rDof = *iii;
 				Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 				(p_new_dof)->FreeDof();
 			    }
@@ -336,10 +336,11 @@ public:
             in_mid.pointlist[base] = (nodes_begin + i)->X();
             in_mid.pointlist[base+1] = (nodes_begin + i)->Y();
 
-            auto& node_dofs = (nodes_begin + i)->GetDofs();
-            for(auto iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
+            Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
+            for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
             {
-                (**iii).SetEquationId(i+1);
+                iii->SetId(i+1);
+//                                    iii->Id() = i+1;
             }
         }
         //in_mid.numberoftriangles = ThisModelPart.Elements().size();
@@ -511,7 +512,7 @@ public:
                 //generating the dofs
                 for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                 {
-                    Node<3>::DofType& rDof = **iii;
+                    Node<3>::DofType& rDof = *iii;
                     Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                     (p_new_dof)->FreeDof();

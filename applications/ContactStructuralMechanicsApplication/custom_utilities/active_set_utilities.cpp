@@ -344,7 +344,7 @@ array_1d<std::size_t, 2> ComputeALMFrictionalActiveSet(
 
                     // We activate the deactivated nodes and add the contribution
                     if (it_node->IsNot(ACTIVE)) {
-                        noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = r_nodal_normal * augmented_normal_pressure/scale_factor + (mu < std::numeric_limits<double>::epsilon() ? zero_array : augmented_tangent_pressure_components/scale_factor);
+                        noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = r_nodal_normal * augmented_normal_pressure/scale_factor + augmented_tangent_pressure_components/scale_factor;
                         it_node->Set(ACTIVE, true);
                         #pragma omp atomic
                         is_converged_0 += 1;

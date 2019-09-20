@@ -1,7 +1,5 @@
 from __future__ import print_function
-import os
-import subprocess
-import sys
+import os,subprocess,sys
 import multiprocessing as mp
 if sys.version_info >= (3, 0):
     import queue
@@ -70,34 +68,33 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def run(benchmark, file_for_output):
-    path_to_callable_script = os.path.join(path, "DEM_benchmarks_analysis.py")
+def run(benchmark):
+    out_file_name = '{0}.info'.format(benchmark)
+    f = open(out_file_name, 'wb')
+
+    path_to_callable_script = os.path.join(path,"DEM_benchmarks_analysis.py")
 
     if sys.version_info >= (3, 0):
-        subprocess.check_call(["python3", path_to_callable_script, str(benchmark)], stdout=file_for_output, stderr=file_for_output)
+        subprocess.check_call(["python3", path_to_callable_script, str(benchmark)], stdout=f, stderr=f)
     else:
-        subprocess.check_call(["python", "-3", path_to_callable_script, str(benchmark)], stdout=file_for_output, stderr=file_for_output)
+        subprocess.check_call(["python", "-3", path_to_callable_script, str(benchmark)], stdout=f, stderr=f)
+
+    f.close()
+
+    file_to_remove = out_file_name
+    kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
 
 def worker(queue):
-
+    """Process files from the queue."""
     for benchmark in iter(queue.get, None):
-        out_file_name = '{0}.info'.format(benchmark)
-        f = open(out_file_name, 'wb')
-        print(Benchmark_text[benchmark - 1])
-
         try:
-            run(benchmark, f)
+            print(Benchmark_text[benchmark - 1])
+            run(benchmark)
         except Exception:# catch exceptions to avoid exiting the thread prematurely
-            with open(out_file_name, 'r') as fin:
-                print(fin.read())
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.err", "a")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
-
-        f.close()
-        file_to_remove = out_file_name
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
 
 def main():
     try:

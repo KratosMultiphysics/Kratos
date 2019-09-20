@@ -409,12 +409,7 @@ private:
         {
             const array_1d<double,3>& area_normal = node_i.FastGetSolutionStepValue(NORMAL);
             array_3d& normalized_normal = node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-
-            const double norm2 = norm_2(area_normal);
-            KRATOS_ERROR_IF(norm2<1e-10) << "CalculateUnitNormals: Norm2 of normal for node "
-                << node_i.Id() << " is < 1e-10!" << std::endl;
-
-            noalias(normalized_normal) = area_normal/norm2;
+            noalias(normalized_normal) = area_normal/norm_2(area_normal);
         }
     }
 

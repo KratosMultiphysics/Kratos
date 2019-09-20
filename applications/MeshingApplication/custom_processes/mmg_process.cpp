@@ -349,11 +349,9 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
 
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     auto& r_nodes_array = mrThisModelPart.Nodes();
-    const auto& r_old_dofs = r_nodes_array.begin()->GetDofs();
-    for (auto it_dof = r_old_dofs.begin(); it_dof != r_old_dofs.end(); ++it_dof)
-        mDofs.push_back(Kratos::make_unique<NodeType::DofType>(**it_dof));
+    mDofs = r_nodes_array.begin()->GetDofs();
     for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-        (**it_dof).FreeDof();
+        it_dof->FreeDof();
 
     // Generate the maps of reference
     mMmmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);

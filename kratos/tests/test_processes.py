@@ -5,8 +5,6 @@ import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from KratosMultiphysics import process_factory
-
 import math
 import os
 
@@ -170,6 +168,7 @@ class TestProcesses(KratosUnittest.TestCase):
         """
         )
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         for node in model_part.Nodes:
@@ -375,6 +374,7 @@ class TestProcesses(KratosUnittest.TestCase):
         """
         )
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(3.0)
@@ -431,6 +431,7 @@ class TestProcesses(KratosUnittest.TestCase):
         """
         )
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         for process in list_of_processes:
@@ -476,6 +477,7 @@ class TestProcesses(KratosUnittest.TestCase):
         """
         )
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         for process in list_of_processes:
@@ -529,6 +531,7 @@ class TestProcesses(KratosUnittest.TestCase):
         """
         )
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         for process in list_of_processes:
@@ -564,6 +567,7 @@ class TestProcesses(KratosUnittest.TestCase):
         """
         )
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(5.0)
@@ -605,6 +609,7 @@ class TestProcesses(KratosUnittest.TestCase):
         """
         )
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(5.0)
@@ -643,6 +648,7 @@ class TestProcesses(KratosUnittest.TestCase):
         """
         )
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(5.0)
@@ -700,6 +706,7 @@ class TestProcesses(KratosUnittest.TestCase):
         """
         )
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         ################### here we are within the interval
@@ -807,6 +814,7 @@ class TestProcesses(KratosUnittest.TestCase):
         }
         """)
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         ################### here we are within the interval
@@ -871,6 +879,7 @@ class TestProcesses(KratosUnittest.TestCase):
         }
         """)
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         ################### here we are within the interval
@@ -934,6 +943,7 @@ class TestProcesses(KratosUnittest.TestCase):
         }
         """)
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         ################### here we are within the interval
@@ -1454,6 +1464,7 @@ class TestProcesses(KratosUnittest.TestCase):
                 }]
         }""")
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(1.0)
@@ -1555,6 +1566,7 @@ class TestProcesses(KratosUnittest.TestCase):
         """
         )
 
+        import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         for node in model_part.Nodes:
@@ -1652,6 +1664,7 @@ def SetNodalValuesForPointOutputProcesses(model_part):
 
 def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
     current_model = model_part.GetModel()
+    import process_factory
     list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
         settings["process_list"] )
 

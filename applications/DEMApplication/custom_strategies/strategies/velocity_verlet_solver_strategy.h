@@ -55,7 +55,7 @@ namespace Kratos
         KRATOS_CATCH("")
       }
 
-      double SolveSolutionStep() override
+      double Solve() override
       {
           KRATOS_TRY
           ModelPart& r_model_part = this->GetModelPart();
@@ -80,7 +80,7 @@ namespace Kratos
 
           return 0.0;
 
-      }//SolveSolutionStep()
+      }//Solve()
 
   }; // Class VelocityVerletSolverStrategy<TBaseStrategy>
 

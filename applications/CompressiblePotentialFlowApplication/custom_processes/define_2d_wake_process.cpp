@@ -119,20 +119,16 @@ void Define2DWakeProcess::SetWakeDirectionAndNormal()
 // This function finds and saves the trailing edge for further computations
 void Define2DWakeProcess::SaveTrailingEdgeNode()
 {
-    KRATOS_ERROR_IF(mrBodyModelPart.NumberOfNodes() == 0) << "There are no nodes in the body_model_part!"<< std::endl;
-
     double max_x_coordinate = std::numeric_limits<double>::lowest();
-    auto p_trailing_edge_node = &*mrBodyModelPart.NodesBegin();
-
+    NodeType* trailing_edge_node;
     for (auto& r_node : mrBodyModelPart.Nodes()) {
         if (r_node.X() > max_x_coordinate) {
             max_x_coordinate = r_node.X();
-            p_trailing_edge_node = &r_node;
+            trailing_edge_node = &r_node;
         }
     }
-
-    p_trailing_edge_node->SetValue(TRAILING_EDGE, true);
-    mpTrailingEdgeNode = p_trailing_edge_node;
+    trailing_edge_node->SetValue(TRAILING_EDGE, true);
+    mpTrailingEdgeNode = trailing_edge_node;
 }
 
 // This function checks which elements are cut by the wake and marks them as
@@ -278,8 +274,6 @@ void Define2DWakeProcess::MarkWakeTrailingEdgeElement() const
     ModelPart& trailing_edge_sub_model_part =
         root_model_part.GetSubModelPart("trailing_edge_sub_model_part");
 
-    ModelPart& wake_sub_model_part = root_model_part.GetSubModelPart("wake_sub_model_part");
-
     for (auto& r_element : trailing_edge_sub_model_part.Elements()) {
         if(r_element.GetValue(WAKE)){
             // Trailing edge wake element
@@ -290,7 +284,6 @@ void Define2DWakeProcess::MarkWakeTrailingEdgeElement() const
             //Rest of elements touching the trailing edge but not part of the wake
             else{
                 r_element.SetValue(WAKE, false);
-                wake_sub_model_part.RemoveElement(r_element.Id());
             }
         }
     }

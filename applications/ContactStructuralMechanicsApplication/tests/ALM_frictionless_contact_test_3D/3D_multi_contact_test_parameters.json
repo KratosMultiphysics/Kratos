@@ -38,14 +38,17 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
-        }
+        },
+         "problem_domain_sub_model_part_list" : ["Structure","Parts_Lower","Parts_Middle","Parts_Upper"],
+        "processes_sub_model_part_list"      : ["Structure","Parts_Lower","Parts_Middle","Parts_Upper","DISPLACEMENT_Imposed","DISPLACEMENT_Fix","DISPLACEMENT_Control","GENERIC_TopMiddle","GENERIC_BottomMiddle","GENERIC_TopLower","GENERIC_BottomUpper"],
+        "rotation_dofs"                      : false
     },
     "processes" : {
         "constraints_process_list" : [{
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Imposed",
+                "model_part_name" : "DISPLACEMENT_Imposed",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,-0.001],
@@ -55,7 +58,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Fix",
+                "model_part_name" : "DISPLACEMENT_Fix",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -65,7 +68,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Control",
+                "model_part_name" : "DISPLACEMENT_Control",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,false],
                 "value"           : [0.0,0.0,0.0],
@@ -97,7 +100,7 @@
             "help"                 : "",
             "process_name"         : "SPRISMProcess",
             "Parameters":{
-                "model_part_name"  : "Structure.Parts_Middle"
+                "model_part_name"  : "Parts_Middle"
             }
         },{
             "python_module"  :"sprism_process",
@@ -105,7 +108,7 @@
             "help"                 : "",
             "process_name"         : "SPRISMProcess",
             "Parameters":{
-                "model_part_name"  : "Structure.Parts_Upper"
+                "model_part_name"  : "Parts_Upper"
             }
         },{
             "python_module"  :"sprism_process",
@@ -113,7 +116,7 @@
             "help"                 : "",
             "process_name"         : "SPRISMProcess",
             "Parameters":{
-                "model_part_name"  : "Structure.Parts_Lower"
+                "model_part_name"  : "Parts_Lower"
             }
         }],
         "json_check_process" : [
@@ -125,7 +128,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_Z"],
                 "input_file_name"      : "ALM_frictionless_contact_test_3D/3d_multi_contact_test_results.json",
-                "model_part_name"      : "Structure.Parts_Middle",
+                "model_part_name"      : "Parts_Middle",
                 "time_frequency"       : 0.1
             }
         }
@@ -171,7 +174,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Z"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3d_multi_contact_test_results.json",
-            "model_part_name"      : "Structure.Parts_Middle",
+            "model_part_name"      : "Parts_Middle",
             "time_frequency"       : 0.1
         }
     }

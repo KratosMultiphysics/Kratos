@@ -54,7 +54,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             else:
                 mapper_create_fct = KratosMapping.MapperFactory.CreateMapper
 
-            self.__mappers[name_tuple] = mapper_create_fct(model_part_origin, model_part_destinatinon, self.settings["mapper_settings"].Clone()) # Clone is necessary here bcs settings are influenced among mappers otherwise. TODO check in the MapperFactory how to solve this better
+            self.__mappers[name_tuple] = mapper_create_fct(model_part_origin, model_part_destinatinon, self.settings["mapper_settings"])
             self.__mappers[name_tuple].Map(variable_origin, variable_destination, mapper_flags)
 
     @classmethod

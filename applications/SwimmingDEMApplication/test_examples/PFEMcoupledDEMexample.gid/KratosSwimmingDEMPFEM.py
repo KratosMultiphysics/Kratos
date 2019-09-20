@@ -28,7 +28,7 @@ class Solution:
         self.alg = algorithm
 
         if self.alg == None:
-            import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_PFEM_algorithm as swimming_DEM_PFEM_algorithm
+            import swimming_DEM_PFEM_algorithm
             self.alg = swimming_DEM_PFEM_algorithm.Algorithm(model, varying_parameters)
 
     def Run(self):

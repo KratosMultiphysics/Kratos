@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector
-import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_solver as swimming_DEM_solver
+import swimming_DEM_solver
 BaseSolver = swimming_DEM_solver.SwimmingDEMSolver
 
 class InterpolationTestSolver(BaseSolver):

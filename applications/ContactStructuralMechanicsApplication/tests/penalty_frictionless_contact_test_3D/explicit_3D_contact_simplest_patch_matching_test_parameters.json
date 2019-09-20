@@ -26,7 +26,9 @@
         },
         "time_stepping"                      : {
             "time_step" : 2.0e-7
-        }
+        },
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
+        "processes_sub_model_part_list"      : ["Structure","Contact_Part","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"]
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -78,7 +80,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_Z"],
                 "input_file_name"      : "penalty_frictionless_contact_test_3D/explicit_3D_contact_simplest_patch_matching_test_results.json",
-                "model_part_name"      : "Structure.Contact_Part",
+                "model_part_name"      : "Contact_Part",
                 "time_frequency"       : 2e-4
             }
         }
@@ -124,7 +126,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Z"],
             "output_file_name"     : "penalty_frictionless_contact_test_3D/explicit_3D_contact_simplest_patch_matching_test_results.json",
-            "model_part_name"      : "Structure.Contact_Part",
+            "model_part_name"      : "Contact_Part",
             "time_frequency"       : 2e-4
         }
     }

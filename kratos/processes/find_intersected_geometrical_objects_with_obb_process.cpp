@@ -22,7 +22,6 @@ namespace Kratos
 /// Local Flags
 KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsWithOBBProcess, DEBUG_OBB, 4);
 KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsWithOBBProcess, SEPARATING_AXIS_THEOREM, 5);
-KRATOS_CREATE_LOCAL_FLAG(FindIntersectedGeometricalObjectsWithOBBProcess, BUILD_OBB_FROM_BB, 6);
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -95,9 +94,6 @@ FindIntersectedGeometricalObjectsWithOBBProcess::FindIntersectedGeometricalObjec
     // If we debug OBB
     BaseType::mOptions.Set(FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB, mThisParameters["debug_obb"].GetBool());
 
-    // If we build the OBB from the geometry BB
-    BaseType::mOptions.Set(FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB, mThisParameters["build_from_bounding_box"].GetBool());
-
     // The intersection type
     ConvertIntersection(mThisParameters["OBB_intersection_type"].GetString());
 
@@ -166,9 +162,9 @@ void FindIntersectedGeometricalObjectsWithOBBProcess::SetOctreeBoundingBox()
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    GetOctreePointer()->SetBoundingBox(low.data(), high.data());
+    BaseType::mOctree.SetBoundingBox(low.data(), high.data());
 #else
-    GetOctreePointer()->SetBoundingBox(low.data().data(), high.data().data());
+    BaseType::mOctree.SetBoundingBox(low.data().data(), high.data().data());
 #endif // ifdef KRATOS_USE_AMATRIX
 }
 
@@ -222,16 +218,16 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection2D(
     )
 {
     // The edges
-    const PointerVector<GeometryType> r_edges_1 = rFirstGeometry.GenerateEdges();
+    PointerVector<GeometryType> r_edges_1 = rFirstGeometry.Edges();
     const std::size_t number_of_edges_1 = r_edges_1.size();
-    const PointerVector<GeometryType> r_edges_2 = rSecondGeometry.GenerateEdges();
+    PointerVector<GeometryType> r_edges_2 = rSecondGeometry.Edges();
     const std::size_t number_of_edges_2 = r_edges_2.size();
 
     // First geometry
     for (std::size_t i_1 = 0; i_1 < number_of_edges_1; ++i_1) {
         auto& r_edge_1 = *(r_edges_1.begin() + i_1);
 
-        OrientedBoundingBox<2> first_obb(r_edge_1, mBoundingBoxFactor, BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB));
+        OrientedBoundingBox<2> first_obb(r_edge_1, mBoundingBoxFactor);
 
     #ifdef  KRATOS_DEBUG
         // We create new elements for debugging
@@ -245,7 +241,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection2D(
         for (std::size_t i_2 = 0; i_2 < number_of_edges_2; ++i_2) {
             auto& r_edge_2 = *(r_edges_2.begin() + i_2);
 
-            OrientedBoundingBox<2> second_obb(r_edge_2, mBoundingBoxFactor, BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB));
+            OrientedBoundingBox<2> second_obb(r_edge_2, mBoundingBoxFactor);
 
         #ifdef  KRATOS_DEBUG
             // We create new elements for debugging
@@ -274,7 +270,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasDirectIntersection2D(
     )
 {
     // First geometry
-    OrientedBoundingBox<2> first_obb(rFirstGeometry, mBoundingBoxFactor, BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB));
+    OrientedBoundingBox<2> first_obb(rFirstGeometry, mBoundingBoxFactor);
 
 #ifdef  KRATOS_DEBUG
     // We create new elements for debugging
@@ -285,7 +281,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasDirectIntersection2D(
 #endif
 
     // Second geometry
-    OrientedBoundingBox<2> second_obb(rSecondGeometry, mBoundingBoxFactor, BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB));
+    OrientedBoundingBox<2> second_obb(rSecondGeometry, mBoundingBoxFactor);
 
 #ifdef  KRATOS_DEBUG
     // We create new elements for debugging
@@ -312,10 +308,10 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection3D(
     )
 {
     // The faces
-    const PointerVector<GeometryType> r_faces_1 = rFirstGeometry.GenerateFaces();
+    PointerVector<GeometryType> r_faces_1 = rFirstGeometry.Faces();
     const std::size_t number_of_faces_1 = r_faces_1.size();
 
-    const PointerVector<GeometryType> r_faces_2 = rSecondGeometry.GenerateFaces();
+    PointerVector<GeometryType> r_faces_2 = rSecondGeometry.Faces();
     const std::size_t number_of_faces_2 = r_faces_2.size();
 
     // First geometry
@@ -323,7 +319,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection3D(
         auto& r_face_1 = *(r_faces_1.begin() + i_1);
 
         // Creating OBB
-        OrientedBoundingBox<3> first_obb(r_face_1, mBoundingBoxFactor, BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB));
+        OrientedBoundingBox<3> first_obb(r_face_1, mBoundingBoxFactor);
 
     #ifdef  KRATOS_DEBUG
         // We create new elements for debugging
@@ -337,7 +333,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasIntersection3D(
         for (std::size_t i_2 = 0; i_2 < number_of_faces_2; ++i_2) {
             auto& r_face_2 = *(r_faces_2.begin() + i_2);
 
-            OrientedBoundingBox<3> second_obb(r_face_2, mBoundingBoxFactor, BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB));
+            OrientedBoundingBox<3> second_obb(r_face_2, mBoundingBoxFactor);
 
         #ifdef  KRATOS_DEBUG
             // We create new elements for debugging
@@ -366,7 +362,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasDirectIntersection3D(
     )
 {
     // First geometry
-    OrientedBoundingBox<3> first_obb(rFirstGeometry, mBoundingBoxFactor, BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB));
+    OrientedBoundingBox<3> first_obb(rFirstGeometry, mBoundingBoxFactor);
 
 #ifdef  KRATOS_DEBUG
     // We create new elements for debugging
@@ -377,7 +373,7 @@ bool FindIntersectedGeometricalObjectsWithOBBProcess::HasDirectIntersection3D(
 #endif
 
     // Second geometry
-    OrientedBoundingBox<3> second_obb(rSecondGeometry, mBoundingBoxFactor, BaseType::mOptions.Is(FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB));
+    OrientedBoundingBox<3> second_obb(rSecondGeometry, mBoundingBoxFactor);
 
 #ifdef  KRATOS_DEBUG
     // We create new elements for debugging
@@ -470,7 +466,6 @@ Parameters FindIntersectedGeometricalObjectsWithOBBProcess::GetDefaultParameters
         "bounding_box_factor"          : -1.0,
         "debug_obb"                    : false,
         "OBB_intersection_type"        : "SeparatingAxisTheorem",
-        "build_from_bounding_box"      : true,
         "intersecting_conditions"      : true,
         "intersecting_elements"        : true,
         "intersected_conditions"       : true,

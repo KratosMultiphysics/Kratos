@@ -1473,7 +1473,7 @@ void Build(
 #endif
 	  }
 
-// #pragma omp parallel for firstprivate(nelements, ElementalDofList)
+#pragma omp parallel for firstprivate(nelements, ElementalDofList)
         for (int i = 0; i < static_cast<int>(nelements); i++)
 	  {
             typename ElementsArrayType::iterator it = pElements.begin() + i;
@@ -1534,7 +1534,7 @@ void Build(
         Doftemp.reserve(dofs_aux_list[0].size());
         for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); it++)
 	  {
-            Doftemp.push_back((*it));
+            Doftemp.push_back(it->get());
 	  }
         Doftemp.Sort();
 

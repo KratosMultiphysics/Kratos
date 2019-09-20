@@ -353,7 +353,7 @@ namespace Kratos
 
       for(ModelPart::NodeType::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
 	{
-	  ModelPart::NodeType::DofType& rDof = **iii;
+	  ModelPart::NodeType::DofType& rDof = *iii;
 	  Node<3>::DofType::Pointer p_new_dof = newNode->pAddDof( rDof );
 	  (p_new_dof)->FreeDof();
 	}

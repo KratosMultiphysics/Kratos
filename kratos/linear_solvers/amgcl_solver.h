@@ -84,7 +84,7 @@ void KRATOS_API(KRATOS_CORE) AMGCLSolve(
     TUblasSparseSpace<double>::VectorType& rB,
     TUblasSparseSpace<double>::IndexType& rIterationNumber,
     double& rResidual,
-    boost::property_tree::ptree amgclParams,
+    const boost::property_tree::ptree &amgclParams,
     int verbosity_level,
     bool use_gpgpu
     );

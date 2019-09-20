@@ -317,7 +317,7 @@ namespace Kratos
 		RHS_Contribution[0]  += (-deltaPressure/volumetricCoeff +  volumetricDefRate)*nodalVolume;
 
 		bool stabilizationNeeded=false;
-		if((itNode->Is(FLUID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49999))){
+		if((itNode->Is(FLUID) || (itNode->Is(SOLID) && itNode->FastGetSolutionStepValue(POISSON_RATIO)>0.49))){
 		  stabilizationNeeded=true;
 		}else{		  
 		  for (unsigned int i = 0; i< neighSize; i++)
@@ -856,7 +856,7 @@ void BuildAndSolve(
         Doftemp.reserve(dofs_aux_list[0].size());
         for (auto it= dofs_aux_list[0].begin(); it!= dofs_aux_list[0].end(); it++)
 	  {
-            Doftemp.push_back( (*it) );
+            Doftemp.push_back( it->get() );
 	  }
         Doftemp.Sort();
 

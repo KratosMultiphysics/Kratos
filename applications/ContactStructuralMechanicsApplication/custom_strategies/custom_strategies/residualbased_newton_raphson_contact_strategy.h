@@ -30,7 +30,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/color_utilities.h"
 #include "utilities/math_utils.h"
-#include "custom_python/process_factory_utility.h"
+#include "custom_utilities/process_factory_utility.h"
 #include "custom_utilities/contact_utilities.h"
 
 namespace Kratos {

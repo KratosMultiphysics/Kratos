@@ -13,13 +13,14 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-import KratosMultiphysics as KM
+from KratosMultiphysics import *
+from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # For GID output
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from gid_output_process import GiDOutputProcess
 
 # Import logger base classes
-from .design_logger_base import DesignLogger
+from design_logger_base import DesignLogger
 
 # ==============================================================================
 class DesignLoggerGID( DesignLogger ):
@@ -27,7 +28,7 @@ class DesignLoggerGID( DesignLogger ):
     # --------------------------------------------------------------------------
     def __init__( self, model_part_controller, optimization_settings ):
         self.output_settings = optimization_settings["output"]
-        minimal_gid_parameters = KM.Parameters("""
+        minimal_gid_parameters = Parameters("""
         {
             "name"           : "gid",
             "gid_parameters" : { }
@@ -97,15 +98,15 @@ class DesignLoggerGID( DesignLogger ):
 
     # --------------------------------------------------------------------------
     def LogCurrentDesign( self, optimizationIteration ):
-        OriginalTime = self.optimization_model_part.ProcessInfo[KM.TIME]
-        self.optimization_model_part.ProcessInfo[KM.TIME] = optimizationIteration
+        OriginalTime = self.optimization_model_part.ProcessInfo[TIME]
+        self.optimization_model_part.ProcessInfo[TIME] = optimizationIteration
 
         self.gid_io.ExecuteInitializeSolutionStep()
         if(self.gid_io.IsOutputStep()):
             self.gid_io.PrintOutput()
         self.gid_io.ExecuteFinalizeSolutionStep()
 
-        self.optimization_model_part.ProcessInfo[KM.TIME] = OriginalTime
+        self.optimization_model_part.ProcessInfo[TIME] = OriginalTime
 
     # --------------------------------------------------------------------------
     def FinalizeLogging( self ):

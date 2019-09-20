@@ -40,7 +40,7 @@ void AdamsBashforthStrategy::ReconstructForces(ModelPart& r_model_part)
     KRATOS_CATCH("")
 }
 
-double AdamsBashforthStrategy::SolveSolutionStep() {
+double AdamsBashforthStrategy::Solve() {
     KRATOS_TRY
     ModelPart& r_model_part = GetModelPart();
 

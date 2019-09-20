@@ -38,8 +38,7 @@ FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProce
     const Flags Options
     ) : mrModelPartIntersected(rModelPartIntersected),
         mrModelPartIntersecting(rModelPartIntersecting),
-        mOptions(Options),
-        mpOctree(new OctreeType())
+        mOptions(Options)
 {
 }
 
@@ -50,8 +49,7 @@ FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProce
     Model& rModel,
     Parameters ThisParameters
     ) : mrModelPartIntersected(rModel.GetModelPart(ThisParameters["intersected_model_part_name"].GetString())),
-        mrModelPartIntersecting(rModel.GetModelPart(ThisParameters["intersecting_model_part_name"].GetString())),
-        mpOctree(new OctreeType())
+        mrModelPartIntersecting(rModel.GetModelPart(ThisParameters["intersecting_model_part_name"].GetString()))
 {
     const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
@@ -104,7 +102,7 @@ void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::v
     if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS)) {
         for (auto& r_element : r_elements_array) {
             leaves.clear();
-            mpOctree->GetIntersectedLeaves(r_element, leaves);
+            mOctree.GetIntersectedLeaves(r_element, leaves);
             FindIntersectedSkinObjects(*r_element, leaves, rResults[counter]);
             ++counter;
         }
@@ -112,7 +110,7 @@ void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::v
     if (mOptions.Is(FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS)) {
         for (auto& r_condition : r_conditions_array) {
             leaves.clear();
-            mpOctree->GetIntersectedLeaves(r_condition, leaves);
+            mOctree.GetIntersectedLeaves(r_condition, leaves);
             FindIntersectedSkinObjects(*r_condition, leaves, rResults[counter]);
             ++counter;
         }
@@ -154,9 +152,9 @@ ModelPart& FindIntersectedGeometricalObjectsProcess::GetModelPart2()
 /***********************************************************************************/
 /***********************************************************************************/
 
-FindIntersectedGeometricalObjectsProcess::OctreePointerType& FindIntersectedGeometricalObjectsProcess::GetOctreePointer()
+OctreeBinary<OctreeBinaryCell<typename FindIntersectedGeometricalObjectsProcess::ConfigurationType>>* FindIntersectedGeometricalObjectsProcess::GetOctreePointer()
 {
-    return mpOctree;
+    return& mOctree;
 }
 
 /***********************************************************************************/
@@ -165,8 +163,6 @@ FindIntersectedGeometricalObjectsProcess::OctreePointerType& FindIntersectedGeom
 void FindIntersectedGeometricalObjectsProcess::Clear()
 {
     mIntersectedObjects.clear();
-    OctreePointerType aux_ptr = Kratos::make_unique<OctreeType>();
-    mpOctree.swap(aux_ptr);
 }
 
 /***********************************************************************************/
@@ -246,10 +242,10 @@ void FindIntersectedGeometricalObjectsProcess::GenerateOctree()
     // Adding mrModelPart2 to the octree
     for (auto it_node = mrModelPartIntersecting.NodesBegin(); it_node != mrModelPartIntersecting.NodesEnd(); it_node++) {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        mpOctree->Insert(it_node->Coordinates().data());
+        mOctree.Insert(it_node->Coordinates().data());
 
 #else
-        mpOctree->Insert(it_node->Coordinates().data().data());
+        mOctree.Insert(it_node->Coordinates().data().data());
 #endif // ifdef KRATOS_USE_AMATRIX
     }
 
@@ -262,7 +258,7 @@ void FindIntersectedGeometricalObjectsProcess::GenerateOctree()
         // Iterate over the elements
         for (int i = 0; i < static_cast<int>(number_of_elements); i++) {
             auto it_elements = it_elements_begin + i;
-            mpOctree->Insert(*(it_elements).base());
+            mOctree.Insert(*(it_elements).base());
         }
     }
 
@@ -274,7 +270,7 @@ void FindIntersectedGeometricalObjectsProcess::GenerateOctree()
         // Iterate over the conditions
         for (int i = 0; i < static_cast<int>(number_of_conditions); i++) {
             auto it_conditions = it_conditions_begin + i;
-            mpOctree->Insert(*(it_conditions).base());
+            mOctree.Insert(*(it_conditions).base());
         }
     }
 }
@@ -315,9 +311,9 @@ void  FindIntersectedGeometricalObjectsProcess::SetOctreeBoundingBox()
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    mpOctree->SetBoundingBox(low.data(), high.data());
+    mOctree.SetBoundingBox(low.data(), high.data());
 #else
-    mpOctree->SetBoundingBox(low.data().data(), high.data().data());
+    mOctree.SetBoundingBox(low.data().data(), high.data().data());
 #endif // ifdef KRATOS_USE_AMATRIX
 }
 
@@ -329,7 +325,7 @@ void  FindIntersectedGeometricalObjectsProcess::IdentifyNearEntitiesAndCheckEnti
     OtreeCellVectorType& rLeaves
     )
 {
-    mpOctree->GetIntersectedLeaves(pGeometricalObject, rLeaves);
+    mOctree.GetIntersectedLeaves(pGeometricalObject, rLeaves);
     MarkIfIntersected(*pGeometricalObject, rLeaves);
 }
 

@@ -222,8 +222,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, this->mThisIntegrationMethod);
 
         double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
-        integration_weigth = this->CalculateIntegrationWeight(integration_weigth);
-        const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
+        const Matrix &Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
 		Vector N = row(Ncontainer, point_number);
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
@@ -322,8 +321,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLeftHandSi
 		J = this->GetGeometry().Jacobian(J, point_number, this->mThisIntegrationMethod);
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, this->mThisIntegrationMethod);
 
-        double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
-        integration_weigth = this->CalculateIntegrationWeight(integration_weigth);
+        const double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
         const Matrix& r_Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
 		Vector N = row(r_Ncontainer, point_number);
 
@@ -391,7 +389,6 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, this->mThisIntegrationMethod);
 
         double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
-        integration_weigth = this->CalculateIntegrationWeight(integration_weigth);
         const Matrix &Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
 		Vector N = row(Ncontainer, point_number);
 

@@ -369,7 +369,7 @@ void BuildFluidNodally(
 
               //-------- INTERNAL FORCES TERM -------//
 
-              array_1d<double,6> Sigma(6,0.0);
+              array_1d<double,3> Sigma(6,0.0);
               Sigma=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
 
               pressure=itNode->FastGetSolutionStepValue(PRESSURE,0)*theta+itNode->FastGetSolutionStepValue(PRESSURE,1)*(1-theta);
@@ -630,7 +630,7 @@ void BuildFluidNodally(
 #endif
 	  }
 
-// #pragma omp parallel for firstprivate(nelements, ElementalDofList)
+#pragma omp parallel for firstprivate(nelements, ElementalDofList)
         for (int i = 0; i < static_cast<int>(nelements); i++)
 	  {
             typename ElementsArrayType::iterator it = pElements.begin() + i;
@@ -691,7 +691,7 @@ void BuildFluidNodally(
         Doftemp.reserve(dofs_aux_list[0].size());
         for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); it++)
 	  {
-            Doftemp.push_back((*it));
+            Doftemp.push_back(it->get());
 	  }
         Doftemp.Sort();
 

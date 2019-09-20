@@ -35,7 +35,7 @@ class CoSimulationCouplingOperation(object):
 
 
     def Execute(self):
-        raise NotImplementedError('"Execute" is not implemented for {}!'.format(self._ClassName))
+        pass
 
 
     def PrintInfo(self):

@@ -5,7 +5,7 @@ import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
 # Import the mesh mesher (the base class for the mesher derivation)
-from KratosMultiphysics.PfemFluidDynamicsApplication import fluid_mesher
+import fluid_mesher
 
 def CreateMesher(main_model_part, meshing_parameters):
     return PreRefiningMesher(main_model_part, meshing_parameters)

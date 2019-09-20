@@ -625,9 +625,6 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
     h_mean = h_mean < std::numeric_limits<double>::epsilon() ? 1.0 : h_mean;
     const double bounding_box_factor = octree_parameters["bounding_box_factor"].GetDouble() * h_mean;
 
-    // If the OBB is built from the base BB
-    const bool build_from_bounding_box = octree_parameters["build_from_bounding_box"].GetBool();
-
     // Now we iterate over the conditions
 //     #pragma omp parallel for firstprivate(tree_points) // TODO: Make me parallel!!!
     for(int i = 0; i < num_conditions; ++i) {
@@ -641,7 +638,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
 
             // Getting geometry
             GeometryType& r_geometry = it_cond->GetGeometry();
-            OrientedBoundingBox<TDim> slave_obb(r_geometry, bounding_box_factor, build_from_bounding_box);
+            OrientedBoundingBox<TDim> slave_obb(r_geometry, bounding_box_factor);
 
             if (type_search == SearchTreeType::KdtreeInRadius || type_search == SearchTreeType::KdtreeInRadiusWithOBB) {
                 const Point& r_center = dynamic ? Point(ContactUtilities::GetHalfJumpCenter(r_geometry)) : r_geometry.Center(); // NOTE: Center in half delta time or real center
@@ -696,7 +693,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
 
                         // Checking with OBB
                         if (with_obb) {
-                            OrientedBoundingBox<TDim> master_obb(p_cond_master->GetGeometry(), bounding_box_factor, build_from_bounding_box);
+                            OrientedBoundingBox<TDim> master_obb(p_cond_master->GetGeometry(), bounding_box_factor);
                             if (!slave_obb.HasIntersection(master_obb)) {
                                 continue;
                             }
@@ -1752,10 +1749,9 @@ Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaul
         "pure_slip"                            : false,
         "debug_mode"                           : false,
         "octree_search_parameters" : {
-            "bounding_box_factor"             : 0.1,
-            "debug_obb"                       : false,
-            "OBB_intersection_type"           : "SeparatingAxisTheorem",
-            "build_from_bounding_box"         : true
+            "bounding_box_factor"    : 0.1,
+            "debug_obb"              : false,
+            "OBB_intersection_type"  : "SeparatingAxisTheorem"
         }
     })" );
 

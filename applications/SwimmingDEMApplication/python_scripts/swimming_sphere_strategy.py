@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
-from KratosMultiphysics.DEMApplication.sphere_strategy import ExplicitStrategy
+from sphere_strategy import ExplicitStrategy
 BaseStrategy = ExplicitStrategy
 
 class SwimmingStrategy(BaseStrategy):

@@ -12,6 +12,6 @@ The Fluid Dynamics Application contains the core developments in Computational F
 
 - Arbitrary Lagrangian-Eulerian (ALE) formulation allows for mesh deformation during the simulation (see MeshMovingApplication).
 
-- Support for Fluid-Structure Interaction (see FSIApplication).
+- Support for Fluid-Structure Interaction (see FSIapplication).
 
 - Thermally-coupled flows (with ConvectionDiffusionApplication).

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -66,7 +66,7 @@ namespace Kratos
  * @see GeometryAndFormulationElement
  */
 template<class TPointType>
-class Geometry
+class Geometry : public PointerVector<TPointType>
 {
 public:
     ///@}
@@ -111,6 +111,10 @@ public:
         QUADRATURE_ON_NODES
     };
 
+
+    /** Base type for geometry.
+    */
+    typedef PointerVector<TPointType> BaseType;
 
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
@@ -201,21 +205,16 @@ public:
      */
     typedef DenseVector<double> NormalType;
 
-    /// data type stores in this container.
-    typedef typename PointType::Pointer PointPointerType;
-    typedef const PointPointerType ConstPointPointerType;
-    typedef TPointType& PointReferenceType;
-    typedef const TPointType& ConstPointReferenceType;
-    typedef std::vector<PointPointerType> PointPointerContainerType;
 
-    /// PointsArrayType typedefs
-    typedef typename PointsArrayType::iterator iterator;
-    typedef typename PointsArrayType::const_iterator const_iterator;
+    typedef typename BaseType::iterator              iterator;
+    typedef typename BaseType::const_iterator          const_iterator;
+    typedef typename BaseType::reverse_iterator        reverse_iterator;
+    typedef typename BaseType::const_reverse_iterator  const_reverse_iterator;
 
-    typedef typename PointsArrayType::ptr_iterator ptr_iterator;
-    typedef typename PointsArrayType::ptr_const_iterator ptr_const_iterator;
-    typedef typename PointsArrayType::difference_type difference_type;
-
+    typedef typename BaseType::ptr_iterator ptr_iterator;
+    typedef typename BaseType::ptr_const_iterator ptr_const_iterator;
+    typedef typename BaseType::ptr_reverse_iterator ptr_reverse_iterator;
+    typedef typename BaseType::ptr_const_reverse_iterator ptr_const_reverse_iterator;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -285,10 +284,16 @@ public:
     */
     Geometry(const PointsArrayType &ThisPoints,
              GeometryData const *pThisGeometryData = &GeometryDataInstance())
-        :  mpGeometryData(pThisGeometryData),
-           mPoints(ThisPoints)
+        : BaseType(ThisPoints), mpGeometryData(pThisGeometryData)
     {
     }
+
+//       Geometry(const PointsArrayType& ThisPoints,
+//         GeometryData const& ThisGeometryData= msEmptyGeometryData)
+//  : BaseType(ThisPoints)
+//  , mGeometryData(ThisGeometryData)
+//  {
+//  }
 
     /** Copy constructor.
     Construct this geometry as a copy of given geometry.
@@ -299,8 +304,8 @@ public:
     source geometry's points too.
     */
     Geometry( const Geometry& rOther )
-        : mpGeometryData( rOther.mpGeometryData ),
-          mPoints( rOther.mPoints)
+        : BaseType( rOther )
+        , mpGeometryData( rOther.mpGeometryData )
     {
     }
 
@@ -317,13 +322,13 @@ public:
     source geometry's points too.
     */
     template<class TOtherPointType> Geometry( Geometry<TOtherPointType> const & rOther )
-        : mpGeometryData(rOther.mpGeometryData)
+        : BaseType( rOther.begin(), rOther.end() )
+        , mpGeometryData( rOther.mpGeometryData )
     {
-        mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
 
     /// Destructor. Do nothing!!!
-    virtual ~Geometry() {}
+    ~Geometry() override {}
 
     virtual GeometryData::KratosGeometryFamily GetGeometryFamily() const
     {
@@ -351,8 +356,8 @@ public:
     */
     Geometry& operator=( const Geometry& rOther )
     {
+        BaseType::operator=( rOther );
         mpGeometryData = rOther.mpGeometryData;
-        mPoints = rOther.mPoints;
 
         return *this;
     }
@@ -380,151 +385,6 @@ public:
         return *this;
     }
 
-     operator PointsArrayType&()
-    {
-        return mPoints;
-    }
-
-    ///@}
-    ///@name PointerVector Operators
-    ///@{
-
-     virtual TPointType& operator[](const SizeType& i)
-    {
-        return mPoints[i];
-    }
-
-    virtual TPointType const& operator[](const SizeType& i) const
-    {
-        return mPoints[i];
-    }
-
-    virtual PointPointerType& operator()(const SizeType& i)
-    {
-        return mPoints(i);
-    }
-
-    virtual ConstPointPointerType& operator()(const SizeType& i) const
-    {
-        return mPoints(i);
-    }
-
-    ///@}
-    ///@name PointerVector Operations
-    ///@{
-
-    virtual iterator                   begin()
-    {
-        return iterator(mPoints.begin());
-    }
-    virtual const_iterator             begin() const
-    {
-        return const_iterator(mPoints.begin());
-    }
-    virtual iterator                   end()
-    {
-        return iterator(mPoints.end());
-    }
-    virtual const_iterator             end() const
-    {
-        return const_iterator(mPoints.end());
-    }
-    virtual ptr_iterator               ptr_begin()
-    {
-        return mPoints.ptr_begin();
-    }
-    virtual ptr_const_iterator         ptr_begin() const
-    {
-        return mPoints.ptr_begin();
-    }
-    virtual ptr_iterator               ptr_end()
-    {
-        return mPoints.ptr_end();
-    }
-    virtual ptr_const_iterator         ptr_end() const
-    {
-        return mPoints.ptr_end();
-    }
-    virtual PointReferenceType        front()       /* nothrow */
-    {
-        assert(!empty());
-        return mPoints.front();
-    }
-    virtual ConstPointReferenceType  front() const /* nothrow */
-    {
-        assert(!empty());
-        return mPoints.front();
-    }
-    virtual PointReferenceType        back()        /* nothrow */
-    {
-        assert(!empty());
-        return mPoints.back();
-    }
-    virtual ConstPointReferenceType  back() const  /* nothrow */
-    {
-        assert(!empty());
-        return mPoints.back();
-    }
-
-    virtual SizeType size() const
-    {
-        return mPoints.size();
-    }
-    virtual SizeType max_size() const
-    {
-        return mPoints.max_size();
-    }
-
-    virtual void swap(GeometryType& rOther)
-    {
-        mPoints.swap(rOther.mPoints);
-    }
-
-    virtual void push_back(PointPointerType x)
-    {
-        mPoints.push_back(x);
-    }
-
-    virtual void clear()
-    {
-        mPoints.clear();
-    }
-
-    virtual void reserve(int dim)
-    {
-        mPoints.reserve(dim);
-    }
-
-    virtual int capacity()
-    {
-        return mPoints.capacity();
-    }
-
-    /////@}
-    /////@name Access
-    /////@{
-
-    ///** Gives a reference to underly normal container. */
-    virtual PointPointerContainerType& GetContainer()
-    {
-        return mPoints.GetContainer();
-    }
-
-    /** Gives a constant reference to underly normal container. */
-    virtual const PointPointerContainerType& GetContainer() const
-    {
-        return mPoints.GetContainer();
-    }
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    virtual bool empty() const
-    {
-        return mPoints.empty();
-    }
-
     ///@}
     ///@name Operations
     ///@{
@@ -542,26 +402,26 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-     // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
-     // {
-     //     Geometry< Point >::PointsArrayType NewPoints;
+    // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
+    // {
+    //     Geometry< Point >::PointsArrayType NewPoints;
 
-     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
 
-     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-     //     {
-     //        NewPoints.push_back(Kratos::make_shared< Point >((*mpPointVector)[i]));
-     //     }
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //         NewPoints.push_back(Kratos::make_shared< Point >((*this)[i]));
+    //     }
 
-     //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
+    //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
 
-     //     //creating a geometry with the new points
-     //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
 
-     //     p_clone->ClonePoints();
+    //     p_clone->ClonePoints();
 
-     //     return p_clone;
-     // }
+    //     return p_clone;
+    // }
 
     /**
      * @brief Lumping factors for the calculation of the lumped mass matrix
@@ -1077,30 +937,11 @@ public:
         if (norm_normal > std::numeric_limits<double>::epsilon())
             normal_vector /= norm_normal;
         else
-            KRATOS_ERROR
+            KRATOS_ERROR 
             << "ERROR: The normal norm is zero or almost zero: "
             << norm_normal << std::endl;
         return normal_vector;
     }
-
-    ///@}
-    ///@name  Geometry Data
-    ///@{
-
-    /**
-    * @brief GeometryData contains all information about dimensions
-    *        and has a set of precomputed values for integration points
-    *        and shape functions, including derivatives.
-    * @return the geometry data of a certain geometry class.
-    */
-    GeometryData const& GetGeometryData() const
-    {
-        return *mpGeometryData;
-    }
-
-    ///@}
-    ///@name Quality
-    ///@{
 
     /** Calculates the quality of the geometry according to a given criteria.
      *
@@ -1182,7 +1023,7 @@ public:
     */
     const PointsArrayType& Points() const
     {
-        return mPoints;
+        return *this;
     }
 
     /** An access method to the Vector of the points stored in
@@ -1193,7 +1034,7 @@ public:
     */
     PointsArrayType& Points()
     {
-        return mPoints;
+        return *this;
     }
 
     /** A constant access method to the i'th points stored in
@@ -1205,8 +1046,8 @@ public:
     const typename TPointType::Pointer pGetPoint( const int Index ) const
     {
         KRATOS_TRY
-        return mPoints( Index );
-        KRATOS_CATCH(mPoints)
+        return ( *this )( Index );
+        KRATOS_CATCH( *this )
     }
 
     /** An access method to the i'th points stored in
@@ -1218,8 +1059,8 @@ public:
     typename TPointType::Pointer pGetPoint( const int Index )
     {
         KRATOS_TRY
-        return mPoints( Index );
-        KRATOS_CATCH(mPoints);
+        return ( *this )( Index );
+        KRATOS_CATCH( *this );
     }
 
     /** A constant access method to the i'th points stored in
@@ -1231,8 +1072,8 @@ public:
     TPointType const& GetPoint( const int Index ) const
     {
         KRATOS_TRY
-        return mPoints[Index];
-        KRATOS_CATCH( mPoints);
+        return ( *this )[Index];
+        KRATOS_CATCH( *this );
     }
 
 
@@ -1245,31 +1086,8 @@ public:
     TPointType& GetPoint( const int Index )
     {
         KRATOS_TRY
-        return mPoints[Index];
-        KRATOS_CATCH(mPoints);
-    }
-
-    /**
-    * @brief This function is necessary for composite geometries. It returns the
-    * geometry part which is accessable with a certain index.
-    * @details This index
-    * is dependent on the derived implementation.
-    * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes
-    * @return geometry, which is connected through the Index
-     */
-    virtual GeometryType& GetGeometryPart(IndexType Index) const
-    {
-        KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function."
-            <<" Please check the definition in the derived class. " << *this << std::endl;
-    }
-
-    /**
-    * @return the number of geometry parts that this geometry contains.
-    */
-    virtual SizeType NumberOfGeometryParts() const
-    {
-        return 0;
+        return ( *this )[Index];
+        KRATOS_CATCH( *this );
     }
 
     /**
@@ -2600,7 +2418,7 @@ public:
      *
      * @see Name()
      */
-    virtual std::string Info() const {
+    std::string Info() const override {
       std::stringstream buffer;
       buffer << Dimension() << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
 
@@ -2630,7 +2448,7 @@ public:
      * @see PrintName()
      * @see PrintData()
      */
-    virtual void PrintInfo(std::ostream& rOStream) const {
+    void PrintInfo(std::ostream& rOStream) const override {
       rOStream << Dimension()  << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
     }
 
@@ -2655,7 +2473,7 @@ public:
      * @see PrintInfo()
      * @see PrintName()
      */
-    virtual void PrintData( std::ostream& rOStream ) const {
+    void PrintData( std::ostream& rOStream ) const override {
       if(mpGeometryData) {
         mpGeometryData->PrintData( rOStream );
       }
@@ -2665,7 +2483,7 @@ public:
 
       for (unsigned int i = 0; i < this->size(); ++i) {
         rOStream << "\tPoint " << i + 1 << "\t : ";
-        mPoints[i].PrintData(rOStream);
+        (*this)[i].PrintData(rOStream);
         rOStream << std::endl;
       }
 
@@ -2954,24 +2772,23 @@ private:
 
     GeometryData const* mpGeometryData;
 
-    static const GeometryDimension msGeometryDimension;
 
-    PointsArrayType mPoints;
-  
     ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
-        rSerializer.save( "Points", mPoints);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+//                 rSerializer.save( "Geometry Data", mpGeometryData );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
-        rSerializer.load( "Points", mPoints );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+        //rSerializer.load( "Geometry Data", const_cast<GeometryData*>( mpGeometryData ) );
     }
 
 
@@ -2989,8 +2806,9 @@ private:
         IntegrationPointsContainerType integration_points = {};
         ShapeFunctionsValuesContainerType shape_functions_values = {};
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {};
-        static GeometryData s_geometry_data(
-                            &msGeometryDimension,
+        static GeometryData s_geometry_data(3,
+                            3,
+                            3,
                             GeometryData::GI_GAUSS_1,
                             integration_points,
                             shape_functions_values,
@@ -3055,9 +2873,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 ///@}
 
-template<class TPointType>
-const GeometryDimension Geometry<TPointType>::msGeometryDimension(
-    3, 3, 3);
 
 }  // namespace Kratos.
 

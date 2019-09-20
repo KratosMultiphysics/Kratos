@@ -333,17 +333,17 @@ public:
                         << object_name << std::endl;
 
                     if(!pValue) {
-                        pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)())));
+                        pValue = Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
                     }
                 }
                     
                 // Load the pointer address before loading the content
-                mLoadedPointers[p_pointer]=pValue.get();
+                mLoadedPointers[p_pointer]=&pValue;
                 load(rTag, *pValue);
             }
             else
             {
-                pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_pointer->second))));
+                pValue = *static_cast<Kratos::unique_ptr<TDataType>*>((i_pointer->second));
             }
         }
     }
@@ -625,7 +625,7 @@ public:
 
 
     template<class TDataType>
-    void save(std::string const & rTag, Kratos::unique_ptr<TDataType> const& pValue)
+    void save(std::string const & rTag, Kratos::unique_ptr<TDataType> pValue)
     {
         save(rTag, pValue.get());
     }

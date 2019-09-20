@@ -5,7 +5,7 @@ from KratosMultiphysics.DEMApplication import *
 
 # DEM Application using Velocity Verlet 2-step scheme for continuum
 
-import KratosMultiphysics.DEMApplication.continuum_sphere_strategy as SolverStrategy
+import continuum_sphere_strategy as SolverStrategy
 
 BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 

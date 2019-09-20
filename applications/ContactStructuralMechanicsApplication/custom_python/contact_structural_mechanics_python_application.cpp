@@ -64,7 +64,6 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DELTA_COORDINATES )                  // Delta coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_ORDER_CONTACT )                             // The integration order considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISTANCE_THRESHOLD )                                    // The distance threshold considered
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ZERO_TOLERANCE_FACTOR )                                 // The epsilon factor considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_CHECK_FACTOR )                                   // The factor employed to search an active/inactive node
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORMAL_GAP )                                            // The normal gap employed in contact formulation
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TANGENT_SLIP )                       // The tangent slip employed in contact formulation

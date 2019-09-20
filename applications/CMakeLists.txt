@@ -228,7 +228,7 @@ if(${STRING_DYNAMICS_APPLICATION} MATCHES ON)
 endif(${STRING_DYNAMICS_APPLICATION} MATCHES ON)
 
 if(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
-  add_subdirectory(ConvectionDiffusionApplication)
+  add_subdirectory(convection_diffusion_application)
 endif(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
 
 if(${MESHING_APPLICATION} MATCHES ON)
@@ -248,7 +248,7 @@ if(${MESH_MOVING_APPLICATION} MATCHES ON)
 endif(${MESH_MOVING_APPLICATION} MATCHES ON)
 
 if(${FSI_APPLICATION} MATCHES ON)
-  add_subdirectory(FSIApplication)
+  add_subdirectory(FSIapplication)
 endif(${FSI_APPLICATION} MATCHES ON)
 
 if(${EMPIRE_APPLICATION} MATCHES ON)

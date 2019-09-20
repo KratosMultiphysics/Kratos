@@ -41,7 +41,9 @@
                     "time_step" : 1.0e-2
                 }
             }
-        }
+        },
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_body_lower","Parts_body_upper"],
+        "processes_sub_model_part_list"      : ["Structure","CONTACT_Contact_Part","DISPLACEMENT_bc_fix_x","DISPLACEMENT_bc_fix","LineLoad2D_bc_friction","LineLoad2D_bc_pressure","Parts_body_lower","Parts_body_upper"]
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -149,7 +151,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictional_contact_test_2D/hertz_complete_test_results.json",
-                "model_part_name"      : "Structure.CONTACT_Contact_Part",
+                "model_part_name"      : "CONTACT_Contact_Part",
                 "time_frequency"       : 1.0e-1
             }
         }
@@ -221,7 +223,7 @@
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictional_contact_test_2D/hertz_complete_test_results.json",
-            "model_part_name"      : "Structure.CONTACT_Contact_Part",
+            "model_part_name"      : "CONTACT_Contact_Part",
             "time_frequency"       : 1.0e-1
         }
     }
@@ -235,7 +237,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictional_contact_test_2D/hertz_complete_test_results.json",
-            "model_part_name"      : "Structure.CONTACT_Contact_Part",
+            "model_part_name"      : "CONTACT_Contact_Part",
             "time_frequency"       : 1.0e-1
         }
     }

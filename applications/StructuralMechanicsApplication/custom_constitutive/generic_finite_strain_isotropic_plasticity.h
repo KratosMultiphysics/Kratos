@@ -115,7 +115,10 @@ public:
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
           mPlasticDeformationGradient(rOther.mPlasticDeformationGradient),
-          mPreviousDeformationGradient(rOther.mPreviousDeformationGradient)
+          mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation),
+          mNonConvThreshold(rOther.mNonConvThreshold),
+          mNonConvPlasticDeformationGradient(rOther.mNonConvPlasticDeformationGradient),
+          mUniaxialStress(rOther.mUniaxialStress)
     {
     }
 
@@ -169,6 +172,21 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues
+        ) override;
+
+    /**
+     * @brief To be called at the end of each solution step
+     * @details (e.g. from Element::FinalizeSolutionStep)
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     * @param rCurrentProcessInfo the current ProcessInfo instance
+     */
+    void FinalizeSolutionStep(
+        const Properties &rMaterialProperties,
+        const GeometryType &rElementGeometry,
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -370,12 +388,18 @@ protected:
     double& GetThreshold() { return mThreshold; }
     double& GetPlasticDissipation() { return mPlasticDissipation; }
     Matrix& GetPlasticDeformationGradient() { return mPlasticDeformationGradient; }
-    Matrix& GetPreviousDeformationGradient() { return mPreviousDeformationGradient; }
+
+    double& GetNonConvThreshold() { return mNonConvThreshold; }
+    double& GetNonConvPlasticDissipation() { return mNonConvPlasticDissipation; }
+    Matrix& GetNonConvPlasticDeformationGradient() { return mNonConvPlasticDeformationGradient; }
 
     void SetThreshold(const double Threshold) { mThreshold = Threshold; }
     void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
     void SetPlasticDeformationGradient(const Matrix& rmPlasticDeformationGradient) { mPlasticDeformationGradient = rmPlasticDeformationGradient; }
-    void SetPreviousDeformationGradient(const Matrix& rmPreviousDeformationGradient) { mPreviousDeformationGradient = rmPreviousDeformationGradient; }
+
+    void SetNonConvThreshold(const double NonConvThreshold) { mNonConvThreshold = NonConvThreshold; }
+    void SetNonConvPlasticDissipation(const double NonConvPlasticDissipation) { mNonConvPlasticDissipation = NonConvPlasticDissipation; }
+    void SetNonConvPlasticDeformationGradient(const Matrix& rNonConvPlasticDeformationGradient) { mNonConvPlasticDeformationGradient = rNonConvPlasticDeformationGradient; }
 
     ///@}
     ///@name Protected Operations
@@ -406,7 +430,14 @@ protected:
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
     Matrix mPlasticDeformationGradient = IdentityMatrix(Dimension);
-    Matrix mPreviousDeformationGradient = IdentityMatrix(Dimension);
+
+    // Non Converged values
+    double mNonConvPlasticDissipation = 0.0;
+    double mNonConvThreshold = 0.0;
+    Matrix mNonConvPlasticDeformationGradient = IdentityMatrix(Dimension);
+
+    // Auxiliar to print (NOTE: Alejandro do we need this now?)
+    double mUniaxialStress = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -448,7 +479,9 @@ protected:
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticDeformationGradient", mPlasticDeformationGradient);
-        rSerializer.save("PreviousDeformationGradient", mPreviousDeformationGradient);
+        rSerializer.save("NonConvPlasticDissipation", mNonConvPlasticDissipation);
+        rSerializer.save("NonConvThreshold", mNonConvThreshold);
+        rSerializer.save("NonConvPlasticDeformationGradient", mNonConvPlasticDeformationGradient);
     }
 
     void load(Serializer &rSerializer) override
@@ -457,7 +490,9 @@ protected:
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticDeformationGradient", mPlasticDeformationGradient);
-        rSerializer.load("PreviousDeformationGradient", mPreviousDeformationGradient);
+        rSerializer.load("NonConvPlasticDissipation", mNonConvPlasticDissipation);
+        rSerializer.load("NonConvThreshold", mNonConvThreshold);
+        rSerializer.load("NonConvPlasticDeformationGradient", mNonConvPlasticDeformationGradient);
     }
 
     ///@}

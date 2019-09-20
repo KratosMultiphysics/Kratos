@@ -10,6 +10,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
+from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 
 # Other imports
 from collections import OrderedDict
@@ -207,6 +208,8 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
             self.__ExecuteCouplingOperations(i_data["after_data_transfer_operations"])
 
+            self.__ApplyScaling(to_solver_data, i_data)
+
             # Exporting data to external solvers
             to_solver_data_config = {
                 "type" : "coupling_interface_data",
@@ -295,6 +298,20 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         return solver_cosim_details
 
+    def __ApplyScaling(self, interface_data, data_configuration):
+        # perform scaling of data if specified
+        if data_configuration["scaling_factor"].IsString():
+            scaling_function_string = data_configuration["scaling_factor"].GetString()
+            scope_vars = {'t' : self.time} # make time useable in function
+            scaling_factor = GenericCallFunction(scaling_function_string, scope_vars) # evaluating function string
+        else:
+            scaling_factor = data_configuration["scaling_factor"].GetDouble()
+
+        if abs(scaling_factor-1.0) > 1E-15:
+            if self.echo_level > 2:
+                cs_tools.cs_print_info("  Scaling-Factor", scaling_factor)
+            interface_data.SetData(scaling_factor*interface_data.GetData()) # setting the scaled data
+
     @classmethod
     def _GetDefaultSettings(cls):
         this_defaults = KM.Parameters("""{
@@ -317,7 +334,8 @@ def GetInputDataDefaults():
         "data_transfer_operator_options"  : [],
         "before_data_transfer_operations" : [],
         "after_data_transfer_operations"  : [],
-        "interval"                        : [0.0, 1e30]
+        "interval"                        : [0.0, 1e30],
+        "scaling_factor"                  : 1.0
     }""")
 
 def GetOutputDataDefaults():
@@ -329,5 +347,6 @@ def GetOutputDataDefaults():
         "data_transfer_operator_options"  : [],
         "before_data_transfer_operations" : [],
         "after_data_transfer_operations"  : [],
-        "interval"                        : [0.0, 1e30]
+        "interval"                        : [0.0, 1e30],
+        "scaling_factor"                  : 1.0
     }""")

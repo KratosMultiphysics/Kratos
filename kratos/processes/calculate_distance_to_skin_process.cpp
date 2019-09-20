@@ -221,6 +221,14 @@ namespace Kratos
 			rDistancePoint);
 	}
 
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::Execute()
+	{
+		this->Initialize();
+		this->FindIntersections();
+		this->CalculateDistances(this->GetIntersections());
+	}
+
 	/// Turn back information as a string.
 	template<std::size_t TDim>
 	std::string CalculateDistanceToSkinProcess<TDim>::Info() const

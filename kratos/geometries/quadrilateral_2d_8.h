@@ -1471,8 +1471,6 @@ private:
 
     static const GeometryData msGeometryData;
 
-    static const GeometryDimension msGeometryDimension;
-
 
     ///@}
     ///@name Serialization
@@ -1732,18 +1730,13 @@ template<class TPointType> inline std::ostream& operator << (
     return rOStream;
 }
 
-template<class TPointType>
-const GeometryData Quadrilateral2D8<TPointType>::msGeometryData(
-        &msGeometryDimension,
+template<class TPointType> const GeometryData
+Quadrilateral2D8<TPointType>::msGeometryData( 2, 2, 2,
         GeometryData::GI_GAUSS_3,
         Quadrilateral2D8<TPointType>::AllIntegrationPoints(),
         Quadrilateral2D8<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients()
-);
-
-template<class TPointType>
-const GeometryDimension Quadrilateral2D8<TPointType>::msGeometryDimension(
-    2, 2, 2);
+                                            );
 
 }  // namespace Kratos.
 

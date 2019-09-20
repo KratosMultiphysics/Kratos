@@ -1,17 +1,18 @@
 # Import Kratos core and apps
-import KratosMultiphysics as KM
+from KratosMultiphysics import *
+from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
 from KratosMultiphysics.KratosUnittest import TestCase
-from KratosMultiphysics.ShapeOptimizationApplication.algorithm_trust_region import Projector
-from KratosMultiphysics.ShapeOptimizationApplication.custom_math import PerformBisectioning
+from algorithm_trust_region import Projector
+from custom_math import PerformBisectioning
 import csv
 
 # =======================================================================================================
 # Set and read input data
 # =======================================================================================================
 
-algorithm_settings = KM.Parameters("""
+algorithm_settings = Parameters("""
 {
     "name"                          : "trust_region",
     "max_step_length"               : 0.1,

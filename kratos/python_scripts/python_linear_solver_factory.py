@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
-from KratosMultiphysics import kratos_utilities as kratos_utils
 from importlib import import_module
 
 def __DeprecatedApplicationImport(solver_type):
@@ -42,6 +41,7 @@ def __DeprecatedApplicationImport(solver_type):
             depr_msg += '\nPlease update your settings accordingly, the current settings are deprecated!'
             KM.Logger.PrintWarning('Linear-Solver-Factory', depr_msg)
 
+            from KratosMultiphysics import kratos_utilities as kratos_utils
             if not kratos_utils.CheckIfApplicationsAvailable(app_name):
                 err_msg  = 'Trying to use the linear-solver "' + solver_type
                 err_msg += '"\nThis solver is defined in the "' + app_name

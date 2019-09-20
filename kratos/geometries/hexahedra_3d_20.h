@@ -1053,7 +1053,7 @@ private:
 
     static const GeometryData msGeometryData;
 
-    static const GeometryDimension msGeometryDimension;
+
 
     ///@}
     ///@name Serialization
@@ -1586,16 +1586,11 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Hexahedra3D20<TPointType>::msGeometryData(
-    &msGeometryDimension,
-    GeometryData::GI_GAUSS_3,
+    3, 3, 3, GeometryData::GI_GAUSS_3,
     Hexahedra3D20<TPointType>::AllIntegrationPoints(),
     Hexahedra3D20<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
-
-template<class TPointType> const
-GeometryDimension Hexahedra3D20<TPointType>::msGeometryDimension(
-    3, 3, 3);
 
 }// namespace Kratos.
 

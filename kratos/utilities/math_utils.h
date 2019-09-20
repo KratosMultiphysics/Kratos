@@ -856,13 +856,12 @@ public:
      * @param b Second input vector
      * @return The resulting vector
      */
-    template<class T>
-    static inline T CrossProduct(
-        const T& a,
-        const T& b
+    static inline Vector CrossProduct(
+        const Vector& a,
+        const Vector& b
         )
     {
-        T c(a);
+        Vector c(3);
 
         c[0] = a[1]*b[2] - a[2]*b[1];
         c[1] = a[2]*b[0] - a[0]*b[2];

@@ -1,4 +1,5 @@
-import KratosMultiphysics.SwimmingDEMApplication.hdf5_io_tools as hdf5_io_tools
+import hdf5_io_tools
+import average_field
 import math
 
 BaseLoader = hdf5_io_tools.FluidHDF5Loader

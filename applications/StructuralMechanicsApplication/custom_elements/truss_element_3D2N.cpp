@@ -883,7 +883,7 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
 void TrussElement3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    GetConstitutiveLawTrialResponse(rCurrentProcessInfo);
+    GetConstitutiveLawTrialResponse(rCurrentProcessInfo,true);
     KRATOS_CATCH("");
 }
 
@@ -899,21 +899,19 @@ void TrussElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessIn
 
 BoundedVector<double,TrussElement3D2N::msLocalSize>
 TrussElement3D2N::GetConstitutiveLawTrialResponse(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo, const bool rSaveInternalVariables)
 {
     KRATOS_TRY;
     Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
     Vector stress_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
     strain_vector[0] = CalculateGreenLagrangeStrain();
 
+    Matrix temp_matrix;
+    Vector temp_vector;
 
-    ConstitutiveLaw::Parameters element_parameters;
-    element_parameters.SetMaterialProperties(GetProperties());
-    element_parameters.SetStressVector(stress_vector);
-    element_parameters.SetStrainVector(strain_vector);
-
-    mpConstitutiveLaw->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
-
+    mpConstitutiveLaw->CalculateMaterialResponse(strain_vector,
+            temp_matrix,stress_vector,temp_matrix,rCurrentProcessInfo,GetProperties(),
+            GetGeometry(),temp_vector,true,true,rSaveInternalVariables);
 
     BoundedVector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
@@ -938,8 +936,9 @@ TrussElement3D2N::GetConstitutiveLawTrialResponse(
 void TrussElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    ConstitutiveLaw::Parameters element_parameters;
-    mpConstitutiveLaw->FinalizeMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
+    Vector temp_shape_function = ZeroVector(3);
+    mpConstitutiveLaw->FinalizeSolutionStep(GetProperties(),
+                                            GetGeometry(),temp_shape_function,rCurrentProcessInfo);
     KRATOS_CATCH("");
 }
 

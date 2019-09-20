@@ -443,14 +443,16 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    double ExplicitSolverStrategy::SolveSolutionStep() {
+    double ExplicitSolverStrategy::Solve() {
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
 
+        InitializeSolutionStep();
         SearchDEMOperations(r_model_part);
         SearchFEMOperations(r_model_part);
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
+        FinalizeSolutionStep();
 
         return 0.00;
 

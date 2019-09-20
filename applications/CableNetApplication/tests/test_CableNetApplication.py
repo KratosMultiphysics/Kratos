@@ -4,7 +4,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 from cable_net_test_factory import TestCableNetCoSimulationCases
 from cable_net_test_factory import TestCableNetFEMCases
-from test_empirical_spring  import EmpiricalSpringTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -23,12 +22,10 @@ def AssembleTestSuites():
     ################################################################################
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCableNetFEMCases]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([EmpiricalSpringTests]))
 
     ################################################################################
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
     nightSuite.addTests(smallSuite)
-
 
     ################################################################################
     # For very long tests that should not be in nighly and you can use to validate

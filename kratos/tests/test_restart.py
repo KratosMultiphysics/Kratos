@@ -4,8 +4,8 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from KratosMultiphysics import restart_utility
-from KratosMultiphysics import save_restart_process as save_rest_proc
+import restart_utility
+import save_restart_process as save_rest_proc
 
 import os
 import sys

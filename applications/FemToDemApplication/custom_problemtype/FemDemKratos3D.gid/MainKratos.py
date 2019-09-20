@@ -1,7 +1,0 @@
-import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.FemToDemApplication
-import MainCouplingFemDem
-
-model = KratosMultiphysics.Model()
-MainCouplingFemDem.MainCoupledFemDem_Solution(model).Run()

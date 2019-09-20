@@ -45,7 +45,7 @@ namespace Kratos
 /**
  * @class NormalGapProcess
  * @ingroup ContactStructuralMechanicsApplication
- * @brief This process computes the normal gap
+ * @brief This process is computes the normal gap
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
@@ -80,7 +80,7 @@ public:
     ///@{
 
     /**
-     * @brief The constructor of the normal gap process uses the following inputs:
+     * @brief The constructor of the search utility uses the following inputs:
      * @param rMasterModelPart The master model part to be considered
      * @param rSlaveModelPart The slave model part to be considered
      */

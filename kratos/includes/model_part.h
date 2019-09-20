@@ -843,65 +843,6 @@ public:
      */
     PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
-    /**
-     * @brief Returns if the sub Properties corresponding to it's address exists
-     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
-     * @param ThisIndex The index identifying the mesh
-     * @return True if the properties exist, false otherwise
-     */
-    bool HasSubProperties(
-        const std::string& rAddress,
-        IndexType MeshIndex = 0
-        ) const;
-
-    /**
-     * @brief Returns the sub Properties::Pointer  corresponding to it's address
-     * @details If the property is not existing it will return a warning
-     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
-     * @param MeshIndex The Id of the mesh (0 by default)
-     * @return The desired properties (pointer)
-     */
-    PropertiesType::Pointer pGetSubProperties(
-        const std::string& rAddress,
-        IndexType MeshIndex = 0
-        );
-
-    /**
-     * @brief Returns the sub Properties::Pointer  corresponding to it's address (const version)
-     * @details If the property is not existing it will return a warning
-     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
-     * @param MeshIndex The Id of the mesh (0 by default)
-     * @return The desired properties (pointer)
-     */
-    const PropertiesType::Pointer pGetSubProperties(
-        const std::string& rAddress,
-        IndexType MeshIndex = 0
-        ) const;
-
-    /**
-     * @brief Returns the sub Properties::Pointer  corresponding to it's address
-     * @details If the property is not existing it will return a warning
-     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
-     * @param MeshIndex The Id of the mesh (0 by default)
-     * @return The desired properties (reference)
-     */
-    PropertiesType& GetSubProperties(
-        const std::string& rAddress,
-        IndexType MeshIndex = 0
-        );
-
-    /**
-     * @brief Returns the sub Properties::Pointer corresponding to it's address (const version)
-     * @details If the property is not existing it will return a warning
-     * @param rAddress The text that indicates the structure of subproperties to iterate and found the property of interest
-     * @param MeshIndex The Id of the mesh (0 by default)
-     * @return The desired properties (reference)
-     */
-    const PropertiesType& GetSubProperties(
-        const std::string& rAddress,
-        IndexType MeshIndex = 0
-        ) const;
-
     /** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveProperties(IndexType PropertiesId, IndexType ThisIndex = 0);
@@ -1632,49 +1573,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method trims a string and returns the first component (constant version)
-     * @param rStringName The given name to be trimmed
-     * @return The first index
-     */
-    IndexType FirstComponentName(const std::string& rStringName) const
-    {
-        std::stringstream ss(rStringName);
-        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
-            return std::stoi(index_string);
-        }
-
-        KRATOS_ERROR << "ModelPart:: Empty list of indexes when reading suproperties" << std::endl;
-
-        return 0;
-    }
-
-    /**
-     * @brief This method trims a string and returns the first component (constant version)
-     * @param rStringName The given name to be trimmed
-     * @return The first index
-     */
-    std::string LastComponentName(const std::string& rStringName) const
-    {
-        std::stringstream ss(rStringName);
-        std::string last_component = "";
-        std::size_t counter = 0;
-        for (std::string index_string; std::getline(ss, index_string, '.'); ) {
-            if (counter > 0) {
-                last_component += index_string + ".";
-            }
-            ++counter;
-        }
-
-        if (last_component == "") {
-            KRATOS_ERROR << "ModelPart:: Empty list of indexes when reading suproperties" << std::endl;
-        } else {
-            last_component = last_component.substr(0, last_component.size()-1);
-        }
-
-        return last_component;
-    }
 
     /**
      * @brief This method sets the suffer size of the submodelparts belonging to the current model part (recursively)

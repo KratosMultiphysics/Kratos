@@ -5,7 +5,6 @@ import math
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -71,6 +70,7 @@ class TestMortarUtilities(KratosUnittest.TestCase):
             self.assertLess(residual, 0.1)
 
     def _post_process(self, model_part):
+        from gid_output_process import GiDOutputProcess
         gid_output = GiDOutputProcess(model_part,
                                     "gid_output",
                                     KratosMultiphysics.Parameters("""

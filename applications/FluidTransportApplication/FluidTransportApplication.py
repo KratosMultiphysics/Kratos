@@ -2,10 +2,13 @@
 from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
-import KratosMultiphysics as KM
 from KratosFluidTransportApplication import *
 application = KratosFluidTransportApplication()
 application_name = "KratosFluidTransportApplication"
 application_folder = "FluidTransportApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+# The following lines are common for all applications
+from .. import application_importer
+import inspect
+caller = inspect.stack()[1] # Information about the file that imported this, to check for unexpected imports
+application_importer.ImportApplication(application,application_name,application_folder,caller,  __path__)

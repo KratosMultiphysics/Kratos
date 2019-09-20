@@ -87,12 +87,6 @@ public:
         msComponents.insert(ValueType(Name , &ThisComponent));
     }
 
-    static void Remove(std::string const& Name)
-    {
-        std::size_t num_erased = msComponents.erase(Name);
-        KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent component \"" << Name << "\"." << std::endl;
-    }
-
     static TComponentType const& Get(std::string const& Name)
     {
         auto it_comp =  msComponents.find(Name);
@@ -291,12 +285,6 @@ public:
     static void Add(std::string const& Name, VariableData& ThisComponent)
     {
         msComponents.insert(ValueType(Name, &ThisComponent));
-    }
-
-    static void Remove(std::string const& Name)
-    {
-        std::size_t num_erased = msComponents.erase(Name);
-        KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent component \"" << Name << "\"." << std::endl;
     }
 
     static std::size_t Size()

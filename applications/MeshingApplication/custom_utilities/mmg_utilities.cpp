@@ -3283,7 +3283,7 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     if (r_conditions_array.size() > 0) {
         const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), it_cond_begin->pGetProperties());
     }
     if (r_elements_array.size() > 0) {
         rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
@@ -3303,7 +3303,7 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // Boundary conditions
         Condition const& r_clone_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
-        rRefCondition[10] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[10] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), it_cond_begin->pGetProperties());
 
         // Inside outside elements
         rRefElement[2] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
@@ -3399,8 +3399,8 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
         NodeType::Pointer p_node = CreateNode(rModelPart, i_node, ref, is_required);
 
         // Set the DOFs in the nodes
-        for (auto it_dof = rDofs.begin(); it_dof != rDofs.end(); ++it_dof)
-            p_node->pAddDof(**it_dof);
+        for (auto& r_dof : rDofs)
+            p_node->pAddDof(r_dof);
 
         if (ref != 0) color_nodes[static_cast<IndexType>(ref)].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
     }
@@ -3622,7 +3622,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
-        rRefElement[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
+        rRefElement[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
     }
 
     /* Conditions */
@@ -3634,7 +3634,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
-        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
+        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
     }
 }
 

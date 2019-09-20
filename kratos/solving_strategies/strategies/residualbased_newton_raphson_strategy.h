@@ -138,7 +138,7 @@ class ResidualBasedNewtonRaphsonStrategy
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
             new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(mpLinearSolver));
-
+        
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
@@ -194,7 +194,7 @@ class ResidualBasedNewtonRaphsonStrategy
           mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY
-
+        
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
@@ -247,7 +247,7 @@ class ResidualBasedNewtonRaphsonStrategy
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
             new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(mpLinearSolver));
-
+        
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
 
@@ -732,6 +732,10 @@ class ResidualBasedNewtonRaphsonStrategy
 
         if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
         {
+            SparseSpaceType::Clear(mpA);
+            SparseSpaceType::Clear(mpDx);
+            SparseSpaceType::Clear(mpb);
+
             this->Clear();
         }
 
@@ -1050,7 +1054,7 @@ class ResidualBasedNewtonRaphsonStrategy
   protected:
     ///@name Static Member Variables
     ///@{
-
+        
     ///@}
     ///@name Member Variables
     ///@{
@@ -1158,7 +1162,7 @@ class ResidualBasedNewtonRaphsonStrategy
             << "ATTENTION: max iterations ( " << mMaxIterationNumber
             << " ) exceeded!" << std::endl;
     }
-
+    
     /**
      * @brief This method returns the default settings
      */
@@ -1171,7 +1175,7 @@ class ResidualBasedNewtonRaphsonStrategy
         })");
         return default_settings;
     }
-
+    
     /**
      * @brief This method assigns settings to member variables
      * @param Settings Parameters that are assigned to the member variables

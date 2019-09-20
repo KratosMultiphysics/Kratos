@@ -40,8 +40,6 @@ namespace Kratos
     {
     protected:
 
-        ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
-
     public:
         KRATOS_CLASS_POINTER_DEFINITION(SlidingCableElement3D);
 
@@ -119,19 +117,19 @@ namespace Kratos
         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
         void GetFirstDerivativesVector(Vector& rValues,int Step = 0) override;
 
-        Vector GetCurrentLengthArray(int Step = 0) const;
+        Vector GetCurrentLengthArray(int Step = 0);
         Vector GetRefLengthArray() const;
         Vector GetDeltaPositions(const int& rDirection) const;
-        Vector GetDirectionVectorNt() const;
+        Vector GetDirectionVectorNt();
         Vector GetInternalForces();
 
-        Matrix ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
-        Matrix GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
-        inline Matrix TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const;
+        Matrix ElasticStiffnessMatrix();
+        Matrix GeometricStiffnessMatrix();
+        inline Matrix TotalStiffnessMatrix();
 
-        double GetCurrentLength() const;
+        double GetCurrentLength();
         double GetRefLength() const;
-        double CalculateGreenLagrangeStrain() const;
+        double CalculateGreenLagrangeStrain();
         inline double LinearStiffness() const
         {
             return (this->GetProperties()[CROSS_AREA] * this->GetProperties()[YOUNG_MODULUS] / this->GetRefLength());
@@ -171,15 +169,6 @@ namespace Kratos
             ) override;
 
         int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-
-        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-
-        void GetConstitutiveLawTrialResponse(
-            const ProcessInfo& rCurrentProcessInfo);
 
         /**
          * @brief This function checks if self weight is present

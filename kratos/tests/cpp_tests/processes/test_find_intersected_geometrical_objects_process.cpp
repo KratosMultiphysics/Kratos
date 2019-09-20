@@ -16,7 +16,6 @@
 // Project includes
 #include "testing/testing.h"
 // #include "includes/gid_io.h"
-// #include "input_output/vtk_output.h"
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
@@ -29,17 +28,17 @@
 namespace Kratos {
     namespace Testing {
 
-        typedef Node<3> NodeType;
+        typedef Node<3> NodeType; // TODO: Replace in the rest of the test
         typedef Geometry<NodeType> GeometryType;
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess2D, KratosCoreFastSuite)
         {
-            NodeType::Pointer p_point1(new NodeType(1, 0.0, 0.0, 0.0));
-            NodeType::Pointer p_point2(new NodeType(2, 0.0, 1.0, 0.0));
-            NodeType::Pointer p_point3(new NodeType(3, 1.0, 1.0, 0.0));
-            NodeType::Pointer p_point4(new NodeType(4, 1.0, 0.0, 0.0));
+            Node<3>::Pointer p_point1(new Node<3>(1, 0.0, 0.0, 0.0));
+            Node<3>::Pointer p_point2(new Node<3>(2, 0.0, 1.0, 0.0));
+            Node<3>::Pointer p_point3(new Node<3>(3, 1.0, 1.0, 0.0));
+            Node<3>::Pointer p_point4(new Node<3>(4, 1.0, 0.0, 0.0));
 
-            Quadrilateral2D4<NodeType > geometry(p_point1, p_point2, p_point3, p_point4);
+            Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
             Parameters mesher_parameters(R"(
             {
@@ -126,12 +125,12 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection2D, KratosCoreFastSuite)
         {
-            NodeType::Pointer p_point1(new NodeType(1, 0.0, 0.0, 0.0));
-            NodeType::Pointer p_point2(new NodeType(2, 0.0, 1.0, 0.0));
-            NodeType::Pointer p_point3(new NodeType(3, 1.0, 1.0, 0.0));
-            NodeType::Pointer p_point4(new NodeType(4, 1.0, 0.0, 0.0));
+            Node<3>::Pointer p_point1(new Node<3>(1, 0.0, 0.0, 0.0));
+            Node<3>::Pointer p_point2(new Node<3>(2, 0.0, 1.0, 0.0));
+            Node<3>::Pointer p_point3(new Node<3>(3, 1.0, 1.0, 0.0));
+            Node<3>::Pointer p_point4(new Node<3>(4, 1.0, 0.0, 0.0));
 
-            Quadrilateral2D4<NodeType > geometry(p_point1, p_point2, p_point3, p_point4);
+            Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
             Parameters mesher_parameters(R"(
             {
@@ -371,92 +370,6 @@ namespace Kratos {
             KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessTriangleTriangleOBB3DOrthogonalBase, KratosCoreFastSuite)
-        {
-            Model current_model;
-            ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
-            r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
-            ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
-
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
-
-            // Generate the nodes of the surface
-            r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
-            r_surface_part.CreateNewNode(2 , 1.0 , 0.0 , 1.0);
-            r_surface_part.CreateNewNode(3 , 1.0 , 1.0 , 1.0);
-            r_surface_part.CreateNewNode(4 , 0.0 , 1.0 , 1.0);
-
-            // Now we create the "conditions"
-            r_surface_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, p_properties_0);
-            r_surface_part.CreateNewCondition("SurfaceCondition3D3N", 2, {{3, 4, 1}}, p_properties_0);
-
-            ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
-
-            // Generate the nodes of the skin
-            r_skin_part.CreateNewNode(5 , 0.0 , 0.0 , 1.01);
-            r_skin_part.CreateNewNode(6 , 1.0 , 0.0 , 1.01);
-            r_skin_part.CreateNewNode(7 , 1.0 , 1.0 , 1.01);
-            r_skin_part.CreateNewNode(8 , 0.0 , 1.0 , 1.01);
-
-            // Now we create the "conditions"
-            r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 3, {{ 5, 6, 7 }}, p_properties_1);
-            r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 4, {{ 7, 8, 5 }}, p_properties_1);
-
-            Parameters intersect_parameters = Parameters(R"(
-            {
-                "intersected_model_part_name"  : "Surface",
-                "intersecting_model_part_name" : "Boundaries",
-                "bounding_box_factor"          : 0.1,
-                "debug_obb"                    : false,
-                "OBB_intersection_type"        : "SeparatingAxisTheorem",
-                "build_from_bounding_box"      : false,
-                "intersecting_conditions"      : true,
-                "intersecting_elements"        : true,
-                "intersected_conditions"       : true,
-                "intersected_elements"         : true
-            })" );
-
-            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(current_model, intersect_parameters);
-            find_intersections.Execute();
-
-//             Parameters vtk_parameters = Parameters(R"(
-//             {
-//                 "model_part_name"                    : "Main",
-//                 "file_format"                        : "ascii",
-//                 "output_precision"                   : 7,
-//                 "output_control_type"                : "step",
-//                 "output_frequency"                   : 1.0,
-//                 "output_sub_model_parts"             : true,
-//                 "folder_name"                        : "VTK_Output",
-//                 "custom_name_prefix"                 : "",
-//                 "save_output_files_in_folder"        : false,
-//                 "write_deformed_configuration"       : false,
-//                 "write_properties_id"                : false,
-//                 "nodal_solution_step_data_variables" : [],
-//                 "nodal_data_value_variables"         : [],
-//                 "nodal_flags"                        : [],
-//                 "element_data_value_variables"       : [],
-//                 "element_flags"                      : [],
-//                 "condition_data_value_variables"     : [],
-//                 "condition_flags"                    : ["SELECTED"],
-//                 "gauss_point_variables"              : []
-//             })" );
-//
-//             VtkOutput debug(r_main_model_part, vtk_parameters);
-//             debug.PrintOutput();
-//
-//             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
-//             gid_io.InitializeMesh(0.0);
-//             gid_io.WriteMesh(r_main_model_part.GetMesh());
-//             gid_io.FinalizeMesh();
-//             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
-//             gid_io.FinalizeResults();
-
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
-        }
-
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessQuadrilateralQuadrilateralOBB3D, KratosCoreFastSuite)
         {
             Model current_model;
@@ -490,89 +403,6 @@ namespace Kratos {
             FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1);
             find_intersections.Execute();
 
-//             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
-//             gid_io.InitializeMesh(0.0);
-//             gid_io.WriteMesh(r_main_model_part.GetMesh());
-//             gid_io.FinalizeMesh();
-//             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
-//             gid_io.FinalizeResults();
-
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-        }
-
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessQuadrilateralQuadrilateralOBB3DOrthogonalBase, KratosCoreFastSuite)
-        {
-            Model current_model;
-            ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
-            r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
-            ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
-
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
-
-            // Generate the nodes of the surface
-            r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
-            r_surface_part.CreateNewNode(2 , 1.0 , 0.0 , 1.0);
-            r_surface_part.CreateNewNode(3 , 1.0 , 1.0 , 1.0);
-            r_surface_part.CreateNewNode(4 , 0.0 , 1.0 , 1.0);
-
-            // Now we create the "conditions"
-            r_surface_part.CreateNewCondition("SurfaceCondition3D4N", 1, {{1, 2, 3, 4}}, p_properties_0);
-
-            ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
-
-            // Generate the nodes of the skin
-            r_skin_part.CreateNewNode(5 , 0.0 , 0.0 , 1.01);
-            r_skin_part.CreateNewNode(6 , 1.0 , 0.0 , 1.01);
-            r_skin_part.CreateNewNode(7 , 1.0 , 1.0 , 1.01);
-            r_skin_part.CreateNewNode(8 , 0.0 , 1.0 , 1.01);
-
-            // Now we create the "conditions"
-            r_skin_part.CreateNewCondition("SurfaceCondition3D4N", 2, {{ 5, 6, 7, 8 }}, p_properties_1);
-
-            Parameters intersect_parameters = Parameters(R"(
-            {
-                "intersected_model_part_name"  : "Surface",
-                "intersecting_model_part_name" : "Boundaries",
-                "bounding_box_factor"          : 0.1,
-                "debug_obb"                    : false,
-                "OBB_intersection_type"        : "SeparatingAxisTheorem",
-                "build_from_bounding_box"      : false,
-                "intersecting_conditions"      : true,
-                "intersecting_elements"        : true,
-                "intersected_conditions"       : true,
-                "intersected_elements"         : true
-            })" );
-
-            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(current_model, intersect_parameters);
-            find_intersections.Execute();
-
-//             Parameters vtk_parameters = Parameters(R"(
-//             {
-//                 "model_part_name"                    : "Main",
-//                 "file_format"                        : "ascii",
-//                 "output_precision"                   : 7,
-//                 "output_control_type"                : "step",
-//                 "output_frequency"                   : 1.0,
-//                 "output_sub_model_parts"             : true,
-//                 "folder_name"                        : "VTK_Output",
-//                 "custom_name_prefix"                 : "",
-//                 "save_output_files_in_folder"        : false,
-//                 "write_deformed_configuration"       : false,
-//                 "write_properties_id"                : false,
-//                 "nodal_solution_step_data_variables" : [],
-//                 "nodal_data_value_variables"         : [],
-//                 "nodal_flags"                        : [],
-//                 "element_data_value_variables"       : [],
-//                 "element_flags"                      : [],
-//                 "condition_data_value_variables"     : [],
-//                 "condition_flags"                    : ["SELECTED"],
-//                 "gauss_point_variables"              : []
-//             })" );
-//
-//             VtkOutput debug(r_main_model_part, vtk_parameters);
-//             debug.PrintOutput();
-//
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
 //             gid_io.InitializeMesh(0.0);
 //             gid_io.WriteMesh(r_main_model_part.GetMesh());
@@ -617,91 +447,6 @@ namespace Kratos {
             FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(r_surface_part, r_skin_part, 0.1);
             find_intersections.Execute();
 
-//             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
-//             gid_io.InitializeMesh(0.0);
-//             gid_io.WriteMesh(r_main_model_part.GetMesh());
-//             gid_io.FinalizeMesh();
-//             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
-//             gid_io.FinalizeResults();
-
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-        }
-
-
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessTriangleQuadrilateralOBB3DOrthogonalBase, KratosCoreFastSuite)
-        {
-            Model current_model;
-            ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
-            r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
-            ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
-
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
-
-            // Generate the nodes of the surface
-            r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
-            r_surface_part.CreateNewNode(2 , 1.0 , 0.0 , 1.0);
-            r_surface_part.CreateNewNode(3 , 1.0 , 1.0 , 1.0);
-            r_surface_part.CreateNewNode(4 , 0.0 , 1.0 , 1.0);
-
-            // Now we create the "conditions"
-            r_surface_part.CreateNewCondition("SurfaceCondition3D4N", 1, {{1, 2, 3, 4}}, p_properties_0);
-
-            ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
-
-            // Generate the nodes of the skin
-            r_skin_part.CreateNewNode(5 , 0.0 , 0.0 , 1.01);
-            r_skin_part.CreateNewNode(6 , 1.0 , 0.0 , 1.01);
-            r_skin_part.CreateNewNode(7 , 1.0 , 1.0 , 1.01);
-            r_skin_part.CreateNewNode(8 , 0.0 , 1.0 , 1.01);
-
-            // Now we create the "conditions"
-            r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 2, {{ 5, 6, 7 }}, p_properties_1);
-            r_skin_part.CreateNewCondition("SurfaceCondition3D3N", 3, {{ 7, 8, 5 }}, p_properties_1);
-
-            Parameters intersect_parameters = Parameters(R"(
-            {
-                "intersected_model_part_name"  : "Surface",
-                "intersecting_model_part_name" : "Boundaries",
-                "bounding_box_factor"          : 0.1,
-                "debug_obb"                    : false,
-                "OBB_intersection_type"        : "SeparatingAxisTheorem",
-                "build_from_bounding_box"      : false,
-                "intersecting_conditions"      : true,
-                "intersecting_elements"        : true,
-                "intersected_conditions"       : true,
-                "intersected_elements"         : true
-            })" );
-
-            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(current_model, intersect_parameters);
-            find_intersections.Execute();
-
-//             Parameters vtk_parameters = Parameters(R"(
-//             {
-//                 "model_part_name"                    : "Main",
-//                 "file_format"                        : "ascii",
-//                 "output_precision"                   : 7,
-//                 "output_control_type"                : "step",
-//                 "output_frequency"                   : 1.0,
-//                 "output_sub_model_parts"             : true,
-//                 "folder_name"                        : "VTK_Output",
-//                 "custom_name_prefix"                 : "",
-//                 "save_output_files_in_folder"        : false,
-//                 "write_deformed_configuration"       : false,
-//                 "write_properties_id"                : false,
-//                 "nodal_solution_step_data_variables" : [],
-//                 "nodal_data_value_variables"         : [],
-//                 "nodal_flags"                        : [],
-//                 "element_data_value_variables"       : [],
-//                 "element_flags"                      : [],
-//                 "condition_data_value_variables"     : [],
-//                 "condition_flags"                    : ["SELECTED"],
-//                 "gauss_point_variables"              : []
-//             })" );
-//
-//             VtkOutput debug(r_main_model_part, vtk_parameters);
-//             debug.PrintOutput();
-//
 //             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
 //             gid_io.InitializeMesh(0.0);
 //             gid_io.WriteMesh(r_main_model_part.GetMesh());
@@ -757,92 +502,6 @@ namespace Kratos {
             KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(FindIntersectedConditionsProcessQuadrilateralTriangleOBB3DOrthogonalBase, KratosCoreFastSuite)
-        {
-            Model current_model;
-            ModelPart& r_main_model_part = current_model.CreateModelPart("Main");
-            r_main_model_part.GetProcessInfo().SetValue(STEP, 1);
-            r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
-            ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
-
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
-
-            // Generate the nodes of the surface
-            r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
-            r_surface_part.CreateNewNode(2 , 1.0 , 0.0 , 1.0);
-            r_surface_part.CreateNewNode(3 , 1.0 , 1.0 , 1.0);
-            r_surface_part.CreateNewNode(4 , 0.0 , 1.0 , 1.0);
-
-            // Now we create the "conditions"
-            r_surface_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, p_properties_0);
-            r_surface_part.CreateNewCondition("SurfaceCondition3D3N", 2, {{3, 4, 1}}, p_properties_0);
-
-            ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
-
-            // Generate the nodes of the skin
-            r_skin_part.CreateNewNode(5 , 0.0 , 0.0 , 1.01);
-            r_skin_part.CreateNewNode(6 , 1.0 , 0.0 , 1.01);
-            r_skin_part.CreateNewNode(7 , 1.0 , 1.0 , 1.01);
-            r_skin_part.CreateNewNode(8 , 0.0 , 1.0 , 1.01);
-
-            // Now we create the "conditions"
-            r_skin_part.CreateNewCondition("SurfaceCondition3D4N", 3, {{ 5, 6, 7, 8 }}, p_properties_1);
-
-            Parameters intersect_parameters = Parameters(R"(
-            {
-                "intersected_model_part_name"  : "Surface",
-                "intersecting_model_part_name" : "Boundaries",
-                "bounding_box_factor"          : 0.1,
-                "debug_obb"                    : false,
-                "OBB_intersection_type"        : "SeparatingAxisTheorem",
-                "build_from_bounding_box"      : false,
-                "intersecting_conditions"      : true,
-                "intersecting_elements"        : true,
-                "intersected_conditions"       : true,
-                "intersected_elements"         : true
-            })" );
-
-            FindIntersectedGeometricalObjectsWithOBBProcess find_intersections(current_model, intersect_parameters);
-            find_intersections.Execute();
-
-//             Parameters vtk_parameters = Parameters(R"(
-//             {
-//                 "model_part_name"                    : "Main",
-//                 "file_format"                        : "ascii",
-//                 "output_precision"                   : 7,
-//                 "output_control_type"                : "step",
-//                 "output_frequency"                   : 1.0,
-//                 "output_sub_model_parts"             : true,
-//                 "folder_name"                        : "VTK_Output",
-//                 "custom_name_prefix"                 : "",
-//                 "save_output_files_in_folder"        : false,
-//                 "write_deformed_configuration"       : false,
-//                 "write_properties_id"                : false,
-//                 "nodal_solution_step_data_variables" : [],
-//                 "nodal_data_value_variables"         : [],
-//                 "nodal_flags"                        : [],
-//                 "element_data_value_variables"       : [],
-//                 "element_flags"                      : [],
-//                 "condition_data_value_variables"     : [],
-//                 "condition_flags"                    : ["SELECTED"],
-//                 "gauss_point_variables"              : []
-//             })" );
-//
-//             VtkOutput debug(r_main_model_part, vtk_parameters);
-//             debug.PrintOutput();
-//
-//             GidIO<> gid_io("test", GiD_PostBinary, SingleFile, WriteDeformed, WriteConditions);
-//             gid_io.InitializeMesh(0.0);
-//             gid_io.WriteMesh(r_main_model_part.GetMesh());
-//             gid_io.FinalizeMesh();
-//             gid_io.InitializeResults(0, r_main_model_part.GetMesh());
-//             gid_io.FinalizeResults();
-
-            KRATOS_CHECK((r_surface_part.Conditions()[1]).Is(SELECTED));
-            KRATOS_CHECK((r_surface_part.Conditions()[2]).Is(SELECTED));
-        }
-
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessBoundingBoxIntersection2D, KratosCoreFastSuite)
         {
             Model current_model;
@@ -850,11 +509,11 @@ namespace Kratos {
             ModelPart &surface_part = current_model.CreateModelPart("Surface");
 
             // Create surface part
-            NodeType::Pointer p_point1(new NodeType(1, 0.0, 0.0, 0.0));
-            NodeType::Pointer p_point2(new NodeType(2, 0.0, 1.0, 0.0));
-            NodeType::Pointer p_point3(new NodeType(3, 1.0, 1.0, 0.0));
-            NodeType::Pointer p_point4(new NodeType(4, 1.0, 0.0, 0.0));
-            Quadrilateral2D4<NodeType > geometry(p_point1, p_point2, p_point3, p_point4);
+            Node<3>::Pointer p_point1(new Node<3>(1, 0.0, 0.0, 0.0));
+            Node<3>::Pointer p_point2(new Node<3>(2, 0.0, 1.0, 0.0));
+            Node<3>::Pointer p_point3(new Node<3>(3, 1.0, 1.0, 0.0));
+            Node<3>::Pointer p_point4(new Node<3>(4, 1.0, 0.0, 0.0));
+            Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
             Parameters mesher_parameters(R"({
                 "number_of_divisions" : 3,
                 "element_name" : "Element2D3N"
@@ -878,16 +537,16 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess3D, KratosCoreFastSuite)
         {
-            NodeType::Pointer p_point1(new NodeType(1, 0.00, 0.00, 0.00));
-            NodeType::Pointer p_point2(new NodeType(2, 10.00, 0.00, 0.00));
-            NodeType::Pointer p_point3(new NodeType(3, 10.00, 10.00, 0.00));
-            NodeType::Pointer p_point4(new NodeType(4, 0.00, 10.00, 0.00));
-            NodeType::Pointer p_point5(new NodeType(5, 0.00, 0.00, 10.00));
-            NodeType::Pointer p_point6(new NodeType(6, 10.00, 0.00, 10.00));
-            NodeType::Pointer p_point7(new NodeType(7, 10.00, 10.00, 10.00));
-            NodeType::Pointer p_point8(new NodeType(8, 0.00, 10.00, 10.00));
+            Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+            Node<3>::Pointer p_point2(new Node<3>(2, 10.00, 0.00, 0.00));
+            Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+            Node<3>::Pointer p_point4(new Node<3>(4, 0.00, 10.00, 0.00));
+            Node<3>::Pointer p_point5(new Node<3>(5, 0.00, 0.00, 10.00));
+            Node<3>::Pointer p_point6(new Node<3>(6, 10.00, 0.00, 10.00));
+            Node<3>::Pointer p_point7(new Node<3>(7, 10.00, 10.00, 10.00));
+            Node<3>::Pointer p_point8(new Node<3>(8, 0.00, 10.00, 10.00));
 
-            Hexahedra3D8<NodeType > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+            Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
             Parameters mesher_parameters(R"(
             {

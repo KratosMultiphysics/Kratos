@@ -244,12 +244,6 @@ private:
     ///@name Private Operations
     ///@{
 
-		void CopyDofs(Node<3>::DofsContainerType const& From, Node<3>::DofsContainerType& To){
-			for(auto& p_dof : From){
-				To.push_back(Kratos::unique_ptr<Dof<double>>(new Dof<double>(*p_dof)));
-			}
-		}
-
 
   void SelectEdgeToRefine2D( Element::GeometryType& Element,
 			     std::vector<array_1d<double,3> >& NewPositions,
@@ -380,9 +374,9 @@ private:
 	NodesIDToInterpolate[CountNodes][0]=Element[FirstEdgeNode[maxCount]].GetId();
 	NodesIDToInterpolate[CountNodes][1]=Element[SecondEdgeNode[maxCount]].GetId();
 	if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-		CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+	  NewDofs[CountNodes]=Element[SecondEdgeNode[maxCount]].GetDofs();
 	}else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-		CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+	  NewDofs[CountNodes]=Element[FirstEdgeNode[maxCount]].GetDofs();
 	}else{
 	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 	}
@@ -413,9 +407,9 @@ private:
 		  NodesIDToInterpolate[nn][0]=Element[FirstEdgeNode[maxCount]].GetId();
 		  NodesIDToInterpolate[nn][1]=Element[SecondEdgeNode[maxCount]].GetId();
 		  if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-			  CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
+		    NewDofs[nn]=Element[SecondEdgeNode[maxCount]].GetDofs();
 		  }else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-			  CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
+		    NewDofs[nn]=Element[FirstEdgeNode[maxCount]].GetDofs();
 		  }else{
 		    std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 		  }
@@ -594,9 +588,9 @@ private:
 	NodesIDToInterpolate[CountNodes][0]=Element[FirstEdgeNode[maxCount]].GetId();
 	NodesIDToInterpolate[CountNodes][1]=Element[SecondEdgeNode[maxCount]].GetId();
 	if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-		CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+	  NewDofs[CountNodes]=Element[SecondEdgeNode[maxCount]].GetDofs();
 	}else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-		CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+	  NewDofs[CountNodes]=Element[FirstEdgeNode[maxCount]].GetDofs();
 	}else{
 	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 	}
@@ -627,9 +621,9 @@ private:
 		  NodesIDToInterpolate[nn][0]=Element[FirstEdgeNode[maxCount]].GetId();
 		  NodesIDToInterpolate[nn][1]=Element[SecondEdgeNode[maxCount]].GetId();
 		  if(Element[SecondEdgeNode[maxCount]].IsNot(RIGID)){
-			  CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
+		    NewDofs[nn]=Element[SecondEdgeNode[maxCount]].GetDofs();
 		  }else if(Element[FirstEdgeNode[maxCount]].IsNot(RIGID)){
-			  CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[nn]);
+		    NewDofs[nn]=Element[FirstEdgeNode[maxCount]].GetDofs();
 		  }else{
 		    std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 		  }
@@ -704,7 +698,7 @@ private:
 
  	for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
  	  {
- 	    Node<3>::DofType& rDof = **iii;
+ 	    Node<3>::DofType& rDof = *iii;
  	    Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
  	    // (p_new_dof)->FreeDof();
  	  }
@@ -874,36 +868,36 @@ private:
 
     KRATOS_TRY
 
-	MasterNode->FastGetSolutionStepValue(BULK_MODULUS)=SlaveNode->FastGetSolutionStepValue(BULK_MODULUS);
-	MasterNode->FastGetSolutionStepValue(DENSITY)=SlaveNode->FastGetSolutionStepValue(DENSITY);
-	MasterNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY)=SlaveNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
+    double bulkModulus=SlaveNode->FastGetSolutionStepValue(BULK_MODULUS);
+    double density=SlaveNode->FastGetSolutionStepValue(DENSITY);
+    double viscosity=SlaveNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 
-	MasterNode->FastGetSolutionStepValue(YIELD_SHEAR)=SlaveNode->FastGetSolutionStepValue(YIELD_SHEAR);	
+    double yieldShear=SlaveNode->FastGetSolutionStepValue(YIELD_SHEAR);
+    double flowIndex=SlaveNode->FastGetSolutionStepValue(FLOW_INDEX);
+    double adaptiveExponent=SlaveNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
 
-	MasterNode->FastGetSolutionStepValue(FLOW_INDEX)=SlaveNode->FastGetSolutionStepValue(FLOW_INDEX);
-	MasterNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=SlaveNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);	
-	MasterNode->FastGetSolutionStepValue(STATIC_FRICTION)=SlaveNode->FastGetSolutionStepValue(STATIC_FRICTION);
-	MasterNode->FastGetSolutionStepValue(DYNAMIC_FRICTION)=SlaveNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);	
-	MasterNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO)=SlaveNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
-	MasterNode->FastGetSolutionStepValue(GRAIN_DIAMETER)=SlaveNode->FastGetSolutionStepValue(GRAIN_DIAMETER);	
-	MasterNode->FastGetSolutionStepValue(GRAIN_DENSITY)=SlaveNode->FastGetSolutionStepValue(GRAIN_DENSITY);
-	MasterNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT)=SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
-	
-	if(MasterNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT) && SlaveNode->SolutionStepsDataHas(DEVIATORIC_COEFFICIENT)){
-		MasterNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT)=SlaveNode->FastGetSolutionStepValue(DEVIATORIC_COEFFICIENT);
-		MasterNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT)=SlaveNode->FastGetSolutionStepValue(VOLUMETRIC_COEFFICIENT);
-	}
-	
-	if(MasterNode->SolutionStepsDataHas(YOUNG_MODULUS) && SlaveNode->SolutionStepsDataHas(YOUNG_MODULUS)){
-		MasterNode->FastGetSolutionStepValue(YOUNG_MODULUS)=0;
-    	MasterNode->FastGetSolutionStepValue(POISSON_RATIO)=0;
-	}
-	if(MasterNode->SolutionStepsDataHas(SOLID_DENSITY) && SlaveNode->SolutionStepsDataHas(SOLID_DENSITY)){
-   		MasterNode->FastGetSolutionStepValue(SOLID_DENSITY)=0;
-		MasterNode->Reset(SOLID);
-		MasterNode->FastGetSolutionStepValue(INTERFACE_NODE)=false;
-	}
+    double staticFrictionCoefficient=SlaveNode->FastGetSolutionStepValue(STATIC_FRICTION);
+    double dynamicFrictionCoefficient=SlaveNode->FastGetSolutionStepValue(DYNAMIC_FRICTION);
+    double inertialNumberZero=SlaveNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO);
+    double grainDiameter=SlaveNode->FastGetSolutionStepValue(GRAIN_DIAMETER);
+    double grainDensity=SlaveNode->FastGetSolutionStepValue(GRAIN_DENSITY);
+    double regularizationCoefficient=SlaveNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT);
 
+
+    MasterNode->FastGetSolutionStepValue(BULK_MODULUS)=bulkModulus;
+    MasterNode->FastGetSolutionStepValue(DENSITY)=density;
+    MasterNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY)=viscosity;
+
+    MasterNode->FastGetSolutionStepValue(YIELD_SHEAR)=yieldShear;
+    MasterNode->FastGetSolutionStepValue(FLOW_INDEX)=flowIndex;
+    MasterNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=adaptiveExponent;
+
+    MasterNode->FastGetSolutionStepValue(STATIC_FRICTION)=staticFrictionCoefficient;
+    MasterNode->FastGetSolutionStepValue(DYNAMIC_FRICTION)=dynamicFrictionCoefficient;
+    MasterNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO)=inertialNumberZero;
+    MasterNode->FastGetSolutionStepValue(GRAIN_DIAMETER)=grainDiameter;
+    MasterNode->FastGetSolutionStepValue(GRAIN_DENSITY)=grainDensity;
+    MasterNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT)=regularizationCoefficient;
 
     KRATOS_CATCH( "" )
 

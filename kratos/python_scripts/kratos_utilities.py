@@ -83,9 +83,11 @@ def CheckIfApplicationsAvailable(*application_names):
 def GenerateVariableListFromInput(param):
     """ Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
     """
-    return [ KM.KratosGlobals.GetVariable( var_name ) for var_name in param.GetStringArray() ]
+    from KratosMultiphysics import KratosGlobals
+    return [ KratosGlobals.GetVariable( var_name ) for var_name in param.GetStringArray() ]
 
 def GenerateFlagsListFromInput(param):
     """ Retrieve flag name from input (a string) and request the corresponding C++ object to the kernel
     """
-    return [ KM.KratosGlobals.GetFlag( flag_name ) for flag_name in param.GetStringArray() ]
+    from KratosMultiphysics import KratosGlobals
+    return [ KratosGlobals.GetFlag( flag_name ) for flag_name in param.GetStringArray() ]

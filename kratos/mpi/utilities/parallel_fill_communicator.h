@@ -49,7 +49,7 @@ class ModelPart;
  * and to fill the communication plan (coloring) so to allow the communication to be performed correctly
  * It fills the Ghost and Local lists and performs the coloring, then it updates the MPI communicator
  */
-class KRATOS_API(KRATOS_MPI_CORE) ParallelFillCommunicator
+class ParallelFillCommunicator
 {
 public:
     ///@name Type Definitions

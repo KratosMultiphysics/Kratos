@@ -22,33 +22,8 @@ namespace Kratos
 {
 namespace MeshingUtilities
 {
-void RecursiveEnsureModelPartOwnsProperties(
-    ModelPart& rModelPart,
-    const bool RemovePreviousProperties
-    )
+void EnsureModelPartOwnsProperties(ModelPart& rModelPart)
 {
-    // First we do in this model part
-    EnsureModelPartOwnsProperties(rModelPart, RemovePreviousProperties);
-
-    // Now we do in submodelparts
-    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
-        RecursiveEnsureModelPartOwnsProperties(r_sub_model_part, RemovePreviousProperties);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void EnsureModelPartOwnsProperties(
-    ModelPart& rModelPart,
-    const bool RemovePreviousProperties
-    )
-{
-    // First we clear the properties if we want so
-    if (RemovePreviousProperties) {
-        rModelPart.GetMesh(0).pProperties()->clear();
-    }
-
     // The list of properties
     std::unordered_set<Properties::Pointer> list_of_properties;
 

@@ -382,8 +382,8 @@ void  AddCustomIOToPython(pybind11::module& m)
     mEMPIREAPI.def("EMPIRE_API_sendSignal_double", EMPIRE_API_Wrappers::SendArray<false>);
     mEMPIREAPI.def("EMPIRE_API_recvSignal_double", EMPIRE_API_Wrappers::ReceiveArray<false>);
 
-    mEMPIREAPI.def("EMPIRE_API_recvConvergenceSignal", EMPIRE_API_recvConvergenceSignal, py::arg("file_name_extension")="default");
-    mEMPIREAPI.def("EMPIRE_API_sendConvergenceSignal", EMPIRE_API_sendConvergenceSignal, py::arg("signal"), py::arg("file_name_extension")="default");
+    mEMPIREAPI.def("EMPIRE_API_recvConvergenceSignal", EMPIRE_API_recvConvergenceSignal);
+    mEMPIREAPI.def("EMPIRE_API_sendConvergenceSignal", EMPIRE_API_sendConvergenceSignal);
 }
 
 }  // namespace Python.

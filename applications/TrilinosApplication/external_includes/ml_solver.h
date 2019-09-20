@@ -107,6 +107,14 @@ public:
             mAztecParameterList.set("AZ_output", verbosity);
         }
 
+        //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
+        for (auto it = Settings["trilinos_aztec_parameter_list"].begin(); it != Settings["trilinos_aztec_parameter_list"].end(); it++) {
+            if(it->IsString()) mAztecParameterList.set(it.name(), it->GetString());
+            else if(it->IsInt()) mAztecParameterList.set(it.name(), it->GetInt());
+            else if(it->IsBool()) mAztecParameterList.set(it.name(), it->GetBool());
+            else if(it->IsDouble()) mAztecParameterList.set(it.name(), it->GetDouble());
+        }
+
         mMLParameterList = Teuchos::ParameterList();
 
         mMLParameterList.set("ML output", verbosity);
@@ -123,14 +131,6 @@ public:
             mMLParameterList.set("smoother: sweeps", 3);
             mMLParameterList.set("smoother: pre or post", "both");
             mAztecParameterList.set("AZ_solver", "AZ_bicgstab");
-        }
-
-        //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for (auto it = Settings["trilinos_aztec_parameter_list"].begin(); it != Settings["trilinos_aztec_parameter_list"].end(); it++) {
-            if(it->IsString()) mAztecParameterList.set(it.name(), it->GetString());
-            else if(it->IsInt()) mAztecParameterList.set(it.name(), it->GetInt());
-            else if(it->IsBool()) mAztecParameterList.set(it.name(), it->GetBool());
-            else if(it->IsDouble()) mAztecParameterList.set(it.name(), it->GetDouble());
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL

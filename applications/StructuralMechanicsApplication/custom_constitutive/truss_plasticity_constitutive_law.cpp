@@ -220,29 +220,34 @@ array_1d<double, 3 > & TrussPlasticityConstitutiveLaw::CalculateValue(
 
 //************************************************************************************
 //************************************************************************************
-// calculate the trial stress ! call this only in element::InitializeNonLinearIteration !!
-void TrussPlasticityConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+// calculate the trial stress !
+void TrussPlasticityConstitutiveLaw::CalculateMaterialResponse(
+    const Vector& rStrainVector,const Matrix& rDeformationGradient,
+    Vector& rStressVector,Matrix& rAlgorithmicTangent,
+    const ProcessInfo& rCurrentProcessInfo,const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues,
+    bool CalculateStresses,int CalculateTangent,bool SaveInternalVariables)
 {
-    const double axial_strain (rValues.GetStrainVector()[0]);
-    double current_plastic_strain (0.00);
+    const double axial_strain = rStrainVector[0];
+    double current_plastic_strain = 0.00;
     this->GetValue(PLASTIC_STRAIN,current_plastic_strain);
 
     const double elastic_trial_strain = axial_strain-current_plastic_strain;
-    const double youngs_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
+    const double youngs_modulus = rMaterialProperties[YOUNG_MODULUS];
 
-    Vector& stress_vector = rValues.GetStressVector();
+    if (rStressVector.size() != 1) rStressVector.resize(1, false);
+    rStressVector[0] = youngs_modulus*elastic_trial_strain;
 
-    if (stress_vector.size() != 1) stress_vector.resize(1, false);
-    stress_vector[0] = youngs_modulus*elastic_trial_strain;
-
-
-    this->mStressState = stress_vector[0];
-    this->mCurrentInElasticFlag = this->CheckIfIsPlasticRegime(rValues);
-
-    if (this->CheckPlasticIterationHistory())
+    if (SaveInternalVariables)
     {
-        this->mAccumulatedPlasticStrainVector[0] = this->mAccumulatedPlasticStrainVector[1];
-        this->mPlasticAlphaVector[0] = this->mPlasticAlphaVector[1];
+        this->mStressState = rStressVector[0];
+        this->mCurrentInElasticFlag = this->CheckIfIsPlasticRegime(rMaterialProperties,rStressVector[0]);
+
+        if (this->CheckPlasticIterationHistory())
+        {
+            this->mAccumulatedPlasticStrainVector[0] = this->mAccumulatedPlasticStrainVector[1];
+            this->mPlasticAlphaVector[0] = this->mPlasticAlphaVector[1];
+        }
     }
 
 }
@@ -267,16 +272,17 @@ double TrussPlasticityConstitutiveLaw::TrialYieldFunction(const Properties& rMat
 //************************************************************************************
 //************************************************************************************
 
-bool TrussPlasticityConstitutiveLaw::CheckIfIsPlasticRegime(Parameters& rValues)
+bool TrussPlasticityConstitutiveLaw::CheckIfIsPlasticRegime(const Properties& rMaterialProperties,
+     const double& rCurrentStress)
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
 
     bool is_in_plastic_regime = false;
-    const double trial_yield_function = this->TrialYieldFunction(rValues.GetMaterialProperties(),rValues.GetStressVector()[0]);
+    const double trial_yield_function = this->TrialYieldFunction(rMaterialProperties,rCurrentStress);
     if (trial_yield_function > 0.00) is_in_plastic_regime = true;
 
 
-    const double check_limits = (rValues.GetStressVector()[0]/rValues.GetMaterialProperties()[YOUNG_MODULUS])+this->mAccumulatedPlasticStrainVector[0];
+    const double check_limits = (rCurrentStress/rMaterialProperties[YOUNG_MODULUS])+this->mAccumulatedPlasticStrainVector[0];
     if (std::abs(check_limits)<numerical_limit) is_in_plastic_regime=false;
 
     return is_in_plastic_regime;
@@ -317,9 +323,10 @@ void TrussPlasticityConstitutiveLaw::FinalizeNonLinearIteration(const Properties
     this->mPreviousInElasticFlag = this->mCurrentInElasticFlag;
 }
 
-
-
-void TrussPlasticityConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+void TrussPlasticityConstitutiveLaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
+                    const GeometryType& rElementGeometry,
+                    const Vector& rShapeFunctionsValues,
+                    const ProcessInfo& rCurrentProcessInfo)
 {
     this->mAccumulatedPlasticStrainVector[1] = this->mAccumulatedPlasticStrainVector[0];
     this->mPlasticAlphaVector[1] = this->mPlasticAlphaVector[0];

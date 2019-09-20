@@ -134,8 +134,7 @@ public:
      */
     OrientedBoundingBox(
         const GeometryType& rGeometry,
-        const double BoundingBoxFactor,
-        const bool BuildFromBoundingBox = true
+        const double BoundingBoxFactor
         );
 
     ///Copy constructor  (not really required)

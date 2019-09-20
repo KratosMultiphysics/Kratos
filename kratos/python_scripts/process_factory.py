@@ -16,7 +16,7 @@ class KratosProcessFactory(object):
         for i in range(0,process_list.size()):
             item = process_list[i]
             if not item.Has("python_module"):
-                KM.Logger.PrintWarning("Your list of processes: ", process_list)
+                KratosMultiphysics.Logger.PrintWarning("Your list of processes: ", process_list)
                 raise NameError('"python_module" must be defined in your parameters. Check all your processes')
 
             # python-script that contains the process

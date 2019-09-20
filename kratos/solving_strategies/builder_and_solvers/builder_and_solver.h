@@ -432,17 +432,6 @@ public:
     }
 
     /**
-            applies the constraints
-     */
-    virtual void ApplyConstraints(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rb)
-    {
-    }
-
-    /**
             Builds the list of the DofSets involved in the problem by "asking" to each element
             and condition its Dofs.
             The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the

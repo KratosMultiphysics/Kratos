@@ -177,11 +177,6 @@ class make_solver : public amgcl::detail::non_copyable {
             return P;
         }
 
-        /// Returns reference to the constructed preconditioner.
-        Precond& precond() {
-            return P;
-        }
-
         /// Returns reference to the constructed iterative solver.
         const IterativeSolver& solver() const {
             return S;

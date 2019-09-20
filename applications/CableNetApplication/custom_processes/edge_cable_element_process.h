@@ -112,7 +112,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
 
 
         // get new element id
-        const std::size_t new_element_id = mParameters["element_id"].GetInt();
+        const ModelPart::IndexType new_element_id = mParameters["element_id"].GetInt();
 
         // create geometric entitity
         std::vector<NodeType::Pointer> element_nodes (number_nodes);
@@ -147,7 +147,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
     }
 
   protected:
-
 
   private:
 

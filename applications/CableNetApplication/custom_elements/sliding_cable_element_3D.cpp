@@ -92,11 +92,9 @@ void SlidingCableElement3D::GetDofList(DofsVectorType &rElementalDofList,
   }
 }
 
-void SlidingCableElement3D::Initialize()
-{
-    KRATOS_TRY
-    mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-    KRATOS_CATCH("")
+void SlidingCableElement3D::Initialize() {
+  KRATOS_TRY
+  KRATOS_CATCH("")
 }
 
 void SlidingCableElement3D::GetValuesVector(Vector &rValues, int Step) {
@@ -166,7 +164,7 @@ void SlidingCableElement3D::GetSecondDerivativesVector(Vector &rValues, int Step
   KRATOS_CATCH("")
 }
 
-Vector SlidingCableElement3D::GetCurrentLengthArray(int step) const
+Vector SlidingCableElement3D::GetCurrentLengthArray(int step)
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number-1;
@@ -208,7 +206,7 @@ Vector SlidingCableElement3D::GetRefLengthArray() const
   return segment_lengths;
 }
 
-double SlidingCableElement3D::GetCurrentLength() const
+double SlidingCableElement3D::GetCurrentLength()
 {
   const int points_number = GetGeometry().PointsNumber();
   const int number_of_segments = points_number-1;
@@ -272,14 +270,14 @@ Vector SlidingCableElement3D::GetDeltaPositions(const int& rDirection) const
   return delta_position;
 }
 
-double SlidingCableElement3D::CalculateGreenLagrangeStrain() const
+double SlidingCableElement3D::CalculateGreenLagrangeStrain()
 {
   const double reference_length = this->GetRefLength();
   const double current_length = this->GetCurrentLength();
   return (0.50 * (((current_length*current_length)-(reference_length*reference_length)) / (reference_length*reference_length)));
 }
 
-Vector SlidingCableElement3D::GetDirectionVectorNt() const
+Vector SlidingCableElement3D::GetDirectionVectorNt()
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -325,21 +323,7 @@ Vector SlidingCableElement3D::GetInternalForces()
   const double youngs_mod     = this->GetProperties()[YOUNG_MODULUS];
   const double ref_length     = this->GetRefLength();
 
-
-  Vector temp_internal_stresses = ZeroVector(6);
-  ProcessInfo temp_process_information;
-  ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
-
-  Vector temp_strain = ZeroVector(1);
-  temp_strain[0] = CalculateGreenLagrangeStrain();
-  Values.SetStrainVector(temp_strain);
-  mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
-
-
-  const double total_internal_force = (temp_internal_stresses[3]+prestress) * area * current_length / ref_length;
-
-
-
+  const double total_internal_force = (youngs_mod*strain_gl+prestress) * area * current_length / ref_length;
 
   Vector internal_forces = total_internal_force*this->GetDirectionVectorNt();
 
@@ -441,17 +425,13 @@ Vector SlidingCableElement3D::GetCustomInternalForceWithFriction(const Vector& r
 }
 
 
-Matrix SlidingCableElement3D::ElasticStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
+Matrix SlidingCableElement3D::ElasticStiffnessMatrix()
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
   const SizeType local_size = dimension*points_number;
 
-  double youngs_mod = 0.00;
-  ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-  mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,youngs_mod);
-
-
+  const double youngs_mod     = this->GetProperties()[YOUNG_MODULUS];
   const double prestress     = this->GetPK2PrestressValue();
 
   Matrix elastic_stiffness_matrix = ZeroMatrix(local_size,local_size);
@@ -462,7 +442,7 @@ Matrix SlidingCableElement3D::ElasticStiffnessMatrix(const ProcessInfo& rCurrent
   return elastic_stiffness_matrix;
 }
 
-Matrix SlidingCableElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
+Matrix SlidingCableElement3D::GeometricStiffnessMatrix()
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
@@ -474,13 +454,7 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurre
 
   const double prestress     = this->GetPK2PrestressValue();
   const double area           = this->GetProperties()[CROSS_AREA];
-
-
-  double youngs_mod = 0.00;
-  ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-  mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,youngs_mod);
-
-
+  const double youngs_mod     = this->GetProperties()[YOUNG_MODULUS];
   const double ref_length     = this->GetRefLength();
 
   const Vector d_x = this->GetDeltaPositions(1);
@@ -520,10 +494,10 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurre
   return geometric_stiffness_matrix;
 }
 
-inline Matrix SlidingCableElement3D::TotalStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) const
+inline Matrix SlidingCableElement3D::TotalStiffnessMatrix()
 {
-  const Matrix ElasticStiffnessMatrix = this->ElasticStiffnessMatrix(rCurrentProcessInfo);
-  const Matrix GeometrixStiffnessMatrix = this->GeometricStiffnessMatrix(rCurrentProcessInfo);
+  const Matrix ElasticStiffnessMatrix = this->ElasticStiffnessMatrix();
+  const Matrix GeometrixStiffnessMatrix = this->GeometricStiffnessMatrix();
   return (ElasticStiffnessMatrix+GeometrixStiffnessMatrix);
 }
 
@@ -538,7 +512,7 @@ void SlidingCableElement3D::CalculateLeftHandSide(
   // resizing the matrices + create memory for LHS
   rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
   // creating LHS
-  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix(rCurrentProcessInfo);
+  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix();
 
   KRATOS_CATCH("")
 }
@@ -569,7 +543,7 @@ void SlidingCableElement3D::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix
   const SizeType local_size = dimension*points_number;
 
   rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
-  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix(rCurrentProcessInfo);
+  noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix();
 
   rRightHandSideVector = ZeroVector(local_size);
   noalias(rRightHandSideVector) -= this->GetInternalForces();
@@ -775,10 +749,6 @@ int SlidingCableElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
     const double domain_size = this->GetCurrentLength();
     KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
 
-
-    KRATOS_ERROR_IF_NOT(GetProperties()[CONSTITUTIVE_LAW])  << "A constitutive law needs to be specified for the element with ID " << Id() << std::endl;
-    mpConstitutiveLaw->Check(GetProperties(),GetGeometry(),rCurrentProcessInfo);
-
     return 0;
 
     KRATOS_CATCH("")
@@ -874,59 +844,10 @@ Vector SlidingCableElement3D::CalculateProjectionLengths()
 }
 
 
-void SlidingCableElement3D::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    ConstitutiveLaw::Parameters element_parameters;
-    mpConstitutiveLaw->FinalizeMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
-    KRATOS_CATCH("");
-}
-
-
-void SlidingCableElement3D::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    GetConstitutiveLawTrialResponse(rCurrentProcessInfo);
-    KRATOS_CATCH("");
-}
-
-void SlidingCableElement3D::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    Vector temp_shape_function = ZeroVector(3);
-    mpConstitutiveLaw->FinalizeNonLinearIteration(GetProperties(),
-            GetGeometry(),temp_shape_function,rCurrentProcessInfo);
-    KRATOS_CATCH("");
-}
-
-
-void SlidingCableElement3D::GetConstitutiveLawTrialResponse(
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-    Vector stress_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-    strain_vector[0] = CalculateGreenLagrangeStrain();
-
-
-    ConstitutiveLaw::Parameters element_parameters;
-    element_parameters.SetMaterialProperties(GetProperties());
-    element_parameters.SetStressVector(stress_vector);
-    element_parameters.SetStrainVector(strain_vector);
-
-    mpConstitutiveLaw->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
-
-    KRATOS_CATCH("");
-}
-
-
-
 void SlidingCableElement3D::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-    rSerializer.save("mpConstitutiveLaw", mpConstitutiveLaw);
 }
 void SlidingCableElement3D::load(Serializer &rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-  rSerializer.load("mpConstitutiveLaw", mpConstitutiveLaw);
 }
 } // namespace Kratos.

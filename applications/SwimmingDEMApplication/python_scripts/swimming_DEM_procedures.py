@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Array3, Logger
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
-import KratosMultiphysics.DEMApplication.DEM_procedures as DP
+import DEM_procedures as DP
 import shutil
 import weakref
 import math

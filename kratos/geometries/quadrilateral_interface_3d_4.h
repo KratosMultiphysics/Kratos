@@ -1202,10 +1202,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-
     static const GeometryData msGeometryData;
 
-    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1437,17 +1435,12 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData QuadrilateralInterface3D4<TPointType>::msGeometryData(
-    &msGeometryDimension,
+    2, 3, 1,
     GeometryData::GI_GAUSS_2,
     QuadrilateralInterface3D4<TPointType>::AllIntegrationPoints(),
     QuadrilateralInterface3D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
-
-template<class TPointType>
-const GeometryDimension QuadrilateralInterface3D4<TPointType>::msGeometryDimension(
-    2, 3, 1);
-
 }// namespace Kratos.
 
 #endif // KRATOS_QUADRILATERAL_INTERFACE_3D_4_H_INCLUDED  defined

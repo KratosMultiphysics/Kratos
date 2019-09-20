@@ -336,7 +336,6 @@ public:
     using ConfigurationType = Internals::DistanceSpatialContainersConfigure;
     using CellType = OctreeBinaryCell<ConfigurationType>;
     using OctreeType = OctreeBinary<CellType>;
-    using OctreePointerType = unique_ptr<OctreeType>;
     using CellNodeDataType = typename ConfigurationType::cell_node_data_type;
     typedef std::vector<typename OctreeType::cell_type*> OtreeCellVectorType;
 
@@ -440,7 +439,7 @@ public:
      * @brief This method returns the Octree conatined in the class
      * @return The octree contained in this process
      */
-    virtual OctreePointerType& GetOctreePointer();
+    virtual OctreeBinary<OctreeBinaryCell<ConfigurationType>>* GetOctreePointer();
 
     /**
      * @brief This clears the database
@@ -498,8 +497,8 @@ protected:
 
     ModelPart& mrModelPartIntersected;  /// Model part intersected
     ModelPart& mrModelPartIntersecting; /// Model part intersecting
+    OctreeType mOctree;                 /// The octree structucture that performs the search
     Flags mOptions;                     /// Local flags
-    OctreePointerType mpOctree;         /// The octree structucture that performs the search
 
     ///@}
     ///@name Protected Operators

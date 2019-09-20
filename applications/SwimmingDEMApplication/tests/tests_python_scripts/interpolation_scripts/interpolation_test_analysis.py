@@ -1,9 +1,12 @@
 from KratosMultiphysics import Model, Parameters, Logger
-import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
+import swimming_DEM_procedures as SDP
 import os
+import sys
 file_path = os.path.abspath(__file__)
 dir_path = os.path.dirname(file_path)
-from KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis import SwimmingDEMAnalysis
+sys.path.insert(0, dir_path)
+from swimming_DEM_analysis import SwimmingDEMAnalysis
+from swimming_DEM_analysis import Say
 
 class InterpolationTestAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
@@ -14,7 +17,7 @@ class InterpolationTestAnalysis(SwimmingDEMAnalysis):
         return SDP.Counter(is_dead = 1)
 
     def _CreateSolver(self):
-        import tests_python_scripts.interpolation_scripts.interpolation_test_solver as sdem_solver
+        import interpolation_test_solver as sdem_solver
         return sdem_solver.InterpolationTestSolver(self.model,
                                                    self.project_parameters,
                                                    self.GetFieldUtility(),

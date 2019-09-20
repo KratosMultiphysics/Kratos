@@ -4,7 +4,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
-from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_fluid_solver as BaseSolver
+import pfem_fluid_solver as BaseSolver
 
 def CreateSolver(model, parameters):
     return PfemFluidNodalIntegrationSolver(model, parameters)
@@ -26,20 +26,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
-        physics_type = self.settings["physics_type"].GetString()
-
-        if( physics_type == "fsi" ):
-            self.fluid_solver = KratosPfemFluid.NodalTwoStepVPStrategyForFSI(self.computing_model_part,
-                                                                        self.velocity_linear_solver,
-                                                                        self.pressure_linear_solver,
-                                                                        self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                        self.settings["velocity_tolerance"].GetDouble(),
-                                                                        self.settings["pressure_tolerance"].GetDouble(),
-                                                                        self.settings["maximum_pressure_iterations"].GetInt(),
-                                                                        self.settings["time_order"].GetInt(),
-                                                                        self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
-        else:
-            self.fluid_solver = KratosPfemFluid.NodalTwoStepVPStrategy(self.computing_model_part,
+        self.fluid_solver = KratosPfemFluid.NodalTwoStepVPStrategy(self.computing_model_part,
                                                                    self.velocity_linear_solver,
                                                                    self.pressure_linear_solver,
                                                                    self.settings["reform_dofs_at_each_step"].GetBool(),

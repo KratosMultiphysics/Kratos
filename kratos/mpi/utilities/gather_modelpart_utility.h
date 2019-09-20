@@ -22,7 +22,7 @@
 
 namespace Kratos
 {
-class KRATOS_API(KRATOS_MPI_CORE) GatherModelPartUtility
+class GatherModelPartUtility
 {
 public:
 

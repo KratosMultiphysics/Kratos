@@ -1,6 +1,11 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+# Time monitoring
 import time as timer
+
+## Importing modules -----------------------------------------------------------------------------------------
+
+# Import system python
 import os
 
 # Import kratos core and applications
@@ -8,11 +13,9 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.FluidTransportApplication
+import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
-
-from importlib import import_module
+from analysis_stage import AnalysisStage
 
 class FluidTransportAnalysis(AnalysisStage):
     '''Main script for poromechanics simulations.'''
@@ -38,9 +41,7 @@ class FluidTransportAnalysis(AnalysisStage):
         super(FluidTransportAnalysis,self).__init__(model,parameters)
 
     def _CreateSolver(self):
-        python_module_name = "KratosMultiphysics.FluidTransportApplication"
-        full_module_name = python_module_name + "." + self.project_parameters["solver_settings"]["solver_type"].GetString()
-        solver_module = import_module(full_module_name)
+        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
         solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
         return solver
 
@@ -68,7 +69,7 @@ class FluidTransportAnalysis(AnalysisStage):
             processes_block_names = ["constraints_process_list", "loads_process_list","auxiliar_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Using the old way to create the processes, this will be removed!")
-                from KratosMultiphysics.process_factory import KratosProcessFactory
+                from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
@@ -89,9 +90,9 @@ class FluidTransportAnalysis(AnalysisStage):
     def _SetUpGiDOutput(self):
         '''Initialize a GiD output instance.'''
         if self.parallel_type == "OpenMP":
-            from KratosMultiphysics.FluidTransportApplication import fluid_transport_cleaning_utility
+            import fluid_transport_cleaning_utility
             fluid_transport_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
-            from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
+            from gid_output_process import GiDOutputProcess as OutputProcess
         elif self.parallel_type == "MPI":
             from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess as OutputProcess
 

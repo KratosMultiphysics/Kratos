@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.kratos_utilities as kratos_utils
 import os
 
 def Factory(settings, model):
@@ -22,6 +21,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
             if self.model_part.GetCommunicator().MyPID() == 0:
                 folder_name = settings["folder_name"].GetString()
                 if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+                    import KratosMultiphysics.kratos_utilities as kratos_utils
                     kratos_utils.DeleteDirectoryIfExisting(folder_name)
                 if not os.path.isdir(folder_name):
                     os.mkdir(folder_name)

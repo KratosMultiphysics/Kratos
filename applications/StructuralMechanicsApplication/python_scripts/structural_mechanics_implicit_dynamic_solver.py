@@ -34,12 +34,11 @@ class ImplicitMechanicalSolver(MechanicalSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
-            "time_integration_method" : "implicit",
-            "scheme_type"             : "bossak",
-            "damp_factor_m"           :-0.3,
-            "newmark_beta"            : 0.25,
-            "rayleigh_alpha"          : 0.0,
-            "rayleigh_beta"           : 0.0
+            "scheme_type"   : "bossak",
+            "damp_factor_m" :-0.3,
+            "newmark_beta" : 0.25,
+            "rayleigh_alpha": 0.0,
+            "rayleigh_beta" : 0.0
         }""")
         this_defaults.AddMissingParameters(super(ImplicitMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults

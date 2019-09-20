@@ -13,10 +13,11 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-import KratosMultiphysics.ShapeOptimizationApplication as KSO
+from KratosMultiphysics import *
+from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Import logger base classes
-from .design_logger_base import DesignLogger
+from design_logger_base import DesignLogger
 
 # ==============================================================================
 class DesignLoggerUNV( DesignLogger ):
@@ -56,9 +57,9 @@ class DesignLoggerUNV( DesignLogger ):
         nodal_results = self.output_settings["nodal_results"]
 
         if self.write_design_surface:
-            self.UNVIO = KSO.UniversalFileIO( self.design_surface, design_history_file_path, "WriteConditionsOnly", nodal_results )
+            self.UNVIO = UniversalFileIO( self.design_surface, design_history_file_path, "WriteConditionsOnly", nodal_results )
         elif self.write_optimization_model_part:
-            self.UNVIO = KSO.UniversalFileIO( self.optimization_model_part, design_history_file_path, "WriteElementsOnly", nodal_results )
+            self.UNVIO = UniversalFileIO( self.optimization_model_part, design_history_file_path, "WriteElementsOnly", nodal_results )
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):

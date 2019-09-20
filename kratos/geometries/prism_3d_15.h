@@ -1312,13 +1312,19 @@ public:
         rOStream << "    Jacobian in the origin\t : " << jacobian;
     }
 
-private:
-    ///@name Static Member Variables
-    ///@{
+protected:
 
+    /**
+     * there are no protected class members
+     */
+
+private:
+
+    /**
+     * Static Member Variables
+     */
     static const GeometryData msGeometryData;
 
-    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Serialization
@@ -1604,11 +1610,15 @@ private:
  * Input and output
  */
 
-/// input stream function
+/**
+ * input stream function
+ */
 template<class TPointType> inline std::istream& operator >> (
     std::istream& rIStream, Prism3D15<TPointType>& rThis );
 
-/// output stream function
+/**
+ * output stream function
+ */
 template<class TPointType> inline std::ostream& operator << (
     std::ostream& rOStream, const Prism3D15<TPointType>& rThis )
 {
@@ -1622,16 +1632,11 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Prism3D15<TPointType>::msGeometryData(
-    &msGeometryDimension,
-    GeometryData::GI_GAUSS_3,
+    3, 3, 3, GeometryData::GI_GAUSS_3,
     Prism3D15<TPointType>::AllIntegrationPoints(),
     Prism3D15<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
-
-template<class TPointType> const
-GeometryDimension Prism3D15<TPointType>::msGeometryDimension(
-    3, 3, 3);
 
 }// namespace Kratos.
 

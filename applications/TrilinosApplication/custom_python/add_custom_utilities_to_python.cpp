@@ -22,16 +22,18 @@
 #include "trilinos_space.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/trilinos_pointer_wrapper.h"
+#include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
 #include "custom_utilities/trilinos_fractional_step_settings.h"
 #include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
+#include "custom_utilities/mpi_normal_calculation_utilities.h"
 #include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
 #include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
 
 // External includes
-#include "../FSIApplication/custom_utilities/aitken_convergence_accelerator.hpp"
+#include "../FSIapplication/custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
 {
@@ -87,6 +89,16 @@ void AuxiliarUpdateSolution(
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
+    py::class_<TrilinosDeactivationUtility >
+        (m,"TrilinosDeactivationUtility")
+        .def(py::init<>() )
+        .def("Deactivate", &TrilinosDeactivationUtility::Deactivate )
+        .def("Reactivate", &TrilinosDeactivationUtility::Reactivate )
+        .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
+        .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
+        .def("Initialize", &TrilinosDeactivationUtility::Initialize )
+        ;
+
     py::class_<TrilinosCuttingApplication>(m,"TrilinosCuttingApplication").def(py::init< Epetra_MpiComm& >() )
         .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
         .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
@@ -150,6 +162,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetStrategy",ThatSetStrategyOverload)
         .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
         .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
+        ;
+
+    py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils").def(py::init<>())
+        .def("Check",&MPINormalCalculationUtils::Check)
+        .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
+        .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
         ;
 
     typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, double, 2> BasePartitionedFSIUtilitiesDouble2DType;

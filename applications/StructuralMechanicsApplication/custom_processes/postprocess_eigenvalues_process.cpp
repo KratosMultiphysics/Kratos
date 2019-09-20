@@ -112,7 +112,7 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
 
                 SizeType l = 0;
                 for (auto& r_dof : r_node_dofs) {
-                    r_dof->GetSolutionStepValue(0) = cos_angle * r_node_eigenvectors(j,l++);
+                    r_dof.GetSolutionStepValue(0) = cos_angle * r_node_eigenvectors(j,l++);
                 }
             }
 
