@@ -188,14 +188,14 @@ class TurbulenceKEpsilonConfiguration(
 
     def GetTurbulenceSolvingProcess(self):
         if self.turbulence_model_process is None:
-            if (self.parallel_type == "MPI"):
+            if (self.is_distributed):
                 self.turbulence_model_process = KratosRANS.MPIKEpsilonCoSolvingProcess(
                     self.fluid_model_part,
                     self.model_settings["coupling_settings"])
 
                 Kratos.Logger.PrintInfo(self.__class__.__name__,
                                         "Created MPI turbulence solving process.")
-            elif (self.parallel_type == "OpenMP"):
+            else:
                 self.turbulence_model_process = KratosRANS.KEpsilonCoSolvingProcess(
                     self.fluid_model_part,
                     self.model_settings["coupling_settings"])

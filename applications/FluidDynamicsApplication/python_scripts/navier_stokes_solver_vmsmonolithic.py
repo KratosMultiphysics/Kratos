@@ -12,6 +12,8 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
+from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_solver import CreateTurbulenceModel
+
 class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
     def __init__(self,settings):
@@ -196,7 +198,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "move_mesh_flag": false,
-            "turbulence_model": {}
+            "turbulence_model_solver_settings": {}
         }""")
 
         default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultSettings())
@@ -273,18 +275,11 @@ class NavierStokesSolverMonolithic(FluidSolver):
         ## Construct the linear solver
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        if not self.settings["turbulence_model"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
-            # if not empty
-            if CheckIfApplicationsAvailable("RANSModellingApplication"):
-                import KratosMultiphysics.RANSModellingApplication as KratosRANS
-            else:
-                raise Exception("Please install/compile RANSModellingApplication to use turbulence_model properties")
-            from KratosMultiphysics.FluidDynamicsApplication.turbulence_model_configuration import CreateTurbulenceModel
-            self.turbulence_model_configuration = CreateTurbulenceModel(model, self.settings["turbulence_model"])
-            self.condition_name = self.turbulence_model_configuration.GetFluidVelocityPressureConditionName()
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Using " + self.condition_name)
-        else:
-            self.turbulence_model_configuration = None
+        ## Construct the turbulence model solver
+        if not self.settings["turbulence_model_solver_settings"].IsEquivalentTo(KratosMultiphysics.Parameters("{}")):
+            self._turbulence_model_solver = CreateTurbulenceModel(model, self.settings["turbulence_model_solver_settings"])
+            self.condition_name = self._turbulence_model_solver.GetFluidVelocityPressureConditionName()
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Using " + self.condition_name + " as wall condition")
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Construction of NavierStokesSolverMonolithic finished.")
 
@@ -312,9 +307,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
 
         # Adding variables required for the turbulence modelling
-        if self.turbulence_model_configuration is not None:
-            self.turbulence_model_configuration.fluid_model_part = self.main_model_part
-            self.turbulence_model_configuration.AddVariables()
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.fluid_model_part = self.main_model_part
+            self._turbulence_model_solver.AddVariables()
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
@@ -324,8 +319,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def AddDofs(self):
         super(NavierStokesSolverMonolithic, self).AddDofs()
 
-        if self.turbulence_model_configuration is not None:
-            self.turbulence_model_configuration.AddDofs()
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.AddDofs()
 
     def PrepareModelPart(self):
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
@@ -333,8 +328,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         super(NavierStokesSolverMonolithic, self).PrepareModelPart()
 
-        if self.turbulence_model_configuration is not None:
-            self.turbulence_model_configuration.PrepareModelPart()
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.PrepareModelPart()
 
     def Initialize(self):
 
@@ -345,14 +340,15 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         # Creating the solution strategy
-        if (self.settings["time_scheme"].GetString() == "bossak"):
+
+        if self.settings["time_scheme"].GetString() == "steady":
+            self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
+                                                                     self.settings["absolute_velocity_tolerance"].GetDouble())
+        else:
             self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                                          self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                          self.settings["relative_pressure_tolerance"].GetDouble(),
                                                          self.settings["absolute_pressure_tolerance"].GetDouble())
-        elif self.settings["time_scheme"].GetString() == "steady":
-            self.conv_criteria = KratosMultiphysics.ResidualCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                                     self.settings["absolute_velocity_tolerance"].GetDouble())
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
@@ -372,7 +368,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 err_msg += "Available options are: \"bdf2\""
                 raise Exception(err_msg)
         else:
-            if (self.turbulence_model_configuration is None):
+            if not hasattr(self, "_turbulence_model_solver"):
                 # Bossak time integration scheme
                 if self.settings["time_scheme"].GetString() == "bossak":
                     if self.settings["consider_periodic_conditions"].GetBool() == True:
@@ -399,21 +395,21 @@ class NavierStokesSolverMonolithic(FluidSolver):
                     err_msg += "Available options are: \"bossak\", \"bdf2\" and \"steady\""
                     raise Exception(err_msg)
             else:
-                self.turbulence_model_configuration.Initialize()
+                self._turbulence_model_solver.Initialize()
                 if self.settings["time_scheme"].GetString() == "bossak":
                     self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                                 self.settings["alpha"].GetDouble(),
                                 self.settings["move_mesh_strategy"].GetInt(),
                                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                self.settings["turbulence_model"]["velocity_pressure_relaxation_factor"].GetDouble(),
-                                self.turbulence_model_configuration.GetTurbulenceSolvingProcess())
+                                self.settings["turbulence_model_solver_settings"]["velocity_pressure_relaxation_factor"].GetDouble(),
+                                self._turbulence_model_solver.GetTurbulenceSolvingProcess())
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
                     self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                            self.turbulence_model_configuration.GetTurbulenceSolvingProcess())
+                            self._turbulence_model_solver.GetTurbulenceSolvingProcess())
         if self.settings["consider_periodic_conditions"].GetBool():
             builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,
                                                                                 KratosCFD.PATCH_INDEX)
@@ -447,20 +443,20 @@ class NavierStokesSolverMonolithic(FluidSolver):
             # Perform the solver InitializeSolutionStep
             (self.solver).InitializeSolutionStep()
 
-            if (self.turbulence_model_configuration is not None):
-                self.turbulence_model_configuration.InitializeSolutionStep()
+            if hasattr(self, "_turbulence_model_solver"):
+                self._turbulence_model_solver.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(NavierStokesSolverMonolithic, self).FinalizeSolutionStep()
 
-        if (self.turbulence_model_configuration is not None):
-            self.turbulence_model_configuration.FinalizeSolutionStep()
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.FinalizeSolutionStep()
 
     def Check(self):
         super(NavierStokesSolverMonolithic, self).Check()
 
-        if (self.turbulence_model_configuration is not None):
-            self.turbulence_model_configuration.Check()
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.Check()
 
     def _set_physical_properties(self):
         # Check if fluid properties are provided using a .json file

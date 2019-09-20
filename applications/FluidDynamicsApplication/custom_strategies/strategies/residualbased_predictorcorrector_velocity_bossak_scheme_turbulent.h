@@ -197,6 +197,35 @@ namespace Kratos {
             double NewAlphaBossak,
             double MoveMeshStrategy,
             unsigned int DomainSize,
+            Process::Pointer pTurbulenceModel)
+        :
+          Scheme<TSparseSpace, TDenseSpace>(),
+          mRotationTool(DomainSize,DomainSize+1,SLIP), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs
+          mrPeriodicIdVar(Kratos::Variable<int>::StaticObject()),
+          mpTurbulenceModel(pTurbulenceModel)
+          {
+            //default values for the Newmark Scheme
+            mAlphaBossak = NewAlphaBossak;
+            mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
+            mGammaNewmark = 0.5 - mAlphaBossak;
+            mMeshVelocity = MoveMeshStrategy;
+
+
+            //Allocate auxiliary memory
+            int NumThreads = OpenMPUtils::GetNumThreads();
+            mMass.resize(NumThreads);
+            mDamp.resize(NumThreads);
+            mvel.resize(NumThreads);
+            macc.resize(NumThreads);
+            maccold.resize(NumThreads);
+        }
+
+        /** Constructor with a turbulence model and relaxation factor
+         */
+        ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+            double NewAlphaBossak,
+            double MoveMeshStrategy,
+            unsigned int DomainSize,
             const double RelaxationFactor,
             Process::Pointer pTurbulenceModel)
         :
@@ -564,13 +593,13 @@ namespace Kratos {
 
         void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
-            ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+            const auto& r_current_process_info = rModelPart.GetProcessInfo();
 
-            if (mpTurbulenceModel != 0) // If not null
+            if (mpTurbulenceModel) // If not null
                 mpTurbulenceModel->Execute();
 
             //if orthogonal subscales are computed
-            if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
+            if (r_current_process_info[OSS_SWITCH] == 1.0) {
 
                 KRATOS_INFO("Bossak Scheme") << "Computing OSS projections" << std::endl;
 
@@ -598,7 +627,7 @@ namespace Kratos {
                 for(int i=0; i<nel; ++i)
                 {
                     auto elem = elbegin + i;
-                    elem->Calculate(ADVPROJ, output, CurrentProcessInfo);
+                    elem->Calculate(ADVPROJ, output, r_current_process_info);
                 }
 
                 rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);

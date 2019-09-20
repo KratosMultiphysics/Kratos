@@ -21,8 +21,8 @@ class FluidSolverNoReplace(NavierStokesSolverMonolithic):
                 self.settings["model_part_name"].GetString()):
             self.model.AddModelPart(self.main_model_part)
 
-        if self.turbulence_model_configuration:
-            self.turbulence_model_configuration.PrepareModelPart()
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.PrepareModelPart()
 
     def GetComputingModelPart(self):
         return self.main_model_part

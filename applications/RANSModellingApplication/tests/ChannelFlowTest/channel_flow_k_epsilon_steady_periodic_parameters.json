@@ -43,7 +43,7 @@
             "use_orthogonal_subscales": false,
             "dynamic_tau": 0.0
         },
-        "turbulence_model": {
+        "turbulence_model_solver_settings": {
             "model_type": "k_epsilon",
             "velocity_pressure_relaxation_factor": 0.5,
             "auxiliar_process_list": [

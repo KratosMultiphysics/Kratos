@@ -25,8 +25,8 @@ class TrilinosFluidSolverNoReplace(TrilinosNavierStokesSolverMonolithic):
 
         self.distributed_model_part_importer.CreateCommunicators()
 
-        if self.turbulence_model_configuration is not None:
-            self.turbulence_model_configuration.PrepareModelPart()
+        if hasattr(self, "_turbulence_model_solver"):
+            self._turbulence_model_solver.PrepareModelPart()
 
         KratosMultiphysics.Logger.PrintInfo("TrilinosFluidSolverNoReplace", "Model reading finished.")
 
