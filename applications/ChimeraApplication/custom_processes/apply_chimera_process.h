@@ -290,6 +290,9 @@ protected:
             ++i_current_level;
         }
 
+        mNodeIdToConstraintIdsMap.clear();
+        mPointLocatorsMap.clear();        
+
         KRATOS_INFO_IF("Chrimera Initialization took : ", mEchoLevel > 0)
                         << do_chimera_loop_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
