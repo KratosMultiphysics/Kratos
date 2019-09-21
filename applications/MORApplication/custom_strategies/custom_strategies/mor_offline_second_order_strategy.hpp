@@ -706,12 +706,12 @@ class MorOfflineSecondOrderStrategy
         else if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
         {
             KRATOS_INFO("LHS") << "SystemMatrix = " << rA << std::endl;
-            KRATOS_INFO("Dx")  << "Mass Matrix = " << mpM << std::endl;
-            KRATOS_INFO("Sx")  << "Damping Matrix = " << mpS << std::endl;
+            KRATOS_INFO("Mass")  << "Mass Matrix = " << rM << std::endl;
+            KRATOS_INFO("Damping")  << "Damping Matrix = " << rS << std::endl;
             KRATOS_INFO("RHS") << "RHS  = " << rRHS << std::endl;
         }
         std::stringstream matrix_market_name;
-        matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        matrix_market_name << "K_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
 
         std::stringstream matrix_market_mass_name;
@@ -719,7 +719,7 @@ class MorOfflineSecondOrderStrategy
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_mass_name.str()).c_str(), rM, false);   
 
         std::stringstream matrix_market_damping_name;
-        matrix_market_name << "S_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+        matrix_market_damping_name << "D_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
         TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_damping_name.str()).c_str(), rS, false);        
 
         std::stringstream matrix_market_vectname;
