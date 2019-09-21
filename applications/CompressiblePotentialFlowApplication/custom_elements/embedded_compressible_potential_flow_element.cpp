@@ -7,9 +7,9 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Núñez, based on Iñigo Lopez and Riccardo Rossi work
+//  Main authors:    Marc Nunez, based on Inigo Lopez and Riccardo Rossi work
 //
-#include "embedded_incompressible_potential_flow_element.h"
+#include "embedded_compressible_potential_flow_element.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
 
@@ -19,40 +19,40 @@ namespace Kratos
 // Public Operations
 
 template <int Dim, int NumNodes>
-Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Create(
+Element::Pointer EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EmbeddedIncompressiblePotentialFlowElement>(
+    return Kratos::make_intrusive<EmbeddedCompressiblePotentialFlowElement>(
         NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
 template <int Dim, int NumNodes>
-Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Create(
+Element::Pointer EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::Create(
     IndexType NewId, typename GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EmbeddedIncompressiblePotentialFlowElement>(
+    return Kratos::make_intrusive<EmbeddedCompressiblePotentialFlowElement>(
         NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
 template <int Dim, int NumNodes>
-Element::Pointer EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Clone(
+Element::Pointer EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::Clone(
     IndexType NewId, NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EmbeddedIncompressiblePotentialFlowElement>(
+    return Kratos::make_intrusive<EmbeddedCompressiblePotentialFlowElement>(
         NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
     KRATOS_CATCH("");
 }
 
 template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
+void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-    const EmbeddedIncompressiblePotentialFlowElement& r_this = *this;
+    const EmbeddedCompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
     const int kutta = r_this.GetValue(KUTTA);
 
@@ -70,7 +70,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSy
 }
 
 template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedLocalSystem(
+void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
@@ -108,7 +108,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
 }
 
 template <>
-ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<2,3>::pGetModifiedShapeFunctions(Vector& rDistances) {
+ModifiedShapeFunctions::Pointer EmbeddedCompressiblePotentialFlowElement<2,3>::pGetModifiedShapeFunctions(Vector& rDistances) {
     return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
 }
 
@@ -116,7 +116,7 @@ ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<2,3>:
 // Inquiry
 
 template <int Dim, int NumNodes>
-int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -142,21 +142,21 @@ int EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const Proce
 // Input and output
 
 template <int Dim, int NumNodes>
-std::string EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::Info() const
+std::string EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::Info() const
 {
     std::stringstream buffer;
-    buffer << "EmbeddedIncompressiblePotentialFlowElement #" << this->Id();
+    buffer << "EmbeddedCompressiblePotentialFlowElement #" << this->Id();
     return buffer.str();
 }
 
 template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::PrintInfo(std::ostream& rOStream) const
+void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "EmbeddedIncompressiblePotentialFlowElement #" << this->Id();
+    rOStream << "EmbeddedCompressiblePotentialFlowElement #" << this->Id();
 }
 
 template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::PrintData(std::ostream& rOStream) const
+void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::PrintData(std::ostream& rOStream) const
 {
     this->pGetGeometry()->PrintData(rOStream);
 }
@@ -168,13 +168,13 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::PrintData(std::o
 // serializer
 
 template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::save(Serializer& rSerializer) const
+void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 }
 
 template <int Dim, int NumNodes>
-void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer& rSerializer)
+void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
@@ -182,6 +182,6 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer&
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
 
-template class EmbeddedIncompressiblePotentialFlowElement<2, 3>;
+template class EmbeddedCompressiblePotentialFlowElement<2, 3>;
 
 } // namespace Kratos

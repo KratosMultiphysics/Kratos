@@ -7,11 +7,11 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Núñez, based on Iñigo Lopez and Riccardo Rossi work
+//  Main authors:    Marc Nunez, based on Inigo Lopez and Riccardo Rossi work
 //
 
-#if !defined(KRATOS_EMBEDDED_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
-#define KRATOS_EMBEDDED_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
+#if !defined(KRATOS_EMBEDDED_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
+#define KRATOS_EMBEDDED_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
 
 // System includes
 
@@ -19,18 +19,18 @@
 
 // Project includes
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
-#include "incompressible_potential_flow_element.h"
+#include "compressible_potential_flow_element.h"
 
 namespace Kratos
 {
 template <int Dim, int NumNodes>
-class EmbeddedIncompressiblePotentialFlowElement : public IncompressiblePotentialFlowElement<Dim,NumNodes>
+class EmbeddedCompressiblePotentialFlowElement : public CompressiblePotentialFlowElement<Dim,NumNodes>
 {
 public:
    ///@name Type Definitions
     ///@{
 
-    typedef IncompressiblePotentialFlowElement<Dim,NumNodes> BaseType;
+    typedef CompressiblePotentialFlowElement<Dim,NumNodes> BaseType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::GeometryType GeometryType;
@@ -40,8 +40,8 @@ public:
     typedef typename BaseType::MatrixType MatrixType;
 
     ///@name Pointer Definitions
-    /// Pointer definition of EmbeddedIncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedIncompressiblePotentialFlowElement);
+    /// Pointer definition of EmbeddedCompressiblePotentialFlowElement
+    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedCompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -53,52 +53,52 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    explicit EmbeddedIncompressiblePotentialFlowElement(IndexType NewId = 0){}
+    explicit EmbeddedCompressiblePotentialFlowElement(IndexType NewId = 0){}
 
     /**
      * Constructor using an array of nodes
      */
-    EmbeddedIncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : IncompressiblePotentialFlowElement<Dim,NumNodes>(NewId, ThisNodes){}
+    EmbeddedCompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes)
+        : CompressiblePotentialFlowElement<Dim,NumNodes>(NewId, ThisNodes){}
 
     /**
      * Constructor using Geometry
      */
-    EmbeddedIncompressiblePotentialFlowElement(IndexType NewId, typename GeometryType::Pointer pGeometry)
-        : IncompressiblePotentialFlowElement<Dim,NumNodes>(NewId, pGeometry){}
+    EmbeddedCompressiblePotentialFlowElement(IndexType NewId, typename GeometryType::Pointer pGeometry)
+        : CompressiblePotentialFlowElement<Dim,NumNodes>(NewId, pGeometry){}
 
     /**
      * Constructor using Properties
      */
-    EmbeddedIncompressiblePotentialFlowElement(IndexType NewId,
+    EmbeddedCompressiblePotentialFlowElement(IndexType NewId,
                                        typename GeometryType::Pointer pGeometry,
                                        typename PropertiesType::Pointer pProperties)
-        : IncompressiblePotentialFlowElement<Dim,NumNodes>(NewId, pGeometry, pProperties){}
+        : CompressiblePotentialFlowElement<Dim,NumNodes>(NewId, pGeometry, pProperties){}
 
     /**
      * Copy Constructor
      */
-    EmbeddedIncompressiblePotentialFlowElement(EmbeddedIncompressiblePotentialFlowElement const& rOther) = delete;
+    EmbeddedCompressiblePotentialFlowElement(EmbeddedCompressiblePotentialFlowElement const& rOther) = delete;
 
     /**
      * Move Constructor
      */
-    EmbeddedIncompressiblePotentialFlowElement(EmbeddedIncompressiblePotentialFlowElement&& rOther) = delete;
+    EmbeddedCompressiblePotentialFlowElement(EmbeddedCompressiblePotentialFlowElement&& rOther) = delete;
 
     /**
      * Destructor
      */
-    ~EmbeddedIncompressiblePotentialFlowElement() override{}
+    ~EmbeddedCompressiblePotentialFlowElement() override{}
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    EmbeddedIncompressiblePotentialFlowElement& operator=(EmbeddedIncompressiblePotentialFlowElement const& rOther) = delete;
+    EmbeddedCompressiblePotentialFlowElement& operator=(EmbeddedCompressiblePotentialFlowElement const& rOther) = delete;
 
     /// Move operator.
-    EmbeddedIncompressiblePotentialFlowElement& operator=(EmbeddedIncompressiblePotentialFlowElement&& rOther) = delete;
+    EmbeddedCompressiblePotentialFlowElement& operator=(EmbeddedCompressiblePotentialFlowElement&& rOther) = delete;
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
@@ -140,7 +140,7 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // Class EmbeddedIncompressiblePotentialFlowElement
+}; // Class EmbeddedCompressiblePotentialFlowElement
 
 } // namespace Kratos.
 
