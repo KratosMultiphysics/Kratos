@@ -238,17 +238,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
     if (rVariable == VELOCITY)
     {
         array_1d<double, 3> v(3, 0.0);
-        array_1d<double, Dim> vaux;
-        ComputeVelocityUpper(vaux);
-        for (unsigned int k = 0; k < Dim; k++)
-            v[k] = vaux[k];
-        rValues[0] = v;
-    }
-    else if (rVariable == VELOCITY_LOWER)
-    {
-        array_1d<double, 3> v(3, 0.0);
-        array_1d<double, Dim> vaux;
-        ComputeVelocityLower(vaux);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
         rValues[0] = v;
@@ -405,8 +395,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormal
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
-    array_1d<double, Dim> v;
-    ComputeVelocityNormalElement(v);
+    array_1d<double, Dim> v =  PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes> (*this);
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
 
@@ -446,8 +435,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
-    array_1d<double, Dim> v;
-    ComputeVelocityUpperWakeElement(v);
+    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim, NumNodes>(*this);
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
 
@@ -525,8 +513,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdiv
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
-    array_1d<double, Dim> v;
-    ComputeVelocityUpperWakeElement(v);
+    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim, NumNodes>(*this);
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
 
@@ -662,18 +649,9 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEnergy()
 {
-    double internal_energy = 0.0;
-    array_1d<double, Dim> velocity;
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
 
-    const CompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        ComputeVelocityNormalElement(velocity);
-    else // Wake element
-        ComputeVelocityUpperWakeElement(velocity);
-
-    internal_energy = 0.5 * inner_prod(velocity, velocity);
+    double internal_energy = 0.5 * inner_prod(velocity, velocity);
     this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
 }
 
@@ -717,84 +695,6 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeEle
 }
 
 template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(
-    array_1d<double, Dim>& velocity) const
-{
-    velocity.clear();
-
-    const CompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        ComputeVelocityNormalElement(velocity);
-    else
-        ComputeVelocityUpperWakeElement(velocity);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLower(
-    array_1d<double, Dim>& velocity) const
-{
-    velocity.clear();
-
-    const CompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        ComputeVelocityNormalElement(velocity);
-    else
-        ComputeVelocityLowerWakeElement(velocity);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityNormalElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpperWakeElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    GetPotentialOnUpperWakeElement(data.potentials, distances);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWakeElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    GetPotentialOnLowerWakeElement(data.potentials, distances);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
-}
-
-template <int Dim, int NumNodes>
 double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficient(
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -804,8 +704,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficie
     const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
 
     // Computing local velocity
-    array_1d<double, Dim> v;
-    ComputeVelocityUpper(v);
+    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
 
     // Computing squares
     const double v_inf_2 = inner_prod(vinfinity, vinfinity);
@@ -833,8 +732,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
     const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
 
     // Computing local velocity
-    array_1d<double, Dim> v;
-    ComputeVelocityUpper(v);
+    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
 
     // Computing squares
     const double v_inf_2 = inner_prod(vinfinity, vinfinity);
