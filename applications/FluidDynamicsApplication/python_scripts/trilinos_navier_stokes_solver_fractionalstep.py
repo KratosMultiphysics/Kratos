@@ -31,7 +31,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
                     "input_filename": "unknown_name"
             },
             "material_import_settings": {
-                "materials_filename": "FluidMaterials.json"
+                "materials_filename": ""
             },
             "predictor_corrector": false,
             "maximum_velocity_iterations": 3,

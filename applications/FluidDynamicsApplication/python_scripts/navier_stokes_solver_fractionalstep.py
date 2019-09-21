@@ -29,7 +29,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                     "reorder": false
             },
             "material_import_settings": {
-                "materials_filename": "FluidMaterials.json"
+                "materials_filename": ""
             },
             "predictor_corrector": false,
             "maximum_velocity_iterations": 3,

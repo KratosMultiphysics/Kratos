@@ -35,7 +35,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "reorder": false
             },
             "material_import_settings": {
-                "materials_filename": "FluidMaterials.json"
+                "materials_filename": ""
             },
             "distance_reading_settings"    : {
                 "import_mode"         : "from_mdpa",
