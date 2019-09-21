@@ -193,7 +193,9 @@ void SetMaterialPropertiesToSolid(
 	double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
  	double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
 
+  //deviatoricCoeff=deltaT*secondLame
 	deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
+  //volumetricCoeff=bulk*deltaT=deltaT*(firstLame+2*secondLame/3)
 	volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
 
 }
@@ -223,8 +225,9 @@ void BuildSolidNodally(
     const double nTwoThirds = -2.0 / 3.0;
 
     double theta=0.5;
+    //double theta=1.0;
     array_1d<double,3> Acc(3,0.0);
-    // array_1d<double,6> Sigma(6,0.0);
+
     double dNdXi=0;
     double dNdYi=0;
     double dNdZi=0;
@@ -276,8 +279,6 @@ void BuildSolidNodally(
 
           this->SetMaterialPropertiesToSolid(itNode,density,deviatoricCoeff,volumetricCoeff,timeInterval,nodalVolume);
 
-          density=itNode->FastGetSolutionStepValue(SOLID_DENSITY);
-
           firstRow=0;
           firstCol=0;
 
@@ -315,13 +316,21 @@ void BuildSolidNodally(
             solidRHS_Contribution[0]+=nodalVolume*density*VolumeAcceleration[0];
             solidRHS_Contribution[1]+=nodalVolume*density*VolumeAcceleration[1];
 
+///////////////LOAD CONDITIONS FOR BELITSCHKO CASE
+            // if(itNode->X0()>24.999){
+            //   // solidRHS_Contribution[1]+=40.0/2.0;  // mesh 4      (1 element per edge)
+            //   // solidRHS_Contribution[1]+=40.0/3.0;  // mesh 2      (2 element per edge)
+            //   // solidRHS_Contribution[1]+=40.0/5.0;  // mesh 1      (4 element per edge)
+            //   // solidRHS_Contribution[1]+=40.0/9.0;  // mesh 0.5    (8 element per edge)
+            //   // solidRHS_Contribution[1]+=40.0/17.0; // mesh 0.25   (16 element per edge)
+            //   // solidRHS_Contribution[1]+=40.0/33.0; // mesh 0.125  (32 element per edge)
+            //   // solidRHS_Contribution[1]+=40.0/65.0; // mesh 0.0625 (64 element per edge)
+            // }
+
             //-------- INTERNAL FORCES TERM -------//
             array_1d<double,3> Sigma(3,0.0);
             Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
-            // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-            //   Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
-            // }
-
+            
             const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X);
             solidEquationId[0]=itNode->GetDof(VELOCITY_X,xDofPos).EquationId();
             solidEquationId[1]=itNode->GetDof(VELOCITY_Y,xDofPos+1).EquationId();
@@ -403,9 +412,22 @@ void BuildSolidNodally(
             solidRHS_Contribution[1]+=nodalVolume*density*VolumeAcceleration[1];
             solidRHS_Contribution[2]+=nodalVolume*density*VolumeAcceleration[2];
 
+
+///////////////LOAD CONDITIONS FOR BELITSCHKO CASE
+            // if(itNode->X0()>24.999){
+            //   // solidRHS_Contribution[1]+=40.0/2.0;  // mesh 4      (1 element per edge)
+            //   // solidRHS_Contribution[1]+=40.0/3.0;  // mesh 2      (2 element per edge)
+            //   // solidRHS_Contribution[1]+=40.0/5.0;  // mesh 1      (4 element per edge)
+            //   solidRHS_Contribution[1]+=40.0/27.0;  // mesh 0.5    (8 element per edge, 2 per width)
+            //   // solidRHS_Contribution[1]+=40.0/17.0; // mesh 0.25   (16 element per edge)
+            //   // solidRHS_Contribution[1]+=40.0/33.0; // mesh 0.125  (32 element per edge)
+            //   // solidRHS_Contribution[1]+=40.0/65.0; // mesh 0.0625 (64 element per edge)
+            // }
+
+
             //-------- INTERNAL FORCES TERM -------//
 
-            array_1d<double,3> Sigma(6,0.0);
+            array_1d<double,6> Sigma(6,0.0);
             Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);    
             // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
             //   Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
@@ -743,7 +765,7 @@ void BuildFluidNodally(
 
               //-------- INTERNAL FORCES TERM -------//
 
-              array_1d<double,3> Sigma(6,0.0);
+              array_1d<double,6> Sigma(6,0.0);
               Sigma=itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
               // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
               //   Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
@@ -1036,7 +1058,7 @@ void BuildFluidNodally(
 #endif
 	  }
 
-#pragma omp parallel for firstprivate(nelements, ElementalDofList)
+// #pragma omp parallel for firstprivate(nelements, ElementalDofList)
         for (int i = 0; i < static_cast<int>(nelements); i++)
 	  {
             typename ElementsArrayType::iterator it = pElements.begin() + i;
@@ -1097,7 +1119,7 @@ void BuildFluidNodally(
         Doftemp.reserve(dofs_aux_list[0].size());
         for (auto it = dofs_aux_list[0].begin(); it != dofs_aux_list[0].end(); it++)
 	  {
-            Doftemp.push_back(it->get());
+            Doftemp.push_back(*it);
 	  }
         Doftemp.Sort();
 

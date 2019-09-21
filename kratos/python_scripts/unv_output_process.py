@@ -1,4 +1,5 @@
 import KratosMultiphysics
+from KratosMultiphysics import kratos_utilities
 import os
 
 def Factory(settings, model):
@@ -52,7 +53,7 @@ class UnvOutputProcess(KratosMultiphysics.Process):
         else:
             self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
-        self.nodal_variables = self._GenerateVariableListFromInput(self.settings["nodal_results"])
+        self.nodal_variables = kratos_utilities.GenerateVariableListFromInput(self.settings["nodal_results"])
 
     def ExecuteInitializeSolutionStep(self):
         self.step_count += 1
@@ -77,15 +78,6 @@ class UnvOutputProcess(KratosMultiphysics.Process):
             return (time >= GetPrettyTime(self.next_output))
         else:
             return ( self.step_count >= self.next_output )
-
-    def _GenerateVariableListFromInput(self, param):
-        '''Parse a list of variables from input.'''
-        # At least verify that the input is a string
-        if not param.IsArray():
-            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
-
-        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-        return [ KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
 
 
 def GetPrettyTime(time):

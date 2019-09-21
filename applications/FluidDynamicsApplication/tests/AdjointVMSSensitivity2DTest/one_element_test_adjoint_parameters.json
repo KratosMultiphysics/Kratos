@@ -94,7 +94,7 @@
             }
         },{
             "python_module" : "assign_scalar_variable_process",
-            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,

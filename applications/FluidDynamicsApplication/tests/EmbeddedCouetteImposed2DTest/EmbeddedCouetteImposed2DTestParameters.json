@@ -43,6 +43,11 @@
         "material_import_settings": {
             "materials_filename": "EmbeddedCouetteImposedTestMaterials.json"
         },
+        "distance_modification_settings": {
+            "check_at_each_time_step": false,
+            "avoid_almost_empty_elements": true,
+            "deactivate_full_negative_elements": true
+        },
         "echo_level":0,
         "maximum_iterations": 10,
         "relative_velocity_tolerance"  : 1e-5,
@@ -91,17 +96,6 @@
                 "variable_name"   : "VELOCITY",
                 "value"           : [null, 0.0, null],
                 "constrained"     : [false,true,true]
-            }
-        },{
-            "python_module" : "apply_distance_modification_process",
-            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"  : "ApplyDistanceModificationProcess",
-            "Parameters"    : {
-                "model_part_name"                        : "MainModelPart.Parts_Fluid",
-                "check_at_each_time_step"                : false,
-                "avoid_almost_empty_elements"            : true,
-                "deactivate_full_negative_elements"      : true,
-                "recover_original_distance_at_each_step" : false
             }
         }],
         "gravity"                          : [{

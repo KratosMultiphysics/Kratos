@@ -132,62 +132,67 @@ namespace Kratos
       deltaTimeToNewMilestone=initialTimeInterval*(previousMilestoneStep+1)-updatedTime;
 
       updatedTimeInterval =currentTimeInterval;
-
+    
       bool badVelocityConvergence=rCurrentProcessInfo[BAD_VELOCITY_CONVERGENCE];
       bool badPressureConvergence=rCurrentProcessInfo[BAD_PRESSURE_CONVERGENCE];
 
       if(updatedTimeInterval<2.0*minimumTimeInterval && mEchoLevel > 0 && mrModelPart.GetCommunicator().MyPID() == 0){
-	std::cout<<"ATTENTION! time step much smaller than initial time step, I'll not reduce it"<<std::endl;
+		std::cout<<"ATTENTION! time step much smaller than initial time step, I'll not reduce it"<<std::endl;
       }
+	  //here the time step is reduced because at the previous step we obtained a bad convergence (in velocity or pressure), see the criterion in two_step_vp_strategy.h
       if((badPressureConvergence==true || badVelocityConvergence==true) && updatedTimeInterval>(2.0*minimumTimeInterval)){
-	updatedTimeInterval *=0.5;
-	/* std::cout<<"reducing time step (bad convergence at the previous step)"<<updatedTimeInterval<<std::endl; */
-	rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
-	timeIntervalReduced=true;
+		updatedTimeInterval *=0.5;
+		// std::cout<<"      reducing time step (bad convergence at the previous step)"<<updatedTimeInterval<<std::endl;
+		rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
+		timeIntervalReduced=true;
       }
 
+	  //here the time step is changed to allow to reach the milestone time. This is done only if, using the new time step, there would be a small gap with respect to the milestone (writing) time
       if(deltaTimeToNewMilestone<(1.0+tolerance)*updatedTimeInterval && deltaTimeToNewMilestone>initialTimeInterval*tolerance){
-	rCurrentProcessInfo.SetValue(DELTA_TIME,deltaTimeToNewMilestone);
-	if(deltaTimeToNewMilestone<0.75*updatedTimeInterval){
-	  timeIntervalReduced=true;
-	  rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
-	}
-	updatedTimeInterval =deltaTimeToNewMilestone;
-	milestoneTimeReached=true;
+		rCurrentProcessInfo.SetValue(DELTA_TIME,deltaTimeToNewMilestone);
+		if(deltaTimeToNewMilestone<0.75*updatedTimeInterval){
+			timeIntervalReduced=true;
+			rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
+		}
+		updatedTimeInterval =deltaTimeToNewMilestone;
+		milestoneTimeReached=true;
       }else{
-	milestoneTimeReached=false;
-	rCurrentProcessInfo.SetValue(DELTA_TIME,updatedTimeInterval);
+		milestoneTimeReached=false;
+		rCurrentProcessInfo.SetValue(DELTA_TIME,updatedTimeInterval);
       }
 
+	  //here it is checked node by node and element by element, if with the new time step there could be penetration or element inversion. In these cases, the time step is reduced
       if(timeIntervalReduced==false){
-	if(updatedTimeInterval>(2.0*minimumTimeInterval)){
+		if(updatedTimeInterval>(2.0*minimumTimeInterval)){
 
-	  const unsigned int dimension =  mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-	  if(dimension==2){
-	    CheckNodalCriterionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
-	    if(timeIntervalReduced==false){
-	      CheckElementalCriterionForTimeStepReduction(increaseTimeInterval);
-	    }
-	}
-	}
+			const unsigned int dimension =  mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+			if(dimension==2){
+				// the time step is reduced if during a time step a node moves more than its mean distance with respect to its neighbors
+				CheckNodalCriterionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
+				if(timeIntervalReduced==false){
+					// the time step is reduced if there can be some element inversion
+					CheckElementalCriterionForTimeStepReduction(increaseTimeInterval);
+				}
+			}
+		}
 
-	// if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badPressureConvergence==false && badVelocityConvergence==false ){
-	if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badVelocityConvergence==false ){
-	  IncreaseTimeInterval(updatedTimeInterval,deltaTimeToNewMilestone,tolerance,increaseTimeInterval);
-	}
-	else{
-	  increaseTimeInterval=false;
-	}
+		// if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badPressureConvergence==false && badVelocityConvergence==false ){
+		if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badVelocityConvergence==false ){
+			IncreaseTimeInterval(updatedTimeInterval,deltaTimeToNewMilestone,tolerance,increaseTimeInterval);
+		}
+		else{
+			increaseTimeInterval=false;
+		}
 
       }
 
       double newTimeInterval = rCurrentProcessInfo[DELTA_TIME];
       double milestoneGap=fabs(newTimeInterval-deltaTimeToNewMilestone);
       if(milestoneGap<0.49*newTimeInterval && milestoneTimeReached==false){
-	/* std::cout<<"the milestone is very close, I add "<<milestoneGap<<" to "<<newTimeInterval<<std::endl;*/
-	newTimeInterval+=milestoneGap;
-	rCurrentProcessInfo.SetValue(DELTA_TIME,newTimeInterval);
-	milestoneTimeReached=true;
+		// std::cout<<"the milestone is very close, I add "<<milestoneGap<<" to "<<newTimeInterval<<std::endl;
+		newTimeInterval+=milestoneGap;
+		rCurrentProcessInfo.SetValue(DELTA_TIME,newTimeInterval);
+		milestoneTimeReached=true;
       }
 
       updatedTime+=newTimeInterval;
@@ -199,7 +204,7 @@ namespace Kratos
       /* } */
 
       if(increaseTimeInterval==false && milestoneTimeReached==true && fabs(newTimeInterval-initialTimeInterval)>tolerance && !(deltaTimeToNewMilestone>newTimeInterval*(1.0+tolerance))){
-	rCurrentProcessInfo.SetValue(CURRENT_DELTA_TIME,currentTimeInterval);
+		rCurrentProcessInfo.SetValue(CURRENT_DELTA_TIME,currentTimeInterval);
       }
 
 
@@ -227,44 +232,44 @@ namespace Kratos
 	    OpenMPUtils::PartitionedIterators(mrModelPart.Nodes(),NodeBegin,NodeEnd);
 	    for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
 	      {
-		if(itNode->IsNot(TO_ERASE) && itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){
-		  const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
-		  double NormVelNode=0;
-		  for (unsigned int d = 0; d < 3; ++d){
-		    NormVelNode+=Vel[d] * Vel[d];
-		  }
-		  double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
-		  double unsafetyFactor=0;
-		  NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-		  for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
-		    {
-		      array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-(nn)->Coordinates();
-		      double squaredDistance=0;
-		      for (unsigned int d = 0; d < 3; ++d){
-			squaredDistance+=CoorNeighDifference[d]*CoorNeighDifference[d];
-		      }
-		      double nodeDistance=sqrt(squaredDistance);
-		      double tempUnsafetyFactor=motionInStep/nodeDistance;
-		      if(tempUnsafetyFactor>unsafetyFactor){
-			unsafetyFactor=tempUnsafetyFactor;
-		      }
-		    }
+			if(itNode->IsNot(TO_ERASE) && itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){
+				const array_1d<double,3> &Vel = itNode->FastGetSolutionStepValue(VELOCITY);
+				double NormVelNode=0;
+				for (unsigned int d = 0; d < 3; ++d){
+					NormVelNode+=Vel[d] * Vel[d];
+				}
+				double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
+				double unsafetyFactor=0;
+				NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+				for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
+					{
+						array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-(nn)->Coordinates();
+						double squaredDistance=0;
+						for (unsigned int d = 0; d < 3; ++d){
+							squaredDistance+=CoorNeighDifference[d]*CoorNeighDifference[d];
+						}
+						double nodeDistance=sqrt(squaredDistance);
+						double tempUnsafetyFactor=motionInStep/nodeDistance;
+						if(tempUnsafetyFactor>unsafetyFactor){
+							unsafetyFactor=tempUnsafetyFactor;
+						}
+					}
 
-		  if(unsafetyFactor>0.35){
-		    increaseTimeInterval=false;
-		    if(unsafetyFactor>1.0){
-		      double temporaryTimeInterval = rCurrentProcessInfo[DELTA_TIME];
-		      double reducedTimeInterval=0.5*updatedTimeInterval;
-		      if(reducedTimeInterval<temporaryTimeInterval){
-			rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
-			/* std::cout<<"reducing time step (nodal criterion)"<<reducedTimeInterval<<std::endl; */
-			rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
-			timeIntervalReduced=true;
-			break;
-		      }
-		    }
-		  }
-		}
+				if(unsafetyFactor>0.35){
+					increaseTimeInterval=false;
+					if(unsafetyFactor>1.0){
+						double temporaryTimeInterval = rCurrentProcessInfo[DELTA_TIME];
+						double reducedTimeInterval=0.5*updatedTimeInterval;
+						if(reducedTimeInterval<temporaryTimeInterval){
+							rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
+							// std::cout<<"reducing time step (nodal criterion)"<<reducedTimeInterval<<std::endl;
+							rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
+							timeIntervalReduced=true;
+							break;
+						}
+					}
+				}
+			}
 	      }
 	  }
 
@@ -278,154 +283,158 @@ namespace Kratos
 
 #pragma omp parallel
       {
-	ModelPart::ElementIterator ElemBegin;
-	ModelPart::ElementIterator ElemEnd;
-	OpenMPUtils::PartitionedIterators(mrModelPart.Elements(),ElemBegin,ElemEnd);
-	for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
-	  {
-	    double temporaryTimeInterval=rCurrentProcessInfo[DELTA_TIME];
-	    double currentElementalArea =  0;
-	    const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
-	    if(dimension==2){
-	      currentElementalArea =  (itElem)->GetGeometry().Area();
-	      Geometry<Node<3> >  updatedElementCoordinates;
-	      bool solidElement=false;
-	      for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+		ModelPart::ElementIterator ElemBegin;
+		ModelPart::ElementIterator ElemEnd;
+		OpenMPUtils::PartitionedIterators(mrModelPart.Elements(),ElemBegin,ElemEnd);
+		for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
 		{
-		  if(itElem->GetGeometry()[i].Is(SOLID) || itElem->GetGeometry()[i].Is(TO_ERASE) || itElem->IsNot(ACTIVE)){
-		    solidElement=true;
-		  }
+			double temporaryTimeInterval=rCurrentProcessInfo[DELTA_TIME];
+			double currentElementalArea =  0;
+			const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
 
-		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		  Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval};
-		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+			if(dimension==2)
+			{
+				currentElementalArea =  (itElem)->GetGeometry().Area();
+				Geometry<Node<3> >  updatedElementCoordinates;
+				bool solidElement=false;
+				for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+				{
+					if(itElem->GetGeometry()[i].Is(SOLID) || itElem->GetGeometry()[i].Is(TO_ERASE) || itElem->IsNot(ACTIVE)){
+						solidElement=true;
+					}
+
+					const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+					Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval};
+					updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+				}
+
+				double newArea=0;
+				if(itElem->GetGeometry().size()==3){
+					Triangle2D3<Node<3> > myGeometry(updatedElementCoordinates);
+					newArea=myGeometry.Area();
+				}else if(itElem->GetGeometry().size()==6){
+					Triangle2D6<Node<3> > myGeometry(updatedElementCoordinates);
+					newArea=myGeometry.Area();
+				}else{
+					std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+				}
+
+				if(solidElement==true){
+					newArea=currentElementalArea;
+				}
+
+				if(newArea<0.001*currentElementalArea && currentElementalArea>0){
+					double reducedTimeInterval=0.5*temporaryTimeInterval;
+
+					if(reducedTimeInterval<temporaryTimeInterval){
+						rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
+						// std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl;
+						rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
+						increaseTimeInterval=false;
+						break;
+					}
+				}else{
+					Geometry<Node<3> >  updatedEnlargedElementCoordinates;
+
+					for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+					{
+						const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+						Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5};
+						updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+
+					}
+
+					if(itElem->GetGeometry().size()==3){
+						Triangle2D3<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+						newArea=myGeometry.Area();
+					}else if(itElem->GetGeometry().size()==6){
+						Triangle2D6<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+						newArea=myGeometry.Area();
+					}else{
+						std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+					}
+
+					if(newArea<0.001*currentElementalArea && currentElementalArea>0){
+						increaseTimeInterval=false;
+						/* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
+					}
+
+				}
+			}
+			else if(dimension==3)
+			{
+				double currentElementalVolume =  (itElem)->GetGeometry().Volume();
+				Geometry<Node<3> >  updatedElementCoordinates;
+				bool solidElement=false;
+				for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+				{
+					if(itElem->GetGeometry()[i].Is(SOLID) || itElem->IsNot(ACTIVE)){
+						solidElement=true;
+					}
+					const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+					Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval};
+					updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+				}
+
+				double newVolume=0;
+				if(itElem->GetGeometry().size()==4){
+					Tetrahedra3D4<Node<3> > myGeometry(updatedElementCoordinates);
+					newVolume=myGeometry.Volume();
+				}else if(itElem->GetGeometry().size()==10){
+					Tetrahedra3D10<Node<3> > myGeometry(updatedElementCoordinates);
+					newVolume=myGeometry.Volume();
+				}else{
+					std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+				}
+
+				if(solidElement==true){
+					newVolume=currentElementalVolume;
+				}
+
+				if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
+					double reducedTimeInterval=0.5*temporaryTimeInterval;
+
+					if(reducedTimeInterval<temporaryTimeInterval){
+						rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
+						/* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
+						rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
+						increaseTimeInterval=false;
+						break;
+					}
+				}else
+				{
+					Geometry<Node<3> >  updatedEnlargedElementCoordinates;
+
+					for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
+					{
+						const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+						Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5};
+						updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
+					}
+
+					if(itElem->GetGeometry().size()==4){
+						Tetrahedra3D4<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+						newVolume=myGeometry.Volume();
+					}else if(itElem->GetGeometry().size()==10){
+						Tetrahedra3D10<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+						newVolume=myGeometry.Volume();
+					}else{
+						std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
+					}
+
+					if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
+						increaseTimeInterval=false;
+						/* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
+					}
+
+
+				}
+
+
+
+			}
+
 		}
-
-	      double newArea=0;
-	      if(itElem->GetGeometry().size()==3){
-		Triangle2D3<Node<3> > myGeometry(updatedElementCoordinates);
-		newArea=myGeometry.Area();
-	      }else if(itElem->GetGeometry().size()==6){
-		Triangle2D6<Node<3> > myGeometry(updatedElementCoordinates);
-		newArea=myGeometry.Area();
-	      }else{
-		std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
-	      }
-
-	      if(solidElement==true){
-		newArea=currentElementalArea;
-	      }
-
-	      if(newArea<0.001*currentElementalArea && currentElementalArea>0){
-		double reducedTimeInterval=0.5*temporaryTimeInterval;
-
-		if(reducedTimeInterval<temporaryTimeInterval){
-		  rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
-		  /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
-		  rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
-		  increaseTimeInterval=false;
-		  break;
-		}
-	      }else{
-		Geometry<Node<3> >  updatedEnlargedElementCoordinates;
-
-		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
-		  {
-		    const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		    Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5};
-		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
-
-		  }
-
-		if(itElem->GetGeometry().size()==3){
-		  Triangle2D3<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
-		  newArea=myGeometry.Area();
-		}else if(itElem->GetGeometry().size()==6){
-		  Triangle2D6<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
-		  newArea=myGeometry.Area();
-		}else{
-		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
-		}
-
-		if(newArea<0.001*currentElementalArea && currentElementalArea>0){
-		  increaseTimeInterval=false;
-		  /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
-		}
-
-	      }
-	    }
-	    else if(dimension==3){
-	      double currentElementalVolume =  (itElem)->GetGeometry().Volume();
-	      Geometry<Node<3> >  updatedElementCoordinates;
-	      bool solidElement=false;
-	      for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
-		{
-		  if(itElem->GetGeometry()[i].Is(SOLID) || itElem->IsNot(ACTIVE)){
-		    solidElement=true;
-		  }
-		  const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		  Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval};
-		  updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
-		}
-
-	      double newVolume=0;
-	      if(itElem->GetGeometry().size()==4){
-		Tetrahedra3D4<Node<3> > myGeometry(updatedElementCoordinates);
-		newVolume=myGeometry.Volume();
-	      }else if(itElem->GetGeometry().size()==10){
-		Tetrahedra3D10<Node<3> > myGeometry(updatedElementCoordinates);
-		newVolume=myGeometry.Volume();
-	      }else{
-		std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
-	      }
-
-	      if(solidElement==true){
-		newVolume=currentElementalVolume;
-	      }
-
-	      if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
-		double reducedTimeInterval=0.5*temporaryTimeInterval;
-
-		if(reducedTimeInterval<temporaryTimeInterval){
-		  rCurrentProcessInfo.SetValue(DELTA_TIME,reducedTimeInterval);
-		  /* std::cout<<"reducing time step (elemental inversion)"<<reducedTimeInterval<<std::endl; */
-		  rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
-		  increaseTimeInterval=false;
-		  break;
-		}
-	      }else{
-		Geometry<Node<3> >  updatedEnlargedElementCoordinates;
-
-		for(unsigned int i=0; i<itElem->GetGeometry().size(); i++)
-		  {
-		    const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		    Point updatedNodalCoordinates=Point{itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5};
-		    updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z())));
-		  }
-
-		if(itElem->GetGeometry().size()==4){
-		  Tetrahedra3D4<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
-		  newVolume=myGeometry.Volume();
-		}else if(itElem->GetGeometry().size()==10){
-		  Tetrahedra3D10<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
-		  newVolume=myGeometry.Volume();
-		}else{
-		  std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
-		}
-
-		if(newVolume<0.001*currentElementalVolume && currentElementalVolume>0){
-		  increaseTimeInterval=false;
-		  /* std::cout<<"I'll not reduce the time step but I'll not allow to increase it"<<std::endl; */
-		}
-
-
-	      }
-
-
-
-	    }
-
-	  }
 
       }
     }
@@ -438,11 +447,11 @@ namespace Kratos
       ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
       double increasedTimeInterval=2.0*updatedTimeInterval;
       if(increasedTimeInterval<deltaTimeToNewMilestone*(1.0+tolerance)){
-	rCurrentProcessInfo.SetValue(DELTA_TIME,increasedTimeInterval);
-	/* std::cout<<"increasing time step "<<increasedTimeInterval<<" previous one="<<updatedTimeInterval<<std::endl; */
-	rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
+		rCurrentProcessInfo.SetValue(DELTA_TIME,increasedTimeInterval);
+		/* std::cout<<"increasing time step "<<increasedTimeInterval<<" previous one="<<updatedTimeInterval<<std::endl; */
+		rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
       }else{
-	increaseTimeInterval=false;
+		increaseTimeInterval=false;
       }
     }
 

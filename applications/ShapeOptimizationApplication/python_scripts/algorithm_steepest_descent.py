@@ -13,21 +13,21 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
+import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
-from algorithm_base import OptimizationAlgorithm
-import mapper_factory
-import data_logger_factory
-from custom_timer import Timer
-from custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from .algorithm_base import OptimizationAlgorithm
+from . import mapper_factory
+from . import data_logger_factory
+from .custom_timer import Timer
+from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
 # ==============================================================================
 class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
-        default_algorithm_settings = Parameters("""
+        default_algorithm_settings = KM.Parameters("""
         {
             "name"               : "steepest_descent",
             "max_iterations"     : 100,
@@ -72,7 +72,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.max_step_size = self.step_size*self.algorithm_settings["line_search"]["max_increase_factor"].GetDouble()
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
-        self.optimization_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -95,7 +95,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
-        self.optimization_utilities = OptimizationUtilities(self.design_surface, self.optimization_settings)
+        self.optimization_utilities = KSO.OptimizationUtilities(self.design_surface, self.optimization_settings)
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -136,7 +136,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
-        self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
         self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
@@ -148,13 +148,13 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.optimization_iteration, self.communicator)
 
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
-        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DF1DX)
+        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
 
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ComputeUnitSurfaceNormals()
-            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
 
-        self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
+        self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
 
     # --------------------------------------------------------------------------
     def __adjustStepSize(self):
@@ -164,8 +164,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         dfda1 = 0.0
         for node in self.design_surface.Nodes:
             # The following variables are not yet updated and therefore contain the information from the previos step
-            s1 = node.GetSolutionStepValue(SEARCH_DIRECTION)
-            dfds1 = node.GetSolutionStepValue(DF1DX_MAPPED)
+            s1 = node.GetSolutionStepValue(KSO.SEARCH_DIRECTION)
+            dfds1 = node.GetSolutionStepValue(KSO.DF1DX_MAPPED)
             dfda1 += s1[0]*dfds1[0] + s1[1]*dfds1[1] + s1[2]*dfds1[2]
 
         f2 = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
@@ -198,18 +198,18 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
-        self.mapper.InverseMap(DF1DX, DF1DX_MAPPED)
+        self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 
         self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
         self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
 
-        self.mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
-        self.model_part_controller.DampNodalVariableIfSpecified(SHAPE_UPDATE)
+        self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
+        self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
-        self.norm_objective_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(DF1DX_MAPPED)
+        self.norm_objective_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(KSO.DF1DX_MAPPED)
 
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
@@ -242,7 +242,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
-        self.optimization_utilities.AddFirstVariableToSecondVariable(CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE)
-        self.optimization_utilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 
 # ==============================================================================

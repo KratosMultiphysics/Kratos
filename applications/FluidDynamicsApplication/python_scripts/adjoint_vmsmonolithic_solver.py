@@ -92,17 +92,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
         self.computing_model_part = self.GetComputingModelPart()
 
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-
-        if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
-            if (domain_size == 2):
-                self.response_function = KratosCFD.DragResponseFunction2D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
-            elif (domain_size == 3):
-                self.response_function = KratosCFD.DragResponseFunction3D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
-        else:
-            raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
+        self.response_function = self.GetResponseFunction()
 
         self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
 
@@ -134,3 +124,31 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         (self.response_function).Initialize()
         (self.sensitivity_builder).Initialize()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
+    def _set_physical_properties(self):
+        # Transfer density and (kinematic) viscostity to the nodes
+        for el in self.main_model_part.Elements:
+            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+            if rho <= 0.0:
+                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
+            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+            if dyn_viscosity <= 0.0:
+                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
+            kin_viscosity = dyn_viscosity / rho
+            break
+
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+
+    def GetResponseFunction(self):
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
+            if (domain_size == 2):
+                return KratosCFD.DragResponseFunction2D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
+            elif (domain_size == 3):
+                return KratosCFD.DragResponseFunction3D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+        else:
+            raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())

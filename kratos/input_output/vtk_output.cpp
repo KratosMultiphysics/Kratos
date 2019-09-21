@@ -51,7 +51,7 @@ VtkOutput::VtkOutput(
     }
 
     // Adding GP variables to nodal data variables list
-    if(mOutputSettings["gauss_point_variables"].size() > 0) {
+    if(mOutputSettings["gauss_point_variables_extrapolated_to_nodes"].size() > 0) {
         Parameters gauss_intergration_param_non_hist = Parameters(R"(
         {
             "echo_level"                 : 0,
@@ -61,9 +61,9 @@ VtkOutput::VtkOutput(
             "extrapolate_non_historical" : true
         })");
 
-        gauss_intergration_param_non_hist.SetValue("list_of_variables", mOutputSettings["gauss_point_variables"]);
+        gauss_intergration_param_non_hist.SetValue("list_of_variables", mOutputSettings["gauss_point_variables_extrapolated_to_nodes"]);
 
-        for(auto const& gauss_var : mOutputSettings["gauss_point_variables"])
+        for(auto const& gauss_var : mOutputSettings["gauss_point_variables_extrapolated_to_nodes"])
             mOutputSettings["nodal_data_value_variables"].Append(gauss_var);
 
         // Making the gauss point to nodes process if any gauss point result is requested for
@@ -84,7 +84,7 @@ VtkOutput::VtkOutput(
 
 void VtkOutput::PrepareGaussPointResults()
 {
-    if(mOutputSettings["gauss_point_variables"].size() > 0){
+    if(mOutputSettings["gauss_point_variables_extrapolated_to_nodes"].size() > 0){
         mpGaussToNodesProcess->Execute();
     }
 }
@@ -166,11 +166,11 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     std::stringstream ss;
     const std::string output_control = mOutputSettings["output_control_type"].GetString();
     if (output_control == "step") {
-        ss << std::setprecision(mDefaultPrecision)<< std::setfill('0')
+        ss << std::fixed << std::setprecision(mDefaultPrecision)<< std::setfill('0')
            << rModelPart.GetProcessInfo()[STEP];
         label = ss.str();
     } else if(output_control == "time") {
-        ss << std::setprecision(mDefaultPrecision) << std::setfill('0')
+        ss << std::fixed << std::setprecision(mDefaultPrecision) << std::setfill('0')
            << rModelPart.GetProcessInfo()[TIME];
         label = ss.str();
     } else {
@@ -436,12 +436,15 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
     Parameters element_data_value_variables = mOutputSettings["element_data_value_variables"];
     Parameters element_flags = mOutputSettings["element_flags"];
 
-    int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
+    const int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
 
     if (num_elements > 0) {
         // write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfElements() << "\n";
-        rFileStream << "FIELD FieldData " << element_data_value_variables.size() + element_flags.size() << "\n";
+        const bool write_properties_id = mOutputSettings["write_properties_id"].GetBool();
+        Parameters gauss_point_variables_extrapolated_to_nodes = mOutputSettings["gauss_point_variables_in_elements"];
+        const SizeType number_gauss_points_variables = gauss_point_variables_extrapolated_to_nodes.size();
+        rFileStream << "FIELD FieldData " << element_data_value_variables.size() + element_flags.size() + (write_properties_id ? 1 : 0) + number_gauss_points_variables << "\n";
         for (IndexType entry = 0; entry < element_data_value_variables.size(); ++entry) {
             const std::string& r_element_result_name = element_data_value_variables[entry].GetString();
             WriteGeometricalContainerResults(r_element_result_name,r_local_mesh.Elements(),rFileStream);
@@ -457,6 +460,17 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
             const Flags flag = KratosComponents<Flags>::Get(r_element_result_name);
             WriteFlagContainerVariable(r_local_mesh.Elements(), flag, r_element_result_name, rFileStream);
         }
+
+        // If we write properties_id
+        if (write_properties_id) {
+            WritePropertiesIdsToFile(r_local_mesh.Elements(), rFileStream);
+        }
+
+        // Direct write GP values
+        for (IndexType entry = 0; entry < gauss_point_variables_extrapolated_to_nodes.size(); ++entry) {
+            const std::string& r_condition_result_name = gauss_point_variables_extrapolated_to_nodes[entry].GetString();
+            WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Elements(),rFileStream);
+        }
     }
 }
 
@@ -469,13 +483,16 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
     Parameters condition_results = mOutputSettings["condition_data_value_variables"];
     Parameters condition_flags = mOutputSettings["condition_flags"];
 
-    int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
-    int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(static_cast<int>(r_local_mesh.NumberOfConditions())));
+    const int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
+    const int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(static_cast<int>(r_local_mesh.NumberOfConditions())));
 
     if (num_elements == 0 && num_conditions > 0) { // TODO: Can we have conditions and elements at the same time?
         // Write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfConditions() << "\n";
-        rFileStream << "FIELD FieldData " << condition_results.size() + condition_flags.size() << "\n";
+        const bool write_properties_id = mOutputSettings["write_properties_id"].GetBool();
+        Parameters gauss_point_variables_extrapolated_to_nodes = mOutputSettings["gauss_point_variables_in_elements"];
+        const SizeType number_gauss_points_variables = gauss_point_variables_extrapolated_to_nodes.size();
+        rFileStream << "FIELD FieldData " << condition_results.size() + condition_flags.size() + (write_properties_id ? 1 : 0) + number_gauss_points_variables << "\n";
         for (IndexType entry = 0; entry < condition_results.size(); ++entry) {
             const std::string& r_condition_result_name = condition_results[entry].GetString();
             WriteGeometricalContainerResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
@@ -490,6 +507,17 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
             const std::string& r_condition_result_name = condition_flags[entry].GetString();
             const Flags flag = KratosComponents<Flags>::Get(r_condition_result_name);
             WriteFlagContainerVariable(r_local_mesh.Conditions(), flag, r_condition_result_name, rFileStream);
+        }
+
+        // If we write properties_id
+        if (write_properties_id) {
+            WritePropertiesIdsToFile(r_local_mesh.Conditions(), rFileStream);
+        }
+
+        // Direct write GP values
+        for (IndexType entry = 0; entry < gauss_point_variables_extrapolated_to_nodes.size(); ++entry) {
+            const std::string& r_condition_result_name = gauss_point_variables_extrapolated_to_nodes[entry].GetString();
+            WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
         }
     }
 }
@@ -569,6 +597,39 @@ void VtkOutput::WriteGeometricalContainerResults(
     } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
+    } else {
+        KRATOS_WARNING_ONCE(rVariableName) << mrModelPart.GetCommunicator().GetDataCommunicator() << "Variable \"" << rVariableName << "\" is "
+            << "not suitable for VtkOutput, skipping it" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<typename TContainerType>
+void VtkOutput::WriteGeometricalContainerIntegrationResults(
+    const std::string& rVariableName,
+    const TContainerType& rContainer,
+    std::ofstream& rFileStream) const
+{
+    if (KratosComponents<Variable<double>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
+        WriteIntegrationScalarContainerVariable(rContainer, var_to_write, rFileStream);
+    } else if (KratosComponents<Variable<bool>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<bool>>::Get(rVariableName);
+        WriteIntegrationScalarContainerVariable(rContainer, var_to_write, rFileStream);
+    } else if (KratosComponents<Variable<int>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<int>>::Get(rVariableName);
+        WriteIntegrationScalarContainerVariable(rContainer, var_to_write, rFileStream);
+    } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
+        WriteIntegrationVectorContainerVariable(rContainer, var_to_write, rFileStream);
+    } else if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<Vector>>::Get(rVariableName);
+        WriteIntegrationVectorContainerVariable(rContainer, var_to_write, rFileStream);
+    } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<array_1d<double, 6>>>::Get(rVariableName);
+        WriteIntegrationVectorContainerVariable(rContainer, var_to_write, rFileStream);
     } else {
         KRATOS_WARNING_ONCE(rVariableName) << mrModelPart.GetCommunicator().GetDataCommunicator() << "Variable \"" << rVariableName << "\" is "
             << "not suitable for VtkOutput, skipping it" << std::endl;
@@ -691,8 +752,41 @@ void VtkOutput::WriteScalarContainerVariable(
                 << rContainer.size() << "  float\n";
 
     for (const auto& r_entity : rContainer) {
-        const auto& r_result = r_entity.GetValue(rVariable);
-        WriteScalarDataToFile((float)r_result, rFileStream);
+        const double result = r_entity.GetValue(rVariable);
+        WriteScalarDataToFile((float)result, rFileStream);
+        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<typename TContainerType, class TVarType>
+void VtkOutput::WriteIntegrationScalarContainerVariable(
+    const TContainerType& rContainer,
+    const Variable<TVarType>& rVariable,
+    std::ofstream& rFileStream) const
+{
+    rFileStream << rVariable.Name() << " 1 "
+                << rContainer.size() << "  float\n";
+
+    // Auxiliar values
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
+    auto& r_this_geometry_begin = (rContainer.begin())->GetGeometry();
+    const GeometryData::IntegrationMethod this_integration_method = (rContainer.begin())->GetIntegrationMethod();
+    const auto& r_integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
+    const SizeType integration_points_number = r_integration_points.size();
+
+    double aux_value;
+    for (auto& r_entity : rContainer) { // TODO: CalculateOnIntegrationPoints should be const methods
+        aux_value = 0.0;
+        std::vector<TVarType> aux_result(integration_points_number);
+        r_entity.CalculateOnIntegrationPoints(rVariable, aux_result, r_process_info);
+        for (const double value : aux_result) {
+            aux_value += value;
+        }
+        aux_value /= static_cast<double>(integration_points_number);
+        WriteScalarDataToFile((float)aux_value, rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
@@ -718,6 +812,45 @@ void VtkOutput::WriteVectorContainerVariable(
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.GetValue(rVariable);
         WriteVectorDataToFile(r_result, rFileStream);
+        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<typename TContainerType, class TVarType>
+void VtkOutput::WriteIntegrationVectorContainerVariable(
+    const TContainerType& rContainer,
+    const Variable<TVarType>& rVariable,
+    std::ofstream& rFileStream) const
+{
+    if (rContainer.size() == 0) {
+        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
+        return;
+    }
+
+    const int res_size = static_cast<int>((rContainer.begin()->GetValue(rVariable)).size());
+
+    rFileStream << rVariable.Name() << " " << res_size << " " << rContainer.size() << "  float\n";
+
+    // Auxiliar values
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
+    auto& r_this_geometry_begin = (rContainer.begin())->GetGeometry();
+    const GeometryData::IntegrationMethod this_integration_method = (rContainer.begin())->GetIntegrationMethod();
+    const auto& r_integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
+    const SizeType integration_points_number = r_integration_points.size();
+
+    TVarType aux_value;
+    for (auto& r_entity : rContainer) { // TODO: CalculateOnIntegrationPoints should be const methods
+        aux_value = rVariable.Zero();
+        std::vector<TVarType> aux_result(integration_points_number);
+        r_entity.CalculateOnIntegrationPoints(rVariable, aux_result, r_process_info);
+        for (const TVarType& r_value : aux_result) {
+            noalias(aux_value) += r_value;
+        }
+        aux_value /= static_cast<double>(integration_points_number);
+        WriteVectorDataToFile(aux_value, rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
@@ -768,6 +901,24 @@ void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
         tmp = pBytes[1];
         pBytes[1] = pBytes[2];
         pBytes[2] = tmp;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<typename TContainerType>
+void VtkOutput::WritePropertiesIdsToFile(
+    const TContainerType& rContainer,
+    std::ofstream& rFileStream) const
+{
+    rFileStream << "PROPERTIES_ID" << " 1 "
+                << rContainer.size() << "  float\n";
+
+    for (const auto& r_entity : rContainer) {
+        const float properties_id = static_cast<float>(r_entity.GetProperties().Id());
+        WriteScalarDataToFile(properties_id, rFileStream);
+        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
 
@@ -826,24 +977,26 @@ Parameters VtkOutput::GetDefaultParameters()
     // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
     Parameters default_parameters = Parameters(R"(
     {
-        "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "file_format"                        : "ascii",
-        "output_precision"                   : 7,
-        "output_control_type"                : "step",
-        "output_frequency"                   : 1.0,
-        "output_sub_model_parts"             : false,
-        "folder_name"                        : "VTK_Output",
-        "custom_name_prefix"                 : "",
-        "save_output_files_in_folder"        : true,
-        "write_deformed_configuration"       : false,
-        "nodal_solution_step_data_variables" : [],
-        "nodal_data_value_variables"         : [],
-        "nodal_flags"                        : [],
-        "element_data_value_variables"       : [],
-        "element_flags"                      : [],
-        "condition_data_value_variables"     : [],
-        "condition_flags"                    : [],
-        "gauss_point_variables"              : []
+        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                                 : "ascii",
+        "output_precision"                            : 7,
+        "output_control_type"                         : "step",
+        "output_frequency"                            : 1.0,
+        "output_sub_model_parts"                      : false,
+        "folder_name"                                 : "VTK_Output",
+        "custom_name_prefix"                          : "",
+        "save_output_files_in_folder"                 : true,
+        "write_deformed_configuration"                : false,
+        "write_properties_id"                         : false,
+        "nodal_solution_step_data_variables"          : [],
+        "nodal_data_value_variables"                  : [],
+        "nodal_flags"                                 : [],
+        "element_data_value_variables"                : [],
+        "element_flags"                               : [],
+        "condition_data_value_variables"              : [],
+        "condition_flags"                             : [],
+        "gauss_point_variables_extrapolated_to_nodes" : [],
+        "gauss_point_variables_in_elements"           : []
     })" );
 
     return default_parameters;
