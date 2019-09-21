@@ -84,6 +84,9 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedL
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
         distances(i_node) = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
 
+    const double density = BaseType::ComputeDensity(rCurrentProcessInfo);
+    const double DrhoDu2 = BaseType::ComputeDensityDerivative(density, rCurrentProcessInfo);
+
     potential = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
 
     ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(distances);
@@ -94,17 +97,25 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedL
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_1);
+        GeometryData::GI_GAUSS_2);
 
-    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    // Computing local velocity
+    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocityNormalElement<Dim,NumNodes>(*this);
 
     BoundedMatrix<double,NumNodes,Dim> DN_DX;
+    BoundedVector<double, NumNodes> DNV;
+    BoundedMatrix<double, NumNodes, NumNodes> rLaplacianMatrix;
+    rLaplacianMatrix.clear();
     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-        DN_DX=positive_side_sh_func_gradients(i_gauss);
-        noalias(rLeftHandSideMatrix) += free_stream_density*prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);;
+        DN_DX = positive_side_sh_func_gradients(i_gauss);
+        DNV = prod(DN_DX, v);
+
+        noalias(rLaplacianMatrix) += positive_side_weights(i_gauss) * density * prod(DN_DX, trans(DN_DX));
+        noalias(rLeftHandSideMatrix) += rLaplacianMatrix;
+        noalias(rLeftHandSideMatrix) += positive_side_weights(i_gauss) * 2 * DrhoDu2 * outer_prod(DNV, trans(DNV));
     }
 
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, potential);
+    noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, potential);
 }
 
 template <>
