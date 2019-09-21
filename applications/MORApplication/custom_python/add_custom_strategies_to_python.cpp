@@ -111,7 +111,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_< MorSecondOrderIRKAStrategyType, typename MorSecondOrderIRKAStrategyType::Pointer, MorOfflineSecondOrderStrategyType >(m,"MorSecondOrderIRKAStrategy")
-        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, LinearSolverPointer, vector<double>, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, LinearSolverPointer, ComplexLinearSolverPointer, vector<double>, bool >())
         ;
     
     py::class_< FrequencyResponseAnalysisStrategyType, typename FrequencyResponseAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"FrequencyResponseAnalysisStrategy")
