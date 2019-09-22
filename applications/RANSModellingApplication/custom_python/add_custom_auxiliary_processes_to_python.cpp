@@ -42,6 +42,7 @@
 #include "custom_processes/auxiliary_processes/rans_wall_distance_calculation_process.h"
 #include "custom_processes/auxiliary_processes/rans_check_scalar_condition_bounds_process.h"
 #include "custom_processes/auxiliary_processes/rans_check_vector_bounds_process.h"
+#include "custom_processes/auxiliary_processes/rans_line_output_process.h"
 
 namespace Kratos
 {
@@ -160,6 +161,11 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     typedef RansNutLowReCalculationProcess RansNutLowReCalculationProcessType;
     py::class_<RansNutLowReCalculationProcessType, RansNutLowReCalculationProcessType::Pointer, Process>(
         m, "RansNutLowReCalculationProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    typedef RansLineOutputProcess RansLineOutputProcessType;
+    py::class_<RansLineOutputProcessType, RansLineOutputProcessType::Pointer, Process>(
+        m, "RansLineOutputProcess")
         .def(py::init<Model&, Parameters&>());
 
 
