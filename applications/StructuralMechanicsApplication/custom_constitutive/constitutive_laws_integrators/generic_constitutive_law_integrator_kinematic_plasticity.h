@@ -326,7 +326,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
                 denominator = 1.0 + (r_kinematic_parameters[1] * pDot);
                 rBackStressVector += (2.0 / 3.0 * r_kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
-				break;
+                break;
 
             case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:
                 KRATOS_ERROR_IF(r_kinematic_parameters.size() != 3) << "Kinematic Parameters not defined..." << std::endl;
@@ -680,7 +680,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rValues Parameters of the constitutive law
      * @param rPlasticStrain The Plastic Strain internal variable
      */
-	static void CalculateEquivalentStressThresholdCurveFittingHardening(
+    static void CalculateEquivalentStressThresholdCurveFittingHardening(
         const double PlasticDissipation,
         const double TensileIndicatorFactor,
         const double CompressionIndicatorFactor,
@@ -865,7 +865,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             dot_fflux_gflux += rFFlux[i] * rGFlux[i];
         }
         const double two_thirds = 2.0 / 3.0;
-		double dot_fflux_backstress = 0.0, dot_gflux_gflux = 0.0;
+        double dot_fflux_backstress = 0.0, dot_gflux_gflux = 0.0;
         switch (static_cast<KinematicHardeningType>(kinematic_hardening_type))
         {
             case KinematicHardeningType::LinearKinematicHardening:
