@@ -106,7 +106,7 @@
 
 // Advanced Constitutive laws
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
-#include "custom_constitutive/small_strain_isotropic_kinematic_plasticity_factory.h"
+#include "custom_constitutive/small_strain_kinematic_plasticity_factory.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
 #include "custom_constitutive/finite_strain_isotropic_plasticity_factory.h"

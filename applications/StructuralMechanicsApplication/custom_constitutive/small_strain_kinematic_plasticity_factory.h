@@ -10,8 +10,8 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SMALL_STRAIN_ISOTROPIC_KINEMATIC_PLASTICITY_FACTORY_H_INCLUDED)
-#define KRATOS_SMALL_STRAIN_ISOTROPIC_KINEMATIC_PLASTICITY_FACTORY_H_INCLUDED
+#if !defined(KRATOS_SMALL_STRAIN_KINEMATIC_PLASTICITY_FACTORY_H_INCLUDED)
+#define KRATOS_SMALL_STRAIN_KINEMATIC_PLASTICITY_FACTORY_H_INCLUDED
 
 // System includes
 
@@ -41,12 +41,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class SmallStrainIsotropicKinematicPlasticityFactory
+ * @class SmallStrainKinematicPlasticityFactory
  * @ingroup StructuralMechanicsApplication
  * @brief Dummy class to register, only implements create()
  * @author Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicKinematicPlasticityFactory
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainKinematicPlasticityFactory
     : public ConstitutiveLaw
 {
   public:
@@ -54,7 +54,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicKinematic
     ///@{
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicKinematicPlasticityFactory);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainKinematicPlasticityFactory);
 
     ///@}
     ///@name Life Cycle
@@ -63,14 +63,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicKinematic
     /**
     * Default constructor.
     */
-    SmallStrainIsotropicKinematicPlasticityFactory()
+    SmallStrainKinematicPlasticityFactory()
     {
     }
 
     /**
     * Destructor.
     */
-    ~SmallStrainIsotropicKinematicPlasticityFactory() override
+    ~SmallStrainKinematicPlasticityFactory() override
     {
     }
 

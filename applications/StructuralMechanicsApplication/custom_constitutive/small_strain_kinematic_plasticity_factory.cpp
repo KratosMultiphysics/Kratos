@@ -15,12 +15,12 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/small_strain_isotropic_kinematic_plasticity_factory.h"
+#include "custom_constitutive/small_strain_kinematic_plasticity_factory.h"
 #include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
 
 namespace Kratos
 {
-ConstitutiveLaw::Pointer SmallStrainIsotropicKinematicPlasticityFactory::Create(Kratos::Parameters NewParameters) const
+ConstitutiveLaw::Pointer SmallStrainKinematicPlasticityFactory::Create(Kratos::Parameters NewParameters) const
 {
     const std::string law_type = NewParameters.Has("law_type") ? NewParameters["law_type"].GetString() : "3D";
     const std::string& yield = NewParameters["yield_surface"].GetString();
