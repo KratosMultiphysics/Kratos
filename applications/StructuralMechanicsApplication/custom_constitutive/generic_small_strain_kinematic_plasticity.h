@@ -112,8 +112,7 @@ public:
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
           mPlasticStrain(rOther.mPlasticStrain),
-          mPreviousStressVector(rOther.mPreviousStressVector),
-          mBackStressVector(rOther.mBackStressVector)
+          mPreviousStressVector(rOther.mPreviousStressVector)
     {
     }
 
@@ -361,9 +360,6 @@ protected:
     void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
     void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
 
-    void SetBackStressVector (const Vector& toBS) {mBackStressVector = toBS; }
-    Vector& GetBackStressVector() { return mBackStressVector; }
-
     void SetPreviousStressVector (const Vector& toBS) {mPreviousStressVector = toBS; }
     Vector& GetPreviousStressVector() { return mPreviousStressVector;}
 
@@ -399,7 +395,6 @@ protected:
 
     // Kinematic variables
     Vector mPreviousStressVector = ZeroVector(VoigtSize);
-    Vector mBackStressVector = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
@@ -438,7 +433,6 @@ protected:
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
         rSerializer.save("PreviousStressVector", mPreviousStressVector);
-        rSerializer.save("BackStressVector", mBackStressVector);
     }
 
     void load(Serializer &rSerializer) override
@@ -448,7 +442,6 @@ protected:
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
         rSerializer.load("PreviousStressVector", mPreviousStressVector);
-        rSerializer.load("BackStressVector", mBackStressVector);
     }
 
     ///@}
