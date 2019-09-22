@@ -25,8 +25,8 @@
 #include "includes/data_communicator.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "processes/process.h"
 #include "input_output/logger_output.h"
+#include "processes/process.h"
 
 #include "custom_utilities/rans_check_utilities.h"
 #include "custom_utilities/rans_variable_utils.h"
@@ -89,7 +89,6 @@ public:
         {
             "model_part_name"                   : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "variable_names_list"               : [],
-            "gradient_variables_list"           : [],
             "historical_value"                  : true,
             "start_point"                       : [0.0, 0.0, 0.0],
             "end_point"                         : [0.0, 0.0, 0.0],
@@ -505,11 +504,12 @@ private:
             }
         }
 
-        // std::replace(kratos_header_str.begin(), kratos_header_str.end(), "\n","\n# |");
-
-        rOutputFileStream << "# ------------------------------------------------------------------\n# ";
+        rOutputFileStream << "# "
+                             "-------------------------------------------------"
+                             "-----------------\n# ";
         rOutputFileStream << commented_kratos_header;
-        rOutputFileStream << "\n# ------------------ Summary of the line settings ------------------\n";
+        rOutputFileStream << "\n# ------------------ Summary of the line "
+                             "settings ------------------\n";
         rOutputFileStream << "# Model part name                   : " << mModelPartName
                           << "\n";
         rOutputFileStream << "# Line start location               : " << mStartPoint[0]
@@ -554,8 +554,8 @@ private:
 
         rOutputFileStream << "# Output step control variable value: "
                           << output_step_control_variable_value.str() << "\n";
-        rOutputFileStream << "# Output step frequency             : "
-                          << mOutputFrequency << "\n";
+        rOutputFileStream << "# Output step frequency             : " << mOutputFrequency
+                          << "\n";
         rOutputFileStream << "# output historical values          : "
                           << (mIsHistoricalValue ? "true" : "false") << "\n";
 
