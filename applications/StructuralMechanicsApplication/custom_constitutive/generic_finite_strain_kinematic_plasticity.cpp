@@ -126,7 +126,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             double plastic_dissipation = this->GetPlasticDissipation();
             Vector plastic_strain;
             Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-            Vector back_stress_vector = this->GetBackStressVector();
+            Vector back_stress_vector(VoigtSize);
 
             // We backup the deformation gradient
             const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -282,7 +282,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             double plastic_dissipation = this->GetPlasticDissipation();
             Vector plastic_strain;
             Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-            Vector back_stress_vector = this->GetBackStressVector();
+            Vector back_stress_vector(VoigtSize);
 
             // We backup the deformation gradient
             const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -443,7 +443,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     double plastic_dissipation = this->GetPlasticDissipation();
     Vector plastic_strain;
     Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-    Vector back_stress_vector = this->GetBackStressVector();
+    Vector back_stress_vector(VoigtSize);
 
     // We backup the deformation gradient
     const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -521,7 +521,6 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     noalias(mPlasticDeformationGradient) = plastic_deformation_gradient;
     noalias(mPreviousDeformationGradient) = deformation_gradient;
     mThreshold = threshold;
-    noalias(mBackStressVector) = back_stress_vector;
 }
 
 /***********************************************************************************/
@@ -549,7 +548,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     double plastic_dissipation = this->GetPlasticDissipation();
     Vector plastic_strain;
     Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-    Vector back_stress_vector = this->GetBackStressVector();
+    Vector back_stress_vector(VoigtSize);
 
     // We backup the deformation gradient
     const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -561,7 +560,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         predictive_stress_vector = rValues.GetStressVector();
     } else {
         // We compute the elastic deformation gradient  Fe = plastic_indicator * inv(Fp)
-        Matrix inverse_F_p ( Dimension, Dimension );
+        Matrix inverse_F_p = ZeroMatrix( Dimension, Dimension );
         double aux_det_Fp = 0;
 
         MathUtils<double>::InvertMatrix( plastic_deformation_gradient, inverse_F_p, aux_det_Fp);
@@ -627,7 +626,6 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     noalias(mPlasticDeformationGradient) = plastic_deformation_gradient;
     noalias(mPreviousDeformationGradient) = deformation_gradient;
     mThreshold = threshold;
-    noalias(mBackStressVector) = back_stress_vector;
 }
 
 /***********************************************************************************/
@@ -756,8 +754,6 @@ Vector& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIn
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         const Matrix C_plastic_tensor = prod(trans( mPlasticDeformationGradient), mPlasticDeformationGradient);
         ConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_plastic_tensor, rValue);
-    } else if (rThisVariable == BACK_STRESS_VECTOR) {
-        noalias(rValue) = mBackStressVector;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
@@ -859,7 +855,106 @@ Vector& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIn
     Vector& rValue
     )
 {
-    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    if (rThisVariable == BACK_STRESS_VECTOR) {
+        // Auxiliar values
+        const Flags& r_constitutive_law_options = rParameterValues.GetOptions();
+
+        // We get the strain vector
+        Vector& r_strain_vector = rParameterValues.GetStrainVector();
+
+        // We get the constitutive tensor
+        Matrix& r_constitutive_matrix = rParameterValues.GetConstitutiveMatrix();
+
+        // The characteristic length
+        const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rParameterValues.GetElementGeometry());
+
+        this->CalculateValue(rParameterValues, GREEN_LAGRANGE_STRAIN_VECTOR, r_strain_vector);
+
+        // We get some variables
+        double threshold = this->GetThreshold();
+        double plastic_dissipation = this->GetPlasticDissipation();
+        Vector plastic_strain;
+        Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
+        Vector back_stress_vector(VoigtSize);
+
+        // We backup the deformation gradient
+        const double& r_det_deformation_gradient_backup = rParameterValues.GetDeterminantF();
+        const Matrix& r_deformation_gradient_backup = rParameterValues.GetDeformationGradientF();
+
+        // We compute the predicted stress vector
+        BoundedArrayType predictive_stress_vector;
+        if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
+            predictive_stress_vector = rParameterValues.GetStressVector();
+        } else {
+            // We compute the elastic deformation gradient  Fe = plastic_indicator * inv(Fp)
+            Matrix inverse_F_p ( Dimension, Dimension );
+            double aux_det_Fp = 0;
+
+            MathUtils<double>::InvertMatrix( plastic_deformation_gradient, inverse_F_p, aux_det_Fp);
+            const Matrix elastic_deformation_gradient = prod(r_deformation_gradient_backup, inverse_F_p);
+
+            rParameterValues.SetDeterminantF(MathUtils<double>::DetMat(elastic_deformation_gradient));
+            rParameterValues.SetDeformationGradientF(elastic_deformation_gradient);
+            Vector auxiliar_predictive_stress_vector;
+            this->CalculateValue(rParameterValues, PK2_STRESS_VECTOR, auxiliar_predictive_stress_vector);
+            for (std::size_t i_voigt = 0; i_voigt < VoigtSize; ++i_voigt) {
+                predictive_stress_vector[i_voigt] =  auxiliar_predictive_stress_vector[i_voigt];
+            }
+
+            // We revert the deformation gradient
+            rParameterValues.SetDeterminantF(r_det_deformation_gradient_backup);
+            rParameterValues.SetDeformationGradientF(r_deformation_gradient_backup);
+
+            // Check
+            KRATOS_ERROR_IF(r_det_deformation_gradient_backup < std::numeric_limits<double>::epsilon()) << "Deformation gradient determinant (detF) < 0.0 : " << r_det_deformation_gradient_backup << std::endl;
+        }
+
+        // We compute the plastic strain
+        const double& det_f = rParameterValues.GetDeterminantF();
+        const Matrix& deformation_gradient = rParameterValues.GetDeformationGradientF();
+        rParameterValues.SetDeterminantF(MathUtils<double>::DetMat(plastic_deformation_gradient));
+        rParameterValues.SetDeformationGradientF(plastic_deformation_gradient);
+        this->CalculateValue(rParameterValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);
+        rParameterValues.SetDeterminantF(det_f);
+        rParameterValues.SetDeformationGradientF(deformation_gradient);
+
+        // Check
+        KRATOS_ERROR_IF(det_f < std::numeric_limits<double>::epsilon()) << "Deformation gradient determinant (detF) < 0.0 : " << det_f << std::endl;
+
+        // Initialize Plastic Parameters
+        double uniaxial_stress = 0.0, plastic_denominator = 0.0;
+        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize);     // DF/DS
+        BoundedArrayType plastic_potential_derivative = ZeroVector(VoigtSize); // DG/DS
+        const BoundedArrayType dummy_plastic_strain_increment = ZeroVector(VoigtSize);
+
+        // Elastic Matrix
+        this->CalculateValue(rParameterValues, CONSTITUTIVE_MATRIX_PK2, r_constitutive_matrix);
+
+        // Compute the plastic parameters
+        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
+            predictive_stress_vector, r_strain_vector, uniaxial_stress,
+            threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
+            plastic_dissipation, dummy_plastic_strain_increment,
+            r_constitutive_matrix, rParameterValues, characteristic_length,
+            plastic_strain, back_stress_vector);
+
+        if (plastic_indicator > std::abs(1.0e-4 * threshold)) { // Plastic case
+            // While loop backward euler
+            /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
+            TConstLawIntegratorType::IntegrateStressVector(
+                *this, GREEN_LAGRANGE_STRAIN_VECTOR, PK2_STRESS_VECTOR,
+                predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
+                plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
+                plastic_dissipation, plastic_deformation_gradient, mPreviousDeformationGradient,
+                r_constitutive_matrix, rParameterValues, characteristic_length, back_stress_vector);
+        }
+
+        rValue = back_stress_vector;
+    } else {
+        BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    }
+
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -878,7 +973,9 @@ Matrix& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIn
         ConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_plastic_tensor, plastic_strain);
         rValue = MathUtils<double>::StrainVectorToTensor(plastic_strain);
     } else if (rThisVariable == BACK_STRESS_TENSOR) {
-        rValue = MathUtils<double>::StressVectorToTensor(mBackStressVector);
+        Vector aux_value(VoigtSize);
+        this->CalculateValue(rParameterValues, BACK_STRESS_VECTOR, aux_value);
+        rValue = MathUtils<double>::StressVectorToTensor(aux_value);
     } else if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
         // The plastic deformation gradient
         const Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
