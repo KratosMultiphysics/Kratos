@@ -40,6 +40,7 @@
 
 // Plastic, damage laws and viscosities
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
+#include "custom_constitutive/small_strain_isotropic_kinematic_plasticity_factory.h"
 #include "custom_constitutive/finite_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/small_strain_isotropic_damage_factory.h"
 #include "custom_constitutive/viscous_generalized_maxwell.h"
@@ -178,6 +179,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"SmallStrainIsotropicPlasticityFactory").def(py::init<>())
     ;
 
+    py::class_< SmallStrainIsotropicKinematicPlasticityFactory, typename SmallStrainIsotropicKinematicPlasticityFactory::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicKinematicPlasticityFactory").def(py::init<>())
+    ;
+
     py::class_< FiniteStrainIsotropicPlasticityFactory, typename FiniteStrainIsotropicPlasticityFactory::Pointer,  ConstitutiveLaw  >
     (m,"FiniteStrainIsotropicPlasticityFactory").def(py::init<>())
     ;
@@ -313,7 +318,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw >
-    (m,"SmallStrainPlasticDamageModel3DVonMisesVonMisesVonMises").def(py::init<>()); 
+    (m,"SmallStrainPlasticDamageModel3DVonMisesVonMisesVonMises").def(py::init<>());
 
     py::class_< GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericSmallStrainPlasticDamageModel <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
