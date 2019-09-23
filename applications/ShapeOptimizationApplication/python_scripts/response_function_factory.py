@@ -66,7 +66,7 @@ class ResponseFunctionCreator:
     # --------------------------------------------------------------------------
     def __CreateAndAddGivenResponse( self, response_id, response_settings ):
         response_type = response_settings["response_type"].GetString()
-        if response_type in ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]:
+        if response_type in ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress", "adjoint_aggregated_stress"]:
             self.list_of_response_functions[response_id] = structural_response_function_factory.CreateResponseFunction(response_id, response_settings, self.model)
         else:
             raise NameError("The following response function is not available for optimization: " + response_id)
