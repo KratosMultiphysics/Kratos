@@ -6,14 +6,14 @@ from KratosMultiphysics.ChimeraApplication import *
 def CreateSolverByParameters(model, custom_settings, parallelism):
 
     solver_type = custom_settings["solver_type"].GetString()
-
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "monolithic" or solver_type == "Monolithic"):
             solver_module_name = "navier_stokes_solver_vmsmonolithic_chimera"
-
         elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
             solver_module_name = "navier_stokes_solver_fractionalstep_chimera"
+        elif (solver_type == "ale_chimera_fluid"):
+            solver_module_name = "navier_stokes_ale_chimera_fluid_solver"
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper")
 
@@ -33,7 +33,7 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
 def CreateSolver(model, custom_settings):
 
     if (type(model) != KratosMultiphysics.Model):
-        raise Exception("input is expected to be provided as a Kratos Model object")#
+        raise Exception("input is expected to be provided as a Kratos Model object")
 
     if (type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
