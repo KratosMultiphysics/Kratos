@@ -95,6 +95,20 @@ namespace Kratos
     return *this;
   }
 
+  LoggerMessage& LoggerMessage::operator << (MessagePrefix const& TheMessagePrefix) {
+    mPrefix = TheMessagePrefix.GetPrefix();
+
+    return *this;
+  }
+
+  LoggerMessage& LoggerMessage::operator << (MessageColor const& TheMessageColor) {
+    mColorCode = TheMessageColor.GetColorCode();
+
+    return *this;
+  }
+
+
+
   /// output stream function
   std::ostream& operator << (std::ostream& rOStream,
     const LoggerMessage& rThis)

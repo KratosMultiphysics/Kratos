@@ -135,6 +135,54 @@ public:
   int mRank;
   };
 
+  class MessagePrefix {
+  public:
+
+    MessagePrefix();
+
+    MessagePrefix(std::string Prefix)
+      : mPrefix(Prefix) {}
+
+    std::string GetPrefix() const {
+      return mPrefix;
+    }
+
+    private:
+    std::string mPrefix;
+  };
+
+  class MessageColor {
+  public:
+
+    MessageColor();
+  
+    MessageColor(std::string ColorCode)
+      : mColorCode(ColorCode) {}
+
+    static MessageColor Red(){
+      return MessageColor("\033[31m");
+    }
+    static MessageColor Green(){
+      return MessageColor("\033[32m");
+    }
+    static MessageColor Yellow(){
+      return MessageColor("\033[33m");
+    }
+    static MessageColor Blue(){
+      return MessageColor("\033[34m");
+    }
+    static MessageColor Default(){
+      return MessageColor("\033[39m");
+    }
+
+    std::string GetColorCode() const {
+      return mColorCode;
+    }
+
+    private:
+    std::string mColorCode;
+  };
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -242,6 +290,18 @@ public:
   return mTime;
   }
 
+  std::string GetPrefix() const {
+  return mPrefix;
+  }
+
+  std::string GetColorCode() const {
+  return mColorCode;
+  }
+
+  std::string GetDefaultColorCode() const {
+  return MessageColor::Default().GetColorCode();
+  }
+
   ///@}
   ///@name Inquiry
   ///@{
@@ -293,6 +353,12 @@ public:
   /// DataCommunicator stream function
   LoggerMessage& operator << (DataCommunicator const& TheDataCommunicator);
 
+  /// MessagePrefix stream function
+  LoggerMessage& operator << (MessagePrefix const& TheMessagePrefix);
+
+  /// MessageColor stream function
+  LoggerMessage& operator << (MessageColor const& TheMessageColor);
+
   ///@}
 
 private:
@@ -312,6 +378,8 @@ private:
   MessageSource mMessageSource;
   DistributedFilter mDistributedFilter;
   TimePointType mTime;
+  std::string mPrefix;
+  std::string mColorCode;
 
   ///@}
 }; // Class LoggerMessage

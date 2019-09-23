@@ -43,6 +43,12 @@ namespace Kratos
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
+#ifdef KRATOS_LOGGER_USE_COLORS
+            mrStream << TheMessage.GetColorCode();
+#endif // ifdef KRATOS_LOGGER_USE_COLORS
+
+            mrStream << TheMessage.GetPrefix();
+
             if(TheMessage.IsDistributed())
                 mrStream << "Rank " << TheMessage.GetSourceRank() << ": ";
 
@@ -50,6 +56,10 @@ namespace Kratos
                 mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
             else
                 mrStream << TheMessage.GetMessage();
+
+#ifdef KRATOS_LOGGER_USE_COLORS
+            mrStream << TheMessage.GetDefaultColorCode();
+#endif // ifdef KRATOS_LOGGER_USE_COLORS
         }
     }
 
