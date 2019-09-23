@@ -20,6 +20,7 @@
 #include "testing/testing.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
 #include "geometries/coupling_geometry.h"
 
 namespace Kratos {
@@ -34,6 +35,14 @@ namespace Kratos {
          */
         Triangle2D3<Point>::Pointer GeneratePointTriangle() {
             return Kratos::make_shared<Triangle2D3<Point>>(
+                Kratos::make_unique<Point>(0.0, 0.0, 0.0),
+                Kratos::make_unique<Point>(1.0, 0.0, 0.0),
+                Kratos::make_unique<Point>(0.0, 1.0, 0.0)
+                );
+        }
+
+        Triangle3D3<Point>::Pointer GeneratePointTriangle3D() {
+            return Kratos::make_shared<Triangle3D3<Point>>(
                 Kratos::make_unique<Point>(0.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(1.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(0.0, 1.0, 0.0)
@@ -103,6 +112,26 @@ namespace Kratos {
                 new CouplingGeometry<Point>(p_triangle_master, p_triangle_slave));
 
             KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 2);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(ChangeMaster, KratosCoreGeometriesFastSuite) {
+            auto p_triangle_master = GeneratePointTriangle();
+            auto p_triangle_slave = GeneratePointTriangle();
+
+            auto p_triangle_master_2 = GeneratePointTriangle3D();
+
+            auto p_coupling_geometry = CouplingGeometry<Point>::Pointer(
+                new CouplingGeometry<Point>(p_triangle_master, p_triangle_slave));
+
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->Dimension(), 2);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
+
+            p_coupling_geometry->SetGeometryPart(CouplingGeometry<Point>::Master, p_triangle_master_2);
+
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->Dimension(), 2);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 3);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
         }
     } // namespace Testing.
 } // namespace Kratos.
