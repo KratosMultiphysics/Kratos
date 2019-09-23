@@ -59,6 +59,6 @@ public:
 protected:
     // Member Variables
     ModelPart& mrModelPart;
-
+}; // Class
 }  // namespace Kratos
 #endif /* KRATOS_REGENERATE_PFEM_PRESSURE_CONDITIONS_PROCESS defined */
