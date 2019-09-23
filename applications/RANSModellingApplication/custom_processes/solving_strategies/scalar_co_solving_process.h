@@ -102,10 +102,11 @@ public:
     ///@name Operations
     ///@{
 
-    void AddStrategy(SolvingStrategyType* pStrategy, Variable<double>* pScalarVariable)
+    void AddStrategy(typename SolvingStrategyType::Pointer pStrategy,
+                     const Variable<double>& rScalarVariable)
     {
         mrSolvingStrategiesList.push_back(pStrategy);
-        mrSolvingVariablesList.push_back(pScalarVariable);
+        mrSolvingVariableNamesList.push_back(rScalarVariable.Name());
     }
 
     void AddAuxiliaryProcess(Process::Pointer pAuxiliaryProcess)
@@ -127,7 +128,7 @@ public:
 
         KRATOS_CHECK_IS_FALSE(!mrModelPart.HasNodalSolutionStepVariable(this->mrConvergenceVariable));
 
-        for (SolvingStrategyType* strategy : mrSolvingStrategiesList)
+        for (auto strategy : mrSolvingStrategiesList)
             strategy->Check();
 
         for (Process::Pointer auxiliary_process : mAuxiliaryProcessList)
@@ -229,7 +230,7 @@ protected:
     {
         this->UpdateBeforeSolveSolutionStep();
 
-        for (SolvingStrategyType* p_solving_strategy : this->mrSolvingStrategiesList)
+        for (auto p_solving_strategy : this->mrSolvingStrategiesList)
         {
             p_solving_strategy->InitializeSolutionStep();
             p_solving_strategy->Predict();
@@ -261,12 +262,12 @@ protected:
                  i < static_cast<int>(this->mrSolvingStrategiesList.size()); ++i)
             {
                 auto p_solving_strategy = this->mrSolvingStrategiesList[i];
-                auto p_scalar_variable = this->mrSolvingVariablesList[i];
+                auto scalar_variable_name = this->mrSolvingVariableNamesList[i];
 
                 p_solving_strategy->SolveSolutionStep();
                 const unsigned int iterations = r_current_process_info[NL_ITERATION_NUMBER];
                 KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 0)
-                    << "Solving " << p_scalar_variable->Name() << " used "
+                    << "Solving " << scalar_variable_name << " used "
                     << iterations << " iterations.\n";
             }
 
@@ -339,7 +340,7 @@ protected:
             << "\n-------------------------------------------------------"
             << "\n";
 
-        for (SolvingStrategyType* p_solving_strategy : this->mrSolvingStrategiesList)
+        for (auto p_solving_strategy : this->mrSolvingStrategiesList)
             p_solving_strategy->FinalizeSolutionStep();
     }
 
@@ -353,8 +354,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<SolvingStrategyType*> mrSolvingStrategiesList;
-    std::vector<Variable<double>*> mrSolvingVariablesList;
+    std::vector<typename SolvingStrategyType::Pointer> mrSolvingStrategiesList;
+    std::vector<std::string> mrSolvingVariableNamesList;
     std::vector<Process::Pointer> mAuxiliaryProcessList;
     Variable<double>& mrConvergenceVariable;
 
