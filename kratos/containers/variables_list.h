@@ -277,6 +277,26 @@ namespace Kratos
 			mDataSize += static_cast<SizeType>(((block_size - 1) + ThisVariable.Size()) / block_size);
 		}
 
+		int AddDof(VariableData const* pThisDofVariable){
+			
+			for(std::size_t dof_index = 0 ; dof_index < mDofVariables.size() ; dof_index++){
+				if(*mDofVariables[dof_index] == *pThisDofVariable){
+					return static_cast<int>(dof_index);
+				}
+			}
+
+#ifdef KRATOS_DEBUG
+        if(OpenMPUtils::IsInParallel() != 0)
+            KRATOS_ERROR << "attempting to call AddDof for: " << pThisDofVariable << ". Unfortunately the Dof was not added before and the operations is not threadsafe (this function is being called within a parallel region)" << std::endl;
+#endif 
+			mDofVariables.push_back(pThisDofVariable);
+			mDofReactions.push_back(nullptr);
+
+			KRATOS_DEBUG_ERROR_IF(mDofVariables.size()>64) << "Adding too many dofs to the node. Each node only can store 64 Dofs." << std::endl;
+
+			return mDofVariables.size() - 1;
+		}
+
 		int AddDof(VariableData const* pThisDofVariable, VariableData const* pThisDofReaction){
 			
 			for(std::size_t dof_index = 0 ; dof_index < mDofVariables.size() ; dof_index++){

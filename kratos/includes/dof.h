@@ -141,7 +141,7 @@ public:
             << "The Dof-Variable " << rThisVariable.Name() << " is not "
             << "in the list of variables" << std::endl;
 
-        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable, nullptr);
+        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable);
     }
 
     /** Constructor. This constructor takes the same input
@@ -383,7 +383,12 @@ public:
         auto p_variable = &GetVariable();
         auto p_reaction = mpNodalData->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex);
         mpNodalData = pNewNodalData;
-        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable, p_reaction);
+        if(p_reaction != nullptr){
+            mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable, p_reaction);
+        }
+        else{
+            mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable);
+        }
     }
 
     bool HasReaction() const
