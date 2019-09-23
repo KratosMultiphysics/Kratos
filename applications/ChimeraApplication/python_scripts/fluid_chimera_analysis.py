@@ -11,13 +11,14 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
     def __init__(self,model,parameters):
         # Deprecation warnings
         self.full_parameters = parameters
-        if self.parameters["solver_settings"].Has("chimera_settings"):
-            self.chimera_parameters = parameters["chimera_settings"].Clone()
+        self.solver_parameters = parameters["solver_settings"]
+        if self.solver_parameters.Has("chimera_settings"):
+            self.chimera_parameters = self.solver_parameters["chimera_settings"].Clone()
         else:
             raise Exception("The \"solver_settings\" should have the entry \"chimera_settings\" ")
 
-        if self.parameters["solver_settings"].Has("fluid_solver_settings"):
-            self.fluid_parameters = parameters["fluid_solver_settings"].Clone()
+        if self.solver_parameters.Has("fluid_solver_settings"):
+            self.fluid_parameters = self.solver_parameters["fluid_solver_settings"].Clone()
         else:
             raise Exception("The \"solver_settings\" should have the entry \"fluid_solver_settings\" ")
 
@@ -30,7 +31,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         if self.chimera_parameters.Has("chimera_echo_level"):
             self.chimera_echo_lvl = self.chimera_parameters["chimera_echo_level"].GetInt()
         else:
-            self.chimera_echo_lvl = self.parameters["solver_settings"]["echo_level"].GetInt()
+            self.chimera_echo_lvl = self.fluid_parameters["echo_level"].GetInt()
 
         if self.chimera_parameters.Has("internal_parts_for_chimera"):
             self.chimera_internal_parts = self.chimera_parameters["internal_parts_for_chimera"].Clone()
@@ -49,7 +50,8 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             raise Exception("MPI-Chimera is not implemented yet")
 
-        super(FluidChimeraAnalysis,self).__init__(model,fluid_parameters)
+        self.full_parameters["solver_settings"] = self.fluid_parameters
+        super(FluidChimeraAnalysis,self).__init__(model,self.full_parameters)
 
     def Initialize(self):
         super(FluidChimeraAnalysis,self).Initialize()
