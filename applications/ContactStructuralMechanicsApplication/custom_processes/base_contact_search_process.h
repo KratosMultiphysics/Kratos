@@ -495,12 +495,6 @@ private:
         );
 
     /**
-     * @brief This method is used in case of not predefined master/slave we assign the master/slave nodes and conditions
-     * @param rModelPart The model part to assign the flags
-     */
-    static inline void NotPredefinedMasterSlave(ModelPart& rModelPart);
-
-    /**
      * @brief This method gets the maximum the ID of the conditions
      */
     inline IndexType GetMaximumConditionsIds();

@@ -54,6 +54,12 @@ namespace SelfContactUtilities
      */
     void KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ComputeSelfContactPairing(ModelPart& rModelPart);
 
+    /**
+     * @brief This method is used in case of not predefined master/slave we assign the master/slave nodes and conditions
+     * @param rModelPart The model part to assign the flags
+     */
+    void KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) NotPredefinedMasterSlave(ModelPart& rModelPart);
+
 }; // namespace SelfContactUtilities
 }  // namespace Kratos
 #endif /* KRATOS_SELF_CONTACT_UTILITIES defined */

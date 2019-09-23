@@ -561,7 +561,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
 
     // In case of not predefined master/slave we assign the master/slave nodes and conditions NOTE: This is supposed to be already done, but in this step we ensure that it coincides with the final pairs
     if (mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE))
-        NotPredefinedMasterSlave(r_sub_contact_model_part);
+        SelfContactUtilities::NotPredefinedMasterSlave(r_sub_contact_model_part);
 
     // We create the submodelparts for master and slave
     if (type_search != SearchTreeType::OctreeWithOBB) {
@@ -1116,7 +1116,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
     }
 
     /* We assign the initial flags */
-    NotPredefinedMasterSlave(rSubContactModelPart);
+    SelfContactUtilities::NotPredefinedMasterSlave(rSubContactModelPart);
 
     /* Finally we clear the database, that will be filled again later */
     #pragma omp parallel for
@@ -1180,87 +1180,6 @@ inline IndexType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Per
     }
 
     return number_points_found;
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMasterSlave(ModelPart& rModelPart)
-{
-    KRATOS_TRY
-
-    // We iterate over the conditions
-    ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
-    const int num_conditions = static_cast<int>(r_conditions_array.size());
-
-    std::vector<IndexType> master_conditions_ids;
-
-    #pragma omp parallel
-    {
-        // Creating a buffer for parallel vector fill
-        std::vector<IndexType> master_conditions_ids_buffer;
-
-        #pragma omp for
-        for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = it_cond_begin + i;
-            IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
-            if (p_indexes_pairs->size() > 0) {
-                it_cond->Set(SLAVE, true);
-                for (auto& i_pair : *p_indexes_pairs) {
-                    master_conditions_ids_buffer.push_back(i_pair.first);
-                }
-            }
-        }
-
-        // Combine buffers together
-        #pragma omp critical
-        {
-            std::move(master_conditions_ids_buffer.begin(),master_conditions_ids_buffer.end(),back_inserter(master_conditions_ids));
-        }
-    }
-
-    // We create an auxiliar model part to add the MASTER flag
-    rModelPart.CreateSubModelPart("AuxMasterModelPart");
-    ModelPart& aux_model_part = rModelPart.GetSubModelPart("AuxMasterModelPart");
-
-    // Remove duplicates
-    std::sort( master_conditions_ids.begin(), master_conditions_ids.end() );
-    master_conditions_ids.erase( std::unique( master_conditions_ids.begin(), master_conditions_ids.end() ), master_conditions_ids.end() );
-
-    // Add to the auxiliar model part
-    aux_model_part.AddConditions(master_conditions_ids);
-
-    // Set the flag
-    VariableUtils().SetFlag(MASTER, true, aux_model_part.Conditions());
-
-    // Remove auxiliar model part
-    rModelPart.RemoveSubModelPart("AuxMasterModelPart");
-
-    // Now we iterate over the conditions to set the nodes indexes
-    #pragma omp parallel for
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
-        if (it_cond->Is(SLAVE)) {
-            GeometryType& r_geometry = it_cond->GetGeometry();
-            for (NodeType& r_node : r_geometry) {
-                r_node.SetLock();
-                r_node.Set(SLAVE, true);
-                r_node.UnSetLock();
-            }
-        }
-        if (it_cond->Is(MASTER)) {
-            GeometryType& r_geometry = it_cond->GetGeometry();
-            for (NodeType& r_node : r_geometry) {
-                r_node.SetLock();
-                r_node.Set(MASTER, true);
-                r_node.UnSetLock();
-            }
-        }
-    }
 
     KRATOS_CATCH("")
 }
