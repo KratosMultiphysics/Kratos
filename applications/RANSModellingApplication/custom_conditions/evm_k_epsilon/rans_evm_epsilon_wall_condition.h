@@ -252,7 +252,7 @@ public:
         this->CalculateLocalVelocityContribution(rDampingMatrix, RHS, rCurrentProcessInfo);
     }
 
-    /// Calculate wall stress term for all nodes with STRUCTURE == true
+    /// Calculate wall stress term for all nodes with SLIP == true
     /**
       @param rDampingMatrix Left-hand side matrix
       @param rRightHandSideVector Right-hand side vector

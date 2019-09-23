@@ -139,36 +139,6 @@
                 "kratos_module": "KratosMultiphysics.RANSModellingApplication",
                 "process_name": "ApplyFlagProcess",
                 "Parameters": {
-                    "model_part_name": "FluidModelPartSteady.AutomaticInlet2D_inlet",
-                    "echo_level": 0,
-                    "flag_variable_name": "INLET"
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "ApplyFlagProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPartSteady.Outlet2D_outlet",
-                    "echo_level": 0,
-                    "flag_variable_name": "OUTLET"
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "ApplyFlagProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPartSteady.Slip2D",
-                    "echo_level": 0,
-                    "flag_variable_name": "STRUCTURE"
-                }
-            },
-            {
-                "python_module": "apply_custom_process",
-                "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                "process_name": "ApplyFlagProcess",
-                "Parameters": {
                     "model_part_name": "FluidModelPartSteady.Slip2D",
                     "echo_level": 0,
                     "flag_variable_name": "SLIP"

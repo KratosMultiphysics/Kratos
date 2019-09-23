@@ -88,28 +88,6 @@ public:
     {
     }
 
-    /// Execute method is used to execute the ScalarCoSolvingProcess algorithms.
-    void ExecuteInitialize() override
-    {
-        BaseType::ExecuteInitialize();
-
-        NodesContainerType& r_nodes = this->mrModelPart.Nodes();
-        int number_of_nodes = r_nodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-
-            if (r_node.Is(STRUCTURE))
-                r_node.Set(SELECTED, false);
-            else if (r_node.Is(INLET))
-                r_node.Set(SELECTED, false);
-            else
-                r_node.Set(SELECTED, true);
-        }
-    }
-
     void ExecuteInitializeSolutionStep() override
     {
         UpdateBeforeSolveSolutionStep();
