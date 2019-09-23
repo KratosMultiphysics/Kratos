@@ -1114,8 +1114,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
         }
     }
 
-    /* We assign the initial flags */
-    SelfContactUtilities::NotPredefinedMasterSlave(rSubContactModelPart);
+//     /* We assign the initial flags */
+//     SelfContactUtilities::NotPredefinedMasterSlave(rSubContactModelPart);
 
     /* Finally we clear the database, that will be filled again later */
     #pragma omp parallel for
