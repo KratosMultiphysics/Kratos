@@ -70,6 +70,10 @@ namespace Kratos
 
     using DistributedFilter = LoggerMessage::DistributedFilter;
 
+    using MessagePrefix = LoggerMessage::MessagePrefix;
+
+    using MessageColor = LoggerMessage::MessageColor;
+
     ///@}
       ///@name Life Cycle
       ///@{
