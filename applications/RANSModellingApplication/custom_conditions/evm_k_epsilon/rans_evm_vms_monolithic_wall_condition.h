@@ -240,6 +240,8 @@ public:
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
         }
 
+        return 0;
+
         KRATOS_CATCH("");
     }
 
