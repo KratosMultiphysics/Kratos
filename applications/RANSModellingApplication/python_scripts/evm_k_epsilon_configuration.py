@@ -60,7 +60,6 @@ class TurbulenceKEpsilonConfiguration(
         else:
             self.model_elements_list = ["RansEvmLowReK", "RansEvmLowReEpsilon"]
             self.model_conditions_list = ["Condition", "Condition"]
-        self.rans_solver_configurations = []
         self.is_initial_values_assigned = False
 
         self.ramp_up_time = self.model_settings["flow_parameters"][
@@ -106,12 +105,9 @@ class TurbulenceKEpsilonConfiguration(
         scalar_variable = KratosRANS.TURBULENT_KINETIC_ENERGY
         scalar_variable_rate = KratosRANS.TURBULENT_KINETIC_ENERGY_RATE
         relaxed_scalar_variable_rate = KratosRANS.RANS_AUXILIARY_VARIABLE_1
-        self.rans_solver_configurations.append(
-            self.CreateStrategy(solver_settings, scheme_settings, model_part,
-                                scalar_variable, scalar_variable_rate,
-                                relaxed_scalar_variable_rate))
-
-        current_strategy = self.rans_solver_configurations[-1][0]
+        current_strategy = self.CreateStrategy(
+            solver_settings, scheme_settings, model_part, scalar_variable,
+            scalar_variable_rate, relaxed_scalar_variable_rate)
         self.strategies_list.append(current_strategy)
         self.GetTurbulenceSolvingProcess().AddStrategy(current_strategy,
                                                        scalar_variable)
@@ -123,12 +119,9 @@ class TurbulenceKEpsilonConfiguration(
         scalar_variable = KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE
         scalar_variable_rate = KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_2
         relaxed_scalar_variable_rate = KratosRANS.RANS_AUXILIARY_VARIABLE_2
-        self.rans_solver_configurations.append(
-            self.CreateStrategy(solver_settings, scheme_settings, model_part,
-                                scalar_variable, scalar_variable_rate,
-                                relaxed_scalar_variable_rate))
-
-        current_strategy = self.rans_solver_configurations[-1][0]
+        current_strategy = self.CreateStrategy(
+            solver_settings, scheme_settings, model_part, scalar_variable,
+            scalar_variable_rate, relaxed_scalar_variable_rate)
         self.strategies_list.append(current_strategy)
         self.GetTurbulenceSolvingProcess().AddStrategy(current_strategy,
                                                        scalar_variable)
@@ -193,15 +186,17 @@ class TurbulenceKEpsilonConfiguration(
                     self.fluid_model_part,
                     self.model_settings["coupling_settings"])
 
-                Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                        "Created MPI turbulence solving process.")
+                Kratos.Logger.PrintInfo(
+                    self.__class__.__name__,
+                    "Created MPI turbulence solving process.")
             else:
                 self.turbulence_model_process = KratosRANS.KEpsilonCoSolvingProcess(
                     self.fluid_model_part,
                     self.model_settings["coupling_settings"])
 
-                Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                        "Created non-MPI turbulence solving process.")
+                Kratos.Logger.PrintInfo(
+                    self.__class__.__name__,
+                    "Created non-MPI turbulence solving process.")
 
         return self.turbulence_model_process
 
