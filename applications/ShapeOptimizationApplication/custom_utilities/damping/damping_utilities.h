@@ -94,10 +94,10 @@ public:
           mMaxNeighborNodes( DampingSettings["max_neighbor_nodes"].GetInt() )
     {
         BuiltinTimer timer;
-        std::cout << "\n> Creating search tree to perform damping..." << std::endl;
+        KRATOS_INFO("") <<  "\n> Creating search tree to perform damping..." << std::endl;
         CreateListOfNodesOfModelPart();
         CreateSearchTreeWithAllNodesOfModelPart();
-        std::cout << "> Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
+        KRATOS_INFO("") <<  "> Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
         InitalizeDampingFactorsToHaveNoInfluence();
         SetDampingFactorsForAllDampingRegions();
@@ -150,7 +150,7 @@ public:
     // --------------------------------------------------------------------------
     void SetDampingFactorsForAllDampingRegions()
     {
-        std::cout << "\n> Starting to prepare damping..." << std::endl;
+        KRATOS_INFO("") <<  "\n> Starting to prepare damping..." << std::endl;
 
         // Loop over all regions for which damping is to be applied
         for (unsigned int regionNumber = 0; regionNumber < len(mrDampingRegions); regionNumber++)
@@ -199,7 +199,7 @@ public:
             }
         }
 
-        std::cout << "> Finished preparation of damping." << std::endl;
+        KRATOS_INFO("") <<  "> Finished preparation of damping." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -212,7 +212,7 @@ public:
     void ThrowWarningIfNodeNeighborsExceedLimit( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
     {
         if(number_of_neighbors >= mMaxNeighborNodes)
-            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified damping radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;
+            KRATOS_WARNING("") <<  "For node " << given_node.Id() << " and specified damping radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;
     }
 
     // --------------------------------------------------------------------------
