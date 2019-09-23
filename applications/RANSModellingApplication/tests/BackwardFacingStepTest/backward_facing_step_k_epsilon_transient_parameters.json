@@ -344,7 +344,7 @@
                     "reference_file_name": "backward_facing_step_k_epsilon_transient_drag_ref.dat",
                     "comparison_type": "dat_file",
                     "remove_output_file": true,
-                    "tolerance": 1e-5
+                    "tolerance": 5e-5
                 }
             }
         ]
