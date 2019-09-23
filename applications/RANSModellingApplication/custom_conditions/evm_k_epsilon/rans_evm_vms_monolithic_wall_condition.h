@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/condition.h"
 #include "includes/define.h"
 #include "includes/process_info.h"
@@ -203,6 +204,43 @@ public:
         pNewCondition->SetFlags(this->GetFlags());
 
         return pNewCondition;
+    }
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+
+        int Check = BaseType::Check(rCurrentProcessInfo);
+
+        if (Check != 0)
+        {
+            return Check;
+        }
+
+        KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
+        KRATOS_CHECK_VARIABLE_KEY(TURBULENCE_RANS_C_MU);
+        KRATOS_CHECK_VARIABLE_KEY(WALL_VON_KARMAN);
+        KRATOS_CHECK_VARIABLE_KEY(WALL_SMOOTHNESS_BETA);
+        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
+        KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
+        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+        KRATOS_CHECK_VARIABLE_KEY(IS_CO_SOLVING_PROCESS_ACTIVE);
+        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+
+        const GeometryType& r_geometry = this->GetGeometry();
+
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+        {
+            const NodeType& r_node = r_geometry[i_node];
+
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        }
+
+        KRATOS_CATCH("");
     }
 
     ///@}
