@@ -56,6 +56,13 @@ public:
      */
     void Execute() override;
 
+    /**
+     * @brief returns the maximum condition Id inside the submodel
+     * @param rMaximumConditionId the maximum condition id just to not repeat
+     */
+    void GetMaximumConditionIdOnSubmodelPart(
+        int& MaximumConditionId);
+        
 protected:
     // Member Variables
     ModelPart& mrModelPart;
