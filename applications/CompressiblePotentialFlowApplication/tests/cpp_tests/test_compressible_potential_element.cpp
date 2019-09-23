@@ -189,7 +189,7 @@ namespace Kratos {
       }
     }
 
-        KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocalSystemLHS, CompressiblePotentialApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocalSystemLHS, CompressiblePotentialApplicationFastSuite)
     {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
