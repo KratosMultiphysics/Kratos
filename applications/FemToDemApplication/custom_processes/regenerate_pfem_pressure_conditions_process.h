@@ -62,7 +62,34 @@ public:
      */
     void GetMaximumConditionIdOnSubmodelPart(
         int& MaximumConditionId);
-        
+
+    /**
+     * @brief Creates the Pressure loads of the gometry
+     */
+    void CreatePressureLoads(
+        const int Id1,
+        const int Id2,
+        const int Id3,
+        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        ModelPart &rSubModelPart,
+        ModelPart::PropertiesType::Pointer pProperties,
+        int &rMaximumConditionId);
+
+    /**
+     * @brief Resets the Flag SMOOTHING used to stop iterations
+     */
+    void ResetFlagOnElements();
+
+    /**
+     * @brief Erase the old pressure conditions
+     */
+    void RemovePreviousPressureLoads();
+
+    /**
+     * @brief Create the new set of pfem pressure conditions
+     */
+    void CreateNewConditions();
+
 protected:
     // Member Variables
     ModelPart& mrModelPart;
