@@ -17,6 +17,7 @@
 #include "custom_processes/move_model_part_process.h"
 #include "custom_processes/define_2d_wake_process.h"
 #include "custom_processes/apply_far_field_process.h"
+#include "custom_processes/compute_nodal_potential_flow_velocity_process.h"
 
 namespace Kratos {
   namespace Testing {
@@ -155,6 +156,67 @@ namespace Kratos {
           KRATOS_CHECK_IS_FALSE(r_node.IsFixed(VELOCITY_POTENTIAL));
           KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_POTENTIAL), 11.0, 1e-6);
         }
+      }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ComputeNodalPotentialFlowVelocityProcess, CompressiblePotentialApplicationFastSuite)
+    {
+      // Create model_part
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+      model_part.GetProcessInfo()[DOMAIN_SIZE] = 2;
+
+      // Variables addition
+      model_part.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+      model_part.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
+
+      // Set the element properties
+      model_part.CreateNewProperties(0);
+      Properties::Pointer pElemProp = model_part.pGetProperties(0);
+
+      // Geometry creation
+      model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+      model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+      model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+      std::vector<ModelPart::IndexType> elemNodes_1{ 1, 2, 3 };
+      model_part.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes_1, pElemProp);
+
+      auto r_element = model_part.GetElement(1);
+
+      r_element.GetValue(WAKE) = 1;
+      Vector wake_elemental_distances(3);
+      wake_elemental_distances(0) = 1.0;
+      wake_elemental_distances(1) = 1.0;
+      wake_elemental_distances(2) = -1.0;
+      r_element.GetValue(WAKE_ELEMENTAL_DISTANCES) = wake_elemental_distances;
+
+      // Define the nodal values
+      Vector potential(3);
+      potential(0) = 1.0;
+      potential(1) = 2.0;
+      potential(2) = 3.0;
+
+      for (unsigned int i = 0; i < 3; i++){
+        if (wake_elemental_distances(i) > 0.0)
+          r_element.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+        else
+          r_element.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
+      }
+      for (unsigned int i = 0; i < 3; i++){
+        if (wake_elemental_distances(i) < 0.0)
+          r_element.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+1;
+        else
+          r_element.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+1;
+      }
+      // Construct the ComputeNodalPotentialFlowVelocityProcess
+      ComputeNodalPotentialFlowVelocityProcess ComputeNodalPotentialFlowVelocityProcess(model_part);
+
+      // Execute the ComputeNodalPotentialFlowVelocityProcess
+      ComputeNodalPotentialFlowVelocityProcess.Execute();
+      for (auto& r_node : model_part.Nodes()) {
+        auto nodal_velocity = r_node.GetValue(VELOCITY);
+        KRATOS_CHECK_NEAR(nodal_velocity[0], 1, 1e-6);
+        KRATOS_CHECK_NEAR(nodal_velocity[1], 2, 1e-6);
       }
     }
   } // namespace Testing

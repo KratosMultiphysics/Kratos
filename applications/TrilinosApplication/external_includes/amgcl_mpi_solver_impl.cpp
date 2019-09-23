@@ -23,8 +23,6 @@
 #include "Epetra_FEVector.h"
 #include "trilinos_space.h"
 
-#include "external_includes/amgcl_mpi_solve_functions.h"
-
 namespace Kratos
 {
 
