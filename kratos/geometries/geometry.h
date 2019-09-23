@@ -1672,7 +1672,7 @@ public:
     }
 
     ///@}
-    ///@name Jacobian
+    ///@name Operation within Global Space
     ///@{
 
     /** This method provides the global coordinates corresponding to the local coordinates provided
@@ -1723,6 +1723,28 @@ public:
 
         return rResult;
     }
+
+    /**
+    * @brief This method maps from dimension space to working space and computes the
+    *        number of derivatives at the dimension parameter.
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @param Derivative Number of computed derivatives
+    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+    * @see PointLocalCoordinates
+    */
+    void GlobalDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalCoordinates,
+        const CoordinatesArrayType& rCoordinates,
+        const SizeType DerivativeOrder) const
+    {
+        KRATOS_ERROR << "Calling GlobalDerivatives within geometry.h."
+            << " Please check the definition within derived class. "
+            << *this << std::endl;
+    }
+
+    ///@}
+    ///@name Jacobian
+    ///@{
 
     /** Jacobians for default integration method. This method just
     call Jacobian(enum IntegrationMethod ThisMethod) with
