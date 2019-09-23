@@ -1732,7 +1732,7 @@ public:
     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
     * @see PointLocalCoordinates
     */
-    void GlobalDerivatives(
+    virtual void GlobalDerivatives(
         std::vector<CoordinatesArrayType>& rGlobalCoordinates,
         const CoordinatesArrayType& rCoordinates,
         const SizeType DerivativeOrder) const
