@@ -4,6 +4,7 @@
 	# edit:		06 September 2019
 	# edit:		10 September 2019
 	# edit:		12 September 2019 -> added import mdpa before step 09_...
+	# edit:		20 September 2019 -> added GeoModel part
 """
 
 
@@ -15,6 +16,7 @@ from geo_importer import GeoImporter
 from geo_mesher import GeoMesher
 from geo_preprocessor import GeoPreprocessor
 from geo_building import GeoBuilding
+from geo_model import GeoModel
 
 import time
 import os
@@ -37,7 +39,7 @@ def ComputeLimit(skin_model_part):
 
 
 start_time = time.time()
-num_test = "53_september_simple_tetra_DEBUG"
+num_test = "55_september_simple_tetra_GeoModel"
 print("\n\nTEST ", num_test, "\n\n")
 
 # we create a new folders for this test
@@ -151,40 +153,40 @@ building = GeoBuilding()
 building.SetGeoModelPart(model_part)
 building.ImportBuilding(skin_model_part)
 
-# 1st cut
-print("\n\n***** STEP 1 *****\n")
-# distance field from hull
-building.ComputeDistanceFieldFromHull(False, 1e-7)
-building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/04_Box_buildings_distance_field_1".format(num_test), "GiD_PostAscii")
-building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/04_Box_buildings_distance_field_1".format(num_test), "GiD_PostBinary")
-# writing file mdpa
-mdpa_out_name = "cfd_data/test_{}/mdpa_file/04_Box_buildings_distance_field_1".format(num_test)
-building.WriteMdpaOutput(mdpa_out_name)
-# subtract buildings
-building.SubtractBuildingMOD(0.5, 10.0, 0.1, "Linear", "STANDARD", "false")			# interpolation = constant; disc_type = STANDARD; remove_regions=false
-building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/05_Box_buildings_subtracted_1".format(num_test), "GiD_PostAscii")
-building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/05_Box_buildings_subtracted_1".format(num_test), "GiD_PostBinary")
-# writing file mdpa
-mdpa_out_name = "cfd_data/test_{}/mdpa_file/05_Box_buildings_subtracted_1".format(num_test)
-building.WriteMdpaOutput(mdpa_out_name)
+# # 1st cut
+# print("\n\n***** STEP 1 *****\n")
+# # distance field from hull
+# building.ComputeDistanceFieldFromHull(False, 1e-7)
+# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/04_Box_buildings_distance_field_1".format(num_test), "GiD_PostAscii")
+# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/04_Box_buildings_distance_field_1".format(num_test), "GiD_PostBinary")
+# # writing file mdpa
+# mdpa_out_name = "cfd_data/test_{}/mdpa_file/04_Box_buildings_distance_field_1".format(num_test)
+# building.WriteMdpaOutput(mdpa_out_name)
+# # subtract buildings
+# building.SubtractBuildingMOD(0.5, 10.0, 0.1, "Linear", "STANDARD", "false")			# interpolation = constant; disc_type = STANDARD; remove_regions=false
+# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/05_Box_buildings_subtracted_1".format(num_test), "GiD_PostAscii")
+# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/05_Box_buildings_subtracted_1".format(num_test), "GiD_PostBinary")
+# # writing file mdpa
+# mdpa_out_name = "cfd_data/test_{}/mdpa_file/05_Box_buildings_subtracted_1".format(num_test)
+# building.WriteMdpaOutput(mdpa_out_name)
 
-# 2nd cut
-print("\n\n***** STEP 2 *****\n")
-# distance field from hull
-building.ComputeDistanceFieldFromHull(False, 1e-7)
-building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/06_Box_buildings_distance_field_2".format(num_test), "GiD_PostAscii")
-building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/06_Box_buildings_distance_field_2".format(num_test), "GiD_PostBinary")
-# writing file mdpa
-mdpa_out_name = "cfd_data/test_{}/mdpa_file/06_Box_buildings_distance_field_2".format(num_test)
-building.WriteMdpaOutput(mdpa_out_name)
-# subtract buildings
-# building.SubtractBuildingMOD(0.2, 10.0, 0.1, "Constant", "STANDARD", "false")			# interpolation = constant; disc_type = STANDARD; remove_regions=false
-building.SubtractBuildingMOD(0.1, 10.0, 0.1, "Constant", "STANDARD", "false")			# interpolation = constant; disc_type = STANDARD; remove_regions=false
-building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/07_Box_buildings_subtracted_2".format(num_test), "GiD_PostAscii")
-building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/07_Box_buildings_subtracted_2".format(num_test), "GiD_PostBinary")
-# writing file mdpa
-mdpa_out_name = "cfd_data/test_{}/mdpa_file/07_Box_buildings_subtracted_2".format(num_test)
-building.WriteMdpaOutput(mdpa_out_name)
+# # 2nd cut
+# print("\n\n***** STEP 2 *****\n")
+# # distance field from hull
+# building.ComputeDistanceFieldFromHull(False, 1e-7)
+# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/06_Box_buildings_distance_field_2".format(num_test), "GiD_PostAscii")
+# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/06_Box_buildings_distance_field_2".format(num_test), "GiD_PostBinary")
+# # writing file mdpa
+# mdpa_out_name = "cfd_data/test_{}/mdpa_file/06_Box_buildings_distance_field_2".format(num_test)
+# building.WriteMdpaOutput(mdpa_out_name)
+# # subtract buildings
+# # building.SubtractBuildingMOD(0.2, 10.0, 0.1, "Constant", "STANDARD", "false")			# interpolation = constant; disc_type = STANDARD; remove_regions=false
+# building.SubtractBuildingMOD(0.1, 10.0, 0.1, "Constant", "STANDARD", "false")			# interpolation = constant; disc_type = STANDARD; remove_regions=false
+# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/07_Box_buildings_subtracted_2".format(num_test), "GiD_PostAscii")
+# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/07_Box_buildings_subtracted_2".format(num_test), "GiD_PostBinary")
+# # writing file mdpa
+# mdpa_out_name = "cfd_data/test_{}/mdpa_file/07_Box_buildings_subtracted_2".format(num_test)
+# building.WriteMdpaOutput(mdpa_out_name)
 
 # 3rd cut
 print("\n\n***** STEP 3 *****\n")
@@ -199,7 +201,7 @@ building.WriteMdpaOutput(mdpa_out_name)
 # building.SubtractBuildingMOD(0.2, 10.0, 0.1, "exponential", "ISOSURFACE", "true")			# interpolation = exponential; disc_type = STANDARD; remove_regions=true
 building.SubtractBuildingMOD(0.1, 10.0, 0.1, "exponential", "ISOSURFACE", "true")			# interpolation = exponential; disc_type = STANDARD; remove_regions=true
 
-# [CHECK] GiD only for a test
+# we write the GiD file
 building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/09_Box_buildings_subtracted_3_1".format(num_test), "GiD_PostAscii")
 building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/09_Box_buildings_subtracted_3_1".format(num_test), "GiD_PostBinary")
 
@@ -241,129 +243,103 @@ mdpa_out_name = "cfd_data/test_{}/mdpa_file/11_Box_buildings_after_CleanConditio
 building.WriteMdpaOutput(mdpa_out_name)
 
 
-# copy ProjectParameters.json file from example to fill with information about this case
+# we copy MainKratos.py file
 from shutil import copyfile
-src_path = "data/parameters/ProjectParameters.json"
-dest_path = "cfd_data/test_{}/analysis_file".format(num_test)
+src_path = "data/MainKratos.py"
+dest_path = "cfd_data/test_{}/analysis_file/MainKratos.py".format(num_test)
 copyfile(src_path, dest_path)
 
-# fill json file with current information
+# we copy json file parameters
+src_path = "data/parameters/ProjectParameters.json"
+dest_path = "cfd_data/test_{}/analysis_file/ProjectParameters.json".format(num_test)
+copyfile(src_path, dest_path)
 
 
-# #
-# lateral_model_part = building.GetGeoModelPart().GetSubModelPart("LateralModelPart")
-# inlet_model_part = building.GetGeoModelPart().CreateSubModelPart("Inlet")
-# outlet_model_part = building.GetGeoModelPart().CreateSubModelPart("Outlet")
-# slip_model_part = building.GetGeoModelPart().CreateSubModelPart("Slip")
-# for cond in lateral_model_part.Conditions:
-# 	nodes = cond.GetNodes()
-# 	if (nodes[0].X == -8.0) and (nodes[1].X == -8.0) and (nodes[2].X == -8.0):
-# 		inlet_model_part.AddCondition(cond, 0)
-# 		for node in nodes:
-# 			inlet_model_part.AddNode(node, 0)
-# 	elif (nodes[0].X > 17.9) and (nodes[1].X > 17.9) and (nodes[2].X > 17.9):
-# 		outlet_model_part.AddCondition(cond, 0)
-# 		for node in nodes:
-# 			outlet_model_part.AddNode(node, 0)
-# 	else:
-# 		slip_model_part.AddCondition(cond, 0)
-# 		for node in nodes:
-# 			slip_model_part.AddNode(node, 0)
+#
+lateral_model_part = building.GetGeoModelPart().GetSubModelPart("LateralModelPart")
+inlet_model_part = building.GetGeoModelPart().CreateSubModelPart("Inlet")
+outlet_model_part = building.GetGeoModelPart().CreateSubModelPart("Outlet")
+slip_model_part = building.GetGeoModelPart().CreateSubModelPart("Slip")
+for cond in lateral_model_part.Conditions:
+	nodes = cond.GetNodes()
+	if (nodes[0].X == -8.0) and (nodes[1].X == -8.0) and (nodes[2].X == -8.0):
+		inlet_model_part.AddCondition(cond, 0)
+		for node in nodes:
+			inlet_model_part.AddNode(node, 0)
+	elif (nodes[0].X > 17.9) and (nodes[1].X > 17.9) and (nodes[2].X > 17.9):
+		outlet_model_part.AddCondition(cond, 0)
+		for node in nodes:
+			outlet_model_part.AddNode(node, 0)
+	else:
+		slip_model_part.AddCondition(cond, 0)
+		for node in nodes:
+			slip_model_part.AddNode(node, 0)
 
-# building.GetGeoModelPart().RemoveSubModelPart("LateralModelPart")
+building.GetGeoModelPart().RemoveSubModelPart("LateralModelPart")
 
-# print("\n*** ModelPart ***\n", building.GetGeoModelPart())
-# #
+print("\n*** ModelPart ***\n", building.GetGeoModelPart())
+#
 
+print("main_model_part\n", main_model_part)
 
+model = GeoModel()
+model.SetGeoModelPart(main_model_part)
+model.GenerateCfdModelPart()
 
-# ##################################################
-# # TODO: to add this part in geo_model.py
+# print("\nGeoCfdModelPart BEFORE")
+# print(model.GetGeoCfdModelPart())
+print("*****************")
 
-# # CFD PART
-# main_model_part = building.GetGeoModelPart()
+stop_05 = time.time()
+model.FillPartsFluid("Parts_Fluid")
+print("Parts_Fluid DONE")
 
-# current_model = Kratos.Model()
+model.FillNoslip("SKIN_ISOSURFACE")
+print("SKIN_ISOSURFACE DONE")
 
-# if current_model.HasModelPart("NewModelPart"):
-# 	# clear existing model part
-# 	new_model_part = current_model.GetModelPart("NewModelPart")
-# 	new_model_part.Elements.clear()
-# 	new_model_part.Conditions.clear()
-# 	new_model_part.Nodes.clear()
-# else:
-# 	new_model_part = current_model.CreateModelPart("NewModelPart")
+model.FillSlip("TopModelPart")
+print("TopModelPart DONE")
 
-# new_model_part.AddProperties(Kratos.Properties(1))
+model.FillSlip("BottomModelPart")
+print("BottomModelPart DONE")
 
-# # we set the DENSITY and DYNAMIC_VISCOSITY values
-# prop = new_model_part.GetProperties()[1]
-# prop.SetValue(Kratos.DENSITY, 1)
-# prop.SetValue(Kratos.DYNAMIC_VISCOSITY, 0.002)
+model.FillSlip("Slip")
+print("Slip DONE")
 
-# fluidSubModelPart = new_model_part.CreateSubModelPart("Parts_Fluid")
-# # wallSubModelPart = new_model_part.CreateSubModelPart("Wall")
-# inletSubModelPart = new_model_part.CreateSubModelPart("Inlet")
-# outletSubModelPart = new_model_part.CreateSubModelPart("Outlet")
-# slipSubModelPart = new_model_part.CreateSubModelPart("Slip")
-# print("*** The SubModelParts created ***")
+model.FillInlet("Inlet")
+print("Inlet DONE")
 
-# ## Fluid
-# ### Nodes and Elements
-# for elem in main_model_part.GetSubModelPart("ElementSubModelPart").Elements:
-# 	nodes = elem.GetNodes()
-# 	for node in nodes:
-# 		n = new_model_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
-# 		fluidSubModelPart.AddNode(n, 0)
-# 	e = new_model_part.CreateNewElement("Element3D4N", elem.Id, [nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id], new_model_part.GetProperties()[1])
-# 	fluidSubModelPart.AddElement(e, 0)
-# print("*** Elements are created and are insert also in fluidSubModelPart ***")
+model.FillOutlet("Outlet")
+print("Outlet DONE")
 
-# ## Inlet and Outlet
-# for cond in main_model_part.GetSubModelPart("lateral").Conditions:
-# 	nodes = cond.GetNodes()
-# 	c = new_model_part.CreateNewCondition("WallCondition3D3N", cond.Id, [nodes[0].Id, nodes[1].Id, nodes[2].Id], new_model_part.GetProperties()[0])
-# 	# UGLY! IMPROVE IT. We set the negative part as Inlet and the positive part as Outlet
-# 	if (nodes[0].X <= 0 and nodes[1].X <= 0 and nodes[2].X <= 0):
-# 		for node in nodes:
-# 			n = new_model_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
-# 			inletSubModelPart.AddNode(n, 0)
-# 		inletSubModelPart.AddCondition(c, 0)
-# 	else:
-# 		for node in nodes:
-# 			n = new_model_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
-# 			outletSubModelPart.AddNode(n, 0)
-# 		outletSubModelPart.AddCondition(c, 0)
-# print("*** inletSubModelPart and outletSubModelPart are filled ***")
+# ##################################### call C++ function
+# stop_03 = time.time()
+# # FillCfdModelpartUtilities
+# CfdModelPart = model.GetGeoCfdModelPart()
+# KratosGeo.FillCfdModelpartUtilities(CfdModelPart).FillPartsFluid(main_model_part, "Parts_Fluid")
+# KratosGeo.FillCfdModelpartUtilities(CfdModelPart).FillNoslip(main_model_part, "SKIN_ISOSURFACE")
+# KratosGeo.FillCfdModelpartUtilities(CfdModelPart).FillSlip(main_model_part, "TopModelPart")
+# KratosGeo.FillCfdModelpartUtilities(CfdModelPart).FillSlip(main_model_part, "BottomModelPart")
+# KratosGeo.FillCfdModelpartUtilities(CfdModelPart).FillSlip(main_model_part, "Slip")
+# KratosGeo.FillCfdModelpartUtilities(CfdModelPart).FillInlet(main_model_part, "Inlet")
+# KratosGeo.FillCfdModelpartUtilities(CfdModelPart).FillOutlet(main_model_part, "Outlet")
+# stop_04 = time.time()
+# print("FillPartsFluid done in {} s".format(stop_04-stop_03))
 
-# ## Slip
-# for cond in main_model_part.GetSubModelPart("bottom").Conditions:
-# 	nodes = cond.GetNodes()
-# 	for node in nodes:
-# 		n = new_model_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
-# 		slipSubModelPart.AddNode(n, 0)
-	
-# 	c = new_model_part.CreateNewCondition("WallCondition3D3N", cond.Id, [nodes[0].Id, nodes[1].Id, nodes[2].Id], new_model_part.GetProperties()[0])
-# 	slipSubModelPart.AddCondition(c, 0)
-
-# for cond in main_model_part.GetSubModelPart("top").Conditions:
-# 	nodes = cond.GetNodes()
-# 	for node in nodes:
-# 		n = new_model_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
-# 		slipSubModelPart.AddNode(n, 0)
-	
-# 	c = new_model_part.CreateNewCondition("WallCondition3D3N", cond.Id, [nodes[0].Id, nodes[1].Id, nodes[2].Id], new_model_part.GetProperties()[0])
-# 	slipSubModelPart.AddCondition(c, 0)
-# print("*** slipSubModelPart is filled ***")
-
-# # we write mdpa file
-# building.SetGeoModelPart(new_model_part)
-# mdpa_out_name = "cfd_data/test_{}/mdpa_file/11_Box_buildings_CFD".format(num_test)
-# building.WriteMdpaOutput(mdpa_out_name)
-# ##################################################
+# print("\n*****************************\n", model.GetGeoCfdModelPart(), "\n*****************************\n")
+# ##################################### end call C++ function
 
 
+stop_06 = time.time()
+print("\n* Filled time: ", stop_06-stop_05)
 
+print("\nGeoCfdModelPart AFTER")
+print(model.GetGeoCfdModelPart())
+
+# writing file mdpa
+model.SetGeoModelPart(model.GetGeoCfdModelPart())
+mdpa_out_name = "cfd_data/test_{}/analysis_file/12_CFD_model".format(num_test)
+model.WriteMdpaOutput(mdpa_out_name)
 
 print("*** Time: ", time.time() - start_time)
 print("\nTEST ", num_test, "END\n\n")
