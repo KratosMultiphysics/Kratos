@@ -88,6 +88,9 @@ public:
     typedef Condition::MatrixType MatrixType;
     typedef Condition::VectorType VectorType;
 
+    /// Stefan Boltzmann constant for radiation in SI units: [W / (m^2 K^4)].
+    constexpr static double StefanBoltzmann = 5.67e-8;
+
     ///@}
     ///@name Life Cycle
     ///@{

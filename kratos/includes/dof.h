@@ -101,7 +101,8 @@ public:
     ///@{
 
     /// Pointer definition of Dof
-    KRATOS_CLASS_POINTER_DEFINITION(Dof);
+    //KRATOS_CLASS_POINTER_DEFINITION(Dof);
+    using Pointer=Dof*;
 
     typedef std::size_t IndexType;
 
@@ -470,11 +471,11 @@ private:
     /** True is is fixed */
     int mIsFixed : 1;
 
-    int mVariableType : 3;
+    int mVariableType : 4;
 
-    int mReactionType : 3;
+    int mReactionType : 4;
 
-    int mIndex : 8;
+    int mIndex : 6;
 
     /** Equation identificator of the degree of freedom */
     EquationIdType mEquationId : 48;

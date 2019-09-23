@@ -59,6 +59,7 @@
 #include "utilities/sensitivity_builder.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/time_discretization.h"
+#include "utilities/geometrical_transformation_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -874,6 +875,8 @@ void AddUtilitiesToPython(pybind11::module &m)
     m.def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart);
     m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>);
     m.def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>);
+    m.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>);
+    m.def("InvertNormal",&MortarUtilities::InvertNormalForFlag<PointerVectorSet<Condition, IndexedObject>>);
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
@@ -1033,6 +1036,11 @@ void AddUtilitiesToPython(pybind11::module &m)
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeNewmark );
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeBossak );
     mod_time_discretization.def("GetMinimumBufferSize", GetMinimumBufferSizeGeneralizedAlpha );
+
+    // GeometricalTransformationUtilities
+    auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
+    mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
+    mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
 }
 
 } // namespace Python.
