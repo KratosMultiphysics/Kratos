@@ -10,40 +10,46 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
 
     def __init__(self,model,parameters):
         # Deprecation warnings
-        self.parameters = parameters
-        if self.parameters["solver_settings"].Has("chimera_parts"):
-            self.chimera_params = self.parameters["solver_settings"]["chimera_parts"].Clone()
-            self.parameters["solver_settings"].RemoveValue("chimera_parts")
+        self.full_parameters = parameters
+        if self.parameters["solver_settings"].Has("chimera_settings"):
+            self.chimera_parameters = parameters["chimera_settings"].Clone()
+        else:
+            raise Exception("The \"solver_settings\" should have the entry \"chimera_settings\" ")
+
+        if self.parameters["solver_settings"].Has("fluid_solver_settings"):
+            self.fluid_parameters = parameters["fluid_solver_settings"].Clone()
+        else:
+            raise Exception("The \"solver_settings\" should have the entry \"fluid_solver_settings\" ")
+
+        if self.chimera_parameters.Has("chimera_parts"):
+            self.chimera_levels = self.chimera_parameters["chimera_parts"].Clone()
         else:
             raise Exception("The \"solver_settings\" should have the entry \"chimera_parts\" ")
 
         self.chimera_echo_lvl = 0
-        if self.parameters["solver_settings"].Has("chimera_echo_level"):
-            self.chimera_echo_lvl = self.parameters["solver_settings"]["chimera_echo_level"].GetInt()
-            self.parameters["solver_settings"].RemoveValue("chimera_echo_level")
+        if self.chimera_parameters.Has("chimera_echo_level"):
+            self.chimera_echo_lvl = self.chimera_parameters["chimera_echo_level"].GetInt()
         else:
             self.chimera_echo_lvl = self.parameters["solver_settings"]["echo_level"].GetInt()
 
-
-        if self.parameters["solver_settings"].Has("internal_parts_for_chimera"):
-            self.chimera_internal_parts = self.parameters["solver_settings"]["internal_parts_for_chimera"].Clone()
-            self.parameters["solver_settings"].RemoveValue("internal_parts_for_chimera")
+        if self.chimera_parameters.Has("internal_parts_for_chimera"):
+            self.chimera_internal_parts = self.chimera_parameters["internal_parts_for_chimera"].Clone()
 
         self.reformulate_every_step = False
-        if self.parameters["solver_settings"].Has("reformulate_chimera_every_step"):
-            self.reformulate_every_step = self.parameters["solver_settings"]["reformulate_chimera_every_step"].GetBool()
-            self.parameters["solver_settings"].RemoveValue("reformulate_chimera_every_step")
-            # Setting reform dofs every step to true "reform_dofs_at_each_step": false,
-            if not self.parameters["solver_settings"].Has("reform_dofs_at_each_step"):
-                self.parameters["solver_settings"].AddEmptyValue("reform_dofs_at_each_step")
-            self.parameters["solver_settings"]["reform_dofs_at_each_step"].SetBool(True)
+        if self.chimera_parameters.Has("reformulate_chimera_every_step"):
+            self.reformulate_every_step = self.chimera_parameters["reformulate_chimera_every_step"].GetBool()
+        # Setting reform dofs every step to true "reform_dofs_at_each_step": false,
+        else:
+            if not self.fluid_parameters.Has("reform_dofs_at_each_step"):
+                self.fluid_parameters.AddEmptyValue("reform_dofs_at_each_step")
+                self.fluid_parameters["reform_dofs_at_each_step"].SetBool(False)
 
         # Import parallel modules if needed
         # has to be done before the base-class constuctor is called (in which the solver is constructed)
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             raise Exception("MPI-Chimera is not implemented yet")
 
-        super(FluidChimeraAnalysis,self).__init__(model,parameters)
+        super(FluidChimeraAnalysis,self).__init__(model,fluid_parameters)
 
     def Initialize(self):
         super(FluidChimeraAnalysis,self).Initialize()
@@ -53,29 +59,23 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
 
         list_of_processes = super(FluidChimeraAnalysis,self)._CreateProcesses(parameter_name, initialization_order)
 
-        if parameter_name == "processes":
-            if self.parameters["solver_settings"].Has("fluid_solver_settings"):
-                self.solver_settings =  self.parameters["solver_settings"]["fluid_solver_settings"]
-            else:
-                self.solver_settings = self.parameters["solver_settings"]
+        main_model_part = self.model[self.fluid_parameters["model_part_name"].GetString()]
+        domain_size = main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        solver_type = self.fluid_parameters["solver_type"].GetString()
 
-            main_model_part = self.model[self.solver_settings["model_part_name"].GetString()]
-            domain_size = main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-            solver_type = self.parameters["solver_settings"]["solver_type"].GetString()
+        if domain_size == 2:
+            if(solver_type == "Monolithic" or solver_type == "monolithic"):
+                self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,self.chimera_levels)
+            elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
+                self.chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep2d(main_model_part,self.chimera_levels)
+        else:
+            if(solver_type == "Monolithic" or solver_type == "monolithic"):
+                self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic3d(main_model_part,self.chimera_levels)
+            elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
+                self.chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,self.chimera_levels)
 
-            if domain_size == 2:
-                if(solver_type == "Monolithic" or solver_type == "monolithic"):
-                    self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,self.chimera_params)
-                elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
-                    self.chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep2d(main_model_part,self.chimera_params)
-            else:
-                if(solver_type == "Monolithic" or solver_type == "monolithic"):
-                    self.chimera_process = KratosChimera.ApplyChimeraProcessMonolithic3d(main_model_part,self.chimera_params)
-                elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
-                    self.chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,self.chimera_params)
-
-            self.chimera_process.SetEchoLevel(self.chimera_echo_lvl)
-            self.chimera_process.SetReformulateEveryStep(self.reformulate_every_step)
+        self.chimera_process.SetEchoLevel(self.chimera_echo_lvl)
+        self.chimera_process.SetReformulateEveryStep(self.reformulate_every_step)
 
         return list_of_processes
 
