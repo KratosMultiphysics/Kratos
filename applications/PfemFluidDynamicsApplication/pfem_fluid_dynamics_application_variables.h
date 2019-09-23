@@ -4,7 +4,7 @@
 //        |  _/  _/ -_) '  \| _|| | || | / _` |
 //        |_| |_| \___|_|_|_|_| |_|\_,_|_\__,_|DYNAMICS
 //
-//  License:(BSD)    PfemFluidMechanicsApplication/license.txt
+//  License:(BSD)    PfemFluidDynamicsApplication/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
 //                   Alessandro Franci
