@@ -1655,9 +1655,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddAdvecti
 
     noalias(rLeftHandSideMatrix) += prod(rVariables.AdvMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
 
-    // noalias(rVariables.AdvMatrixAux) = rVariables.rho_dot_c * outer_prod(rVariables.VelInter,rVariables.N);
-
-    // noalias(rLeftHandSideMatrix) -= prod(trans(rVariables.GradNT),rVariables.AdvMatrixAux)*rVariables.IntegrationCoefficient;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1726,11 +1723,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSAdve
 
     noalias(rRightHandSideVector) -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
 
-    // noalias(rVariables.AdvMatrixAux) = rVariables.rho_dot_c * outer_prod(rVariables.VelInter,rVariables.N);
-    // noalias(rVariables.AdvMatrixAuxTwo) = prod(trans(rVariables.GradNT),rVariables.AdvMatrixAux)*rVariables.IntegrationCoefficient;
-
-    // noalias(rRightHandSideVector) += prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
-
 }
 //----------------------------------------------------------------------------------------
 
@@ -1742,8 +1734,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSDiff
     noalias(rVariables.DifMatrixAuxTwo) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
 
     noalias(rRightHandSideVector) -= prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
-
-    //rVariables.Aux2 -= prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
 
 }
 
