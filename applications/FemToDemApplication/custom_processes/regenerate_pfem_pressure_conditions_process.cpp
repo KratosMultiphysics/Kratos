@@ -30,14 +30,16 @@ void RegeneratePfemPressureConditionsProcess<TDim>::Execute()
 {
     int max_id;
     this->GetMaximumConditionIdOnSubmodelPart(max_id);
-
-    ModelPart::PropertiesType::Pointer pProperties;
+    const auto it_cond_begin = mrModelPart.ConditionsBegin();
+    ModelPart::PropertiesType::Pointer pProperties = it_cond_begin->pGetProperties();
 
     std::vector<IndexType> condition_nodes_id(3);
-    condition_nodes_id[0] = 174;
-    condition_nodes_id[1] = 186;
-    condition_nodes_id[2] = 188;
+    auto &elem = mrModelPart.GetElement(194);
+    condition_nodes_id[0] = elem.GetGeometry()[0].Id();
+    condition_nodes_id[1] = elem.GetGeometry()[1].Id();
+    condition_nodes_id[2] = elem.GetGeometry()[2].Id();
     max_id++;
+    max_id = 1000000;
     mrModelPart.CreateSubModelPart("dummy_pressure");
     auto& r_sub_model = mrModelPart.GetSubModelPart("dummy_pressure");
 
@@ -48,7 +50,7 @@ void RegeneratePfemPressureConditionsProcess<TDim>::Execute()
                                         max_id,
                                         condition_nodes_id,
                                         pProperties, 0);
-
+    p_pressure_condition->SetValue(POSITIVE_FACE_PRESSURE, -1000);
     // Adding the conditions to the computing model part
     mrModelPart.GetSubModelPart("computing_domain").AddCondition(p_pressure_condition);
 }
