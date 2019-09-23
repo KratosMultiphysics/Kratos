@@ -193,11 +193,21 @@ void AMGCLSolve(
     TUblasSparseSpace<double>::VectorType& rB,
     TUblasSparseSpace<double>::IndexType& rIterationNumber,
     double& rResidual,
-    const boost::property_tree::ptree &amgclParams,
+    boost::property_tree::ptree amgclParams,
     int verbosity_level,
     bool use_gpgpu
     )
 {
+    if (use_gpgpu) {
+        // ILU0 in a GPU backend has approximate iterative implementation.
+        // Increase the default number of iterations to make ILU0 more robust.
+        int ilu0_iters = 9;
+        if (amgclParams.get<std::string>("precond.type", "") == "ilu0")
+            amgclParams.put("precond.solve.iters", ilu0_iters);
+        if (amgclParams.get<std::string>("precond.relax.type", "") == "ilu0")
+            amgclParams.put("precond.relax.solve.iters", ilu0_iters);
+    }
+
     switch (block_size) {
         case 2:
             AMGCLBlockSolve<2>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);

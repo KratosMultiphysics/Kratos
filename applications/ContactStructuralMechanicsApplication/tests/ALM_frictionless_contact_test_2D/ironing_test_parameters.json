@@ -39,10 +39,7 @@
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_part_slab","Parts_part_block"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part","DISPLACEMENT_BC_fix", "DISPLACEMENT_BC_rolling_x", "LineLoad2D_load_press", "LineLoad2D_load_slide", "Parts_part_slab", "Parts_part_block"],
-        "rotation_dofs"                      : false
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -52,7 +49,7 @@
             "process_name"          : "AssignVectorVariableToConditionProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_BC_fix",
+                "model_part_name" : "Structure.DISPLACEMENT_BC_fix",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -64,7 +61,7 @@
             "process_name"          : "AssignVectorVariableToConditionProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_BC_rolling_x",
+                "model_part_name" : "Structure.DISPLACEMENT_BC_rolling_x",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0,0.0,0.0]
@@ -75,7 +72,7 @@
             "process_name"          : "ImposeScalarValueOverTimeProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "LineLoad2D_load_press",
+                "model_part_name" : "Structure.LineLoad2D_load_press",
                 "variable_name"   : "DISPLACEMENT_X",
                 "step_type"       : "linear",
                 "values"          : [0.0, 0.0,8.0],
@@ -91,7 +88,7 @@
             "process_name"          : "ApplyVectorOnConditionsProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "LineLoad2D_load_press",
+                "model_part_name" : "Structure.LineLoad2D_load_press",
                 "variable_name"   : "LINE_LOAD",
                 "factor1"         : 0,
                 "factor2"         : 20.0,
@@ -123,7 +120,7 @@
             "Parameters"            : {
                 "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "output_file_name"     : "ALM_frictionless_contact_test_2D/ironing_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 0.50
             }
         }
@@ -168,7 +165,7 @@
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictionless_contact_test_2D/ironing_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 0.50
         }
     }
