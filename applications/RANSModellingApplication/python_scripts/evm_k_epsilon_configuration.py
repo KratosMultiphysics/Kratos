@@ -37,8 +37,7 @@ class TurbulenceKEpsilonConfiguration(
             },
             "flow_parameters":
             {
-                "ramp_up_time"            : 0.5,
-                "wall_y_plus"             : 11.06
+                "ramp_up_time"            : 0.5
             },
             "coupling_settings" :{}
         }''')
@@ -90,11 +89,6 @@ class TurbulenceKEpsilonConfiguration(
         self.fluid_model_part.ProcessInfo[
             KratosRANS.TURBULENT_VISCOSITY_MAX] = self.nu_t_max
 
-        if (self.model_settings["use_high_re_elements"].GetBool()):
-            self.fluid_model_part.ProcessInfo[
-                KratosRANS.RANS_WALL_Y_PLUS] = self.model_settings[
-                    "flow_parameters"]["wall_y_plus"].GetDouble()
-
     def PrepareSolvingStrategy(self):
         scheme_settings = self.model_settings["scheme_settings"]
 
@@ -144,8 +138,6 @@ class TurbulenceKEpsilonConfiguration(
             KratosRANS.RANS_AUXILIARY_VARIABLE_1)
         self.fluid_model_part.AddNodalSolutionStepVariable(
             KratosRANS.RANS_AUXILIARY_VARIABLE_2)
-        self.fluid_model_part.AddNodalSolutionStepVariable(
-            KratosRANS.WALL_VELOCITY)
 
         super(TurbulenceKEpsilonConfiguration, self).AddVariables()
 

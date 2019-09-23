@@ -114,7 +114,6 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
         KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
-        KRATOS_CHECK_VARIABLE_KEY(RANS_WALL_Y_PLUS);
 
         NodesContainerType& r_nodes = this->mrModelPart.Nodes();
         int number_of_nodes = r_nodes.size();
