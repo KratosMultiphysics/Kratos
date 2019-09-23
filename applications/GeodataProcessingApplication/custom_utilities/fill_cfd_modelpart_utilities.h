@@ -10,8 +10,8 @@
 //  Main author:     Nicola Germano
 //
 
-#if !defined(KRATOS_FILL_MODELPART_UTILITIES_H_INCLUDED )
-#define  KRATOS_FILL_MODELPART_UTILITIES_H_INCLUDED
+#if !defined(KRATOS_FILL_CFD_MODELPART_UTILITIES_H_INCLUDED)
+#define  KRATOS_FILL_CFD_MODELPART_UTILITIES_H_INCLUDED
 
 // System includes
 
@@ -49,7 +49,7 @@ namespace Kratos
 
   /// Auxiliary utility to maintain the quality of the model part
 
-  class KRATOS_API(GEODATA_PROCESSING_APPLICATION) FillModelpartUtilities
+  class KRATOS_API(GEODATA_PROCESSING_APPLICATION) FillCfdModelpartUtilities
   {
 
   public:
@@ -57,19 +57,19 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of FillModelpartUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(FillModelpartUtilities);
+    /// Pointer definition of FillCfdModelpartUtilities
+    KRATOS_CLASS_POINTER_DEFINITION(FillCfdModelpartUtilities);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    FillModelpartUtilities( ModelPart& rModelPart ) : mrModelPart(rModelPart)
+    FillCfdModelpartUtilities( ModelPart& rModelPart ) : mrModelPart(rModelPart)
     { };
 
     /// Destructor.
-    ~FillModelpartUtilities() {};
+    ~FillCfdModelpartUtilities() {};
 
     ///@}
     ///@name Operators
@@ -84,7 +84,8 @@ namespace Kratos
      * @brief Function to fill "Parts_Fluid" sub model part
      *
      */
-    void FillFluid();
+    // void FillPartsFluid();
+    ModelPart& FillPartsFluid (ModelPart& CfdModelPart, ModelPart& OriginModelPart, const std::string& ElementModelName);
 
     /**
      * @brief Function to fill "Inlet" sub model part
@@ -96,13 +97,19 @@ namespace Kratos
      * @brief Function to fill "Outlet" sub model part
      *
      */
-    void FillSlip();
+    void FillOutlet();
 
     /**
      * @brief Function to fill "Slip" sub model part
      *
      */
     void FillSlip();
+
+    /**
+     * @brief Function to fill "NoSlip" sub model part
+     *
+     */
+    void FillNoslip();
 
 
     ///@}
@@ -171,14 +178,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    FillModelpartUtilities& operator=(FillModelpartUtilities const& rOther);
+    FillCfdModelpartUtilities& operator=(FillCfdModelpartUtilities const& rOther);
 
     /// Copy constructor.
-    FillModelpartUtilities(FillModelpartUtilities const& rOther);
+    FillCfdModelpartUtilities(FillCfdModelpartUtilities const& rOther);
 
     ///@}
 
-}; // Class FillModelpartUtilities
+}; // Class FillCfdModelpartUtilities
 
 ///@}
 
@@ -194,7 +201,7 @@ private:
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const FillModelpartUtilities& rThis);
+    const FillCfdModelpartUtilities& rThis);
 
 ///@}
 
@@ -202,4 +209,4 @@ inline std::ostream& operator << (
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FILL_MODELPART_UTILITIES_H_INCLUDED  defined
+#endif // KRATOS_CLEANING_UTILITIES_H_INCLUDED  defined

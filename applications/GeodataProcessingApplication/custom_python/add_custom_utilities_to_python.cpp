@@ -29,6 +29,7 @@
 
 #include "custom_utilities/cleaning_utilities.h"
 #include "custom_utilities/extrusion_height_utilities.h"
+#include "custom_utilities/fill_cfd_modelpart_utilities.h"
 // #include "custom_utilities/nicola.h"
 
 
@@ -67,6 +68,16 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("HardCopyBeforeSurfaceDiscretization", &CleaningUtilities::HardCopyBeforeSurfaceDiscretization)
         .def("HardCopyAfterSurfaceDiscretization", &CleaningUtilities::HardCopyAfterSurfaceDiscretization)
         .def("FillBottom", &CleaningUtilities::FillBottom)  // [NG] CHECK WHETHER TO MOVE IT TO ANOTHER CLASS
+        ;
+    
+    // to fill cfd model part
+    py::class_<FillCfdModelpartUtilities>(m,"FillCfdModelpartUtilities")
+        .def(py::init< ModelPart& >())
+        .def("FillPartsFluid", &FillCfdModelpartUtilities::FillPartsFluid)
+        .def("FillInlet", &FillCfdModelpartUtilities::FillInlet)
+        .def("FillOutlet", &FillCfdModelpartUtilities::FillOutlet)
+        .def("FillSlip", &FillCfdModelpartUtilities::FillSlip)
+        .def("FillNoslip", &FillCfdModelpartUtilities::FillNoslip)
         ;
 }
 
