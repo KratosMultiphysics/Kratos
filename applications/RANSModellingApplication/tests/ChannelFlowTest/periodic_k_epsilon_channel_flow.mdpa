@@ -5327,7 +5327,7 @@ Begin Elements VMS2D3N// GUI group identifier: fluid
      3446          1        220        175        239
 End Elements
 
-Begin Conditions RANSEVMVMSMonolithicWallCondition2D2N// GUI group identifier: _HIDDEN__SKIN_
+Begin Conditions RansEvmVmsMonolithicWallCondition2D2N// GUI group identifier: _HIDDEN__SKIN_
     1 0 216 219
     2 0 219 222
     3 0 222 224

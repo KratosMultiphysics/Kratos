@@ -27,8 +27,8 @@
 #include "custom_elements/evm_k_epsilon/evm_low_re_k_element.h"
 
 // Condition includes
-#include "custom_conditions/evm_k_epsilon/evm_epsilon_wall_condition.h"
-#include "custom_conditions/evm_k_epsilon/evm_vms_monolithic_wall_condition.h"
+#include "custom_conditions/evm_k_epsilon/rans_evm_epsilon_wall_condition.h"
+#include "custom_conditions/evm_k_epsilon/rans_evm_vms_monolithic_wall_condition.h"
 
 namespace Kratos
 {
@@ -186,12 +186,11 @@ private:
     const EvmEpsilonElement<3, 4> mRANSEVMEpsilon3D;
 
     /// k-epsilon turbulence model conditions
-    const EvmEpsilonWallCondition<2> mRansEVMEpsilonWallCondition2D2N;
-    const EvmEpsilonWallCondition<3> mRansEVMEpsilonWallCondition3D3N;
+    const RansEvmEpsilonWallCondition<2> mRansEvmEpsilonWallCondition2D2N;
+    const RansEvmEpsilonWallCondition<3> mRansEvmEpsilonWallCondition3D3N;
 
-    const EVMVMSMonolithicWallCondition<2> mRansEVMVMSMonolithicWallCondition2D2N;
-    const EVMVMSMonolithicWallCondition<3> mRansEVMVMSMonolithicWallCondition3D3N;
-
+    const RansEvmVmsMonolithicWallCondition<2> mRansEvmVmsMonolithicWallCondition2D2N;
+    const RansEvmVmsMonolithicWallCondition<3> mRansEvmVmsMonolithicWallCondition3D3N;
 
     ///@}
     ///@name Private Operators

@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#ifndef KRATOS_EVM_VMS_MONOLITHIC_WALL_CONDITION_H
-#define KRATOS_EVM_VMS_MONOLITHIC_WALL_CONDITION_H
+#ifndef KRATOS_RANS_EVM_VMS_MONOLITHIC_WALL_CONDITION_H
+#define KRATOS_RANS_EVM_VMS_MONOLITHIC_WALL_CONDITION_H
 
 // System includes
 #include <iostream>
@@ -55,25 +55,21 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Implements a wall condition for the monolithic formulation.
 /**
-  It is intended to be used in combination with ASGS and VMS elements or their derived classes
-  and the ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent time scheme, which supports
-  slip conditions.
-  This condition will add a wall stress term to all nodes identified with IS_STRUCTURE!=0.0 (in the
-  non-historic database, that is, assigned using Node.SetValue()). This stress term is determined
-  according to the wall distance provided as Y_WALL.
-  @see ASGS2D,ASGS3D,VMS,ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
+ * @brief
+ *
+ * @tparam TDim       Dimensionality of the condition (2D or 3D)
+ * @tparam TNumNodes  Number of nodes in the condition
  */
 template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class EVMVMSMonolithicWallCondition : public MonolithicWallCondition<TDim, TNumNodes>
+class RansEvmVmsMonolithicWallCondition : public MonolithicWallCondition<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of EVMVMSMonolithicWallCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EVMVMSMonolithicWallCondition);
+    /// Pointer definition of RansEvmVmsMonolithicWallCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmVmsMonolithicWallCondition);
 
     typedef MonolithicWallCondition<TDim, TNumNodes> BaseType;
 
@@ -91,13 +87,9 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef std::size_t SizeType;
-
     typedef std::vector<std::size_t> EquationIdVectorType;
 
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -107,7 +99,8 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit EVMVMSMonolithicWallCondition(IndexType NewId = 0) : BaseType(NewId)
+    explicit RansEvmVmsMonolithicWallCondition(IndexType NewId = 0)
+        : BaseType(NewId)
     {
     }
 
@@ -116,7 +109,7 @@ public:
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    EVMVMSMonolithicWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
+    RansEvmVmsMonolithicWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
         : BaseType(NewId, ThisNodes)
     {
     }
@@ -126,7 +119,7 @@ public:
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    EVMVMSMonolithicWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    RansEvmVmsMonolithicWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseType(NewId, pGeometry)
     {
     }
@@ -137,21 +130,21 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    EVMVMSMonolithicWallCondition(IndexType NewId,
-                                  GeometryType::Pointer pGeometry,
-                                  PropertiesType::Pointer pProperties)
+    RansEvmVmsMonolithicWallCondition(IndexType NewId,
+                                      GeometryType::Pointer pGeometry,
+                                      PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor.
-    EVMVMSMonolithicWallCondition(EVMVMSMonolithicWallCondition const& rOther)
+    RansEvmVmsMonolithicWallCondition(RansEvmVmsMonolithicWallCondition const& rOther)
         : BaseType(rOther)
     {
     }
 
     /// Destructor.
-    ~EVMVMSMonolithicWallCondition() override
+    ~RansEvmVmsMonolithicWallCondition() override
     {
     }
 
@@ -160,7 +153,7 @@ public:
     ///@{
 
     /// Assignment operator
-    EVMVMSMonolithicWallCondition& operator=(EVMVMSMonolithicWallCondition const& rOther)
+    RansEvmVmsMonolithicWallCondition& operator=(RansEvmVmsMonolithicWallCondition const& rOther)
     {
         Condition::operator=(rOther);
 
@@ -171,7 +164,7 @@ public:
     ///@name Operations
     ///@{
 
-    /// Create a new EVMVMSMonolithicWallCondition object.
+    /// Create a new RansEvmVmsMonolithicWallCondition object.
     /**
       @param NewId Index of the new condition
       @param ThisNodes An array containing the nodes of the new condition
@@ -181,7 +174,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<EVMVMSMonolithicWallCondition>(
+        return Kratos::make_intrusive<RansEvmVmsMonolithicWallCondition>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -189,7 +182,8 @@ public:
                               GeometryType::Pointer pGeom,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<EVMVMSMonolithicWallCondition>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<RansEvmVmsMonolithicWallCondition>(
+            NewId, pGeom, pProperties);
     }
 
     /**
@@ -211,25 +205,6 @@ public:
         return pNewCondition;
     }
 
-    // /// Provides the global indices for each one of this element's local rows.
-    // /** This determines the elemental equation ID vector for all elemental DOFs
-    //  * @param rResult A vector containing the global Id of each row
-    //  * @param rCurrentProcessInfo the current process info object (unused)
-    //  */
-    // void EquationIdVector(EquationIdVectorType& rResult,
-    //                       ProcessInfo& rCurrentProcessInfo) override;
-
-    // /// Returns a list of the element's Dofs
-    // /**
-    //  * @param ElementalDofList the list of DOFs
-    //  * @param rCurrentProcessInfo the current process info instance
-    //  */
-    // void GetDofList(DofsVectorType& ConditionDofList, ProcessInfo& CurrentProcessInfo) override;
-
-    // void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
-    //                                         VectorType& rRightHandSideVector,
-    //                                         ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Access
     ///@{
@@ -246,14 +221,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "EVMVMSMonolithicWallCondition" << TDim << "D";
+        buffer << "RansEvmVmsMonolithicWallCondition" << TDim << "D";
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "EVMVMSMonolithicWallCondition";
+        rOStream << "RansEvmVmsMonolithicWallCondition";
     }
 
     /// Print object's data.
@@ -283,9 +258,26 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ApplyLogarithmicWallLaw(MatrixType& rLocalMatrix,
-                      VectorType& rLocalVector,
-		      ProcessInfo& rCurrentProcessInfo)
+    /**
+     * @brief Applies wall law based on logarithmic wall law
+     *
+     * This applies wall law based on the following equation for the period of
+     * time where RANS model is not activated for $y+ \leq 11.06$
+     * \[
+     *     u^+ = y^+
+     * \]
+     * for $y^+ > 11.06$
+     * \[
+     *     u^+ = \frac{1}{\kappa}ln\left(y^+\right\) + \beta
+     * \]
+     *
+     * @param rLocalMatrix         Left hand side matrix
+     * @param rLocalVector         Right hand side vector
+     * @param rCurrentProcessInfo  Current process info from model part
+     */
+    virtual void ApplyLogarithmicWallLaw(MatrixType& rLocalMatrix,
+                                         VectorType& rLocalVector,
+                                         ProcessInfo& rCurrentProcessInfo)
     {
         GeometryType& rGeometry = this->GetGeometry();
         const size_t BlockSize = TDim + 1;
@@ -294,16 +286,18 @@ protected:
         double area = NodalFactor * rGeometry.DomainSize();
         // DomainSize() is the way to ask the geometry's length/area/volume (whatever is relevant for its dimension) without asking for the number of spatial dimensions first
 
-        for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+        for (size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
         {
             const NodeType& rConstNode = rGeometry[itNode];
             const double y = rConstNode.FastGetSolutionStepValue(DISTANCE); // wall distance to use in stress calculation
-            if( y > 0.0 && rConstNode.Is(SLIP) )
+            if (y > 0.0 && rConstNode.Is(SLIP))
             {
-                array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
-                const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
+                array_1d<double, 3> Vel =
+                    rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+                const array_1d<double, 3>& VelMesh =
+                    rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
                 Vel -= VelMesh;
-                const double Ikappa = 1.0/0.41; // inverse of Von Karman's kappa
+                const double Ikappa = 1.0 / 0.41; // inverse of Von Karman's kappa
                 const double B = 5.2;
                 const double limit_yplus = 10.9931899; // limit between linear and log regions
 
@@ -313,13 +307,12 @@ protected:
                 double wall_vel = 0.0;
                 for (size_t d = 0; d < TDim; d++)
                 {
-                    wall_vel += Vel[d]*Vel[d];
+                    wall_vel += Vel[d] * Vel[d];
                 }
                 wall_vel = sqrt(wall_vel);
 
                 if (wall_vel > 1e-12) // do not bother if velocity is zero
                 {
-
                     // linear region
                     double utau = sqrt(wall_vel * nu / y);
                     double yplus = y * utau / nu;
@@ -327,7 +320,6 @@ protected:
                     // log region
                     if (yplus > limit_yplus)
                     {
-
                         // wall_vel / utau = 1/kappa * log(yplus) + B
                         // this requires solving a nonlinear problem:
                         // f(utau) = utau*(1/kappa * log(y*utau/nu) + B) - wall_vel = 0
@@ -338,12 +330,12 @@ protected:
                         const double tol = 1e-6;
                         double uplus = Ikappa * log(yplus) + B;
 
-                        while(iter < 100 && fabs(dx) > tol * utau)
+                        while (iter < 100 && fabs(dx) > tol * utau)
                         {
                             // Newton-Raphson iteration
                             double f = utau * uplus - wall_vel;
                             double df = uplus + Ikappa;
-                            dx = f/df;
+                            dx = f / df;
 
                             // Update variables
                             utau -= dx;
@@ -353,34 +345,44 @@ protected:
                         }
                         if (iter == 100)
                         {
-                            std::cout << "Warning: wall condition Newton-Raphson did not converge. Residual is " << dx << std::endl;
+                            std::cout
+                                << "Warning: wall condition Newton-Raphson did "
+                                   "not converge. Residual is "
+                                << dx << std::endl;
                         }
                     }
                     const double Tmp = area * utau * utau * rho / wall_vel;
                     for (size_t d = 0; d < TDim; d++)
                     {
-                        size_t k = itNode*BlockSize+d;
+                        size_t k = itNode * BlockSize + d;
                         rLocalVector[k] -= Vel[d] * Tmp;
-                        rLocalMatrix(k,k) += Tmp;
+                        rLocalMatrix(k, k) += Tmp;
                     }
                 }
             }
         }
     }
 
-    void ApplyWallLaw(MatrixType& rLocalMatrix,
-                      VectorType& rLocalVector,
-                      ProcessInfo& rCurrentProcessInfo) override
+    /**
+     * @brief Applies rans based wall law
+     *
+     * This method calculate left hand side matrix and right hand side vector for following equation
+     *
+     * \[
+     *      u_\tau = max\left(C_\mu^0.25 \sqrt{k}, \frac{||\underline{u}||}{\frac{1}{\kappa}ln(y^+)+\beta}\right)
+     * \]
+     *
+     * integration point value = \rho \frac{u_\tau^2}{||\underline{u}||}\underline{u}
+     *
+     * @param rLocalMatrix         Left hand side matrix
+     * @param rLocalVector         Right hand side vector
+     * @param rCurrentProcessInfo  Current process info from model part
+     */
+    virtual void ApplyRansBasedWallLaw(MatrixType& rLocalMatrix,
+                                       VectorType& rLocalVector,
+                                       ProcessInfo& rCurrentProcessInfo)
+
     {
-        if (!rCurrentProcessInfo[IS_CO_SOLVING_PROCESS_ACTIVE])
-        {
-            this->ApplyLogarithmicWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
-            return;
-        }
-
-        if (!this->Is(SLIP))
-            return;
-
         RansCalculationUtilities rans_calculation_utilities;
 
         GeometryType& r_geometry = this->GetGeometry();
@@ -447,6 +449,23 @@ protected:
         }
     }
 
+    void ApplyWallLaw(MatrixType& rLocalMatrix,
+                      VectorType& rLocalVector,
+                      ProcessInfo& rCurrentProcessInfo) override
+    {
+        if (!this->Is(SLIP))
+            return;
+
+        if (rCurrentProcessInfo[IS_CO_SOLVING_PROCESS_ACTIVE])
+        {
+            this->ApplyRansBasedWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
+        }
+        else
+        {
+            this->ApplyLogarithmicWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
+        }
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -507,7 +526,7 @@ private:
 
     ///@}
 
-}; // Class EVMVMSMonolithicWallCondition
+}; // Class RansEvmVmsMonolithicWallCondition
 
 ///@}
 
@@ -521,7 +540,7 @@ private:
 /// input stream function
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                EVMVMSMonolithicWallCondition<TDim, TNumNodes>& rThis)
+                                RansEvmVmsMonolithicWallCondition<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -529,7 +548,7 @@ inline std::istream& operator>>(std::istream& rIStream,
 /// output stream function
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const EVMVMSMonolithicWallCondition<TDim, TNumNodes>& rThis)
+                                const RansEvmVmsMonolithicWallCondition<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -544,4 +563,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_EVM_VMS_MONOLITHIC_WALL_CONDITION_H
+#endif // KRATOS_RANS_EVM_VMS_MONOLITHIC_WALL_CONDITION_H

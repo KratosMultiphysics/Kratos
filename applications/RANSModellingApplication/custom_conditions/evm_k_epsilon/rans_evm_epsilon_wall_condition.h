@@ -1,17 +1,17 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#ifndef KRATOS_EVM_EPSILON_WALL_CONDITION_H
-#define KRATOS_EVM_EPSILON_WALL_CONDITION_H
+#ifndef KRATOS_RANS_EVM_EPSILON_WALL_CONDITION_H
+#define KRATOS_RANS_EVM_EPSILON_WALL_CONDITION_H
 
 // System includes
 
@@ -53,25 +53,24 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Implements a wall condition for the monolithic formulation.
 /**
-  It is intended to be used in combination with ASGS and VMS elements or their derived classes
-  and the ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent time scheme, which supports
-  slip conditions.
-  This condition will add a wall stress term to all nodes identified with IS_STRUCTURE!=0.0 (in the
-  non-historic database, that is, assigned using Node.SetValue()). This stress term is determined
-  according to the wall distance provided as Y_WALL.
-  @see ASGS2D,ASGS3D,VMS,ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
+ * @brief Epsilon Neumann wall condition
+ *
+ * This is a Neumann wall condition for $\epsilon$ equation in $k-\epsilon$ formulation of RANS
+ * based on eddy viscosity model formulation.
+ *
+ * @tparam TNumNodes Number of nodes in the wall condition
  */
+
 template <unsigned int TNumNodes>
-class EvmEpsilonWallCondition : public Condition
+class RansEvmEpsilonWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of EvmEpsilonWallCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EvmEpsilonWallCondition);
+    /// Pointer definition of RansEvmEpsilonWallCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmEpsilonWallCondition);
 
     typedef Node<3> NodeType;
 
@@ -87,15 +86,9 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef std::size_t SizeType;
-
     typedef std::vector<std::size_t> EquationIdVectorType;
 
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -105,7 +98,7 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    explicit EvmEpsilonWallCondition(IndexType NewId = 0) : Condition(NewId)
+    explicit RansEvmEpsilonWallCondition(IndexType NewId = 0) : Condition(NewId)
     {
     }
 
@@ -114,7 +107,7 @@ public:
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    EvmEpsilonWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
+    RansEvmEpsilonWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
         : Condition(NewId, ThisNodes)
     {
     }
@@ -124,7 +117,7 @@ public:
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    EvmEpsilonWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    RansEvmEpsilonWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {
     }
@@ -135,7 +128,7 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    EvmEpsilonWallCondition(IndexType NewId,
+    RansEvmEpsilonWallCondition(IndexType NewId,
                             GeometryType::Pointer pGeometry,
                             PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
@@ -143,13 +136,13 @@ public:
     }
 
     /// Copy constructor.
-    EvmEpsilonWallCondition(EvmEpsilonWallCondition const& rOther)
+    RansEvmEpsilonWallCondition(RansEvmEpsilonWallCondition const& rOther)
         : Condition(rOther)
     {
     }
 
     /// Destructor.
-    ~EvmEpsilonWallCondition() override
+    ~RansEvmEpsilonWallCondition() override
     {
     }
 
@@ -158,7 +151,7 @@ public:
     ///@{
 
     /// Assignment operator
-    EvmEpsilonWallCondition& operator=(EvmEpsilonWallCondition const& rOther)
+    RansEvmEpsilonWallCondition& operator=(RansEvmEpsilonWallCondition const& rOther)
     {
         Condition::operator=(rOther);
 
@@ -169,7 +162,7 @@ public:
     ///@name Operations
     ///@{
 
-    /// Create a new EvmEpsilonWallCondition object.
+    /// Create a new RansEvmEpsilonWallCondition object.
     /**
       @param NewId Index of the new condition
       @param ThisNodes An array containing the nodes of the new condition
@@ -179,7 +172,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<EvmEpsilonWallCondition>(
+        return Kratos::make_intrusive<RansEvmEpsilonWallCondition>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -187,7 +180,7 @@ public:
                               GeometryType::Pointer pGeom,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<EvmEpsilonWallCondition>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<RansEvmEpsilonWallCondition>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -259,7 +252,7 @@ public:
         this->CalculateLocalVelocityContribution(rDampingMatrix, RHS, rCurrentProcessInfo);
     }
 
-    /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
+    /// Calculate wall stress term for all nodes with STRUCTURE == true
     /**
       @param rDampingMatrix Left-hand side matrix
       @param rRightHandSideVector Right-hand side vector
@@ -354,12 +347,10 @@ public:
 
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENCE_RANS_C_MU);
-        KRATOS_CHECK_VARIABLE_KEY(WALL_VON_KARMAN);
         KRATOS_CHECK_VARIABLE_KEY(KINEMATIC_VISCOSITY);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_VISCOSITY);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
 
         const GeometryType& r_geometry = this->GetGeometry();
 
@@ -370,8 +361,8 @@ public:
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
 
             KRATOS_CHECK_DOF_IN_NODE(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
         }
@@ -417,7 +408,7 @@ public:
         this->GetFirstDerivativesVector(rValues, Step);
     }
 
-    /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
+    /// Returns TURBULENT_ENERGY_DISSIPATION_RATE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
@@ -436,7 +427,7 @@ public:
         }
     }
 
-    /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
+    /// Returns TURBULENT_ENERGY_DISSIPATION_RATE_2 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
@@ -471,14 +462,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "EvmEpsilonWallCondition" << TNumNodes << "N";
+        buffer << "RansEvmEpsilonWallCondition" << TNumNodes << "N";
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "EvmEpsilonWallCondition";
+        rOStream << "RansEvmEpsilonWallCondition";
     }
 
     /// Print object's data.
@@ -568,7 +559,7 @@ private:
 
     ///@}
 
-}; // Class EvmEpsilonWallCondition
+}; // Class RansEvmEpsilonWallCondition
 
 ///@}
 
@@ -582,7 +573,7 @@ private:
 /// input stream function
 template <unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                EvmEpsilonWallCondition<TNumNodes>& rThis)
+                                RansEvmEpsilonWallCondition<TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -590,7 +581,7 @@ inline std::istream& operator>>(std::istream& rIStream,
 /// output stream function
 template <unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const EvmEpsilonWallCondition<TNumNodes>& rThis)
+                                const RansEvmEpsilonWallCondition<TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -605,4 +596,4 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_EVM_EPSILON_WALL_CONDITION_H
+#endif // KRATOS_RANS_EVM_EPSILON_WALL_CONDITION_H
