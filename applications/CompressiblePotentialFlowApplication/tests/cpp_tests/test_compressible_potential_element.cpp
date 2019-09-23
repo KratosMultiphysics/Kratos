@@ -148,7 +148,7 @@ namespace Kratos {
       }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocalSystem, CompressiblePotentialApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocalSystemRHS, CompressiblePotentialApplicationFastSuite)
     {
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -182,12 +182,55 @@ namespace Kratos {
 
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-      // Check the RHS values (the RHS is computed as the LHS x previous_solution,
-      // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-      std::array<double, 3> reference({0.125, 0.0, -0.125});
+      std::array<double, 3> reference({0.125625, 0.0, -0.125625});
 
       for (unsigned int i = 0; i < RHS.size(); i++) {
         KRATOS_CHECK_NEAR(RHS(i), reference[i], 1e-6);
+      }
+    }
+
+        KRATOS_TEST_CASE_IN_SUITE(EmbeddedCompressiblePotentialFlowElementCalculateLocalSystemLHS, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      GenerateCompressibleEmbeddedElement(model_part);
+      Element::Pointer pElement = model_part.pGetElement(1);
+
+      // Define the nodal values
+      std::array<double,3> potential;
+      potential[0] = 1.0;
+      potential[1] = 2.0;
+      potential[2] = 3.0;
+
+      for (unsigned int i = 0; i < 3; i++){
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+      }
+
+      // Define the distance values
+      Vector level_set(3);
+      level_set(0) = 1.0;
+      level_set(1) = -1.0;
+      level_set(2) = -1.0;
+
+      for (unsigned int i = 0; i < 3; i++){
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = level_set(i);
+      }
+
+      // Compute RHS and LHS
+      Vector RHS = ZeroVector(3);
+      Matrix LHS = ZeroMatrix(3, 3);
+
+      pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+
+      std::array<double, 9> reference({0.251249, -0.25125, 1.08455e-06, -0.25125, 0.502499, -0.25125, 1.08455e-06, -0.25125, 0.251249});
+
+      KRATOS_WATCH(LHS)
+
+      for (unsigned int i = 0; i < LHS.size1(); i++) {
+        for (unsigned int j = 0; i < LHS.size2(); i++) {
+          KRATOS_CHECK_NEAR(LHS(i,j), reference[3*i+j], 1e-6);
+        }
       }
     }
 
