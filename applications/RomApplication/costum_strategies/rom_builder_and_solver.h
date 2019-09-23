@@ -316,6 +316,88 @@ public:
         }
     }
 
+
+
+    void ObtainAndSaveResiduals(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY
+
+        //Getting the Elements
+        ElementsArrayType& pElements = rModelPart.Elements();
+
+        //getting the array of the conditions
+        ConditionsArrayType& ConditionsArray = rModelPart.Conditions();
+
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        //contributions to the system
+        //LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different
+        //terms
+        Element::EquationIdVectorType EquationId;
+
+        // assemble all elements
+        //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+
+        const int nelements = static_cast<int>(pElements.size());
+        //#pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
+        {
+            //#pragma omp for schedule(guided, 512) nowait
+            for (int i=0; i<nelements; i++) {
+                typename ElementsArrayType::iterator it = pElements.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if( (it)->IsDefined(ACTIVE) ) {
+                    element_is_active = (it)->Is(ACTIVE);
+                }
+
+                if(element_is_active) {
+                    //calculate elemental Right Hand Side Contribution
+                    pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    KRATOS_WATCH(RHS_Contribution)
+                    //AssembleRHS(b, RHS_Contribution, EquationId);
+                }
+            }
+
+            //LHS_Contribution.resize(0, 0, false);
+            RHS_Contribution.resize(0, false);
+
+            // assemble all conditions
+            const int nconditions = static_cast<int>(ConditionsArray.size());
+            //#pragma omp for schedule(guided, 512)
+            for (int i = 0; i<nconditions; i++) {
+                auto it = ConditionsArray.begin() + i;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if( (it)->IsDefined(ACTIVE) ) {
+                    condition_is_active = (it)->Is(ACTIVE);
+                }
+
+                if(condition_is_active) {
+                    //calculate elemental contribution
+                    pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, CurrentProcessInfo);
+                    KRATOS_WATCH(RHS_Contribution)
+                    //assemble the elemental contribution
+                    //AssembleRHS(b, RHS_Contribution, EquationId);
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+
+    }
+
+
+
     void GetDofValues(const std::vector<DofPointerType>& rDofList, TSystemVectorType& rX)
     {
         unsigned int i=0;
@@ -375,7 +457,7 @@ public:
 
         // assemble all elements
         double start_build = OpenMPUtils::GetCurrentTime();
-
+        Matrix MatrixResiduals(nelements, mRomDofs);   // Matrix of reduced residuals.
 //       #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
 //            # pragma omp for  schedule(guided, 512) nowait
@@ -388,17 +470,20 @@ public:
                 bool element_is_active = true;
                 if ((it_el)->IsDefined(ACTIVE))
                     element_is_active = (it_el)->Is(ACTIVE);
+                
+                
 
                 if (element_is_active)
                 {
                     //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);                    
 					Element::DofsVectorType dofs;
 					it_el->GetDofList(dofs, CurrentProcessInfo);
                     //assemble the elemental contribution - here is where the ROM acts
                     //compute the elemental reduction matrix T
                     const auto& geom = it_el->GetGeometry();
                     Matrix Telemental(geom.size()*mNodalDofs, mRomDofs);
+                    Vector ResidualReduced(mRomDofs); // The size of the residual will vary only when using more ROM modes
 
                     for(unsigned int i=0; i<geom.size(); ++i)
                     {
@@ -415,12 +500,27 @@ public:
                     Matrix aux = prod(LHS_Contribution, Telemental);
 					noalias(Arom) += prod(trans(Telemental), aux);
                     noalias(brom) += prod(trans(Telemental), RHS_Contribution);
+                    ResidualReduced = prod(trans(Telemental), RHS_Contribution);
+
+                    row(MatrixResiduals, k) = ResidualReduced;
+                    
+
+                    //PrintData(Telemental);
+                    //KRATOS_WATCH(Telemental)
+                    //KRATOS_WATCH(RHS_Contribution)
+                    KRATOS_WATCH(ResidualReduced)
+                    //KRATOS_WATCH(Arom)
 
                     // clean local elemental me overridemory
-                    pScheme->CleanMemory(*(it_el.base()));
+                    pScheme->CleanMemory(*(it_el.base()));                
                 }
+                
             }
-
+            std::ofstream myfile;
+            myfile.open ("/home/jrbravo/Desktop/PhD/example.txt");
+            myfile << MatrixResiduals;
+            myfile.close();            
+            KRATOS_WATCH(MatrixResiduals)
 
             // #pragma omp for  schedule(guided , 512)
             for (int k = 0; k < nconditions;  k++)
