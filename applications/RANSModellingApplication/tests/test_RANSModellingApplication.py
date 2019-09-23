@@ -1,3 +1,6 @@
+import subprocess
+import os.path
+
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
@@ -12,6 +15,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from evm_k_epsilon_tests import EvmKEpsilonTest
 from custom_process_tests import CustomProcessTest
 import run_cpp_unit_tests
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -56,23 +60,36 @@ def AssembleTestSuites():
 
     return suites
 
-if __name__ == '__main__':
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
+if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(
+        KratosMultiphysics.Logger.Severity.WARNING)
+    KratosMultiphysics.Logger.PrintInfo("Unittests",
+                                        "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests",
+                                        "Finished running cpp unit tests!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests",
+                                        "\nRunning mpi python tests ...")
     try:
         import KratosMultiphysics.mpi as KratosMPI
         import KratosMultiphysics.MetisApplication as MetisApplication
         import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_RANSModellingApplication_mpi.py"], stdout=subprocess.PIPE)
-        p.wait()
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
-    except ImportError:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "mpi is not available!")
+        p = subprocess.Popen([
+                "mpiexec", "-np", "2", "python3",
+                "test_RANSModellingApplication_mpi.py"],
+                stdout=subprocess.PIPE,
+                cwd=os.path.dirname(os.path.abspath(__file__)))
 
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+        p.wait()
+        KratosMultiphysics.Logger.PrintInfo("Unittests",
+                                            "Finished mpi python tests!")
+    except ImportError:
+        KratosMultiphysics.Logger.PrintInfo("Unittests",
+                                            "mpi is not available!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests",
+                                        "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
