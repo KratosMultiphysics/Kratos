@@ -14,11 +14,15 @@ from co_simulation_test_factory import TestSmallCoSimulationCases
 from co_simulation_test_factory import TestCoSimulationCases
 from test_function_callback_utility import TestGenericCallFunction
 from test_ping_pong_coupling import TestPingPong
+
 if numpy_available:
     from test_coupling_interface_data import TestCouplingInterfaceData
     from test_data_transfer_operators import TestDataTransferOperators
     from test_coupling_operations import TestScalingOperation
     from test_flower_coupling import TestFLOWerCoupling
+    from test_convergence_criteria import TestConvergenceCriteria
+    from test_coupling_interface_residual import TestCouplingInterfaceResidual
+
 if not using_pykratos:
     from test_cosim_EMPIRE_API import TestCoSim_EMPIRE_API
 
@@ -44,6 +48,8 @@ def AssembleTestSuites():
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDataTransferOperators]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestScalingOperation]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPingPong]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestConvergenceCriteria]))
+        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCouplingInterfaceResidual]))
     if not using_pykratos:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSim_EMPIRE_API]))
 
