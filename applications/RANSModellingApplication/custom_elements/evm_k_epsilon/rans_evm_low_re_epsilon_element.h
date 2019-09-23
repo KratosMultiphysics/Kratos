@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_EVM_LOW_RE_EPSILON_ELEMENT_H_INCLUDED)
-#define KRATOS_EVM_LOW_RE_EPSILON_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_RANS_EVM_LOW_RE_EPSILON_ELEMENT_H_INCLUDED)
+#define KRATOS_RANS_EVM_LOW_RE_EPSILON_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -48,7 +48,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-struct EvmLowReEpsilonElementData
+struct RansEvmLowReEpsilonElementData
 {
     double C1;
     double C2;
@@ -64,14 +64,14 @@ struct EvmLowReEpsilonElementData
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class EvmLowReEpsilonElement
-    : public StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmLowReEpsilonElementData>
+class RansEvmLowReEpsilonElement
+    : public StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmLowReEpsilonElementData> BaseType;
+    typedef StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData> BaseType;
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -115,8 +115,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of EvmLowReEpsilonElement
-    KRATOS_CLASS_POINTER_DEFINITION(EvmLowReEpsilonElement);
+    /// Pointer definition of RansEvmLowReEpsilonElement
+    KRATOS_CLASS_POINTER_DEFINITION(RansEvmLowReEpsilonElement);
 
     ///@}
     ///@name Life Cycle
@@ -125,41 +125,41 @@ public:
     /**
      * Constructor.
      */
-    explicit EvmLowReEpsilonElement(IndexType NewId = 0);
+    explicit RansEvmLowReEpsilonElement(IndexType NewId = 0);
 
     /**
      * Constructor using an array of nodes
      */
-    EvmLowReEpsilonElement(IndexType NewId, const NodesArrayType& ThisNodes);
+    RansEvmLowReEpsilonElement(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /**
      * Constructor using Geometry
      */
-    EvmLowReEpsilonElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmLowReEpsilonElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /**
      * Constructor using Properties
      */
-    EvmLowReEpsilonElement(IndexType NewId,
+    RansEvmLowReEpsilonElement(IndexType NewId,
                            GeometryType::Pointer pGeometry,
                            PropertiesType::Pointer pProperties);
 
     /**
      * Copy Constructor
      */
-    EvmLowReEpsilonElement(EvmLowReEpsilonElement const& rOther);
+    RansEvmLowReEpsilonElement(RansEvmLowReEpsilonElement const& rOther);
 
     /**
      * Destructor
      */
-    ~EvmLowReEpsilonElement() override;
+    ~RansEvmLowReEpsilonElement() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    EvmLowReEpsilonElement& operator=(EvmLowReEpsilonElement const& rOther);
+    RansEvmLowReEpsilonElement& operator=(RansEvmLowReEpsilonElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -312,14 +312,14 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateConvectionDiffusionReactionData(EvmLowReEpsilonElementData& rData,
+    void CalculateConvectionDiffusionReactionData(RansEvmLowReEpsilonElementData& rData,
                                                   double& rEffectiveKinematicViscosity,
                                                   const Vector& rShapeFunctions,
                                                   const Matrix& rShapeFunctionDerivatives,
                                                   const ProcessInfo& rCurrentProcessInfo,
                                                   const int Step = 0) const override;
 
-    void CalculateConvectionDiffusionReactionData(EvmLowReEpsilonElementData& rData,
+    void CalculateConvectionDiffusionReactionData(RansEvmLowReEpsilonElementData& rData,
                                                   double& rEffectiveKinematicViscosity,
                                                   double& rVariableGradientNorm,
                                                   double& rVariableRelaxedAcceleration,
@@ -328,11 +328,11 @@ private:
                                                   const ProcessInfo& rCurrentProcessInfo,
                                                   const int Step = 0) const override;
 
-    double CalculateReactionTerm(const EvmLowReEpsilonElementData& rData,
+    double CalculateReactionTerm(const RansEvmLowReEpsilonElementData& rData,
                                  const ProcessInfo& rCurrentProcessInfo,
                                  const int Step = 0) const override;
 
-    double CalculateSourceTerm(const EvmLowReEpsilonElementData& rData,
+    double CalculateSourceTerm(const RansEvmLowReEpsilonElementData& rData,
                                const ProcessInfo& rCurrentProcessInfo,
                                const int Step = 0) const override;
 
@@ -374,4 +374,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_EVM_LOW_RE_EPSILON_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_RANS_EVM_LOW_RE_EPSILON_ELEMENT_H_INCLUDED  defined

@@ -53,12 +53,12 @@ class TurbulenceKEpsilonConfiguration(
         self.model_settings = parameters["model_settings"]
 
         if (self.model_settings["use_high_re_elements"].GetBool()):
-            self.model_elements_list = ["RANSEVMK", "RANSEVMEpsilon"]
+            self.model_elements_list = ["RansEvmK", "RansEvmEpsilon"]
             self.model_conditions_list = [
                 "Condition", "RansEvmEpsilonWallCondition"
             ]
         else:
-            self.model_elements_list = ["RANSEVMLowReK", "RANSEVMLowReEpsilon"]
+            self.model_elements_list = ["RansEvmLowReK", "RansEvmLowReEpsilon"]
             self.model_conditions_list = ["Condition", "Condition"]
         self.rans_solver_configurations = []
         self.is_initial_values_assigned = False

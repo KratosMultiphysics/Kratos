@@ -21,10 +21,10 @@
 #include "includes/kratos_application.h"
 
 // Element includes
-#include "custom_elements/evm_k_epsilon/evm_epsilon_element.h"
-#include "custom_elements/evm_k_epsilon/evm_k_element.h"
-#include "custom_elements/evm_k_epsilon/evm_low_re_epsilon_element.h"
-#include "custom_elements/evm_k_epsilon/evm_low_re_k_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_epsilon_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_low_re_epsilon_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_low_re_k_element.h"
 
 // Condition includes
 #include "custom_conditions/evm_k_epsilon/rans_evm_epsilon_wall_condition.h"
@@ -173,17 +173,17 @@ private:
     ///@{
 
     /// k-epsilon turbulence model elements
-    const EvmLowReKElement<2, 3> mRANSEVMLowReK2D;
-    const EvmLowReKElement<3, 4> mRANSEVMLowReK3D;
+    const RansEvmLowReKElement<2, 3> mRansEvmLowReK2D;
+    const RansEvmLowReKElement<3, 4> mRansEvmLowReK3D;
 
-    const EvmLowReEpsilonElement<2, 3> mRANSEVMLowReEpsilon2D;
-    const EvmLowReEpsilonElement<3, 4> mRANSEVMLowReEpsilon3D;
+    const RansEvmLowReEpsilonElement<2, 3> mRansEvmLowReEpsilon2D;
+    const RansEvmLowReEpsilonElement<3, 4> mRansEvmLowReEpsilon3D;
 
-    const EvmKElement<2, 3> mRANSEVMK2D;
-    const EvmKElement<3, 4> mRANSEVMK3D;
+    const RansEvmKElement<2, 3> mRansEvmK2D;
+    const RansEvmKElement<3, 4> mRansEvmK3D;
 
-    const EvmEpsilonElement<2, 3> mRANSEVMEpsilon2D;
-    const EvmEpsilonElement<3, 4> mRANSEVMEpsilon3D;
+    const RansEvmEpsilonElement<2, 3> mRansEvmEpsilon2D;
+    const RansEvmEpsilonElement<3, 4> mRansEvmEpsilon3D;
 
     /// k-epsilon turbulence model conditions
     const RansEvmEpsilonWallCondition<2> mRansEvmEpsilonWallCondition2D2N;

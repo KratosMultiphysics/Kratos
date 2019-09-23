@@ -23,10 +23,10 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "custom_elements/evm_k_epsilon/evm_epsilon_element.h"
-#include "custom_elements/evm_k_epsilon/evm_k_element.h"
-#include "custom_elements/evm_k_epsilon/evm_low_re_epsilon_element.h"
-#include "custom_elements/evm_k_epsilon/evm_low_re_k_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_epsilon_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_low_re_epsilon_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_low_re_k_element.h"
 #include "custom_elements/stabilized_convection_diffusion_reaction_utilities.h"
 #include "rans_modelling_application_variables.h"
 
@@ -201,7 +201,7 @@ void EvmKElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RANSEVMK2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
+    CreateEvmUnitTestModelPart("RansEvmK2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
 }
 
 void EvmEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
@@ -216,7 +216,7 @@ void EvmEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RANSEVMEpsilon2D3N",
+    CreateEvmUnitTestModelPart("RansEvmEpsilon2D3N",
                                TURBULENT_ENERGY_DISSIPATION_RATE, rModelPart);
 }
 
@@ -230,7 +230,7 @@ void EvmLowReKElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RANSEVMLowReK2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
+    CreateEvmUnitTestModelPart("RansEvmLowReK2D3N", TURBULENT_KINETIC_ENERGY, rModelPart);
 }
 
 void EvmLowReEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
@@ -244,7 +244,7 @@ void EvmLowReEpsilonElement2D3N_SetUp(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
     rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    CreateEvmUnitTestModelPart("RANSEVMLowReEpsilon2D3N",
+    CreateEvmUnitTestModelPart("RansEvmLowReEpsilon2D3N",
                                TURBULENT_ENERGY_DISSIPATION_RATE, rModelPart);
 }
 
@@ -301,7 +301,7 @@ void EvmKElement2D3N_AssignTestData(ModelPart& rModelPart)
     node3.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = 1.11;
     node3.FastGetSolutionStepValue(VELOCITY_X) = 0.01;
     node3.FastGetSolutionStepValue(VELOCITY_Y) = -0.65;
-    CheckEvmElementTestData<EvmKElement<2, 3>>(rModelPart.Elements().front(),
+    CheckEvmElementTestData<RansEvmKElement<2, 3>>(rModelPart.Elements().front(),
                                                rModelPart.GetProcessInfo());
 }
 
@@ -338,7 +338,7 @@ void EvmEpsilonElement2D3N_AssignTestData(ModelPart& rModelPart)
     node3.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = 0.90;
     node3.FastGetSolutionStepValue(VELOCITY_X) = 0.01;
     node3.FastGetSolutionStepValue(VELOCITY_Y) = -0.65;
-    CheckEvmElementTestData<EvmEpsilonElement<2, 3>>(
+    CheckEvmElementTestData<RansEvmEpsilonElement<2, 3>>(
         rModelPart.Elements().front(), rModelPart.GetProcessInfo());
 }
 
@@ -376,7 +376,7 @@ void EvmLowReKElement2D3N_AssignTestData(ModelPart& rModelPart)
     node3.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = 1.11;
     node3.FastGetSolutionStepValue(VELOCITY_X) = 0.01;
     node3.FastGetSolutionStepValue(VELOCITY_Y) = -0.65;
-    CheckEvmElementTestData<EvmLowReKElement<2, 3>>(
+    CheckEvmElementTestData<RansEvmLowReKElement<2, 3>>(
         rModelPart.Elements().front(), rModelPart.GetProcessInfo());
 }
 
@@ -419,7 +419,7 @@ void EvmLowReEpsilonElement2D3N_AssignTestData(ModelPart& rModelPart)
     node3.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = 0.90;
     node3.FastGetSolutionStepValue(VELOCITY_X) = 0.01;
     node3.FastGetSolutionStepValue(VELOCITY_Y) = -0.65;
-    CheckEvmElementTestData<EvmLowReEpsilonElement<2, 3>>(
+    CheckEvmElementTestData<RansEvmLowReEpsilonElement<2, 3>>(
         rModelPart.Elements().front(), rModelPart.GetProcessInfo());
 }
 

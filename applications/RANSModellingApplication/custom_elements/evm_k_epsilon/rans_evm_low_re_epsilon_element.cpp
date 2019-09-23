@@ -15,7 +15,7 @@
 // External includes
 
 // Include Base h
-#include "evm_epsilon_element.h"
+#include "rans_evm_low_re_epsilon_element.h"
 
 namespace Kratos
 {
@@ -42,8 +42,8 @@ namespace Kratos
  * Constructor.
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmEpsilonElement<TDim, TNumNodes>::EvmEpsilonElement(IndexType NewId)
-    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmEpsilonElementData>(NewId)
+RansEvmLowReEpsilonElement<TDim, TNumNodes>::RansEvmLowReEpsilonElement(IndexType NewId)
+    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData>(NewId)
 {
 }
 
@@ -51,9 +51,9 @@ EvmEpsilonElement<TDim, TNumNodes>::EvmEpsilonElement(IndexType NewId)
  * Constructor using an array of nodes
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmEpsilonElement<TDim, TNumNodes>::EvmEpsilonElement(IndexType NewId,
-                                                      const NodesArrayType& ThisNodes)
-    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmEpsilonElementData>(
+RansEvmLowReEpsilonElement<TDim, TNumNodes>::RansEvmLowReEpsilonElement(IndexType NewId,
+                                                                const NodesArrayType& ThisNodes)
+    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData>(
           NewId, ThisNodes)
 {
 }
@@ -62,8 +62,9 @@ EvmEpsilonElement<TDim, TNumNodes>::EvmEpsilonElement(IndexType NewId,
  * Constructor using Geometry
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmEpsilonElement<TDim, TNumNodes>::EvmEpsilonElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmEpsilonElementData>(
+RansEvmLowReEpsilonElement<TDim, TNumNodes>::RansEvmLowReEpsilonElement(IndexType NewId,
+                                                                GeometryType::Pointer pGeometry)
+    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData>(
           NewId, pGeometry)
 {
 }
@@ -72,10 +73,9 @@ EvmEpsilonElement<TDim, TNumNodes>::EvmEpsilonElement(IndexType NewId, GeometryT
  * Constructor using Properties
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmEpsilonElement<TDim, TNumNodes>::EvmEpsilonElement(IndexType NewId,
-                                                      GeometryType::Pointer pGeometry,
-                                                      PropertiesType::Pointer pProperties)
-    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmEpsilonElementData>(
+RansEvmLowReEpsilonElement<TDim, TNumNodes>::RansEvmLowReEpsilonElement(
+    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData>(
           NewId, pGeometry, pProperties)
 {
 }
@@ -84,8 +84,9 @@ EvmEpsilonElement<TDim, TNumNodes>::EvmEpsilonElement(IndexType NewId,
  * Copy Constructor
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmEpsilonElement<TDim, TNumNodes>::EvmEpsilonElement(EvmEpsilonElement<TDim, TNumNodes> const& rOther)
-    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, EvmEpsilonElementData>(rOther)
+RansEvmLowReEpsilonElement<TDim, TNumNodes>::RansEvmLowReEpsilonElement(
+    RansEvmLowReEpsilonElement<TDim, TNumNodes> const& rOther)
+    : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData>(rOther)
 {
 }
 
@@ -93,7 +94,7 @@ EvmEpsilonElement<TDim, TNumNodes>::EvmEpsilonElement(EvmEpsilonElement<TDim, TN
  * Destructor
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmEpsilonElement<TDim, TNumNodes>::~EvmEpsilonElement()
+RansEvmLowReEpsilonElement<TDim, TNumNodes>::~RansEvmLowReEpsilonElement()
 {
 }
 
@@ -103,8 +104,8 @@ EvmEpsilonElement<TDim, TNumNodes>::~EvmEpsilonElement()
 
 /// Assignment operator.
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmEpsilonElement<TDim, TNumNodes>& EvmEpsilonElement<TDim, TNumNodes>::operator=(
-    EvmEpsilonElement<TDim, TNumNodes> const& rOther)
+RansEvmLowReEpsilonElement<TDim, TNumNodes>& RansEvmLowReEpsilonElement<TDim, TNumNodes>::operator=(
+    RansEvmLowReEpsilonElement<TDim, TNumNodes> const& rOther)
 {
     BaseType::operator=(rOther);
     Flags::operator=(rOther);
@@ -129,12 +130,11 @@ EvmEpsilonElement<TDim, TNumNodes>& EvmEpsilonElement<TDim, TNumNodes>::operator
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer EvmEpsilonElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                            NodesArrayType const& ThisNodes,
-                                                            PropertiesType::Pointer pProperties) const
+Element::Pointer RansEvmLowReEpsilonElement<TDim, TNumNodes>::Create(
+    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EvmEpsilonElement>(
+    return Kratos::make_intrusive<RansEvmLowReEpsilonElement>(
         NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
@@ -147,12 +147,11 @@ Element::Pointer EvmEpsilonElement<TDim, TNumNodes>::Create(IndexType NewId,
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer EvmEpsilonElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                            GeometryType::Pointer pGeom,
-                                                            PropertiesType::Pointer pProperties) const
+Element::Pointer RansEvmLowReEpsilonElement<TDim, TNumNodes>::Create(
+    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EvmEpsilonElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<RansEvmLowReEpsilonElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -164,11 +163,11 @@ Element::Pointer EvmEpsilonElement<TDim, TNumNodes>::Create(IndexType NewId,
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer EvmEpsilonElement<TDim, TNumNodes>::Clone(IndexType NewId,
-                                                           NodesArrayType const& ThisNodes) const
+Element::Pointer RansEvmLowReEpsilonElement<TDim, TNumNodes>::Clone(IndexType NewId,
+                                                                NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EvmEpsilonElement>(
+    return Kratos::make_intrusive<RansEvmLowReEpsilonElement>(
         NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
     KRATOS_CATCH("");
 }
@@ -180,8 +179,8 @@ Element::Pointer EvmEpsilonElement<TDim, TNumNodes>::Clone(IndexType NewId,
  * @param rCurrentProcessInfo: the current process info instance
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                          ProcessInfo& CurrentProcessInfo)
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
+                                                               ProcessInfo& CurrentProcessInfo)
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
@@ -197,8 +196,8 @@ void EvmEpsilonElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& 
  * @param rCurrentProcessInfo: the current process info instance
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                    ProcessInfo& rCurrentProcessInfo)
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+                                                         ProcessInfo& rCurrentProcessInfo)
 {
     if (rElementalDofList.size() != TNumNodes)
         rElementalDofList.resize(TNumNodes);
@@ -209,13 +208,14 @@ void EvmEpsilonElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDo
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetValuesVector(VectorType& rValues, int Step)
 {
     this->GetFirstDerivativesVector(rValues, Step);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues, int Step)
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues,
+                                                                        int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -230,7 +230,8 @@ void EvmEpsilonElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& r
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues, int Step)
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues,
+                                                                         int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -244,7 +245,7 @@ void EvmEpsilonElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& 
     }
 }
 template <unsigned int TDim, unsigned int TNumNodes>
-GeometryData::IntegrationMethod EvmEpsilonElement<TDim, TNumNodes>::GetIntegrationMethod() const
+GeometryData::IntegrationMethod RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
 }
@@ -259,7 +260,7 @@ GeometryData::IntegrationMethod EvmEpsilonElement<TDim, TNumNodes>::GetIntegrati
  * this method is: MANDATORY
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-int EvmEpsilonElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
+int RansEvmLowReEpsilonElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -274,8 +275,8 @@ int EvmEpsilonElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcess
     KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
     KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
     KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE_2);
-    // KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
-    // KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
+    KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
+    KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
     KRATOS_CHECK_VARIABLE_KEY(RANS_AUXILIARY_VARIABLE_2);
 
     for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
@@ -287,9 +288,9 @@ int EvmEpsilonElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcess
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
-        // KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_Y_PLUS, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
-        // KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
     }
@@ -314,25 +315,25 @@ int EvmEpsilonElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcess
 /// Turn back information as a string.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::string EvmEpsilonElement<TDim, TNumNodes>::Info() const
+std::string RansEvmLowReEpsilonElement<TDim, TNumNodes>::Info() const
 {
     std::stringstream buffer;
-    buffer << "EvmEpsilonElement #" << Element::Id();
+    buffer << "RansEvmLowReEpsilonElement #" << Element::Id();
     return buffer.str();
 }
 
 /// Print information about this object.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "EvmEpsilonElement #" << Element::Id();
+    rOStream << "RansEvmLowReEpsilonElement #" << Element::Id();
 }
 
 /// Print object's data.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
 {
     Element::pGetGeometry()->PrintData(rOStream);
 }
@@ -388,8 +389,8 @@ void EvmEpsilonElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
-    EvmEpsilonElementData& rData,
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
+    RansEvmLowReEpsilonElementData& rData,
     double& rEffectiveKinematicViscosity,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -405,32 +406,31 @@ void EvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionDat
     const double nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
     const double nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
     const double tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
-    // const double epsilon =
-    //     this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
-    const double gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
-    // const double gamma = tke / (epsilon + std::numeric_limits<double>::epsilon());
-    // const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
-    // const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
+    const double epsilon =
+        this->EvaluateInPoint(TURBULENT_ENERGY_DISSIPATION_RATE, rShapeFunctions);
+    const double y_plus = this->EvaluateInPoint(RANS_Y_PLUS, rShapeFunctions);
+    const double f_mu = EvmKepsilonModelUtilities::CalculateFmu(y_plus);
+    const double gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, f_mu, tke, nu_t);
+    const double f2 = EvmKepsilonModelUtilities::CalculateF2(tke, nu, epsilon);
+    const double wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
 
     rData.C1 = c1;
     rData.C2 = c2;
+    rData.F2 = f2;
     rData.Gamma = gamma;
+    rData.KinematicViscosity = nu;
     rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
     rData.TurbulentKinematicViscosity = nu_t;
     rData.TurbulentKineticEnergy = tke;
-    // rData.WallDistance = wall_distance;
-    // rData.WallNormal = this->EvaluateInPoint(NORMAL, rShapeFunctions);
-    rData.VelocityDivergence =
-        this->GetDivergenceOperator(VELOCITY, rShapeFunctionDerivatives);
-    // rData.YPlus = y_plus;
-    // rData.WallVelocity = norm_2(this->EvaluateInPoint(VELOCITY, rShapeFunctions));
+    rData.WallDistance = wall_distance;
+    rData.YPlus = y_plus;
 
     rEffectiveKinematicViscosity = nu + nu_t / epsilon_sigma;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
-    EvmEpsilonElementData& rData,
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
+    RansEvmLowReEpsilonElementData& rData,
     double& rEffectiveKinematicViscosity,
     double& rVariableGradientNorm,
     double& rVariableRelaxedAcceleration,
@@ -453,96 +453,34 @@ void EvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionDat
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double EvmEpsilonElement<TDim, TNumNodes>::CalculateReactionTerm(
-    const EvmEpsilonElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
+double RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateReactionTerm(
+    const RansEvmLowReEpsilonElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
 {
-    return std::max(rData.C2 * rData.Gamma + rData.C1 * 2.0 * rData.VelocityDivergence / 3.0, 0.0);
+    return rData.C2 * rData.F2 * rData.Gamma + 2.0 * rData.KinematicViscosity *
+                                                   std::exp(-0.5 * rData.YPlus) /
+                                                   std::pow(rData.WallDistance, 2);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double EvmEpsilonElement<TDim, TNumNodes>::CalculateSourceTerm(const EvmEpsilonElementData& rData,
-                                                               const ProcessInfo& rCurrentProcessInfo,
-                                                               const int Step) const
+double RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateSourceTerm(
+    const RansEvmLowReEpsilonElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
 {
-    double production = 0.0;
-    // const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    // const double von_karman = rCurrentProcessInfo[WALL_VON_KARMAN];
-    // const double beta = rCurrentProcessInfo[WALL_SMOOTHNESS_BETA];
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
     this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);
-
-    // if (this->Is(STRUCTURE))
-    // {
-    //     // Calculate the wall production term
-    //     const double u_tau = std::max(
-    //         std::pow(c_mu, 0.25) * std::sqrt(std::max(rData.TurbulentKineticEnergy, 0.0)),
-    //         rData.WallVelocity / (std::log(rData.YPlus) / von_karman + beta));
-    //     production = std::pow(u_tau, 3) / (von_karman * rData.WallDistance);
-    // }
-    // else
-    // {
-        production = EvmKepsilonModelUtilities::CalculateSourceTerm<TDim>(
-            velocity_gradient_matrix, rData.TurbulentKinematicViscosity,
-            rData.TurbulentKineticEnergy);
-    // }
+    double production = EvmKepsilonModelUtilities::CalculateSourceTerm<TDim>(
+        velocity_gradient_matrix, rData.TurbulentKinematicViscosity, rData.TurbulentKineticEnergy);
 
     production *= (rData.C1 * rData.Gamma);
+
     return production;
 }
 
-template <>
-void EvmEpsilonElement<2, 3>::Initialize()
-{
-    const GeometryType& r_geometry = this->GetGeometry();
-    const GeometryType::GeometriesArrayType& r_condition_point_list =
-        r_geometry.GenerateEdges();
-
-    if (EvmKepsilonModelUtilities::HasConditionWithFlag<NodeType>(
-            r_condition_point_list, STRUCTURE))
-        this->Set(STRUCTURE, true);
-}
-
-template <>
-void EvmEpsilonElement<2, 4>::Initialize()
-{
-    const GeometryType& r_geometry = this->GetGeometry();
-    const GeometryType::GeometriesArrayType& r_condition_point_list =
-        r_geometry.GenerateEdges();
-
-    if (EvmKepsilonModelUtilities::HasConditionWithFlag<NodeType>(
-            r_condition_point_list, STRUCTURE))
-        this->Set(STRUCTURE, true);
-}
-
-template <>
-void EvmEpsilonElement<3, 4>::Initialize()
-{
-    const GeometryType& r_geometry = this->GetGeometry();
-    const GeometryType::GeometriesArrayType& r_condition_point_list =
-        r_geometry.GenerateFaces();
-
-    if (EvmKepsilonModelUtilities::HasConditionWithFlag<NodeType>(
-            r_condition_point_list, STRUCTURE))
-        this->Set(STRUCTURE, true);
-}
-
-template <>
-void EvmEpsilonElement<3, 8>::Initialize()
-{
-    const GeometryType& r_geometry = this->GetGeometry();
-    const GeometryType::GeometriesArrayType& r_condition_point_list =
-        r_geometry.GenerateFaces();
-
-    if (EvmKepsilonModelUtilities::HasConditionWithFlag<NodeType>(
-            r_condition_point_list, STRUCTURE))
-        this->Set(STRUCTURE, true);
-}
 ///@}
 ///@name Serialization
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 
@@ -551,7 +489,7 @@ void EvmEpsilonElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmEpsilonElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+void RansEvmLowReEpsilonElement<TDim, TNumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 
@@ -583,13 +521,13 @@ void EvmEpsilonElement<TDim, TNumNodes>::load(Serializer& rSerializer)
 
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::istream& operator>>(std::istream& rIStream,
-                                EvmEpsilonElement<TDim, TNumNodes>& rThis);
+                                RansEvmLowReEpsilonElement<TDim, TNumNodes>& rThis);
 
 /// output stream function
 
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const EvmEpsilonElement<TDim, TNumNodes>& rThis)
+                                const RansEvmLowReEpsilonElement<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -599,9 +537,9 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 // Class template instantiation
 
-template class EvmEpsilonElement<2, 3>;
-template class EvmEpsilonElement<3, 4>;
-template class EvmEpsilonElement<2, 4>;
-template class EvmEpsilonElement<3, 8>;
+template class RansEvmLowReEpsilonElement<2, 3>;
+template class RansEvmLowReEpsilonElement<3, 4>;
+template class RansEvmLowReEpsilonElement<2, 4>;
+template class RansEvmLowReEpsilonElement<3, 8>;
 
 } // namespace Kratos.
