@@ -139,9 +139,9 @@ class VertexMorphingMethod:
     def Optimize(self):
         algorithm_name = self.optimization_settings["optimization_algorithm"]["name"].GetString()
 
-        print("\n> ==============================================================================================================")
-        print("> ", Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
-        print("> ==============================================================================================================\n")
+        KM.Logger.PrintInfo("\n> ==============================================================================================================")
+        KM.Logger.PrintInfo("> ", Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
+        KM.Logger.PrintInfo("> ==============================================================================================================\n")
 
         algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
                                                                   self.analyzer,
@@ -152,8 +152,8 @@ class VertexMorphingMethod:
         algorithm.RunOptimizationLoop()
         algorithm.FinalizeOptimizationLoop()
 
-        print("\n> ==============================================================================================================")
-        print("> Finished optimization                                                                                           ")
-        print("> ==============================================================================================================\n")
+        KM.Logger.PrintInfo("\n> ==============================================================================================================")
+        KM.Logger.PrintInfo("> Finished optimization                                                                                           ")
+        KM.Logger.PrintInfo("> ==============================================================================================================\n")
 
 # ==============================================================================

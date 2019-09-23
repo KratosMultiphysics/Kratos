@@ -199,9 +199,9 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 total_iteration += 1
                 timer.StartNewLap()
 
-                print("\n>=======================================================================================")
-                print("> ",timer.GetTimeStamp(),": Starting iteration ",outer_iteration,".",inner_iteration,".",total_iteration,"(outer . inner . total)")
-                print(">=======================================================================================\n")
+                KM.Logger.PrintInfo("\n>=======================================================================================")
+                KM.Logger.PrintInfo("> ",timer.GetTimeStamp(),": Starting iteration ",outer_iteration,".",inner_iteration,".",total_iteration,"(outer . inner . total)")
+                KM.Logger.PrintInfo(">=======================================================================================\n")
 
                 # Initialize new shape
                 self.model_part_controller.UpdateTimeStep(total_iteration)
@@ -373,8 +373,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     is_design_converged = True
                     break
 
-                print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
-                print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+                KM.Logger.PrintInfo("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
+                KM.Logger.PrintInfo("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             # Compute penalty factor such that estimated Lagrange multiplier is obtained
             if outer_iteration==1:
@@ -383,20 +383,20 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             # Update lambda
             current_lambda = current_lambda + penalty_factor*penalty_value
 
-            print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
-            print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+            KM.Logger.PrintInfo("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            KM.Logger.PrintInfo("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             # Check convergence of outer loop
             if outer_iteration == self.max_outer_iterations:
-                print("\n> Maximal outer iterations of optimization problem reached!")
+                KM.Logger.PrintInfo("\n> Maximal outer iterations of optimization problem reached!")
                 break
 
             if is_max_total_iterations_reached:
-                print("\n> Maximal total iterations of optimization problem reached!")
+                KM.Logger.PrintInfo("\n> Maximal total iterations of optimization problem reached!")
                 break
 
             if is_design_converged:
-                print("\n> Update of design variables is zero. Optimization converged!")
+                KM.Logger.PrintInfo("\n> Update of design variables is zero. Optimization converged!")
                 break
 
     # --------------------------------------------------------------------------

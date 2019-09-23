@@ -13,7 +13,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
 # Additional imports
 import shutil
@@ -40,7 +40,7 @@ class DataLogger():
         self.Communicator = Communicator
         self.OptimizationSettings = OptimizationSettings
 
-        default_logger_settings = KratosMultiphysics.Parameters("""
+        default_logger_settings = KM.Parameters("""
         {
             "output_directory"          : "Optimization_Results",
             "optimization_log_filename" : "optimization_log",
@@ -95,16 +95,16 @@ class DataLogger():
         numberOfObjectives = self.OptimizationSettings["objectives"].size()
         numberOfConstraints = self.OptimizationSettings["constraints"].size()
 
-        print("\n> The following objectives are defined:\n")
+        KM.Logger.PrintInfo("\n> The following objectives are defined:\n")
         for objectiveNumber in range(numberOfObjectives):
-            print(self.OptimizationSettings["objectives"][objectiveNumber])
+            KM.Logger.PrintInfo(self.OptimizationSettings["objectives"][objectiveNumber])
 
         if numberOfConstraints != 0:
-            print("> The following constraints are defined:\n")
+            KM.Logger.PrintInfo("> The following constraints are defined:\n")
             for constraintNumber in range(numberOfConstraints):
-                print(self.OptimizationSettings["constraints"][constraintNumber],"\n")
+                KM.Logger.PrintInfo(self.OptimizationSettings["constraints"][constraintNumber],"\n")
         else:
-            print("> No constraints defined.\n")
+            KM.Logger.PrintInfo("> No constraints defined.\n")
 
     # --------------------------------------------------------------------------
     def InitializeDataLogging( self ):
