@@ -90,9 +90,25 @@ public:
      */
     void CreateNewConditions();
 
+    /**
+     * @brief Creates a pressure condition when 3 nodes are wet
+     */
+    void GeneratePressureLoads3WetNodes(
+        const int NonWetLocalIdNode,
+        int &rMaximumConditionId,
+        ModelPart::ElementsContainerType::ptr_iterator itElem);
+
+    /**
+     * @brief Creates a pressure condition when 4 nodes are wet
+     */
+    void GeneratePressureLoads4WetNodes(
+        int &rMaximumConditionId,
+        ModelPart::ElementsContainerType::ptr_iterator itElem);
+
 protected:
     // Member Variables
     ModelPart& mrModelPart;
+    
 }; // Class
 }  // namespace Kratos
 #endif /* KRATOS_REGENERATE_PFEM_PRESSURE_CONDITIONS_PROCESS defined */
