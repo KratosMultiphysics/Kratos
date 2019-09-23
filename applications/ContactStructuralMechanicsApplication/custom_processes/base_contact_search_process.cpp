@@ -22,6 +22,7 @@
 
 /* Custom utilities */
 #include "custom_utilities/contact_utilities.h"
+#include "custom_utilities/self_contact_utilities.h"
 #include "custom_processes/base_contact_search_process.h"
 #include "custom_processes/find_intersected_geometrical_objects_with_obb_for_contact_search_process.h"
 
@@ -539,8 +540,9 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
         VariableUtils().ResetFlag(SLAVE, r_conditions_array);
         VariableUtils().ResetFlag(MASTER, r_conditions_array);
 
-        // Clear the mPointListDestination and assign initial MASTER/SLAVE flags
-//         ClearDestinationListAndAssignFlags(r_sub_contact_model_part); // TODO
+        // TODO: WIP
+//         // Clear the mPointListDestination and assign initial MASTER/SLAVE flags
+//         ClearDestinationListAndAssignFlags(r_sub_contact_model_part);
     }
 
     // The search tree considered
@@ -1097,6 +1099,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
     }
 
     /* We arrange the database in order to be a consistent master/slave structure */
+    SelfContactUtilities::ComputeSelfContactPairing(rSubContactModelPart);
 
     /* Clear the mPointListDestination */
     // Clearing the vector
