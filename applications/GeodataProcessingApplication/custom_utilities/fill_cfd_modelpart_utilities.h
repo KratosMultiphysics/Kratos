@@ -84,32 +84,36 @@ namespace Kratos
      * @brief Function to fill "Parts_Fluid" sub model part
      *
      */
-    // void FillPartsFluid();
-    ModelPart& FillPartsFluid (ModelPart& CfdModelPart, ModelPart& OriginModelPart, const std::string& ElementModelName);
+    void FillPartsFluid(ModelPart& OriginModelPart, const std::string& ElementModelName);
+    // ModelPart& FillPartsFluid (ModelPart& OriginModelPart, const std::string& ElementModelName);
 
     /**
      * @brief Function to fill "Inlet" sub model part
      *
      */
-    void FillInlet();
+    void FillInlet(ModelPart& OriginModelPart, const std::string& ConditionModelName);
+    // ModelPart& FillInlet (ModelPart& OriginModelPart, const std::string& ConditionModelName);
 
     /**
      * @brief Function to fill "Outlet" sub model part
      *
      */
-    void FillOutlet();
+    void FillOutlet(ModelPart& OriginModelPart, const std::string& ConditionModelName);
+    // ModelPart& FillOutlet (ModelPart& OriginModelPart, const std::string& ConditionModelName);
 
     /**
      * @brief Function to fill "Slip" sub model part
      *
      */
-    void FillSlip();
+    void FillSlip(ModelPart& OriginModelPart, const std::string& ConditionModelName);
+    // ModelPart& FillSlip (ModelPart& OriginModelPart, const std::string& ConditionModelName);
 
     /**
      * @brief Function to fill "NoSlip" sub model part
      *
      */
-    void FillNoslip();
+    void FillNoslip(ModelPart& OriginModelPart, const std::string& ConditionModelName);
+    // ModelPart& FillNoslip (ModelPart& OriginModelPart, const std::string& ConditionModelName);
 
 
     ///@}
