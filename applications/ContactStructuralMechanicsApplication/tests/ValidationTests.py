@@ -62,3 +62,6 @@ class ALMMeshMovingNotMatchingTestFrictionalPureSlipContact(TestFactory):
 
 class ALMHertzTestFrictionalContact(TestFactory):
     file_name = "ALM_frictional_contact_test_2D/hertz_complete_test"
+
+class MultiLayerContactTest(TestFactory):
+    file_name = "mpc_contact_tests/3D_multi_contact_test"

@@ -833,7 +833,6 @@ Condition::Pointer BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::A
         rComputingModelPart.AddCondition(p_auxiliar_condition);
         pIndexesPairs->SetNewEntityId(pObjectMaster->Id(), rConditionId);
         p_auxiliar_condition->SetValue(NORMAL, rSlaveNormal);
-        p_auxiliar_condition->SetValue(PAIRED_NORMAL, rMasterNormal);
         // We activate the condition and initialize it
         p_auxiliar_condition->Set(ACTIVE, true);
         p_auxiliar_condition->Initialize();
