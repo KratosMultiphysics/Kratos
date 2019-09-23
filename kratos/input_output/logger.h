@@ -259,15 +259,15 @@ namespace Kratos
 #define KRATOS_INFO_ONCE_ALL_RANKS(label) KRATOS_INFO_ONCE(label) << Logger::DistributedFilter::FromAllRanks()
 #define KRATOS_INFO_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_INFO_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
 
-#define KRATOS_WARNING(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
-#define KRATOS_WARNING_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
-#define KRATOS_WARNING_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
-#define KRATOS_WARNING_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
+#define KRATOS_WARNING(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING << Logger::MessageColor::Yellow() << Logger::MessagePrefix("[WARNING] ")
+#define KRATOS_WARNING_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING << Logger::MessageColor::Yellow() << Logger::MessagePrefix("[WARNING] ")
+#define KRATOS_WARNING_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == 0) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING << Logger::MessageColor::Yellow() << Logger::MessagePrefix("[WARNING] ")
+#define KRATOS_WARNING_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING << Logger::MessageColor::Yellow() << Logger::MessagePrefix("[WARNING] ")
 
-#define KRATOS_WARNING_ALL_RANKS(label) KRATOS_WARNING(label) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_WARNING_IF_ALL_RANKS(label, conditional) KRATOS_WARNING_IF(label, conditional) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_WARNING_ONCE_ALL_RANKS(label) KRATOS_WARNING_ONCE(label) << Logger::DistributedFilter::FromAllRanks()
-#define KRATOS_WARNING_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_WARNING_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks()
+#define KRATOS_WARNING_ALL_RANKS(label) KRATOS_WARNING(label) << Logger::DistributedFilter::FromAllRanks() << Logger::MessageColor::Yellow() << Logger::MessagePrefix("[WARNING] ")
+#define KRATOS_WARNING_IF_ALL_RANKS(label, conditional) KRATOS_WARNING_IF(label, conditional) << Logger::DistributedFilter::FromAllRanks() << Logger::MessageColor::Yellow() << Logger::MessagePrefix("[WARNING] ")
+#define KRATOS_WARNING_ONCE_ALL_RANKS(label) KRATOS_WARNING_ONCE(label) << Logger::DistributedFilter::FromAllRanks() << Logger::MessageColor::Yellow() << Logger::MessagePrefix("[WARNING] ")
+#define KRATOS_WARNING_FIRST_N_ALL_RANKS(label, logger_count) KRATOS_WARNING_FIRST_N(label, logger_count) << Logger::DistributedFilter::FromAllRanks() << Logger::MessageColor::Yellow() << Logger::MessagePrefix("[WARNING] ")
 
 #define KRATOS_DETAIL(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
 #define KRATOS_DETAIL_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL

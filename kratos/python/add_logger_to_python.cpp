@@ -94,6 +94,9 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
     Logger logger(label);
     logger << buffer.str() << severityOption << categoryOption << std::endl;
     logger << filterOption << getDataCommunicator(kwargs);
+    if (severity == Logger::Severity::WARNING){
+        logger << Logger::MessageColor::Yellow() << Logger::MessagePrefix("[WARNING] ");
+    }
 }
 
 bool isPrintingRank(pybind11::kwargs kwargs) {
