@@ -32,6 +32,7 @@
 #include "custom_processes/transfer_nodal_forces_to_fem.h"
 #include "custom_processes/compute_sand_production.h"
 #include "custom_processes/regenerate_pfem_pressure_conditions_process.h"
+#include "custom_processes/update_pressure_value_pfem_conditions_process.h"
 
 
 namespace Kratos
