@@ -534,10 +534,10 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
     if (mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE)) {
         NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
         ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
-        VariableUtils().SetFlag(SLAVE, false, r_nodes_array);
-        VariableUtils().SetFlag(MASTER, false, r_nodes_array);
-        VariableUtils().SetFlag(SLAVE, false, r_conditions_array);
-        VariableUtils().SetFlag(MASTER, false, r_conditions_array);
+        VariableUtils().ResetFlag(SLAVE, r_nodes_array);
+        VariableUtils().ResetFlag(MASTER, r_nodes_array);
+        VariableUtils().ResetFlag(SLAVE, r_conditions_array);
+        VariableUtils().ResetFlag(MASTER, r_conditions_array);
     }
 
     // The search tree considered
