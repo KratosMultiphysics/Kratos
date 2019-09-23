@@ -122,8 +122,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
 
     def FinalizeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
-        self.response_function.FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
+        self.response_function.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
