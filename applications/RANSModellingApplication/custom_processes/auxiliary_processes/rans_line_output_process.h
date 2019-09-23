@@ -56,13 +56,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**
- * @brief Checks lower and upper bounds of a scalar
- *
- * This process checks lower and upper bounds of a variable in nodes in a given modelpart
- *
- */
-
 class RansLineOutputProcess : public Process
 {
 public:
