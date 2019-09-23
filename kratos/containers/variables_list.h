@@ -107,6 +107,8 @@ namespace Kratos
 			, mKeys(rOther.mKeys)
 			, mPositions(rOther.mPositions)
 			, mVariables(rOther.mVariables)
+			, mDofVariables(rOther.mDofVariables)
+			, mDofReactions(rOther.mDofReactions)
 			, mReferenceCounter(0) 
 			{}
 
@@ -128,6 +130,8 @@ namespace Kratos
 			mKeys = rOther.mKeys;
 			mPositions = rOther.mPositions;
 			mVariables = rOther.mVariables;
+			mDofVariables=rOther.mDofVariables;
+			mDofReactions=rOther.mDofReactions;
 
 			return *this;
 		}
@@ -232,6 +236,10 @@ namespace Kratos
 			rOther.mHashFunctionIndex = temp;
 
 			mVariables.swap(rOther.mVariables);
+
+			mDofVariables.swap(rOther.mDofVariables);
+			mDofReactions.swap(rOther.mDofReactions);
+			
 			mKeys.swap(rOther.mKeys);
 			mPositions.swap(rOther.mPositions);
 		}
@@ -247,6 +255,8 @@ namespace Kratos
 			mDataSize = 0;
 			mHashFunctionIndex = 0;
 			mVariables.clear();
+			mDofVariables.clear();
+			mDofReactions.clear();
 			mKeys = {static_cast<IndexType>(-1)};
 			mPositions = {static_cast<IndexType>(-1)};
 		}
@@ -269,8 +279,8 @@ namespace Kratos
 
 		int AddDof(VariableData const* pThisDofVariable, VariableData const* pThisDofReaction){
 			
-			for(std::size_t dof_index = 0 ; dof_index < mDofVriables.size() ; dof_index++){
-				if(*mDofVriables[dof_index] == *pThisDofVariable){
+			for(std::size_t dof_index = 0 ; dof_index < mDofVariables.size() ; dof_index++){
+				if(*mDofVariables[dof_index] == *pThisDofVariable){
 					mDofReactions[dof_index] = pThisDofReaction;
 					return static_cast<int>(dof_index);
 				}
@@ -280,16 +290,16 @@ namespace Kratos
         if(OpenMPUtils::IsInParallel() != 0)
             KRATOS_ERROR << "attempting to call AddDof for: " << pThisDofVariable << ". Unfortunately the Dof was not added before and the operations is not threadsafe (this function is being called within a parallel region)" << std::endl;
 #endif 
-			mDofVriables.push_back(pThisDofVariable);
+			mDofVariables.push_back(pThisDofVariable);
 			mDofReactions.push_back(pThisDofReaction);
 
-			KRATOS_DEBUG_ERROR_IF(mDofVriables.size()>64) << "Adding too many dofs to the node. Each node only can store 64 Dofs." << std::endl;
+			KRATOS_DEBUG_ERROR_IF(mDofVariables.size()>64) << "Adding too many dofs to the node. Each node only can store 64 Dofs." << std::endl;
 
-			return mDofVriables.size() - 1;
+			return mDofVariables.size() - 1;
 		}
 
 		const VariableData& GetDofVariable(int DofIndex) const {
-			return *mDofVriables[DofIndex];
+			return *mDofVariables[DofIndex];
 		}
 
 		const VariableData* pGetDofReaction(int DofIndex) const {
@@ -376,6 +386,10 @@ namespace Kratos
 			rOStream << " (size : " << mDataSize << " blocks of " << sizeof(BlockType) << " bytes) " << std::endl;
 			for (IndexType i = 0; i < mVariables.size(); ++i)
 				rOStream << "    " << mVariables[i]->Name() << " \t-> " << GetPosition(mVariables[i]->Key()) << std::endl;
+
+			rOStream << " with " << mDofVariables.size() << " Dofs:";	
+			for (IndexType i = 0; i < mDofVariables.size(); ++i)
+				rOStream << "    [" << mDofVariables[i]->Name() << " ,  " << ((mDofReactions[i] == nullptr) ? "NONE" : mDofReactions[i]->Name()) << "]" << std::endl;
 		}
 
 
@@ -393,7 +407,7 @@ namespace Kratos
 
 		VariablesContainerType mVariables;
 
-		VariablesContainerType mDofVriables;
+		VariablesContainerType mDofVariables;
 
 		VariablesContainerType mDofReactions;
 
@@ -489,11 +503,11 @@ namespace Kratos
 				rSerializer.save("VariableName", mVariables[i]->Name());
 			}
 
-			std::size_t dof_size = mDofVriables.size();
+			std::size_t dof_size = mDofVariables.size();
 			rSerializer.save("DofSize", dof_size);
 			for (std::size_t i = 0; i < dof_size; i++)
 			{
-				rSerializer.save("DofVariableName", mDofVriables[i]->Name());
+				rSerializer.save("DofVariableName", mDofVariables[i]->Name());
 				if(mDofReactions[i] == nullptr){
 					rSerializer.save("HasReaction", false);
 				}
