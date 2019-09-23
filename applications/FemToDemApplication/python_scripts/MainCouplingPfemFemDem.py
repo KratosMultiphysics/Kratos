@@ -53,6 +53,11 @@ class MainCouplingPfemFemDem_Solution:
         self.RunBeforeSolutionLoopFEMDEM()
         while self.FEMDEM_Solution.FEM_Solution.time <= self.FEMDEM_Solution.FEM_Solution.end_time:
             self.InitializeSolutionStep()
+            # if self.FEMDEM_Solution.FEM_Solution.step == 1:
+            regen = FEMDEM.RegeneratePfemPressureConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+            regen.Execute()
+            update = FEMDEM.UpdatePressureValuePfemConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+            update.Execute()
             self.SolveSolutionStep()
             self.FinalizeSolutionStep()
 
