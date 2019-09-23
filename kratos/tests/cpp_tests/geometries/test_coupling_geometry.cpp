@@ -60,8 +60,8 @@ namespace Kratos {
                 );
         }
 
-        /// Tests
-        KRATOS_TEST_CASE_IN_SUITE(CouplingNode, KratosCoreGeometriesFastSuite) {
+        /// Test with PointType = Node
+        KRATOS_TEST_CASE_IN_SUITE(CouplingGeometryNode, KratosCoreGeometriesFastSuite) {
             auto p_triangle_master = GenerateNodeTriangle();
             auto p_triangle_slave = GenerateNodeTriangle();
             auto p_triangle_second_slave = GenerateNodeTriangle();
@@ -104,7 +104,8 @@ namespace Kratos {
             }
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(CouplingPoint, KratosCoreGeometriesFastSuite) {
+        /// Test with PointType = Point
+        KRATOS_TEST_CASE_IN_SUITE(CouplingGeometryPoint, KratosCoreGeometriesFastSuite) {
             auto p_triangle_master = GeneratePointTriangle();
             auto p_triangle_slave = GeneratePointTriangle();
 
@@ -114,7 +115,8 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 2);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ChangeMaster, KratosCoreGeometriesFastSuite) {
+        /// Test to exchange the master of the coupling geometry
+        KRATOS_TEST_CASE_IN_SUITE(CouplingGeometryChangeMaster, KratosCoreGeometriesFastSuite) {
             auto p_triangle_master = GeneratePointTriangle();
             auto p_triangle_slave = GeneratePointTriangle();
 
