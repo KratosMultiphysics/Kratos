@@ -275,7 +275,7 @@ public:
 
         const GeometryType& r_geometry = this->GetGeometry();
 
-        if (!this->Is(STRUCTURE))
+        if (!this->Is(SLIP))
             return;
 
         for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
