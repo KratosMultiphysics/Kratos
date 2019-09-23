@@ -108,6 +108,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
 	class_<RegeneratePfemPressureConditionsProcess<3>, RegeneratePfemPressureConditionsProcess<3>::Pointer, Process>(m, "RegeneratePfemPressureConditionsProcess3D")
 		.def(init<ModelPart &>())
 		.def("Execute", &RegeneratePfemPressureConditionsProcess<3>::Execute);
+
+	class_<UpdatePressureValuePfemConditionsProcess<3>, UpdatePressureValuePfemConditionsProcess<3>::Pointer, Process>(m, "UpdatePressureValuePfemConditionsProcess3D")
+		.def(init<ModelPart &>())
+		.def("Execute", &UpdatePressureValuePfemConditionsProcess<3>::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos
