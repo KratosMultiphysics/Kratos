@@ -8,6 +8,9 @@
 #
 # ==============================================================================
 
+# importing the Kratos Library
+import KratosMultiphysics as KM
+
 # Import logger base classes
 from .value_logger_base import ValueLogger
 
@@ -44,27 +47,27 @@ class ValueLoggerTrustRegion( ValueLogger ):
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
-        print("\n-------------------------------------------------------")
+        KM.Logger.PrintInfo("\n-------------------------------------------------------")
 
         objective_id = self.objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ", round(self.history["response_value"][objective_id][self.current_index],12))
+        KM.Logger.PrintInfo("\n> Current value of objective = ", round(self.history["response_value"][objective_id][self.current_index],12))
 
-        print("> Absolut change of objective = ",round(self.history["abs_change_objective"][self.current_index],4)," [%]")
-        print("> Relative change of objective = ",round(self.history["rel_change_objective"][self.current_index],4)," [%]\n")
+        KM.Logger.PrintInfo("> Absolut change of objective = ",round(self.history["abs_change_objective"][self.current_index],4)," [%]")
+        KM.Logger.PrintInfo("> Relative change of objective = ",round(self.history["rel_change_objective"][self.current_index],4)," [%]\n")
 
         for itr in range(self.constraints.size()):
             constraint_id = self.constraints[itr]["identifier"].GetString()
-            print("> Value of C"+str(itr+1)+" = ", round(self.history["response_value"][constraint_id][self.current_index],12))
+            KM.Logger.PrintInfo("> Value of C"+str(itr+1)+" = ", round(self.history["response_value"][constraint_id][self.current_index],12))
 
-        print("\nNormInf3D of dX = ", round(self.history["norm_dX"][self.current_index],6))
+        KM.Logger.PrintInfo("\nNormInf3D of dX = ", round(self.history["norm_dX"][self.current_index],6))
 
-        print("\nlen_bar_obj = ", round(self.history["len_bar_obj"][self.current_index],6))
-        print("adj_len_bar_obj = ", round(self.history["adj_len_bar_obj"][self.current_index],6))
+        KM.Logger.PrintInfo("\nlen_bar_obj = ", round(self.history["len_bar_obj"][self.current_index],6))
+        KM.Logger.PrintInfo("adj_len_bar_obj = ", round(self.history["adj_len_bar_obj"][self.current_index],6))
 
-        print("\nlen_bar_cons = ", [round(entry, 6) for entry in self.history["len_bar_cons"][self.current_index]])
-        print("adj_len_bar_cons = ", [round(entry, 6) for entry in self.history["adj_len_bar_cons"][self.current_index]])
+        KM.Logger.PrintInfo("\nlen_bar_cons = ", [round(entry, 6) for entry in self.history["len_bar_cons"][self.current_index]])
+        KM.Logger.PrintInfo("adj_len_bar_cons = ", [round(entry, 6) for entry in self.history["adj_len_bar_cons"][self.current_index]])
 
-        print("\n-------------------------------------------------------")
+        KM.Logger.PrintInfo("\n-------------------------------------------------------")
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToFile( self ):
