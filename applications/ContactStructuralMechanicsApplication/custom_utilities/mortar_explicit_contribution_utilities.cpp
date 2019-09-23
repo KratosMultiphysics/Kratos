@@ -53,7 +53,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
-    const array_1d<double, 3>& r_normal_master = pCondition->GetValue(PAIRED_NORMAL);
+    const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
@@ -199,7 +199,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
-    const array_1d<double, 3>& r_normal_master = pCondition->GetValue(PAIRED_NORMAL);
+    const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
@@ -392,7 +392,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
-    const array_1d<double, 3>& r_normal_master = pCondition->GetValue(PAIRED_NORMAL);
+    const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
