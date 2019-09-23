@@ -31,7 +31,6 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
         parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString("PFEM" + problem_name)
 
         self.FEM_model_part = FEM_model_part
-
         super(MainPFEM_for_coupling_solution, self).__init__(model, parameters)
 
 #============================================================================================================================
