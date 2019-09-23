@@ -1098,6 +1098,16 @@ public:
         return *mpGeometryData;
     }
 
+    /**
+    * @brief updates the pointer to GeometryData of the
+    *        respective geometry.
+    * @param pGeometryData pointer to const GeometryData.
+    */
+    void SetGeometryData(GeometryData const* pGeometryData)
+    {
+        mpGeometryData = pGeometryData;
+    }
+
     ///@}
     ///@name Quality
     ///@{
