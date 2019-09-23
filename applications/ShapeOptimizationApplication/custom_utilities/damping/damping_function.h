@@ -97,6 +97,10 @@ class DampingFunction
         else if (damping_function_type == "quartic")
             m_damping_function_type = 3;
 
+        // Type 4: constant function
+        else if (damping_function_type == "constant")
+            m_damping_function_type = 4;
+
         // Throw error message in case of wrong specification
         else
             KRATOS_ERROR << "Specified damping function type not recognized. Options are: linear , cosine. Specified: " << damping_function_type << std::endl;
@@ -125,7 +129,7 @@ class DampingFunction
         array_3d dist_vector = i_coord - j_coord;
 
         // Depending on which damping function is chosen, compute damping factor
-        double damping_factor = 0.0;
+        double damping_factor = 1.0;
         switch (m_damping_function_type)
         {
         // Cosine damping function
@@ -154,6 +158,15 @@ class DampingFunction
             double numerator = distance-m_damping_radius;
             // Compute damping factor
             damping_factor = std::min(1.0, (1-pow(numerator,4.0)/pow(m_damping_radius,4.0)));
+            break;
+        }
+        // Constant damping function
+        case 4:
+        {
+            // Compute distance
+            double squared_distance = dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2];
+            if (squared_distance < m_damping_radius*m_damping_radius)
+                damping_factor = 0.0;
             break;
         }
         }
