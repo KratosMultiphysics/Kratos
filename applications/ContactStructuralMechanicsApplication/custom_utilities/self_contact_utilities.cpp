@@ -12,7 +12,6 @@
 
 // System includes
 #include <unordered_set>
-#include <unordered_map>
 
 // External includes
 
@@ -29,6 +28,9 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
+    // Creating the maps
+    std::unordered_set<std::size_t> ids_to_clear;
+
     // Iterate over the conditions
     auto& r_conditions_array = rModelPart.Conditions();
     const int num_conditions = static_cast<int>(r_conditions_array.size());
@@ -36,10 +38,52 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
 
     for(int i = 0; i < num_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
-        auto p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
 
-        if (p_indexes_pairs->size() > 0) {
-            // TODO
+        // Checking if already set
+        auto p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
+        if (it_cond->IsNotDefined(MASTER) || it_cond->IsNot(MASTER)) {
+            if (p_indexes_pairs->size() > 0) {
+                ids_to_clear.clear();
+                for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
+                    const IndexType master_id = p_indexes_pairs->GetId(it_pair); // MASTER
+                    auto p_master_cond = rModelPart.pGetCondition(master_id);
+                    auto& r_master_geometry = p_master_cond->GetGeometry();
+
+                    // Iterate over nodes
+                    std::size_t counter = 0;
+                    for (auto& r_node : r_master_geometry) {
+                        if (r_node.IsNotDefined(MASTER) || r_node.Is(MASTER)) {
+                            ++counter;
+                        }
+                    }
+
+                    // Assign flags
+                    if (counter == r_master_geometry.size()) {
+                        p_master_cond->Set(MASTER, true);
+                        p_master_cond->Set(SLAVE, false);
+                        for (auto& r_node : r_master_geometry) {
+                            r_node.Set(MASTER, true);
+                            r_node.Set(SLAVE, false);
+                        }
+                    } else {
+                        ids_to_clear.insert(master_id);
+                    }
+                }
+                for (std::size_t id : ids_to_clear) {
+                    p_indexes_pairs->RemoveId(id);
+                }
+            }
+            // Assigning SLAVE flags
+            if (p_indexes_pairs->size() > 0) {
+                it_cond->Set(MASTER, false);
+                it_cond->Set(SLAVE, true);
+                for (auto& r_node : it_cond->GetGeometry()) {
+                    r_node.Set(MASTER, false);
+                    r_node.Set(SLAVE, true);
+                }
+            }
+        } else { // If master we clear
+            p_indexes_pairs->clear();
         }
     }
 
