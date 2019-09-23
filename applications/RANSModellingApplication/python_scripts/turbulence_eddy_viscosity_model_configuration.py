@@ -18,6 +18,7 @@ if CheckIfApplicationsAvailable("TrilinosApplication"):
     # Import applications
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos  # MPI solvers
 
+
 class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
     def __init__(self, model, settings):
         self._validate_settings_in_baseclass = True  # To be removed eventually
@@ -54,7 +55,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
                 )
 
     def SetCommunicator(self, communicator):
-            self.EpetraCommunicator = communicator
+        self.EpetraCommunicator = communicator
 
     def GetDefaultSettings(self):
         return Kratos.Parameters(r'''{
@@ -115,12 +116,11 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
         if (self.is_distributed):
             if (is_periodic):
                 return KratosTrilinos.TrilinosBlockBuilderAndSolverPeriodic(
-                    self.EpetraCommunicator, 30,
-                    linear_solver, KratosCFD.PATCH_INDEX)
+                    self.EpetraCommunicator, 30, linear_solver,
+                    KratosCFD.PATCH_INDEX)
             else:
                 return KratosTrilinos.TrilinosBlockBuilderAndSolver(
-                    self.EpetraCommunicator, 30,
-                    linear_solver)
+                    self.EpetraCommunicator, 30, linear_solver)
         else:
             if (is_periodic):
                 return KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(
@@ -135,8 +135,8 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
                 return KratosRANS.MPIGenericScalarConvergenceCriteria(
                     relative_tolerance, absolute_tolerance)
             elif (scheme_type == "steady"):
-                return KratosTrilinos.TrilinosResidualCriteria(relative_tolerance,
-                                                       absolute_tolerance)
+                return KratosTrilinos.TrilinosResidualCriteria(
+                    relative_tolerance, absolute_tolerance)
         else:
             if (scheme_type == "bossak"):
                 return KratosRANS.GenericScalarConvergenceCriteria(
@@ -263,17 +263,10 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
                 "Successfully created solving strategy for " +
                 scalar_variable.Name() + ".")
 
-        return strategy, linear_solver, convergence_criteria, builder_and_solver, time_scheme
+        return strategy
 
     def Initialize(self):
         rans_variable_utils = KratosRANS.RansVariableUtils()
-        # set this from the json file.
-        # rans_variable_utils.CopyScalarVar(Kratos.VISCOSITY,
-        #                                   Kratos.KINEMATIC_VISCOSITY,
-        #                                   self.fluid_model_part.Nodes)
-        # rans_variable_utils.SetScalarVar(Kratos.TURBULENT_VISCOSITY,
-        #                                  self.nu_t_min,
-        #                                  self.fluid_model_part.Nodes)
 
         self.PrepareSolvingStrategy()
 
