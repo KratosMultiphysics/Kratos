@@ -6,10 +6,8 @@ import KratosMultiphysics.ChimeraApplication as KratosChimera
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-from navier_stokes_solver_fractionalstep import NavierStokesSolverFractionalStep
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_fractionalstep import NavierStokesSolverFractionalStep
 
-# Import base class file
-from fluid_solver import FluidSolver
 
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverFractionalStepForChimera(model, custom_settings)
