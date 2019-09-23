@@ -97,6 +97,16 @@ namespace Kratos
             // We create our problem
             SimpleCreateNewProblem3D(r_model_part);
 
+            // All potential pairs
+            for (auto& r_cond_1 : r_model_part.Conditions()) {
+                auto p_pairs = r_cond_1.GetValue(INDEX_MAP);
+                for (auto& r_cond_2 : r_model_part.Conditions()) {
+                    if (r_cond_1.Id() != r_cond_2.Id()) {
+                        p_pairs->AddId(r_cond_2.Id());
+                    }
+                }
+            }
+
             // Creating the pairs
             SelfContactUtilities::ComputeSelfContactPairing(r_model_part);
 //             SelfContactUtilities::NotPredefinedMasterSlave(r_model_part);
