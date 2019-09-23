@@ -11,6 +11,7 @@ def CreateDuplicateModelPart(origin_modelpart, destination_modelpart_name,
 
     if not model.HasModelPart(destination_modelpart_name):
         model_part = model.CreateModelPart(destination_modelpart_name)
+        # TODO: Remove this line once the warnings from connectivity preserve modeller is gone
         KratosRANS.RansVariableUtils().CopyNodalSolutionStepVariablesList(
             origin_modelpart, model_part)
 
