@@ -469,6 +469,32 @@ private:
         );
 
     /**
+     * @brief This method clears the destination list and
+     * @param rSubContactModelPart The submodel part studied
+     */
+    void ClearDestinationListAndAssignFlags(ModelPart& rSubContactModelPart);
+
+    /**
+     * @brief This method computes search with KDTree
+     * @param rTreePoints The tree points for search
+     * @param rPointsFound The points found
+     * @param rGeometry The geometry of the condition
+     * @param TypeSearch The search type
+     * @param SearchFactor The searh factor applied
+     * @param AllocationSize The allocation size
+     * @param Dynamic if the dynamic search is considered
+     */
+    inline IndexType PerformKDTreeSearch(
+        KDTree& rTreePoints,
+        PointVector& rPointsFound,
+        GeometryType& rGeometry,
+        const SearchTreeType TypeSearch = SearchTreeType::KdtreeInBox,
+        const double SearchFactor = 3.5,
+        const IndexType AllocationSize = 1000,
+        const bool Dynamic = false
+        );
+
+    /**
      * @brief This method is used in case of not predefined master/slave we assign the master/slave nodes and conditions
      * @param rModelPart The model part to assign the flags
      */
