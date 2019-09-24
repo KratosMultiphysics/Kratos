@@ -183,8 +183,6 @@ protected:
 
         KRATOS_TRY
 
-
-
         BaseType::BuildMasterSlaveConstraints(rModelPart);
 
         // Setting the master dofs into the T and C system

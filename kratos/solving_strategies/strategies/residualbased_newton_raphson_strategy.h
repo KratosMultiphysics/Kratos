@@ -695,6 +695,8 @@ class ResidualBasedNewtonRaphsonStrategy
             mSolutionStepIsInitialized = true;
         }
 
+        std::cout << std::flush;
+
         KRATOS_CATCH("");
     }
 
