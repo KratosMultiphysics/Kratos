@@ -51,8 +51,12 @@ namespace SelfContactUtilities
     /**
      * @brief This method computes the pairing for self-contact
      * @param rModelPart Reference to the ModelPart containing the problem
+     * @param EchoLevel The verbosity level
      */
-    void KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ComputeSelfContactPairing(ModelPart& rModelPart);
+    void KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) ComputeSelfContactPairing(
+        ModelPart& rModelPart,
+        const std::size_t EchoLevel = 0
+        );
 
     /**
      * @brief This method assign all the potential pairs (brute-force)

@@ -25,7 +25,10 @@ namespace Kratos
 {
 namespace SelfContactUtilities
 {
-void ComputeSelfContactPairing(ModelPart& rModelPart)
+void ComputeSelfContactPairing(
+    ModelPart& rModelPart,
+    const std::size_t EchoLevel
+    )
 {
     KRATOS_TRY
 
@@ -234,7 +237,7 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
         if (slave_counter == number_of_nodes || master_counter == number_of_nodes) {
             it_cond->Set(ACTIVE, true);
         } else {
-            KRATOS_WARNING("SelfContactUtilities") << "Condition " << it_cond->Id() << " must be isolated for sharing MASTER/SLAVE nodes in it" << std::endl;
+            KRATOS_WARNING_IF("SelfContactUtilities", EchoLevel > 0) << "Condition " << it_cond->Id() << " must be isolated for sharing MASTER/SLAVE nodes in it" << std::endl;
             it_cond->Set(ACTIVE, false);
             it_cond->Set(SLAVE, false);
             it_cond->Set(MASTER, true);

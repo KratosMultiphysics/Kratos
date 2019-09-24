@@ -1098,10 +1098,11 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
     }
 
     /* We arrange the database in order to be a consistent master/slave structure */
-    SelfContactUtilities::ComputeSelfContactPairing(rSubContactModelPart);
+    const std::size_t echo_level = mThisParameters["debug_mode"].GetBool() ? 1 : 0;
+    SelfContactUtilities::ComputeSelfContactPairing(rSubContactModelPart, echo_level);
 
     // Debug
-    if (mThisParameters["debug_mode"].GetBool()) {
+    if (echo_level > 0) {
         const int step = rSubContactModelPart.GetProcessInfo()[STEP];
         GidIO<> gid_io("SELFCONTACT_" + rSubContactModelPart.Name() + "_STEP_" + std::to_string(step), GiD_PostBinary, SingleFile, WriteDeformed,  WriteConditionsOnly);
         const double label = static_cast<double>(step);
