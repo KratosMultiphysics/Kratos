@@ -18,8 +18,8 @@ namespace Kratos {
         typedef BaseType::ElementsArrayType ElementsArrayType;
         typedef BaseType::ElementsIterator ElementsIterator;
         typedef BaseType::ConditionsArrayType ConditionsArrayType;
-        typedef WeakPointerVector<Element> ParticleWeakVectorType;
-        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+        typedef GlobalPointersVector<Element> ParticleWeakVectorType;
+        typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 
         using BaseType::mpInlet_model_part;
@@ -63,7 +63,7 @@ namespace Kratos {
         }
 
         virtual void Initialize() override;
-        virtual double Solve() override;
+        virtual double SolveSolutionStep() override;
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi);
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi);
         void ComputeNewNeighboursHistoricalData() override;
@@ -81,6 +81,7 @@ namespace Kratos {
         void FinalizeSolutionStep() override;
         void FinalizeSolutionStepFEM();
         void MarkNewSkinParticles();
+        void BreakAlmostBrokenSpheres();
 
         virtual void Add_As_Own(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element) {
             KRATOS_TRY

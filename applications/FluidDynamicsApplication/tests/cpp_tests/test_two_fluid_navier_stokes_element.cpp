@@ -23,7 +23,7 @@
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
-
+#include "includes/global_pointer_variables.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
@@ -639,12 +639,12 @@ namespace Kratos {
 			pCondition2->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(1).get()));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2).get()));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -830,16 +830,16 @@ namespace Kratos {
 			pCondition3->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(3));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(3)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
-			WeakPointerVector<Element> wpParent3;
-			wpParent3.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent3;
+			wpParent3.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition3->SetValue( NEIGHBOUR_ELEMENTS, wpParent3 );
 
             Vector elemRHS1 = ZeroVector(16);
@@ -1068,12 +1068,12 @@ namespace Kratos {
 			pCondition2->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -1362,12 +1362,12 @@ namespace Kratos {
 			pCondition2->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(3));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(3)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
             Vector elemRHS1 = ZeroVector(9);
@@ -1554,16 +1554,16 @@ namespace Kratos {
 			pCondition3->SetFlags(SLIP);
 
 			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
-			WeakPointerVector<Element> wpParent1;
-			wpParent1.push_back(modelPart.pGetElement(3));
+			GlobalPointersVector<Element> wpParent1;
+			wpParent1.push_back(GlobalPointer<Element>(modelPart.Elements()(3)));
 			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
 
-			WeakPointerVector<Element> wpParent2;
-			wpParent2.push_back(modelPart.pGetElement(2));
+			GlobalPointersVector<Element> wpParent2;
+			wpParent2.push_back(GlobalPointer<Element>(modelPart.Elements()(2)));
 			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
 
-			WeakPointerVector<Element> wpParent3;
-			wpParent3.push_back(modelPart.pGetElement(1));
+			GlobalPointersVector<Element> wpParent3;
+			wpParent3.push_back(GlobalPointer<Element>(modelPart.Elements()(1)));
 			pCondition3->SetValue( NEIGHBOUR_ELEMENTS, wpParent3 );
 
             Vector elemRHS1 = ZeroVector(16);

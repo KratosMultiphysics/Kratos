@@ -22,6 +22,48 @@ namespace Kratos
 {
 namespace ConstraintUtilities
 {
+void ComputeActiveDofs(
+    ModelPart& rModelPart,
+    std::vector<bool>& rActiveDofs,
+    const ModelPart::DofsArrayType& rDofSet
+    )
+{
+    KRATOS_TRY
+
+    // Base active dofs
+    rActiveDofs.resize(rDofSet.size());
+
+    #pragma omp parallel for
+    for(int i=0; i<static_cast<int>(rActiveDofs.size()); ++i) {
+        rActiveDofs[i] = true;
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i<static_cast<int>(rDofSet.size()); ++i) {
+        const auto it_dof = rDofSet.begin() + i;
+        if (it_dof->IsFixed()) {
+            rActiveDofs[it_dof->EquationId()] = false;
+        }
+    }
+
+    // Filling rActiveDofs when MPC exist
+    if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
+        for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
+            for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
+                rActiveDofs[r_dof->EquationId()] = false;
+            }
+            for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
+                rActiveDofs[r_dof->EquationId()] = false;
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ResetSlaveDofs(ModelPart& rModelPart)
 {
     KRATOS_TRY

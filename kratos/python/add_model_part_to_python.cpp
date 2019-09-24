@@ -685,38 +685,51 @@ bool CommunicatorAssembleNonHistoricalData(Communicator& rCommunicator, Variable
 template<class TDataType>
 TDataType CommunicatorSumAll(Communicator& rCommunicator, const TDataType& rValue)
 {
-    TDataType Value = rValue;
-    rCommunicator.SumAll(Value);
-    return Value;
+    KRATOS_WARNING("Communicator")
+    << "Using deprecated method Communicator::SumAll " << std::endl
+    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
+    << "and use DataCommunicator::SumAll instead." << std::endl;
+    return rCommunicator.GetDataCommunicator().SumAll(rValue);
 }
 
 template<class TDataType>
 TDataType CommunicatorMinAll(Communicator& rCommunicator, const TDataType& rValue)
 {
-    TDataType Value = rValue;
-    rCommunicator.MinAll(Value);
-    return Value;
+    KRATOS_WARNING("Communicator")
+    << "Using deprecated method Communicator::MinAll " << std::endl
+    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
+    << "and use DataCommunicator::MinAll instead." << std::endl;
+    return rCommunicator.GetDataCommunicator().MinAll(rValue);
 }
 
 template<class TDataType>
 TDataType CommunicatorMaxAll(Communicator& rCommunicator, const TDataType& rValue)
 {
-    TDataType Value = rValue;
-    rCommunicator.MaxAll(Value);
-    return Value;
+    KRATOS_WARNING("Communicator")
+    << "Using deprecated method Communicator::MaxAll " << std::endl
+    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
+    << "and use DataCommunicator::MaxAll instead." << std::endl;
+    return rCommunicator.GetDataCommunicator().MaxAll(rValue);
 }
 
 template<class TDataType>
 TDataType CommunicatorScanSum(Communicator& rCommunicator, const TDataType rSendPartial, TDataType rReceiveAccumulated)
 {
-    TDataType SendPartial = rSendPartial;
-    TDataType ReceiveAccumulated = rReceiveAccumulated;
-    rCommunicator.ScanSum(SendPartial, ReceiveAccumulated);
-    return ReceiveAccumulated;
+    KRATOS_WARNING("Communicator")
+    << "Using deprecated method Communicator::ScanSum " << std::endl
+    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
+    << "and use DataCommunicator::ScanSum instead." << std::endl;
+    return rCommunicator.GetDataCommunicator().ScanSum(rSendPartial);
 }
 
-
-
+void CommunicatorBarrier(Communicator& rCommunicator)
+{
+    KRATOS_WARNING("Communicator")
+    << "Using deprecated method Communicator::Barrier " << std::endl
+    << "Please retrieve the data communicator with Communicator::GetDataCommunicator "
+    << "and use DataCommunicator::Barrier instead." << std::endl;
+    return rCommunicator.GetDataCommunicator().Barrier();
+}
 
 void AddModelPartToPython(pybind11::module& m)
 {
@@ -734,7 +747,7 @@ void AddModelPartToPython(pybind11::module& m)
     py::class_<Communicator > (m,"Communicator")
         .def(py::init<>())
         .def("MyPID", &Communicator::MyPID)
-        .def("Barrier", &Communicator::Barrier)
+        .def("Barrier", CommunicatorBarrier)
         .def("TotalProcesses", &Communicator::TotalProcesses)
         .def("GetNumberOfColors", &Communicator::GetNumberOfColors)
         .def("NeighbourIndices", NeighbourIndicesConst, py::return_value_policy::reference_internal)
@@ -746,6 +759,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GhostMesh", CommunicatorGetGhostMeshWithIndex, py::return_value_policy::reference_internal )
         .def("InterfaceMesh", CommunicatorGetInterfaceMesh, py::return_value_policy::reference_internal )
         .def("InterfaceMesh", CommunicatorGetInterfaceMeshWithIndex, py::return_value_policy::reference_internal )
+        .def("GetDataCommunicator", &Communicator::GetDataCommunicator, py::return_value_policy::reference_internal )
         .def("SumAll", CommunicatorSumAll<int> )
         .def("SumAll", CommunicatorSumAll<double> )
         .def("SumAll", CommunicatorSumAll<array_1d<double,3> > )
@@ -821,6 +835,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveNode", ModelPartRemoveNode2)
         .def("RemoveNode", ModelPartRemoveNode3)
         .def("RemoveNode", ModelPartRemoveNode4)
+        .def("RemoveNodes", &ModelPart::RemoveNodes)
         .def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels1)
         .def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels2)
         .def("RemoveNodeFromAllLevels", ModelPartRemoveNodeFromAllLevels3)
@@ -921,6 +936,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetCommunicator", ModelPartGetCommunicator, py::return_value_policy::reference_internal)
         .def("Check", &ModelPart::Check)
         .def("IsSubModelPart", &ModelPart::IsSubModelPart)
+        .def("IsDistributed", &ModelPart::IsDistributed)
         .def("AddNode", &ModelPart::AddNode)
         .def("AddNodes",AddNodesByIds)
         .def("AddCondition", &ModelPart::AddCondition)

@@ -335,10 +335,10 @@ public:
 	  N_Mat.reserve(10);
 	  double nodal_area = 0.0;
 	 
-	  WeakPointerVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
+	  GlobalPointersVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
 	  
 	  if(ng_cond.size() != 0){	  
-	    for(WeakPointerVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
+	    for(GlobalPointersVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
 	    {
 		Condition::GeometryType& pGeom = ic->GetGeometry();
 		const array_1d<double,3>&  rNormal = ic->GetValue(NORMAL);
@@ -453,10 +453,10 @@ public:
 	  N_Mat.reserve(10);
 	  double nodal_area = 0.0;
 	 
-	  WeakPointerVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
+	  GlobalPointersVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
 	  
 	  if(ng_cond.size() != 0){	  
-	    for(WeakPointerVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
+	    for(GlobalPointersVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
 	    {
 		Condition::GeometryType& pGeom = ic->GetGeometry();
 		const array_1d<double,3>&  rNormal = ic->GetValue(NORMAL);

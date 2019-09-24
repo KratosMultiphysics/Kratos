@@ -18,7 +18,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "containers/pointer_vector.h"
 #include "containers/pointer_vector_set.h"
 #include "meshless_application.h"
@@ -68,7 +68,7 @@ public:
     typedef ConfigureType::PointerContactType PointerContactType;
     typedef ConfigureType::PointerTypeIterator PointerTypeIterator;
 
-    typedef WeakPointerVector<Element> ParticleWeakVector;
+    typedef GlobalPointersVector<Element> ParticleWeakVector;
     typedef typename ParticleWeakVector::iterator ParticleWeakIterator;
     typedef ParticleWeakVector::ptr_iterator ParticleWeakIteratorType_ptr;
 

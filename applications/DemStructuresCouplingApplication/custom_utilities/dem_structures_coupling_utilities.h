@@ -26,10 +26,10 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "../../DEMApplication/custom_conditions/RigidFace.h"
-#include "../../DEMApplication/DEM_application_variables.h"
+#include "custom_conditions/RigidFace.h"
+#include "DEM_application_variables.h"
 #include "dem_structures_coupling_application_variables.h"
-
+#include "custom_elements/spheric_continuum_particle.h"
 
 namespace Kratos
 {
@@ -99,6 +99,161 @@ void SmoothLoadTrasferredToFem(ModelPart& r_model_part, const double portion_of_
         noalias(averaged_force) = portion_of_the_force_which_is_new * node_dem_load + (1.0 - portion_of_the_force_which_is_new) * node_it->FastGetSolutionStepValue(DEM_SURFACE_LOAD, 1);
         noalias(node_dem_load) = averaged_force;
     }
+}
+
+void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
+
+    const std::string filename = "sand_production_graph.txt";
+    std::ifstream ifile(filename.c_str());
+    static bool first_time_entered = true;
+    if ((bool) ifile && first_time_entered) {
+        std::remove("sand_production_graph.txt");
+        first_time_entered = false;
+    }
+
+    ModelPart::ElementsContainerType& pElements = dem_model_part.GetCommunicator().LocalMesh().Elements();
+    double current_total_mass_in_grams = 0.0;
+
+    for (unsigned int k = 0; k < pElements.size(); k++) {
+
+        ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
+        Element* raw_p_element = &(*it);
+        SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(raw_p_element);
+        if (p_sphere->Is(ISOLATED)) continue;
+        const double particle_radius = p_sphere->GetRadius();
+        const double particle_density = p_sphere->GetDensity();
+        current_total_mass_in_grams += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;
+    }
+    static const double initial_total_mass_in_grams = current_total_mass_in_grams;
+    const double cumulative_sand_mass_in_grams = initial_total_mass_in_grams - current_total_mass_in_grams;
+
+    ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
+    const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+
+    static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
+    sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
+    sand_prod_file.flush();
+}
+
+void MarkBrokenSpheres(ModelPart& dem_model_part) {
+
+    ModelPart::ElementsContainerType& pElements = dem_model_part.GetCommunicator().LocalMesh().Elements();
+
+    for (unsigned int k = 0; k < pElements.size(); k++) {
+
+        ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
+        Element* raw_p_element = &(*it);
+        SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(raw_p_element);
+        if (p_sphere->Is(ISOLATED)) continue;
+        bool go_to_next_particle = false;
+
+        for (unsigned int i = 0; i < p_sphere->mContinuumInitialNeighborsSize; i++) {
+
+            if (!p_sphere->mIniNeighbourFailureId[i]) {
+                go_to_next_particle = true;
+                break;
+            }
+        }
+        if (go_to_next_particle) continue;
+        else p_sphere->Set(ISOLATED, true);
+    }
+}
+
+void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
+
+    const std::string filename = "sand_production_graph_with_chunks.txt";
+    std::ifstream ifile(filename.c_str());
+    static bool first_time_entered = true;
+    if ((bool) ifile && first_time_entered) {
+        std::remove("sand_production_graph_with_chunks.txt");
+        first_time_entered = false;
+    }
+
+    ModelPart::ElementsContainerType& pElements = dem_model_part.GetCommunicator().LocalMesh().Elements();
+
+    std::vector<double> chunks_masses;
+
+    for (unsigned int k = 0; k < pElements.size(); k++) {
+        ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
+        it->Set(VISITED, false);
+    }
+
+    for (unsigned int k = 0; k < pElements.size(); k++) {
+        ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
+        Element* raw_p_element = &(*it);
+        SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(raw_p_element);
+        double this_chunk_mass = 0.0;
+        if( it->IsNot(VISITED) ) {
+            DepthFirstSearchVisit(p_sphere, this_chunk_mass);
+            chunks_masses.push_back(this_chunk_mass);
+        }
+    }
+
+    const double max_mass_of_a_single_chunck = *std::max_element(chunks_masses.begin(), chunks_masses.end());
+    const double current_total_mass_in_grams = max_mass_of_a_single_chunck;
+    static const double initial_total_mass_in_grams = current_total_mass_in_grams;
+    const double cumulative_sand_mass_in_grams = initial_total_mass_in_grams - current_total_mass_in_grams;
+
+    ModelPart::ConditionsContainerType::iterator condition_begin = outer_walls_model_part.ConditionsBegin();
+    const double face_pressure_in_psi = condition_begin->GetValue(POSITIVE_FACE_PRESSURE) * 0.000145;
+
+    static std::ofstream sand_prod_file("sand_production_graph_with_chunks.txt", std::ios_base::out | std::ios_base::app);
+    sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
+    sand_prod_file.flush();
+}
+
+void DepthFirstSearchVisit(SphericContinuumParticle* p_sphere, double& this_chunk_mass) {
+    p_sphere->Set(VISITED, true);
+    const double particle_radius = p_sphere->GetRadius();
+    const double particle_density = p_sphere->GetDensity();
+    this_chunk_mass += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;
+    for (size_t i=0; i<p_sphere->mContinuumInitialNeighborsSize; i++) {
+        SphericParticle* p_neighbour_sphere = p_sphere->mNeighbourElements[i];
+        if (p_neighbour_sphere==NULL) continue;
+        if (p_sphere->mIniNeighbourFailureId[i]) continue;
+        if (p_neighbour_sphere->IsNot(VISITED)) {
+            SphericContinuumParticle* p_neigh_cont_sphere = dynamic_cast<SphericContinuumParticle*>(p_neighbour_sphere);
+            DepthFirstSearchVisit(p_neigh_cont_sphere, this_chunk_mass);
+        }
+    }
+}
+
+void ComputeTriaxialSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_model_part_1, ModelPart& outer_walls_model_part_2, const double time) {
+
+    const std::string filename = "sand_production_graph.txt";
+    std::ifstream ifile(filename.c_str());
+    static bool first_time_entered = true;
+    if ((bool) ifile && first_time_entered) {
+        std::remove("sand_production_graph.txt");
+        first_time_entered = false;
+    }
+
+    ModelPart::ElementsContainerType& pElements = dem_model_part.GetCommunicator().LocalMesh().Elements();
+    double current_total_mass_in_grams = 0.0;
+
+    for (unsigned int k = 0; k < pElements.size(); k++) {
+
+        ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
+        Element* raw_p_element = &(*it);
+        SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(raw_p_element);
+        if (p_sphere->Is(ISOLATED)) continue;
+        const double particle_radius = p_sphere->GetRadius();
+        const double particle_density = p_sphere->GetDensity();
+        current_total_mass_in_grams += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;
+    }
+    static const double initial_total_mass_in_grams = current_total_mass_in_grams;
+    const double cumulative_sand_mass_in_grams = initial_total_mass_in_grams - current_total_mass_in_grams;
+
+    ModelPart::ConditionsContainerType::iterator condition_begin_1 = outer_walls_model_part_1.ConditionsBegin();
+    ModelPart::ConditionsContainerType::iterator condition_begin_2 = outer_walls_model_part_2.ConditionsBegin();
+
+    const double face_pressure_in_psi = (condition_begin_1->GetValue(POSITIVE_FACE_PRESSURE) +
+                                         condition_begin_2->GetValue(POSITIVE_FACE_PRESSURE) +
+                                         3.45e6) * 0.000145 * 0.33333333333333; // 3.45e6 is the sigma_z constant pressure
+
+    static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
+    sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
+    sand_prod_file.flush();
 }
 
 //***************************************************************************************************************

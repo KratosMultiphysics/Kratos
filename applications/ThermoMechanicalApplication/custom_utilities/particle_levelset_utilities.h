@@ -837,7 +837,7 @@ private:
         const int nelements = rEulerianModelPart.Elements().size();
 	const int nparticles = rLagrangianModelPart.Nodes().size();
 
-	std::vector< WeakPointerVector< Node< 3> > > particle_of_element(nelements);
+	std::vector< GlobalPointersVector< Node< 3> > > particle_of_element(nelements);
 // 	particle_of_element.reserve(nelements);
 
 	std::vector< unsigned int > num_ptr_in_elem(nelements,0);
@@ -877,7 +877,7 @@ private:
 	    std::sort(particle_of_element[ii].ptr_begin(), particle_of_element[ii].ptr_end(), RadiusCompare() );
 
 	    //delete extra nodes
-	    WeakPointerVector< Node< 3> >::iterator ele_pt_ptr = particle_of_element[ii].begin();
+	    GlobalPointersVector< Node< 3> >::iterator ele_pt_ptr = particle_of_element[ii].begin();
 	    const unsigned int this_ele_ptr = particle_of_element[ii].size();
 	    int aux_ptr_elem_size = this_ele_ptr;
 
@@ -900,8 +900,8 @@ struct RadiusCompare{
   template<class TRefrenceType>
 bool operator()(const TRefrenceType  ptr_a, const TRefrenceType ptr_b)
     {
-      double a_radi = ptr_a.lock()->FastGetSolutionStepValue(PARTICLE_RADIUS);
-      double b_radi = ptr_b.lock()->FastGetSolutionStepValue(PARTICLE_RADIUS);
+      double a_radi = ptr_a.get()->FastGetSolutionStepValue(PARTICLE_RADIUS);
+      double b_radi = ptr_b.get()->FastGetSolutionStepValue(PARTICLE_RADIUS);
 	return (a_radi > b_radi);
     }
 };

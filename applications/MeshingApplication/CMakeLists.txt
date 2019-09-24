@@ -15,18 +15,15 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     add_definitions( -DTETLIBRARY )
     add_definitions( -DUSE_TETGEN_NONFREE_TPL )
     include_directories(${TETGEN_INCLUDES})
-    #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
-    #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
 ##add subdirectories for compilation of dependent libraries
-#add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
 
 ## generate variables with the sources
 set( KRATOS_MESHING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refinement_utility.cpp
@@ -45,13 +42,16 @@ set( KRATOS_MESHING_APPLICATION_CORE
 set(KRATOS_MESHING_APPLICATION_CORE_MMG "")
 if(${INCLUDE_MMG} MATCHES ON)
 set( KRATOS_MESHING_APPLICATION_CORE_MMG ${KRATOS_MESHING_APPLICATION_CORE_MMG}
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/mmg_io.cpp
 )
 endif(${INCLUDE_MMG} MATCHES ON)
 
 set (KRATOS_MESHING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )

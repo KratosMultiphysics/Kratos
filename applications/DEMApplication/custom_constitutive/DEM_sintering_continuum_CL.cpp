@@ -14,12 +14,6 @@
 
 namespace Kratos {
 
-	void DEM_sintering_continuum::Initialize() {
-
-		KRATOS_TRY
-			KRATOS_CATCH("")
-	}
-
 	DEMContinuumConstitutiveLaw::Pointer DEM_sintering_continuum::Clone() const {
 		DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_sintering_continuum(*this));
 		return p_clone;

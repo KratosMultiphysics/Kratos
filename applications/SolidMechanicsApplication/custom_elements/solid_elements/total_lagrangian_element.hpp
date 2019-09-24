@@ -61,7 +61,7 @@ public:
     typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of TotalLagrangianElement
-    KRATOS_CLASS_POINTER_DEFINITION( TotalLagrangianElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TotalLagrangianElement );
     ///@}
     ///@name Life Cycle
     ///@{

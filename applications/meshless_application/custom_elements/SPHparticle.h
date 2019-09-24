@@ -345,8 +345,8 @@ public:
     typedef SPHparticle                     ParticleType;
     typedef Neighbours_Calculator_SPH<ParticleType> NeighboursCalculatorType;
 
-    typedef WeakPointerVector<Element> ParticleWeakVectorType;
-    typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+    typedef GlobalPointersVector<Element> ParticleWeakVectorType;
+    typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
     typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 
     typedef Node < 3 > PointType;

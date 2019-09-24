@@ -349,7 +349,7 @@ private:
 	  //generating the dofs
 	  for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); ++iii)
 	    {
-              Node<3>::DofType& rDof = *iii;
+              Node<3>::DofType& rDof = **iii;
               Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
               if( rConditionGeometry[0].IsFixed(rDof.GetVariable()) && rConditionGeometry[1].IsFixed(rDof.GetVariable()) )
@@ -689,7 +689,7 @@ private:
 
 		      new_point.SetId(ic->Id()); //set condition Id
 
-		      Condition* ContactMasterCondition  = ic->GetValue(MASTER_CONDITION).lock().get();
+		      Condition* ContactMasterCondition  = ic->GetValue(MASTER_CONDITION).get();
 
 
 		      if( (rConditionGeometry[0].Is(TO_SPLIT) && rConditionGeometry[1].Is(TO_SPLIT)) )

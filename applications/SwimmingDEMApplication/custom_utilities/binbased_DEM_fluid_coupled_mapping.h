@@ -138,8 +138,8 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
     Parameters default_parameters( R"(
         {
             "backward_coupling": {},
+            "forward_coupling" : {},
             "coupling_type": 1,
-            "time_averaging_type": 0,
             "viscosity_modification_type" : 0,
             "n_particles_per_depth_distance" : 1,
             "body_force_per_unit_mass_variable_name" : "BODY_FORCE"
@@ -148,7 +148,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
     rParameters.ValidateAndAssignDefaults(default_parameters);
     mMinFluidFraction = rParameters["backward_coupling"]["min_fluid_fraction"].GetDouble();
     mCouplingType = rParameters["coupling_type"].GetInt();
-    mTimeAveragingType = rParameters["time_averaging_type"].GetInt();
+    mTimeAveragingType = rParameters["forward_coupling"]["time_averaging_type"].GetInt();
     mViscosityModificationType = rParameters["viscosity_modification_type"].GetInt();
     mParticlesPerDepthDistance = rParameters["n_particles_per_depth_distance"].GetInt();
     mpBodyForcePerUnitMassVariable = &( KratosComponents< Variable<array_1d<double,3>> >::Get(rParameters["body_force_per_unit_mass_variable_name"].GetString()) );

@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural as structural_solvers
+from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural as structural_solvers
 
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -57,6 +57,9 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         # performing some checks if the submodelparts used for the processes and
         # the material-assignments are being added to the ComputingModelPart
         solver_settings = self.project_parameters["solver_settings"]
+        if not solver_settings["use_computing_model_part"].GetBool():
+            return # no computing model part used, hence checks are not necessary
+
         main_model_part_name = solver_settings["model_part_name"].GetString()
 
         # Checking if the material-submodelparts are added to the ComputingModelPart
@@ -168,7 +171,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if self.parallel_type == "OpenMP":
             from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
         elif self.parallel_type == "MPI":
-            from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+            from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess as OutputProcess
 
         gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                    self.project_parameters["problem_data"]["problem_name"].GetString() ,

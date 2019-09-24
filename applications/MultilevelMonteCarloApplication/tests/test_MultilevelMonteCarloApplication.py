@@ -32,12 +32,12 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
-    # - testMonteCarloAnalysis
-    # - testMultilevelMonteCarloAnalysis
+    # - testMonteCarlo
+    # - testMultilevelMonteCarlo
     nightSuite = suites['nightly']
+    nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarlo'))
     if(hasattr(MeshingApplication,"MmgProcess2D")):
-        nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMonteCarloAnalysis'))
-        nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarloAnalysis'))
+        nightSuite.addTest(KratosMultilevelMonteCarloGeneralTests('testMultilevelMonteCarlo'))
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
 

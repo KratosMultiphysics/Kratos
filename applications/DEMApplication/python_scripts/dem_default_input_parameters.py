@@ -89,6 +89,7 @@ def GetDefaultInputParameters():
             "ShearStrainParallelToBondOption"  : true,
             "DontSearchUntilFailure"           : false,
             "ContactMeshOption"                : false,
+            "MaxNumberOfIntactBondsToConsiderASphereBroken" : 0,
             "OutputFileType"                   : "Binary",
             "Multifile"                        : "multiple_files",
             "TestType"                         : "None",

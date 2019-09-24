@@ -45,6 +45,7 @@
 // The strategies to test
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "solving_strategies/strategies/line_search_strategy.h"
 
 namespace Kratos 
 {
@@ -80,6 +81,7 @@ namespace Kratos
         typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
         typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
         typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
+        typedef LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >LineSearchStrategyType;
         
         // Dof arrays
         typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<SetIdentityFunction<Dof<double>>::result_type>, std::equal_to<SetIdentityFunction<Dof<double>>::result_type>, Dof<double>* > DofsArrayType;
@@ -102,7 +104,7 @@ namespace Kratos
             std::vector<NodeType::Pointer> geom(1);
             geom[0] = pnode;
             GeometryType::Pointer pgeom = Kratos::make_shared<GeometryType>(PointerVector<NodeType>{geom});
-            Element::Pointer pelem = Kratos::make_shared<TestElement>(1, pgeom, ThisResidualType);
+            Element::Pointer pelem = Kratos::make_intrusive<TestElement>(1, pgeom, ThisResidualType);
             ModelPart.AddElement(pelem);
             
             pnode->AddDof(DISPLACEMENT_X, REACTION_X);
@@ -123,7 +125,7 @@ namespace Kratos
             DofsArrayType Doftemp;
             Doftemp.reserve(DoF.size());
             for (auto it= DoF.begin(); it!= DoF.end(); it++)
-                Doftemp.push_back( it->get() );
+                Doftemp.push_back( *it );
             
             Doftemp.Sort();
             
@@ -216,6 +218,64 @@ namespace Kratos
                     KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(LineSearchStrategy, KratosCoreFastSuite)
+        {
+            Model current_model;
+            
+            constexpr double tolerance = 1e-6;
+            
+            ModelPart& model_part = current_model.CreateModelPart("Main");
+            
+            SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+            LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+            ConvergenceCriteriaType::Pointer pcriteria = ConvergenceCriteriaType::Pointer( new ResidualCriteriaType(1.0e-4, 1.0e-9) );
+            BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
+            Parameters settings(R"({
+                "max_iterations"             : 10,
+                "calculate_reactions"        : true,
+                "max_line_search_iterations" : 5,
+                "first_alpha_value"          : 0.5,
+                "second_alpha_value"         : 1.0,
+                "min_alpha"                  : 0.1,
+                "max_alpha"                  : 2.0,
+                "line_search_tolerance"      : 0.5
+            })");
+            
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new LineSearchStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve, settings));
+
+            DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
+            
+            NodeType::Pointer pnode = model_part.pGetNode(1);
+            
+
+            double time = 0.0;
+            const double delta_time = 1.0e-4;
+            const unsigned int number_iterations = 1;
+            for (unsigned int iter = 0; iter < number_iterations; ++iter) {
+                time += delta_time;
+       
+                model_part.CloneTimeStep(time);
+               
+                array_1d<double, 3> init_vector;
+                init_vector[0] = 0.5;
+                init_vector[1] = 0.5;
+                init_vector[2] = 0.5;
+                pnode->FastGetSolutionStepValue(DISPLACEMENT) = init_vector;
+                
+                pcriteria->SetEchoLevel(0);
+                pstrategy->SetEchoLevel(0);
+                pstrategy->Solve();
+
+                for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                }
+            }
+
+
+            
         }
         
     } // namespace Testing

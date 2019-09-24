@@ -61,7 +61,7 @@ public:
     typedef GeometryData::SizeType SizeType;
 
     /// Counted pointer of FluidElement
-    KRATOS_CLASS_POINTER_DEFINITION( FluidElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( FluidElement );
     ///@}
 
 protected:

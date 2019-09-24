@@ -148,7 +148,7 @@ public:
 		for(auto& node_i : mrModelPart.Nodes())
 		{
 			// Get all neighbor elements of current node
-			WeakPointerVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
+			GlobalPointersVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
 
 			// Compute total mass of all neighbor elements before finite differencing
 			double mass_before_fd = 0.0;

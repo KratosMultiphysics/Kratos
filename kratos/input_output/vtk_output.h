@@ -52,7 +52,10 @@ public:
      * @param rModelPart The modelpart which is used for output
      * @param Parameters Parameters including settings for the output
      */
-    explicit VtkOutput(ModelPart& rModelPart, Parameters ThisParameters);
+    explicit VtkOutput(
+        ModelPart& rModelPart,
+        Parameters ThisParameters = Parameters(R"({})" )
+        );
 
     /// Destructor.
     virtual ~VtkOutput() = default;
@@ -60,6 +63,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    static Parameters GetDefaultParameters();
 
     /**
      * @brief Prints mrModelPart in VTK format together with the results
@@ -178,7 +186,7 @@ protected:
     /**
      * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
      *          It is necessary to be known prior to output
-     * @template TContainerType type of container.
+     * @tparam TContainerType type of container.
      * @param rContainer the container which is beging output
      */
     template<typename TContainerType>
@@ -186,7 +194,7 @@ protected:
 
     /**
      * @brief Write the element/condition WriteConnectivity provided the container they are in
-     * @template TEntity Element/Condition
+     * @tparam TEntity Element/Condition
      * @param rContainer The container containing elements/conditions
      * @param rFileStream the file stream to which data is to be written.
      */
@@ -195,7 +203,7 @@ protected:
 
     /**
      * @brief Write the element/condition cell types provided the container they are in
-     * @template TEntity Element/Condition
+     * @tparam TEntity Element/Condition
      * @param rContainer The container containing elements/conditions
      * @param rFileStream the file stream to which data is to be written.
      */
@@ -239,7 +247,7 @@ protected:
 
     /**
      * @brief Write the variable results of rContainer (Elements or Conditions).
-     * @template TContainerType The type of container of the entity on which the results are to be written
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
      * @param rVariableName name of the result to be written.
      * @param rContainer the container which is beging output
      * @param rFileStream the file stream to which data is to be written.
@@ -248,6 +256,18 @@ protected:
     void WriteGeometricalContainerResults(const std::string& rVariableName,
                                           const TContainerType& rContainer,
                                           std::ofstream& rFileStream) const;
+
+    /**
+     * @brief Write the variable GP results of rContainer (Elements or Conditions).
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @param rVariableName name of the result to be written.
+     * @param rContainer the container which is beging output
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType>
+    void WriteGeometricalContainerIntegrationResults(const std::string& rVariableName,
+                                                    const TContainerType& rContainer,
+                                                     std::ofstream& rFileStream) const;
 
     /**
      * @brief Writes scalar results of rNodes. Wraps the necessary synchronization-calls
@@ -279,8 +299,8 @@ protected:
 
     /**
      * @brief Write the scalar-historical variable results of rContainer.
-     * @template TContainerType The type of container of the entity on which the results are to be written
-     * @template TVarType The type of Variable of the entity on which the results are to be written
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @tparam TVarType The type of Variable of the entity on which the results are to be written
      * @param rContainer the container which is beging output
      * @param rVariable Variable of the result to be written.
      * @param rFileStream the file stream to which data is to be written.
@@ -293,8 +313,8 @@ protected:
 
     /**
      * @brief Write the vector-historical variable results of rContainer.
-     * @template TContainerType The type of container of the entity on which the results are to be written
-     * @template TVarType The type of Variable of the entity on which the results are to be written
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @tparam TVarType The type of Variable of the entity on which the results are to be written
      * @param rContainer the container which is beging output
      * @param rVariable Variable of the result to be written.
      * @param rFileStream the file stream to which data is to be written.
@@ -306,9 +326,24 @@ protected:
         std::ofstream& rFileStream) const;
 
     /**
+     * @brief Write the flag results of rContainer.
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param Flag The flag to be considered to be written
+     * @param rFlagName The name of the flag that will appear on the post file
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType>
+    void WriteFlagContainerVariable(
+        const TContainerType& rContainer,
+        const Flags Flag,
+        const std::string& rFlagName,
+        std::ofstream& rFileStream) const;
+
+    /**
      * @brief Write the scalar-nonhistorical variable results of rContainer.
-     * @template TContainerType The type of container of the entity on which the results are to be written
-     * @template TVarType The type of Variable of the entity on which the results are to be written
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @tparam TVarType The type of Variable of the entity on which the results are to be written
      * @param rContainer the container which is beging output
      * @param rVariable Variable of the result to be written.
      * @param rFileStream the file stream to which data is to be written.
@@ -320,9 +355,23 @@ protected:
         std::ofstream& rFileStream) const;
 
     /**
+     * @brief Write the scalar GP variable results of rContainer.
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @tparam TVarType The type of Variable of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param rVariable Variable of the result to be written.
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType, class TVarType>
+    void WriteIntegrationScalarContainerVariable(
+        const TContainerType& rContainer,
+        const Variable<TVarType>& rVariable,
+        std::ofstream& rFileStream) const;
+
+    /**
      * @brief Write the vector-nonhistorical variable results of rContainer.
-     * @template TContainerType The type of container of the entity on which the results are to be written
-     * @template TVarType The type of Variable of the entity on which the results are to be written
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @tparam TVarType The type of Variable of the entity on which the results are to be written
      * @param rContainer the container which is beging output
      * @param rVariable Variable of the result to be written.
      * @param VtkDataType type of vtk data
@@ -335,8 +384,23 @@ protected:
         std::ofstream& rFileStream) const;
 
     /**
+     * @brief Write the vector-GP variable results of rContainer.
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @tparam TVarType The type of Variable of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param rVariable Variable of the result to be written.
+     * @param VtkDataType type of vtk data
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType, class TVarType>
+    void WriteIntegrationVectorContainerVariable(
+        const TContainerType& rContainer,
+        const Variable<TVarType>& rVariable,
+        std::ofstream& rFileStream) const;
+
+    /**
      * @brief Write the scalar value to the file provided, takes care of binary and ascii formats
-     * @template TData The type of data to be written to the file stream rFileStream
+     * @tparam TData The type of data to be written to the file stream rFileStream
      * @param rData data to be written
      * @param rFileStream the file stream to which data is to be written.
      */
@@ -345,7 +409,7 @@ protected:
 
     /**
      * @brief Write the vector values to the file provided, takes care of binary and ascii formats
-     * @template TData The type of data to be written to the file stream rFileStream
+     * @tparam TData The type of data to be written to the file stream rFileStream
      * @param rData data to be written
      * @param rFileStream the file stream to which data is to be written.
      */
@@ -366,15 +430,21 @@ private:
     ///@{
 
     /**
+     * @brief Prints the Properties Id as an integer variable in each element/condition
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType>
+    void WritePropertiesIdsToFile(
+        const TContainerType& rContainer,
+        std::ofstream& rFileStream) const;
+
+    /**
      * @brief Print the given rModelPart as VTK file together with the requested results (Only for model parts without nodes)
      * @param rModelPart modelpart which is beging output
      */
     void WriteModelPartWithoutNodesToFile(ModelPart& rModelPart);
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
 };

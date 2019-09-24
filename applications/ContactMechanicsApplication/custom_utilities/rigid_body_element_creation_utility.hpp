@@ -59,7 +59,7 @@ public:
     typedef Point2D<ModelPart::NodeType>       Point2DType;
     typedef Point3D<ModelPart::NodeType>       Point3DType;
 
-    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -454,25 +454,25 @@ private:
       //Rigid Body Element:
       if( ElementName == "RigidBodyElement3D1N" || ElementName == "RigidBodyElement2D1N" ){
 	//std::cout<<" RigidBodyElement "<<rElementId<<std::endl;
-    	pRigidBodyElement = Kratos::make_shared<RigidBodyElement>(rElementId, pGeometry, pProperties, pNodes);
+    	pRigidBodyElement = Kratos::make_intrusive<RigidBodyElement>(rElementId, pGeometry, pProperties, pNodes);
       }
       else if( ElementName == "TranslatoryRigidBodyElement3D1N" || ElementName == "TranslatoryRigidBodyElement2D1N"){
 	//std::cout<<" TranslatoryRigidBodyElement "<<rElementId<<std::endl;
 	// return KratosComponents<Element>::Get("TranslatoryRigidBodyElement")
-    	pRigidBodyElement = Kratos::make_shared<TranslatoryRigidBodyElement>(rElementId, pGeometry, pProperties, pNodes);
+    	pRigidBodyElement = Kratos::make_intrusive<TranslatoryRigidBodyElement>(rElementId, pGeometry, pProperties, pNodes);
       }
       else if( ElementName == "RigidBodySegregatedVElement3D1N" || ElementName == "RigidBodySegregatedVElement2D1N" ){
 	//std::cout<<" RigidBodyElement "<<rElementId<<std::endl;
-    	pRigidBodyElement = Kratos::make_shared<RigidBodySegregatedVElement>(rElementId, pGeometry, pProperties, pNodes);
+    	pRigidBodyElement = Kratos::make_intrusive<RigidBodySegregatedVElement>(rElementId, pGeometry, pProperties, pNodes);
       }
       else if( ElementName == "TranslatoryRigidBodySegregatedVElement3D1N" || ElementName == "TranslatoryRigidBodySegregatedVElement2D1N"){
 	//std::cout<<" TranslatoryRigidBodyElement "<<rElementId<<std::endl;
 	// return KratosComponents<Element>::Get("TranslatoryRigidBodyElement")
-    	pRigidBodyElement = Kratos::make_shared<TranslatoryRigidBodySegregatedVElement>(rElementId, pGeometry, pProperties, pNodes);
+    	pRigidBodyElement = Kratos::make_intrusive<TranslatoryRigidBodySegregatedVElement>(rElementId, pGeometry, pProperties, pNodes);
       }
       else if( ElementName == "RigidBodyEMCElement3D1N" || ElementName == "RigidBodyEMCElement2D1N" ){
 	//std::cout<<" RigidBodyEMCElement "<<std::endl;
-    	//return Kratos::make_shared<RigidBodyEMCElement>(rElementId, pGeometry, pProperties, pNodes);
+    	//return Kratos::make_intrusive<RigidBodyEMCElement>(rElementId, pGeometry, pProperties, pNodes);
         KRATOS_ERROR<<" There is no rigid body element of the type "<<ElementName<<std::endl;
       }
       else{
@@ -508,11 +508,11 @@ private:
       //Rigid Body Point Ling Condition:
       if( ConditionName == "RigidBodyPointLinkCondition3D1N" || ConditionName == "RigidBodyPointLinkCondition2D1N" ){
         //std::cout<<" Create RigidBodyPointLinkCondition "<<rConditionId<<std::endl;
-    	pLinkCondition = Kratos::make_shared<RigidBodyPointLinkCondition>(rConditionId, pGeometry, pProperties);
+    	pLinkCondition = Kratos::make_intrusive<RigidBodyPointLinkCondition>(rConditionId, pGeometry, pProperties);
       }
       else if( ConditionName == "RigidBodyPointLinkSegregatedVCondition3D1N" || ConditionName == "RigidBodyPointLinkSegregatedVCondition2D1N" ){
         //std::cout<<" Create RigidBodyPointLinkSegregatedVCondition "<<rConditionId<<std::endl;
-    	pLinkCondition = Kratos::make_shared<RigidBodyPointLinkSegregatedVCondition>(rConditionId, pGeometry, pProperties);
+    	pLinkCondition = Kratos::make_intrusive<RigidBodyPointLinkSegregatedVCondition>(rConditionId, pGeometry, pProperties);
       }
       else{
         KRATOS_ERROR<<" There is no link condition of the type "<<ConditionName<<std::endl;
@@ -613,7 +613,7 @@ private:
 
       for(NodeType::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
       	{
-      	  NodeType::DofType& rDof = *iii;
+      	  NodeType::DofType& rDof = **iii;
       	  Node->pAddDof( rDof );
       	}
 
@@ -625,7 +625,7 @@ private:
 
     	for(NodeType::DofsContainerType::iterator iii = new_dofs.begin(); iii != new_dofs.end(); iii++)
       	{
-      	  NodeType::DofType& rDof = *iii;
+      	  NodeType::DofType& rDof = **iii;
     	  rDof.FixDof(); // dofs fixed
       	}
 
@@ -637,7 +637,7 @@ private:
 
     	for(NodeType::DofsContainerType::iterator iii = new_dofs.begin(); iii != new_dofs.end(); iii++)
       	{
-      	  NodeType::DofType& rDof = *iii;
+      	  NodeType::DofType& rDof = **iii;
     	  rDof.FreeDof(); // dofs free
       	}
 
