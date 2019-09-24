@@ -542,8 +542,6 @@ private:
 template<int TWorkingSpaceDimension, class TPointType>
 const GeometryData NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType>::msGeometryData(
     &msGeometryDimension,
-    TWorkingSpaceDimension,
-    2,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
 
