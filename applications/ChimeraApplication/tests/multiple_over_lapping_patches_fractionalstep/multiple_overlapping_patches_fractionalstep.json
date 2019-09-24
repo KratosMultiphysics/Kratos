@@ -33,33 +33,31 @@
             ],
             "internal_parts_for_chimera":["NoSlip2D_structure_1_1", "NoSlip2D_structure_2_1"]
         },
-        "fluid_solver_settings":{        
-            "model_part_name": "FluidModelPart",
-            "domain_size": 2,
-            "solver_type": "fractional_step",
-            "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "../mdpa_for_tests/multiple_overlapping_patches"
-            },
-            "echo_level": 0,
-            "compute_reactions": true,
-            "dynamic_tau": 1.0,
-            "volume_model_part_name": "Parts_all",
-            "skin_parts": [
-                "AutomaticInlet2D_inlet",
-                "Outlet2D_outlet",
-                "NoSlip2D_walls",
-                "NoSlip2D_structure_1_1",
-                "NoSlip2D_structure_2_1"
-            ],
-            "no_skin_parts": [
-                "Drag_structure_1_1",
-                "Drag_structure_2_1"
-            ],
-            "time_stepping": {
-                "automatic_time_step": false,
-                "time_step": 0.01
-            }
+        "model_part_name": "FluidModelPart",
+        "domain_size": 2,
+        "solver_type": "fractional_step",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "../mdpa_for_tests/multiple_overlapping_patches"
+        },
+        "echo_level": 0,
+        "compute_reactions": true,
+        "dynamic_tau": 1.0,
+        "volume_model_part_name": "Parts_all",
+        "skin_parts": [
+            "AutomaticInlet2D_inlet",
+            "Outlet2D_outlet",
+            "NoSlip2D_walls",
+            "NoSlip2D_structure_1_1",
+            "NoSlip2D_structure_2_1"
+        ],
+        "no_skin_parts": [
+            "Drag_structure_1_1",
+            "Drag_structure_2_1"
+        ],
+        "time_stepping": {
+            "automatic_time_step": false,
+            "time_step": 0.01
         }
     },
     "processes": {
