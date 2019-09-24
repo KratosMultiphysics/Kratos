@@ -18,8 +18,6 @@ class CoSimulationConvergenceCriteria(object):
         self.interface_data = solver_wrapper.GetInterfaceData(self.settings["data_name"].GetString())
 
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
-        self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
 
 
     def Initialize(self):
@@ -59,7 +57,5 @@ class CoSimulationConvergenceCriteria(object):
             "type"       : "UNSPECIFIED",
             "solver"     : "UNSPECIFIED",
             "data_name"  : "UNSPECIFIED",
-            "abs_tolerance" : 1e-5,
-            "rel_tolerance" : 1e-5,
             "echo_level" : 0
         }""")
