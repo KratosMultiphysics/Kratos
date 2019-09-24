@@ -17,7 +17,7 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "contact_structural_mechanics_application_variables.h"
-// #include "includes/gid_io.h"
+#include "includes/gid_io.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/self_contact_utilities.h"
 
@@ -25,20 +25,20 @@ namespace Kratos
 {
     namespace Testing
     {
-//         void GiDIOSelfContactDebug(ModelPart& rModelPart)
-//         {
-//             GidIO<> gid_io("TEST_SELFCONTACT_UTILITIES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
-//             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-//             const double label = static_cast<double>(nl_iter);
-//
-//             gid_io.InitializeMesh(label);
-//             gid_io.WriteMesh(rModelPart.GetMesh());
-//             gid_io.FinalizeMesh();
-//             gid_io.InitializeResults(label, rModelPart.GetMesh());
-//             gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
-//             gid_io.WriteNodalFlags(MASTER, "MASTER", rModelPart.Nodes(), label);
-//             gid_io.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
-//         }
+        void GiDIOSelfContactDebug(ModelPart& rModelPart)
+        {
+            GidIO<> gid_io("TEST_SELFCONTACT_UTILITIES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
+            const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+            const double label = static_cast<double>(nl_iter);
+
+            gid_io.InitializeMesh(label);
+            gid_io.WriteMesh(rModelPart.GetMesh());
+            gid_io.FinalizeMesh();
+            gid_io.InitializeResults(label, rModelPart.GetMesh());
+            gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+            gid_io.WriteNodalFlags(MASTER, "MASTER", rModelPart.Nodes(), label);
+            gid_io.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+        }
 
         /**
          * This method can be used to create a 3D plane condition set
@@ -82,7 +82,56 @@ namespace Kratos
         }
 
         /**
-        * Checks the correct work of the weighted gap computation
+         * This method can be used to create a 3D plane condition set
+         */
+        void CircularCreateNewProblem3D(ModelPart& rModelPart)
+        {
+            // Creating nodes
+            rModelPart.CreateNewNode(1,-0.0097880904,-0.9999520955,0.5000000000);
+            rModelPart.CreateNewNode(2,-0.0097880904,-0.9999520955,0.1000000000);
+            rModelPart.CreateNewNode(3,-0.5223183884,-0.8527505503,0.5000000000);
+            rModelPart.CreateNewNode(4,0.5082178134,-0.8612285725,0.5000000000);
+            rModelPart.CreateNewNode(5,-0.5223183884,-0.8527505503,0.1000000000);
+            rModelPart.CreateNewNode(6,0.5082178134,-0.8612285725,0.1000000000);
+            rModelPart.CreateNewNode(7,-0.8832410687,-0.4689191983,0.5000000000);
+            rModelPart.CreateNewNode(8,0.8770097528,-0.4804725731,0.5000000000);
+            rModelPart.CreateNewNode(9,-0.8832410687,-0.4689191983,0.1000000000);
+            rModelPart.CreateNewNode(10,0.8770097528,-0.4804725731,0.1000000000);
+            rModelPart.CreateNewNode(11,-0.9992750647,0.0380702645,0.5000000000);
+            rModelPart.CreateNewNode(12,0.9995947449,0.0284665770,0.5000000000);
+            rModelPart.CreateNewNode(13,-0.9992750647,0.0380702645,0.1000000000);
+            rModelPart.CreateNewNode(14,0.9995947449,0.0284665770,0.1000000000);
+            rModelPart.CreateNewNode(15,-0.8489322851,0.5285016323,0.5000000000);
+            rModelPart.CreateNewNode(16,0.8520420337,0.5234733735,0.5000000000);
+            rModelPart.CreateNewNode(17,-0.8489322851,0.5285016323,0.1000000000);
+            rModelPart.CreateNewNode(18,0.8520420337,0.5234733735,0.1000000000);
+            rModelPart.CreateNewNode(19,-0.4820104280,0.8761654794,0.5000000000);
+            rModelPart.CreateNewNode(20,0.4838042025,0.8751762643,0.5000000000);
+            rModelPart.CreateNewNode(21,-0.4820104280,0.8761654794,0.1000000000);
+            rModelPart.CreateNewNode(22,0.4838042025,0.8751762643,0.1000000000);
+            rModelPart.CreateNewNode(23,0.0000000000,1.0000000000,0.5000000000);
+            rModelPart.CreateNewNode(24,0.0000000000,1.0000000000,0.1000000000);
+
+            // Creating properties
+            Properties::Pointer p_cond_prop_0 = rModelPart.CreateNewProperties(0);
+
+            // Creating conditions
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 1, {{23,24,21,19}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 2, {{19,21,17,15}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 3, {{15,17,13,11}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 4, {{11,13, 9, 7}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 5, {{7, 9, 5, 3}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 6, {{3, 5, 2, 1}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 7, {{1, 2, 6, 4}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 8, {{4, 6,10, 8}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 9, {{8,10,14,12}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 10, {{12,14,18,16}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 11, {{16,18,22,20}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 12, {{20,22,24,23}}, p_cond_prop_0);
+        }
+
+        /**
+        * Checks the correct work of the self-contact utilities
         * Test 1
         */
         KRATOS_TEST_CASE_IN_SUITE(SelfContactUtilities1, KratosContactStructuralMechanicsFastSuite2)
@@ -112,7 +161,6 @@ namespace Kratos
 
             // Creating the pairs
             SelfContactUtilities::ComputeSelfContactPairing(r_model_part);
-//             SelfContactUtilities::NotPredefinedMasterSlave(r_model_part);
 
 //             // DEBUG
 //             GiDIOSelfContactDebug(r_model_part);
@@ -136,6 +184,62 @@ namespace Kratos
             KRATOS_CHECK(r_model_part.pGetCondition(7)->Is(MASTER));
             KRATOS_CHECK(r_model_part.pGetCondition(8)->IsNot(SLAVE));
             KRATOS_CHECK(r_model_part.pGetCondition(8)->Is(MASTER));
+        }
+
+        /**
+        * Checks the correct work of the self-contact utilities
+        * Test 2
+        */
+        KRATOS_TEST_CASE_IN_SUITE(SelfContactUtilities2, KratosContactStructuralMechanicsFastSuite2)
+        {
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 2);
+
+            auto& r_process_info = r_model_part.GetProcessInfo();
+            r_process_info[STEP] = 1;
+            r_process_info[NL_ITERATION_NUMBER] = 1;
+
+            // We create our problem
+            CircularCreateNewProblem3D(r_model_part);
+
+            // All potential pairs
+            for (auto& r_cond : r_model_part.Conditions()) {
+                r_cond.SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
+            }
+            for (auto& r_cond_1 : r_model_part.Conditions()) {
+                auto p_pairs = r_cond_1.GetValue(INDEX_MAP);
+                for (auto& r_cond_2 : r_model_part.Conditions()) {
+                    if (r_cond_1.Id() != r_cond_2.Id()) {
+                        p_pairs->AddId(r_cond_2.Id());
+                    }
+                }
+            }
+
+            // Creating the pairs
+            SelfContactUtilities::ComputeSelfContactPairing(r_model_part);
+
+            // DEBUG
+            GiDIOSelfContactDebug(r_model_part);
+
+//             // Slave conditions
+//             KRATOS_CHECK(r_model_part.pGetCondition(1)->Is(SLAVE));
+//             KRATOS_CHECK(r_model_part.pGetCondition(1)->IsNot(MASTER));
+//             KRATOS_CHECK(r_model_part.pGetCondition(2)->Is(SLAVE));
+//             KRATOS_CHECK(r_model_part.pGetCondition(2)->IsNot(MASTER));
+//             KRATOS_CHECK(r_model_part.pGetCondition(3)->Is(SLAVE));
+//             KRATOS_CHECK(r_model_part.pGetCondition(3)->IsNot(MASTER));
+//             KRATOS_CHECK(r_model_part.pGetCondition(4)->Is(SLAVE));
+//             KRATOS_CHECK(r_model_part.pGetCondition(4)->IsNot(MASTER));
+//
+//             // Master conditions
+//             KRATOS_CHECK(r_model_part.pGetCondition(5)->IsNot(SLAVE));
+//             KRATOS_CHECK(r_model_part.pGetCondition(5)->Is(MASTER));
+//             KRATOS_CHECK(r_model_part.pGetCondition(6)->IsNot(SLAVE));
+//             KRATOS_CHECK(r_model_part.pGetCondition(6)->Is(MASTER));
+//             KRATOS_CHECK(r_model_part.pGetCondition(7)->IsNot(SLAVE));
+//             KRATOS_CHECK(r_model_part.pGetCondition(7)->Is(MASTER));
+//             KRATOS_CHECK(r_model_part.pGetCondition(8)->IsNot(SLAVE));
+//             KRATOS_CHECK(r_model_part.pGetCondition(8)->Is(MASTER));
         }
 
     } // namespace Testing
