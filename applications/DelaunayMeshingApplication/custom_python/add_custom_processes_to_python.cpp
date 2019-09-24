@@ -42,15 +42,12 @@
 #include "custom_processes/generate_new_elements_mesher_process.hpp"
 #include "custom_processes/generate_new_conditions_mesher_process.hpp"
 
-#include "custom_processes/transfer_entities_between_pfem_model_parts_process.hpp"
-
 
 namespace Kratos
 {
 
 namespace Python
 {
-typedef std::vector<Flags>  FlagsContainer;
 
 typedef Process::Pointer ProcessPointer;
 typedef MesherProcess::Pointer MesherProcessPointer;
@@ -145,13 +142,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(py::init<ModelPart &, const double, const double, const double, const double, const double, const double>())
         .def(py::init<ModelPart &, Parameters &>());
 
-    //**********TRANSFER ENTITIES BETWEEN MODEL PARTS*********//
-
-    py::class_<TransferEntitiesBetweenPfemModelPartsProcess, TransferEntitiesBetweenPfemModelPartsProcess::Pointer, Process>(m, "TransferEntitiesForPfemProcess")
-        .def(py::init<ModelPart &, ModelPart &, const std::string>())
-        .def(py::init<ModelPart &, ModelPart &, const std::string, const FlagsContainer &>())
-        .def(py::init<ModelPart &, ModelPart &, const std::string, const FlagsContainer &, const FlagsContainer &>())
-        .def("Execute", &TransferEntitiesBetweenPfemModelPartsProcess::Execute);
 }
 
 } // namespace Python.

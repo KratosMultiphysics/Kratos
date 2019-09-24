@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
+import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 class DomainUtilities(object):
 
@@ -166,7 +167,7 @@ class DomainUtilities(object):
                     for part in model_part.SubModelParts:
                         if part.IsNot(KratosMultiphysics.ACTIVE):
                             if( part.Is(KratosMultiphysics.SOLID) or part.Is(KratosMultiphysics.RIGID) ):
-                                transfer_process = KratosDelaunay.TransferEntitiesForPfemProcess(fluid_part,part,entity_type,transfer_flags)
+                                transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,part,entity_type,transfer_flags)
                                 transfer_process.Execute()
     #
     @classmethod

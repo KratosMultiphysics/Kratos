@@ -64,16 +64,24 @@ void FastTransferBetweenModelPartsProcess::Execute()
     if (this->IsNot(MODIFIED)) {
         // In case of not flag defined we transfer all the elements
         if (mFlag == Flags()) {
+            std::cout<<"             TransferWithoutFlags();"<<std::endl;
             TransferWithoutFlags();
         } else {
+                        std::cout<<"                     TransferWithFlags();"<<std::endl;
+
             TransferWithFlags();
         }
     } else {
         // In case of not flag defined we transfer all the elements
         if (mFlag == Flags()) {
+                                    std::cout<<"                  ReplicateWithoutFlags();"<<std::endl;
+
             ReplicateWithoutFlags();
         } else {
             ReplicateWithFlags();
+                                                std::cout<<"                    ReplicateWithFlags();"<<std::endl;
+
+            
         }
     }
 
@@ -130,8 +138,12 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
             #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_nodes; ++i) {
                 auto it_node = it_node_begin + i;
+                    nodes_buffer_vector.insert(nodes_buffer_vector.begin(), *(it_node.base()));
                 if (it_node->Is(mFlag)) {
                     nodes_buffer_vector.insert(nodes_buffer_vector.begin(), *(it_node.base()));
+                }else{
+                    it_node->Set(mFlag);
+                    nodes_buffer_vector.insert(nodes_buffer_vector.begin(), *(it_node.base()));   
                 }
             }
         }
@@ -172,8 +184,11 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
         // We transfer
         #pragma omp critical
         {
-            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
+            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)){
                 mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
+                    std::cout<<"          AddNodes AddNodes AddNodes AddNodes AddNodes AddNodes"<<std::endl;
+
+            }
 
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
                 mrDestinationModelPart.AddElements(elements_buffer_vector.begin(),elements_buffer_vector.end());
