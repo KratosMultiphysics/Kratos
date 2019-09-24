@@ -113,7 +113,7 @@ public:
     void Initialize() override
     {
         BuiltinTimer timer;
-        KRATOS_INFO("") <<  "> Starting initialization of matrix-free mapper..." << std::endl;
+        KRATOS_INFO("") << "> Starting initialization of matrix-free mapper..." << std::endl;
 
         CreateListOfNodesInOriginModelPart();
         CreateFilterFunction();
@@ -124,7 +124,7 @@ public:
 
         mIsMappingInitialized = true;
 
-        KRATOS_INFO("") <<  "> Finished initialization of matrix-free mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("") << "> Finished initialization of matrix-free mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -134,7 +134,7 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        KRATOS_INFO("") <<  "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesDestination[0].clear();
@@ -194,7 +194,7 @@ public:
             r_node_vector(2) = mValuesDestination[2][i];
         }
 
-        KRATOS_INFO("") <<  "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("") << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -204,7 +204,7 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        KRATOS_INFO("") <<  "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesDestination[0].clear();
@@ -252,7 +252,7 @@ public:
             node_i.FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
         }
 
-        KRATOS_INFO("") <<  "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("") << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -262,7 +262,7 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        KRATOS_INFO("") <<  "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesOrigin[0].clear();
@@ -323,7 +323,7 @@ public:
             r_node_vector(2) = mValuesOrigin[2][i];
         }
 
-        KRATOS_INFO("") <<  "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("") << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -333,7 +333,7 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        KRATOS_INFO("") <<  "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesOrigin[0].clear();
@@ -385,7 +385,7 @@ public:
             node_i.FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
         }
 
-        KRATOS_INFO("") <<  "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("") << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -395,11 +395,11 @@ public:
             KRATOS_ERROR << "> Mapping has to be initialized before calling the Update-function!";
 
         BuiltinTimer timer;
-        KRATOS_INFO("") <<  "> Starting to update mapper..." << std::endl;
+        KRATOS_INFO("") << "> Starting to update mapper..." << std::endl;
 
         CreateSearchTreeWithAllNodesInOriginModelPart();
 
-        KRATOS_INFO("") <<  "> Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("") << "> Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -563,9 +563,9 @@ private:
     void CreateSearchTreeWithAllNodesInOriginModelPart()
     {
         BuiltinTimer timer;
-        KRATOS_INFO("") <<  "> Creating search tree to perform mapping..." << std::endl;
+        KRATOS_INFO("") << "> Creating search tree to perform mapping..." << std::endl;
         mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInOriginModelPart.begin(), mListOfNodesInOriginModelPart.end(), mBucketSize));
-        KRATOS_INFO("") <<  "> Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
+        KRATOS_INFO("") << "> Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
