@@ -59,12 +59,22 @@ enum WriteConditionsFlag {WriteConditions, WriteElementsOnly, WriteConditionsOnl
 enum MultiFileFlag {SingleFile, MultipleFiles};
 
 
+class GiDIOBase : public IO {
+
+    private:
+    /**
+     * Counter of live GidIO instances
+     * (to ensure GiD_PostInit and GiD_PostDone are properly called)
+     */
+    static int msLiveInstances;
+};
+
 /**
  * This class defines an interface to the GiDPost library
  * in order to provide GiD compliant I/O functionality
  */
 template<class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
-class GidIO : public IO
+class GidIO : public GiDIOBase
 {
 public:
     ///pointer definition of GidIO
@@ -1578,13 +1588,6 @@ protected:
     bool mResultFileOpen;
 
 private:
-
-    /**
-     * Counter of live GidIO instances
-     * (to ensure GiD_PostInit and GiD_PostDone are properly called)
-     */
-    static int msLiveInstances;
-
     /**
      * assignment operator
      */
@@ -1646,9 +1649,6 @@ inline std::ostream& operator << (std::ostream& rOStream, const GidIO<>& rThis)
     rThis.PrintData(rOStream);
     return rOStream;
 }
-
-template< class TGaussPointContainer, class TMeshContainer >
-int GidIO<TGaussPointContainer,TMeshContainer>::msLiveInstances = 0;
 
 }// namespace Kratos.
 
