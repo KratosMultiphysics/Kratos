@@ -76,11 +76,19 @@ class TestConvergenceCriteria(KratosUnittest.TestCase):
         conv_crit = convergence_criterion_factory.CreateConvergenceCriterion(conv_crit_settings, self.solver_wrappers["dummy_solver"])
         self.__ExecuteTest(conv_crit)
 
+
     def __ExecuteTest(self, conv_crit):
         conv_crit.Initialize()
         conv_crit.Check()
 
-        time_steps = 3
+        '''
+        TS 1: no convergence
+        TS 2: res decreases, abs
+        TS 3: res decreases, rel
+        TS 4: res does not change, abs
+        TS 5: res does not change, rel
+        '''
+        time_steps = 5
         max_inner_iter = 5
 
         for i in range(time_steps):
