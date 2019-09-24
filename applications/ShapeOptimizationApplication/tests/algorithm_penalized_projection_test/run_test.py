@@ -3,6 +3,7 @@ import KratosMultiphysics as KM
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
+from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, os
@@ -18,7 +19,6 @@ model = KM.Model()
 # =======================================================================================================
 
 # The external analyzer provides a response to constrain the distance of a specific node to a given target
-from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
 class CustomAnalyzer(AnalyzerBaseClass):
     # --------------------------------------------------------------------------------------------------
     def __init__( self ):
