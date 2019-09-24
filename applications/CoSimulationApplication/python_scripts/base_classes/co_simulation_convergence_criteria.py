@@ -59,7 +59,5 @@ class CoSimulationConvergenceCriteria(object):
             "type"       : "UNSPECIFIED",
             "solver"     : "UNSPECIFIED",
             "data_name"  : "UNSPECIFIED",
-            "abs_tolerance" : 1e-5,
-            "rel_tolerance" : 1e-5,
             "echo_level" : 0
         }""")
