@@ -12,6 +12,7 @@
 
 // System includes
 #include <unordered_set>
+#include <unordered_map>
 
 // External includes
 
@@ -46,18 +47,101 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
     // Reset the ACTIVE flag
     VariableUtils().ResetFlag(ACTIVE, r_conditions_array);
 
-    // First loop over the conditions to check the pairs
-    for(int i = 0; i < num_conditions; ++i) {
+    // First order the conditions by proximity
+    std::unordered_set<std::size_t> conditions_index_set;
+    conditions_index_set.reserve(num_conditions);
+    conditions_index_set.insert(it_cond_begin->Id());
+    std::vector<Condition::Pointer> ordered_conditions(num_conditions, nullptr);
+    ordered_conditions[0] = *(it_cond_begin.base());
+
+    // The map of boundaries
+    std::unordered_map<std::vector<std::size_t>, std::vector<Condition::Pointer>, VectorIndexHasher<std::vector<std::size_t>>, VectorIndexComparor<std::vector<std::size_t>>> boundaries_map;
+    std::vector<std::size_t> boundary_vector;
+    for(int i = 1; i < num_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
 
+        // The geometry
+        auto& r_geometry = it_cond->GetGeometry();
+        const auto boundaries = r_geometry.GenerateBoundariesEntities();
+        for (auto& r_boundary : boundaries) {
+            boundary_vector.clear();
+            boundary_vector.reserve(r_boundary.size());
+            for (auto& r_node : r_boundary) {
+                boundary_vector.push_back(r_node.Id());
+            }
+            std::sort(boundary_vector.begin(), boundary_vector.end());
+            const auto& it_map = boundaries_map.find(boundary_vector);
+            if (it_map != boundaries_map.end()) {
+                it_map->second.push_back(*(it_cond.base()));
+            } else {
+                boundaries_map.insert(std::pair<std::vector<std::size_t>, std::vector<Condition::Pointer>>(boundary_vector, std::vector<Condition::Pointer>({*(it_cond.base())})));
+            }
+        }
+    }
+
+    // Filling set
+    std::size_t counter = 1;
+    bool inserted = false;
+    for(auto& p_current_condition : ordered_conditions) {
+        // Reset
+        inserted = false;
+
+        // The geometry
+        auto& r_geometry = p_current_condition->GetGeometry();
+        const auto boundaries = r_geometry.GenerateBoundariesEntities();
+        for (auto& r_boundary : boundaries) {
+            boundary_vector.clear();
+            boundary_vector.reserve(r_boundary.size());
+            for (auto& r_node : r_boundary) {
+                boundary_vector.push_back(r_node.Id());
+            }
+            std::sort(boundary_vector.begin(), boundary_vector.end());
+
+            const auto& it_map = boundaries_map.find(boundary_vector);
+            if (it_map != boundaries_map.end()) {
+                for (auto& p_cond : it_map->second) {
+                    if (conditions_index_set.find(p_cond->Id()) == conditions_index_set.end()) {
+                        conditions_index_set.insert(p_cond->Id());
+                        ordered_conditions[counter] = p_cond;
+                        inserted = true;
+                        ++counter;
+                        break;
+                    }
+                }
+                if (inserted) {
+                    break;
+                }
+            }
+        }
+
+        // Isolated, adding the following
+         if (!inserted) {
+            for(int i = 1; i < num_conditions; ++i) {
+                auto it_cond = it_cond_begin + i;
+                if (conditions_index_set.find(it_cond->Id()) == conditions_index_set.end()) {
+                    conditions_index_set.insert(it_cond->Id());
+                    ordered_conditions[counter] = *(it_cond.base());
+                    ++counter;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Some checks
+    KRATOS_ERROR_IF_NOT(static_cast<int>(conditions_index_set.size()) == num_conditions) << "Condition set is not fully filled" << std::endl;
+    KRATOS_ERROR_IF_NOT(static_cast<int>(ordered_conditions.size()) == num_conditions) << "Condition vector is not fully filled" << std::endl;
+
+    // First loop over the conditions to check the pairs
+    for(auto& p_cond : ordered_conditions) {
         // The slave geoemtry
-        auto& r_slave_geometry = it_cond->GetGeometry();
+        auto& r_slave_geometry = p_cond->GetGeometry();
 
         // Checking if already set
-        auto p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
+        auto p_indexes_pairs = p_cond->GetValue(INDEX_MAP);
 
         // If not already defined
-        if (it_cond->IsNotDefined(MASTER) || it_cond->IsNot(MASTER)) {
+        if (p_cond->IsNotDefined(MASTER) || p_cond->IsNot(MASTER)) {
             if (p_indexes_pairs->size() > 0) {
                 ids_to_clear.clear();
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
@@ -106,8 +190,8 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
             }
             // Assigning SLAVE flags
             if (p_indexes_pairs->size() > 0) {
-                it_cond->Set(MASTER, false);
-                it_cond->Set(SLAVE, true);
+                p_cond->Set(MASTER, false);
+                p_cond->Set(SLAVE, true);
                 for (auto& r_node : r_slave_geometry) {
                     r_node.Set(MASTER, false);
                     r_node.Set(SLAVE, true);
