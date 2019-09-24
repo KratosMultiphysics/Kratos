@@ -174,9 +174,9 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
 
             # Calling for the active set utilities (to activate deactivate nodes)
             if self.contact_settings["contact_type"].GetString() == "Frictionless":
-                CSMA.ComputePenaltyFrictionlessActiveSet(self.computing_model_part)
+                CSMA.ActiveSetUtilities.ComputePenaltyFrictionlessActiveSet(self.computing_model_part)
             else:
-                CSMA.ComputePenaltyFrictionalActiveSet(self.computing_model_part)
+                CSMA.ActiveSetUtilities.ComputePenaltyFrictionalActiveSet(self.computing_model_part)
 
             # Activate/deactivate conditions
             CSMA.ContactUtilities.ActivateConditionWithActiveNodes(self.computing_model_part)
