@@ -1794,7 +1794,7 @@ public:
                 Jacobian,
                 rLocalCoordinates);
 
-            for (int dim = 0; dim < Jacobian.size2(); ++dim)
+            for (IndexType dim = 0; dim < Jacobian.size2(); ++dim)
             {
                 rGlobalCoordinates[1 + dim] = column(Jacobian, dim);
             }
@@ -1856,7 +1856,7 @@ public:
                 Jacobian,
                 IntegrationPointIndex);
 
-            for (int dim = 0; dim < local_space_dimension; ++dim)
+            for (IndexType dim = 0; dim < local_space_dimension; ++dim)
             {
                 rGlobalCoordinates[1 + dim] = column(Jacobian, dim);
             }
