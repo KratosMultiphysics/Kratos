@@ -39,8 +39,13 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
     for(int i = 0; i < num_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
 
+        // The slave geoemtry
+        auto& r_slave_geometry = it_cond->GetGeometry();
+
         // Checking if already set
         auto p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
+
+        // If not already defined
         if (it_cond->IsNotDefined(MASTER) || it_cond->IsNot(MASTER)) {
             if (p_indexes_pairs->size() > 0) {
                 ids_to_clear.clear();
@@ -48,6 +53,21 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair); // MASTER
                     auto p_master_cond = rModelPart.pGetCondition(master_id);
                     auto& r_master_geometry = p_master_cond->GetGeometry();
+
+                    // Check the nodes are not shared
+                    bool shared_nodes = false;
+                    for (auto& r_node_slave : r_slave_geometry) {
+                        for (auto& r_node_master : r_master_geometry) {
+                            if (r_node_master.Id() == r_node_slave.Id()) {
+                                shared_nodes = true;
+                                break;
+                            }
+                        }
+                    }
+                    // If shared nodes we skip this pair
+                    if (shared_nodes) {
+                        continue;
+                    }
 
                     // Iterate over nodes
                     std::size_t counter = 0;
@@ -77,7 +97,7 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
             if (p_indexes_pairs->size() > 0) {
                 it_cond->Set(MASTER, false);
                 it_cond->Set(SLAVE, true);
-                for (auto& r_node : it_cond->GetGeometry()) {
+                for (auto& r_node : r_slave_geometry) {
                     r_node.Set(MASTER, false);
                     r_node.Set(SLAVE, true);
                 }
