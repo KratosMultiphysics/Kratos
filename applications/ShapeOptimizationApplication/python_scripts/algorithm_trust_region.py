@@ -89,9 +89,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         timer.StartTimer()
 
         for self.opt_iteration in range(1,self.algorithm_settings["max_iterations"].GetInt()+1):
-            KM.Logger.PrintInfo("\n>===================================================================")
-            KM.Logger.PrintInfo("> ",timer.GetTimeStamp(),": Starting optimization iteration ",self.opt_iteration)
-            KM.Logger.PrintInfo(">===================================================================\n")
+            KM.Logger.PrintInfo("\nShapeOptimization", "===================================================================")
+            KM.Logger.PrintInfo("ShapeOptimization", timer.GetTimeStamp(), ": Starting optimization iteration ",self.opt_iteration)
+            KM.Logger.PrintInfo("ShapeOptimization", "===================================================================\n")
 
             timer.StartNewLap()
 
@@ -124,8 +124,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             self.__LogCurrentOptimizationStep(values_to_be_logged)
 
-            KM.Logger.PrintInfo("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
-            KM.Logger.PrintInfo("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+            KM.Logger.PrintInfo("\nShapeOptimization", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            KM.Logger.PrintInfo("ShapeOptimization", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
@@ -305,7 +305,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __DetermineStep(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
-        KM.Logger.PrintInfo("\n> Starting determination of step...")
+        KM.Logger.PrintInfo("\nShapeOptimization", "Starting determination of step...")
 
         timer = Timer()
         timer.StartTimer()
@@ -319,7 +319,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         inactive_threshold = 100
         test_norm_dX, is_projection_sucessfull = projector.RunProjection(len_obj_test, inactive_threshold)
 
-        KM.Logger.PrintInfo("> Time needed for one projection step = ", timer.GetTotalTime(), "s")
+        KM.Logger.PrintInfo("ShapeOptimization", "Time needed for one projection step = ", timer.GetTotalTime(), "s")
 
         # 2. Determine step following two different modes depending on the previos found step length to the feasible domain
         if is_projection_sucessfull:
@@ -354,7 +354,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         else:
             raise RuntimeError("Case of not converged test projection not yet implemented yet!")
 
-        KM.Logger.PrintInfo("\n> Time needed for determining step = ", timer.GetTotalTime(), "s")
+        KM.Logger.PrintInfo("\nShapeOptimization", "Time needed for determining step = ", timer.GetTotalTime(), "s")
 
         process_details = { "test_norm_dX": test_norm_dX,
                             "bi_itrs":bi_itrs,
