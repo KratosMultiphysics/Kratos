@@ -322,7 +322,7 @@ public:
             return mShapeFunctionsValues[ThisMethod](IntegrationPointIndex, ShapeFunctionIndex);
         if (DerivativeOrderIndex == 1)
             return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](DerivativeOrderRowIndex, ShapeFunctionIndex);
-        if (DerivativeOrderIndex > 2)
+        if (DerivativeOrderIndex > 1)
             return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](DerivativeOrderRowIndex, ShapeFunctionIndex);
     }
 
