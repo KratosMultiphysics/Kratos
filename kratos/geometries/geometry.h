@@ -1697,6 +1697,27 @@ public:
         return rResult;
     }
 
+    /** This method provides the global coordinates to
+    *   the corresponding integration point
+    * @param rResult The global coordinates
+    * @param IntegrationPointIndex The index of the integration point
+    * @return the global coordinates
+    */
+    virtual CoordinatesArrayType& GlobalCoordinates(
+        CoordinatesArrayType& rResult,
+        IndexType IntegrationPointIndex
+    ) const
+    {
+        noalias(rResult) = ZeroVector(3);
+
+        const Matrix& N = ShapeFunctionsValues();
+
+        for (IndexType i = 0; i < this->size(); i++)
+            noalias(rResult) += N(IntegrationPointIndex, i) * (*this)[i];
+
+        return rResult;
+    }
+
     /** This method provides the global coordinates corresponding to the local coordinates provided, considering additionally a certain increment in the coordinates
      * @param rResult The array containing the global coordinates corresponding to the local coordinates provided
      * @param LocalCoordinates The local coordinates provided
@@ -1727,16 +1748,122 @@ public:
     /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
-    * @param LocalCoordinates The local coordinates in dimension space
-    * @param Derivative Number of computed derivatives
+    * @param rLocalCoordinates The local coordinates in dimension space.
+    * @param rDerivativeOrder of computed derivatives
     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
-    * @see PointLocalCoordinates
+    *         The list is structured as following:
+    *           [0] - global coordinates
+    *           [1 - loc_space_dim] - base vectors
+    *           [...] - higher order vectors (du^2, dudv, dv^2
+    *                                      or du^2, dudv, dv^2, dvdw, dw^2, dwdu)
     */
     virtual void GlobalDerivatives(
         std::vector<CoordinatesArrayType>& rGlobalCoordinates,
-        const CoordinatesArrayType& rCoordinates,
+        const CoordinatesArrayType& rLocalCoordinates,
         const SizeType DerivativeOrder) const
     {
+        if (DerivativeOrder == 0)
+        {
+            if (rGlobalCoordinates.size() != 1)
+                rGlobalCoordinates.resize(1);
+
+            array_1d<double, 3> global_coordinates;
+            GlobalCoordinates(
+                global_coordinates,
+                rLocalCoordinates);
+
+            rGlobalCoordinates[0] = global_coordinates;
+            return;
+        }
+
+        if (DerivativeOrder == 1)
+        {
+            const double local_space_dimension = LocalSpaceDimension();
+
+            if (rGlobalCoordinates.size() != 1)
+                rGlobalCoordinates.resize(1 + LocalSpaceDimension());
+
+            array_1d<double, 3> global_coordinates;
+            GlobalCoordinates(global_coordinates,
+                rLocalCoordinates);
+
+            rGlobalCoordinates[0] = global_coordinates;
+
+            Matrix Jacobian;
+            Jacobian(
+                Jacobian,
+                rLocalCoordinates);
+
+            for (int dim = 0; dim < Jacobian.size2(); ++dim)
+            {
+                rGlobalCoordinates[1 + dim] = column(Jacobian, dim);
+            }
+
+            return;
+        }
+
+        KRATOS_ERROR << "Calling GlobalDerivatives within geometry.h."
+            << " Please check the definition within derived class. "
+            << *this << std::endl;
+    }
+
+    /**
+    * @brief This method maps from dimension space to working space and computes the
+    *        number of derivatives at the dimension parameter.
+    * @param IntegrationPointIndex the coordinates of a certain integration point.
+    * @param rDerivativeOrder of computed derivatives
+    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+    *         The list is structured as following:
+    *           [0] - global coordinates
+    *           [1 - loc_space_dim] - base vectors
+    *           [...] - higher order vectors (du^2, dudv, dv^2
+    *                                      or du^2, dudv, dv^2, dvdw, dw^2, dwdu)
+    */
+    virtual void GlobalDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalCoordinates,
+        IndexType IntegrationPointIndex,
+        const SizeType DerivativeOrder) const
+    {
+        if (DerivativeOrder == 0)
+        {
+            if (rGlobalCoordinates.size() != 1)
+                rGlobalCoordinates.resize(1);
+
+            array_1d<double, 3> global_coordinates;
+            GlobalCoordinates(
+                global_coordinates,
+                IntegrationPointIndex);
+
+            rGlobalCoordinates[0] = global_coordinates;
+            return;
+        }
+
+        if (DerivativeOrder == 1)
+        {
+            const double local_space_dimension = LocalSpaceDimension();
+
+            if (rGlobalCoordinates.size() != 1)
+                rGlobalCoordinates.resize(1 + local_space_dimension);
+
+            array_1d<double, 3> global_coordinates;
+            GlobalCoordinates(global_coordinates,
+                rLocalCoordinates);
+
+            rGlobalCoordinates[0] = global_coordinates;
+
+            Matrix Jacobian;
+            Jacobian(
+                Jacobian,
+                IntegrationPointIndex);
+
+            for (int dim = 0; dim < local_space_dimension; ++dim)
+            {
+                rGlobalCoordinates[1 + dim] = column(Jacobian, dim);
+            }
+
+            return;
+        }
+
         KRATOS_ERROR << "Calling GlobalDerivatives within geometry.h."
             << " Please check the definition within derived class. "
             << *this << std::endl;
