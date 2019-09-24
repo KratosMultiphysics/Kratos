@@ -9,6 +9,7 @@ from KratosMultiphysics.CoSimulationApplication.coupling_interface_residual impo
 import numpy as np
 
 class TestCouplingInterfaceResidual(KratosUnittest.TestCase):
+
     def setUp(self):
         self.model = KM.Model()
         self.model_part = self.model.CreateModelPart("default")
