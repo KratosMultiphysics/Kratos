@@ -44,6 +44,11 @@ class AdjointHeatDiffusionTest(unittest.TestCase):
         self.adjoint_parameter_file_name = "ProjectParametersConvectionConditionAdjoint.json"
         self.directSensitivityCheck()
 
+    def testAdjointHeatDiffusionWithRadiation(self):
+        self.primal_parameter_file_name = "ProjectParametersRadiationPrimal.json"
+        self.adjoint_parameter_file_name = "ProjectParametersRadiationAdjoint.json"
+        self.directSensitivityCheck()
+
     def directSensitivityCheck(self):
         model = kratos.Model()
         settings = kratos.Parameters(r'''{}''')

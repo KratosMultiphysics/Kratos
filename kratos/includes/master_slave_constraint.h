@@ -25,6 +25,8 @@
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
 #include "includes/process_info.h"
+#include "utilities/indexed_object.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
