@@ -53,31 +53,27 @@ namespace Kratos
             if (rRightHandSideVector.size() != mat_size) {
                 rRightHandSideVector.resize(mat_size, false);
             }
-            rRightHandSideVector = ZeroVector(mat_size);
+            noalias(rRightHandSideVector) = ZeroVector(mat_size);
         }
 
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry_master.IntegrationPoints();
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++)
         {
-            Matrix N_master = r_geometry_master.ShapeFunctionsValues();
-            Matrix N_slave = r_geometry_slave.ShapeFunctionsValues();
+            const Matrix& N_master = r_geometry_master.ShapeFunctionsValues();
+            const Matrix& N_slave = r_geometry_slave.ShapeFunctionsValues();
 
             //FOR DISPLACEMENTS
             Matrix H = ZeroMatrix(3, mat_size);
             IndexType local_matrix_index = 0;
-            for (IndexType i = 0; i < number_of_nodes_master; i++)
-            {
-                for (IndexType j = 0; j < r_dof_variables.size(); ++j)
-                {
+            for (IndexType i = 0; i < number_of_nodes_master; ++i) {
+                for (IndexType j = 0; j < r_dof_variables.size(); ++j) {
                     H(j, local_matrix_index++) = N_master(point_number, i);
                 }
             }
 
-            for (IndexType i = 0; i < number_of_nodes_slave; i++)
-            {
-                for (IndexType j = 0; j < r_dof_variables.size(); ++j)
-                {
+            for (IndexType i = 0; i < number_of_nodes_slave; ++i) {
+                for (IndexType j = 0; j < r_dof_variables.size(); ++j) {
                     H(j, local_matrix_index++) = -N_slave(point_number, i);
                 }
             }
@@ -95,29 +91,32 @@ namespace Kratos
 
                 Vector u(mat_size);
                 IndexType local_index = 0;
-                for (IndexType i = 0; i < number_of_nodes_master; i++)
-                {
+                for (IndexType i = 0; i < number_of_nodes_master; ++i) {
                     const auto& r_node = r_geometry_master[i];
 
                     for (auto itDVar = r_dof_variables.DoubleVariablesBegin();
-                        itDVar != r_dof_variables.DoubleVariablesEnd(); ++itDVar)
+                        itDVar != r_dof_variables.DoubleVariablesEnd(); ++itDVar) {
                         u[local_index++] = r_node.FastGetSolutionStepValue(*itDVar);
+                    }
 
                     for (auto itCVar = r_dof_variables.VariableComponentsBegin();
-                        itCVar != r_dof_variables.VariableComponentsEnd(); ++itCVar)
+                        itCVar != r_dof_variables.VariableComponentsEnd(); ++itCVar) {
                         u[local_index++] = r_node.FastGetSolutionStepValue(*itCVar);
+                    }
                 }
-                for (IndexType i = 0; i < number_of_nodes_slave; i++)
+                for (IndexType i = 0; i < number_of_nodes_slave; ++i)
                 {
                     const auto& r_node = r_geometry_slave[i];
 
                     for (auto itDVar = r_dof_variables.DoubleVariablesBegin();
-                        itDVar != r_dof_variables.DoubleVariablesEnd(); ++itDVar)
+                        itDVar != r_dof_variables.DoubleVariablesEnd(); ++itDVar) {
                         u[local_index++] = r_node.FastGetSolutionStepValue(*itDVar);
+                    }
 
                     for (auto itCVar = r_dof_variables.VariableComponentsBegin();
-                        itCVar != r_dof_variables.VariableComponentsEnd(); ++itCVar)
+                        itCVar != r_dof_variables.VariableComponentsEnd(); ++itCVar) {
                         u[local_index++] = r_node.FastGetSolutionStepValue(*itCVar);
+                    }
                 }
 
                 noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u)
