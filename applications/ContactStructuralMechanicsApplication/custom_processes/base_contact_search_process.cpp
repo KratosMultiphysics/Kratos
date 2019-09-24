@@ -528,13 +528,6 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
 
     // In case of not predefined master/slave we reset the flags
     if (mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE)) {
-        NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
-        ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
-        VariableUtils().ResetFlag(SLAVE, r_nodes_array);
-        VariableUtils().ResetFlag(MASTER, r_nodes_array);
-        VariableUtils().ResetFlag(SLAVE, r_conditions_array);
-        VariableUtils().ResetFlag(MASTER, r_conditions_array);
-
         // Clear the mPointListDestination and assign initial MASTER/SLAVE flags
         ClearDestinationListAndAssignFlags(r_sub_contact_model_part);
     }

@@ -36,6 +36,13 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
     const int num_conditions = static_cast<int>(r_conditions_array.size());
     const auto it_cond_begin = r_conditions_array.begin();
 
+    // Reset MASTER/SLAVE flags
+    auto& r_nodes_array = rModelPart.Nodes();
+    VariableUtils().ResetFlag(SLAVE, r_nodes_array);
+    VariableUtils().ResetFlag(MASTER, r_nodes_array);
+    VariableUtils().ResetFlag(SLAVE, r_conditions_array);
+    VariableUtils().ResetFlag(MASTER, r_conditions_array);
+
     // Reset the ACTIVE flag
     VariableUtils().ResetFlag(ACTIVE, r_conditions_array);
 
