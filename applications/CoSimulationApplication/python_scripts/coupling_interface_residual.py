@@ -18,6 +18,6 @@ class CouplingInterfaceResidual(object):
     def GetResidual(self):
         return self.interface_data.GetData() - self.ref_data
 
-    def ComputeNorm(self):
+    def GetNorm(self):
         residual = self.GetResidual()
         return la.norm(residual) / np.sqrt(residual.size)
