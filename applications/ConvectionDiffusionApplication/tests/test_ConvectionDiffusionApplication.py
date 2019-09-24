@@ -20,6 +20,7 @@ except ImportError as e:
 # Import the tests or test_classes to create the suites
 
 ##### SELF-CONTAINED TESTS #####
+from bfecc_convection_test import BFECCConvectionTest
 from source_term_test import SourceTermTest
 from thermal_coupling_test import ThermalCouplingTest
 from test_apply_thermal_face_process import ApplyThermalFaceProcessTest
@@ -52,6 +53,8 @@ def AssembleTestSuites():
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
 
     ### Adding the self-contained tests
+    smallSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
+    smallSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
     smallSuite.addTest(SourceTermTest('testPureDiffusion'))
     smallSuite.addTest(SourceTermTest('testDiffusionDominated'))
     smallSuite.addTest(SourceTermTest('testConvectionDominated'))
