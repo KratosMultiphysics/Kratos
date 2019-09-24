@@ -300,7 +300,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
             << "Trying to call GlobalCoordinates(LocalCoordinates) from quadrature point. "
-            << "Pointer to parent is not asigned." << std::endl;
+            << "Pointer to parent is not assigned." << std::endl;
 
         return mpGeometryParent->GlobalCoordinates(rResult, LocalCoordinates);
     }
@@ -313,7 +313,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
             << "Trying to call GlobalCoordinates(LocalCoordinates, DeltaPosition) from quadrature point. "
-            << "Pointer to parent is not asigned." << std::endl;
+            << "Pointer to parent is not assigned." << std::endl;
 
         return mpGeometryParent->GlobalCoordinates(rResult, LocalCoordinates, DeltaPosition);
     }
@@ -337,7 +337,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
             << "Trying to call Jacobian(LocalCoordinates) from quadrature point. "
-            << "Pointer to parent is not asigned." << std::endl;
+            << "Pointer to parent is not assigned." << std::endl;
 
         return mpGeometryParent->Jacobian(rResult, rCoordinates);
     }
@@ -356,7 +356,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
             << "Trying to call DeterminantOfJacobian(rPoint) from quadrature point. "
-            << "Pointer to parent is not asigned." << std::endl;
+            << "Pointer to parent is not assigned." << std::endl;
 
         return mpGeometryParent->DeterminantOfJacobian(rPoint);
     }
@@ -368,7 +368,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
             << "Trying to call InverseOfJacobian(rPoint) from quadrature point. "
-            << "Pointer to parent is not asigned." << std::endl;
+            << "Pointer to parent is not assigned." << std::endl;
 
         return mpGeometryParent->InverseOfJacobian(rResult, rCoordinates);
     }
@@ -384,7 +384,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
             << "Trying to call ShapeFunctionsValues(rCoordinates) from quadrature point. "
-            << "Pointer to parent is not asigned." << std::endl;
+            << "Pointer to parent is not assigned." << std::endl;
 
         return mpGeometryParent->ShapeFunctionsValues(rResult, rCoordinates);
     }
@@ -396,7 +396,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
             << "Trying to call ShapeFunctionsLocalGradients(rPoint) from quadrature point. "
-            << "Pointer to parent is not asigned." << std::endl;
+            << "Pointer to parent is not assigned." << std::endl;
 
         return mpGeometryParent->ShapeFunctionsLocalGradients(rResult, rPoint);
     }
