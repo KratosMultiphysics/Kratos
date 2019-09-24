@@ -94,10 +94,10 @@ public:
           mMaxNeighborNodes( DampingSettings["max_neighbor_nodes"].GetInt() )
     {
         BuiltinTimer timer;
-        KRATOS_INFO("") << "\n> Creating search tree to perform damping..." << std::endl;
+        KRATOS_INFO("\nShapeOptimization") << "Creating search tree to perform damping..." << std::endl;
         CreateListOfNodesOfModelPart();
         CreateSearchTreeWithAllNodesOfModelPart();
-        KRATOS_INFO("") << "> Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
+        KRATOS_INFO("ShapeOptimization") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
         InitalizeDampingFactorsToHaveNoInfluence();
         SetDampingFactorsForAllDampingRegions();
@@ -150,7 +150,7 @@ public:
     // --------------------------------------------------------------------------
     void SetDampingFactorsForAllDampingRegions()
     {
-        KRATOS_INFO("") << "\n> Starting to prepare damping..." << std::endl;
+        KRATOS_INFO("\nShapeOptimization") << "Starting to prepare damping..." << std::endl;
 
         // Loop over all regions for which damping is to be applied
         for (unsigned int regionNumber = 0; regionNumber < len(mrDampingRegions); regionNumber++)
@@ -199,7 +199,7 @@ public:
             }
         }
 
-        KRATOS_INFO("") << "> Finished preparation of damping." << std::endl;
+        KRATOS_INFO("ShapeOptimization") << "Finished preparation of damping." << std::endl;
     }
 
     // --------------------------------------------------------------------------
