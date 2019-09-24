@@ -85,18 +85,18 @@ public:
     ///@{
 
     double operator()(
-        const IndexType DerivativeRow,
-        const IndexType ControlPointIndex) const
+        const IndexType ControlPointIndex,
+        const IndexType DerivativeRow) const
     {
-        return ShapeFunctionValue(DerivativeRow, ControlPointIndex);
+        return ShapeFunctionValue(ControlPointIndex, DerivativeRow);
     }
 
     double operator()(
-        const IndexType DerivativeRow,
         const IndexType ControlPointIndexU,
-        const IndexType ControlPointIndexV) const
+        const IndexType ControlPointIndexV,
+        const IndexType DerivativeRow) const
     {
-        return ShapeFunctionValue(DerivativeRow, ControlPointIndexU, ControlPointIndexV);
+        return ShapeFunctionValue(ControlPointIndexU, ControlPointIndexV, DerivativeRow);
     }
 
     ///@}
@@ -110,9 +110,9 @@ public:
         const SizeType number_of_shape_function_rows = this->NumberOfShapeFunctionRows(DerivativeOrder);
         const SizeType number_of_nonzero_control_points = (PolynomialDegreeU + 1) * (PolynomialDegreeV + 1);
 
-        mShapeFunctionsU.ResizeDataContainers(PolynomialDegreeU, std::min(DerivativeOrder, PolynomialDegreeU));
-        mShapeFunctionsV.ResizeDataContainers(PolynomialDegreeV, std::min(DerivativeOrder, PolynomialDegreeV));
-        mShapeFunctionValues.resize(number_of_shape_function_rows * number_of_nonzero_control_points);
+        mShapeFunctionsU.ResizeDataContainers(PolynomialDegreeU, DerivativeOrder);
+        mShapeFunctionsV.ResizeDataContainers(PolynomialDegreeV, DerivativeOrder);
+        mShapeFunctionValues.resize(number_of_nonzero_control_points * number_of_shape_function_rows);
         mWeightedSums.resize(number_of_shape_function_rows);
 
         mDerivativeOrder = DerivativeOrder;
@@ -157,13 +157,13 @@ public:
     {
         std::vector<std::pair<int, int>> indices(NumberOfNonzeroControlPoints());
 
-        for (int i = 0; i < NumberOfNonzeroControlPointsU(); i++) {
-            for (int j = 0; j < NumberOfNonzeroControlPointsV(); j++) {
-                int poleIndex = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+        for (IndexType i = 0; i < NumberOfNonzeroControlPointsU(); i++) {
+            for (IndexType j = 0; j < NumberOfNonzeroControlPointsV(); j++) {
+                IndexType poleIndex = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                     NumberOfNonzeroControlPointsU(), NumberOfNonzeroControlPointsV(), i, j);
 
-                int poleU = GetFirstNonzeroControlPointU() + i;
-                int poleV = GetFirstNonzeroControlPointV() + j;
+                IndexType poleU = GetFirstNonzeroControlPointU() + i;
+                IndexType poleV = GetFirstNonzeroControlPointV() + j;
 
                 indices[poleIndex] = { poleU, poleV };
             }
@@ -172,22 +172,22 @@ public:
         return indices;
     }
 
-    const double ShapeFunctionValue(
-        const SizeType DerivativeRow,
+    double ShapeFunctionValue(
         const IndexType ControlPointIndexU,
-        const IndexType ControlPointIndexV) const
+        const IndexType ControlPointIndexV,
+        const SizeType DerivativeRow) const
     {
         const IndexType index = this->GetIndex(
-            DerivativeRow,
             ControlPointIndexU,
-            ControlPointIndexV);
+            ControlPointIndexV,
+            DerivativeRow);
 
         return mShapeFunctionValues[index];
     }
 
-    const double ShapeFunctionValue(
-        const SizeType DerivativeOrder,
-        const IndexType ControlPointIndex) const
+    double ShapeFunctionValue(
+        const IndexType ControlPointIndex,
+        const SizeType DerivativeOrder) const
     {
         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfShapeFunctionRows(), NumberOfNonzeroControlPoints(),
@@ -224,8 +224,6 @@ public:
         const double ParameterU,
         const double ParameterV)
     {
-        const int number_of_values = NumberOfShapeFunctionRows() * NumberOfNonzeroControlPoints();
-
         mShapeFunctionValues = ZeroVector(mShapeFunctionValues.size());
 
         mFirstNonzeroControlPointU = SpanU - PolynomialDegreeU() + 1;
@@ -236,13 +234,13 @@ public:
         mShapeFunctionsV.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsV, SpanV, ParameterV);
 
         // compute 2D shape functions
-        for (int i = 0; i <= DerivativeOrder(); i++) {
-            for (int j = 0; j <= DerivativeOrder() - i; j++) {
-                for (int a = 0; a < NumberOfNonzeroControlPointsU(); a++) {
-                    for (int b = 0; b < NumberOfNonzeroControlPointsV(); b++) {
-                        const int index = IndexOfShapeFunctionRow(i, j);
+        for (IndexType i = 0; i <= DerivativeOrder(); i++) {
+            for (IndexType j = 0; j <= DerivativeOrder() - i; j++) {
+                for (IndexType a = 0; a < NumberOfNonzeroControlPointsU(); a++) {
+                    for (IndexType b = 0; b < NumberOfNonzeroControlPointsV(); b++) {
+                        const IndexType index = IndexOfShapeFunctionRow(i, j);
 
-                        ShapeFunctionValue(index, a, b) = mShapeFunctionsU(i, a) * mShapeFunctionsV(j, b);
+                        ShapeFunctionValue(a, b, index) = mShapeFunctionsU(a, i) * mShapeFunctionsV(b, j);
                     }
                 }
             }
@@ -276,67 +274,73 @@ public:
         const double ParameterU,
         const double ParameterV)
     {
+        // Check input
+        KRATOS_DEBUG_ERROR_IF(Weights.size() !=
+            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU(), rKnotsU.size())
+                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV(), rKnotsV.size())))
+            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
+
         // compute B-Spline shape functions
         ComputeBSplineShapeFunctionValuesAtSpan(
             rKnotsU, rKnotsV, SpanU, SpanV, ParameterU, ParameterV);
 
         // apply weights
-        for (int shape_row_index = 0; shape_row_index < NumberOfShapeFunctionRows(); shape_row_index++) {
+        for (IndexType shape_row_index = 0; shape_row_index < NumberOfShapeFunctionRows(); shape_row_index++) {
             GetWeightedSum(shape_row_index) = double(0);
 
-            for (int u = 0; u < NumberOfNonzeroControlPointsU(); u++) {
-                for (int v = 0; v < NumberOfNonzeroControlPointsV(); v++) {
+            for (IndexType u = 0; u < NumberOfNonzeroControlPointsU(); u++) {
+                for (IndexType v = 0; v < NumberOfNonzeroControlPointsV(); v++) {
                     const IndexType ControlPointIndexU = GetFirstNonzeroControlPointU() + u;
                     const IndexType ControlPointIndexV = GetFirstNonzeroControlPointV() + v;
 
                     const double weight = Weights(GetControlPointIndex(rKnotsU.size(), rKnotsV.size(), ControlPointIndexU, ControlPointIndexV));
-                    ShapeFunctionValue(shape_row_index, u, v) *= weight;
-                    GetWeightedSum(shape_row_index) += ShapeFunctionValue(shape_row_index, u, v);
+                    ShapeFunctionValue(u, v, shape_row_index) *= weight;
+                    GetWeightedSum(shape_row_index) += ShapeFunctionValue(u, v, shape_row_index);
                 }
             }
         }
 
-        for (int k = 0; k <= DerivativeOrder(); k++) {
-            for (int l = 0; l <= DerivativeOrder() - k; l++) {
-                const int shape = IndexOfShapeFunctionRow(k, l);
+        for (IndexType k = 0; k <= DerivativeOrder(); k++) {
+            for (IndexType l = 0; l <= DerivativeOrder() - k; l++) {
+                const IndexType shape = IndexOfShapeFunctionRow(k, l);
 
-                for (int j = 1; j <= l; j++) {
-                    const int index = IndexOfShapeFunctionRow(k, l - j);
+                for (IndexType j = 1; j <= l; j++) {
+                    const IndexType index = IndexOfShapeFunctionRow(k, l - j);
 
                     double a = NurbsUtilities::GetBinomCoefficient(l, j) * GetWeightedSum(0, j);
 
-                    for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                        ShapeFunctionValue(shape, p) -= a * ShapeFunctionValue(index, p);
+                    for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
+                        ShapeFunctionValue(p, shape) -= a * ShapeFunctionValue(p, index);
                     }
                 }
 
-                for (int i = 1; i <= k; i++) {
-                    const int index = IndexOfShapeFunctionRow(k - i, l);
+                for (IndexType i = 1; i <= k; i++) {
+                    const IndexType index = IndexOfShapeFunctionRow(k - i, l);
 
                     double a = NurbsUtilities::GetBinomCoefficient(k, i) * GetWeightedSum(i, 0);
 
-                    for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                        ShapeFunctionValue(shape, p) -= a * ShapeFunctionValue(index, p);
+                    for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
+                        ShapeFunctionValue(p, shape) -= a * ShapeFunctionValue(p, index);
                     }
                 }
 
-                for (int i = 1; i <= k; i++) {
+                for (IndexType i = 1; i <= k; i++) {
                     const double a = NurbsUtilities::GetBinomCoefficient(k, i);
 
-                    for (int j = 1; j <= l; j++) {
-                        const int index = IndexOfShapeFunctionRow(k - i, l - j);
+                    for (IndexType j = 1; j <= l; j++) {
+                        const IndexType index = IndexOfShapeFunctionRow(k - i, l - j);
 
                         const double b = a * NurbsUtilities::GetBinomCoefficient(l, j) *
                             GetWeightedSum(i, j);
 
-                        for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                            ShapeFunctionValue(shape, p) -= b * ShapeFunctionValue(index, p);
+                        for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
+                            ShapeFunctionValue(p, shape) -= b * ShapeFunctionValue(p, index);
                         }
                     }
                 }
 
-                for (int p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                    ShapeFunctionValue(shape, p) /= GetWeightedSum(0);
+                for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
+                    ShapeFunctionValue(p, shape) /= GetWeightedSum(0);
                 }
             }
         }
@@ -395,9 +399,9 @@ private:
     }
 
     inline int GetIndex(
-        const SizeType DerivativeRow,
         const IndexType ControlPointIndexU,
-        const IndexType ControlPointIndexV)
+        const IndexType ControlPointIndexV,
+        const SizeType DerivativeRow)
         const
     {
         const IndexType control_point_index = GetNonzeroControlPointIndex(
@@ -410,8 +414,8 @@ private:
     }
 
     double& ShapeFunctionValue(
-        const IndexType DerivativeRow,
-        const IndexType ControlPointIndex)
+        const IndexType ControlPointIndex,
+        const IndexType DerivativeRow)
     {
         const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfShapeFunctionRows(), NumberOfNonzeroControlPoints(),
@@ -421,11 +425,11 @@ private:
     }
 
     double& ShapeFunctionValue(
-        const SizeType DerivativeRow,
         const IndexType ControlPointIndexU,
-        const IndexType ControlPointIndexV)
+        const IndexType ControlPointIndexV,
+        const SizeType DerivativeRow)
     {
-        const IndexType index = this->GetIndex(DerivativeRow, ControlPointIndexU, ControlPointIndexV);
+        const IndexType index = this->GetIndex(ControlPointIndexU, ControlPointIndexV, DerivativeRow);
 
         return mShapeFunctionValues[index];
     }

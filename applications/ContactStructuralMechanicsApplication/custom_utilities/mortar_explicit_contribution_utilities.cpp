@@ -32,7 +32,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     KRATOS_TRY
 
     // The slave geometry
-    GeometryType& r_slave_geometry = pCondition->GetGeometry();
+    GeometryType& r_slave_geometry = pCondition->GetParentGeometry();
     const array_1d<double, 3>& r_normal_slave = pCondition->GetValue(NORMAL);
 
     // Create and initialize condition variables
@@ -46,13 +46,14 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
     // We call the exact integration utility
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
-    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
+    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor);
 
     // The master geometry
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
-    const array_1d<double, 3>& r_normal_master = pCondition->GetValue(PAIRED_NORMAL);
+    const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
@@ -177,7 +178,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     KRATOS_TRY;
 
     // The slave geometry
-    GeometryType& r_slave_geometry = pCondition->GetGeometry();
+    GeometryType& r_slave_geometry = pCondition->GetParentGeometry();
     const array_1d<double, 3>& r_normal_slave = pCondition->GetValue(NORMAL);
 
     // Create and initialize condition variables
@@ -191,13 +192,14 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
     // We call the exact integration utility
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
-    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
+    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor);
 
     // The master geometry
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
-    const array_1d<double, 3>& r_normal_master = pCondition->GetValue(PAIRED_NORMAL);
+    const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
@@ -372,7 +374,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 {
     // We "save" the mortar operator for the next step
     // The slave geometry
-    GeometryType& r_slave_geometry = pCondition->GetGeometry();
+    GeometryType& r_slave_geometry = pCondition->GetParentGeometry();
     const array_1d<double, 3>& r_normal_slave = pCondition->GetValue(NORMAL);
 
     // Create and initialize condition variables
@@ -383,13 +385,14 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 
     // We call the exact integration utility
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
-    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold);
+    const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
+    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor);
 
     // The master geometry
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
-    const array_1d<double, 3>& r_normal_master = pCondition->GetValue(PAIRED_NORMAL);
+    const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
@@ -541,7 +544,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 {
     /// SLAVE CONDITION ///
     /* SHAPE FUNCTIONS */
-    const auto& r_geometry = pCondition->GetGeometry();
+    const auto& r_geometry = pCondition->GetParentGeometry();
     r_geometry.ShapeFunctionsValues( rVariables.NSlave, rLocalPointParent.Coordinates() );
     rVariables.PhiLagrangeMultipliers = (DualLM) ? prod(rAe, rVariables.NSlave) : rVariables.NSlave;
 
@@ -575,7 +578,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 {
     /// SLAVE CONDITION ///
     /* SHAPE FUNCTIONS */
-    const auto& r_geometry = pCondition->GetGeometry();
+    const auto& r_geometry = pCondition->GetParentGeometry();
     r_geometry.ShapeFunctionsValues( rVariables.NSlave, rLocalPointParent.Coordinates() );
     rVariables.PhiLagrangeMultipliers = (DualLM) ? prod(rDerivativeData.Ae, rVariables.NSlave) : rVariables.NSlave;
 
@@ -603,7 +606,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     const PointType& rLocalPoint
     )
 {
-    GeometryType& r_slave_geometry = pCondition->GetGeometry();
+    GeometryType& r_slave_geometry = pCondition->GetParentGeometry();
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     PointType projected_gp_global;
@@ -651,7 +654,7 @@ double AuxiliarOperationsUtilities::CalculateRadius(
 
     double current_radius = 0.0;
 
-    const auto& r_geometry = pCondition->GetGeometry();
+    const auto& r_geometry = pCondition->GetParentGeometry();
     for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
         // Displacement from the reference to the current configuration
         const array_1d<double, 3 >& r_current_position = r_geometry[i_node].Coordinates();

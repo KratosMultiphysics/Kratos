@@ -29,11 +29,6 @@
 #include "linear_solvers/linear_solver.h"
 #include "external_includes/amgcl_mpi_solver.h"
 
-//aztec solver includes
-#include "AztecOO.h"
-#include "Epetra_LinearProblem.h"
-//#include "Teuchos_ParameterList.hpp"
-
 #include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/json_parser.hpp>
 

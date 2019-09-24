@@ -150,7 +150,6 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Proce
 
     if (wake != 0 && active == true)
     {
-        CheckWakeCondition();
         ComputePotentialJump(rCurrentProcessInfo);
     }
     ComputeElementInternalEnergy();
@@ -630,20 +629,6 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeNode(
     else if (data.distances[row] > 0.0)
         for (unsigned int column = 0; column < NumNodes; ++column)
             rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column); // Side 2
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() const
-{
-    array_1d<double, Dim> upper_wake_velocity;
-    ComputeVelocityUpperWakeElement(upper_wake_velocity);
-    const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
-
-    array_1d<double, Dim> lower_wake_velocity;
-    ComputeVelocityLowerWakeElement(lower_wake_velocity);
-    const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
-
-    KRATOS_WARNING_IF("CompressibleElement", std::abs(vupnorm - vlownorm) > 0.1) << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
 }
 
 template <int Dim, int NumNodes>

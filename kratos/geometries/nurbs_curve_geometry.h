@@ -8,7 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Thomas Oberbichler
-//                   Tobias Teschemacher
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
@@ -25,15 +24,16 @@
 
 namespace Kratos {
 
-template <int TWorkingSpaceDimension, class TPointType>
-class NurbsCurveGeometry : public Geometry<TPointType>
+template <int TWorkingSpaceDimension, class TContainerPointType>
+class NurbsCurveGeometry : public Geometry<typename TContainerPointType::value_type>
 {
 public:
     ///@name Type Definitions
     ///@{
+
     /// Geometry as base class.
-    typedef Geometry<TPointType> BaseType;
-    typedef NurbsCurveGeometry<TWorkingSpaceDimension, TPointType> GeometryType;
+    typedef Geometry<typename TContainerPointType::value_type> BaseType;
+    typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
@@ -87,8 +87,8 @@ public:
     {
     }
 
-    /* Copy constructor.*/
-    NurbsCurveGeometry(NurbsCurveGeometry const& rOther)
+    /// Copy constructor.
+    NurbsCurveGeometry(NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>  const& rOther)
         : BaseType(rOther)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
@@ -96,10 +96,10 @@ public:
     {
     }
 
-    /* Copy constructor from a geometry with different point type.*/
-    template<class TOtherPointType> NurbsCurveGeometry(
-        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointType> const& rOther)
-        : BaseType(rOther)
+    /// Copy constructor from a geometry with different point type.
+    template<class TOtherContainerPointType> NurbsCurveGeometry(
+        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const& rOther)
+        : BaseType(rOther, &msGeometryData)
         , mPolynomialDegree(rOther.mPolynomialDegree)
         , mKnots(rOther.mKnots)
         , mWeights(rOther.mWeights)
@@ -127,6 +127,9 @@ public:
     NurbsCurveGeometry& operator=(const NurbsCurveGeometry& rOther)
     {
         BaseType::operator=(rOther);
+        mPolynomialDegree = rOther.mPolynomialDegree;
+        mKnots = rOther.mKnots;
+        mWeights = rOther.mWeights;
         return *this;
     }
 
@@ -141,11 +144,14 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    template<class TOtherPointType>
+    template<class TOtherContainerPointType>
     NurbsCurveGeometry& operator=(
-        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherPointType> const & rOther)
+        NurbsCurveGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
     {
         BaseType::operator=(rOther);
+        mPolynomialDegree = rOther.mPolynomialDegree;
+        mKnots = rOther.mKnots;
+        mWeights = rOther.mWeights;
         return *this;
     }
 
@@ -284,11 +290,11 @@ public:
 
         for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
             IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
-            derivatives[order] = (*this)[index_0] * shape_function_container(order, 0);
+            derivatives[order] = (*this)[index_0] * shape_function_container(0, order);
             for (IndexType u = 1; u < shape_function_container.NumberOfNonzeroControlPoints(); u++) {
                 IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + u;
 
-                derivatives[order] += (*this)[index] * shape_function_container(order, u);
+                derivatives[order] += (*this)[index] * shape_function_container(u, order);
             }
         }
 
@@ -326,7 +332,7 @@ public:
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
             const IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + i;
 
-            rResult += (*this)[index] * shape_function_container(0, i);
+            rResult += (*this)[index] * shape_function_container(i, 0);
         }
         return rResult;
     }
@@ -359,7 +365,7 @@ public:
             rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-            rResult[i] = shape_function_container(0, i);
+            rResult[i] = shape_function_container(i, 0);
         }
 
         return rResult;
@@ -391,7 +397,7 @@ public:
             rResult.resize(1, shape_function_container.NumberOfNonzeroControlPoints());
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-            rResult(0, i) = shape_function_container(1, i);
+            rResult(0, i) = shape_function_container(i, 1);
         }
 
         return rResult;
@@ -424,6 +430,8 @@ private:
     ///@{
 
     static const GeometryData msGeometryData;
+
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Private Member Variables
@@ -465,13 +473,15 @@ private:
 
 }; // class NurbsCurveGeometry
 
-template<int TWorkingSpaceDimension, class TPointType>
-const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TPointType>::msGeometryData(
-    1,
-    TWorkingSpaceDimension,
-    1,
+template<int TWorkingSpaceDimension, class TContainerPointType>
+const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryData(
+    &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
+
+template<int TWorkingSpaceDimension, class TContainerPointType>
+const GeometryDimension NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryDimension(
+    1, TWorkingSpaceDimension, 1);
 
 } // namespace Kratos
 

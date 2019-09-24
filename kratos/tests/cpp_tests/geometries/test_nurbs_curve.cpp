@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Teschemacher
+//  Main authors:    Thomas Oberbichler
 //
 
 // System includes
@@ -17,6 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/pointer_vector.h"
 #include "geometries/nurbs_curve_geometry.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
@@ -28,9 +29,9 @@ typedef Node<3> NodeType;
 
 // /// Factory functions
 //namespace {
-    NurbsCurveGeometry<2, Point> GenerateReferenceCurve2d()
+    NurbsCurveGeometry<2, PointerVector<Point>> GenerateReferenceCurve2d()
     {
-        NurbsCurveGeometry<2, Point>::PointsArrayType points;
+        PointerVector<Point> points;
 
         points.push_back(Point::Pointer(new Point(0, 0, 0)));
         points.push_back(Point::Pointer(new Point(3.3333333333333335, 1.6666666666666667, 0)));
@@ -47,14 +48,14 @@ typedef Node<3> NodeType;
 
         int p = 3;
 
-        auto curve = NurbsCurveGeometry<2, Point>(points, p, knot_vector);
+        auto curve = NurbsCurveGeometry<2, PointerVector<Point>>(points, p, knot_vector);
 
         return curve;
     }
 
-    NurbsCurveGeometry<3, NodeType> GenerateReferenceCurve3d()
+    NurbsCurveGeometry<3, PointerVector<NodeType>> GenerateReferenceCurve3d()
     {
-        NurbsCurveGeometry<3, NodeType>::PointsArrayType points;
+        PointerVector<NodeType> points;
 
         points.push_back(NodeType::Pointer(new NodeType(1, 0, -25, -5)));
         points.push_back(NodeType::Pointer(new NodeType(2, -15, -15, 0)));
@@ -82,21 +83,21 @@ typedef Node<3> NodeType;
 
         Vector weights = ZeroVector(8);
         weights[0] = 1.0;
-        weights[1] = 1.0;
+        weights[1] = 3.0;
         weights[2] = 1.0;
         weights[3] = 2.5;
         weights[4] = 1.0;
-        weights[5] = 1.0;
+        weights[5] = 0.5;
         weights[6] = 1.0;
-        weights[7] = 1.0;
+        weights[7] = 2.0;
 
-        auto curve = NurbsCurveGeometry<3, NodeType>(points, p, knot_vector, weights);
+        auto curve = NurbsCurveGeometry<3, PointerVector<NodeType>>(points, p, knot_vector, weights);
 
         return curve;
     }
 
     ///// Tests
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2d, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2d, KratosCoreNurbsGeometriesFastSuite) {
         auto curve = GenerateReferenceCurve2d();
 
         // Check general information, input to ouput
@@ -127,7 +128,7 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(derivatives[4][1], 0.0, TOLERANCE);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve3d, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve3d, KratosCoreNurbsGeometriesFastSuite) {
 
         auto curve = GenerateReferenceCurve3d();
 
@@ -144,87 +145,155 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_EQUAL(curve.DomainInterval().GetT0(), 0);
         KRATOS_CHECK_EQUAL(curve.DomainInterval().GetT1(), 131.892570399495);
 
-        array_1d<double, 3> result(0.0);
-
         // Check location information
 
-        // parameter t=0.0
-        array_1d<double, 3> parameter(0.0);
-        parameter[0] = 0.0;
-        curve.GlobalCoordinates(result, parameter);
-        KRATOS_CHECK_NEAR(result[0], 0, TOLERANCE);
-        KRATOS_CHECK_NEAR(result[1], -25, TOLERANCE);
-        KRATOS_CHECK_NEAR(result[2], -5, TOLERANCE);
+        // check point at t = 0
+        {
+            array_1d<double, 3> parameter(0.0);
+            parameter[0] = 0.0;
 
-        const auto derivatives_1 = curve.GlobalDerivatives(parameter, 3);
-        KRATOS_CHECK_NEAR(derivatives_1[0][0], 0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_1[0][1], -25, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_1[0][2], -5, TOLERANCE);
+            array_1d<double, 3> result(0.0);
+            curve.GlobalCoordinates(result, parameter);
 
-        KRATOS_CHECK_NEAR(derivatives_1[1][0], -1.81966277, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_1[1][1], 1.2131085134, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_1[1][2], 0.6065542567, TOLERANCE);
+            KRATOS_CHECK_NEAR(result[0], 0, TOLERANCE);
+            KRATOS_CHECK_NEAR(result[1], -25, TOLERANCE);
+            KRATOS_CHECK_NEAR(result[2], -5, TOLERANCE);
+        }
 
-        KRATOS_CHECK_NEAR(derivatives_1[2][0], 0.2759310497, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_1[2][1], -0.0551862099, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_1[2][2], -0.0717420729, TOLERANCE);
+        // check derivatives at t = 0
+        {
+            array_1d<double, 3> parameter(0.0);
+            parameter[0] = 0.0;
 
-        KRATOS_CHECK_NEAR(derivatives_1[3][0], -0.0189682773, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_1[3][1], 0.0005578905, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_1[3][2], 0.005523116, TOLERANCE);
+            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
 
+            KRATOS_CHECK_NEAR(derivatives[0][0], 0, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[0][1], -25, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[0][2], -5, TOLERANCE);
 
-        // parameter t=65.9462851997
-        parameter[0] = 65.9462851997;
-        result = ZeroVector(3);
+            KRATOS_CHECK_NEAR(derivatives[1][0], -5.458988, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[1][1], 3.639326, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[1][2], 1.819663, TOLERANCE);
 
-        curve.GlobalCoordinates(result, parameter);
-        KRATOS_CHECK_NEAR(result[0], 21.333333, TOLERANCE);
-        KRATOS_CHECK_NEAR(result[1], -3.6666667, TOLERANCE);
-        KRATOS_CHECK_NEAR(result[2], 4.9, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[2][0], 3.421545, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[2][1], -2.152262, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[2][2], -1.12028, TOLERANCE);
 
-        const auto derivatives_2 = curve.GlobalDerivatives(parameter, 3);
-        KRATOS_CHECK_NEAR(derivatives_2[0][0], 21.33333333, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_2[0][1], -3.66666667, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_2[0][2], 4.9, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[3][0], -3.084298, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[3][1], 1.953733, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[3][2], 1.014747, TOLERANCE);
+        }
 
-        KRATOS_CHECK_NEAR(derivatives_2[1][0], 0.20218475, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_2[1][1], 0.33697459, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_2[1][2], 0.10109238, TOLERANCE);
+        // check point at t = 65.9462851997
+        {
+            array_1d<double, 3> parameter(0.0);
+            parameter[0] = 65.9462851997;
 
-        KRATOS_CHECK_NEAR(derivatives_2[2][0], -0.0122636, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_2[2][1], 0.0153295, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_2[2][2], -0.00367908, TOLERANCE);
+            array_1d<double, 3> result(0.0);
+            curve.GlobalCoordinates(result, parameter);
 
-        KRATOS_CHECK_NEAR(derivatives_2[3][0], -5.57890509e-04, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_2[3][1], -6.50872261e-04, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_2[3][2], 5.57890509e-05, TOLERANCE);
+            KRATOS_CHECK_NEAR(result[0], 17.372881, TOLERANCE);
+            KRATOS_CHECK_NEAR(result[1], -10.084746, TOLERANCE);
+            KRATOS_CHECK_NEAR(result[2], 3.661017, TOLERANCE);
+        }
 
-        // parameter t=131.892570399495
-        parameter[0] = 131.892570399495;
-        result = ZeroVector(3);
+        // check derivatives at t = 65.9462851997
+        {
+            array_1d<double, 3> parameter(0.0);
+            parameter[0] = 65.9462851997;
 
-        curve.GlobalCoordinates(result, parameter);
-        KRATOS_CHECK_NEAR(result[0], -25, TOLERANCE);
-        KRATOS_CHECK_NEAR(result[1], 15, TOLERANCE);
-        KRATOS_CHECK_NEAR(result[2], 4, TOLERANCE);
+            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
 
-        const auto derivatives_3 = curve.GlobalDerivatives(parameter, 3);
-        KRATOS_CHECK_NEAR(derivatives_3[0][0], -25, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_3[0][1], 15, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_3[0][2], 4, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[0][0], 17.372881, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[0][1], -10.084746, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[0][2], 3.661017, TOLERANCE);
 
-        KRATOS_CHECK_NEAR(derivatives_3[1][0], -2.4262170267, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_3[1][1], 2.4262170267, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_3[1][2], 0.8491759593, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[1][0], 0.157519, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[1][1], 0.214672, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[1][2], 0.065029, TOLERANCE);
 
-        KRATOS_CHECK_NEAR(derivatives_3[2][0], -0.1103724199, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_3[2][1], 0.3311172597, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_3[2][2], 0.1269282829, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[2][0], -0.001173, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[2][1], 0.013599, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[2][2], -0.00044, TOLERANCE);
 
-        KRATOS_CHECK_NEAR(derivatives_3[3][0], -0.0044631241, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_3[3][1], 0.0251050729, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives_3[3][2], 0.0092051934, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[3][0], -0.000212, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[3][1], -0.000031, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[3][2], 0.000078, TOLERANCE);
+        }
+
+        // check point at t = 125
+        {
+            array_1d<double, 3> parameter(0.0);
+            parameter[0] = 125;
+
+            array_1d<double, 3> result(0.0);
+            curve.GlobalCoordinates(result, parameter);
+
+            KRATOS_CHECK_NEAR(result[0], -15.801248, TOLERANCE);
+            KRATOS_CHECK_NEAR(result[1], 7.432826, TOLERANCE);
+            KRATOS_CHECK_NEAR(result[2], 1.456648, TOLERANCE);
+        }
+
+        // check derivatives at t = 125
+        {
+            array_1d<double, 3> parameter(0.0);
+            parameter[0] = 125;
+
+            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
+
+            KRATOS_CHECK_NEAR(derivatives[0][0], -15.801248, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[0][1], 7.432826, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[0][2], 1.456648, TOLERANCE);
+
+            KRATOS_CHECK_NEAR(derivatives[1][0], -1.44436, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[1][1], 0.927174, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[1][2], 0.287317, TOLERANCE);
+
+            KRATOS_CHECK_NEAR(derivatives[2][0], 0.026303, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[2][1], 0.065941, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[2][2], 0.031612, TOLERANCE);
+
+            KRATOS_CHECK_NEAR(derivatives[3][0], 0.00346, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[3][1], -0.006864, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[3][2], -0.003416, TOLERANCE);
+        }
+
+        // check point at t = 131.892570399495
+        {
+            array_1d<double, 3> parameter(0.0);
+            parameter[0] = 131.892570399495;
+
+            array_1d<double, 3> result(0.0);
+            curve.GlobalCoordinates(result, parameter);
+
+            KRATOS_CHECK_NEAR(result[0], -25, TOLERANCE);
+            KRATOS_CHECK_NEAR(result[1], 15, TOLERANCE);
+            KRATOS_CHECK_NEAR(result[2], 4, TOLERANCE);
+        }
+
+        // check derivatives at t = 131.892570399495
+        {
+            array_1d<double, 3> parameter(0.0);
+            parameter[0] = 131.892570399495;
+
+            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
+
+            KRATOS_CHECK_NEAR(derivatives[0][0], -25, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[0][1], 15, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[0][2], 4, TOLERANCE);
+
+            KRATOS_CHECK_NEAR(derivatives[1][0], -1.213109, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[1][1], 1.213109, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[1][2], 0.424588, TOLERANCE);
+
+            KRATOS_CHECK_NEAR(derivatives[2][0], 0.036791, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[2][1], 0.018395, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[2][2], 0.009198, TOLERANCE);
+
+            KRATOS_CHECK_NEAR(derivatives[3][0], 0, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[3][1], -0.005858, TOLERANCE);
+            KRATOS_CHECK_NEAR(derivatives[3][2], -0.00265, TOLERANCE);
+        }
     }
 
 } // namespace Testing.

@@ -625,6 +625,9 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
     h_mean = h_mean < std::numeric_limits<double>::epsilon() ? 1.0 : h_mean;
     const double bounding_box_factor = octree_parameters["bounding_box_factor"].GetDouble() * h_mean;
 
+    // If the OBB is built from the base BB
+    const bool build_from_bounding_box = octree_parameters["build_from_bounding_box"].GetBool();
+
     // Now we iterate over the conditions
 //     #pragma omp parallel for firstprivate(tree_points) // TODO: Make me parallel!!!
     for(int i = 0; i < num_conditions; ++i) {
@@ -638,7 +641,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
 
             // Getting geometry
             GeometryType& r_geometry = it_cond->GetGeometry();
-            OrientedBoundingBox<TDim> slave_obb(r_geometry, bounding_box_factor);
+            OrientedBoundingBox<TDim> slave_obb(r_geometry, bounding_box_factor, build_from_bounding_box);
 
             if (type_search == SearchTreeType::KdtreeInRadius || type_search == SearchTreeType::KdtreeInRadiusWithOBB) {
                 const Point& r_center = dynamic ? Point(ContactUtilities::GetHalfJumpCenter(r_geometry)) : r_geometry.Center(); // NOTE: Center in half delta time or real center
@@ -693,7 +696,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
 
                         // Checking with OBB
                         if (with_obb) {
-                            OrientedBoundingBox<TDim> master_obb(p_cond_master->GetGeometry(), bounding_box_factor);
+                            OrientedBoundingBox<TDim> master_obb(p_cond_master->GetGeometry(), bounding_box_factor, build_from_bounding_box);
                             if (!slave_obb.HasIntersection(master_obb)) {
                                 continue;
                             }
@@ -852,12 +855,12 @@ Condition::Pointer BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::A
     // We add the ID and we create a new auxiliar condition
     if (mOptions.Is(BaseContactSearchProcess::CREATE_AUXILIAR_CONDITIONS)) { // TODO: Check this!!
         ++rConditionId;
-        Condition::Pointer p_auxiliar_condition = rComputingModelPart.CreateNewCondition(mConditionName, rConditionId, pObjectSlave->GetGeometry(), pProperties);
+        const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get(mConditionName));
+        Condition::Pointer p_auxiliar_condition = r_reference_condition.Create(rConditionId, pObjectSlave->pGetGeometry(), pProperties, pObjectMaster->pGetGeometry());
         // We set the geometrical values
+        rComputingModelPart.AddCondition(p_auxiliar_condition);
         pIndexesPairs->SetNewEntityId(pObjectMaster->Id(), rConditionId);
-        p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, pObjectMaster->pGetGeometry());
         p_auxiliar_condition->SetValue(NORMAL, rSlaveNormal);
-        p_auxiliar_condition->SetValue(PAIRED_NORMAL, rMasterNormal);
         // We activate the condition and initialize it
         p_auxiliar_condition->Set(ACTIVE, true);
         p_auxiliar_condition->Initialize();
@@ -979,6 +982,24 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
     if (index_1 == index_2) {
         return CheckResult::Fail;
     }
+
+    // Avoid conditions oriented in the same direction
+    const auto& r_geometry_1 = pGeometricalObject1->GetGeometry();
+    const auto& r_geometry_2 = pGeometricalObject2->GetGeometry();
+
+    // Declare auxiliar coordinates
+    GeometryType::CoordinatesArrayType aux_coords;
+
+    // Tolerance
+    const double tolerance = 1.0e-16 + mThisParameters["normal_orientation_threshold"].GetDouble();
+
+    // Getting normals
+    r_geometry_1.PointLocalCoordinates(aux_coords, r_geometry_1.Center());
+    const array_1d<double, 3> normal_1 = r_geometry_1.UnitNormal(aux_coords);
+    r_geometry_2.PointLocalCoordinates(aux_coords, r_geometry_2.Center());
+    const array_1d<double, 3> normal_2 = r_geometry_2.UnitNormal(aux_coords);
+    if (norm_2(normal_1 - normal_2) < tolerance)
+        return CheckResult::Fail;
 
     // To avoid to repeat twice the same condition
     if (pIndexesPairs->find(index_2) != pIndexesPairs->end()) {
@@ -1320,81 +1341,14 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeM
 {
     KRATOS_TRY
 
-    // We get the process info
-    const ProcessInfo& r_process_info = mrMainModelPart.GetProcessInfo();
-
-    // Iterate over the nodes
+    // Compute gap
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart("MasterSubModelPart"+mThisParameters["id_name"].GetString());
-    NodesArrayType& r_nodes_array_master = r_master_model_part.Nodes();
-    const auto it_node_begin_master = r_nodes_array_master.begin();
     ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart("SlaveSubModelPart"+mThisParameters["id_name"].GetString());
-    NodesArrayType& r_nodes_array_slave = r_slave_model_part.Nodes();
-    const auto it_node_begin_slave = r_nodes_array_slave.begin();
 
-    // We set the auxiliar Coordinates
-    const array_1d<double, 3> zero_array = ZeroVector(3);
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array_master.size()); ++i) {
-        auto it_node = it_node_begin_master + i;
-
-        if (SearchOrientation) {
-            it_node->SetValue(AUXILIAR_COORDINATES, it_node->Coordinates());
-        } else {
-            it_node->SetValue(AUXILIAR_COORDINATES, zero_array);
-        }
-    }
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array_slave.size()); ++i) {
-        auto it_node = it_node_begin_slave + i;
-
-        if (!SearchOrientation) {
-            it_node->SetValue(AUXILIAR_COORDINATES, it_node->Coordinates());
-        } else {
-            it_node->SetValue(AUXILIAR_COORDINATES, zero_array);
-        }
-    }
-
-    // Switch MASTER/SLAVE
-    NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
-    if (!SearchOrientation)
-        SwitchFlagNodes(r_nodes_array);
-
-    // We set the mapper parameters
-    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24,"update_interface" : false, "remove_isolated_conditions" : true, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
-    if (r_process_info.Has(DISTANCE_THRESHOLD)) {
-        mapping_parameters["distance_threshold"].SetDouble(r_process_info[DISTANCE_THRESHOLD]);
-    }
-    MapperType mapper(r_master_model_part, r_slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
-    mapper.Execute();
-
-    // Switch again MASTER/SLAVE
-    if (!SearchOrientation)
-        SwitchFlagNodes(r_nodes_array);
-
-    // We compute now the normal gap and set the nodes under certain threshold as active
-    array_1d<double, 3> normal, auxiliar_coordinates, components_gap;
-    double gap = 0.0;
-    const auto it_node_begin = r_nodes_array.begin();
-    #pragma omp parallel for firstprivate(gap, normal, auxiliar_coordinates, components_gap)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
-
-        if (it_node->Is(SLAVE) == SearchOrientation) {
-            // We compute the gap
-            noalias(normal) = it_node->FastGetSolutionStepValue(NORMAL);
-            noalias(auxiliar_coordinates) = it_node->GetValue(AUXILIAR_COORDINATES);
-            noalias(components_gap) = ( it_node->Coordinates() - auxiliar_coordinates);
-            gap = inner_prod(components_gap, - normal);
-
-            // We activate if the node is close enough
-            if (norm_2(auxiliar_coordinates) > ZeroTolerance)
-                it_node->SetValue(NORMAL_GAP, gap);
-        } else {
-            it_node->SetValue(NORMAL_GAP, 0.0);
-        }
-    }
+    NormalGapProcessType normal_gap(r_master_model_part, r_slave_model_part, SearchOrientation);
+    normal_gap.Execute();
 
     KRATOS_CATCH("")
 }
@@ -1791,14 +1745,16 @@ Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaul
         "static_check_movement"                : false,
         "predefined_master_slave"              : true,
         "id_name"                              : "",
+        "normal_orientation_threshold"         : 0.0,
         "consider_gap_threshold"               : false,
         "predict_correct_lagrange_multiplier"  : false,
         "pure_slip"                            : false,
         "debug_mode"                           : false,
         "octree_search_parameters" : {
-            "bounding_box_factor"    : 0.1,
-            "debug_obb"              : false,
-            "OBB_intersection_type"  : "SeparatingAxisTheorem"
+            "bounding_box_factor"             : 0.1,
+            "debug_obb"                       : false,
+            "OBB_intersection_type"           : "SeparatingAxisTheorem",
+            "build_from_bounding_box"         : true
         }
     })" );
 

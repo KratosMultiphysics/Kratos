@@ -15,9 +15,6 @@ def Create(settings, solver_name):
 
 class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
     def __init__(self, settings, solver_name):
-        if not settings['coupling_sequence'].size() == 2:
-            raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
-
         super(GaussSeidelStrongCoupledSolver, self).__init__(settings, solver_name)
 
         self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
@@ -97,9 +94,10 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             for conv_crit in self.convergence_criteria_list:
                 conv_crit.FinalizeNonLinearIteration()
 
-            is_converged = True
-            for conv_crit in self.convergence_criteria_list:
-                is_converged = is_converged and conv_crit.IsConverged()
+            is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])
+
+            self.__CommunicateStateOfConvergence(is_converged)
+
             if is_converged:
                 if self.echo_level > 0:
                     cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
@@ -137,3 +135,14 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
         this_defaults.AddMissingParameters(super(GaussSeidelStrongCoupledSolver, cls)._GetDefaultSettings())
 
         return this_defaults
+
+    def __CommunicateStateOfConvergence(self, is_converged):
+        # Communicate the state of convergence with external solvers through IO
+        convergence_signal_config = {
+            "type" : "convergence_signal",
+            "is_converged" : is_converged
+        }
+
+        for solver in self.solver_wrappers.values():
+            solver.ExportData(convergence_signal_config)
+
