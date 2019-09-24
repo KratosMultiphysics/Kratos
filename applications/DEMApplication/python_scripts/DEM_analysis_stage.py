@@ -466,8 +466,10 @@ class DEMAnalysisStage(AnalysisStage):
         pass
 
     def PrintAnalysisStageProgressInformation(self):
-        if self.DEM_parameters["echo_level"].GetInt() > 1:
-            super(DEMAnalysisStage, self).PrintAnalysisStageProgressInformation()
+        step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
+        stepinfo = self.report.StepiReport(timer, self.time, step)
+        if stepinfo:
+            self.KratosPrintInfo(stepinfo)
 
     def FinalizeSolutionStep(self):
         super(DEMAnalysisStage, self).FinalizeSolutionStep()
@@ -483,11 +485,6 @@ class DEMAnalysisStage(AnalysisStage):
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
-
-        step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
-        stepinfo = self.report.StepiReport(timer, self.time, step)
-        if stepinfo:
-            self.KratosPrintInfo(stepinfo)
 
     def OutputSolutionStep(self):
         #### PRINTING GRAPHS ####
