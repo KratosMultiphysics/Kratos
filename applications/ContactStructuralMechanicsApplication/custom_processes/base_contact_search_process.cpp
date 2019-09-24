@@ -711,11 +711,17 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
     const std::string slave_model_part_name = "SlaveSubModelPart" + mThisParameters["id_name"].GetString();
     ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart(slave_model_part_name);
 
+    // Whole model parts names
+    std::string whole_master_model_part_name = "", whole_slave_model_part_name = "";
+    GetWholeModelPartName(r_master_model_part, whole_master_model_part_name);
+    GetWholeModelPartName(r_slave_model_part, whole_slave_model_part_name);
+
+    // Creating Parameters
     Parameters octree_parameters = mThisParameters["octree_search_parameters"];
     octree_parameters.AddEmptyValue("intersected_model_part_name");
     octree_parameters.AddEmptyValue("intersecting_model_part_name");
-    octree_parameters["intersected_model_part_name"].SetString(slave_model_part_name);
-    octree_parameters["intersecting_model_part_name"].SetString(master_model_part_name);
+    octree_parameters["intersecting_model_part_name"].SetString(whole_slave_model_part_name);
+    octree_parameters["intersected_model_part_name"].SetString(whole_master_model_part_name);
 
     double h_mean = std::max(ContactUtilities::CalculateMaxNodalH(r_slave_model_part), ContactUtilities::CalculateMaxNodalH(r_master_model_part));
     h_mean = h_mean < std::numeric_limits<double>::epsilon() ? 1.0 : h_mean;
