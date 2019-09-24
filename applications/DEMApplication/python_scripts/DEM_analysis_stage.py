@@ -465,6 +465,10 @@ class DEMAnalysisStage(AnalysisStage):
     def BeforePrintingOperations(self, time):
         pass
 
+    def PrintAnalysisStageProgressInformation(self):
+        if self.DEM_parameters["echo_level"].GetInt() > 1:
+            super(DEMAnalysisStage, self).PrintAnalysisStageProgressInformation()
+
     def FinalizeSolutionStep(self):
         super(DEMAnalysisStage, self).FinalizeSolutionStep()
         if self.post_normal_impact_velocity_option:
