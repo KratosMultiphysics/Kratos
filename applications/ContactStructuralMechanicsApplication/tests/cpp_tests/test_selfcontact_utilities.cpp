@@ -37,7 +37,6 @@ namespace Kratos
             gid_io.InitializeResults(label, rModelPart.GetMesh());
             gid_io.WriteNodalFlags(MASTER, "MASTER", rModelPart.Nodes(), label);
             gid_io.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
-            gid_io.WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
         }
 
         /**
@@ -46,39 +45,39 @@ namespace Kratos
         void SimpleCreateNewProblem3D(ModelPart& rModelPart)
         {
             // Creating nodes
-            rModelPart.CreateNewNode(195, 4.0000E+00, 4.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(196, 4.0000E+00, 4.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(240, 4.0000E+00, 5.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(241, 5.0000E+00, 4.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(242, 4.0000E+00, 4.7000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(243, 4.7000E+00, 4.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(278, 5.0000E+00, 5.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(285, 4.7000E+00, 4.7000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(290, 4.0000E+00, 6.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(292, 6.0000E+00, 4.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(296, 6.0000E+00, 4.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(297, 4.0000E+00, 6.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(332, 5.0000E+00, 6.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(333, 6.0000E+00, 5.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(337, 4.7000E+00, 6.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(338, 6.0000E+00, 4.7000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(371, 6.0000E+00, 6.0000E+00, 0.0000E+00);
-            rModelPart.CreateNewNode(372, 6.0000E+00, 6.0000E+00, 0.0000E+00);
+            rModelPart.CreateNewNode(1, 4.0000E+00, 4.0000E+00, 0.0000E+00);
+            rModelPart.CreateNewNode(2, 4.0000E+00, 4.0000E+00, 0.5000E+00);
+            rModelPart.CreateNewNode(3, 4.0000E+00, 5.0000E+00, 0.0000E+00);
+            rModelPart.CreateNewNode(4, 5.0000E+00, 4.0000E+00, 0.0000E+00);
+            rModelPart.CreateNewNode(5, 4.0000E+00, 4.7000E+00, 0.5000E+00);
+            rModelPart.CreateNewNode(6, 4.7000E+00, 4.0000E+00, 0.5000E+00);
+            rModelPart.CreateNewNode(7, 5.0000E+00, 5.0000E+00, 0.0000E+00);
+            rModelPart.CreateNewNode(8, 4.7000E+00, 4.7000E+00, 0.5000E+00);
+            rModelPart.CreateNewNode(9, 4.0000E+00, 6.0000E+00, 0.0000E+00);
+            rModelPart.CreateNewNode(10, 6.0000E+00, 4.0000E+00, 0.0000E+00);
+            rModelPart.CreateNewNode(11, 6.0000E+00, 4.0000E+00, 0.5000E+00);
+            rModelPart.CreateNewNode(12, 4.0000E+00, 6.0000E+00, 0.5000E+00);
+            rModelPart.CreateNewNode(13, 5.0000E+00, 6.0000E+00, 0.0000E+00);
+            rModelPart.CreateNewNode(14, 6.0000E+00, 5.0000E+00, 0.0000E+00);
+            rModelPart.CreateNewNode(15, 4.7000E+00, 6.0000E+00, 0.5000E+00);
+            rModelPart.CreateNewNode(16, 6.0000E+00, 4.7000E+00, 0.5000E+00);
+            rModelPart.CreateNewNode(17, 6.0000E+00, 6.0000E+00, 0.0000E+00);
+            rModelPart.CreateNewNode(18, 6.0000E+00, 6.0000E+00, 0.5000E+00);
 
             // Creating properties
             Properties::Pointer p_cond_prop_0 = rModelPart.CreateNewProperties(0);
             Properties::Pointer p_cond_prop_1 = rModelPart.CreateNewProperties(1);
 
             // Creating conditions
-            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 1, {{297,242,285,337}}, p_cond_prop_0);
-            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 2, {{337,285,338,372}}, p_cond_prop_0);
-            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 3, {{242,196,243,285}}, p_cond_prop_0);
-            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 4, {{285,243,296,338}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 1, {{12,5,8,15}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 2, {{15,8,16,18}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 3, {{5,2,6,8}}, p_cond_prop_0);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 4, {{8,6,11,16}}, p_cond_prop_0);
 
-            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 5, {{371,333,278,332}}, p_cond_prop_1);
-            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 6, {{332,278,240,290}}, p_cond_prop_1);
-            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 7, {{333,292,241,278}}, p_cond_prop_1);
-            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 8, {{278,241,195,240}}, p_cond_prop_1);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 5, {{17,14,7,13}}, p_cond_prop_1);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 6, {{13,7,3,9}}, p_cond_prop_1);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 7, {{14,10,4,7}}, p_cond_prop_1);
+            rModelPart.CreateNewCondition("SurfaceCondition3D4N", 8, {{7,4,1,3}}, p_cond_prop_1);
         }
 
         /**
@@ -98,6 +97,9 @@ namespace Kratos
             SimpleCreateNewProblem3D(r_model_part);
 
             // All potential pairs
+            for (auto& r_cond : r_model_part.Conditions()) {
+                r_cond.SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
+            }
             for (auto& r_cond_1 : r_model_part.Conditions()) {
                 auto p_pairs = r_cond_1.GetValue(INDEX_MAP);
                 for (auto& r_cond_2 : r_model_part.Conditions()) {
