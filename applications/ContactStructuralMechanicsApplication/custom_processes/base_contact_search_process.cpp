@@ -540,9 +540,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
         VariableUtils().ResetFlag(SLAVE, r_conditions_array);
         VariableUtils().ResetFlag(MASTER, r_conditions_array);
 
-        // TODO: WIP
-//         // Clear the mPointListDestination and assign initial MASTER/SLAVE flags
-//         ClearDestinationListAndAssignFlags(r_sub_contact_model_part);
+        // Clear the mPointListDestination and assign initial MASTER/SLAVE flags
+        ClearDestinationListAndAssignFlags(r_sub_contact_model_part);
     }
 
     // The search tree considered
@@ -638,70 +637,76 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
     for(int i = 0; i < num_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
 
-        if (mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE) || it_cond->Is(SLAVE) == !mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
-            // Initialize values
-            PointVector points_found(allocation_size);
+        // Check if active the condition
+        const bool is_active = it_cond->IsDefined(ACTIVE) ? true : it_cond->Is(ACTIVE);
 
-            // Getting geometry
-            GeometryType& r_geometry = it_cond->GetGeometry();
-            OrientedBoundingBox<TDim> slave_obb(r_geometry, bounding_box_factor, build_from_bounding_box);
+        // If active we evaluate
+        if (is_active) {
+            if (mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE) || it_cond->Is(SLAVE) == !mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
+                // Initialize values
+                PointVector points_found(allocation_size);
 
-            // Perform search
-            const IndexType number_points_found = PerformKDTreeSearch(tree_points, points_found, r_geometry, type_search, search_factor, allocation_size, dynamic);
+                // Getting geometry
+                GeometryType& r_geometry = it_cond->GetGeometry();
+                OrientedBoundingBox<TDim> slave_obb(r_geometry, bounding_box_factor, build_from_bounding_box);
 
-            if (number_points_found > 0) {
-                // We resize the vector to the actual size
-//                 points_found.resize(number_points_found); // NOTE: May be ineficient
+                // Perform search
+                const IndexType number_points_found = PerformKDTreeSearch(tree_points, points_found, r_geometry, type_search, search_factor, allocation_size, dynamic);
 
-            #ifdef KRATOS_DEBUG
-                // NOTE: We check the list
-                for (IndexType i_point = 0; i_point < number_points_found; ++i_point )
-                    points_found[i_point]->Check();
-            #endif
+                if (number_points_found > 0) {
+                    // We resize the vector to the actual size
+    //                 points_found.resize(number_points_found); // NOTE: May be ineficient
 
-                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
+                #ifdef KRATOS_DEBUG
+                    // NOTE: We check the list
+                    for (IndexType i_point = 0; i_point < number_points_found; ++i_point )
+                        points_found[i_point]->Check();
+                #endif
 
-                // If not active we check if can be potentially in contact
-                if (mCheckGap == CheckGap::MappingCheck) {
-                    for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
-                        // Master condition
-                        Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
+                    IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
 
-                        // Checking with OBB
-                        if (with_obb) {
-                            OrientedBoundingBox<TDim> master_obb(p_cond_master->GetGeometry(), bounding_box_factor, build_from_bounding_box);
-                            if (!slave_obb.HasIntersection(master_obb)) {
-                                continue;
+                    // If not active we check if can be potentially in contact
+                    if (mCheckGap == CheckGap::MappingCheck) {
+                        for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
+                            // Master condition
+                            Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
+
+                            // Checking with OBB
+                            if (with_obb) {
+                                OrientedBoundingBox<TDim> master_obb(p_cond_master->GetGeometry(), bounding_box_factor, build_from_bounding_box);
+                                if (!slave_obb.HasIntersection(master_obb)) {
+                                    continue;
+                                }
                             }
+
+                            const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH));
+
+                            if (condition_checked_right == CheckResult::OK)
+                                p_indexes_pairs->AddId(p_cond_master->Id());
                         }
+                    } else {
+                        // Some auxiliar values
+                        const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+                        const bool frictional_problem = mrMainModelPart.Is(SLIP);
 
-                        const CheckResult condition_checked_right = CheckCondition(p_indexes_pairs, (*it_cond.base()), p_cond_master, mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH));
+                        // Slave geometry and data
+                        Properties::Pointer p_prop = it_cond->pGetProperties();
+                        const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
 
-                        if (condition_checked_right == CheckResult::OK)
-                            p_indexes_pairs->AddId(p_cond_master->Id());
-                    }
-                } else {
-                    // Some auxiliar values
-                    const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
-                    const bool frictional_problem = mrMainModelPart.Is(SLIP);
+                        for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
+                            // Master condition
+                            Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
 
-                    // Slave geometry and data
-                    Properties::Pointer p_prop = it_cond->pGetProperties();
-                    const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
-
-                    for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
-                        // Master condition
-                        Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
-
-                        // Checking with OBB
-                        if (with_obb) {
-                            OrientedBoundingBox<TDim> master_obb(p_cond_master->GetGeometry(), bounding_box_factor);
-                            if (!slave_obb.HasIntersection(master_obb)) {
-                                continue;
+                            // Checking with OBB
+                            if (with_obb) {
+                                OrientedBoundingBox<TDim> master_obb(p_cond_master->GetGeometry(), bounding_box_factor);
+                                if (!slave_obb.HasIntersection(master_obb)) {
+                                    continue;
+                                }
                             }
-                        }
 
-                        AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_cond_master->GetValue(NORMAL), p_indexes_pairs, p_prop, active_check_factor, frictional_problem);
+                            AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, p_cond_master->GetValue(NORMAL), p_indexes_pairs, p_prop, active_check_factor, frictional_problem);
+                        }
                     }
                 }
             }
@@ -761,40 +766,46 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
     for(int i = 0; i < num_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
 
-        // We perform the search
-        leaves.clear();
-        octree_search_process.IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
+        // Check if active the condition
+        const bool is_active = it_cond->IsDefined(ACTIVE) ? true : it_cond->Is(ACTIVE);
 
-        if (it_cond->Is(SELECTED)) {
-            IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
+        // If active we evaluate
+        if (is_active) {
+            // We perform the search
+            leaves.clear();
+            octree_search_process.IdentifyNearEntitiesAndCheckEntityForIntersection(*(it_cond.base()), leaves);
 
-            // If not active we check if can be potentially in contact
-            if (mCheckGap == CheckGap::MappingCheck) {
-                for (auto p_leaf : leaves) {
-                    for (auto p_cond_master : *(p_leaf->pGetObjects())) {
-                        if (p_cond_master->Is(SELECTED)) {
-                            const CheckResult condition_checked_right = CheckGeometricalObject(p_indexes_pairs, (*it_cond.base()), p_cond_master, mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH));
+            if (it_cond->Is(SELECTED)) {
+                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
 
-                            if (condition_checked_right == CheckResult::OK) {
-                                p_indexes_pairs->AddId(p_cond_master->Id());
+                // If not active we check if can be potentially in contact
+                if (mCheckGap == CheckGap::MappingCheck) {
+                    for (auto p_leaf : leaves) {
+                        for (auto p_cond_master : *(p_leaf->pGetObjects())) {
+                            if (p_cond_master->Is(SELECTED)) {
+                                const CheckResult condition_checked_right = CheckGeometricalObject(p_indexes_pairs, (*it_cond.base()), p_cond_master, mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH));
+
+                                if (condition_checked_right == CheckResult::OK) {
+                                    p_indexes_pairs->AddId(p_cond_master->Id());
+                                }
                             }
                         }
                     }
-                }
-            } else {
-                // Some auxiliar values
-                const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
-                const bool frictional_problem = mrMainModelPart.Is(SLIP);
+                } else {
+                    // Some auxiliar values
+                    const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
+                    const bool frictional_problem = mrMainModelPart.Is(SLIP);
 
-                // Slave geometry and data
-                Properties::Pointer p_prop = it_cond->pGetProperties();
-                const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
+                    // Slave geometry and data
+                    Properties::Pointer p_prop = it_cond->pGetProperties();
+                    const array_1d<double, 3>& r_normal_slave = it_cond->GetValue(NORMAL);
 
-                for (auto p_leaf : leaves) {
-                    for (auto p_cond_master : *(p_leaf->pGetObjects())) {
-                        if (p_cond_master->Is(SELECTED)) {
-                            const array_1d<double, 3>& r_normal_master = (p_cond_master->GetGeometry()).UnitNormal(zero_array);
-                            AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, r_normal_master, p_indexes_pairs, p_prop, active_check_factor, frictional_problem);
+                    for (auto p_leaf : leaves) {
+                        for (auto p_cond_master : *(p_leaf->pGetObjects())) {
+                            if (p_cond_master->Is(SELECTED)) {
+                                const array_1d<double, 3>& r_normal_master = (p_cond_master->GetGeometry()).UnitNormal(zero_array);
+                                AddPotentialPairing(rSubComputingContactModelPart, condition_id, (*it_cond.base()), r_normal_slave, p_cond_master, r_normal_master, p_indexes_pairs, p_prop, active_check_factor, frictional_problem);
+                            }
                         }
                     }
                 }
@@ -1113,9 +1124,6 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
             mPointListDestination.push_back(Kratos::make_shared<PointType>((*it_cond.base())));
         }
     }
-
-//     /* We assign the initial flags */
-//     SelfContactUtilities::NotPredefinedMasterSlave(rSubContactModelPart);
 
     /* Finally we clear the database, that will be filled again later */
     #pragma omp parallel for
