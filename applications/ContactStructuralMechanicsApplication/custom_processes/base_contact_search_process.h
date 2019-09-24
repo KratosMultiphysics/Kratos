@@ -469,6 +469,11 @@ private:
         );
 
     /**
+     * @brief This method fills mPointListDestination
+     */
+    void FillPointListDestination();
+
+    /**
      * @brief This method clears the destination list and
      * @param rSubContactModelPart The submodel part studied
      */

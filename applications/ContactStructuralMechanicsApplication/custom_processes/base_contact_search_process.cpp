@@ -428,27 +428,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreatePointList
 
     // Using KDTree
     if (type_search != SearchTreeType::OctreeWithOBB) {
-        // Clearing the vector
-        mPointListDestination.clear();
-
-        // Iterate in the conditions
-        ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
-        ModelPart& r_sub_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
-        ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
-        const auto it_cond_begin = r_conditions_array.begin();
-
-        for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
-            auto it_cond = it_cond_begin + i;
-            if (it_cond->Is(MASTER) == !mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH) || mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE)) {
-                mPointListDestination.push_back(Kratos::make_shared<PointType>((*it_cond.base())));
-            }
-        }
-
-    #ifdef KRATOS_DEBUG
-        // NOTE: We check the list
-        for (IndexType i_point = 0; i_point < mPointListDestination.size(); ++i_point )
-            mPointListDestination[i_point]->Check();
-    #endif
+        FillPointListDestination();
     }
 
     KRATOS_CATCH("")
@@ -529,6 +509,10 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
 
     // In case of not predefined master/slave we reset the flags
     if (mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE)) {
+        // Fill in case of empty
+        if (mPointListDestination.size() == 0) {
+            FillPointListDestination();
+        }
         // Clear the mPointListDestination and assign initial MASTER/SLAVE flags
         ClearDestinationListAndAssignFlags(r_sub_contact_model_part);
     }
@@ -603,6 +587,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
     // Create a tree
     // It will use a copy of mNodeList (a std::vector which contains pointers)
     // Copying the list is required because the tree will reorder it for efficiency
+    KRATOS_ERROR_IF(mPointListDestination.size() == 0) << "mPointListDestination not initialized" << std::endl;
     KDTree tree_points(mPointListDestination.begin(), mPointListDestination.end(), bucket_size);
 
     // Auxiliar model parts and components
@@ -1022,6 +1007,41 @@ inline typename BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Chec
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::FillPointListDestination()
+{
+    KRATOS_TRY
+
+    // Clearing the vector
+    mPointListDestination.clear();
+
+    // Iterate in the conditions
+    ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
+    ModelPart& r_sub_contact_model_part = mOptions.IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
+    ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
+
+    for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
+        auto it_cond = it_cond_begin + i;
+        if (it_cond->Is(MASTER) == !mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH) || mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE)) {
+            mPointListDestination.push_back(Kratos::make_shared<PointType>((*it_cond.base())));
+        }
+    }
+
+#ifdef KRATOS_DEBUG
+    // NOTE: We check the list
+    for (IndexType i_point = 0; i_point < mPointListDestination.size(); ++i_point )
+        mPointListDestination[i_point]->Check();
+#endif
+
+    KRATOS_ERROR_IF(mPointListDestination.size() == 0) << "mPointListDestination not initialized" << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinationListAndAssignFlags(ModelPart& rSubContactModelPart)
 {
     KRATOS_TRY
@@ -1042,6 +1062,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
     // Create a tree
     // It will use a copy of mNodeList (a std::vector which contains pointers)
     // Copying the list is required because the tree will reorder it for efficiency
+    KRATOS_ERROR_IF(mPointListDestination.size() == 0) << "mPointListDestination not initialized" << std::endl;
     KDTree tree_points(mPointListDestination.begin(), mPointListDestination.end(), bucket_size);
 
     // Auxiliar model parts and components
@@ -1157,7 +1178,7 @@ inline IndexType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Per
 
     IndexType number_points_found = 0;
 
-    if (TypeSearch == SearchTreeType::KdtreeInRadius || TypeSearch == SearchTreeType::KdtreeInRadiusWithOBB) {
+    if (TypeSearch == SearchTreeType::KdtreeInRadius || TypeSearch == SearchTreeType::KdtreeInRadiusWithOBB || TypeSearch == SearchTreeType::OctreeWithOBB) {
         const Point& r_center = Dynamic ? Point(ContactUtilities::GetHalfJumpCenter(rGeometry)) : rGeometry.Center(); // NOTE: Center in half delta time or real center
 
         const double search_radius = SearchFactor * Radius(rGeometry);
