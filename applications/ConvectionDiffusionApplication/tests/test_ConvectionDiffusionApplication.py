@@ -54,6 +54,7 @@ def AssembleTestSuites():
 
     ### Adding the self-contained tests
     smallSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
+    smallSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
     smallSuite.addTest(SourceTermTest('testPureDiffusion'))
     smallSuite.addTest(SourceTermTest('testDiffusionDominated'))
     smallSuite.addTest(SourceTermTest('testConvectionDominated'))
