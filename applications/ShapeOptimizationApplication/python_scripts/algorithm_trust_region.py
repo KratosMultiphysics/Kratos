@@ -265,7 +265,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             direction = cm.ScalarVectorProduct(-1/norm_inf,modified_gradient)
             length = -value/cm.Dot(gradient, direction)
         else:
-            KM.Logger.PrintWarning("\nWarning! Vanishing norm-infinity for gradient detected!")
+            KM.Logger.PrintWarning("ShapeOptimization", "Vanishing norm-infinity for gradient detected!")
             direction = modified_gradient
             length = 0.0
 
