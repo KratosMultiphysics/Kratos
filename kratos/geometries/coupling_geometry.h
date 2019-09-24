@@ -227,7 +227,7 @@ public:
                     << ", dimension of coupling geometry: " << mpGeometries[1]->Dimension() << std::endl;
             }
 
-            SetGeometryData(&(pGeometry->GetGeometryData()));
+            this->SetGeometryData(&(pGeometry->GetGeometryData()));
         }
 
         KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[0]->Dimension())
