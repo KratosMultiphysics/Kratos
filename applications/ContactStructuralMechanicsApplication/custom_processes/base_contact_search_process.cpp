@@ -19,6 +19,7 @@
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/variable_utils.h"
+#include "includes/gid_io.h"
 
 /* Custom utilities */
 #include "custom_utilities/contact_utilities.h"
@@ -1098,6 +1099,20 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
 
     /* We arrange the database in order to be a consistent master/slave structure */
     SelfContactUtilities::ComputeSelfContactPairing(rSubContactModelPart);
+
+    // Debug
+    if (mThisParameters["debug_mode"].GetBool()) {
+        const int step = rSubContactModelPart.GetProcessInfo()[STEP];
+        GidIO<> gid_io("SELFCONTACT_" + rSubContactModelPart.Name() + "_STEP_" + std::to_string(step), GiD_PostBinary, SingleFile, WriteDeformed,  WriteConditionsOnly);
+        const double label = static_cast<double>(step);
+
+        gid_io.InitializeMesh(label);
+        gid_io.WriteMesh(rSubContactModelPart.GetMesh());
+        gid_io.FinalizeMesh();
+        gid_io.InitializeResults(label, rSubContactModelPart.GetMesh());
+        gid_io.WriteNodalFlags(MASTER, "MASTER", rSubContactModelPart.Nodes(), label);
+        gid_io.WriteNodalFlags(SLAVE, "SLAVE", rSubContactModelPart.Nodes(), label);
+    }
 
     /* Clear the mPointListDestination */
     // Clearing the vector
