@@ -754,8 +754,9 @@ private:
 			for (Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
 			{
 				Node<3>::DofType &rDof = **iii;
-				Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
+				// Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
 				// (p_new_dof)->FreeDof();
+				pnode->pAddDof(rDof);
 			}
 
 			Node<3>::Pointer SlaveNode1 = mrModelPart.pGetNode(NodesIDToInterpolate[nn][0]);
