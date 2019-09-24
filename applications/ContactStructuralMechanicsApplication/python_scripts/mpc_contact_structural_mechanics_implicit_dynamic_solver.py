@@ -65,6 +65,9 @@ class MPCContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         if not self.settings["reform_dofs_at_each_step"].GetBool():
             KratosMultiphysics.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
             self.settings["reform_dofs_at_each_step"].SetBool(True)
+        if not self.settings["use_computing_model_part"].GetBool():
+            KratosMultiphysics.Logger.PrintInfo("Using Computing-ModelPart", "Computing ModelPart must currently be used in Contact. Switching to True")
+            self.settings["use_computing_model_part"].SetBool(True)
 
         # Construct the base solver.
         KratosMultiphysics.Logger.PrintInfo("::[MPCContactImplicitMechanicalSolver]:: ", "Construction finished")
