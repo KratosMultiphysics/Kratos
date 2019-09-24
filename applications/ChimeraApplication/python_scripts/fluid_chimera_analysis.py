@@ -20,7 +20,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         if self.solver_parameters.Has("fluid_solver_settings"):
             self.fluid_parameters = self.solver_parameters["fluid_solver_settings"].Clone()
         else:
-            raise Exception("The \"solver_settings\" should have the entry \"fluid_solver_settings\" ")
+            self.fluid_parameters = self.solver_parameters.Clone()
 
         if self.chimera_parameters.Has("chimera_parts"):
             self.chimera_levels = self.chimera_parameters["chimera_parts"].Clone()
@@ -50,7 +50,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             raise Exception("MPI-Chimera is not implemented yet")
 
-        self.full_parameters["solver_settings"] = self.fluid_parameters
+        self.full_parameters["solver_settings"].RemoveValue("chimera_settings")
         super(FluidChimeraAnalysis,self).__init__(model,self.full_parameters)
 
     def Initialize(self):
@@ -94,7 +94,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         self.chimera_process.ExecuteFinalizeSolutionStep()
 
 
-    def _CreateSolver(self): 
+    def _CreateSolver(self):
         return KratosChimera.python_solvers_wrapper_fluid_chimera.CreateSolver(self.model, self.project_parameters)
 
 
