@@ -485,13 +485,13 @@ public:
     }
     ///@}
 
-protected:
-
 private:
     ///@name Private Static Member Variables
     ///@{
 
     static const GeometryData msGeometryData;
+
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Private Member Variables
@@ -541,11 +541,15 @@ private:
 
 template<int TWorkingSpaceDimension, class TPointType>
 const GeometryData NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType>::msGeometryData(
-    2,
+    &msGeometryDimension,
     TWorkingSpaceDimension,
     2,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
+
+template<int TWorkingSpaceDimension, class TPointType>
+const GeometryDimension NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType>::msGeometryDimension(
+    2, TWorkingSpaceDimension, 2);
 
 } // namespace Kratos
 
