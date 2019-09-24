@@ -233,7 +233,7 @@ private:
     // --------------------------------------------------------------------------
     void FindNeighbourConditions()
     {
-        KRATOS_INFO("") <<  "> Computing neighbour conditions ..." << std::endl;
+        KRATOS_INFO("ShapeOptimization") << "Computing neighbour conditions ..." << std::endl;
         FindConditionsNeighboursProcess find_conditions_neighbours_process(mrOriginModelPart, mrOriginModelPart.GetProcessInfo()[DOMAIN_SIZE]);
         find_conditions_neighbours_process.Execute();
     }
