@@ -38,10 +38,10 @@ class ValueLoggerSteepestDescent( ValueLogger ):
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
         objective_id = self.objectives[0]["identifier"].GetString()
-        KM.Logger.PrintInfo("\n> Current value of objective = ", "{:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
+        KM.Logger.PrintInfo("\nShapeOptimization", "Current value of objective = ", "{:> .5E}".format(self.history["response_value"][objective_id][self.current_index]))
 
-        KM.Logger.PrintInfo("> Absolut change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
-        KM.Logger.PrintInfo("> Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
+        KM.Logger.PrintInfo("ShapeOptimization", "Absolut change of objective = ","{:> .5E}".format(self.history["abs_change_objective"][self.current_index])," [%]")
+        KM.Logger.PrintInfo("ShapeOptimization", "Relative change of objective = ","{:> .5E}".format(self.history["rel_change_objective"][self.current_index])," [%]\n")
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToFile( self ):
