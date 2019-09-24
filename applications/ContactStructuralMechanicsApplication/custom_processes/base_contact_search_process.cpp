@@ -73,11 +73,6 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
     mOptions.Set(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE, mThisParameters["predefined_master_slave"].GetBool());
     mOptions.Set(BaseContactSearchProcess::PURE_SLIP, mThisParameters["pure_slip"].GetBool());
 
-    // The search tree considered
-    const SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString());
-    if (mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE) && type_search == SearchTreeType::OctreeWithOBB)
-        mThisParameters["type_search"].SetString("KdtreeInRadius");
-
     // If we are going to consider multple searchs
     const std::string& id_name = mThisParameters["id_name"].GetString();
     const bool multiple_searchs = id_name == "" ? false : true;
@@ -642,7 +637,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
 
         // If active we evaluate
         if (is_active) {
-            if (mOptions.IsNot(BaseContactSearchProcess::PREDEFINE_MASTER_SLAVE) || it_cond->Is(SLAVE) == !mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
+            if (it_cond->Is(SLAVE) == !mOptions.Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
                 // Initialize values
                 PointVector points_found(allocation_size);
 
