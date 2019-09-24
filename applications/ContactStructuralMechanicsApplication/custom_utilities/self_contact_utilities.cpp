@@ -147,41 +147,44 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair); // MASTER
                     auto p_master_cond = rModelPart.pGetCondition(master_id);
-                    auto& r_master_geometry = p_master_cond->GetGeometry();
+                    if (p_master_cond->IsNotDefined(MASTER) || p_master_cond->IsNot(MASTER)) {
+                        auto& r_master_geometry = p_master_cond->GetGeometry();
 
-                    // Check the nodes are not shared
-                    bool shared_nodes = false;
-                    for (auto& r_node_slave : r_slave_geometry) {
-                        for (auto& r_node_master : r_master_geometry) {
-                            if (r_node_master.Id() == r_node_slave.Id()) {
-                                shared_nodes = true;
-                                break;
+                        // Check the nodes are not shared
+                        bool shared_nodes = false;
+                        for (auto& r_node_slave : r_slave_geometry) {
+                            for (auto& r_node_master : r_master_geometry) {
+                                if (r_node_master.Id() == r_node_slave.Id()) {
+                                    shared_nodes = true;
+                                    break;
+                                }
                             }
                         }
-                    }
-                    // If shared nodes we skip this pair
-                    if (shared_nodes) {
-                        continue;
-                    }
-
-                    // Iterate over nodes
-                    std::size_t counter = 0;
-                    for (auto& r_node : r_master_geometry) {
-                        if (r_node.IsNotDefined(MASTER) || r_node.Is(MASTER)) {
-                            ++counter;
+                        // If shared nodes we skip this pair
+                        if (shared_nodes) {
+                            continue;
                         }
-                    }
 
-                    // Assign flags
-                    if (counter == r_master_geometry.size()) {
-                        p_master_cond->Set(MASTER, true);
-                        p_master_cond->Set(SLAVE, false);
+                        // Iterate over nodes
+                        std::size_t counter = 0;
                         for (auto& r_node : r_master_geometry) {
-                            r_node.Set(MASTER, true);
-                            r_node.Set(SLAVE, false);
+                            if (r_node.IsNotDefined(MASTER) || r_node.Is(MASTER)) {
+                                ++counter;
+                            }
                         }
-                    } else {
-                        ids_to_clear.insert(master_id);
+
+                        // Assign flags
+                        if (counter == r_master_geometry.size()) {
+                            p_master_cond->GetValue(INDEX_MAP)->clear();
+                            p_master_cond->Set(MASTER, true);
+                            p_master_cond->Set(SLAVE, false);
+                            for (auto& r_node : r_master_geometry) {
+                                r_node.Set(MASTER, true);
+                                r_node.Set(SLAVE, false);
+                            }
+                        } else {
+                            ids_to_clear.insert(master_id);
+                        }
                     }
                 }
                 for (std::size_t id : ids_to_clear) {
