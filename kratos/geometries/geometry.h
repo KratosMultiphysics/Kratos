@@ -1780,8 +1780,8 @@ public:
         {
             const double local_space_dimension = LocalSpaceDimension();
 
-            if (rGlobalCoordinates.size() != 1)
-                rGlobalCoordinates.resize(1 + LocalSpaceDimension());
+            if (rGlobalCoordinates.size() != 1 + local_space_dimension)
+                rGlobalCoordinates.resize(1 + local_space_dimension);
 
             array_1d<double, 3> global_coordinates;
             GlobalCoordinates(global_coordinates,
@@ -1789,14 +1789,14 @@ public:
 
             rGlobalCoordinates[0] = global_coordinates;
 
-            Matrix Jacobian;
-            Jacobian(
-                Jacobian,
+            Matrix J;
+            this->Jacobian(
+                J,
                 rLocalCoordinates);
 
-            for (IndexType dim = 0; dim < Jacobian.size2(); ++dim)
+            for (IndexType dim = 0; dim < local_space_dimension; ++dim)
             {
-                rGlobalCoordinates[1 + dim] = column(Jacobian, dim);
+                rGlobalCoordinates[1 + dim] = column(J, dim);
             }
 
             return;
@@ -1842,7 +1842,7 @@ public:
         {
             const double local_space_dimension = LocalSpaceDimension();
 
-            if (rGlobalCoordinates.size() != 1)
+            if (rGlobalCoordinates.size() != 1 + local_space_dimension)
                 rGlobalCoordinates.resize(1 + local_space_dimension);
 
             array_1d<double, 3> global_coordinates;
@@ -1851,14 +1851,14 @@ public:
 
             rGlobalCoordinates[0] = global_coordinates;
 
-            Matrix Jacobian;
-            Jacobian(
-                Jacobian,
+            Matrix J;
+            this->Jacobian(
+                J,
                 IntegrationPointIndex);
 
             for (IndexType dim = 0; dim < local_space_dimension; ++dim)
             {
-                rGlobalCoordinates[1 + dim] = column(Jacobian, dim);
+                rGlobalCoordinates[1 + dim] = column(J, dim);
             }
 
             return;
