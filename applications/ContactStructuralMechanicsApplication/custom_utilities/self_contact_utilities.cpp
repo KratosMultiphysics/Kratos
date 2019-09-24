@@ -36,6 +36,10 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
     const int num_conditions = static_cast<int>(r_conditions_array.size());
     const auto it_cond_begin = r_conditions_array.begin();
 
+    // Reset the ACTIVE flag
+    VariableUtils().ResetFlag(ACTIVE, r_conditions_array);
+
+    // First loop over the conditions to check the pairs
     for(int i = 0; i < num_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
 
@@ -104,6 +108,41 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
             }
         } else { // If master we clear
             p_indexes_pairs->clear();
+        }
+    }
+
+    std::size_t master_counter, slave_counter;
+    #pragma omp parallel for firstprivate(master_counter,slave_counter)
+    for(int i = 0; i < num_conditions; ++i) {
+        auto it_cond = it_cond_begin + i;
+
+        master_counter = 0;
+        slave_counter = 0;
+
+        // The slave geoemtry
+        auto& r_geometry = it_cond->GetGeometry();
+        const std::size_t number_of_nodes = r_geometry.size();
+
+        // Count flags
+        for (auto& r_node : r_geometry) {
+            if (r_node.Is(MASTER)) {
+                ++master_counter;
+            }
+            if (r_node.Is(SLAVE)) {
+                ++slave_counter;
+            }
+        }
+
+        // Check
+        KRATOS_ERROR_IF((slave_counter + master_counter) > number_of_nodes) << "The MASTER/SLAVE flags are inconsistent" << std::endl;
+
+        // Check if the condition is active
+        if (slave_counter == number_of_nodes || master_counter == number_of_nodes) {
+            it_cond->Set(ACTIVE, true);
+        } else {
+            it_cond->Set(ACTIVE, false);
+            it_cond->Set(SLAVE, false);
+            it_cond->Set(MASTER, true);
         }
     }
 
