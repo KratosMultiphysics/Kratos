@@ -176,8 +176,8 @@ public:
         if(mReformulateEveryStep)
         {
             mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
-            mIsFormulated = false;
         }
+        mIsFormulated = false;
     }
 
     virtual std::string Info() const override
