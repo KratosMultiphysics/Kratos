@@ -17,7 +17,7 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "contact_structural_mechanics_application_variables.h"
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/self_contact_utilities.h"
 
@@ -25,19 +25,20 @@ namespace Kratos
 {
     namespace Testing
     {
-        void GiDIOSelfContactDebug(ModelPart& rModelPart)
-        {
-            GidIO<> gid_io("TEST_SELFCONTACT_UTILITIES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
-            const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-            const double label = static_cast<double>(nl_iter);
-
-            gid_io.InitializeMesh(label);
-            gid_io.WriteMesh(rModelPart.GetMesh());
-            gid_io.FinalizeMesh();
-            gid_io.InitializeResults(label, rModelPart.GetMesh());
-            gid_io.WriteNodalFlags(MASTER, "MASTER", rModelPart.Nodes(), label);
-            gid_io.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
-        }
+//         void GiDIOSelfContactDebug(ModelPart& rModelPart)
+//         {
+//             GidIO<> gid_io("TEST_SELFCONTACT_UTILITIES", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
+//             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+//             const double label = static_cast<double>(nl_iter);
+//
+//             gid_io.InitializeMesh(label);
+//             gid_io.WriteMesh(rModelPart.GetMesh());
+//             gid_io.FinalizeMesh();
+//             gid_io.InitializeResults(label, rModelPart.GetMesh());
+//             gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+//             gid_io.WriteNodalFlags(MASTER, "MASTER", rModelPart.Nodes(), label);
+//             gid_io.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+//         }
 
         /**
          * This method can be used to create a 3D plane condition set
@@ -113,8 +114,28 @@ namespace Kratos
             SelfContactUtilities::ComputeSelfContactPairing(r_model_part);
 //             SelfContactUtilities::NotPredefinedMasterSlave(r_model_part);
 
-            // DEBUG
-            GiDIOSelfContactDebug(r_model_part);
+//             // DEBUG
+//             GiDIOSelfContactDebug(r_model_part);
+
+            // Slave conditions
+            KRATOS_CHECK(r_model_part.pGetCondition(1)->Is(SLAVE));
+            KRATOS_CHECK(r_model_part.pGetCondition(1)->IsNot(MASTER));
+            KRATOS_CHECK(r_model_part.pGetCondition(2)->Is(SLAVE));
+            KRATOS_CHECK(r_model_part.pGetCondition(2)->IsNot(MASTER));
+            KRATOS_CHECK(r_model_part.pGetCondition(3)->Is(SLAVE));
+            KRATOS_CHECK(r_model_part.pGetCondition(3)->IsNot(MASTER));
+            KRATOS_CHECK(r_model_part.pGetCondition(4)->Is(SLAVE));
+            KRATOS_CHECK(r_model_part.pGetCondition(4)->IsNot(MASTER));
+
+            // Master conditions
+            KRATOS_CHECK(r_model_part.pGetCondition(5)->IsNot(SLAVE));
+            KRATOS_CHECK(r_model_part.pGetCondition(5)->Is(MASTER));
+            KRATOS_CHECK(r_model_part.pGetCondition(6)->IsNot(SLAVE));
+            KRATOS_CHECK(r_model_part.pGetCondition(6)->Is(MASTER));
+            KRATOS_CHECK(r_model_part.pGetCondition(7)->IsNot(SLAVE));
+            KRATOS_CHECK(r_model_part.pGetCondition(7)->Is(MASTER));
+            KRATOS_CHECK(r_model_part.pGetCondition(8)->IsNot(SLAVE));
+            KRATOS_CHECK(r_model_part.pGetCondition(8)->Is(MASTER));
         }
 
     } // namespace Testing
