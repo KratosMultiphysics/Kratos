@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 class DomainUtilities(object):
 
@@ -159,6 +158,11 @@ class DomainUtilities(object):
         if( exist_fluid_domain ):
 
             print("::[--Domain Utilities-]:: Add boundary nodes to fluid domains ")
+
+            try:
+                import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+            except:
+                raise Exception("SolidMechanicsApplication not imported and needed in this operation")
 
             transfer_flags = [KratosMultiphysics.BOUNDARY,KratosMultiphysics.NOT_FLUID]
             entity_type = "Nodes"

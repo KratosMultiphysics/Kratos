@@ -34,7 +34,7 @@ class AssignInletProcess(assign_vector_components_to_nodes_process.AssignVectorC
                 #if(sub_part.Is(KratosMultiphysics.FLUID)):
                     #if(sub_part.IsNot(KratosMultiphysics.ACTIVE)):
                         #print(" C: FLUID  ",sub_part)
-                        #transfer_process = DelaunayMeshing.TransferEntitiesForPfemProcess(sub_part,self.model_part,entity_type,transfer_flags,assign_flags)
+                        #transfer_process = KratosSolid.TransferEntitiesProcess(sub_part,self.model_part,entity_type,transfer_flags,assign_flags)
                         #transfer_process.Execute()
 
         self.model_part = Model[custom_settings["model_part_name"].GetString()]
