@@ -584,18 +584,41 @@ void EvmKAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonol
 
 template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
 void EvmKAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::Calculate(
-    const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
+    const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     if (rVariable == RANS_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE)
     {
-        this->CalculateElementTotalResidualScalarDerivatives(
-            Output, TURBULENT_ENERGY_DISSIPATION_RATE, rCurrentProcessInfo);
+        BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
+        this->CalculateResidualScalarDerivatives(
+            TURBULENT_ENERGY_DISSIPATION_RATE, local_matrix, rCurrentProcessInfo);
+        // todo: remove monolithic construction
+        if (TMonolithicAssemblyNodalDofSize == 1)
+        {
+            if (rOutput.size1() != local_matrix.size1() ||
+                rOutput.size2() != local_matrix.size2())
+                rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
+            rOutput.clear();
+        }
+        const unsigned int equation_dof_index =
+            static_cast<unsigned int>(rCurrentProcessInfo[this->GetPrimalVariable()]);
+        const unsigned int derivative_dof_index =
+            static_cast<unsigned int>(rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE]);
+        for (unsigned int a = 0; a < TNumNodes; ++a)
+        {
+            for (unsigned int c = 0; c < TNumNodes; ++c)
+            {
+                rOutput(
+                    c * TMonolithicAssemblyNodalDofSize + derivative_dof_index,
+                    a * TMonolithicAssemblyNodalDofSize + equation_dof_index) +=
+                    local_matrix(c, a);
+            }
+        }
     }
     else
     {
-        BaseType::Calculate(rVariable, Output, rCurrentProcessInfo);
+        BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     KRATOS_CATCH("");

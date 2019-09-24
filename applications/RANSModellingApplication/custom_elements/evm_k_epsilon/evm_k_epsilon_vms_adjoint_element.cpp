@@ -348,30 +348,28 @@ void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSi
 
 template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize>
 void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize>::Calculate(
-    const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
+    const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
+    BoundedMatrix<double, TNumNodes, TFluidLocalSize> LHS;
     if (rVariable == RANS_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE)
     {
-        this->CalculateElementTotalSteadyResidualScalarDerivatives(
-            Output, TURBULENT_ENERGY_DISSIPATION_RATE, rCurrentProcessInfo);
-        this->AddElementTotalMassResidualScalarDerivatives(
-            Output, RELAXED_ACCELERATION, TURBULENT_ENERGY_DISSIPATION_RATE,
-            -1.0, rCurrentProcessInfo);
+        this->CalculateResidualScalarDerivatives(
+            TURBULENT_ENERGY_DISSIPATION_RATE, LHS, rCurrentProcessInfo);
     }
     else if (rVariable == RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE)
     {
-        this->CalculateElementTotalSteadyResidualScalarDerivatives(
-            Output, TURBULENT_KINETIC_ENERGY, rCurrentProcessInfo);
-        this->AddElementTotalMassResidualScalarDerivatives(
-            Output, RELAXED_ACCELERATION, TURBULENT_KINETIC_ENERGY, -1.0, rCurrentProcessInfo);
+        this->CalculateResidualScalarDerivatives(
+            TURBULENT_KINETIC_ENERGY, LHS, rCurrentProcessInfo);
     }
     else
     {
         KRATOS_ERROR << "Unsupported variable "
                      << rVariable.Name() << " requested at StabilizedConvectionDiffusionReactionAdjoint::Calculate.";
     }
+    rOutput.resize(LHS.size1(), LHS.size2(), false);
+    noalias(rOutput) = LHS;
 
     KRATOS_CATCH("");
 }

@@ -66,6 +66,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    constexpr static unsigned int TFluidLocalSize = (TDim + 1) * TNumNodes;
+
     typedef RANSEvmVMSAdjointElement<TDim, RANSEvmVMSAdjointElementData, TNumNodes, TMonolithicAssemblyNodalDofSize> BaseType;
 
     /// Node type (default is: Node<3>)
@@ -94,6 +96,8 @@ public:
 
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+
+
 
     ///@}
     ///@name Pointer Definitions

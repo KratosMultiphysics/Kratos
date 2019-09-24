@@ -626,8 +626,31 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
 
     if (rVariable == RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE)
     {
-        this->CalculateElementTotalResidualScalarDerivatives(
-            Output, TURBULENT_KINETIC_ENERGY, rCurrentProcessInfo);
+        BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
+        this->CalculateResidualScalarDerivatives(
+            TURBULENT_KINETIC_ENERGY, local_matrix, rCurrentProcessInfo);
+        // todo: remove monolithic construction
+        if (TMonolithicAssemblyNodalDofSize == 1)
+        {
+            if (Output.size1() != local_matrix.size1() ||
+                Output.size2() != local_matrix.size2())
+                Output.resize(local_matrix.size1(), local_matrix.size2(), false);
+            Output.clear();
+        }
+        const unsigned int equation_dof_index =
+            static_cast<unsigned int>(rCurrentProcessInfo[this->GetPrimalVariable()]);
+        const unsigned int derivative_dof_index =
+            static_cast<unsigned int>(rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY]);
+        for (unsigned int a = 0; a < TNumNodes; ++a)
+        {
+            for (unsigned int c = 0; c < TNumNodes; ++c)
+            {
+                Output(
+                    c * TMonolithicAssemblyNodalDofSize + derivative_dof_index,
+                    a * TMonolithicAssemblyNodalDofSize + equation_dof_index) +=
+                    local_matrix(c, a);
+            }
+        }
     }
     else
     {

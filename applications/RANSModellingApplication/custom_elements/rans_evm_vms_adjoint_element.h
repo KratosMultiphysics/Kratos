@@ -46,7 +46,7 @@ namespace Kratos
  */
 template <unsigned int TDim, class TRANSEvmVMSAdjointElementData, unsigned int TNumNodes = TDim + 1, unsigned int TMonolithicAssemblyNodalDofSize = TDim + 1>
 class RANSEvmVMSAdjointElement
-    : public VMSAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize>
+    : public VMSAdjointElement<TDim>
 {
 public:
     ///@name Type Definitions
@@ -55,9 +55,13 @@ public:
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(RANSEvmVMSAdjointElement);
 
-    constexpr static unsigned int TBlockSize = TMonolithicAssemblyNodalDofSize;
+    constexpr static unsigned int TBlockSize = TDim + 1;
 
     constexpr static unsigned int TFluidLocalSize = TBlockSize * TNumNodes;
+
+    constexpr static unsigned int TModifiedBlockSize = TMonolithicAssemblyNodalDofSize;
+
+    constexpr static unsigned int TModifiedFluidLocalSize = TModifiedBlockSize * TNumNodes;
 
     constexpr static unsigned int TCoordLocalSize = TDim * TNumNodes;
 
@@ -89,7 +93,9 @@ public:
 
     typedef BoundedMatrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
 
-    typedef VMSAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize> BaseType;
+    typedef VMSAdjointElement<TDim> BaseType;
+
+    using BaseType::CalculateFirstDerivativesLHS;
 
     ///@}
     ///@name Life Cycle
@@ -177,24 +183,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-     * @brief Calculates the adjoint matrix for velocity and pressure.
-     *
-     * This function returns the gradient of the elemental residual w.r.t.
-     * velocity and pressure transposed:
-     *
-     * \f[
-     *    \partial_{\mathbf{w}^n}\mathbf{f}(\mathbf{w}^n)^T
-     *  - \partial_{\mathbf{w}^n}(\mathbf{M}^n \dot{\mathbf{w}}^n)^T
-     * \f]
-     *
-     * where \f$\mathbf{w}^n\f$ is the vector of nodal velocities and pressures
-     * stored at the current step. For steady problems, the ACCELERATION
-     * (\f$\dot{\mathbf{w}}^n\f$) must be set to zero on the nodes. For
-     * the Bossak method, \f$\dot{\mathbf{w}}^{n-\alpha}\f$ must be stored in
-     * ACCELERATION.
-     */
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+    void CalculateFirstDerivativesLHS(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rLeftHandSideMatrix,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
         this->CalculatePrimalGradientOfVMSSteadyTerm(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -206,6 +195,7 @@ public:
             rLeftHandSideMatrix, rCurrentProcessInfo);
         AddTurbulentViscosityPartialDerivativePrimalGradientOfVMSMassTerm(
             rLeftHandSideMatrix, RELAXED_ACCELERATION, -1.0, rCurrentProcessInfo);
+        rLeftHandSideMatrix = trans(rLeftHandSideMatrix); // transpose
     }
 
     void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rSensitivityVariable,
@@ -216,9 +206,12 @@ public:
 
         if (rSensitivityVariable == SHAPE_SENSITIVITY)
         {
-            this->CalculateShapeGradientOfVMSSteadyTerm(rOutput, rCurrentProcessInfo);
-            this->AddShapeGradientOfVMSMassTerm(rOutput, RELAXED_ACCELERATION,
+            BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize> local_matrix;
+            this->CalculateShapeGradientOfVMSSteadyTerm(local_matrix, rCurrentProcessInfo);
+            this->AddShapeGradientOfVMSMassTerm(local_matrix, RELAXED_ACCELERATION,
                                                 -1.0, rCurrentProcessInfo);
+            rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
+            noalias(rOutput) = local_matrix;
         }
         else
         {
@@ -227,6 +220,16 @@ public:
         }
 
         KRATOS_CATCH("")
+    }
+
+    void CalculateResidualScalarDerivatives(const Variable<double>& rVariable,
+                                                        BoundedMatrix<double, TNumNodes, TFluidLocalSize>& rOutput,
+                                                        const ProcessInfo& rCurrentProcessInfo)
+    {
+        this->CalculateElementTotalSteadyResidualScalarDerivatives(
+            rOutput, rVariable, rCurrentProcessInfo);
+        this->AddElementTotalMassResidualScalarDerivatives(
+            rOutput, RELAXED_ACCELERATION, rVariable, -1.0, rCurrentProcessInfo);
     }
 
     ///@}
@@ -310,35 +313,13 @@ protected:
         KRATOS_CATCH("");
     }
 
-    void AddElementTotalMassResidualScalarDerivatives(MatrixType& rOutputMatrix,
+    void AddElementTotalMassResidualScalarDerivatives(BoundedMatrix<double, TNumNodes, TFluidLocalSize>& rOutputMatrix,
                                                       const Variable<array_1d<double, 3>>& rVariable,
                                                       const Variable<double>& rDerivativeVariable,
                                                       double alpha,
                                                       const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        if (!TMonolithicMatrixConstruction)
-        {
-            if (rOutputMatrix.size1() != TFluidLocalSize)
-            {
-                KRATOS_THROW_ERROR(
-                    std::runtime_error,
-                    "invalid matrix size detected. rOutputMatrix.size1() = ",
-                    rOutputMatrix.size1());
-            }
-
-            if (rOutputMatrix.size2() != TFluidLocalSize)
-            {
-                KRATOS_THROW_ERROR(
-                    std::runtime_error,
-                    "invalid matrix size detected. rOutputMatrix.size2() = ",
-                    rOutputMatrix.size2());
-            }
-        }
-
-        const unsigned int derivative_dof_index =
-            static_cast<unsigned int>(rCurrentProcessInfo[rDerivativeVariable]);
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -416,7 +397,7 @@ protected:
         }
 
         // Primal gradient of (lumped) VMS mass matrix multiplied with vector
-        IndexType FirstRow(0), FirstCol(derivative_dof_index);
+        IndexType FirstRow(0);
         // Loop over nodes
         for (IndexType i = 0; i < TNumNodes; ++i)
         {
@@ -429,37 +410,27 @@ protected:
                     valmn += DensityVelGradN[i] * TauOneDeriv[j] * Density * X[m];
 
                     // Adding it in a transposed manner
-                    rOutputMatrix(FirstCol, FirstRow + m) += alpha * Volume * valmn;
+                    rOutputMatrix(j, FirstRow + m) += alpha * Volume * valmn;
                 }
 
-                rOutputMatrix(FirstCol, FirstRow + TDim) +=
+                rOutputMatrix(j, FirstRow + TDim) +=
                     alpha * Volume * DensityXGradN[i] * TauOneDeriv[j];
-                FirstCol += TBlockSize;
             } // Node block columns
 
             FirstRow += TBlockSize;
-            FirstCol = derivative_dof_index;
         } // Node block rows
 
         KRATOS_CATCH("")
     }
 
-    void CalculateElementTotalSteadyResidualScalarDerivatives(Matrix& rAdjointMatrix,
-                                                              const Variable<double>& rDerivativeVariable,
-                                                              const ProcessInfo& rCurrentProcessInfo)
+    void CalculateElementTotalSteadyResidualScalarDerivatives(
+        BoundedMatrix<double, TNumNodes, TFluidLocalSize>& rAdjointMatrix,
+        const Variable<double>& rDerivativeVariable,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        if (!TMonolithicMatrixConstruction)
-        {
-            if (rAdjointMatrix.size1() != TFluidLocalSize || rAdjointMatrix.size2() != TFluidLocalSize)
-                rAdjointMatrix.resize(TFluidLocalSize, TFluidLocalSize, false);
-
-            rAdjointMatrix.clear();
-        }
-
-        const unsigned int derivative_dof_index =
-            static_cast<unsigned int>(rCurrentProcessInfo[rDerivativeVariable]);
+        rAdjointMatrix.clear();
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -565,7 +536,7 @@ protected:
 
         const double coeff = DivVel * Density * 2.0 / 3.0;
 
-        IndexType FirstRow(0), FirstCol(derivative_dof_index);
+        IndexType FirstRow(0);
         // Loop over nodes
         for (IndexType i = 0; i < TNumNodes; ++i)
         {
@@ -597,7 +568,7 @@ protected:
                     valmn += NuTDerivative[j] * dNi_dUm;
                     valmn -= NuTDerivative[j] * DN_DX(i, m) * coeff;
 
-                    rAdjointMatrix(FirstCol, FirstRow + m) -= Volume * valmn;
+                    rAdjointMatrix(j, FirstRow + m) -= Volume * valmn;
                 }
 
                 double valpn = 0.0;
@@ -614,13 +585,10 @@ protected:
                 // Grad(q) * TauOne * f
                 valpn -= DN_DX_BodyForce[i] * TauOneDeriv[j];
 
-                rAdjointMatrix(FirstCol, FirstRow + TDim) -= Volume * valpn;
-
-                FirstCol += TBlockSize;
+                rAdjointMatrix(j, FirstRow + TDim) -= Volume * valpn;
             } // Node block columns
 
             FirstRow += TBlockSize;
-            FirstCol = derivative_dof_index;
         } // Node block rows
 
         KRATOS_CATCH("")
@@ -637,28 +605,12 @@ protected:
      */
 
     void AddTurbulentViscosityPartialDerivativePrimalGradientOfVMSMassTerm(
-        MatrixType& rOutputMatrix,
+        BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rOutputMatrix,
         const Variable<array_1d<double, 3>>& rVariable,
         double alpha,
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        if (rOutputMatrix.size1() != TFluidLocalSize)
-        {
-            KRATOS_THROW_ERROR(
-                std::runtime_error,
-                "invalid matrix size detected. rOutputMatrix.size1() = ",
-                rOutputMatrix.size1());
-        }
-
-        if (rOutputMatrix.size2() != TFluidLocalSize)
-        {
-            KRATOS_THROW_ERROR(
-                std::runtime_error,
-                "invalid matrix size detected. rOutputMatrix.size2() = ",
-                rOutputMatrix.size2());
-        }
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -754,10 +706,10 @@ protected:
                         valmn += DensityVelGradN[i] * TauOneDeriv(j, n) * Density * X[m];
 
                         // Adding it in a transposed manner
-                        rOutputMatrix(FirstCol + n, FirstRow + m) += alpha * Volume * valmn;
+                        rOutputMatrix(FirstRow + m, FirstCol + n) += alpha * Volume * valmn;
                     }
 
-                    rOutputMatrix(FirstCol + m, FirstRow + TDim) +=
+                    rOutputMatrix(FirstRow + TDim, FirstCol + m) +=
                         alpha * Volume * DensityXGradN[i] * TauOneDeriv(j, m);
                 }
 
@@ -783,25 +735,10 @@ protected:
      * where the current adjoint step is the \f$n^{th}\f$ time step.
      */
     void AddTurbulentViscosityPartialDerivativePrimalGradientOfVMSSteadyTerm(
-        MatrixType& rAdjointMatrix, const ProcessInfo& rCurrentProcessInfo)
+        BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rAdjointMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        if (rAdjointMatrix.size1() != TFluidLocalSize)
-        {
-            KRATOS_THROW_ERROR(
-                std::runtime_error,
-                "invalid matrix size detected. rAdjointMatrix.size1() = ",
-                rAdjointMatrix.size1());
-        }
-
-        if (rAdjointMatrix.size2() != TFluidLocalSize)
-        {
-            KRATOS_THROW_ERROR(
-                std::runtime_error,
-                "invalid matrix size detected. rAdjointMatrix.size2() = ",
-                rAdjointMatrix.size2());
-        }
 
         // Get shape functions, shape function gradients and element volume (area in
         // 2D). Only one integration point is used so the volume is its weight.
@@ -945,7 +882,7 @@ protected:
                         valmn += NuTDerivative(j, n) * dNi_dUm;
                         valmn -= NuTDerivative(j, n) * DN_DX(i, m) * coeff;
 
-                        rAdjointMatrix(FirstCol + n, FirstRow + m) -= Volume * valmn;
+                        rAdjointMatrix(FirstRow + m, FirstCol + n) -= Volume * valmn;
                     }
 
                     double valpn = 0.0;
@@ -962,7 +899,7 @@ protected:
                     // Grad(q) * TauOne * f
                     valpn -= DN_DX_BodyForce[i] * TauOneDeriv(j, m);
 
-                    rAdjointMatrix(FirstCol + m, FirstRow + TDim) -= Volume * valpn;
+                    rAdjointMatrix(FirstRow + TDim, FirstCol + m) -= Volume * valpn;
                 }
 
                 FirstCol += TBlockSize;
