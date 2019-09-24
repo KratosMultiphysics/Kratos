@@ -116,7 +116,7 @@ public:
                     search_dir/=max_norm_search_dir;
                 }
             else
-                KRATOS_WARNING("") << "Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is ommited!" << std::endl;
+                KRATOS_WARNING("ShapeOptimization") << "Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is ommited!" << std::endl;
         }
 
         // Compute update

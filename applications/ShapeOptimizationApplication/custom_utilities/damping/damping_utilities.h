@@ -212,7 +212,7 @@ public:
     void ThrowWarningIfNodeNeighborsExceedLimit( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
     {
         if(number_of_neighbors >= mMaxNeighborNodes)
-            KRATOS_WARNING("") << "For node " << given_node.Id() << " and specified damping radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;
+            KRATOS_WARNING("ShapeOptimization") << "For node " << given_node.Id() << " and specified damping radius, maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) reached!" << std::endl;
     }
 
     // --------------------------------------------------------------------------
