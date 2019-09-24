@@ -111,7 +111,7 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
         }
     }
 
-    std::size_t master_counter, slave_counter;
+    std::size_t master_counter = 0, slave_counter = 0;
     #pragma omp parallel for firstprivate(master_counter,slave_counter)
     for(int i = 0; i < num_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
@@ -143,6 +143,29 @@ void ComputeSelfContactPairing(ModelPart& rModelPart)
             it_cond->Set(ACTIVE, false);
             it_cond->Set(SLAVE, false);
             it_cond->Set(MASTER, true);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void FullAssignmentOfPairs(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    // All potential pairs
+    for (auto& r_cond : rModelPart.Conditions()) {
+        r_cond.SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
+    }
+    for (auto& r_cond_1 : rModelPart.Conditions()) {
+        auto p_pairs = r_cond_1.GetValue(INDEX_MAP);
+        for (auto& r_cond_2 : rModelPart.Conditions()) {
+            if (r_cond_1.Id() != r_cond_2.Id()) {
+                p_pairs->AddId(r_cond_2.Id());
+            }
         }
     }
 
