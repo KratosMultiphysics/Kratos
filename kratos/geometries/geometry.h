@@ -1847,7 +1847,7 @@ public:
 
             array_1d<double, 3> global_coordinates;
             GlobalCoordinates(global_coordinates,
-                rLocalCoordinates);
+                IntegrationPointIndex);
 
             rGlobalCoordinates[0] = global_coordinates;
 
