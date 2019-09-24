@@ -37,10 +37,10 @@ namespace Kratos
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
         // Size definitions
-        const int number_of_nodes_master = r_geometry_master.size();
-        const int number_of_nodes_slave = r_geometry_slave.size();
+        const SizeType number_of_nodes_master = r_geometry_master.size();
+        const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
-        const int mat_size = r_dof_variables.size() * (number_of_nodes_master + number_of_nodes_slave);
+        const SizeType mat_size = r_dof_variables.size() * (number_of_nodes_master + number_of_nodes_slave);
 
         // Memory allocation
         if (CalculateStiffnessMatrixFlag) {
