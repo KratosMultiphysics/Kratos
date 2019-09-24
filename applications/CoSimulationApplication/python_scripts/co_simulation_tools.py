@@ -21,11 +21,7 @@ def cs_print_warning(label, *args):
 
 
 def UsingPyKratos():
-    for i_path in KM.__path__:
-        if "pyKratos" in i_path:
-            return True
-    return False
-
+    return any(["pyKratos" in i_path for i_path in KM.__path__])
 
 def SettingsTypeCheck(settings):
     if not isinstance(settings, KM.Parameters):
