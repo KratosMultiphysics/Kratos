@@ -30,8 +30,8 @@ def SettingsTypeCheck(settings):
 
 def AddEchoLevelToSettings(settings, echo_level):
     echo_level_params = KM.Parameters("""{
-        "echo_level" : """ + str(echo_level) + """
-    }""")
+        "echo_level" : %d
+    }""" % echo_level)
     settings.AddMissingParameters(echo_level_params)
 
 
