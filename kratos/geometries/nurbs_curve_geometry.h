@@ -279,7 +279,7 @@ public:
     {
         NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, std::min(DerivativeOrder, PolynomialDegree()));
 
-        if (IsRational()) {
+        if (this->IsRational()) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
         }
         else {
