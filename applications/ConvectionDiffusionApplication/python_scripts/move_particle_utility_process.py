@@ -38,9 +38,6 @@ class MoveParticleUtilityProcess(KM.Process):
         if not settings.IsDefinedMeshVelocityVariable():
             raise Exception('MeshVelocity variable not defined in convection diffusion settings')
 
-    def ExecuteInitialize(self):
-        pass
-
     def ExecuteBeforeSolutionLoop(self):
         dimension = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
         num_of_avg_elems = 10
@@ -64,7 +61,7 @@ class MoveParticleUtilityProcess(KM.Process):
         self.moveparticles.MountBin()
 
     def ExecuteInitializeSolutionStep(self):
-        if self.use_mesh_velocity == False:
+        if not self.use_mesh_velocity:
             KM.VariableUtils().SetVectorVar(self.mesh_velocity_var, [0.0, 0.0, 0.0], self.model_part.Nodes)
         self.moveparticles.CalculateVelOverElemSize()
         self.moveparticles.MoveParticles()
