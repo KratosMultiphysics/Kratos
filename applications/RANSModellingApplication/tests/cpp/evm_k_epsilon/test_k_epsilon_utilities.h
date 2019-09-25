@@ -50,6 +50,8 @@ void CreateModelPartNodes(ModelPart& rModelPart);
 
 void CreateModelPartElements(ModelPart& rModelPart, std::string ElementName);
 
+void CreateEquationIds(ModelPart& rModelPart);
+
 void InitializeNodalVariables(ModelPart& rModelPart);
 
 void GenerateRansEvmKEpsilonTestModelPart(ModelPart& rModelPart, std::string ElementName);

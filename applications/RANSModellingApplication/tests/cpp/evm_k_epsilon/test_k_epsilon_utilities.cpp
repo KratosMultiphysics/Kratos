@@ -185,12 +185,25 @@ void InitializeNodalVariables(ModelPart& rModelPart)
                                        25.0, 30.0, 2);
 }
 
+void CreateEquationIds(ModelPart& rModelPart)
+{
+    std::size_t global_equation_id = 0;
+    for (auto& r_node : rModelPart.Nodes())
+    {
+        for (auto& r_dof : r_node.GetDofs())
+        {
+            r_dof.SetEquationId(global_equation_id++);
+        }
+    }
+}
+
 void GenerateRansEvmKEpsilonTestModelPart(ModelPart& rModelPart, std::string ElementName)
 {
     AddVariablesToModelPart(rModelPart);
     InitializeProcessInfo(rModelPart);
     CreateModelPartNodes(rModelPart);
     CreateModelPartElements(rModelPart, ElementName);
+    CreateEquationIds(rModelPart);
     InitializeNodalVariables(rModelPart);
 }
 
