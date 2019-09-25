@@ -49,7 +49,7 @@ cmake .. \
 -DIGA_APPLICATION=ON                                                                            \
 -DANURBS_ROOT="${HOME}/ANurbs"                                                                  \
 -DSWIMMING_DEM_APPLICATION=OFF                                                                  \
--DTHERMO_MECHANICAL_APPLICATION=ON                                                              \
+-DTHERMO_MECHANICAL_APPLICATION=OFF                                                              \
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \
 -DMAPPING_APPLICATION=ON                                                                        \
 -DMETIS_APPLICATION=OFF                                                                         \
