@@ -53,25 +53,22 @@ class MainCouplingPfemFemDem_Solution:
         self.RunBeforeSolutionLoopFEMDEM()
         while self.FEMDEM_Solution.FEM_Solution.time <= self.FEMDEM_Solution.FEM_Solution.end_time:
             self.InitializeSolutionStep()
-            # if self.FEMDEM_Solution.FEM_Solution.step == 1:
-            regen = FEMDEM.RegeneratePfemPressureConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
-            regen.Execute()
-            update = FEMDEM.UpdatePressureValuePfemConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
-            update.Execute()
             self.SolveSolutionStep()
             self.FinalizeSolutionStep()
 
 #============================================================================================================================
     def SolveSolutionStep(self):
-        KratosPrintInfo("=============================================")
-        KratosPrintInfo("=== SOLVING PFEM PART OF THE CALCULATION ====")
-        KratosPrintInfo("=============================================")
+        KratosPrintInfo("==============================================")
+        KratosPrintInfo("==== SOLVING PFEM PART OF THE CALCULATION ====")
+        KratosPrintInfo("==============================================")
         self.SolveSolutionStepPFEM()
-        # transfer pressure forces -> TODO
-        # self.TransferPressureForces()
-        KratosPrintInfo("================================================")
-        KratosPrintInfo("=== SOLVING FEM-DEM PART OF THE CALCULATION ====")
-        KratosPrintInfo("================================================")
+
+        # Transfer pressure forces
+        self.RegenerateAndUpdatePFEMPressureConditions()
+
+        KratosPrintInfo("=================================================")
+        KratosPrintInfo("==== SOLVING FEM-DEM PART OF THE CALCULATION ====")
+        KratosPrintInfo("=================================================")
         self.SolveSolutionStepFEMDEM()
 
 #============================================================================================================================
@@ -130,3 +127,10 @@ class MainCouplingPfemFemDem_Solution:
             skin_detection_process = KM.SkinDetectionProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
                                                                                self.FEMDEM_Solution.SkinDetectionProcessParameters)
         skin_detection_process.Execute()
+
+#============================================================================================================================
+    def RegenerateAndUpdatePFEMPressureConditions(self):
+        regenerate_cond_process = FEMDEM.RegeneratePfemPressureConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+        regenerate_cond_process.Execute()
+        update_cond_process = FEMDEM.UpdatePressureValuePfemConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+        update_cond_process.Execute()
