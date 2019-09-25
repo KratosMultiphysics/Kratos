@@ -596,13 +596,7 @@ void EvmKAdjointElement<TDim, TNumNodes>::Calculate(const Variable<Matrix>& rVar
             rOutput.size2() != local_matrix.size2())
             rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
 
-        for (unsigned int a = 0; a < local_matrix.size1(); ++a)
-        {
-            for (unsigned int c = 0; c < local_matrix.size2(); ++c)
-            {
-                rOutput(a, c) = local_matrix(a, c);
-            }
-        }
+        noalias(rOutput) = local_matrix;
     }
     else
     {

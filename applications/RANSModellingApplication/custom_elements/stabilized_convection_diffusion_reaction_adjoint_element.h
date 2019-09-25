@@ -451,15 +451,8 @@ public:
         if (rLeftHandSideMatrix.size1() != local_matrix.size1() ||
             rLeftHandSideMatrix.size2() != local_matrix.size2())
             rLeftHandSideMatrix.resize(local_matrix.size1(), local_matrix.size2(), false);
-        rLeftHandSideMatrix.clear();
 
-        for (unsigned int a = 0; a < TNumNodes; ++a)
-        {
-            for (unsigned int c = 0; c < TNumNodes; ++c)
-            {
-                rLeftHandSideMatrix(a, c) += local_matrix(a, c);
-            }
-        }
+        noalias(rLeftHandSideMatrix) = local_matrix;
     }
 
     void CalculateFirstDerivativesLHS(BoundedMatrix<double, TNumNodes, TNumNodes>& rLeftHandSideMatrix,
@@ -496,13 +489,7 @@ public:
             rLeftHandSideMatrix.resize(local_matrix.size1(), local_matrix.size2(), false);
         rLeftHandSideMatrix.clear();
 
-        for (unsigned int a = 0; a < TNumNodes; ++a)
-        {
-            for (unsigned int c = 0; c < TNumNodes; ++c)
-            {
-                rLeftHandSideMatrix(a, c) += local_matrix(a, c);
-            }
-        }
+        noalias(rLeftHandSideMatrix) = local_matrix;
     }
 
     void CalculateSecondDerivativesLHS(BoundedMatrix<double, TNumNodes, TNumNodes>& rLeftHandSideMatrix,
@@ -578,15 +565,8 @@ public:
             if (rOutput.size1() != local_matrix.size1() ||
                 rOutput.size2() != local_matrix.size2())
                 rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
-            rOutput.clear();
 
-            for (unsigned int a = 0; a < local_matrix.size1(); ++a)
-            {
-                for (unsigned int c = 0; c < local_matrix.size2(); ++c)
-                {
-                    rOutput(a, c) += local_matrix(a, c);
-                }
-            }
+            noalias(rOutput) = local_matrix;
         }
         else
         {
@@ -619,13 +599,7 @@ public:
                 rOutput.size2() != local_matrix.size2())
                 rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
 
-            for (unsigned int a = 0; a < local_matrix.size1(); ++a)
-            {
-                for (unsigned int c = 0; c < local_matrix.size2(); ++c)
-                {
-                    rOutput(a, c) = local_matrix(a, c);
-                }
-            }
+            noalias(rOutput) = local_matrix;
         }
         else
         {
