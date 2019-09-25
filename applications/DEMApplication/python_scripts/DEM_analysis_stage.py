@@ -518,6 +518,12 @@ class DEMAnalysisStage(AnalysisStage):
     def BeforePrintingOperations(self, time):
         pass
 
+    def PrintAnalysisStageProgressInformation(self):
+        step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
+        stepinfo = self.report.StepiReport(timer, self.time, step)
+        if stepinfo:
+            self.KratosPrintInfo(stepinfo)
+
     def FinalizeSolutionStep(self):
         super(DEMAnalysisStage, self).FinalizeSolutionStep()
         if self.post_normal_impact_velocity_option:
@@ -532,11 +538,6 @@ class DEMAnalysisStage(AnalysisStage):
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
-
-        step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
-        stepinfo = self.report.StepiReport(timer, self.time, step)
-        if stepinfo:
-            self.KratosPrintInfo(stepinfo)
 
     def OutputSolutionStep(self):
         #### PRINTING GRAPHS ####
@@ -674,6 +675,10 @@ class DEMAnalysisStage(AnalysisStage):
         self.time_old_print = 0.0
 
     def FinalizeSingleTimeStep(self):
+        message = 'Warning!'
+        message += '\nFunction \'FinalizeSingleTimeStep\' is deprecated. Use FinalizeSolutionStep instead.'
+        message += '\nIt will be removed after 10/15/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
