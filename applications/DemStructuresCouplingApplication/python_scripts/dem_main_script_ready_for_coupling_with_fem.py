@@ -20,17 +20,6 @@ class StructuresCoupledDEMAnalysisStage(DEMAnalysisStage):
     def PrintResultsForGid(self, time):
         self.coupling_analysis.gid_output.Writeresults(time)
 
-    def FinalizeSolutionStep(self):
-        super(DEMAnalysisStage, self).FinalizeSolutionStep()
-        if self.post_normal_impact_velocity_option:
-            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-            if self.IsTimeToPrintPostProcess():
-                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
-                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
-
-        #Phantom Walls
-        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
-
 if __name__ == "__main__":
     parameter_file_name = "ProjectParametersDEM.json"
 
