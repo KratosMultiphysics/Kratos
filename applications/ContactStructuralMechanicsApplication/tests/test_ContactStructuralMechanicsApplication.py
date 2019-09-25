@@ -146,6 +146,7 @@ from ValidationTests import ALMMeshMovingNotMatchingTestContact as TALMMeshMovin
 from ValidationTests import ALMLargeDisplacementPatchTestTetra as TALMLargeDisplacementPatchTestTetra
 from ValidationTests import ALMLargeDisplacementPatchTestHexa as TALMLargeDisplacementPatchTestHexa
 from ValidationTests import ALMMultiLayerContactTest as TALMMultiLayerContactTest
+from ValidationTests import ALMSelfContactContactTest as TALMSelfContactContactTest
 
 # Components ALM frictionless tests
 from ValidationTests import ComponentsALMTaylorPatchDynamicTestContact as TComponentsALMTaylorPatchDynamicTestContact
@@ -154,6 +155,7 @@ from ValidationTests import ComponentsALMMeshMovingNotMatchingTestContact as TCo
 from ValidationTests import ComponentsALMLargeDisplacementPatchTestTetra as TComponentsALMLargeDisplacementPatchTestTetra
 from ValidationTests import ComponentsALMLargeDisplacementPatchTestHexa as TComponentsALMLargeDisplacementPatchTestHexa
 from ValidationTests import ComponentsALMMultiLayerContactTest as TComponentsALMMultiLayerContactTest
+from ValidationTests import ComponentsALMSelfContactContactTest as TComponentsALMSelfContactContactTest
 
 # ALM frictional tests
 from ValidationTests import ALMTaylorPatchFrictionalTestContact                   as TALMTaylorPatchFrictionalTestContact
@@ -351,6 +353,7 @@ def AssembleTestSuites():
     validationSuite.addTest(TALMLargeDisplacementPatchTestTetra('test_execution'))
     validationSuite.addTest(TALMLargeDisplacementPatchTestHexa('test_execution'))
     validationSuite.addTest(TALMMultiLayerContactTest('test_execution'))
+    validationSuite.addTest(TALMSelfContactContactTest('test_execution'))
 
     # Components ALM frictionless tests
     validationSuite.addTest(TComponentsALMTaylorPatchDynamicTestContact('test_execution'))
@@ -359,6 +362,7 @@ def AssembleTestSuites():
     validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestTetra('test_execution'))
     validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestHexa('test_execution'))
     validationSuite.addTest(TComponentsALMMultiLayerContactTest('test_execution'))
+    validationSuite.addTest(TComponentsALMSelfContactContactTest('test_execution'))
 
     # ALM frictional tests
     validationSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
@@ -484,12 +488,14 @@ def AssembleTestSuites():
             #TALMLargeDisplacementPatchTestTetra,
             #TALMLargeDisplacementPatchTestHexa,
             #TALMMultiLayerContactTest,
+            #TALMSelfContactContactTest,
             #TComponentsALMTaylorPatchDynamicTestContact,
             #TComponentsALMMeshMovingMatchingTestContact,
             #TComponentsALMMeshMovingNotMatchingTestContact,
             #TComponentsALMLargeDisplacementPatchTestTetra,
             #TComponentsALMLargeDisplacementPatchTestHexa,
             #TComponentsALMMultiLayerContactTest,
+            #TComponentsALMSelfContactContactTest,
             ####TMultiLayerContactTest,
         #])
     #)
