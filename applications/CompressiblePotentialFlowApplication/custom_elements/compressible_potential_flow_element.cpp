@@ -895,5 +895,6 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer& rSerializ
 // Template class instantiation
 
 template class CompressiblePotentialFlowElement<2, 3>;
+template class CompressiblePotentialFlowElement<3, 4>;
 
 } // namespace Kratos
