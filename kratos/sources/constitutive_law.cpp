@@ -635,25 +635,29 @@ void ConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     void ConstitutiveLaw::InitializeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
     {
-      switch(rStressMeasure)
-	{
-	case StressMeasure_PK1:         InitializeMaterialResponsePK1(rValues);
-	  break;
+        if (!RequiresInitializeMaterialResponse()) {
+            KRATOS_WARNING_FIRST_N("ConstitutiveLaw", 10) << "calling \"InitializeMaterialResponse\" even though it is not required by the Constitutive Law. Please update your element" << std::endl;
+        }
 
-	case StressMeasure_PK2:         InitializeMaterialResponsePK2(rValues);
-	  break;
+        switch(rStressMeasure)
+        {
+        case StressMeasure_PK1:         InitializeMaterialResponsePK1(rValues);
+        break;
 
-	case StressMeasure_Kirchhoff: 	InitializeMaterialResponseKirchhoff(rValues);
-	  break;
+        case StressMeasure_PK2:         InitializeMaterialResponsePK2(rValues);
+        break;
 
-	case StressMeasure_Cauchy:	InitializeMaterialResponseCauchy(rValues);
-	  break;
+        case StressMeasure_Kirchhoff: 	InitializeMaterialResponseKirchhoff(rValues);
+        break;
 
-	default:
-	  KRATOS_THROW_ERROR(std::logic_error, " Stress Measure not Defined ", "");
-	  break;
+        case StressMeasure_Cauchy:	InitializeMaterialResponseCauchy(rValues);
+        break;
 
-	}
+        default:
+        KRATOS_THROW_ERROR(std::logic_error, " Stress Measure not Defined ", "");
+        break;
+
+        }
     }
 
 
@@ -702,6 +706,10 @@ void ConstitutiveLaw::InitializeMaterialResponseCauchy (Parameters& rValues)
 
 void ConstitutiveLaw::FinalizeMaterialResponse(Parameters& rValues,const StressMeasure& rStressMeasure)
 {
+    if (!RequiresFinalizeMaterialResponse()) {
+        KRATOS_WARNING_FIRST_N("ConstitutiveLaw", 10) << "calling \"FinalizeMaterialResponse\" even though it is not required by the Constitutive Law. Please update your element" << std::endl;
+    }
+
     switch(rStressMeasure)
     {
     case StressMeasure_PK1:
