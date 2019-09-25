@@ -280,7 +280,7 @@ public:
 
 
     template<class TVarType>
-    void CopyVariableToPreviousTimestep(ModelPart& rModelPart, const TVarType& rVar)
+    void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVar)
     {
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
