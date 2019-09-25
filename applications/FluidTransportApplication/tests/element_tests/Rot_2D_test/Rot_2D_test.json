@@ -44,7 +44,7 @@
         "kratos_module": "KratosMultiphysics.FluidTransportApplication",
         "process_name":  "ApplyVectorConstraintFunctionProcess",
         "Parameters":    {
-            "model_part_name": "Velocity-auto-1",
+            "model_part_name": "FluidTransportDomain.Velocity-auto-1",
             "variable_name":   "VELOCITY",
             "active":          [true,true,false],
             "is_fixed":        [false,false,false],
@@ -56,7 +56,7 @@
         "kratos_module": "KratosMultiphysics.FluidTransportApplication",
         "process_name":  "ApplyScalarConstraintTableProcess",
         "Parameters":    {
-            "model_part_name":      "Phi_Value-auto-2",
+            "model_part_name":      "FluidTransportDomain.Phi_Value-auto-2",
             "variable_name":        "PHI_THETA",
             "is_fixed":             true,
             "value":                100.0,
@@ -67,7 +67,7 @@
         "kratos_module": "KratosMultiphysics.FluidTransportApplication",
         "process_name":  "ApplyScalarConstraintTableProcess",
         "Parameters":    {
-            "model_part_name":      "Phi_Value-auto-1",
+            "model_part_name":      "FluidTransportDomain.Phi_Value-auto-1",
             "variable_name":        "PHI_THETA",
             "is_fixed":             true,
             "value":                0.0,
@@ -78,7 +78,7 @@
         "kratos_module": "KratosMultiphysics.FluidTransportApplication",
         "process_name":  "ApplyScalarConstraintTableProcess",
         "Parameters":    {
-            "model_part_name":      "Phi_Value-auto-2",
+            "model_part_name":      "FluidTransportDomain.Phi_Value-auto-2",
             "variable_name":        "TEMPERATURE",
             "value":                100.0,
             "table":                0
@@ -88,7 +88,7 @@
         "kratos_module": "KratosMultiphysics.FluidTransportApplication",
         "process_name":  "ApplyScalarConstraintTableProcess",
         "Parameters":    {
-            "model_part_name":      "Phi_Value-auto-1",
+            "model_part_name":      "FluidTransportDomain.Phi_Value-auto-1",
             "variable_name":        "TEMPERATURE",
             "value":                0.0,
             "table":                0
@@ -102,7 +102,7 @@
         "Parameters"    : {
             "check_variables"     : ["TEMPERATURE"],
             "input_file_name"     : "element_tests/Rot_2D_test/Rot_2D_test_results.json",
-            "model_part_name"      : "Body_Part-auto-1",
+            "model_part_name"      : "FluidTransportDomain.Body_Part-auto-1",
             "time_frequency"       : 0.00001
         }
     }],
@@ -113,7 +113,7 @@
         "Parameters"    : {
             "output_variables"     : ["TEMPERATURE"],
             "output_file_name"     : "element_tests/Rot_2D_test/Rot_2D_test_results.json",
-            "model_part_name"      : "Body_Part-auto-1",
+            "model_part_name"      : "FluidTransportDomain.Body_Part-auto-1",
             "time_frequency"       : 0.00001
         }
     }]
