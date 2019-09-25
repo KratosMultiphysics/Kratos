@@ -720,8 +720,8 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingOcTr
     Parameters octree_parameters = mThisParameters["octree_search_parameters"];
     octree_parameters.AddEmptyValue("intersected_model_part_name");
     octree_parameters.AddEmptyValue("intersecting_model_part_name");
-    octree_parameters["intersecting_model_part_name"].SetString(whole_slave_model_part_name);
-    octree_parameters["intersected_model_part_name"].SetString(whole_master_model_part_name);
+    octree_parameters["intersected_model_part_name"].SetString(whole_slave_model_part_name);
+    octree_parameters["intersecting_model_part_name"].SetString(whole_master_model_part_name);
 
     double h_mean = std::max(ContactUtilities::CalculateMaxNodalH(r_slave_model_part), ContactUtilities::CalculateMaxNodalH(r_master_model_part));
     h_mean = h_mean < std::numeric_limits<double>::epsilon() ? 1.0 : h_mean;
