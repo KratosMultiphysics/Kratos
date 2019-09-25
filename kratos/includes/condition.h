@@ -1274,19 +1274,19 @@ public:
     ///@name Access
     ///@{
 
+    /**
+    * @brief returns the pointer to the property of the condition.
+    *        Does not throw an error, to allow copying of
+    *        conditions which don't have any property assigned.
+    * @return property pointer
+    */
     PropertiesType::Pointer pGetProperties()
     {
-        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
-            << ", which are uninitialized." << std::endl;
         return mpProperties;
     }
 
     const PropertiesType::Pointer pGetProperties() const
     {
-        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
-            << ", which are uninitialized." << std::endl;
         return mpProperties;
     }
 
