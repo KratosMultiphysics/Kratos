@@ -127,7 +127,7 @@ public:
         const IndexType ControlPointIndex,
         const IndexType DerivativeRow) const
     {
-        IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+        const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
             ControlPointIndex, DerivativeRow);
 
