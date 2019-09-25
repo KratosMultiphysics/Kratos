@@ -25,6 +25,13 @@
 namespace Kratos {
 
 typedef std::size_t SizeType;
+    typedef Node <3> NodeType;
+    typedef Properties PropertiesType;
+    typedef Element ElementType;
+    typedef Condition ConditionType;
+    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    typedef PointerVector<MeshType> MeshesContainerType;
+    typedef MeshType::ElementIterator ElementIterator;
 
 /** 
  * @class RegeneratePfemPressureConditionsProcess
@@ -70,7 +77,7 @@ public:
         const int Id1,
         const int Id2,
         const int Id3,
-        ModelPart::ElementsContainerType::ptr_iterator itElem,
+        ElementIterator itElem,
         ModelPart &rSubModelPart,
         ModelPart::PropertiesType::Pointer pProperties,
         int &rMaximumConditionId);
@@ -96,14 +103,14 @@ public:
     void GeneratePressureLoads3WetNodes(
         const int NonWetLocalIdNode,
         int &rMaximumConditionId,
-        ModelPart::ElementsContainerType::ptr_iterator itElem);
+        ElementIterator itElem);
 
     /**
      * @brief Creates a pressure condition when 4 nodes are wet
      */
     void GeneratePressureLoads4WetNodes(
         int &rMaximumConditionId,
-        ModelPart::ElementsContainerType::ptr_iterator itElem);
+        ElementIterator itElem);
 
 protected:
     // Member Variables

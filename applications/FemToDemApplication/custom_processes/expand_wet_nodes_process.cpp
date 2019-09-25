@@ -33,7 +33,7 @@ void ExpandWetNodesProcess::Execute()
     while (extrapolated_elements > 0) {
         extrapolated_elements = 0;
 
-        auto it_elem_begin = mrModelPart.ElementsBegin();
+        const auto it_elem_begin = mrModelPart.ElementsBegin();
         //#pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
             auto it_elem = it_elem_begin + i;

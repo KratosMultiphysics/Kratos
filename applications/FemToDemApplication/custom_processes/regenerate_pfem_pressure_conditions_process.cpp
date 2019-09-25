@@ -38,7 +38,7 @@ void RegeneratePfemPressureConditionsProcess<TDim>::Execute()
     }
     // Remove previous line loads-> Only the 1st iteration
     this->RemovePreviousPressureLoads();
-    this->ResetFlagOnElements();
+
     // Generate the new ones
     this->CreateNewConditions();
 }
@@ -63,13 +63,13 @@ void RegeneratePfemPressureConditionsProcess<3>::CreatePressureLoads(
     const int Id1,
     const int Id2,
     const int Id3,
-	ModelPart::ElementsContainerType::ptr_iterator itElem,
+	ElementIterator itElem,
 	ModelPart& rSubModelPart,
     ModelPart::PropertiesType::Pointer pProperties,
     int& rMaximumConditionId
     )
 {
-    auto& r_geom = (*itElem)->GetGeometry();
+    auto& r_geom = (itElem)->GetGeometry();
     std::vector<IndexType> condition_nodes_id(3);
     condition_nodes_id[0] = r_geom[Id1].Id();
     condition_nodes_id[1] = r_geom[Id2].Id();
@@ -110,7 +110,7 @@ void RegeneratePfemPressureConditionsProcess<TDim>::RemovePreviousPressureLoads(
 template <SizeType TDim>
 void RegeneratePfemPressureConditionsProcess<TDim>::ResetFlagOnElements()
 {
-    auto it_elem_begin = mrModelPart.ElementsBegin();
+    const auto it_elem_begin = mrModelPart.ElementsBegin();
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         auto it_elem = it_elem_begin + i;
@@ -130,6 +130,7 @@ void RegeneratePfemPressureConditionsProcess<3>::CreateNewConditions()
     const auto it_elem_begin = mrModelPart.ElementsBegin();
 
     // Loop over the elements (all active, the inactive have been removed in GeneratingDEM)
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         // We count how many nodes are wet
         auto it_elem = it_elem_begin + i;
@@ -157,13 +158,13 @@ template<>
 void RegeneratePfemPressureConditionsProcess<3>::GeneratePressureLoads3WetNodes(
     const int NonWetLocalIdNode,
     int& rMaximumConditionId,
-    ModelPart::ElementsContainerType::ptr_iterator itElem
+    ElementIterator itElem
     )
 {
     auto& r_sub_model_part = mrModelPart.GetSubModelPart("PFEMPressureConditions");
     auto it_cond = mrModelPart.ConditionsBegin();
     ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
-    auto& r_geom = (*itElem)->GetGeometry();
+    auto& r_geom = (itElem)->GetGeometry();
 
     const IndexType id_1 = (NonWetLocalIdNode == 0) ? 0 : (NonWetLocalIdNode == 1) ? 1 : (NonWetLocalIdNode == 2) ? 2 : 3;
     const IndexType id_2 = (NonWetLocalIdNode == 0) ? 3 : (NonWetLocalIdNode == 1) ? 0 : (NonWetLocalIdNode == 2) ? 3 : 0;
@@ -171,8 +172,8 @@ void RegeneratePfemPressureConditionsProcess<3>::GeneratePressureLoads3WetNodes(
     const IndexType id_4 = (NonWetLocalIdNode == 0) ? 1 : (NonWetLocalIdNode == 1) ? 3 : (NonWetLocalIdNode == 2) ? 0 : 2;
 
     // We only create pressure loads when the surface is skin
-    auto& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
-    if (r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {
+    auto& r_elem_neigb = (itElem)->GetValue(NEIGHBOUR_ELEMENTS);
+    if (r_elem_neigb[NonWetLocalIdNode].Id() == (itElem)->Id()) {
         this->CreatePressureLoads(id_2, id_3, id_4, itElem, r_sub_model_part, p_properties, rMaximumConditionId);  
     }
 }
@@ -182,16 +183,16 @@ void RegeneratePfemPressureConditionsProcess<3>::GeneratePressureLoads3WetNodes(
 template<>
 void RegeneratePfemPressureConditionsProcess<3>::GeneratePressureLoads4WetNodes(
     int& rMaximumConditionId,
-    ModelPart::ElementsContainerType::ptr_iterator itElem
+    ElementIterator itElem
     )
 {
     auto& r_sub_model_part = mrModelPart.GetSubModelPart("PFEMPressureConditions");
     auto it_cond = mrModelPart.ConditionsBegin();
     ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
-    const int id = (*itElem)->Id();
+    const int id = (itElem)->Id();
 
     // We only create pressure loads when the surface is skin
-    auto& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
+    auto& r_elem_neigb = (itElem)->GetValue(NEIGHBOUR_ELEMENTS);
 
     // Loop over the faces
     for (int i = 0; i < r_elem_neigb.size(); i++) {
