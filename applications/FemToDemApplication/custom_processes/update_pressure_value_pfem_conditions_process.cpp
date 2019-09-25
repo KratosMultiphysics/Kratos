@@ -29,7 +29,7 @@ void UpdatePressureValuePfemConditionsProcess<TDim>::Execute()
 {
     auto& pfem_cond_sub_model = mrModelPart.GetSubModelPart("PFEMPressureConditions");
     const auto it_cond_begin = pfem_cond_sub_model.ConditionsBegin();
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(pfem_cond_sub_model.Conditions().size()); i++) {
         auto it_cond = it_cond_begin + i;
         auto& r_geometry = it_cond->GetGeometry();
