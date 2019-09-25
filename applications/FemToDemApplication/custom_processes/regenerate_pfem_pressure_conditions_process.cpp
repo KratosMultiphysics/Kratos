@@ -130,7 +130,7 @@ void RegeneratePfemPressureConditionsProcess<3>::CreateNewConditions()
     const auto it_elem_begin = mrModelPart.ElementsBegin();
 
     // Loop over the elements (all active, the inactive have been removed in GeneratingDEM)
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         // We count how many nodes are wet
         auto it_elem = it_elem_begin + i;
