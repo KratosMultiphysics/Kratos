@@ -916,6 +916,7 @@ public:
      */
     virtual bool RequiresInitializeMaterialResponse()
     {
+    	KRATOS_WARNING_FIRST_N("ConstitutiveLaw", 10) << "RequiresInitializeMaterialResponse is not override in your CL. Default is required" << std::endl;
         return true;
     }
 
@@ -959,6 +960,7 @@ public:
      */
     virtual bool RequiresFinalizeMaterialResponse()
     {
+    	KRATOS_WARNING_FIRST_N("ConstitutiveLaw", 10) << "RequiresFinalizeMaterialResponse is not override in your CL. Default is required" << std::endl;
         return true;
     }
 
