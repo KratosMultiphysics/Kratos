@@ -14,6 +14,8 @@
 #define KRATOS_EVM_MONOLITHIC_K_EPSILON_VMS_ADJOINT_ELEMENT_H_INCLUDED
 
 // System includes
+#include <algorithm>
+#include <iterator>
 
 // External includes
 
@@ -156,11 +158,11 @@ public:
     // defining the base type
     typedef Element BaseType;
     // defining the base adjoint base fluid element type
-    typedef EvmKEpsilonVMSAdjointElement<TDim, TDim + 1, TDim + 3> AdjointFluidElement;
+    typedef EvmKEpsilonVMSAdjointElement<TDim, TNumNodes> AdjointFluidElement;
     // defining the k element type
-    typedef EvmKAdjointElement<TDim, TNumNodes, TDim + 3, TDim + 1> AdjointKElement;
+    typedef EvmKAdjointElement<TDim, TNumNodes> AdjointKElement;
     // defining the epsilon element type
-    typedef EvmEpsilonAdjointElement<TDim, TNumNodes, TDim + 3, TDim + 2> AdjointEpsilonElement;
+    typedef EvmEpsilonAdjointElement<TDim, TNumNodes> AdjointEpsilonElement;
 
     constexpr static unsigned int TFluidBlockSize = (TDim + 1);
 
@@ -376,9 +378,15 @@ public:
         k_element.SetData(this->Data());
         epsilon_element.SetData(this->Data());
 
-        fluid_element.EquationIdVector(rResult, rCurrentProcessInfo);
-        k_element.EquationIdVector(rResult, rCurrentProcessInfo);
-        epsilon_element.EquationIdVector(rResult, rCurrentProcessInfo);
+        std::array<std::size_t, TFluidLocalSize> fluid_ids;
+        fluid_element.EquationIdArray(fluid_ids, rCurrentProcessInfo);
+        AssignSubArray(fluid_ids, rResult, VelPresBlock());
+        std::array<std::size_t, TKLocalSize> k_ids;
+        k_element.EquationIdArray(k_ids, rCurrentProcessInfo);
+        AssignSubArray(k_ids, rResult, KBlock());
+        std::array<std::size_t, TEpsilonLocalSize> epsilon_ids;
+        epsilon_element.EquationIdArray(epsilon_ids, rCurrentProcessInfo);
+        AssignSubArray(epsilon_ids, rResult, EpsilonBlock());
     }
 
     /**
@@ -399,9 +407,15 @@ public:
         k_element.SetData(this->Data());
         epsilon_element.SetData(this->Data());
 
-        fluid_element.GetDofList(rElementalDofList, rCurrentProcessInfo);
-        k_element.GetDofList(rElementalDofList, rCurrentProcessInfo);
-        epsilon_element.GetDofList(rElementalDofList, rCurrentProcessInfo);
+        std::array<Dof<double>::Pointer, TFluidLocalSize> fluid_dofs;
+        fluid_element.GetDofArray(fluid_dofs, rCurrentProcessInfo);
+        AssignSubArray(fluid_dofs, rElementalDofList, VelPresBlock());
+        std::array<Dof<double>::Pointer, TKLocalSize> k_dofs;
+        k_element.GetDofArray(k_dofs, rCurrentProcessInfo);
+        AssignSubArray(k_dofs, rElementalDofList, KBlock());
+        std::array<Dof<double>::Pointer, TEpsilonLocalSize> epsilon_dofs;
+        epsilon_element.GetDofArray(epsilon_dofs, rCurrentProcessInfo);
+        AssignSubArray(epsilon_dofs, rElementalDofList, EpsilonBlock());
     }
 
     /// Returns the adjoint values stored in this element's nodes.
@@ -418,9 +432,15 @@ public:
         k_element.SetData(this->Data());
         epsilon_element.SetData(this->Data());
 
-        fluid_element.GetValuesVector(rValues, Step);
-        k_element.GetValuesVector(rValues, Step);
-        epsilon_element.GetValuesVector(rValues, Step);
+        std::array<double, TFluidLocalSize> fluid_values;
+        fluid_element.GetValuesArray(fluid_values, Step);
+        AssignSubArray(fluid_values, rValues, VelPresBlock());
+        std::array<double, TKLocalSize> k_values;
+        k_element.GetValuesArray(k_values, Step);
+        AssignSubArray(k_values, rValues, KBlock());
+        std::array<double, TEpsilonLocalSize> epsilon_values;
+        epsilon_element.GetValuesArray(epsilon_values, Step);
+        AssignSubArray(epsilon_values, rValues, EpsilonBlock());
     }
 
     /// Returns the adjoint velocity values stored in this element's nodes.
@@ -437,9 +457,15 @@ public:
         k_element.SetData(this->Data());
         epsilon_element.SetData(this->Data());
 
-        fluid_element.GetFirstDerivativesVector(rValues, Step);
-        k_element.GetFirstDerivativesVector(rValues, Step);
-        epsilon_element.GetFirstDerivativesVector(rValues, Step);
+        std::array<double, TFluidLocalSize> fluid_values;
+        fluid_element.GetFirstDerivativesArray(fluid_values, Step);
+        AssignSubArray(fluid_values, rValues, VelPresBlock());
+        std::array<double, TKLocalSize> k_values;
+        k_element.GetFirstDerivativesArray(k_values, Step);
+        AssignSubArray(k_values, rValues, KBlock());
+        std::array<double, TEpsilonLocalSize> epsilon_values;
+        epsilon_element.GetFirstDerivativesArray(epsilon_values, Step);
+        AssignSubArray(epsilon_values, rValues, EpsilonBlock());
     }
 
     void GetSecondDerivativesVector(VectorType& rValues, int Step) override
@@ -455,9 +481,15 @@ public:
         k_element.SetData(this->Data());
         epsilon_element.SetData(this->Data());
 
-        fluid_element.GetSecondDerivativesVector(rValues, Step);
-        k_element.GetSecondDerivativesVector(rValues, Step);
-        epsilon_element.GetSecondDerivativesVector(rValues, Step);
+        std::array<double, TFluidLocalSize> fluid_values;
+        fluid_element.GetSecondDerivativesArray(fluid_values, Step);
+        AssignSubArray(fluid_values, rValues, VelPresBlock());
+        std::array<double, TKLocalSize> k_values;
+        k_element.GetSecondDerivativesArray(k_values, Step);
+        AssignSubArray(k_values, rValues, KBlock());
+        std::array<double, TEpsilonLocalSize> epsilon_values;
+        epsilon_element.GetSecondDerivativesArray(epsilon_values, Step);
+        AssignSubArray(epsilon_values, rValues, EpsilonBlock());
     }
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -512,23 +544,47 @@ public:
 
         rLeftHandSideMatrix.clear();
 
-        fluid_element.CalculateFirstDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
-        fluid_element.Calculate(RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
-                                rLeftHandSideMatrix, rCurrentProcessInfo);
-        fluid_element.Calculate(RANS_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE,
-                                rLeftHandSideMatrix, rCurrentProcessInfo);
+        BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> vms_vms;
+        fluid_element.CalculateFirstDerivativesLHS(vms_vms, rCurrentProcessInfo);
+        AssignSubMatrix(vms_vms, rLeftHandSideMatrix, VelPresBlock(), VelPresBlock());
 
-        k_element.Calculate(RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,
-                            rLeftHandSideMatrix, rCurrentProcessInfo);
-        k_element.CalculateFirstDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
-        k_element.Calculate(RANS_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE,
-                            rLeftHandSideMatrix, rCurrentProcessInfo);
+        BoundedMatrix<double, TNumNodes, TFluidLocalSize> vms_k;
+        fluid_element.CalculateResidualScalarDerivatives(
+            TURBULENT_KINETIC_ENERGY, vms_k, rCurrentProcessInfo);
+        AssignSubMatrix(vms_k, rLeftHandSideMatrix, KBlock(), VelPresBlock());
 
-        epsilon_element.Calculate(RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,
-                                  rLeftHandSideMatrix, rCurrentProcessInfo);
-        epsilon_element.Calculate(RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
-                                  rLeftHandSideMatrix, rCurrentProcessInfo);
-        epsilon_element.CalculateFirstDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+        BoundedMatrix<double, TNumNodes, TFluidLocalSize> vms_epsilon;
+        fluid_element.CalculateResidualScalarDerivatives(
+            TURBULENT_ENERGY_DISSIPATION_RATE, vms_epsilon, rCurrentProcessInfo);
+        AssignSubMatrix(vms_epsilon, rLeftHandSideMatrix, EpsilonBlock(), VelPresBlock());
+
+        BoundedMatrix<double, TCoordLocalSize, TNumNodes> k_vms;
+        k_element.CalculateElementTotalResidualVelocityDerivatives(k_vms, rCurrentProcessInfo);
+        AssignSubMatrix(k_vms, rLeftHandSideMatrix, VelBlock(), KBlock());
+
+        BoundedMatrix<double, TNumNodes, TNumNodes> k_k;
+        k_element.CalculateFirstDerivativesLHS(k_k, rCurrentProcessInfo);
+        AssignSubMatrix(k_k, rLeftHandSideMatrix, KBlock(), KBlock());
+
+        BoundedMatrix<double, TNumNodes, TNumNodes> k_epsilon;
+        k_element.CalculateResidualScalarDerivatives(
+            TURBULENT_ENERGY_DISSIPATION_RATE, k_epsilon, rCurrentProcessInfo);
+        AssignSubMatrix(k_epsilon, rLeftHandSideMatrix, EpsilonBlock(), KBlock());
+
+        BoundedMatrix<double, TCoordLocalSize, TNumNodes> epsilon_vms;
+        epsilon_element.CalculateElementTotalResidualVelocityDerivatives(
+            epsilon_vms, rCurrentProcessInfo);
+        AssignSubMatrix(epsilon_vms, rLeftHandSideMatrix, VelBlock(), EpsilonBlock());
+
+        BoundedMatrix<double, TNumNodes, TNumNodes> epsilon_k;
+        epsilon_element.CalculateResidualScalarDerivatives(
+            TURBULENT_KINETIC_ENERGY, epsilon_k, rCurrentProcessInfo);
+        AssignSubMatrix(epsilon_k, rLeftHandSideMatrix, KBlock(), EpsilonBlock());
+
+        BoundedMatrix<double, TNumNodes, TNumNodes> epsilon_epsilon;
+        epsilon_element.CalculateFirstDerivativesLHS(epsilon_epsilon, rCurrentProcessInfo);
+        AssignSubMatrix(epsilon_epsilon, rLeftHandSideMatrix, EpsilonBlock(),
+                        EpsilonBlock());
 
         KRATOS_CATCH("");
     }
@@ -552,9 +608,18 @@ public:
 
         rLeftHandSideMatrix.clear();
 
-        fluid_element.CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
-        k_element.CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
-        epsilon_element.CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+        BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize> vms_vms;
+        fluid_element.CalculateSecondDerivativesLHS(vms_vms, rCurrentProcessInfo);
+        AssignSubMatrix(vms_vms, rLeftHandSideMatrix, VelPresBlock(), VelPresBlock());
+
+        BoundedMatrix<double, TNumNodes, TNumNodes> k_k;
+        k_element.CalculateSecondDerivativesLHS(k_k, rCurrentProcessInfo);
+        AssignSubMatrix(k_k, rLeftHandSideMatrix, KBlock(), KBlock());
+
+        BoundedMatrix<double, TNumNodes, TNumNodes> epsilon_epsilon;
+        epsilon_element.CalculateSecondDerivativesLHS(epsilon_epsilon, rCurrentProcessInfo);
+        AssignSubMatrix(epsilon_epsilon, rLeftHandSideMatrix, EpsilonBlock(),
+                        EpsilonBlock());
 
         KRATOS_CATCH("");
     }
@@ -601,12 +666,20 @@ public:
             k_element.SetData(this->Data());
             epsilon_element.SetData(this->Data());
 
+            BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize> vms_residuals;
             fluid_element.CalculateSensitivityMatrix(
-                rSensitivityVariable, rOutput, rCurrentProcessInfo);
-            k_element.CalculateSensitivityMatrix(rSensitivityVariable, rOutput,
-                                                 rCurrentProcessInfo);
+                rSensitivityVariable, vms_residuals, rCurrentProcessInfo);
+            AssignSubMatrix(vms_residuals, rOutput, CoordBlock(), VelPresBlock());
+
+            BoundedMatrix<double, TCoordLocalSize, TNumNodes> k_residuals;
+            k_element.CalculateSensitivityMatrix(
+                rSensitivityVariable, k_residuals, rCurrentProcessInfo);
+            AssignSubMatrix(k_residuals, rOutput, CoordBlock(), KBlock());
+
+            BoundedMatrix<double, TCoordLocalSize, TNumNodes> epsilon_residuals;
             epsilon_element.CalculateSensitivityMatrix(
-                rSensitivityVariable, rOutput, rCurrentProcessInfo);
+                rSensitivityVariable, epsilon_residuals, rCurrentProcessInfo);
+            AssignSubMatrix(epsilon_residuals, rOutput, CoordBlock(), EpsilonBlock());
         }
         else
         {
@@ -666,6 +739,61 @@ private:
     ///@}
     ///@name Unaccessible methods
     ///@{
+
+    struct SubBlockLayout
+    {
+        std::size_t SubBlockOffset;
+        std::size_t SubBlockSize;
+        std::size_t BlockSize;
+        std::size_t NumBlocks;
+    };
+
+    constexpr SubBlockLayout CoordBlock()
+    {
+        return {0, TDim, TDim, TNumNodes};
+    }
+
+    constexpr SubBlockLayout VelBlock()
+    {
+        return {0, TDim, TDim + 3, TNumNodes};
+    }
+
+    constexpr SubBlockLayout VelPresBlock()
+    {
+        return {0, TDim + 1, TDim + 3, TNumNodes};
+    }
+
+    constexpr SubBlockLayout KBlock()
+    {
+        return {TDim + 1, 1, TDim + 3, TNumNodes};
+    }
+
+    constexpr SubBlockLayout EpsilonBlock()
+    {
+        return {TDim + 2, 1, TDim + 3, TNumNodes};
+    }
+
+    constexpr std::size_t MonolithicIndex(SubBlockLayout L, std::size_t SubIndex)
+    {
+        return SubIndex + (SubIndex / L.SubBlockSize) * (L.BlockSize - L.SubBlockSize) +
+               L.SubBlockOffset;
+    }
+
+    template <class TMatrix1, class TMatrix2>
+    void AssignSubMatrix(const TMatrix1& rSrc, TMatrix2& rDest, SubBlockLayout RowLayout, SubBlockLayout ColLayout)
+    {
+        for (std::size_t i = 0; i < rSrc.size1(); ++i)
+            for (std::size_t j = 0; j < rSrc.size2(); ++j)
+                rDest(MonolithicIndex(RowLayout, i), MonolithicIndex(ColLayout, j)) =
+                    rSrc(i, j);
+    }
+
+    template <class TArray1, class TArray2>
+    void AssignSubArray(const TArray1& rSrc, TArray2& rDest, SubBlockLayout Layout)
+    {
+        for (std::size_t i = 0; i < rSrc.size(); ++i)
+            rDest[MonolithicIndex(Layout, i)] = rSrc[i];
+    }
 
     ///@}
 };

@@ -67,15 +67,15 @@ struct EvmKAdjointElementData
     Matrix NodalVelocity;
 };
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize = 1, unsigned int TMonolithicNodalEquationIndex = 0>
+template <unsigned int TDim, unsigned int TNumNodes>
 class EvmKAdjointElement
-    : public StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, EvmKAdjointElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>
+    : public StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, EvmKAdjointElementData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, EvmKAdjointElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex> BaseType;
+    typedef StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, EvmKAdjointElementData> BaseType;
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;

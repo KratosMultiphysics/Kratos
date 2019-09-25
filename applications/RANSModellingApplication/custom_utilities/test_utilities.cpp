@@ -59,14 +59,18 @@ bool IsNear(const double ValueA, const double ValueB, const double RelTol, const
 
 void CheckNear(const double ValueA, const double ValueB, const double RelTol, const double AbsTol)
 {
-    if (std::abs(ValueA) < AbsTol && std::abs(ValueB) < AbsTol)
+    if (IsNear(ValueA, ValueB, RelTol, AbsTol))
     {
-        KRATOS_WARNING("CheckNear")
-            << "Comparing values smaller than Tolerance. ValueA / ValueB < "
-               "Tolerance [ "
-            << ValueA << " / " << ValueB << " < " << AbsTol << " ]\n";
+        if (IsNear(ValueA, 0.0, 0.0, AbsTol) && IsNear(ValueB, 0.0, 0.0, AbsTol) && ValueA != 0.0 && ValueB != 0.0)
+        {
+            // Warn if ValueA and ValueB are non-zero but below the absolute tolerance threshold.
+            KRATOS_WARNING("CheckNear")
+                << "Comparing values smaller than Tolerance. ValueA / ValueB < "
+                   "Tolerance [ "
+                << ValueA << " / " << ValueB << " < " << AbsTol << " ]\n";
+        }
     }
-    if (!IsNear(ValueA, ValueB, RelTol, AbsTol))
+    else
     {
         // Currently KRATOS_ERROR doesn't handle I/O formatting so stringstream
         // is used here to create the message.
@@ -275,7 +279,7 @@ void RunGaussPointScalarSensitivityTest(
                     {
                         const double fd_sensitivity = ((values[j] - values_0[j]) / Delta);
                         CheckNear(fd_sensitivity,
-                                  analytical_sensitivities[j][i], 1e-03, 1e-12);
+                                  analytical_sensitivities[j][i], Tolerance, 1e-12);
                     }
                 }
 
@@ -449,7 +453,7 @@ void RunElementResidualScalarSensitivityTest(
                         i_check_eq_node * local_equation_size + EquationOffset + i_check_eq_dim);
 
                 CheckNear(residual_sensitivity[i_check_equation],
-                          current_adjoint_shape_sensitivity, 1e-03, 1e-12);
+                          current_adjoint_shape_sensitivity, Tolerance, 1e-12);
             }
 
             PerturbVariable(r_node) -= Delta;
@@ -563,7 +567,7 @@ void RunNodalScalarSensitivityTest(
             for (int j = 0; j < static_cast<int>(analytical_sensitivities.size()); ++j)
             {
                 const double fd_sensitivity = ((values[j] - values_0[j]) / Delta);
-                CheckNear(fd_sensitivity, analytical_sensitivities[j][i], 1e-03, 1e-12);
+                CheckNear(fd_sensitivity, analytical_sensitivities[j][i], Tolerance, 1e-12);
             }
 
             PerturbVariable(r_node) -= Delta;

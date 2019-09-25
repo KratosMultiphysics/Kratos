@@ -6,17 +6,11 @@ namespace Kratos {
 ///@{
 
 template<>
-void VMSAdjointElement<2>::GetDofList(DofsVectorType& rElementalDofList,
+void VMSAdjointElement<2>::GetDofArray(DofsArrayType& rElementalDofList,
                                       ProcessInfo& /*rCurrentProcessInfo*/)
 {
-  const unsigned int NumNodes(3), LocalSize(9);
-
-  if (rElementalDofList.size() != LocalSize)
-    rElementalDofList.resize(LocalSize);
-
   unsigned int LocalIndex = 0;
-
-  for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+  for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
   {
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
         ADJOINT_FLUID_VECTOR_1_X);
@@ -28,17 +22,11 @@ void VMSAdjointElement<2>::GetDofList(DofsVectorType& rElementalDofList,
 }
 
 template<>
-void VMSAdjointElement<3>::GetDofList(DofsVectorType& rElementalDofList,
+void VMSAdjointElement<3>::GetDofArray(DofsArrayType& rElementalDofList,
                                       ProcessInfo& /*rCurrentProcessInfo*/)
 {
-  const SizeType NumNodes(4), LocalSize(16);
-
-  if (rElementalDofList.size() != LocalSize)
-    rElementalDofList.resize(LocalSize);
-
   IndexType LocalIndex = 0;
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
+  for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
   {
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
         ADJOINT_FLUID_VECTOR_1_X);
@@ -51,52 +39,38 @@ void VMSAdjointElement<3>::GetDofList(DofsVectorType& rElementalDofList,
   }
 }
 
-template<>
-void VMSAdjointElement<2>::EquationIdVector(
-    EquationIdVectorType& rResult,
-    ProcessInfo& /*rCurrentProcessInfo*/)
+template <>
+void VMSAdjointElement<2>::EquationIdArray(EquationIdArrayType& rResult,
+                                           ProcessInfo& /*rCurrentProcessInfo*/)
 {
-  const SizeType NumNodes(3), LocalSize(9);
-
-  if (rResult.size() != LocalSize)
-    rResult.resize(LocalSize, false);
-
-  IndexType LocalIndex = 0;
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_X)
-        .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Y)
-        .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_SCALAR_1)
-        .EquationId();
-  }
+    IndexType LocalIndex = 0;
+    for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
+    {
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_X).EquationId();
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Y).EquationId();
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_SCALAR_1).EquationId();
+    }
 }
 
-template<>
-void VMSAdjointElement<3>::EquationIdVector(
-    EquationIdVectorType& rResult,
-    ProcessInfo& /*rCurrentProcessInfo*/)
+template <>
+void VMSAdjointElement<3>::EquationIdArray(EquationIdArrayType& rResult,
+                                           ProcessInfo& /*rCurrentProcessInfo*/)
 {
-  const SizeType NumNodes(4), LocalSize(16);
-
-  if (rResult.size() != LocalSize)
-    rResult.resize(LocalSize, false);
-
-  IndexType LocalIndex = 0;
-
-  for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
-  {
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_X)
-        .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Y)
-        .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Z)
-        .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_SCALAR_1)
-        .EquationId();
-  }
+    IndexType LocalIndex = 0;
+    for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
+    {
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_X).EquationId();
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Y).EquationId();
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_VECTOR_1_Z).EquationId();
+        rResult[LocalIndex++] =
+            this->GetGeometry()[iNode].GetDof(ADJOINT_FLUID_SCALAR_1).EquationId();
+    }
 }
 
 template<>
@@ -212,7 +186,7 @@ void VMSAdjointElement<3>::CalculateStabilizationParametersDerivative(
 
 template<>
 void VMSAdjointElement<2>::AddViscousTerm(
-    MatrixType& rResult,
+    BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rResult,
     const VMSAdjointElement<2>::ShapeFunctionDerivativesType& rDN_DX,
     const double Weight)
 {
@@ -228,28 +202,28 @@ void VMSAdjointElement<2>::AddViscousTerm(
     for (IndexType i = 0; i < NumNodes; ++i)
     {
       // First Row
-      rResult(FirstCol, FirstRow) += Weight
+      rResult(FirstRow,FirstCol) += Weight
           * (FourThirds * rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1));
-      rResult(FirstCol+1, FirstRow) += Weight
+      rResult(FirstRow,FirstCol+1) += Weight
           * (nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0));
 
       // Second Row
-      rResult(FirstCol, FirstRow+1) += Weight
+      rResult(FirstRow+1,FirstCol) += Weight
           * (nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1));
-      rResult(FirstCol+1, FirstRow+1) += Weight
+      rResult(FirstRow+1,FirstCol+1) += Weight
           * (FourThirds * rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,0) * rDN_DX(j,0));
 
       // Update Counter
-      FirstRow += TBlockSize;
+      FirstRow += 3;
     }
     FirstRow = 0;
-    FirstCol += TBlockSize;
+    FirstCol += 3;
   }
 }
 
 template<>
 void VMSAdjointElement<3>::AddViscousTerm(
-    MatrixType& rResult,
+    BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rResult,
     const VMSAdjointElement<3>::ShapeFunctionDerivativesType& rDN_DX,
     const double Weight)
 {
@@ -269,34 +243,34 @@ void VMSAdjointElement<3>::AddViscousTerm(
           + rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,2) * rDN_DX(j,2);
 
       // First Row
-      rResult(FirstCol, FirstRow) += Weight
+      rResult(FirstRow,FirstCol) += Weight
           * (OneThird * rDN_DX(i,0) * rDN_DX(j,0) + Diag);
-      rResult(FirstCol+1, FirstRow) += Weight
+      rResult(FirstRow,FirstCol+1) += Weight
           * (nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0));
-      rResult(FirstCol+2, FirstRow) += Weight
+      rResult(FirstRow,FirstCol+2) += Weight
           * (nTwoThirds * rDN_DX(i,0) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,0));
 
       // Second Row
-      rResult(FirstCol, FirstRow+1) += Weight
+      rResult(FirstRow+1,FirstCol) += Weight
           * (nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1));
-      rResult(FirstCol + 1, FirstRow + 1) += Weight
+      rResult(FirstRow + 1, FirstCol + 1) += Weight
           * (OneThird * rDN_DX(i,1) * rDN_DX(j,1) + Diag);
-      rResult(FirstCol + 2, FirstRow + 1) += Weight
+      rResult(FirstRow + 1, FirstCol + 2) += Weight
           * (nTwoThirds * rDN_DX(i,1) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,1));
 
       // Third Row
-      rResult(FirstCol, FirstRow+2) += Weight
+      rResult(FirstRow+2,FirstCol) += Weight
           * (nTwoThirds * rDN_DX(i,2) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,2));
-      rResult(FirstCol+1, FirstRow+2) += Weight
+      rResult(FirstRow+2,FirstCol+1) += Weight
           * (nTwoThirds * rDN_DX(i,2) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,2));
-      rResult(FirstCol+2, FirstRow+2) += Weight
+      rResult(FirstRow+2,FirstCol+2) += Weight
           * (OneThird * rDN_DX(i,2) * rDN_DX(j,2) + Diag);
 
       // Update Counter
-      FirstRow += TBlockSize;
+      FirstRow += 4;
     }
     FirstRow = 0;
-    FirstCol += TBlockSize;
+    FirstCol += 4;
   }
 }
 
@@ -352,10 +326,10 @@ void VMSAdjointElement<2>::AddViscousTermDerivative(
                       + rDN_DX(i,0) * rDN_DX_Deriv(j,0));
 
       // Update Counter
-      FirstRow += TBlockSize;
+      FirstRow += 3;
     }
     FirstRow = 0;
-    FirstCol += TBlockSize;
+    FirstCol += 3;
   }
 }
 
@@ -447,10 +421,10 @@ void VMSAdjointElement<3>::AddViscousTermDerivative(
           + Weight * (OneThird * rDN_DX(i,2) * rDN_DX_Deriv(j,2) + DiagDerivNj);
 
       // Update Counter
-      FirstRow += TBlockSize;
+      FirstRow += 4;
     }
     FirstRow = 0;
-    FirstCol += TBlockSize;
+    FirstCol += 4;
   }
 }
 
