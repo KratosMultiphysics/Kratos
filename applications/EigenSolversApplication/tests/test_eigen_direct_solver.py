@@ -50,6 +50,12 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
     def test_eigen_sparse_lu(self):
         self._execute_eigen_direct_solver_test('SparseLUSolver', 'sparse_lu')
 
+    def test_eigen_sparse_cg(self):
+        self._execute_eigen_direct_solver_test('SparseCGSolver', 'sparse_cg')
+
+    def test_eigen_sparse_qr(self):
+        self._execute_eigen_direct_solver_test('SparseQRSolver', 'sparse_qr')
+
     def test_eigen_pardiso_lu(self):
         self._execute_eigen_direct_solver_test('PardisoLUSolver', 'pardiso_lu')
 

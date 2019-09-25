@@ -32,9 +32,8 @@ namespace Kratos
 {
 
 template<
-    class TSolverType,
-    class TSparseSpaceType = typename TSolverType::TGlobalSpace,
-    class TDenseSpaceType = typename TSolverType::TLocalSpace,
+    class TSparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>,
+    class TDenseSpaceType = UblasSpace<double, Matrix, Vector>,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigensystemSolver
@@ -93,6 +92,7 @@ class EigensystemSolver
         using scalar_t = double;
         using vector_t = Eigen::VectorXd;
         using matrix_t = Eigen::MatrixXd;
+        using sparse_t = Eigen::SparseMatrix<scalar_t, Eigen::RowMajor, int>;
 
         // --- get settings
 
@@ -176,7 +176,12 @@ class EigensystemSolver
             r(ij, j) = 1.0;
         }
 
-        typename TSolverType::TSolver solver;
+        #if !defined USE_EIGEN_MKL
+        Eigen::SparseLU<sparse_t> solver;
+        #else  // !defined USE_EIGEN_MKL
+        Eigen::PardisoLDLT<sparse_t> solver;
+        #endif // !defined USE_EIGEN_MKL
+
         solver.compute(a);
 
         int iteration = 0;
