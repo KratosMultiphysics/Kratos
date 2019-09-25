@@ -416,7 +416,6 @@ def AssembleTestSuites():
             #TALMThreeDPatchNotMatchingTestContact,
             #TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact,
             #TPenaltyThreeDSimplestPatchMatchingTestContact,
-            #TExplicitPenaltyThreeDSimplestPatchMatchingTestContact,
             #TComponentsALMHyperSimpleTrianglePatchTestContact,
             #TComponentsALMHyperSimplePatchTestContact,
             #TComponentsALMHyperSimplePatchTestWithEliminationContact,
@@ -496,6 +495,7 @@ def AssembleTestSuites():
             #TComponentsALMLargeDisplacementPatchTestHexa,
             #TComponentsALMMultiLayerContactTest,
             #TComponentsALMSelfContactContactTest,
+            #TExplicitPenaltyThreeDSimplestPatchMatchingTestContact,
             ####TMultiLayerContactTest,
         #])
     #)
