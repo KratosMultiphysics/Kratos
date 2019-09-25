@@ -104,8 +104,8 @@ namespace Kratos {
             ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
             r_skin_part.CreateNewNode(5, -0.3, 0.5, 0.0);
             r_skin_part.CreateNewNode(6, 0.6, 0.5, 0.0);
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
             r_surface_part.CreateNewCondition("Condition2D2N", 1, {{1, 2}}, p_properties_0);
             r_surface_part.CreateNewCondition("Condition2D2N", 2, {{2, 3}}, p_properties_0);
             r_surface_part.CreateNewCondition("Condition2D2N", 3, {{3, 4}}, p_properties_0);
@@ -167,8 +167,8 @@ namespace Kratos {
             ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
             r_skin_part.CreateNewNode(5, -0.1, 0.0, 0.0);
             r_skin_part.CreateNewNode(6, -0.1, 1.0, 0.0);
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
             r_surface_part.CreateNewCondition("Condition2D2N", 1, {{1, 2}}, p_properties_0);
             r_surface_part.CreateNewCondition("Condition2D2N", 2, {{2, 3}}, p_properties_0);
             r_surface_part.CreateNewCondition("Condition2D2N", 3, {{3, 4}}, p_properties_0);
@@ -203,8 +203,8 @@ namespace Kratos {
             ModelPart& r_skin_part = r_main_model_part.CreateSubModelPart("Boundaries");
             r_skin_part.CreateNewNode(5, -0.1, 0.0, 0.0);
             r_skin_part.CreateNewNode(6, -0.1, 1.0, 0.0);
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
             r_surface_part.CreateNewCondition("Condition2D2N", 1, {{1, 2}}, p_properties_0);
             r_surface_part.CreateNewCondition("Condition2D2N", 2, {{2, 3}}, p_properties_0);
             r_surface_part.CreateNewCondition("Condition2D2N", 3, {{3, 4}}, p_properties_0);
@@ -243,8 +243,8 @@ namespace Kratos {
             r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
 
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 
             // Generate the nodes of the surface
             r_surface_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
@@ -332,8 +332,8 @@ namespace Kratos {
             r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
 
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 
             // Generate the nodes of the surface
             r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
@@ -378,8 +378,8 @@ namespace Kratos {
             r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
 
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 
             // Generate the nodes of the surface
             r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
@@ -464,8 +464,8 @@ namespace Kratos {
             r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
 
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 
             // Generate the nodes of the surface
             r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
@@ -507,8 +507,8 @@ namespace Kratos {
             r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
 
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 
             // Generate the nodes of the surface
             r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
@@ -590,8 +590,8 @@ namespace Kratos {
             r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
 
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 
             // Generate the nodes of the surface
             r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
@@ -635,8 +635,8 @@ namespace Kratos {
             r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
 
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 
             // Generate the nodes of the surface
             r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
@@ -719,8 +719,8 @@ namespace Kratos {
             r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
 
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 
             // Generate the nodes of the surface
             r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);
@@ -765,8 +765,8 @@ namespace Kratos {
             r_main_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
             ModelPart& r_surface_part = r_main_model_part.CreateSubModelPart("Surface");
 
-            Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
-            Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
+            Properties::Pointer p_properties_0 = Kratos::make_intrusive<Properties>(0);
+            Properties::Pointer p_properties_1 = Kratos::make_intrusive<Properties>(1);
 
             // Generate the nodes of the surface
             r_surface_part.CreateNewNode(1 , 0.0 , 0.0 , 1.0);

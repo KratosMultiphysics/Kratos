@@ -29,6 +29,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "intrusive_ptr/intrusive_ptr.hpp"
 #include "includes/node.h"
 #include "utilities/indexed_object.h"
 #include "containers/data_value_container.h"
@@ -72,10 +73,10 @@ class Properties : public IndexedObject
 {
 public:
     ///@name Type Definitions
-    ///@{
+    ///@{Pointer
 
     /// Pointer definition of Properties
-    KRATOS_CLASS_POINTER_DEFINITION(Properties);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Properties);
 
 #ifdef  _WIN32 // work around for windows int64_t error
     typedef __int64 int64_t;
@@ -404,6 +405,23 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    //*********************************************
+    //this block is needed for refcounting
+    mutable std::atomic<int> mReferenceCounter;
+
+    friend void intrusive_ptr_add_ref(const Properties* x)
+    {
+        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    friend void intrusive_ptr_release(const Properties* x)
+    {
+        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
+        std::atomic_thread_fence(std::memory_order_acquire);
+        delete x;
+        }
+    }
+    //*********************************************
 
 
     ///@}

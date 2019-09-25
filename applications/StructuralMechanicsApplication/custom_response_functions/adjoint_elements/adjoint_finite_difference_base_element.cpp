@@ -459,7 +459,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
         Properties::Pointer p_global_properties = mpPrimalElement->pGetProperties();
 
         // Create new property and assign it to the element
-        Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+        Properties::Pointer p_local_property(Kratos::make_intrusive<Properties>(Properties(*p_global_properties)));
         mpPrimalElement->SetProperties(p_local_property);
 
         // perturb the design variable

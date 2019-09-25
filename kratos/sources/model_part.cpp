@@ -581,7 +581,7 @@ ModelPart::PropertiesType::Pointer ModelPart::CreateNewProperties(
             GetMesh(MeshIndex).AddProperties(pprop);
             return pprop;
         } else {
-            PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
+            PropertiesType::Pointer pnew_property = Kratos::make_intrusive<PropertiesType>(PropertiesId);
             GetMesh(MeshIndex).AddProperties(pnew_property);
             return pnew_property;
         }
@@ -606,7 +606,7 @@ ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
             return pprop;
         } else {
             KRATOS_WARNING("ModelPart") << "Property " << PropertiesId << " does not exist!. Creating and adding new property. Please use CreateNewProperties() instead" << std::endl;
-            PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
+            PropertiesType::Pointer pnew_property = Kratos::make_intrusive<PropertiesType>(PropertiesId);
             GetMesh(MeshIndex).AddProperties(pnew_property);
             return pnew_property;
         }
@@ -652,7 +652,7 @@ ModelPart::PropertiesType& ModelPart::GetProperties(
             return *pprop;
         } else {
             KRATOS_WARNING("ModelPart") << "Property " << PropertiesId << " does not exist!. Creating and adding new property. Please use CreateNewProperties() instead" << std::endl;
-            PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
+            PropertiesType::Pointer pnew_property = Kratos::make_intrusive<PropertiesType>(PropertiesId);
             GetMesh(MeshIndex).AddProperties(pnew_property);
             return *pnew_property;
         }

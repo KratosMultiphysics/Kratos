@@ -120,7 +120,13 @@ public:
     typedef typename NodesContainerType::const_iterator NodeConstantIterator;
 
     /// Properties container. A vector set of properties with their Id's as key.
-    typedef PointerVectorSet<PropertiesType, IndexedObject> PropertiesContainerType;
+    typedef PointerVectorSet<PropertiesType, 
+                            IndexedObject,
+                            std::less<typename IndexedObject::result_type>,
+                            std::equal_to<typename IndexedObject::result_type>,
+                            typename PropertiesType::Pointer,
+                            std::vector< typename PropertiesType::Pointer >                         
+                            > PropertiesContainerType;
 
     /** Iterator over the properties. This iterator is an indirect
     iterator over Properties::Pointer which turn back a reference to

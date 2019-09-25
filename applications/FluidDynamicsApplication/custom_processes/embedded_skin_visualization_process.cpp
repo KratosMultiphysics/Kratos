@@ -634,8 +634,8 @@ std::tuple< Properties::Pointer , Properties::Pointer > EmbeddedSkinVisualizatio
             max_prop_id = it_prop->Id();
         }
     }
-    Properties::Pointer p_pos_prop = Kratos::make_shared<Properties>(max_prop_id + 1);
-    Properties::Pointer p_neg_prop = Kratos::make_shared<Properties>(max_prop_id + 2);
+    Properties::Pointer p_pos_prop = Kratos::make_intrusive<Properties>(max_prop_id + 1);
+    Properties::Pointer p_neg_prop = Kratos::make_intrusive<Properties>(max_prop_id + 2);
     mrVisualizationModelPart.AddProperties(p_pos_prop);
     mrVisualizationModelPart.AddProperties(p_neg_prop);
 

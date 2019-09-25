@@ -32,8 +32,8 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::CalculateStressD
         // ensure that adjoint load is determined without influence of pre-stress
         // pre-stress does not cancel out when computing this derivative with unit-displacements!
         Properties::Pointer p_global_properties = this->mpPrimalElement->pGetProperties();
-
-        Properties::Pointer p_local_property(Kratos::make_shared<Properties>(*p_global_properties));
+ 
+        Properties::Pointer p_local_property(Kratos::make_intrusive<Properties>(*p_global_properties));
         this->mpPrimalElement->SetProperties(p_local_property);
 
         p_local_property->SetValue(TRUSS_PRESTRESS_PK2, 0.0);
