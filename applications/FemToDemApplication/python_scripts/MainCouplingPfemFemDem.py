@@ -119,16 +119,6 @@ class MainCouplingPfemFemDem_Solution:
         self.PFEM_Solution.main_model_part.ProcessInfo[KM.DELTA_TIME] = FEM_delta_time
 
 #============================================================================================================================
-    def ComputeSkinFEMDEMGeometry(self):
-        if self.FEMDEM_Solution.domain_size == 2:
-            skin_detection_process = KM.SkinDetectionProcess2D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
-                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)
-        else: # 3D
-            skin_detection_process = KM.SkinDetectionProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
-                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)
-        skin_detection_process.Execute()
-
-#============================================================================================================================
     def RegenerateAndUpdatePFEMPressureConditions(self):
         regenerate_cond_process = FEMDEM.RegeneratePfemPressureConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
         regenerate_cond_process.Execute()
