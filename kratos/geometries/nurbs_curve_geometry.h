@@ -60,7 +60,7 @@ public:
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
     {
-        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
+        KRATOS_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
             << "Number of knots and control points do not match!" << std::endl;
     }
 
@@ -75,10 +75,10 @@ public:
         , mKnots(rKnots)
         , mWeights(rWeights)
     {
-        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
+        KRATOS_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
             << "Number of knots and control points do not match!" << std::endl;
 
-        KRATOS_DEBUG_ERROR_IF(rWeights.size() != rThisPoints.size())
+        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
     }
 
