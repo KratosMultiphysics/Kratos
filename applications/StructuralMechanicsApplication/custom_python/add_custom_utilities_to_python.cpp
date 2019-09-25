@@ -21,6 +21,7 @@
 #include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
 #include "custom_utilities/explicit_integration_utilities.h"
 #include "custom_utilities/rve_periodicity_utility.h"
+#include "custom_utilities/thread_specification_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -47,6 +48,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, std::size_t>())
         .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
         .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        ;
+
+    py::class_<ThreadSpecificationUtility>(m,"ThreadSpecificationUtility")
+        .def(py::init<>())
+        .def("SetNumberOfThreads",&ThreadSpecificationUtility::SetNumberOfThreads)
+        .def("GetMaxNumberOfThreads",&ThreadSpecificationUtility::GetMaxNumberOfThreads)
         ;
 }
 

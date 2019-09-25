@@ -7,6 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
+from KratosMultiphysics.StructuralMechanicsApplication import ThreadSpecificationUtility
 
 def CreateSolver(model, custom_settings):
     return StructuralMechanicsAdjointStaticSolver(model, custom_settings)
@@ -116,6 +117,9 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
         self.sensitivity_builder.Initialize()
 
+        self.max_number_of_threads = ThreadSpecificationUtility().GetMaxNumberOfThreads()
+        ThreadSpecificationUtility().SetNumberOfThreads(1)
+
         super(StructuralMechanicsAdjointStaticSolver, self).Initialize()
         self.response_function.Initialize()
 
@@ -126,6 +130,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         self.response_function.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
+        ThreadSpecificationUtility().SetNumberOfThreads(self.max_number_of_threads)
+
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
         self.response_function.FinalizeSolutionStep()
