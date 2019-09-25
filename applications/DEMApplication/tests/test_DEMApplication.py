@@ -7,8 +7,8 @@ import test_particle_creator_destructor
 import test_wall_creator_destructor
 import test_analytics
 import test_glued_particles
+import test_restart
 import test_DEM_2D
-
 
 def AssembleTestSuites():
 
@@ -35,12 +35,14 @@ def AssembleTestSuites():
     #smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_3"))
     smallSuite.addTest(test_glued_particles.TestGluedParticles("test_Glued_Particles_1"))
     smallSuite.addTest(test_DEM_2D.TestDEM2D("test_DEM2D_1"))
+    smallSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
+    smallSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
 
-    # For very long tests that should not be in nighly and you can use to validate
+    # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
 
     # Create a test suit that contains all the tests:
