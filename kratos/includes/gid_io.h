@@ -61,7 +61,7 @@ enum MultiFileFlag {SingleFile, MultipleFiles};
 
 class GiDIOBase : public IO {
 
-    private:
+    protected:
     /**
      * Counter of live GidIO instances
      * (to ensure GiD_PostInit and GiD_PostDone are properly called)
