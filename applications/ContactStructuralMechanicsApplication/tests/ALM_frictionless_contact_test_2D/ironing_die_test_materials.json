@@ -1,7 +1,7 @@
 {
     "properties": [
     {
-            "model_part_name": "Parts_parts_die",
+            "model_part_name": "Structure.Parts_parts_die",
             "properties_id": 1,
             "Material": {
                     "name": "Material",
@@ -18,7 +18,7 @@
             }
     },
     {
-            "model_part_name": "Parts_parts_slab",
+            "model_part_name": "Structure.Parts_parts_slab",
             "properties_id": 2,
             "Material": {
                     "name": "Material",

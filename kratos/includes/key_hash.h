@@ -10,16 +10,15 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-/* System includes */
-
-/* External includes */
-
-/* Project includes */
-//#include "includes/node.h"
-#include "includes/dof.h"
-
 #ifndef KRATOS_KEY_HASH_H_INCLUDED
 #define KRATOS_KEY_HASH_H_INCLUDED
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/dof.h"
 
 namespace Kratos
 {
@@ -38,9 +37,6 @@ namespace Kratos
 
     /// The definition of the hash type
     typedef std::size_t HashType;
-
-    // The node definition
-    //typedef Node<3> NodeType;
 
 ///@}
 ///@name  Enum's

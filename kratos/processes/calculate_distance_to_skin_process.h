@@ -169,12 +169,6 @@ public:
      */
     virtual void CalculateRayDistances();
 
-    /**
-     * @brief Executes the CalculateDistanceToSkinProcess
-     * This method automatically does all the calls required to compute the signed distance function.
-     */
-    void Execute() override;
-
     ///@}
     ///@name Input and output
     ///@{
