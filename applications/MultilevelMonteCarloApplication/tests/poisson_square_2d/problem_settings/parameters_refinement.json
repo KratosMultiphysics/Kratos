@@ -8,6 +8,7 @@
 		},
 		"enforce_current"      : false,
 		"anisotropy_remeshing" : true,
+		"enforce_anisotropy_relative_variable" : false,
 		"enforced_anisotropy_parameters" :{
 			"reference_variable_name"          : "TEMPERATURE",
 			"hmin_over_hmax_anisotropic_ratio" : 0.01,
