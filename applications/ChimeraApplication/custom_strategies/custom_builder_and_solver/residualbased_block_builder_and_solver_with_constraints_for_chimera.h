@@ -212,23 +212,23 @@ protected:
         {
             BuildMasterSlaveConstraints(rModelPart);
             // We compute the transposed matrix of the global relation matrix
-            // TSystemMatrixType L_transpose_matrix(mL.size2(), mL.size1());
+            TSystemMatrixType L_transpose_matrix(mL.size2(), mL.size1());
             // auto L_transpose_matrix =  boost::numeric::ublas::trans(mL);
-            // SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(L_transpose_matrix, mL, 1.0);
+            SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(L_transpose_matrix, mL, 1.0);
 
             TSystemVectorType b_modified(rb.size());
-            boost::numeric::ublas::axpy_prod(boost::numeric::ublas::trans(mL), rb, b_modified, true);
-            //TSparseSpace::Mult(L_transpose_matrix, rb, b_modified);
+            //boost::numeric::ublas::axpy_prod(boost::numeric::ublas::trans(mL), rb, b_modified, true);
+            TSparseSpace::Mult(L_transpose_matrix, rb, b_modified);
             TSparseSpace::Copy(b_modified, rb);
             b_modified.resize(0, false); //free memory
 
             TSystemMatrixType auxiliar_A_matrix(BaseType::mT.size2(), rA.size2());
-            boost::numeric::ublas::axpy_prod(boost::numeric::ublas::trans(mL), rA, auxiliar_A_matrix, true);
-            //SparseMatrixMultiplicationUtility::MatrixMultiplication(L_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
-            // L_transpose_matrix.resize(0, 0, false);                                                             //free memory
+            //boost::numeric::ublas::axpy_prod(boost::numeric::ublas::trans(mL), rA, auxiliar_A_matrix, true);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(L_transpose_matrix, rA, auxiliar_A_matrix); //auxiliar = T_transpose * rA
+            L_transpose_matrix.resize(0, 0, false);                                                             //free memory
 
-            boost::numeric::ublas::axpy_prod(auxiliar_A_matrix, BaseType::mT, rA, true);
-            //SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, BaseType::mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
+            //boost::numeric::ublas::axpy_prod(auxiliar_A_matrix, BaseType::mT, rA, true);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, BaseType::mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                                        //free memory
 
             double max_diag = 0.0;
