@@ -278,14 +278,10 @@ public:
     {
         std::array<std::size_t, TNumNodes> ids;
         this->EquationIdArray(ids, rCurrentProcessInfo);
-        if (rResult.size() != TMonolithicAssemblyLocalSize)
-            rResult.resize(TMonolithicAssemblyLocalSize, false);
-        const IndexType dof_index =
-            static_cast<IndexType>(rCurrentProcessInfo[this->GetPrimalVariable()]);
-        for (IndexType i = 0; i < TNumNodes; ++i)
-        {
-            rResult[i * TMonolithicAssemblyNodalDofSize + dof_index] = ids[i];
-        }
+
+        if (rResult.size() != TNumNodes)
+            rResult.resize(TNumNodes, false);
+        std::copy(ids.begin(), ids.end(), rResult.begin());
     }
 
     void EquationIdArray(std::array<std::size_t, TNumNodes>& rResult, ProcessInfo& rCurrentProcessInfo)
@@ -306,17 +302,15 @@ public:
     {
         std::array<Dof<double>::Pointer, TNumNodes> dofs;
         this->GetDofArray(dofs, rCurrentProcessInfo);
-        if (rElementalDofList.size() != TMonolithicAssemblyLocalSize)
-            rElementalDofList.resize(TMonolithicAssemblyLocalSize);
-        const IndexType dof_index =
-            static_cast<IndexType>(rCurrentProcessInfo[this->GetPrimalVariable()]);
-        for (IndexType i = 0; i < TNumNodes; ++i)
-        {
-            rElementalDofList[i * TMonolithicAssemblyNodalDofSize + dof_index] = dofs[i];
-        }
+
+        if (rElementalDofList.size() != TNumNodes)
+            rElementalDofList.resize(TNumNodes);
+
+        std::copy(dofs.begin(), dofs.end(), rElementalDofList.begin());
     }
 
-    void GetDofArray(std::array<Dof<double>::Pointer, TNumNodes>& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
+    void GetDofArray(std::array<Dof<double>::Pointer, TNumNodes>& rElementalDofList,
+                     ProcessInfo& rCurrentProcessInfo)
     {
         const Variable<double>& r_adjoint_Variable = this->GetAdjointVariable();
         for (IndexType i = 0; i < TNumNodes; ++i)
@@ -329,13 +323,10 @@ public:
     {
         std::array<double, TNumNodes> values;
         this->GetValuesArray(values, Step);
-        if (rValues.size() != TMonolithicAssemblyLocalSize)
-            rValues.resize(TMonolithicAssemblyLocalSize, false);
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
-            rValues[i * TMonolithicAssemblyNodalDofSize + TMonolithicNodalEquationIndex] =
-                values[i];
-        }
+
+        if (rValues.size() != TNumNodes)
+            rValues.resize(TNumNodes, false);
+        std::copy(values.begin(), values.end(), rValues.begin());
     }
 
     void GetValuesArray(std::array<double, TNumNodes>& rValues, int Step = 0)
@@ -352,13 +343,9 @@ public:
     {
         std::array<double, TNumNodes> values;
         this->GetFirstDerivativesArray(values, Step);
-        if (rValues.size() != TMonolithicAssemblyLocalSize)
-            rValues.resize(TMonolithicAssemblyLocalSize, false);
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
-            rValues[i * TMonolithicAssemblyNodalDofSize + TMonolithicNodalEquationIndex] =
-                values[i];
-        }
+        if (rValues.size() != TNumNodes)
+            rValues.resize(TNumNodes, false);
+        std::copy(values.begin(), values.end(), rValues.begin());
     }
 
     void GetFirstDerivativesArray(std::array<double, TNumNodes>& rValues, int Step = 0)
@@ -373,13 +360,9 @@ public:
     {
         std::array<double, TNumNodes> values;
         this->GetSecondDerivativesArray(values, Step);
-        if (rValues.size() != TMonolithicAssemblyLocalSize)
-            rValues.resize(TMonolithicAssemblyLocalSize, false);
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
-            rValues[i * TMonolithicAssemblyNodalDofSize + TMonolithicNodalEquationIndex] =
-                values[i];
-        }
+        if (rValues.size() != TNumNodes)
+            rValues.resize(TNumNodes, false);
+        std::copy(values.begin(), values.end(), rValues.begin());
     }
 
     void GetSecondDerivativesArray(std::array<double, TNumNodes>& rValues, int Step = 0)
@@ -389,7 +372,8 @@ public:
         const GeometryType& r_geometry = this->GetGeometry();
         for (unsigned int i = 0; i < TNumNodes; ++i)
         {
-            rValues[i] = r_geometry[i].FastGetSolutionStepValue(r_adjoint_second_variable, Step);
+            rValues[i] = r_geometry[i].FastGetSolutionStepValue(
+                r_adjoint_second_variable, Step);
         }
     }
 
@@ -435,7 +419,7 @@ public:
     void CalculateLeftHandSide(BoundedMatrix<double, TNumNodes, TNumNodes>& rLeftHandSideMatrix,
                                ProcessInfo& rCurrentProcessInfo)
     {
-            rLeftHandSideMatrix.clear();
+        rLeftHandSideMatrix.clear();
     }
 
     /**
@@ -480,24 +464,16 @@ public:
     {
         BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
         this->CalculateFirstDerivativesLHS(local_matrix, rCurrentProcessInfo);
-        // todo: remove monolithic construction
-        if (!TMonolithicMatrixConstruction)
-        {
-            if (rLeftHandSideMatrix.size1() != local_matrix.size1() ||
-                rLeftHandSideMatrix.size2() != local_matrix.size2())
-                rLeftHandSideMatrix.resize(local_matrix.size1(),
-                                           local_matrix.size2(), false);
-            rLeftHandSideMatrix.clear();
-        }
-        const unsigned int dof_index =
-            static_cast<unsigned int>(rCurrentProcessInfo[this->GetPrimalVariable()]);
+        if (rLeftHandSideMatrix.size1() != local_matrix.size1() ||
+            rLeftHandSideMatrix.size2() != local_matrix.size2())
+            rLeftHandSideMatrix.resize(local_matrix.size1(), local_matrix.size2(), false);
+        rLeftHandSideMatrix.clear();
+
         for (unsigned int a = 0; a < TNumNodes; ++a)
         {
             for (unsigned int c = 0; c < TNumNodes; ++c)
             {
-                rLeftHandSideMatrix(c * TMonolithicAssemblyNodalDofSize + dof_index,
-                                    a * TMonolithicAssemblyNodalDofSize + dof_index) +=
-                    local_matrix(c, a);
+                rLeftHandSideMatrix(a, c) += local_matrix(a, c);
             }
         }
     }
@@ -530,22 +506,19 @@ public:
     {
         BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
         this->CalculateSecondDerivativesLHS(local_matrix, rCurrentProcessInfo);
-        // todo: remove monolithic construction
-        if (!TMonolithicMatrixConstruction)
+
+        if (rLeftHandSideMatrix.size1() != local_matrix.size1() ||
+            rLeftHandSideMatrix.size2() != local_matrix.size2())
+            rLeftHandSideMatrix.resize(local_matrix.size1(), local_matrix.size2(), false);
+        rLeftHandSideMatrix.clear();
+
+        for (unsigned int a = 0; a < TNumNodes; ++a)
         {
-            if (rLeftHandSideMatrix.size1() != local_matrix.size1() ||
-                rLeftHandSideMatrix.size2() != local_matrix.size2())
-                rLeftHandSideMatrix.resize(local_matrix.size1(),
-                                           local_matrix.size2(), false);
-            rLeftHandSideMatrix.clear();
+            for (unsigned int c = 0; c < TNumNodes; ++c)
+            {
+                rLeftHandSideMatrix(a, c) += local_matrix(a, c);
+            }
         }
-        const unsigned int dof_index =
-            static_cast<unsigned int>(rCurrentProcessInfo[this->GetPrimalVariable()]);
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-            for (unsigned int j = 0; j < TNumNodes; ++j)
-                rLeftHandSideMatrix(j * TMonolithicAssemblyNodalDofSize + dof_index,
-                                    i * TMonolithicAssemblyNodalDofSize + dof_index) +=
-                    local_matrix(j, i);
     }
 
     void CalculateSecondDerivativesLHS(BoundedMatrix<double, TNumNodes, TNumNodes>& rLeftHandSideMatrix,
@@ -617,31 +590,17 @@ public:
         {
             BoundedMatrix<double, TNumNodes * TDim, TNumNodes> local_matrix;
             CalculateElementTotalResidualVelocityDerivatives(local_matrix, rCurrentProcessInfo);
-            // todo: remove monolithic construction
-            if (!TMonolithicMatrixConstruction)
+
+            if (rOutput.size1() != local_matrix.size1() ||
+                rOutput.size2() != local_matrix.size2())
+                rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
+            rOutput.clear();
+
+            for (unsigned int a = 0; a < local_matrix.size1(); ++a)
             {
-                constexpr unsigned int TLocalMatrixSize = TMonolithicAssemblyLocalSize;
-                constexpr unsigned int local_vel_pr_size =
-                    (TVelPrLocalSize > TLocalMatrixSize) ? TVelPrLocalSize : TLocalMatrixSize;
-                if (rOutput.size1() != local_vel_pr_size || rOutput.size2() != TLocalMatrixSize)
-                    rOutput.resize(local_vel_pr_size, TLocalMatrixSize, false);
-                rOutput.clear();
-            }
-            const unsigned int nodal_vel_pr_derivative_dof_size =
-                std::max(TMonolithicAssemblyNodalDofSize, TVelPrBlockSize);
-            const unsigned int equation_dof_index = static_cast<unsigned int>(
-                rCurrentProcessInfo[this->GetPrimalVariable()]);
-            for (unsigned int a = 0; a < TNumNodes; ++a)
-            {
-                for (unsigned int c = 0; c < TNumNodes; ++c)
+                for (unsigned int c = 0; c < local_matrix.size2(); ++c)
                 {
-                    unsigned int block_size = c * nodal_vel_pr_derivative_dof_size;
-                    for (unsigned int k = 0; k < TDim; ++k)
-                    {
-                        rOutput(block_size + k, a * TMonolithicAssemblyNodalDofSize +
-                                                                 equation_dof_index) +=
-                            local_matrix(c * TDim + k, a);
-                    }
+                    rOutput(a, c) += local_matrix(a, c);
                 }
             }
         }
@@ -681,8 +640,9 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateElementTotalResidualVelocityDerivatives(BoundedMatrix<double, TNumNodes * TDim, TNumNodes>& rResidualDerivatives,
-                                                          const ProcessInfo& rCurrentProcessInfo)
+    void CalculateElementTotalResidualVelocityDerivatives(
+        BoundedMatrix<double, TNumNodes * TDim, TNumNodes>& rResidualDerivatives,
+        const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -958,7 +918,8 @@ public:
                                  gauss_shape_functions[c] * primal_variable_gradient[k];
 
                         // putting transposed values
-                        rResidualDerivatives(c * TDim + k, a) -= value * gauss_weights[g];
+                        rResidualDerivatives(c * TDim + k, a) -=
+                            value * gauss_weights[g];
 
                         // adding source term derivatives
                         value = 0.0;
@@ -978,7 +939,8 @@ public:
                                  source_derivatives(c, k);
 
                         // putting transposed values
-                        rResidualDerivatives(c * TDim + k, a) += value * gauss_weights[g];
+                        rResidualDerivatives(c * TDim + k, a) +=
+                            value * gauss_weights[g];
 
                         // adding mass term derivatives
                         value = 0.0;
@@ -992,7 +954,8 @@ public:
                                   s_derivatives(c, k) * gauss_shape_functions[a]) *
                                  primal_variable_relaxed_rate;
 
-                        rResidualDerivatives(c * TDim + k, a) -= value * gauss_weights[g];
+                        rResidualDerivatives(c * TDim + k, a) -=
+                            value * gauss_weights[g];
                     }
                 }
             }
@@ -1076,13 +1039,14 @@ public:
      * @param rCurrentProcessInfo  Current process info
      */
     void CalculateResidualScalarDerivatives(const Variable<double>& rDerivativeVariable,
-                                                        BoundedMatrix<double, TNumNodes, TNumNodes>& rResidualDerivatives,
-                                                        const ProcessInfo& rCurrentProcessInfo)
+                                            BoundedMatrix<double, TNumNodes, TNumNodes>& rResidualDerivatives,
+                                            const ProcessInfo& rCurrentProcessInfo)
     {
         rResidualDerivatives.clear();
-        AddPrimalSteadyTermScalarDerivatives(rResidualDerivatives, rDerivativeVariable,
-                                             rCurrentProcessInfo);
-        AddMassTermScalarDerivatives(rResidualDerivatives, rDerivativeVariable, rCurrentProcessInfo);
+        AddPrimalSteadyTermScalarDerivatives(
+            rResidualDerivatives, rDerivativeVariable, rCurrentProcessInfo);
+        AddMassTermScalarDerivatives(rResidualDerivatives, rDerivativeVariable,
+                                     rCurrentProcessInfo);
     }
 
     ///@}
@@ -2933,7 +2897,8 @@ private:
         KRATOS_CATCH("");
     }
 
-    void AddPrimalDampingMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rPrimalDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+    void AddPrimalDampingMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rPrimalDampingMatrix,
+                                ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
