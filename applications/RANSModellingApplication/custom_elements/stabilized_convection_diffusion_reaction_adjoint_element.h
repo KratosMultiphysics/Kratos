@@ -72,10 +72,8 @@ namespace Kratos
  * @tparam TDim                            Dimensionality of the element
  * @tparam TNumNodes                       Number of nodes in the element
  * @tparam TElementData                    Data container used to calculate derivatives
- * @tparam TMonolithicAssemblyNodalDofSize Block size of the parent monolithic element
- * @tparam TMonolithicNodalEquationIndex   Equation index in the monolithic element
  */
-template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize = 1, unsigned int TMonolithicNodalEquationIndex = 0>
+template <unsigned int TDim, unsigned int TNumNodes, class TElementData>
 class StabilizedConvectionDiffusionReactionAdjointElement : public Element
 {
 public:
@@ -3654,16 +3652,16 @@ private:
 ///@{
 
 /// input stream function
-template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize = 1>
+template <unsigned int TDim, unsigned int TNumNodes, class TElementData>
 inline std::istream& operator>>(
     std::istream& rIStream,
-    StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData, TMonolithicAssemblyNodalDofSize>& rThis);
+    StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData>& rThis);
 
 /// output stream function
-template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize = 1>
+template <unsigned int TDim, unsigned int TNumNodes, class TElementData>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData, TMonolithicAssemblyNodalDofSize>& rThis)
+    const StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;

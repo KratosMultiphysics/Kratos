@@ -47,9 +47,8 @@ namespace Kratos
 /**
  * Constructor.
  */
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::EvmEpsilonAdjointElement(
-    IndexType NewId)
+template <unsigned int TDim, unsigned int TNumNodes>
+EvmEpsilonAdjointElement<TDim, TNumNodes>::EvmEpsilonAdjointElement(IndexType NewId)
     : BaseType(NewId)
 {
 }
@@ -57,9 +56,9 @@ EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMono
 /**
  * Constructor using an array of nodes
  */
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::EvmEpsilonAdjointElement(
-    IndexType NewId, const NodesArrayType& ThisNodes)
+template <unsigned int TDim, unsigned int TNumNodes>
+EvmEpsilonAdjointElement<TDim, TNumNodes>::EvmEpsilonAdjointElement(IndexType NewId,
+                                                                    const NodesArrayType& ThisNodes)
     : BaseType(NewId, ThisNodes)
 {
 }
@@ -67,9 +66,9 @@ EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMono
 /**
  * Constructor using Geometry
  */
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::EvmEpsilonAdjointElement(
-    IndexType NewId, GeometryType::Pointer pGeometry)
+template <unsigned int TDim, unsigned int TNumNodes>
+EvmEpsilonAdjointElement<TDim, TNumNodes>::EvmEpsilonAdjointElement(IndexType NewId,
+                                                                    GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
 {
 }
@@ -77,8 +76,8 @@ EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMono
 /**
  * Constructor using Properties
  */
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::EvmEpsilonAdjointElement(
+template <unsigned int TDim, unsigned int TNumNodes>
+EvmEpsilonAdjointElement<TDim, TNumNodes>::EvmEpsilonAdjointElement(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : BaseType(NewId, pGeometry, pProperties)
 {
@@ -87,9 +86,9 @@ EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMono
 /**
  * Copy Constructor
  */
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::EvmEpsilonAdjointElement(
-    EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex> const& rOther)
+template <unsigned int TDim, unsigned int TNumNodes>
+EvmEpsilonAdjointElement<TDim, TNumNodes>::EvmEpsilonAdjointElement(
+    EvmEpsilonAdjointElement<TDim, TNumNodes> const& rOther)
     : BaseType(rOther)
 {
 }
@@ -97,8 +96,8 @@ EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMono
 /**
  * Destructor
  */
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::~EvmEpsilonAdjointElement()
+template <unsigned int TDim, unsigned int TNumNodes>
+EvmEpsilonAdjointElement<TDim, TNumNodes>::~EvmEpsilonAdjointElement()
 {
 }
 
@@ -107,10 +106,9 @@ EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMono
 ///@{
 
 /// Assignment operator.
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>&
-EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::operator=(
-    EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex> const& rOther)
+template <unsigned int TDim, unsigned int TNumNodes>
+EvmEpsilonAdjointElement<TDim, TNumNodes>& EvmEpsilonAdjointElement<TDim, TNumNodes>::operator=(
+    EvmEpsilonAdjointElement<TDim, TNumNodes> const& rOther)
 {
     BaseType::operator=(rOther);
     Flags::operator=(rOther);
@@ -134,8 +132,8 @@ EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMono
  * @param pProperties: the properties assigned to the new element
  * @return a Pointer to the new element
  */
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-Element::Pointer EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::Create(
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::Pointer EvmEpsilonAdjointElement<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
@@ -151,8 +149,8 @@ Element::Pointer EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNo
  * @param pProperties: the properties assigned to the new element
  * @return a Pointer to the new element
  */
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-Element::Pointer EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::Create(
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::Pointer EvmEpsilonAdjointElement<TDim, TNumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
@@ -167,9 +165,9 @@ Element::Pointer EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNo
  * @param pProperties: the properties assigned to the new element
  * @return a Pointer to the new element
  */
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-Element::Pointer EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::Clone(
-    IndexType NewId, NodesArrayType const& ThisNodes) const
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::Pointer EvmEpsilonAdjointElement<TDim, TNumNodes>::Clone(IndexType NewId,
+                                                                  NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<EvmEpsilonAdjointElement>(
@@ -177,8 +175,8 @@ Element::Pointer EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNo
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-GeometryData::IntegrationMethod EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::GetIntegrationMethod() const
+template <unsigned int TDim, unsigned int TNumNodes>
+GeometryData::IntegrationMethod EvmEpsilonAdjointElement<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
 }
@@ -192,9 +190,8 @@ GeometryData::IntegrationMethod EvmEpsilonAdjointElement<TDim, TNumNodes, TMonol
  * @param rCurrentProcessInfo
  * this method is: MANDATORY
  */
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-int EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+template <unsigned int TDim, unsigned int TNumNodes>
+int EvmEpsilonAdjointElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -253,8 +250,8 @@ int EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, T
 
 /// Turn back information as a string.
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-std::string EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::Info() const
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string EvmEpsilonAdjointElement<TDim, TNumNodes>::Info() const
 {
     std::stringstream buffer;
     buffer << "EvmEpsilonAdjointElement #" << Element::Id();
@@ -263,18 +260,16 @@ std::string EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDo
 
 /// Print information about this object.
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::PrintInfo(
-    std::ostream& rOStream) const
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "EvmEpsilonAdjointElement #" << Element::Id();
 }
 
 /// Print object's data.
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::PrintData(
-    std::ostream& rOStream) const
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
 {
     Element::pGetGeometry()->PrintData(rOStream);
 }
@@ -328,32 +323,32 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
 ///@}
 ///@name Private Operations
 ///@{
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-const Variable<double>& EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::GetPrimalVariable() const
+template <unsigned int TDim, unsigned int TNumNodes>
+const Variable<double>& EvmEpsilonAdjointElement<TDim, TNumNodes>::GetPrimalVariable() const
 {
     return TURBULENT_ENERGY_DISSIPATION_RATE;
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-const Variable<double>& EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::GetPrimalRelaxedRateVariable() const
+template <unsigned int TDim, unsigned int TNumNodes>
+const Variable<double>& EvmEpsilonAdjointElement<TDim, TNumNodes>::GetPrimalRelaxedRateVariable() const
 {
     return RANS_AUXILIARY_VARIABLE_2;
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-const Variable<double>& EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::GetAdjointVariable() const
+template <unsigned int TDim, unsigned int TNumNodes>
+const Variable<double>& EvmEpsilonAdjointElement<TDim, TNumNodes>::GetAdjointVariable() const
 {
     return RANS_SCALAR_2_ADJOINT_1;
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-const Variable<double>& EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::GetAdjointSecondVariable() const
+template <unsigned int TDim, unsigned int TNumNodes>
+const Variable<double>& EvmEpsilonAdjointElement<TDim, TNumNodes>::GetAdjointSecondVariable() const
 {
     return RANS_SCALAR_2_ADJOINT_3;
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateElementData(
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateElementData(
     EvmEpsilonAdjointElementData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -432,22 +427,22 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     }
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateEffectiveKinematicViscosity(
+template <unsigned int TDim, unsigned int TNumNodes>
+double EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateEffectiveKinematicViscosity(
     const EvmEpsilonAdjointElementData& rCurrentData, const ProcessInfo& rCurrentProcessInfo) const
 {
     return rCurrentData.EffectiveKinematicViscosity;
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateReactionTerm(
+template <unsigned int TDim, unsigned int TNumNodes>
+double EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateReactionTerm(
     const EvmEpsilonAdjointElementData& rData, const ProcessInfo& rCurrentProcessInfo) const
 {
     return rData.C2 * rData.Gamma + rData.C1 * 2.0 * rData.VelocityDivergence / 3.0;
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateSourceTerm(
+template <unsigned int TDim, unsigned int TNumNodes>
+double EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateSourceTerm(
     const EvmEpsilonAdjointElementData& rData, const ProcessInfo& rCurrentProcessInfo) const
 {
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
@@ -460,8 +455,8 @@ double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize
     return production;
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateEffectiveKinematicViscosityScalarDerivatives(
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityScalarDerivatives(
     Vector& rOutput,
     const Variable<double>& rDerivativeVariable,
     const EvmEpsilonAdjointElementData& rCurrentData,
@@ -477,7 +472,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         //     rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
         //     rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK,
+            rCurrentData.ShapeFunctions);
 
         noalias(rOutput) = rOutput / epsilon_sigma;
     }
@@ -491,7 +487,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         //     rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
         //     rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon,
+            rCurrentData.ShapeFunctions);
 
         noalias(rOutput) = rOutput / epsilon_sigma;
     }
@@ -504,8 +501,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateReactionTermScalarDerivatives(
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateReactionTermScalarDerivatives(
     Vector& rOutput,
     const Variable<double>& rDerivativeVariable,
     const EvmEpsilonAdjointElementData& rCurrentData,
@@ -517,7 +514,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         const double c2 = rCurrentData.C2;
 
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK,
+            rCurrentData.ShapeFunctions);
 
         Vector theta_sensitivities(rOutput.size());
         EvmKepsilonModelAdjointUtilities::CalculateThetaTKESensitivity(
@@ -532,7 +530,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         const double c2 = rCurrentData.C2;
 
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon,
+            rCurrentData.ShapeFunctions);
 
         Vector theta_sensitivities(rOutput.size());
         EvmKepsilonModelAdjointUtilities::CalculateThetaEpsilonSensitivity(
@@ -548,8 +547,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     }
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateSourceTermScalarDerivatives(
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateSourceTermScalarDerivatives(
     Vector& rOutput,
     const Variable<double>& rDerivativeVariable,
     const EvmEpsilonAdjointElementData& rCurrentData,
@@ -561,7 +560,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         const double c1 = rCurrentData.C1;
 
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK,
+            rCurrentData.ShapeFunctions);
 
         BoundedMatrix<double, TDim, TDim> velocity_gradient;
         this->CalculateGradient(velocity_gradient, VELOCITY,
@@ -589,7 +589,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         const double c1 = rCurrentData.C1;
 
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon,
+            rCurrentData.ShapeFunctions);
 
         BoundedMatrix<double, TDim, TDim> velocity_gradient;
         this->CalculateGradient(velocity_gradient, VELOCITY,
@@ -618,9 +619,10 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     }
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::Calculate(
-    const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::Calculate(const Variable<Matrix>& rVariable,
+                                                          Matrix& rOutput,
+                                                          const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -629,39 +631,28 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         BoundedMatrix<double, TNumNodes, TNumNodes> local_matrix;
         this->CalculateResidualScalarDerivatives(
             TURBULENT_KINETIC_ENERGY, local_matrix, rCurrentProcessInfo);
-        // todo: remove monolithic construction
-        if (TMonolithicAssemblyNodalDofSize == 1)
+        if (rOutput.size1() != local_matrix.size1() ||
+            rOutput.size2() != local_matrix.size2())
+            rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
+
+        for (unsigned int a = 0; a < local_matrix.size1(); ++a)
         {
-            if (Output.size1() != local_matrix.size1() ||
-                Output.size2() != local_matrix.size2())
-                Output.resize(local_matrix.size1(), local_matrix.size2(), false);
-            Output.clear();
-        }
-        const unsigned int equation_dof_index =
-            static_cast<unsigned int>(rCurrentProcessInfo[this->GetPrimalVariable()]);
-        const unsigned int derivative_dof_index =
-            static_cast<unsigned int>(rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY]);
-        for (unsigned int a = 0; a < TNumNodes; ++a)
-        {
-            for (unsigned int c = 0; c < TNumNodes; ++c)
+            for (unsigned int c = 0; c < local_matrix.size2(); ++c)
             {
-                Output(
-                    c * TMonolithicAssemblyNodalDofSize + derivative_dof_index,
-                    a * TMonolithicAssemblyNodalDofSize + equation_dof_index) +=
-                    local_matrix(c, a);
+                rOutput(a, c) = local_matrix(a, c);
             }
         }
     }
     else
     {
-        BaseType::Calculate(rVariable, Output, rCurrentProcessInfo);
+        BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     KRATOS_CATCH("");
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateEffectiveKinematicViscosityVelocityDerivatives(
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityVelocityDerivatives(
     Matrix& rOutput,
     const EvmEpsilonAdjointElementData& rCurrentData,
     const ProcessInfo& rCurrentProcessInfo) const
@@ -669,8 +660,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     rOutput.clear();
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateReactionTermVelocityDerivatives(
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateReactionTermVelocityDerivatives(
     Matrix& rOutput,
     const EvmEpsilonAdjointElementData& rCurrentData,
     const ProcessInfo& rCurrentProcessInfo) const
@@ -679,8 +670,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
         rCurrentData.ShapeFunctionDerivatives * ((2.0 / 3.0) * rCurrentData.C1);
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateSourceTermVelocityDerivatives(
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateSourceTermVelocityDerivatives(
     Matrix& rOutput,
     const EvmEpsilonAdjointElementData& rCurrentData,
     const ProcessInfo& rCurrentProcessInfo) const
@@ -698,8 +689,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     noalias(rOutput) = rOutput * (c1 * rCurrentData.Gamma);
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateEffectiveKinematicViscosityShapeSensitivity(
+template <unsigned int TDim, unsigned int TNumNodes>
+double EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityShapeSensitivity(
     const EvmEpsilonAdjointElementData& rCurrentData,
     const ShapeParameter& rShapeDerivative,
     const double detJ_deriv,
@@ -709,8 +700,8 @@ double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize
     return 0.0;
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateReactionTermShapeSensitivity(
+template <unsigned int TDim, unsigned int TNumNodes>
+double EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateReactionTermShapeSensitivity(
     const EvmEpsilonAdjointElementData& rCurrentData,
     const ShapeParameter& rShapeDerivative,
     const double detJ_deriv,
@@ -720,8 +711,8 @@ double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize
     return (2.0 * rCurrentData.C1 / 3.0) * this->GetDivergenceOperator(VELOCITY, rDN_Dx_deriv);
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::CalculateSourceTermShapeSensitivity(
+template <unsigned int TDim, unsigned int TNumNodes>
+double EvmEpsilonAdjointElement<TDim, TNumNodes>::CalculateSourceTermShapeSensitivity(
     const EvmEpsilonAdjointElementData& rCurrentData,
     const ShapeParameter& rShapeDerivative,
     const double detJ_deriv,
@@ -746,9 +737,8 @@ double EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize
 ///@name Serialization
 ///@{
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::save(
-    Serializer& rSerializer) const
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 
@@ -756,9 +746,8 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
     // To be completed with the class member list
 }
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::load(
-    Serializer& rSerializer)
+template <unsigned int TDim, unsigned int TNumNodes>
+void EvmEpsilonAdjointElement<TDim, TNumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 
@@ -788,17 +777,15 @@ void EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, 
 
 /// input stream function
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-inline std::istream& operator>>(
-    std::istream& rIStream,
-    EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>& rThis);
+template <unsigned int TDim, unsigned int TNumNodes>
+inline std::istream& operator>>(std::istream& rIStream,
+                                EvmEpsilonAdjointElement<TDim, TNumNodes>& rThis);
 
 /// output stream function
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-inline std::ostream& operator<<(
-    std::ostream& rOStream,
-    const EvmEpsilonAdjointElement<TDim, TNumNodes, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>& rThis)
+template <unsigned int TDim, unsigned int TNumNodes>
+inline std::ostream& operator<<(std::ostream& rOStream,
+                                const EvmEpsilonAdjointElement<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -812,11 +799,5 @@ template class EvmEpsilonAdjointElement<2, 3>;
 template class EvmEpsilonAdjointElement<3, 4>;
 template class EvmEpsilonAdjointElement<2, 4>;
 template class EvmEpsilonAdjointElement<3, 8>;
-
-// K-Epsilon with VMS Adjoint monolithic assembly
-template class EvmEpsilonAdjointElement<2, 3, 5, 4>;
-template class EvmEpsilonAdjointElement<3, 4, 6, 5>;
-template class EvmEpsilonAdjointElement<2, 4, 5, 4>;
-template class EvmEpsilonAdjointElement<3, 8, 6, 5>;
 
 } // namespace Kratos.

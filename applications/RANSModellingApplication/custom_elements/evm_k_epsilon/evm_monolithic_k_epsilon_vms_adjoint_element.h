@@ -14,8 +14,8 @@
 #define KRATOS_EVM_MONOLITHIC_K_EPSILON_VMS_ADJOINT_ELEMENT_H_INCLUDED
 
 // System includes
-#include <iterator>
 #include <algorithm>
+#include <iterator>
 
 // External includes
 
@@ -158,11 +158,11 @@ public:
     // defining the base type
     typedef Element BaseType;
     // defining the base adjoint base fluid element type
-    typedef EvmKEpsilonVMSAdjointElement<TDim, TDim + 1, TDim + 3> AdjointFluidElement;
+    typedef EvmKEpsilonVMSAdjointElement<TDim, TNumNodes> AdjointFluidElement;
     // defining the k element type
-    typedef EvmKAdjointElement<TDim, TNumNodes, TDim + 3, TDim + 1> AdjointKElement;
+    typedef EvmKAdjointElement<TDim, TNumNodes> AdjointKElement;
     // defining the epsilon element type
-    typedef EvmEpsilonAdjointElement<TDim, TNumNodes, TDim + 3, TDim + 2> AdjointEpsilonElement;
+    typedef EvmEpsilonAdjointElement<TDim, TNumNodes> AdjointEpsilonElement;
 
     constexpr static unsigned int TFluidBlockSize = (TDim + 1);
 
@@ -670,10 +670,16 @@ public:
             fluid_element.CalculateSensitivityMatrix(rSensitivityVariable, vms,
                                                      rCurrentProcessInfo);
             AssignSubMatrix(vms, rOutput, CoordBlock(), VelPresBlock());
-            k_element.CalculateSensitivityMatrix(rSensitivityVariable, rOutput,
-                                                 rCurrentProcessInfo);
+
+            BoundedMatrix<double, TNumNodes * TDim, TNumNodes> k_residuals;
+            k_element.CalculateSensitivityMatrix(
+                rSensitivityVariable, k_residuals, rCurrentProcessInfo);
+            AssignSubMatrix(k_residuals, rOutput, CoordBlock(), KBlock());
+
+            BoundedMatrix<double, TNumNodes * TDim, TNumNodes> epsilon_residuals;
             epsilon_element.CalculateSensitivityMatrix(
-                rSensitivityVariable, rOutput, rCurrentProcessInfo);
+                rSensitivityVariable, epsilon_residuals, rCurrentProcessInfo);
+            AssignSubMatrix(epsilon_residuals, rOutput, CoordBlock(), EpsilonBlock());
         }
         else
         {

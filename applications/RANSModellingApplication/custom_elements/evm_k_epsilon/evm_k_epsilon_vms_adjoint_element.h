@@ -58,9 +58,9 @@ struct RANSEvmVMSAdjointElementData
     Vector TurbulentKinematicViscositySensitivitiesEpsilon;
 };
 
-template <unsigned int TDim, unsigned int TNumNodes = TDim + 1, unsigned int TMonolithicAssemblyNodalDofSize = TDim + 1>
+template <unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 class EvmKEpsilonVMSAdjointElement
-    : public RANSEvmVMSAdjointElement<TDim, RANSEvmVMSAdjointElementData, TNumNodes, TMonolithicAssemblyNodalDofSize>
+    : public RANSEvmVMSAdjointElement<TDim, RANSEvmVMSAdjointElementData, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -68,7 +68,7 @@ public:
 
     constexpr static unsigned int TFluidLocalSize = (TDim + 1) * TNumNodes;
 
-    typedef RANSEvmVMSAdjointElement<TDim, RANSEvmVMSAdjointElementData, TNumNodes, TMonolithicAssemblyNodalDofSize> BaseType;
+    typedef RANSEvmVMSAdjointElement<TDim, RANSEvmVMSAdjointElementData, TNumNodes> BaseType;
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;

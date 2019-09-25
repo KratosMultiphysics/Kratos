@@ -44,7 +44,7 @@ namespace Kratos
  *
  * @see VMS monolithic fluid element
  */
-template <unsigned int TDim, class TRANSEvmVMSAdjointElementData, unsigned int TNumNodes = TDim + 1, unsigned int TMonolithicAssemblyNodalDofSize = TDim + 1>
+template <unsigned int TDim, class TRANSEvmVMSAdjointElementData, unsigned int TNumNodes = TDim + 1>
 class RANSEvmVMSAdjointElement
     : public VMSAdjointElement<TDim>
 {
@@ -59,17 +59,7 @@ public:
 
     constexpr static unsigned int TFluidLocalSize = TBlockSize * TNumNodes;
 
-    constexpr static unsigned int TModifiedBlockSize = TMonolithicAssemblyNodalDofSize;
-
-    constexpr static unsigned int TModifiedFluidLocalSize = TModifiedBlockSize * TNumNodes;
-
     constexpr static unsigned int TCoordLocalSize = TDim * TNumNodes;
-
-    constexpr static unsigned int TMonolithicAssemblyLocalSize =
-        TNumNodes * TMonolithicAssemblyNodalDofSize;
-
-    constexpr static bool TMonolithicMatrixConstruction =
-        (TMonolithicAssemblyNodalDofSize != (TDim + 1));
 
     typedef Element::IndexType IndexType;
 

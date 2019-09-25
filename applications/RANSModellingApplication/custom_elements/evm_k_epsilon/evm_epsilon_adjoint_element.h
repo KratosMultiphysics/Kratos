@@ -76,15 +76,15 @@ struct EvmEpsilonAdjointElementData
     Vector TurbulentKinematicViscositySensitivitiesEpsilon;
 };
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TMonolithicAssemblyNodalDofSize = 1, unsigned int TMonolithicNodalEquationIndex = 0>
+template <unsigned int TDim, unsigned int TNumNodes>
 class EvmEpsilonAdjointElement
-    : public StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, EvmEpsilonAdjointElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>
+    : public StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, EvmEpsilonAdjointElementData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, EvmEpsilonAdjointElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex> BaseType;
+    typedef StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, EvmEpsilonAdjointElementData> BaseType;
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
