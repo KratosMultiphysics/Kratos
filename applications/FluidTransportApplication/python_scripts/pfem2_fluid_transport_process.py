@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.FluidTransportApplication as FTA
 
-from KratosMultiphysics.ConvectionDiffusionApplication.pfem2_convection_process import PFEM2ConvectionProcess
+from KratosMultiphysics.ConvectionDiffusionApplication.move_particle_utility_process import MoveParticleUtilityProcess
 
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
@@ -9,7 +9,7 @@ def Factory(settings, Model):
     return PFEM2FluidTransportProcess(Model, settings["Parameters"])
 
 
-class PFEM2FluidTransportProcess(PFEM2ConvectionProcess):
+class PFEM2FluidTransportProcess(MoveParticleUtilityProcess):
     def __init__(self, model, settings):
 
         default_settings = KM.Parameters("""
