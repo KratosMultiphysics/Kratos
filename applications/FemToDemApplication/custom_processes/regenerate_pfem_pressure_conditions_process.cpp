@@ -37,10 +37,8 @@ void RegeneratePfemPressureConditionsProcess<TDim>::Execute()
 		mrModelPart.CreateSubModelPart("PFEMPressureConditions");
     }
     // Remove previous line loads-> Only the 1st iteration
-    if (r_process_info[PFEM_PRESSURE_ITERATION] == 1) {
-        this->RemovePreviousPressureLoads();
-        this->ResetFlagOnElements();
-    }
+    this->RemovePreviousPressureLoads();
+    this->ResetFlagOnElements();
     // Generate the new ones
     this->CreateNewConditions();
 }
@@ -128,31 +126,27 @@ void RegeneratePfemPressureConditionsProcess<3>::CreateNewConditions()
     auto& r_process_info = mrModelPart.GetProcessInfo();
     int maximum_condition_id;
     this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
-    r_process_info[INTERNAL_PRESSURE_ITERATION] = 0;
+
+    const auto it_elem_begin = mrModelPart.ElementsBegin();
 
     // Loop over the elements (all active, the inactive have been removed in GeneratingDEM)
-    for (auto it_elem = mrModelPart.Elements().ptr_begin(); it_elem != mrModelPart.Elements().ptr_end(); ++it_elem) {
-        if (!(*it_elem)->GetValue(SMOOTHING)) {
-            // We count how many nodes are wet
-            auto& r_geometry = (*it_elem)->GetGeometry();
-            int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id;
+    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+        // We count how many nodes are wet
+        auto it_elem = it_elem_begin + i;
+        auto& r_geometry = (*it_elem)->GetGeometry();
+        int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id;
 
-            for (IndexType local_id = 0; local_id < r_geometry.PointsNumber(); ++local_id) {
-                if (std::abs(r_geometry[local_id].FastGetSolutionStepValue(PRESSURE)) > 0.0) {
-                    wet_nodes_counter++;
-                } else {
-                    non_wet_local_id_node = local_id;
-                }
+        for (IndexType local_id = 0; local_id < r_geometry.PointsNumber(); ++local_id) {
+            if (std::abs(r_geometry[local_id].FastGetSolutionStepValue(PRESSURE)) > 0.0) {
+                wet_nodes_counter++;
+            } else {
+                non_wet_local_id_node = local_id;
             }
-            if (wet_nodes_counter == 3) {
-                this->GeneratePressureLoads3WetNodes(non_wet_local_id_node, maximum_condition_id, it_elem);
-                r_process_info[INTERNAL_PRESSURE_ITERATION] = 10;
-                (*it_elem)->SetValue(SMOOTHING, true);
-            } else if (wet_nodes_counter == 4) {
-                this->GeneratePressureLoads4WetNodes(maximum_condition_id, it_elem);
-                r_process_info[INTERNAL_PRESSURE_ITERATION] = 10;
-                (*it_elem)->SetValue(SMOOTHING, true);
-            }
+        }
+        if (wet_nodes_counter == 3) {
+            this->GeneratePressureLoads3WetNodes(non_wet_local_id_node, maximum_condition_id, it_elem);
+        } else if (wet_nodes_counter == 4) {
+            this->GeneratePressureLoads4WetNodes(maximum_condition_id, it_elem);
         }
     }
 }
