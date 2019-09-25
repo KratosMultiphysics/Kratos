@@ -93,10 +93,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateFi
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    // adding monolithic formulation parameters : equation indices
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_KINETIC_ENERGY] = 3;
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
-
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
@@ -179,10 +175,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateFi
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    // adding monolithic formulation parameters : equation indices
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_KINETIC_ENERGY] = 3;
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
-
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
@@ -264,10 +256,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateFi
 
     const double delta = 1e-5;
     const double tolerance = 1e-3;
-
-    // adding monolithic formulation parameters : equation indices
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_KINETIC_ENERGY] = 3;
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
 
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
@@ -352,10 +340,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateSe
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    // adding monolithic formulation parameters : equation indices
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_KINETIC_ENERGY] = 3;
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
-
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
@@ -432,11 +416,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateSe
 
     const double delta = 1e-5;
     const double tolerance = 1e-3;
-
-    // adding monolithic formulation parameters : equation indices
-
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_KINETIC_ENERGY] = 3;
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
 
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
@@ -515,11 +494,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateSe
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    // adding monolithic formulation parameters : equation indices
-
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_KINETIC_ENERGY] = 3;
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
-
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
@@ -584,10 +558,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateSe
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    // adding monolithic formulation parameters : equation indices
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_KINETIC_ENERGY] = 3;
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
-
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
@@ -641,10 +611,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateSe
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    // adding monolithic formulation parameters : equation indices
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_KINETIC_ENERGY] = 3;
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
-
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process, nut_sensitivities_process,
@@ -696,10 +662,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateSe
 
     const double delta = 1e-5;
     const double tolerance = 1e-3;
-
-    // adding monolithic formulation parameters : equation indices
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_KINETIC_ENERGY] = 3;
-    r_adjoint_model_part.GetProcessInfo()[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
 
     RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
@@ -818,10 +780,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_GetDofList,
 
     ProcessInfo& r_process_info = r_adjoint_model_part.GetProcessInfo();
 
-    // adding monolithic formulation parameters : equation indices
-    r_process_info[TURBULENT_KINETIC_ENERGY] = 3;
-    r_process_info[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
-
     for (IndexType i_element = 0;
          i_element < r_adjoint_model_part.NumberOfElements(); ++i_element)
     {
@@ -860,10 +818,6 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_EquationIdV
         r_adjoint_model_part, "EVMMonolithicKEpsilonVMSAdjointElement2D3N");
 
     ProcessInfo& r_process_info = r_adjoint_model_part.GetProcessInfo();
-
-    // adding monolithic formulation parameters : equation indices
-    r_process_info[TURBULENT_KINETIC_ENERGY] = 3;
-    r_process_info[TURBULENT_ENERGY_DISSIPATION_RATE] = 4;
 
     for (IndexType i_element = 0;
          i_element < r_adjoint_model_part.NumberOfElements(); ++i_element)
