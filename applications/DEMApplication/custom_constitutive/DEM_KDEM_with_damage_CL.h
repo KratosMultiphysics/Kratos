@@ -88,6 +88,7 @@ namespace Kratos {
 
         double mDamageNormal = 0.0;
         double mDamageTangential = 0.0;
+        const double mDamageThresholdTolerance = 0.99;
 
     private:
 

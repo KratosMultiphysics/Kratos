@@ -130,7 +130,6 @@ namespace Kratos {
 
         const double tension_limit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin());
         const double damage_energy_coeff = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
-        const double damage_threshold_tolerance = 0.95;
         double k_unload = 0.0;
         double limit_force = 0.0;
         static bool first_time_entered = true;
@@ -187,7 +186,7 @@ namespace Kratos {
                         LocalElasticContactForce[2] = -returned_by_mapping_force;
 
                         mDamageNormal = 1.0 - (returned_by_mapping_force / delta_acummulated) / kn_el;
-                        if (mDamageNormal > damage_threshold_tolerance) {
+                        if (mDamageNormal > mDamageThresholdTolerance) {
                             failure_type = 4; // failure by traction
                         }
                     }
@@ -234,7 +233,6 @@ namespace Kratos {
         const double mTauZero = 0.5 * 1e6 * (GetTauZero(element1) + GetTauZero(element2));
         const double mInternalFriction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
         const double damage_energy_coeff = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
-        const double damage_threshold_tolerance = 0.95;
         double k_unload = 0.0;
         double tau_strength = 0.0;
         static bool first_time_entered = true;
@@ -339,7 +337,7 @@ namespace Kratos {
                         KRATOS_WATCH(mDamageTangential)
                     }
 
-                    if (mDamageTangential > damage_threshold_tolerance) {
+                    if (mDamageTangential > mDamageThresholdTolerance) {
                         failure_type = 2; // failure by shear
                     }
                 }
