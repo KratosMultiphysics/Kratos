@@ -233,7 +233,7 @@ namespace Kratos
          */
         HashType operator()(const TIndexedObject& rIndexedObject) const
         {
-            return reinterpret_cast<HashType>(rIndexedObject.Id());
+            return rIndexedObject.Id();
         }
     };
 
@@ -272,7 +272,7 @@ namespace Kratos
          */
         HashType operator()(const TpIndexedObject& rIndexedObject) const
         {
-            return reinterpret_cast<HashType>(rIndexedObject->Id());
+            return rIndexedObject->Id();
         }
     };
 
