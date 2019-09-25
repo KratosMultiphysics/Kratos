@@ -106,9 +106,6 @@ namespace Kratos
         mArePrefactorsInitialized = true;
 
         double KS_value = 1/mRho * std::log(mSumPrefactors);
-
-        KRATOS_WATCH(KS_value)
-
         return KS_value;
 
         KRATOS_CATCH("");
@@ -137,25 +134,7 @@ namespace Kratos
             KRATOS_ERROR_IF(rResponseGradient.size() != rResidualGradient.size1())
                 << "Size of stress displacement derivative does not fit!" << std::endl;
 
-            if(rAdjointElement.Id()==308)
-            {
-                KRATOS_WATCH("##############################")
-                KRATOS_WATCH(rResponseGradient)
-                KRATOS_WATCH("##############################")
-            }
-
-
             rResponseGradient *= (-1) * mKSPrefactors[rAdjointElement.Id()] / (mStressScalingFactor * mSumPrefactors);
-
-            if(rAdjointElement.Id()==308)
-            {
-                KRATOS_WATCH("##############################")
-                KRATOS_WATCH(rResponseGradient)
-                KRATOS_WATCH("##############################")
-            }
-
-            // for(int i = 0; i<rResponseGradient.size();i++)
-            //     rResponseGradient[i]= 1;
         }
         else
         {
@@ -226,24 +205,7 @@ namespace Kratos
             ProcessInfo process_info = rProcessInfo;
             this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
                                                                     rSensitivityGradient, process_info);
-
-            if(rAdjointElement.Id()==308)
-            {
-                KRATOS_WATCH("##############################")
-                KRATOS_WATCH(rSensitivityGradient)
-                KRATOS_WATCH("##############################")
-            }
-
             rSensitivityGradient *= mKSPrefactors[rAdjointElement.Id()] / (mStressScalingFactor * mSumPrefactors);
-
-
-            if(rAdjointElement.Id()==308)
-            {
-                KRATOS_WATCH("##############################")
-                KRATOS_WATCH(rSensitivityGradient)
-                KRATOS_WATCH("##############################")
-            }
-
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
@@ -277,7 +239,6 @@ namespace Kratos
         rAdjointElement.SetValue(DESIGN_VARIABLE_NAME, rVariableName);
 
         Matrix stress_design_variable_derivative;
-
         rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
         this->ExtractMeanStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
 
