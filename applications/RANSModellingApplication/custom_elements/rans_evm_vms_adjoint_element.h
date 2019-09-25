@@ -197,11 +197,32 @@ public:
         if (rSensitivityVariable == SHAPE_SENSITIVITY)
         {
             BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize> local_matrix;
-            this->CalculateShapeGradientOfVMSSteadyTerm(local_matrix, rCurrentProcessInfo);
-            this->AddShapeGradientOfVMSMassTerm(local_matrix, RELAXED_ACCELERATION,
-                                                -1.0, rCurrentProcessInfo);
-            rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
+            this->CalculateSensitivityMatrix(rSensitivityVariable, local_matrix, rCurrentProcessInfo);
+
+            if (rOutput.size1()  != local_matrix.size1() || rOutput.size2() != local_matrix.size2())
+                rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
             noalias(rOutput) = local_matrix;
+        }
+        else
+        {
+            KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
+                         << " not supported." << std::endl;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rSensitivityVariable,
+                                    BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize>& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        if (rSensitivityVariable == SHAPE_SENSITIVITY)
+        {
+            this->CalculateShapeGradientOfVMSSteadyTerm(rOutput, rCurrentProcessInfo);
+            this->AddShapeGradientOfVMSMassTerm(rOutput, RELAXED_ACCELERATION,
+                                                -1.0, rCurrentProcessInfo);
         }
         else
         {

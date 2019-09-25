@@ -558,7 +558,7 @@ public:
             TURBULENT_ENERGY_DISSIPATION_RATE, vms_epsilon, rCurrentProcessInfo);
         AssignSubMatrix(vms_epsilon, rLeftHandSideMatrix, EpsilonBlock(), VelPresBlock());
 
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes> k_vms;
+        BoundedMatrix<double, TCoordLocalSize, TNumNodes> k_vms;
         k_element.CalculateElementTotalResidualVelocityDerivatives(k_vms, rCurrentProcessInfo);
         AssignSubMatrix(k_vms, rLeftHandSideMatrix, VelBlock(), KBlock());
 
@@ -571,7 +571,7 @@ public:
             TURBULENT_ENERGY_DISSIPATION_RATE, k_epsilon, rCurrentProcessInfo);
         AssignSubMatrix(k_epsilon, rLeftHandSideMatrix, EpsilonBlock(), KBlock());
 
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes> epsilon_vms;
+        BoundedMatrix<double, TCoordLocalSize, TNumNodes> epsilon_vms;
         epsilon_element.CalculateElementTotalResidualVelocityDerivatives(
             epsilon_vms, rCurrentProcessInfo);
         AssignSubMatrix(epsilon_vms, rLeftHandSideMatrix, VelBlock(), EpsilonBlock());
@@ -666,17 +666,17 @@ public:
             k_element.SetData(this->Data());
             epsilon_element.SetData(this->Data());
 
-            Matrix vms;
-            fluid_element.CalculateSensitivityMatrix(rSensitivityVariable, vms,
-                                                     rCurrentProcessInfo);
-            AssignSubMatrix(vms, rOutput, CoordBlock(), VelPresBlock());
+            BoundedMatrix<double, TCoordLocalSize, TFluidLocalSize> vms_residuals;
+            fluid_element.CalculateSensitivityMatrix(
+                rSensitivityVariable, vms_residuals, rCurrentProcessInfo);
+            AssignSubMatrix(vms_residuals, rOutput, CoordBlock(), VelPresBlock());
 
-            BoundedMatrix<double, TNumNodes * TDim, TNumNodes> k_residuals;
+            BoundedMatrix<double, TCoordLocalSize, TNumNodes> k_residuals;
             k_element.CalculateSensitivityMatrix(
                 rSensitivityVariable, k_residuals, rCurrentProcessInfo);
             AssignSubMatrix(k_residuals, rOutput, CoordBlock(), KBlock());
 
-            BoundedMatrix<double, TNumNodes * TDim, TNumNodes> epsilon_residuals;
+            BoundedMatrix<double, TCoordLocalSize, TNumNodes> epsilon_residuals;
             epsilon_element.CalculateSensitivityMatrix(
                 rSensitivityVariable, epsilon_residuals, rCurrentProcessInfo);
             AssignSubMatrix(epsilon_residuals, rOutput, CoordBlock(), EpsilonBlock());
