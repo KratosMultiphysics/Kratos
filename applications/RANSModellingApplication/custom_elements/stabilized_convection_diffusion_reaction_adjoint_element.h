@@ -85,16 +85,6 @@ public:
     /// Pointer definition of Element
     KRATOS_CLASS_POINTER_DEFINITION(StabilizedConvectionDiffusionReactionAdjointElement);
 
-    constexpr static unsigned int TMonolithicAssemblyLocalSize =
-        TNumNodes * TMonolithicAssemblyNodalDofSize;
-
-    constexpr static unsigned int TVelPrBlockSize = TDim + 1;
-
-    constexpr static unsigned int TVelPrLocalSize = TNumNodes * TVelPrBlockSize;
-
-    constexpr static bool TMonolithicMatrixConstruction =
-        (TMonolithicAssemblyLocalSize != TNumNodes);
-
     /// base type: an GeometricalObject that automatically has a unique number
     typedef Element BaseType;
 
@@ -406,14 +396,10 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                ProcessInfo& rCurrentProcessInfo) override
     {
-        if (!TMonolithicMatrixConstruction)
-        {
-            if (rLeftHandSideMatrix.size1() != TNumNodes ||
-                rLeftHandSideMatrix.size2() != TNumNodes)
-                rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+        if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes)
+            rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
 
-            rLeftHandSideMatrix.clear();
-        }
+        rLeftHandSideMatrix.clear();
     }
 
     void CalculateLeftHandSide(BoundedMatrix<double, TNumNodes, TNumNodes>& rLeftHandSideMatrix,
@@ -624,6 +610,37 @@ public:
     void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rSensitivityVariable,
                                     Matrix& rOutput,
                                     const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        if (rSensitivityVariable == SHAPE_SENSITIVITY)
+        {
+            BoundedMatrix<double, TNumNodes * TDim, TNumNodes> local_matrix;
+            this->CalculateResidualShapeSensitivity(local_matrix, rCurrentProcessInfo);
+            if (rOutput.size1() != local_matrix.size1() ||
+                rOutput.size2() != local_matrix.size2())
+                rOutput.resize(local_matrix.size1(), local_matrix.size2(), false);
+
+            for (unsigned int a = 0; a < local_matrix.size1(); ++a)
+            {
+                for (unsigned int c = 0; c < local_matrix.size2(); ++c)
+                {
+                    rOutput(a, c) = local_matrix(a, c);
+                }
+            }
+        }
+        else
+        {
+            KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
+                         << " not supported." << std::endl;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rSensitivityVariable,
+                                    BoundedMatrix<double, TNumNodes * TDim, TNumNodes>& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -990,15 +1007,6 @@ public:
         const Variable<double>& r_primal_relaxed_rate_variable =
             this->GetPrimalRelaxedRateVariable();
         const Variable<double>& r_adjoint_variable = this->GetAdjointVariable();
-
-        const unsigned int primal_dof_index =
-            static_cast<unsigned int>(rCurrentProcessInfo[r_primal_variable]);
-        if (TMonolithicNodalEquationIndex != primal_dof_index)
-        {
-            KRATOS_ERROR << this->Info() << "'s equation index and Processinfo equation index mismatch. Processinfo.EquationIndex != Element.EquationIndex [ "
-                         << primal_dof_index
-                         << " != " << TMonolithicNodalEquationIndex << " ]";
-        }
 
         KRATOS_CHECK_VARIABLE_KEY(r_primal_variable);
         KRATOS_CHECK_VARIABLE_KEY(r_primal_relaxed_rate_variable);
@@ -3215,19 +3223,12 @@ private:
         KRATOS_CATCH("");
     }
 
-    void CalculateResidualShapeSensitivity(Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    void CalculateResidualShapeSensitivity(BoundedMatrix<double, TNumNodes * TDim, TNumNodes>& rOutput,
+                                           const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        constexpr unsigned int TLocalCoordsSize = TNumNodes * TDim;
-        constexpr unsigned int TLocalMatrixSize = TMonolithicAssemblyLocalSize;
-
-        if (!TMonolithicMatrixConstruction)
-        {
-            if (rOutput.size1() != TLocalCoordsSize || rOutput.size2() != TLocalMatrixSize)
-                rOutput.resize(TLocalCoordsSize, TLocalMatrixSize, false);
-            rOutput.clear();
-        }
+        rOutput.clear();
 
         // Get Shape function data
         Vector gauss_weights;
@@ -3259,8 +3260,6 @@ private:
         const double bossak_gamma =
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
         const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
-        const unsigned int dof_index =
-            static_cast<unsigned int>(rCurrentProcessInfo[primal_variable]);
 
         const GeometryType::ShapeFunctionsGradientsType& r_dn_de =
             this->GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
@@ -3602,8 +3601,7 @@ private:
                                  primal_variable_relaxed_rate * gauss_weight;
                         value += tau * tau_operator * primal_variable_relaxed_rate * gauss_weight_deriv;
 
-                        rOutput(block_size + k, a * TMonolithicAssemblyNodalDofSize +
-                                                    dof_index) -= value;
+                        rOutput(block_size + k, a) -= value;
                     }
                 }
             }
@@ -3647,18 +3645,6 @@ private:
     ///@}
 
 }; // Class Element
-
-template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-constexpr unsigned int StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::TMonolithicAssemblyLocalSize;
-
-template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-constexpr unsigned int StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::TVelPrBlockSize;
-
-template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-constexpr unsigned int StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::TVelPrLocalSize;
-
-template <unsigned int TDim, unsigned int TNumNodes, class TElementData, unsigned int TMonolithicAssemblyNodalDofSize, unsigned int TMonolithicNodalEquationIndex>
-constexpr bool StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, TElementData, TMonolithicAssemblyNodalDofSize, TMonolithicNodalEquationIndex>::TMonolithicMatrixConstruction;
 
 ///@}
 ///@name Type Definitions
