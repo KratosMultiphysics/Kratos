@@ -1,7 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.DEMApplication import DEM_analysis_stage
-import os
 
 # Defining a generic Test, that is not actually KratosUnittest
 class DEMRestartTestFactory():
