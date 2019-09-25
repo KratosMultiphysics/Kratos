@@ -58,10 +58,16 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def SolveSolutionStep(self):
+        # It's necessary to Fix in order to maintain the FEMDEM Kinematics
+        self.FixNodesModelPart(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+
         KratosPrintInfo("==============================================")
         KratosPrintInfo("==== SOLVING PFEM PART OF THE CALCULATION ====")
         KratosPrintInfo("==============================================")
         self.SolveSolutionStepPFEM()
+
+        # Now we Free the nodes to be calculated by the FEMDEM
+        self.FreeNodesModelPart(self.FEMDEM_Solution.FEM_Solution.main_model_part)
 
         # Transfer pressure forces
         self.RegenerateAndUpdatePFEMPressureConditions()
@@ -124,3 +130,19 @@ class MainCouplingPfemFemDem_Solution:
         regenerate_cond_process.Execute()
         update_cond_process = FEMDEM.UpdatePressureValuePfemConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
         update_cond_process.Execute()
+
+
+#============================================================================================================================
+    def FixNodesModelPart(self, ModelPart):
+        for node in ModelPart.Nodes:
+            node.Fix(KM.VELOCITY_X)
+            node.Fix(KM.VELOCITY_Y)
+            node.Fix(KM.VELOCITY_Z)
+
+    def FreeNodesModelPart(self, ModelPart):
+        for node in ModelPart.Nodes:
+            node.Free(KM.VELOCITY_X)
+            node.Free(KM.VELOCITY_Y)
+            node.Free(KM.VELOCITY_Z)
+
+#============================================================================================================================
