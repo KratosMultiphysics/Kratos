@@ -59,7 +59,7 @@ enum WriteConditionsFlag {WriteConditions, WriteElementsOnly, WriteConditionsOnl
 enum MultiFileFlag {SingleFile, MultipleFiles};
 
 
-class GiDIOBase : public IO {
+class KRATOS_API(KRATOS_CORE) GiDIOBase : public IO {
 
     protected:
     /**
@@ -74,7 +74,7 @@ class GiDIOBase : public IO {
  * in order to provide GiD compliant I/O functionality
  */
 template<class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
-class GidIO : public GiDIOBase
+class KRATOS_API(KRATOS_CORE) GidIO : public GiDIOBase
 {
 public:
     ///pointer definition of GidIO
