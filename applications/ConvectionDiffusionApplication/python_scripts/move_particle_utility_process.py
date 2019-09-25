@@ -4,10 +4,10 @@ import KratosMultiphysics.ConvectionDiffusionApplication as CDA
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return PFEM2ConvectionProcess(Model, settings["Parameters"])
+    return MoveParticleUtilityProcess(Model, settings["Parameters"])
 
 
-class PFEM2ConvectionProcess(KM.Process):
+class MoveParticleUtilityProcess(KM.Process):
     def __init__(self, model, settings):
 
         KM.Process.__init__(self)
@@ -83,3 +83,4 @@ class PFEM2ConvectionProcess(KM.Process):
         dimension = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
         post_minimum_num_of_particles = 2 * dimension
         self.moveparticles.PostReseed(post_minimum_num_of_particles)
+
