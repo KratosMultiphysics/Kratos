@@ -298,11 +298,6 @@ public:
             }
         }
 
-        //fill up the vector with zeros
-        for (IndexType order = shape_function_container.NumberOfShapeFunctionRows(); order <= DerivativeOrder; order++) {
-            IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
-            derivatives[order] = (*this)[index_0] * 0.0;
-        }
         return derivatives;
     }
 
