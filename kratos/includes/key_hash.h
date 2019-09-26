@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/dof.h"
+#include "utilities/indexed_object.h"
 
 namespace Kratos
 {
@@ -221,9 +222,7 @@ namespace Kratos
 
     /**
      * @brief This is a hasher for indexed objects
-     * @tparam TIndexedObject The type of indexed object to be hashed
      */
-    template<class TIndexedObject>
     struct IndexedObjectHasher
     {
         /**
@@ -231,7 +230,7 @@ namespace Kratos
          * @param rIndexedObject The indexed object to be hashed
          * @return The corresponding hash
          */
-        HashType operator()(const TIndexedObject& rIndexedObject) const
+        HashType operator()(const IndexedObject& rIndexedObject) const
         {
             return rIndexedObject.Id();
         }
@@ -239,61 +238,55 @@ namespace Kratos
 
     /**
      * @brief This is a key comparer between two indexed objects
-     * @tparam TIndexedObject The type of indexed object to be compared
      */
-    template<class TIndexedObject>
     struct IndexedObjectComparator
     {
         /**
          * @brief This is the () operator
-         * @param first The first class to be compared
-         * @param second The second class to be compared
+         * @param rFirst The first class to be compared
+         * @param rSecond The second class to be compared
          */
         bool operator()(
-            const TIndexedObject& first,
-            const TIndexedObject& second
+            const IndexedObject& rFirst,
+            const IndexedObject& rSecond
             ) const
         {
-            return first.Id() == second.Id();
+            return rFirst.Id() == rSecond.Id();
         }
     };
 
     /**
      * @brief This is a hasher for indexed objects (pointer)
-     * @tparam TpIndexedObject The type of indexed object to be hashed
      */
-    template<class TpIndexedObject>
     struct IndexedObjecPointertHasher
     {
         /**
          * @brief This is the () operator
-         * @param rIndexedObject The indexed object to be hashed
+         * @param pIndexedObject The indexed object pointer to be hashed
          * @return The corresponding hash
          */
-        HashType operator()(const TpIndexedObject& rIndexedObject) const
+        HashType operator()(const IndexedObject::Pointer pIndexedObject) const
         {
-            return rIndexedObject->Id();
+            return pIndexedObject->Id();
         }
     };
 
     /**
      * @brief This is a key comparer between two indexed objects (pointer)
-     * @tparam TpIndexedObject The type of indexed object to be compared
      */
-    template<class TpIndexedObject>
     struct IndexedObjectPointerComparator
     {
         /**
          * @brief This is the () operator
-         * @param first The first class to be compared
-         * @param second The second class to be compared
+         * @param pFirst The first class to be compared
+         * @param pSecond The second class to be compared
          */
         bool operator()(
-            const TpIndexedObject& first,
-            const TpIndexedObject& second
+            const IndexedObject::Pointer pFirst,
+            const IndexedObject::Pointer pSecond
             ) const
         {
-            return first->Id() == second->Id();
+            return pFirst->Id() == pSecond->Id();
         }
     };
 
