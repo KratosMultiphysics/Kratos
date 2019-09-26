@@ -6,20 +6,20 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo
-//  Collaborator:
+//  Main authors:    Vicente Mataix Ferrandiz
+//  Collaborator:    Alejandro Cornejo
+//                   Lucia Barbu
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_KINEMATIC_PLASTICITY_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_KINEMATIC_PLASTICITY_H_INCLUDED
+#if !defined(KRATOS_GENERIC_FINITE_STRAIN_KINEMATIC_PLASTICITY_3D_H_INCLUDED)
+#define KRATOS_GENERIC_FINITE_STRAIN_KINEMATIC_PLASTICITY_3D_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/elastic_isotropic_3d.h"
-#include "custom_constitutive/linear_plane_strain.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -46,16 +46,19 @@ namespace Kratos
 ///@{
 
 /**
- * @class GenericSmallStrainKinematicPlasticity
+ * @class GenericFiniteStrainKinematicPlasticity
  * @ingroup StructuralMechanicsApplication
- * @brief This class is the base class which define all the constitutive laws for kinematic plasticity in small deformation
- * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
+ * @brief This class is the base class which define all the constitutive laws for plasticity in large deformation
+ * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity, as well as hyper elastic law to compute the prediction
+ * This implementation is based on the multiplicative elastoplasticity kinematics (COMPUTATIONAL METHODS FOR PLASTICITY THEORY AND APPLICATIONS. EA de Souza Neto,D Perić, DRJ Owen pag. 603).
+ * The main hypothesis underlying the finite strain elastoplasticity constitutive framework described here is the multiplicative decomposition of the deformation gradient, F , into elastic and plastic contributions; that is, it is assumed that the deformation gradient can be decomposed as the product F = Fe x Fp, where F and F are named, respectively, the elastic and plastic deformation gradients.
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
- * @author Alejandro Cornejo
+ * @param TElasticBehaviourLaw Defines the elastic behaviour of the constitutive law (can be hyperelastic or just linear elastic, or any desired elastic behaviour)
+ * @author Vicente Mataix Ferrandiz
  */
-template <class TConstLawIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainKinematicPlasticity
-    : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
+template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainKinematicPlasticity
+    : public TElasticBehaviourLaw
 {
 public:
     ///@name Type Definitions
@@ -68,7 +71,7 @@ public:
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
     /// Definition of the base class
-    typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
+    typedef TElasticBehaviourLaw BaseType;
 
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
@@ -76,8 +79,8 @@ public:
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
 
-    /// Counted pointer of GenericSmallStrainKinematicPlasticity
-    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainKinematicPlasticity);
+    /// Counted pointer of GenericFiniteStrainKinematicPlasticity
+    KRATOS_CLASS_POINTER_DEFINITION(GenericFiniteStrainKinematicPlasticity);
 
     /// The node definition
     typedef Node<3> NodeType;
@@ -92,7 +95,7 @@ public:
     /**
     * Default constructor.
     */
-    GenericSmallStrainKinematicPlasticity()
+    GenericFiniteStrainKinematicPlasticity()
     {
     }
 
@@ -101,25 +104,25 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>>(*this);
     }
 
     /**
     * Copy constructor.
     */
-    GenericSmallStrainKinematicPlasticity(const GenericSmallStrainKinematicPlasticity &rOther)
+    GenericFiniteStrainKinematicPlasticity(const GenericFiniteStrainKinematicPlasticity &rOther)
         : BaseType(rOther),
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
-          mPlasticStrain(rOther.mPlasticStrain),
-          mPreviousStressVector(rOther.mPreviousStressVector)
+          mPlasticDeformationGradient(rOther.mPlasticDeformationGradient),
+          mPreviousDeformationGradient(rOther.mPreviousDeformationGradient)
     {
     }
 
     /**
     * Destructor.
     */
-    ~GenericSmallStrainKinematicPlasticity() override
+    ~GenericFiniteStrainKinematicPlasticity() override
     {
     }
 
@@ -237,6 +240,18 @@ public:
         ) override;
 
     /**
+     * @brief Sets the value of a specified variable (Matrix)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<Matrix> &rThisVariable,
+        const Matrix& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
      * @brief Returns the value of a specified variable (double)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -259,13 +274,13 @@ public:
         ) override;
 
     /**
-     * @brief Returns the value of a specified variable (matrix)
+     * @brief Returns the value of a specified variable (Matrix)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
     Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
+        const Variable<Matrix> &rThisVariable,
         Matrix& rValue
         ) override;
 
@@ -354,14 +369,13 @@ protected:
 
     double& GetThreshold() { return mThreshold; }
     double& GetPlasticDissipation() { return mPlasticDissipation; }
-    Vector& GetPlasticStrain() { return mPlasticStrain; }
+    Matrix& GetPlasticDeformationGradient() { return mPlasticDeformationGradient; }
+    Matrix& GetPreviousDeformationGradient() { return mPreviousDeformationGradient; }
 
     void SetThreshold(const double Threshold) { mThreshold = Threshold; }
     void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
-    void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
-
-    void SetPreviousStressVector (const Vector& toBS) {mPreviousStressVector = toBS; }
-    Vector& GetPreviousStressVector() { return mPreviousStressVector;}
+    void SetPlasticDeformationGradient(const Matrix& rmPlasticDeformationGradient) { mPlasticDeformationGradient = rmPlasticDeformationGradient; }
+    void SetPreviousDeformationGradient(const Matrix& rmPreviousDeformationGradient) { mPreviousDeformationGradient = rmPreviousDeformationGradient; }
 
     ///@}
     ///@name Protected Operations
@@ -391,10 +405,8 @@ protected:
     // Converged values
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
-    Vector mPlasticStrain = ZeroVector(VoigtSize);
-
-    // Kinematic variables
-    Vector mPreviousStressVector = ZeroVector(VoigtSize);
+    Matrix mPlasticDeformationGradient = IdentityMatrix(Dimension);
+    Matrix mPreviousDeformationGradient = IdentityMatrix(Dimension);
 
     ///@}
     ///@name Private Operators
@@ -407,8 +419,12 @@ protected:
     /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
+     * @param rStressMeasure The stress measure of the law
      */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+    void CalculateTangentTensor(
+        ConstitutiveLaw::Parameters &rValues,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        );
 
     ///@}
     ///@name Private  Access
@@ -431,8 +447,8 @@ protected:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
         rSerializer.save("Threshold", mThreshold);
-        rSerializer.save("PlasticStrain", mPlasticStrain);
-        rSerializer.save("PreviousStressVector", mPreviousStressVector);
+        rSerializer.save("PlasticDeformationGradient", mPlasticDeformationGradient);
+        rSerializer.save("PreviousDeformationGradient", mPreviousDeformationGradient);
     }
 
     void load(Serializer &rSerializer) override
@@ -440,8 +456,8 @@ protected:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
         rSerializer.load("Threshold", mThreshold);
-        rSerializer.load("PlasticStrain", mPlasticStrain);
-        rSerializer.load("PreviousStressVector", mPreviousStressVector);
+        rSerializer.load("PlasticDeformationGradient", mPlasticDeformationGradient);
+        rSerializer.load("PreviousDeformationGradient", mPreviousDeformationGradient);
     }
 
     ///@}

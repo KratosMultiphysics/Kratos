@@ -31,6 +31,8 @@
 #include "custom_processes/update_dem_kinematics_process.h"
 #include "custom_processes/transfer_nodal_forces_to_fem.h"
 #include "custom_processes/compute_sand_production.h"
+#include "custom_processes/regenerate_pfem_pressure_conditions_process.h"
+#include "custom_processes/update_pressure_value_pfem_conditions_process.h"
 
 
 namespace Kratos
@@ -103,6 +105,14 @@ void AddCustomProcessesToPython(pybind11::module &m)
 	class_<ComputeSandProduction, ComputeSandProduction::Pointer, Process>(m, "ComputeSandProduction")
 		.def(init<ModelPart &>())
 		.def("Execute", &ComputeSandProduction::Execute);
+
+	class_<RegeneratePfemPressureConditionsProcess<3>, RegeneratePfemPressureConditionsProcess<3>::Pointer, Process>(m, "RegeneratePfemPressureConditionsProcess3D")
+		.def(init<ModelPart &>())
+		.def("Execute", &RegeneratePfemPressureConditionsProcess<3>::Execute);
+
+	class_<UpdatePressureValuePfemConditionsProcess<3>, UpdatePressureValuePfemConditionsProcess<3>::Pointer, Process>(m, "UpdatePressureValuePfemConditionsProcess3D")
+		.def(init<ModelPart &>())
+		.def("Execute", &UpdatePressureValuePfemConditionsProcess<3>::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos
