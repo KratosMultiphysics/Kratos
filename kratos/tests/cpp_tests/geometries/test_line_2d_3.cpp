@@ -31,7 +31,7 @@ namespace Testing {
     * @return  Pointer to a Line2D3N
     */
     Line2D3<Point>::Pointer GeneratePointsUnitXDirectionLine2D3() {
-        return Kratos::make_shared<Line2D3<Point>>(
+        return Kratos::make_intrusive<Line2D3<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 0.0, 0.0),
         Kratos::make_shared<Point>(0.5, 0.0, 0.0)
@@ -42,7 +42,7 @@ namespace Testing {
     * @return  Pointer to a Line2D3N
     */
     Line2D3<Point>::Pointer GeneratePointsUnitYDirectionLine2D3() {
-        return Kratos::make_shared<Line2D3<Point>>(
+        return Kratos::make_intrusive<Line2D3<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(0.0, 1.0, 0.0),
         Kratos::make_shared<Point>(0.0, 0.5, 0.0)
@@ -53,7 +53,7 @@ namespace Testing {
     * @return  Pointer to a Line2D3N
     */
     Line2D3<Point>::Pointer GeneratePointsDiagonalLine2D3() {
-        return Kratos::make_shared<Line2D3<Point>>(
+        return Kratos::make_intrusive<Line2D3<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 1.0, 0.0),
         Kratos::make_shared<Point>(0.5, 0.5, 0.0)
@@ -64,7 +64,7 @@ namespace Testing {
     * @return  Pointer to a Line2D3N
     */
     Line2D3<Point>::Pointer GeneratePointsParabolaLine2D3() {
-        return Kratos::make_shared<Line2D3<Point>>(
+        return Kratos::make_intrusive<Line2D3<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 0.0, 0.0),
         Kratos::make_shared<Point>(0.5, 0.5, 0.0)
@@ -75,7 +75,7 @@ namespace Testing {
     * @return  Pointer to a Line2D3N
     */
     Line2D3<Point>::Pointer GenerateLine2D3WithPoints(Point::Pointer pPointOne, Point::Pointer pPointTwo, Point::Pointer pPointThree ) {
-        return Kratos::make_shared<Line2D3<Point>>(pPointOne, pPointTwo, pPointThree);
+        return Kratos::make_intrusive<Line2D3<Point>>(pPointOne, pPointTwo, pPointThree);
     }
 
     /** Checks if the number of edges is correct.

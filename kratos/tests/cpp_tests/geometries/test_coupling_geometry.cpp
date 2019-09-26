@@ -34,7 +34,7 @@ namespace Kratos {
          * @return  Pointer to a triangle2D3
          */
         Triangle2D3<Point>::Pointer GeneratePointTriangle() {
-            return Kratos::make_shared<Triangle2D3<Point>>(
+            return Kratos::make_intrusive<Triangle2D3<Point>>(
                 Kratos::make_unique<Point>(0.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(1.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(0.0, 1.0, 0.0)
@@ -42,7 +42,7 @@ namespace Kratos {
         }
 
         Triangle3D3<Point>::Pointer GeneratePointTriangle3D() {
-            return Kratos::make_shared<Triangle3D3<Point>>(
+            return Kratos::make_intrusive<Triangle3D3<Point>>(
                 Kratos::make_unique<Point>(0.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(1.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(0.0, 1.0, 0.0)
@@ -53,7 +53,7 @@ namespace Kratos {
          * @return  Pointer to a triangle2D3
          */
         Triangle2D3<NodeType>::Pointer GenerateNodeTriangle() {
-            return Kratos::make_shared<Triangle2D3<NodeType>>(
+            return Kratos::make_intrusive<Triangle2D3<NodeType>>(
                 new NodeType(1, 1.0, 1.0, 0.0),
                 new NodeType(2, 3.0, 0.5, 0.0),
                 new NodeType(3, 2.5, 2.0, 0.0)
