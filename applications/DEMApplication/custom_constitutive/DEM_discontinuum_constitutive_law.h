@@ -6,6 +6,8 @@
 #include "includes/define.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
 #include "includes/serializer.h"
+#include "includes/properties.h"
+
 #include "containers/flags.h"
 
 #include "../custom_utilities/GeometryFunctions.h"
@@ -17,7 +19,7 @@
 
 namespace Kratos {
 
-    class Properties;
+    //class Properties;
     class SphericParticle; // forward declaration of spheric cont particle
 
     class KRATOS_API(DEM_APPLICATION) DEMDiscontinuumConstitutiveLaw : public Flags {
