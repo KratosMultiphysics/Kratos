@@ -142,7 +142,7 @@ namespace Kratos
                 TetrahedraSplit::TetrahedraGetNewConnectivityGID(idivision, t.data(), mSplitEdges.data(), &i0, &i1, &i2, &i3);
 
                 // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
-                IndexedPointGeometryPointerType p_aux_partition = Kratos::make_shared<IndexedPointTetrahedraType>(
+                IndexedPointGeometryPointerType p_aux_partition = Kratos::make_intrusive<IndexedPointTetrahedraType>(
                     mAuxPointsContainer(i0), 
                     mAuxPointsContainer(i1), 
                     mAuxPointsContainer(i2),
@@ -210,7 +210,7 @@ namespace Kratos
                     // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes) && (node_k_key >= n_nodes)) {
                         // Generate an indexed point triangle geometry pointer with the two interface nodes
-                        IndexedPointGeometryPointerType p_intersection_tri = Kratos::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(node_i_key), 
+                        IndexedPointGeometryPointerType p_intersection_tri = Kratos::make_intrusive<IndexedPointTriangleType>(mAuxPointsContainer(node_i_key), 
                                                                                                                           mAuxPointsContainer(node_j_key),
                                                                                                                           mAuxPointsContainer(node_k_key));
                         mPositiveInterfaces.push_back(p_intersection_tri);
@@ -238,7 +238,7 @@ namespace Kratos
                     // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes) && (node_k_key >= n_nodes)) {
                         // Generate an indexed point triangle geometry pointer with the two interface nodes
-                        IndexedPointGeometryPointerType p_intersection_tri = Kratos::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(node_i_key), 
+                        IndexedPointGeometryPointerType p_intersection_tri = Kratos::make_intrusive<IndexedPointTriangleType>(mAuxPointsContainer(node_i_key), 
                                                                                                                           mAuxPointsContainer(node_j_key),
                                                                                                                           mAuxPointsContainer(node_k_key));
                         mNegativeInterfaces.push_back(p_intersection_tri);
@@ -324,7 +324,7 @@ namespace Kratos
                         if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_j_key) != faces_edge_nodes.end()) {
                             if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_k_key) != faces_edge_nodes.end()) {
                                 // If both nodes are in the candidate nodes list, the subface is exterior
-                                IndexedPointGeometryPointerType p_subface_triang = Kratos::make_shared<IndexedPointTriangleType>(
+                                IndexedPointGeometryPointerType p_subface_triang = Kratos::make_intrusive<IndexedPointTriangleType>(
                                     mAuxPointsContainer(node_i_key),
                                     mAuxPointsContainer(node_j_key),
                                     mAuxPointsContainer(node_k_key));
