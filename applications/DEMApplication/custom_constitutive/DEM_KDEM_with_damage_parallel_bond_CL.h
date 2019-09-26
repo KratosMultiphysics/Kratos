@@ -19,9 +19,11 @@ namespace Kratos {
 
         ~DEM_KDEM_with_damage_parallel_bond() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
 
         void Check(Properties::Pointer pProp) const override;
+
+        void SetDebugPrintingOptionValue(Properties::Pointer pProp);
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
@@ -105,6 +107,7 @@ namespace Kratos {
         double mViscoDampingLocalContactForce[3];
         double mBondedScalingFactor = 0.0;
         double mUnbondedScalingFactor = 0.0;
+        bool mDebugPrintingOption;
 
     private:
 
