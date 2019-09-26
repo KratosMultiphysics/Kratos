@@ -87,7 +87,7 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedL
     const double density = BaseType::ComputeDensity(rCurrentProcessInfo);
     const double DrhoDu2 = BaseType::ComputeDensityDerivative(density, rCurrentProcessInfo);
 
-    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
+    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
 
     ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(distances);
     Matrix positive_side_sh_func;
@@ -121,6 +121,11 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbeddedL
 template <>
 ModifiedShapeFunctions::Pointer EmbeddedCompressiblePotentialFlowElement<2,3>::pGetModifiedShapeFunctions(Vector& rDistances) {
     return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
+}
+
+template <>
+ModifiedShapeFunctions::Pointer EmbeddedCompressiblePotentialFlowElement<3,4>::pGetModifiedShapeFunctions(Vector& rDistances) {
+    return Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,5 +199,6 @@ void EmbeddedCompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer& r
 // Template class instantiation
 
 template class EmbeddedCompressiblePotentialFlowElement<2, 3>;
+template class EmbeddedCompressiblePotentialFlowElement<3, 4>;
 
 } // namespace Kratos
