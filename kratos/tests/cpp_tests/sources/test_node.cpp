@@ -108,7 +108,6 @@ namespace Kratos {
 
             
 
-            KRATOS_WATCH(sizeof(Node<3>));
 
         }
 }  // namespace Testing.
