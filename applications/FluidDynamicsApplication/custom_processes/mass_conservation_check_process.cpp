@@ -667,7 +667,7 @@ Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle(
     Node<3UL>::Pointer node3 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
 
     // finally creating the desired Triangle2D3 based on the nodes
-    Triangle2D3<Node<3>>::Pointer aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );
+    Triangle2D3<Node<3>>::Pointer aux_2D_triangle = Kratos::make_intrusive< Triangle2D3<Node<3> > >( node1, node2, node3 );
     return aux_2D_triangle;
 }
 
@@ -712,7 +712,7 @@ void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node<3> >& rG
         }
     }
 
-    p_aux_line = Kratos::make_shared< Line3D2 < IndexedPoint > >( paux_point1, paux_point2 );
+    p_aux_line = Kratos::make_intrusive< Line3D2 < IndexedPoint > >( paux_point1, paux_point2 );
 }
 
 
