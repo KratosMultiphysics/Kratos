@@ -323,31 +323,15 @@ public:
                     accepted = false;
                 }
 
-                //5.- to control that the element has a good shape
-                if (accepted && (numfreesurf > 0 || numrigid == nds))
-                {
-                    // if(dimension==2 && nds==3){
-
-                    //   Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
-                    //   double Area = triangle->Area();
-                    //   double CriticalArea=0.01*mrRemesh.Refine->MeanVolume;
-                    //   if(Area<CriticalArea){
-                    //     std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
-                    //     accepted = false;
-                    //     number_of_slivers++;
-                    //   }
-                    //   delete triangle;
-
-                    // }else
-                    if (dimension == 3 && nds == 4)
-                    {
+                // to control that the element has a good shape
+                if (accepted && (numfreesurf > 0 || numrigid == nds)) {
+                    if (dimension == 3 && nds == 4) {
                         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
 
                         double Volume = tetrahedron->Volume();
                         double CriticalVolume = 0.01 * mrRemesh.Refine->MeanVolume;
 
-                        if (CriticalVolume == 0)
-                        {
+                        if (CriticalVolume == 0) {
                             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
                             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
                             double meanLength = sqrt(SquaredLength) / 6.0;
@@ -370,15 +354,7 @@ public:
                             CriticalVolume = 0.00001 * regularTetrahedronVolume;
                         }
 
-                        // std::cout<<"riticalVolume "<<Volume<<std::endl;
-                        if (Volume < CriticalVolume)
-                        {
-                            //   std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
-                            // for( unsigned int n=0; n<nds; n++)
-                            //     {
-                            //       vertices[n].Set(INTERFACE);
-                            //       sliverNodes++;
-                            //     }
+                        if (Volume < CriticalVolume) {
                             accepted = false;
                             number_of_slivers++;
                         }
@@ -386,40 +362,19 @@ public:
                     }
                 }
 
-                // else{
-
-                //     if((numisolated+numrigid+numfreesurf)<3 && (numisolated+numfreesurf)<nds && (numisolated+numrigid)<nds && numfreesurf>0 && firstMesh==false){
-                //       Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
-                //       double Area = triangle->Area();
-                //       double CriticalArea=0.75*mrRemesh.Refine->MeanVolume;
-                //       if(Area>CriticalArea && Area<2*CriticalArea){
-                //         std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
-                //         accepted = true;
-                //         number_of_slivers--;
-                //       }
-                //     }
-
-                // }
-
-                if (accepted)
-                {
-                    //std::cout<<" Element ACCEPTED after cheking Center "<<number<<std::endl;
+                if (accepted) {
                     number += 1;
                     mrRemesh.PreservedElements[el] = number;
                 }
             }
-
             mrRemesh.Info->NumberOfElements = number;
         }
 
-        if (mEchoLevel > 1)
-        {
+        if (mEchoLevel > 1) {
             std::cout << "Number of Preserved Fluid Elements " << mrRemesh.Info->NumberOfElements << " (slivers detected: " << number_of_slivers << ") " << std::endl;
             std::cout << "TOTAL removed nodes " << mrRemesh.Info->RemovedNodes << std::endl;
         }
-        if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES))
-        {
-
+        if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES)) {
             ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
             const unsigned int nds = (*element_begin).GetGeometry().size();
 
@@ -428,12 +383,9 @@ public:
             ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
 
             //check engaged nodes
-            for (int el = 0; el < OutNumberOfElements; el++)
-            {
-                if (mrRemesh.PreservedElements[el])
-                {
-                    for (unsigned int pn = 0; pn < nds; pn++)
-                    {
+            for (int el = 0; el < OutNumberOfElements; el++) {
+                if (mrRemesh.PreservedElements[el]) {
+                    for (unsigned int pn = 0; pn < nds; pn++) {
                         //set vertices
                         rNodes[OutElementList[el * nds + pn]].Set(BLOCKED);
                     }
@@ -441,13 +393,9 @@ public:
             }
 
             int count_release = 0;
-            for (ModelPart::NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end(); i_node++)
-            {
-
-                if (i_node->IsNot(BLOCKED))
-                {
-                    if (!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID)))
-                    {
+            for (ModelPart::NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end(); i_node++) {
+                if (i_node->IsNot(BLOCKED)) {
+                    if (!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID))) {
                         i_node->Set(TO_ERASE);
                         if (mEchoLevel > 0)
                             std::cout << " NODE " << i_node->Id() << " RELEASE " << std::endl;
@@ -455,8 +403,7 @@ public:
                             std::cout << " ERROR: node " << i_node->Id() << " IS BOUNDARY RELEASE " << std::endl;
                     }
                 }
-                if (i_node->Is(TO_ERASE))
-                {
+                if (i_node->Is(TO_ERASE)) {
                     count_release++;
                 }
 
@@ -465,25 +412,18 @@ public:
 
             if (mEchoLevel > 0)
                 std::cout << "   fluid NUMBER OF RELEASED NODES " << count_release << std::endl;
-        }
-        else
-        {
-
+        } else {
             ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
-
-            for (ModelPart::NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end(); i_node++)
-            {
+            for (ModelPart::NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end(); i_node++) {
                 i_node->Reset(BLOCKED);
             }
         }
 
         mrRemesh.InputInitializedFlag = false;
-        // mMesherUtilities.SetNodes(mrModelPart,mrRemesh);
         mMesherUtilities.SetNodes(mrModelPart, mrRemesh);
         mrRemesh.InputInitializedFlag = true;
 
-        if (mEchoLevel > 1)
-        {
+        if (mEchoLevel > 1) {
             std::cout << "   Generated_Elements :" << OutNumberOfElements << std::endl;
             std::cout << "   Passed_AlphaShape  :" << mrRemesh.Info->NumberOfElements << std::endl;
             std::cout << "   SELECT MESH ELEMENTS ]; " << std::endl;
@@ -535,11 +475,8 @@ private:
     ///@name Static Member Variables
     ///@{
     ModelPart &mrModelPart;
-
     MesherUtilities::MeshingParameters &mrRemesh;
-
     MesherUtilities mMesherUtilities;
-
     int mEchoLevel;
 
     ///@}
