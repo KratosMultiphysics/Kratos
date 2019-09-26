@@ -134,7 +134,8 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        KRATOS_INFO("\nShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesDestination[0].clear();
@@ -204,7 +205,8 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        KRATOS_INFO("\nShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesDestination[0].clear();
@@ -262,7 +264,8 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        KRATOS_INFO("\nShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesOrigin[0].clear();
@@ -333,7 +336,8 @@ public:
             Initialize();
 
         BuiltinTimer mapping_time;
-        KRATOS_INFO("\nShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mValuesOrigin[0].clear();

@@ -373,7 +373,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     is_design_converged = True
                     break
 
-                KM.Logger.PrintInfo("\nShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
                 KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             # Compute penalty factor such that estimated Lagrange multiplier is obtained
@@ -383,20 +384,24 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             # Update lambda
             current_lambda = current_lambda + penalty_factor*penalty_value
 
-            KM.Logger.PrintInfo("\nShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            KM.Logger.Print("")
+            KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
             KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             # Check convergence of outer loop
             if outer_iteration == self.max_outer_iterations:
-                KM.Logger.PrintInfo("\nShapeOpt", "Maximal outer iterations of optimization problem reached!")
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Maximal outer iterations of optimization problem reached!")
                 break
 
             if is_max_total_iterations_reached:
-                KM.Logger.PrintInfo("\nShapeOpt", "Maximal total iterations of optimization problem reached!")
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Maximal total iterations of optimization problem reached!")
                 break
 
             if is_design_converged:
-                KM.Logger.PrintInfo("\nShapeOpt", "Update of design variables is zero. Optimization converged!")
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Update of design variables is zero. Optimization converged!")
                 break
 
     # --------------------------------------------------------------------------

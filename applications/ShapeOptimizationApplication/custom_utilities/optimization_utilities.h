@@ -193,7 +193,8 @@ public:
         KRATOS_TRY;
 
         // Some output for information
-        KRATOS_INFO("\nShapeOpt") << "No constraints given or active. The negative objective gradient is chosen as search direction..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "No constraints given or active. The negative objective gradient is chosen as search direction..." << std::endl;
 
         // search direction is negative of filtered gradient
         for (auto & node_i : mrDesignSurface.Nodes())
@@ -212,7 +213,8 @@ public:
         KRATOS_TRY;
 
         // Some output for information
-        KRATOS_INFO("\nShapeOpt") << "Constraint is active. Modified search direction on the constraint hyperplane is computed..." << std::endl;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Constraint is active. Modified search direction on the constraint hyperplane is computed..." << std::endl;
 
         // Compute norm of constraint gradient
         double norm_2_dCds_i = 0.0;

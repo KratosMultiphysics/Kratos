@@ -103,7 +103,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         timer.StartTimer()
 
         for self.optimization_iteration in range(1,self.max_iterations):
-            KM.Logger.Print("\n===============================================================================")
+            KM.Logger.Print("")
+            KM.Logger.Print("===============================================================================")
             KM.Logger.PrintInfo("ShapeOpt", "",timer.GetTimeStamp(), ": Starting optimization iteration ",self.optimization_iteration)
             KM.Logger.Print("===============================================================================\n")
 
@@ -120,7 +121,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.__logCurrentOptimizationStep()
 
-            KM.Logger.PrintInfo("\nShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            KM.Logger.Print("")
+            KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
             KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             if self.__isAlgorithmConverged():
@@ -223,7 +225,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         if self.optimization_iteration > 1 :
             # Check if maximum iterations were reached
             if self.optimization_iteration == self.max_iterations:
-                KM.Logger.PrintInfo("\nShapeOpt", "Maximal iterations of optimization problem reached!")
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Maximal iterations of optimization problem reached!")
                 return True
 
             # Check gradient norm
@@ -231,13 +234,15 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 self.initial_norm_objective_gradient = self.norm_objective_gradient
             else:
                 if self.norm_objective_gradient < self.gradient_tolerance*self.initial_norm_objective_gradient:
-                    KM.Logger.PrintInfo("\nShapeOpt", "Optimization problem converged as gradient norm reached specified tolerance of ",self.gradient_tolerance)
+                    KM.Logger.Print("")
+                    KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged as gradient norm reached specified tolerance of ",self.gradient_tolerance)
                     return True
 
             # Check for relative tolerance
             relativeChangeOfObjectiveValue = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]
             if abs(relativeChangeOfObjectiveValue) < self.relative_tolerance:
-                KM.Logger.PrintInfo("\nShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
                 return True
 
     # --------------------------------------------------------------------------

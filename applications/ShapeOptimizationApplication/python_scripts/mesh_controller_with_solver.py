@@ -87,7 +87,8 @@ class MeshControllerWithSolver(MeshController) :
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, variable):
-        KM.Logger.PrintInfo("\nShapeOpt", "Starting to update the mesh...")
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Starting to update the mesh...")
         startTime = timer.time()
 
         time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(KM.TIME)

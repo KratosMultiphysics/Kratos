@@ -95,7 +95,8 @@ class DataLogger():
         numberOfObjectives = self.OptimizationSettings["objectives"].size()
         numberOfConstraints = self.OptimizationSettings["constraints"].size()
 
-        KM.Logger.PrintInfo("\nShapeOpt", "The following objectives are defined:\n")
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "The following objectives are defined:\n")
         for objectiveNumber in range(numberOfObjectives):
             KM.Logger.Print(self.OptimizationSettings["objectives"][objectiveNumber])
 
