@@ -30,8 +30,8 @@ void RegeneratePfemPressureConditionsProcess<3>::CreatePressureLoads(
     const int Id1,
     const int Id2,
     const int Id3,
-	ElementIterator itElem,
-	ModelPart& rSubModelPart,
+    ElementIterator itElem,
+    ModelPart& rSubModelPart,
     ModelPart::PropertiesType::Pointer pProperties,
     int& rMaximumConditionId
     )
@@ -44,7 +44,7 @@ void RegeneratePfemPressureConditionsProcess<3>::CreatePressureLoads(
     rMaximumConditionId++;
 
     // Adding the nodes to the SubModelPart
-	rSubModelPart.AddNodes(condition_nodes_id);
+    rSubModelPart.AddNodes(condition_nodes_id);
 
     // We create the Line Load Condition
     const auto p_pressure_condition = rSubModelPart.CreateNewCondition(
@@ -124,7 +124,7 @@ void RegeneratePfemPressureConditionsProcess<TDim>::Execute()
     auto& r_process_info = mrModelPart.GetProcessInfo();
 
     if (!mrModelPart.HasSubModelPart("PFEMPressureConditions")) {
-		mrModelPart.CreateSubModelPart("PFEMPressureConditions");
+        mrModelPart.CreateSubModelPart("PFEMPressureConditions");
     }
     // Remove previous line loads-> Only the 1st iteration
     this->RemovePreviousPressureLoads();

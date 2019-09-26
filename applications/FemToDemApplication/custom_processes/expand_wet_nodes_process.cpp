@@ -29,7 +29,7 @@ void ExpandWetNodesProcess::Execute()
     int extrapolated_elements = 1;
     int pressure_id;
     auto& r_process_info = mrModelPart.GetProcessInfo();
-	const std::size_t dimension = r_process_info[DOMAIN_SIZE];
+    const std::size_t dimension = r_process_info[DOMAIN_SIZE];
     while (extrapolated_elements > 0) {
         extrapolated_elements = 0;
 
@@ -83,14 +83,14 @@ bool ExpandWetNodesProcess::ElementHasWetNodes(
             auxiliar = true;
         }
     }
-	return auxiliar;
+    return auxiliar;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void ExpandWetNodesProcess::ExpandWetNodes(
-	ElementIterator itElem,
+    ElementIterator itElem,
     const int PressureId
     )
 {
@@ -119,7 +119,7 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
 
     auto& r_process_info = mrModelPart.GetProcessInfo();
     const std::size_t dimension = r_process_info[DOMAIN_SIZE];
-	
+    
     // Evaluating according dimension
     if (dimension == 2) {
         auto skin_process = SkinDetectionProcess<2>(mrModelPart, skin_process_parameters);

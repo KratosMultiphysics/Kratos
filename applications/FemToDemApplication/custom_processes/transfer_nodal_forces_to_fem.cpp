@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license:
+//  License:         BSD License
+//                     Kratos default license:
 //kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
@@ -30,7 +30,7 @@ TransferNodalForcesToFem::TransferNodalForcesToFem(
 
 void TransferNodalForcesToFem::Execute() 
 {
-	auto& sub_model_conditions = mrModelPart.GetSubModelPart("ContactForcesDEMConditions");
+    auto& sub_model_conditions = mrModelPart.GetSubModelPart("ContactForcesDEMConditions");
     const auto it_cond_begin = sub_model_conditions.ConditionsBegin();
     //#pragma omp parallel for
     for (int i = 0; i < static_cast<int>(sub_model_conditions.Conditions().size()); i++) {
