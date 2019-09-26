@@ -174,6 +174,6 @@ namespace Kratos
     template class AdjointFiniteDifferencePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
     template class AdjointFiniteDifferencePotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
     template class AdjointFiniteDifferencePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
-    template class AdjointFiniteDifferencePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<3,4>>;
+    template class AdjointFiniteDifferencePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>>;
 } // namespace Kratos.
 
