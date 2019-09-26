@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/dof.h"
+#include "utilities/indexed_object.h"
 
 namespace Kratos
 {
@@ -216,6 +217,76 @@ namespace Kratos
             ) const
         {
             return pFirst->Key() == pSecond->Key();
+        }
+    };
+
+    /**
+     * @brief This is a hasher for indexed objects
+     */
+    struct IndexedObjectHasher
+    {
+        /**
+         * @brief This is the () operator
+         * @param rIndexedObject The indexed object to be hashed
+         * @return The corresponding hash
+         */
+        HashType operator()(const IndexedObject& rIndexedObject) const
+        {
+            return rIndexedObject.Id();
+        }
+    };
+
+    /**
+     * @brief This is a key comparer between two indexed objects
+     */
+    struct IndexedObjectComparator
+    {
+        /**
+         * @brief This is the () operator
+         * @param rFirst The first class to be compared
+         * @param rSecond The second class to be compared
+         */
+        bool operator()(
+            const IndexedObject& rFirst,
+            const IndexedObject& rSecond
+            ) const
+        {
+            return rFirst.Id() == rSecond.Id();
+        }
+    };
+
+    /**
+     * @brief This is a hasher for indexed objects (pointer)
+     */
+    struct IndexedObjecPointertHasher
+    {
+        /**
+         * @brief This is the () operator
+         * @param pIndexedObject The indexed object pointer to be hashed
+         * @return The corresponding hash
+         */
+        HashType operator()(const IndexedObject::Pointer pIndexedObject) const
+        {
+            return pIndexedObject->Id();
+        }
+    };
+
+    /**
+     * @brief This is a key comparer between two indexed objects (pointer)
+     */
+    struct IndexedObjectPointerComparator
+    {
+        /**
+         * @brief This is the () operator
+         * @param pFirst The first class to be compared
+         * @param pSecond The second class to be compared
+         */
+        bool operator()(
+            const IndexedObject::Pointer pFirst,
+            const IndexedObject::Pointer pSecond
+            ) const
+        {
+            return pFirst->Id() == pSecond->Id();
         }
     };
 
