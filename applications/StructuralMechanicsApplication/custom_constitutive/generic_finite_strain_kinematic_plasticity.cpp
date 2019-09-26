@@ -17,8 +17,8 @@
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
-#include "custom_constitutive/generic_finite_strain_isotropic_plasticity.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/generic_finite_strain_kinematic_plasticity.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_kinematic_plasticity.h"
 
 // Hyperelastic behaviours
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
@@ -45,7 +45,7 @@
 namespace Kratos
 {
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponsePK2(rValues);
 
@@ -60,7 +60,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Auxiliar values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -126,6 +126,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             double plastic_dissipation = this->GetPlasticDissipation();
             Vector plastic_strain;
             Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
+            Vector back_stress_vector(VoigtSize);
 
             // We backup the deformation gradient
             const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -186,7 +187,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                 threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
                 plastic_dissipation, dummy_plastic_strain_increment,
                 r_constitutive_matrix, rValues, characteristic_length,
-                plastic_strain);
+                plastic_strain, back_stress_vector);
 
             if (plastic_indicator <= std::abs(1.0e-4 * threshold)) { // Elastic case
                 noalias(integrated_stress_vector) = predictive_stress_vector;
@@ -198,7 +199,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                     predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
                     plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
                     plastic_dissipation, plastic_deformation_gradient, mPreviousDeformationGradient,
-                    r_constitutive_matrix, rValues, characteristic_length);
+                    r_constitutive_matrix, rValues, characteristic_length, back_stress_vector);
                 noalias(integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -213,7 +214,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     // Auxiliar values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -281,6 +282,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             double plastic_dissipation = this->GetPlasticDissipation();
             Vector plastic_strain;
             Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
+            Vector back_stress_vector(VoigtSize);
 
             // We backup the deformation gradient
             const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -334,7 +336,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                 threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
                 plastic_dissipation, dummy_plastic_strain_increment,
                 r_constitutive_matrix, rValues, characteristic_length,
-                plastic_strain);
+                plastic_strain, back_stress_vector);
 
             if (plastic_indicator <= std::abs(1.0e-4 * threshold)) { // Elastic case
                 noalias(integrated_stress_vector) = predictive_stress_vector;
@@ -346,7 +348,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                     predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
                     plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
                     plastic_dissipation, plastic_deformation_gradient, mPreviousDeformationGradient,
-                    r_constitutive_matrix, rValues, characteristic_length);
+                    r_constitutive_matrix, rValues, characteristic_length, back_stress_vector);
                 noalias(integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -361,7 +363,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseKirchhoff(rValues);
 
@@ -378,7 +380,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateTangentTensor(
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateTangentTensor(
     ConstitutiveLaw::Parameters& rValues,
     const ConstitutiveLaw::StressMeasure& rStressMeasure
     )
@@ -391,7 +393,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::InitializeMaterial(
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -411,7 +413,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     FinalizeMaterialResponsePK2(rValues);
 }
@@ -420,7 +422,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     // Auxiliar values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -441,6 +443,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     double plastic_dissipation = this->GetPlasticDissipation();
     Vector plastic_strain;
     Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
+    Vector back_stress_vector(VoigtSize);
 
     // We backup the deformation gradient
     const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -501,7 +504,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
         plastic_dissipation, dummy_plastic_strain_increment,
         r_constitutive_matrix, rValues, characteristic_length,
-        plastic_strain);
+        plastic_strain, back_stress_vector);
 
     if (plastic_indicator > std::abs(1.0e-4 * threshold)) { // Plastic case
         // While loop backward euler
@@ -511,12 +514,12 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
             plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
             plastic_dissipation, plastic_deformation_gradient, mPreviousDeformationGradient,
-            r_constitutive_matrix, rValues, characteristic_length);
+            r_constitutive_matrix, rValues, characteristic_length, back_stress_vector);
     }
 
     mPlasticDissipation = plastic_dissipation;
-    mPlasticDeformationGradient = plastic_deformation_gradient;
-    mPreviousDeformationGradient = deformation_gradient;
+    noalias(mPlasticDeformationGradient) = plastic_deformation_gradient;
+    noalias(mPreviousDeformationGradient) = deformation_gradient;
     mThreshold = threshold;
 }
 
@@ -524,7 +527,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     // Auxiliar values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
@@ -545,6 +548,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     double plastic_dissipation = this->GetPlasticDissipation();
     Vector plastic_strain;
     Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
+    Vector back_stress_vector(VoigtSize);
 
     // We backup the deformation gradient
     const double& r_det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -556,7 +560,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         predictive_stress_vector = rValues.GetStressVector();
     } else {
         // We compute the elastic deformation gradient  Fe = plastic_indicator * inv(Fp)
-        Matrix inverse_F_p ( Dimension, Dimension );
+        Matrix inverse_F_p = ZeroMatrix( Dimension, Dimension );
         double aux_det_Fp = 0;
 
         MathUtils<double>::InvertMatrix( plastic_deformation_gradient, inverse_F_p, aux_det_Fp);
@@ -605,7 +609,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
         plastic_dissipation, dummy_plastic_strain_increment,
         r_constitutive_matrix, rValues, characteristic_length,
-        plastic_strain);
+        plastic_strain, back_stress_vector);
 
     if (plastic_indicator > std::abs(1.0e-4 * threshold)) { // Plastic case
         // While loop backward euler
@@ -615,12 +619,12 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
             plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
             plastic_dissipation, plastic_deformation_gradient, mPreviousDeformationGradient,
-            r_constitutive_matrix, rValues, characteristic_length);
+            r_constitutive_matrix, rValues, characteristic_length, back_stress_vector);
     }
 
     mPlasticDissipation = plastic_dissipation;
-    mPlasticDeformationGradient = plastic_deformation_gradient;
-    mPreviousDeformationGradient = deformation_gradient;
+    noalias(mPlasticDeformationGradient) = plastic_deformation_gradient;
+    noalias(mPreviousDeformationGradient) = deformation_gradient;
     mThreshold = threshold;
 }
 
@@ -628,7 +632,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     FinalizeMaterialResponseKirchhoff(rValues);
 }
@@ -637,7 +641,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
+bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
     if (rThisVariable == PLASTIC_DISSIPATION) {
         return true;
@@ -652,9 +656,11 @@ bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(const Variable<Vector>& rThisVariable)
+bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(const Variable<Vector>& rThisVariable)
 {
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+        return true;
+    } else if (rThisVariable == BACK_STRESS_VECTOR) {
         return true;
     } else {
         return BaseType::Has(rThisVariable);
@@ -667,7 +673,7 @@ bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(const Variable<Matrix>& rThisVariable)
+bool GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Has(const Variable<Matrix>& rThisVariable)
 {
     return BaseType::Has(rThisVariable);
 }
@@ -676,7 +682,7 @@ bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::SetValue(
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo)
@@ -692,7 +698,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::SetValue(
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -705,14 +711,14 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::SetValue(
+void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::SetValue(
     const Variable<Matrix>& rThisVariable,
     const Matrix& rValue,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
     if (rThisVariable == PLASTIC_DEFORMATION_GRADIENT) {
-        mPlasticDeformationGradient = rValue;
+        noalias(mPlasticDeformationGradient) = rValue;
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -722,7 +728,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::GetValue(
+double& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -740,7 +746,7 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-Vector& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::GetValue(
+Vector& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
@@ -759,13 +765,13 @@ Vector& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::GetValue(
+Matrix& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::GetValue(
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
 {
     if (rThisVariable == PLASTIC_DEFORMATION_GRADIENT) {
-        rValue = mPlasticDeformationGradient;
+        noalias(rValue) = mPlasticDeformationGradient;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
@@ -777,7 +783,7 @@ Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateValue(
+double& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue
@@ -843,20 +849,119 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-Vector& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateValue(
+Vector& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
 {
-    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    if (rThisVariable == BACK_STRESS_VECTOR) {
+        // Auxiliar values
+        const Flags& r_constitutive_law_options = rParameterValues.GetOptions();
+
+        // We get the strain vector
+        Vector& r_strain_vector = rParameterValues.GetStrainVector();
+
+        // We get the constitutive tensor
+        Matrix& r_constitutive_matrix = rParameterValues.GetConstitutiveMatrix();
+
+        // The characteristic length
+        const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rParameterValues.GetElementGeometry());
+
+        this->CalculateValue(rParameterValues, GREEN_LAGRANGE_STRAIN_VECTOR, r_strain_vector);
+
+        // We get some variables
+        double threshold = this->GetThreshold();
+        double plastic_dissipation = this->GetPlasticDissipation();
+        Vector plastic_strain;
+        Matrix plastic_deformation_gradient = this->GetPlasticDeformationGradient();
+        Vector back_stress_vector(VoigtSize);
+
+        // We backup the deformation gradient
+        const double& r_det_deformation_gradient_backup = rParameterValues.GetDeterminantF();
+        const Matrix& r_deformation_gradient_backup = rParameterValues.GetDeformationGradientF();
+
+        // We compute the predicted stress vector
+        BoundedArrayType predictive_stress_vector;
+        if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
+            predictive_stress_vector = rParameterValues.GetStressVector();
+        } else {
+            // We compute the elastic deformation gradient  Fe = plastic_indicator * inv(Fp)
+            Matrix inverse_F_p ( Dimension, Dimension );
+            double aux_det_Fp = 0;
+
+            MathUtils<double>::InvertMatrix( plastic_deformation_gradient, inverse_F_p, aux_det_Fp);
+            const Matrix elastic_deformation_gradient = prod(r_deformation_gradient_backup, inverse_F_p);
+
+            rParameterValues.SetDeterminantF(MathUtils<double>::DetMat(elastic_deformation_gradient));
+            rParameterValues.SetDeformationGradientF(elastic_deformation_gradient);
+            Vector auxiliar_predictive_stress_vector;
+            this->CalculateValue(rParameterValues, PK2_STRESS_VECTOR, auxiliar_predictive_stress_vector);
+            for (std::size_t i_voigt = 0; i_voigt < VoigtSize; ++i_voigt) {
+                predictive_stress_vector[i_voigt] =  auxiliar_predictive_stress_vector[i_voigt];
+            }
+
+            // We revert the deformation gradient
+            rParameterValues.SetDeterminantF(r_det_deformation_gradient_backup);
+            rParameterValues.SetDeformationGradientF(r_deformation_gradient_backup);
+
+            // Check
+            KRATOS_ERROR_IF(r_det_deformation_gradient_backup < std::numeric_limits<double>::epsilon()) << "Deformation gradient determinant (detF) < 0.0 : " << r_det_deformation_gradient_backup << std::endl;
+        }
+
+        // We compute the plastic strain
+        const double& det_f = rParameterValues.GetDeterminantF();
+        const Matrix& deformation_gradient = rParameterValues.GetDeformationGradientF();
+        rParameterValues.SetDeterminantF(MathUtils<double>::DetMat(plastic_deformation_gradient));
+        rParameterValues.SetDeformationGradientF(plastic_deformation_gradient);
+        this->CalculateValue(rParameterValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);
+        rParameterValues.SetDeterminantF(det_f);
+        rParameterValues.SetDeformationGradientF(deformation_gradient);
+
+        // Check
+        KRATOS_ERROR_IF(det_f < std::numeric_limits<double>::epsilon()) << "Deformation gradient determinant (detF) < 0.0 : " << det_f << std::endl;
+
+        // Initialize Plastic Parameters
+        double uniaxial_stress = 0.0, plastic_denominator = 0.0;
+        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize);     // DF/DS
+        BoundedArrayType plastic_potential_derivative = ZeroVector(VoigtSize); // DG/DS
+        const BoundedArrayType dummy_plastic_strain_increment = ZeroVector(VoigtSize);
+
+        // Elastic Matrix
+        this->CalculateValue(rParameterValues, CONSTITUTIVE_MATRIX_PK2, r_constitutive_matrix);
+
+        // Compute the plastic parameters
+        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
+            predictive_stress_vector, r_strain_vector, uniaxial_stress,
+            threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
+            plastic_dissipation, dummy_plastic_strain_increment,
+            r_constitutive_matrix, rParameterValues, characteristic_length,
+            plastic_strain, back_stress_vector);
+
+        if (plastic_indicator > std::abs(1.0e-4 * threshold)) { // Plastic case
+            // While loop backward euler
+            /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
+            TConstLawIntegratorType::IntegrateStressVector(
+                *this, GREEN_LAGRANGE_STRAIN_VECTOR, PK2_STRESS_VECTOR,
+                predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
+                plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
+                plastic_dissipation, plastic_deformation_gradient, mPreviousDeformationGradient,
+                r_constitutive_matrix, rParameterValues, characteristic_length, back_stress_vector);
+        }
+
+        rValue = back_stress_vector;
+    } else {
+        BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    }
+
+    return rValue;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateValue(
+Matrix& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -867,7 +972,11 @@ Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
         Vector plastic_strain(VoigtSize);
         ConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_plastic_tensor, plastic_strain);
         rValue = MathUtils<double>::StrainVectorToTensor(plastic_strain);
-    }else if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
+    } else if (rThisVariable == BACK_STRESS_TENSOR) {
+        Vector aux_value(VoigtSize);
+        this->CalculateValue(rParameterValues, BACK_STRESS_VECTOR, aux_value);
+        rValue = MathUtils<double>::StressVectorToTensor(aux_value);
+    } else if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
         // The plastic deformation gradient
         const Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
 
@@ -903,7 +1012,7 @@ Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-int GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Check(
+int GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -913,7 +1022,6 @@ int GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegr
     const int check_integrator = TConstLawIntegratorType::Check(rMaterialProperties);
     KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
     if ((check_base + check_integrator) > 0) return 1;
-
     return 0;
 }
 
@@ -921,52 +1029,52 @@ int GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegr
 /***********************************************************************************/
 
 // Kirchhoff hyper elasticity
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>;
 
 // Neo-Hookean hyper elasticity
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>;
-template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainKinematicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>;
 } // namespace Kratos
