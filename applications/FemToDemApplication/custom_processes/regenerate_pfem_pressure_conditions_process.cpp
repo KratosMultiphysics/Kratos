@@ -212,6 +212,5 @@ void RegeneratePfemPressureConditionsProcess<3>::CreateNewConditions()
 /***********************************************************************************/
 
 template class RegeneratePfemPressureConditionsProcess<3>;
-template class RegeneratePfemPressureConditionsProcess<2>;
 
 }  // namespace Kratos

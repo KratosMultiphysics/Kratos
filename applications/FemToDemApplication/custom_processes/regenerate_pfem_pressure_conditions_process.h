@@ -16,8 +16,6 @@
 
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include <pybind11/pybind11.h>
-// #include <list>
 #include "fem_to_dem_application_variables.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
