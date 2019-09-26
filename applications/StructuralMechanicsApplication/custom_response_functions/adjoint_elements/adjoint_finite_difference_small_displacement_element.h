@@ -49,7 +49,7 @@ public:
     typedef typename BaseType::IntegrationMethod IntegrationMethod;
     typedef typename BaseType::GeometryDataType GeometryDataType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferencingSmallDisplacementElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferencingSmallDisplacementElement);
 
     AdjointFiniteDifferencingSmallDisplacementElement(IndexType NewId = 0)
     : BaseType(NewId, false)
@@ -79,7 +79,7 @@ public:
                             NodesArrayType const& ThisNodes,
                             typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>>(
             NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -87,7 +87,7 @@ public:
                             typename GeometryType::Pointer pGeometry,
                             typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared<AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>>(
+        return Kratos::make_intrusive<AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
 

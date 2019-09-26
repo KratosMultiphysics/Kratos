@@ -97,11 +97,11 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        elif self.response_function_settings["response_type"].GetString() == "adjoint_max_stress":
-            self.response_function = StructuralMechanicsApplication.AdjointMaxStressResponseFunction(self.main_model_part, self.response_function_settings)
         response_type = self.settings["response_function_settings"]["response_type"].GetString()
         if response_type == "adjoint_local_stress":
             self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_max_stress":
+            self.response_function = StructuralMechanicsApplication.AdjointMaxStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_displacement":
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_linear_strain_energy":

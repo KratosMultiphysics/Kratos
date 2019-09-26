@@ -43,7 +43,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::Calculat
     const SizeType dimension = this->mpPrimalElement->GetGeometry().WorkingSpaceDimension();
     const SizeType num_dofs_per_node = (this->mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = num_nodes * num_dofs_per_node;
-  
+
     KRATOS_ERROR_IF(dimension != 3)
         << "AdjointFiniteDifferencingSmallDisplacementElement::CalculateStressDisplacementDerivative: Invalid element dimension! Currently only 3D SmallDisplacementElements are supported!" << std::endl;
 
@@ -198,7 +198,7 @@ void AdjointFiniteDifferencingSmallDisplacementElement<TPrimalElement>::load(Ser
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType);
 }
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement>;
+template class AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement>;
 
 } // namespace Kratos.
 

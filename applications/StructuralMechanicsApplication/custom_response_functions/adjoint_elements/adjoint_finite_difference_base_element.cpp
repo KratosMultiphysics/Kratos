@@ -642,7 +642,7 @@ template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>;
 template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
+template class AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
 
 } // namespace Kratos
 
