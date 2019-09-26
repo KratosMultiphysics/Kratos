@@ -51,6 +51,22 @@ def  AuxiliarContactSettings():
 
     return contact_settings
 
+def  AuxiliarMPCContactSettings():
+    contact_settings = KM.Parameters("""
+    {
+        "mpc_contact_settings" :
+        {
+            "contact_type"                  : "Frictionless",
+            "simplified_semi_smooth_newton" : false,
+            "inner_loop_iterations"         : 10,
+            "update_each_nl_iteration"      : false,
+            "enforce_ntn"                   : false
+        }
+    }
+    """)
+
+    return contact_settings
+
 def  AuxiliarExplicitContactSettings():
     contact_settings = KM.Parameters("""
     {
@@ -74,11 +90,31 @@ def  AuxiliarSetSettings(settings, contact_settings):
     if not settings["reform_dofs_at_each_step"].GetBool():
         KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
         settings["reform_dofs_at_each_step"].SetBool(True)
+    if not settings["use_computing_model_part"].GetBool():
+        KM.Logger.PrintInfo("Using Computing-ModelPart", "Computing ModelPart must currently be used in Contact. Switching to True")
+        settings["use_computing_model_part"].SetBool(True)
     mortar_type = contact_settings["mortar_type"].GetString()
     if "Frictional" in mortar_type:
         if not settings["buffer_size"].GetInt() < 3:
             KM.Logger.PrintInfo("Reform Buffer Size", "Buffer size requires a size of at least 3. Switching to 3")
             settings["buffer_size"].SetInt(3)
+
+    return settings
+
+def  AuxiliarMPCSetSettings(settings, contact_settings):
+    # Setting the parameters
+    if not settings["compute_reactions"].GetBool():
+        KM.Logger.PrintInfo("Compute reactions", "Storage must be cleared each step. Switching to True")
+        settings["compute_reactions"].SetBool(True)
+    if not settings["clear_storage"].GetBool():
+        KM.Logger.PrintInfo("Clear storage", "Storage must be cleared each step. Switching to True")
+        settings["clear_storage"].SetBool(True)
+    if not settings["reform_dofs_at_each_step"].GetBool():
+        KM.Logger.PrintInfo("Reform DoFs", "DoF must be reformed each time step. Switching to True")
+        settings["reform_dofs_at_each_step"].SetBool(True)
+    if not settings["use_computing_model_part"].GetBool():
+        KM.Logger.PrintInfo("Using Computing-ModelPart", "Computing ModelPart must currently be used in Contact. Switching to True")
+        settings["use_computing_model_part"].SetBool(True)
 
     return settings
 
@@ -115,6 +151,13 @@ def  AuxiliarAddVariables(main_model_part, mortar_type = ""):
         elif mortar_type == "ComponentsMeshTying":
             main_model_part.AddNodalSolutionStepVariable(KM.VECTOR_LAGRANGE_MULTIPLIER)             # Add vector LM
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL)             # Add vector LM residual
+
+def  AuxiliarMPCAddVariables(main_model_part, contact_type = ""):
+    main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)  # Add normal
+    main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
+    main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)  # Add normal contact gap
+    if contact_type == "Frictional":
+        main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP) # Add contact slip
 
 def  AuxiliarAddDofs(main_model_part, mortar_type = ""):
     if mortar_type == "ALMContactFrictionless":                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
@@ -278,3 +321,20 @@ def  AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mech
                                                             processes_list,
                                                             post_process
                                                             )
+
+def  AuxiliarMPCNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings):
+    newton_parameters = KM.Parameters("""{}""")
+    newton_parameters.AddValue("inner_loop_iterations", contact_settings["inner_loop_iterations"])
+    newton_parameters.AddValue("update_each_nl_iteration", contact_settings["update_each_nl_iteration"])
+    newton_parameters.AddValue("enforce_ntn", contact_settings["enforce_ntn"])
+    return CSMA.ResidualBasedNewtonRaphsonMPCContactStrategy(computing_model_part,
+                                                                mechanical_scheme,
+                                                                linear_solver,
+                                                                mechanical_convergence_criterion,
+                                                                builder_and_solver,
+                                                                settings["max_iteration"].GetInt(),
+                                                                settings["compute_reactions"].GetBool(),
+                                                                settings["reform_dofs_at_each_step"].GetBool(),
+                                                                settings["move_mesh_flag"].GetBool(),
+                                                                newton_parameters
+                                                                )
