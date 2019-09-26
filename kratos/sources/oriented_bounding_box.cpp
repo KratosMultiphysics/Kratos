@@ -212,8 +212,8 @@ template<>
 bool OrientedBoundingBox<2>::IsInside(const OrientedBoundingBox<2>& rOtherOrientedBoundingBox)  const
 {
     // Signs
-    constexpr static std::array<double, 4> sign_components_X2D = {-1.0, 1.0, 1.0, -1.0};
-    constexpr static std::array<double, 4> sign_components_Y2D = {-1.0, -1.0, 1.0, 1.0};
+    constexpr static std::array<double, 4> sign_components_X2D = {{-1.0, 1.0, 1.0, -1.0}};
+    constexpr static std::array<double, 4> sign_components_Y2D = {{-1.0, -1.0, 1.0, 1.0}};
 
     // Getting nodes from second
     const auto& r_second_obb_center = rOtherOrientedBoundingBox.GetCenter();
@@ -254,9 +254,9 @@ bool OrientedBoundingBox<3>::IsInside(const OrientedBoundingBox<3>& rOtherOrient
     MathUtils<double>::InvertMatrix(rotation_matrix, inverted_rotation_matrix, det_rotation_matrix);
 
     // Signs
-    constexpr static std::array<double, 8> sign_components_X3D = {-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0};
-    constexpr static std::array<double, 8> sign_components_Y3D = {-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0};
-    constexpr static std::array<double, 8> sign_components_Z3D = {-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0};
+    constexpr static std::array<double, 8> sign_components_X3D = {{-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0}};
+    constexpr static std::array<double, 8> sign_components_Y3D = {{-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0}};
+    constexpr static std::array<double, 8> sign_components_Z3D = {{-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0}};
 
     // Getting nodes from second
     const auto& r_second_obb_center = rOtherOrientedBoundingBox.GetCenter();
@@ -481,8 +481,8 @@ template<>
 Quadrilateral2D4<Point> OrientedBoundingBox<2>::GetEquivalentGeometry() const
 {
     // Signs
-    constexpr static std::array<double, 4> sign_components_X2D = {-1.0, 1.0, 1.0, -1.0};
-    constexpr static std::array<double, 4> sign_components_Y2D = {-1.0, -1.0, 1.0, 1.0};
+    constexpr static std::array<double, 4> sign_components_X2D = {{-1.0, 1.0, 1.0, -1.0}};
+    constexpr static std::array<double, 4> sign_components_Y2D = {{-1.0, -1.0, 1.0, 1.0}};
 
     // Create a quad points
     std::vector<Point::Pointer> points(4);
@@ -504,9 +504,9 @@ template<>
 Hexahedra3D8<Point> OrientedBoundingBox<3>::GetEquivalentGeometry() const
 {
     // Signs
-    constexpr static std::array<double, 8> sign_components_X3D = {-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0};
-    constexpr static std::array<double, 8> sign_components_Y3D = {-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0};
-    constexpr static std::array<double, 8> sign_components_Z3D = {-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0};
+    constexpr static std::array<double, 8> sign_components_X3D = {{-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0}};
+    constexpr static std::array<double, 8> sign_components_Y3D = {{-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0}};
+    constexpr static std::array<double, 8> sign_components_Z3D = {{-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0}};
 
     // Create a hexa points
     std::vector<Point::Pointer> points(8);

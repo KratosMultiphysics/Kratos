@@ -18,17 +18,19 @@
 
 namespace Kratos
 {
-typedef array_1d<double,3> Vector3;
 typedef Geometry<Node<3>> GeometryType;
 
 // VARIABLES
+// MPC Contact related variables
+KRATOS_CREATE_VARIABLE( MasterSlaveConstraint::Pointer, CONSTRAINT_POINTER )      // Pointer to the constraint of the condition
+KRATOS_CREATE_VARIABLE( double, REACTION_CHECK_STIFFNESS_FACTOR )                 // The reaction factor to be considered on the tension check
+
 /* Mortar method general variables */
 KRATOS_CREATE_VARIABLE( int , INNER_LOOP_ITERATION )                              // The number of loops in the simplified semi-smooth inner iteration
 KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                         // The integration order computed in the contact
 KRATOS_CREATE_VARIABLE( double, DISTANCE_THRESHOLD )                              // The distance threshold considered
 KRATOS_CREATE_VARIABLE( double, ZERO_TOLERANCE_FACTOR )                           // The epsilon factor considered
 KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                             // The factor employed to search an active/inactive node
-KRATOS_CREATE_VARIABLE( Vector3, PAIRED_NORMAL )                                  // The normal of the paired geometry
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )                 // Auxiliar coordinates used to map
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )                    // Delta coordinates used to map
 KRATOS_CREATE_VARIABLE( double, NORMAL_GAP )                                      // The normal gap employed in contact formulation
