@@ -45,8 +45,6 @@ class MainPFEM_for_coupling_solution(PfemFluidDynamicsAnalysis.PfemFluidDynamics
             self.output_settings["result_file_configuration"].AddValue("nodal_results", self.project_parameters["output_configuration"]["result_file_configuration"]["nodal_results"])
             self.output_settings["result_file_configuration"].RemoveValue("gauss_point_results")
             self.output_settings["result_file_configuration"].AddValue("gauss_point_results", self.project_parameters["output_configuration"]["result_file_configuration"]["gauss_point_results"])
-            # self.output_settings["result_file_configuration"]["gidpost_flags"].RemoveValue("WriteConditionsFlag")
-            # self.output_settings["result_file_configuration"]["gidpost_flags"].AddValue("WriteConditionsFlag", self.project_parameters["output_configuration"]["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"])
             return GiDOutputProcess(self.post_process_model_part,
                                     self.problem_name,
                                     self.output_settings)
