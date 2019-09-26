@@ -47,15 +47,15 @@ class DEMRestartTestFactory():
                 for d1, d2 in zip(displacement_save, displacement_load):
                     self.assertAlmostEqual(d1, d2)
 
-# class TestRestartOneBall(DEMRestartTestFactory, KratosUnittest.TestCase):
-#     case_name = "one_ball"
-#     def setUp(self):
-#         super().setUp(TestRestartOneBall.case_name)
+class TestRestartOneBall(DEMRestartTestFactory, KratosUnittest.TestCase):
+    case_name = "one_ball"
+    def setUp(self):
+        super().setUp(TestRestartOneBall.case_name)
 
-# class TestRestartTwoBalls(DEMRestartTestFactory, KratosUnittest.TestCase):
-#     case_name = "two_balls"
-#     def setUp(self):
-#         super().setUp(TestRestartTwoBalls.case_name)
+class TestRestartTwoBalls(DEMRestartTestFactory, KratosUnittest.TestCase):
+    case_name = "two_balls"
+    def setUp(self):
+        super().setUp(TestRestartTwoBalls.case_name)
 
 class TestRestartBallAndWall(DEMRestartTestFactory, KratosUnittest.TestCase):
     case_name = "ball_and_wall"
