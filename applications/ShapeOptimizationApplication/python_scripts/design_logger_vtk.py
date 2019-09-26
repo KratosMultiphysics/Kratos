@@ -40,9 +40,9 @@ class DesignLoggerVTK( DesignLogger ):
             output_format.AddValue("vtk_parameters", minimal_vtk_settings["vtk_parameters"])
         else:
             if output_format["vtk_parameters"].Has("model_part_name"):
-                KM.Logger.PrintWarning("ShapeOpt", "vtk output parameter `model_part_name` will be overwritten!")
+                KM.Logger.PrintWarning("ShapeOpt::DesignLoggerVTK", "vtk output parameter `model_part_name` will be overwritten!")
             if output_format["vtk_parameters"].Has("folder_name"):
-                KM.Logger.PrintWarning("ShapeOpt", "vtk output parameter `folder_name` will be overwritten!")
+                KM.Logger.PrintWarning("ShapeOpt::DesignLoggerVTK", "vtk output parameter `folder_name` will be overwritten!")
 
         output_format["vtk_parameters"].ValidateAndAssignDefaults(minimal_vtk_settings["vtk_parameters"])
 

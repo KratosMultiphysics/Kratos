@@ -572,7 +572,7 @@ private:
     void ThrowWarningIfNumberOfNeighborsExceedsLimit(ModelPart::NodeType& given_node, unsigned int number_of_neighbors)
     {
         if(number_of_neighbors >= mMaxNumberOfNeighbors)
-            KRATOS_WARNING("ShapeOpt") << "For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
+            KRATOS_WARNING("ShapeOpt::MapperVertexMorphingMatrixFree") << "For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
     }
 
     // --------------------------------------------------------------------------

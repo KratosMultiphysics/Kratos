@@ -221,7 +221,7 @@ private:
                 mIntegrationMethod = GeometryData::GI_GAUSS_5;
             else
             {
-                KRATOS_WARNING("ShapeOpt") << "\n> Number_of_gauss_points: " << number_of_gauss_points << " not valid! Using default: 2 " << std::endl;
+                KRATOS_WARNING("ShapeOpt::MapperVertexMorphingImprovedIntegration") << "\n> Number_of_gauss_points: " << number_of_gauss_points << " not valid! Using default: 2 " << std::endl;
                 mIntegrationMethod = GeometryData::GI_GAUSS_2;
             }
         }
