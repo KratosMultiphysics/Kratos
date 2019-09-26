@@ -16,6 +16,7 @@
 #include "embedded_incompressible_potential_flow_element.h"
 #include "embedded_compressible_potential_flow_element.h"
 #include "adjoint_finite_difference_potential_flow_element.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -96,38 +97,49 @@ namespace Kratos
                                     const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
-        const double delta = this->GetPerturbationSize();
-        ProcessInfo process_info = rCurrentProcessInfo;
 
-        Vector RHS;
-        Vector RHS_perturbed;
 
         auto pPrimalElement = this->pGetPrimalElement();
-        const auto& r_geometry = this->GetGeometry();
 
-        pPrimalElement->CalculateRightHandSide(RHS, process_info);
+        double column_size = (pPrimalElement->GetValue(WAKE)) ? 2*NumNodes : NumNodes;
+        if (rOutput.size1() != NumNodes || rOutput.size2() != column_size)
+            rOutput.resize(NumNodes, column_size, false);
+        rOutput.clear();
 
-        if (rOutput.size1() != NumNodes || rOutput.size2() != RHS.size())
-            rOutput.resize(NumNodes, RHS.size(), false);
-
+        BoundedVector<double,NumNodes> distances;
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-            if (!r_geometry[i_node].GetValue(TRAILING_EDGE) && this->Is(ACTIVE)){
-                double distance_value = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
-                //perturbate distance
-                pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distance_value+delta;
-                //compute perturbated RHS
-                pPrimalElement->CalculateRightHandSide(RHS_perturbed, process_info);
-                //recover distance value
-                pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distance_value;
-                for (unsigned int i_dof =0;i_dof<RHS.size();i_dof++) {
-                    rOutput(i_node,i_dof) = (RHS_perturbed(i_dof)-RHS(i_dof))/delta;
+            distances[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        }
+        const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
+
+        // Calculate sensitivity matrix in elements that are cut and active.
+        if (is_embedded && this->Is(ACTIVE)){
+
+            const double delta = this->GetPerturbationSize();
+            ProcessInfo process_info = rCurrentProcessInfo;
+            const auto& r_geometry = this->GetGeometry();
+            Vector RHS;
+            Vector RHS_perturbed;
+
+            pPrimalElement->CalculateRightHandSide(RHS, process_info);
+
+            for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+                // Apply F.D in all cut nodes that are not trailing edge nodes.
+                if (!r_geometry[i_node].GetValue(TRAILING_EDGE)){
+                    //perturbate distance
+                    pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i_node]+delta;
+                    //compute perturbated RHS
+                    pPrimalElement->CalculateRightHandSide(RHS_perturbed, process_info);
+                    //recover distance value
+                    pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i_node];
+
+                    for (unsigned int i_dof =0;i_dof<RHS.size();i_dof++) {
+                        rOutput(i_node,i_dof) = (RHS_perturbed(i_dof)-RHS(i_dof))/delta;
+                    }
                 }
             }
-            else {
-                for(unsigned int i_dof = 0; i_dof < RHS.size(); ++i_dof)
-                    rOutput(i_node, i_dof) = 0.0;
-            }
         }
+
         KRATOS_CATCH("")
     }
 
