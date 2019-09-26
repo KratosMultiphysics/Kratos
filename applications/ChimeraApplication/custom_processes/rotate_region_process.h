@@ -232,8 +232,11 @@ private:
         : mMomentOfInertia(MomentOfInertia), mDampingCoeff(DampingCoefficient),
           mTorque(0.0), mTime(0.0) {
       mBdf2Coeff.resize(3, false);
+      mBdf2Coeff[0] = 0.0; mBdf2Coeff[1] = 0.0; mBdf2Coeff[2] = 0.0;
       mTheta.resize(3, false);
+      mTheta[0] = 0.0; mTheta[1] = 0.0; mTheta[2] = 0.0;
       mOmega.resize(3, false);
+      mOmega[0] = 0.0; mOmega[1] = 0.0; mOmega[2] = 0.0;
     }
 
     /*
@@ -381,6 +384,9 @@ private:
       mpRotationSystem->CalculateCurrentRotationState();
       mTheta = mpRotationSystem->GetCurrentTheta();
       mAngularVelocityRadians = mpRotationSystem->GetCurrentOmega();
+      KRATOS_INFO("RotateRegionProcess")<<"Current torque             :: "<<torque<<std::endl;
+      KRATOS_INFO("RotateRegionProcess")<<"Current angular velocity   :: "<<mAngularVelocityRadians<<std::endl;
+      KRATOS_INFO("RotateRegionProcess")<<"Current angle of rotation  :: "<<mTheta<<std::endl;
     } else {
       const double dt = r_process_info[DELTA_TIME];
       mTheta += mAngularVelocityRadians * dt;
@@ -448,7 +454,7 @@ private:
       torque_vector[1] = r_vector[2] * reaction[0] - r_vector[0] * reaction[2];
       torque_vector[2] = r_vector[0] * reaction[1] - r_vector[1] * reaction[0];
 
-      torque -= torque_vector[0] * mAxisOfRotationVector[0] +
+      torque += torque_vector[0] * mAxisOfRotationVector[0] +
                 torque_vector[1] * mAxisOfRotationVector[1] +
                 torque_vector[2] * mAxisOfRotationVector[2];
 
