@@ -467,7 +467,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
     }
 
     Vector split_element_values(2 * NumNodes);
-    GetPotentialOnWakeElement(split_element_values, data.distances);
+    split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
     noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, split_element_values);
 }
 
@@ -655,44 +655,6 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEner
     this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
 }
 
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnWakeElement(
-    Vector& split_element_values, const array_1d<double, NumNodes>& distances) const
-{
-    array_1d<double, NumNodes> upper_phis;
-    GetPotentialOnUpperWakeElement(upper_phis, distances);
-
-    array_1d<double, NumNodes> lower_phis;
-    GetPotentialOnLowerWakeElement(lower_phis, distances);
-
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        split_element_values[i] = upper_phis[i];
-        split_element_values[NumNodes + i] = lower_phis[i];
-    }
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnUpperWakeElement(
-    array_1d<double, NumNodes>& rUpperPotentials, const array_1d<double, NumNodes>& distances) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++)
-        if (distances[i] > 0)
-            rUpperPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        else
-            rUpperPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeElement(
-    array_1d<double, NumNodes>& rLowerPotentials, const array_1d<double, NumNodes>& distances) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++)
-        if (distances[i] < 0)
-            rLowerPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        else
-            rLowerPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-}
 
 template <int Dim, int NumNodes>
 double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficient(
