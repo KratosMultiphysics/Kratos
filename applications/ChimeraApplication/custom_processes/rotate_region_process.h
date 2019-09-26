@@ -356,8 +356,8 @@ private:
   Parameters mParameters;
   std::string mSubModelPartName;
   double mAngularVelocityRadians;
-  DenseVector<double> mAxisOfRotationVector;
-  DenseVector<double> mCenterOfRotation;
+  array_1d<double, 3>  mAxisOfRotationVector;
+  array_1d<double, 3>  mCenterOfRotation;
   double mTheta;
   bool mToCalculateTorque;
   double mMomentOfInertia;
@@ -422,6 +422,35 @@ private:
     // Bringing back to the original coordinate system.
     rTransformedCoordinates = rTransformedCoordinates + mCenterOfRotation;
   }
+
+  /*
+   * @brief Calculates Torque on the given modelpart
+   * @out Torque on the modelpart about the axis of rotation.
+   */
+  double CalculateTorque() const {
+      double torque = 0.0;
+
+    const int num_nodes = mrModelPart.NumberOfNodes();
+    const NodeIteratorType it_slave_node_begin = mrModelPart.NodesBegin();
+
+#pragma omp parallel for schedule(guided, 512) reduction(+:torque)
+    for (int i_node = 0; i_node < num_nodes; ++i_node) {
+      NodeIteratorType it_node = it_slave_node_begin;
+      std::advance(it_node, i_node);
+
+      array_1d<double, 3> torque_vector;
+      array_1d<double, 3> r_vector = it_node->GetInitialPosition().Coordinates() - mAxisOfRotationVector;
+      auto reaction = it_node->FastGetSolutionStepValue(REACTION, 0);
+
+        torque_vector[0] = r_vector[1]*reaction[2] - r_vector[2]*reaction[1];
+        torque_vector[1] = r_vector[2]*reaction[0] - r_vector[0]*reaction[2];
+        torque_vector[2] = r_vector[0]*reaction[1] - r_vector[1]*reaction[0];   
+
+        torque += std::sqrt(torque_vector[0]*torque_vector[0] + torque_vector[1]*torque_vector[1] 
+                            + torque_vector[2]*torque_vector[2]);
+    }
+    return torque;
+  } 
 }; // Class MoveRotorProcess
 
 }; // namespace Kratos.
