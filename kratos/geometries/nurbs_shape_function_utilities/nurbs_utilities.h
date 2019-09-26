@@ -31,7 +31,7 @@ namespace Kratos {
 * Provides universal geometrical utiltity functions for the computation of
 * curve and surface NURBS/ B-Spline shape functions.
  */
-class NurbsUtilities
+namespace NurbsUtilities
 {
 public:
     ///@name Type Definitions
