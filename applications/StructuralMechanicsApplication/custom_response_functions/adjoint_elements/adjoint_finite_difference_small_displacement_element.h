@@ -49,7 +49,7 @@ public:
     typedef typename BaseType::IntegrationMethod IntegrationMethod;
     typedef typename BaseType::GeometryDataType GeometryDataType;
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferencingSmallDisplacementElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferencingSmallDisplacementElement);
 
     AdjointFiniteDifferencingSmallDisplacementElement(IndexType NewId = 0)
     : BaseType(NewId, false)
