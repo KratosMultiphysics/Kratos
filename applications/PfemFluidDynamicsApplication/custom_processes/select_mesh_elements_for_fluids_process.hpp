@@ -137,15 +137,11 @@ public:
             ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
             const unsigned int nds = element_begin->GetGeometry().size();
             const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
-
             int *OutElementList = mrRemesh.OutMesh.GetElementList();
-
             ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
 
             int el = 0;
             int number = 0;
-            // std::cout<<" num nodes "<<rNodes.size()<<std::endl;
-            // std::cout<<" NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
 
             //#pragma omp parallel for reduction(+:number) private(el)
             for (el = 0; el < OutNumberOfElements; el++) {
@@ -159,13 +155,11 @@ public:
                 unsigned int numinlet = 0;
                 unsigned int numisolated = 0;
                 bool noremesh = false;
-                // unsigned int  numinsertednodes =0;
                 std::vector<double> normVelocityP;
                 normVelocityP.resize(nds);
                 unsigned int checkedNodes = 0;
                 box_side_element = false;
                 unsigned int countIsolatedWallNodes = 0;
-                // bool isolatedWallElement=true;
                 for (unsigned int pn = 0; pn < nds; pn++) {
                     //set vertices
                     if (mrRemesh.NodalPreIds[OutElementList[el * nds + pn]] < 0) {
@@ -183,18 +177,13 @@ public:
                         std::cout << " ERROR: something is wrong: node out of bounds " << std::endl;
                         break;
                     }
-
-                    //vertices.push_back( *((rNodes).find( OutElementList[el*nds+pn] ).base() ) );
                     vertices.push_back(rNodes(OutElementList[el * nds + pn]));
-
-                    //check flags on nodes
-
+                    // check flags on nodes
                     if (vertices.back().Is(ISOLATED)) {
                         numisolated++;
                     }
                     if (vertices.back().Is(BOUNDARY)) {
                         numboundary++;
-                        // std::cout<<" BOUNDARY COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
                     }
                     if (vertices.back().GetValue(NO_MESH)) {
                         noremesh = true;
@@ -206,7 +195,6 @@ public:
                         bool localIsolatedWallNode = true;
                         for (unsigned int i = 0; i < rN.size(); i++) {
                             if (rN[i].IsNot(RIGID)) {
-                                // isolatedWallElement=false;
                                 localIsolatedWallNode = false;
                             }
                         }

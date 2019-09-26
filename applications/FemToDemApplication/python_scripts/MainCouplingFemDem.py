@@ -86,11 +86,6 @@ class MainCoupledFemDem_Solution:
         if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
 
-        # if self.FEM_Solution.ProjectParameters.Has("displacement_perturbed_tangent") == False:
-        #     self.DisplacementPerturbedTangent = False
-        # else:
-        #     self.DisplacementPerturbedTangent = self.FEM_Solution.ProjectParameters["displacement_perturbed_tangent"].GetBool()
-
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
         {
             "name_auxiliar_model_part" : "SkinDEMModelPart",
