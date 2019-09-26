@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/generic_plastic_potential.h"
 
 namespace Kratos
 {
@@ -29,7 +29,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -61,10 +61,10 @@ class ModifiedMohrCoulombPlasticPotential
 
     /// We define the dimension
     static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
-      
+
     /// The define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;
-      
+
     /// Counted pointer of ModifiedMohrCoulombPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(ModifiedMohrCoulombPlasticPotential);
 

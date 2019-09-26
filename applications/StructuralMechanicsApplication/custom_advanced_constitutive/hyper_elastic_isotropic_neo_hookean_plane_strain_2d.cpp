@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos

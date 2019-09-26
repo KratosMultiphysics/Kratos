@@ -13,7 +13,7 @@
 // System includes
 
 // Project includes
-#include "custom_constitutive/viscous_generalized_kelvin.h"
+#include "custom_advanced_constitutive/viscous_generalized_kelvin.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -57,7 +57,7 @@ ViscousGeneralizedKelvin<TElasticBehaviourLaw>::~ViscousGeneralizedKelvin()
 
 /***********************************************************************************/
 /***********************************************************************************/
-    
+
 template <class TElasticBehaviourLaw>
 void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
@@ -117,13 +117,13 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ComputeViscoElasticity(Cons
     const double time_step = r_process_info[DELTA_TIME];
     const double delay_time = r_material_properties[DELAY_TIME];
     const Flags& r_flags = rValues.GetOptions();
-    
+
     // We compute the strain in case not provided
     if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         Vector& r_strain_vector = rValues.GetStrainVector();
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
-    
+
     // We compute the stress
     if (r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS)) {
         // Elastic Matrix
@@ -137,12 +137,12 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ComputeViscoElasticity(Cons
         const Vector& r_previous_stress = this->GetPreviousStressVector();
         const IndexType number_sub_increments = 10;
         const double dt = time_step / number_sub_increments;
-        
+
         // Auxiliar terms
         Vector aux_stress_vector(r_previous_stress);
         Vector aux(VoigtSize);
         Vector elastic_strain(VoigtSize);
-    
+
         // Apply increments
         const Vector& r_strain_vector = rValues.GetStrainVector();
         for (IndexType i = 0; i < number_sub_increments; ++i) {
@@ -151,7 +151,7 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ComputeViscoElasticity(Cons
             noalias(elastic_strain) = r_strain_vector - inelastic_strain;
             noalias(aux_stress_vector) = prod(constitutive_matrix, elastic_strain);
         }
-        
+
         Vector& integrated_stress_vector = rValues.GetStressVector(); // To be updated
         noalias(integrated_stress_vector) = aux_stress_vector;
 
@@ -206,13 +206,13 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseCau
     const double time_step = r_process_info[DELTA_TIME];
     const double delay_time = r_material_properties[DELAY_TIME];
     const Flags& r_flags = rValues.GetOptions();
-    
+
     // We compute the strain in case not provided
     if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         Vector& r_strain_vector = rValues.GetStrainVector();
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
-    
+
     // Elastic Matrix
     Matrix constitutive_matrix, inverse_constitutive_matrix;
     double detC = 0.0;
@@ -224,7 +224,7 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseCau
     const Vector& r_previous_stress = this->GetPreviousStressVector();
     const IndexType number_sub_increments = 10;
     const double dt = time_step / number_sub_increments;
-    
+
     // Auxiliar terms
     Vector aux_stress_vector(r_previous_stress);
     Vector aux(VoigtSize);
@@ -238,7 +238,7 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseCau
         noalias(elastic_strain) = r_strain_vector - inelastic_strain;
         noalias(aux_stress_vector) = prod(constitutive_matrix, elastic_strain);
     }
-    
+
     mPrevInelasticStrainVector = inelastic_strain;
     mPrevStressVector = aux_stress_vector;
 }

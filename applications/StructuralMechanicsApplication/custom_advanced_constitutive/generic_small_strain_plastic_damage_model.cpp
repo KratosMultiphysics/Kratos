@@ -7,7 +7,7 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo & Sergio Jimenez
-//  
+//
 //
 
 // System includes
@@ -16,27 +16,27 @@
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
-#include "custom_constitutive/generic_small_strain_plastic_damage_model.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_advanced_constitutive/generic_small_strain_plastic_damage_model.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_advanced_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
 
 // Yield surfaces
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_advanced_constitutive/yield_surfaces/tresca_yield_surface.h"
 
 // Plastic potentials
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
+#include "custom_advanced_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
 {
@@ -93,7 +93,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         // Elastic Matrix
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-		
+
 
         if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
@@ -129,13 +129,13 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
             bool is_converged = false;
             int number_iteration = 0;
             const int max_iter = 100;
-			
+
             // Integration loop
             while (!is_converged && number_iteration <= max_iter) {
                 // Plastic case
 				if (cl_parameters.DamageIndicator <= std::abs(1.0e-4 * cl_parameters.DamageThreshold)) {
                     if (cl_parameters.DamageIncrement > tolerance) {
-                        this->CalculateIncrementsPlasticDamageCase(cl_parameters, r_constitutive_matrix);    
+                        this->CalculateIncrementsPlasticDamageCase(cl_parameters, r_constitutive_matrix);
                     } else {
                         cl_parameters.DamageIncrement = 0.0;
                         cl_parameters.PlasticConsistencyIncrement = cl_parameters.PlasticityIndicator * cl_parameters.PlasticDenominator;
@@ -143,7 +143,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 // Damage case
                 } else if (cl_parameters.PlasticityIndicator <= std::abs(1.0e-4 * cl_parameters.PlasticityThreshold)) {
                     if (cl_parameters.PlasticConsistencyIncrement > tolerance) {
-                        this->CalculateIncrementsPlasticDamageCase(cl_parameters, r_constitutive_matrix);   
+                        this->CalculateIncrementsPlasticDamageCase(cl_parameters, r_constitutive_matrix);
                     } else {
                         const double denom = cl_parameters.HardeningParameterDamage + inner_prod(cl_parameters.DamageYieldFLux, effective_predictive_stress_vector);
                         cl_parameters.DamageIncrement = cl_parameters.DamageIndicator / denom;
@@ -181,7 +181,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                     number_iteration++;
                 }
             }
-            KRATOS_WARNING_IF("Backward Euler Plastic Damage", number_iteration >= max_iter) << "Max iterations reached in the return mapping of the Plastic Damage model" << std::endl; 
+            KRATOS_WARNING_IF("Backward Euler Plastic Damage", number_iteration >= max_iter) << "Max iterations reached in the return mapping of the Plastic Damage model" << std::endl;
             // Updated Values
             noalias(r_integrated_stress_vector) = cl_parameters.StressVector;
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -336,7 +336,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         // Elastic Matrix
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-		
+
 
         if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
@@ -372,13 +372,13 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
             bool is_converged = false;
             int number_iteration = 0;
             const int max_iter = 100;
-			
+
             // Integration loop
             while (!is_converged && number_iteration <= max_iter) {
                 // Plastic case
 				if (cl_parameters.DamageIndicator <= std::abs(1.0e-4 * cl_parameters.DamageThreshold)) {
                     if (cl_parameters.DamageIncrement > tolerance) {
-                        this->CalculateIncrementsPlasticDamageCase(cl_parameters, r_constitutive_matrix);    
+                        this->CalculateIncrementsPlasticDamageCase(cl_parameters, r_constitutive_matrix);
                     } else {
                         cl_parameters.DamageIncrement = 0.0;
                         cl_parameters.PlasticConsistencyIncrement = cl_parameters.PlasticityIndicator * cl_parameters.PlasticDenominator;
@@ -386,7 +386,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                 // Damage case
                 } else if (cl_parameters.PlasticityIndicator <= std::abs(1.0e-4 * cl_parameters.PlasticityThreshold)) {
                     if (cl_parameters.PlasticConsistencyIncrement > tolerance) {
-                        this->CalculateIncrementsPlasticDamageCase(cl_parameters, r_constitutive_matrix);   
+                        this->CalculateIncrementsPlasticDamageCase(cl_parameters, r_constitutive_matrix);
                     } else {
                         const double denom = cl_parameters.HardeningParameterDamage + inner_prod(cl_parameters.DamageYieldFLux, effective_predictive_stress_vector);
                         cl_parameters.DamageIncrement = cl_parameters.DamageIndicator / denom;
@@ -424,7 +424,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
                     number_iteration++;
                 }
             }
-            KRATOS_WARNING_IF("Backward Euler Plastic Damage", number_iteration >= max_iter) << "Max iterations reached in the return mapping of the Plastic Damage model" << std::endl; 
+            KRATOS_WARNING_IF("Backward Euler Plastic Damage", number_iteration >= max_iter) << "Max iterations reached in the return mapping of the Plastic Damage model" << std::endl;
             // Updated Values
             noalias(r_integrated_stress_vector) = cl_parameters.StressVector;
         } else {
@@ -694,7 +694,7 @@ CalculateDamageParameters(
     slopes[1] = -yield_compression;
 
     rParameters.DamageThreshold = (tensile_indicator_factor * thresholds[0]) + (compression_indicator_factor * thresholds[1]);
-    const double hsigr = rParameters.DamageThreshold * (tensile_indicator_factor * slopes[0] / thresholds[0] + compression_indicator_factor * slopes[1] / thresholds[1]);  
+    const double hsigr = rParameters.DamageThreshold * (tensile_indicator_factor * slopes[0] / thresholds[0] + compression_indicator_factor * slopes[1] / thresholds[1]);
     rParameters.HardeningParameterDamage = normalized_free_energy * hsigr;
 
     return rParameters.UniaxialStressDamage - rParameters.DamageThreshold;
@@ -810,7 +810,7 @@ CalculateIncrementsPlasticDamageCase(
 template <class TPlasticityIntegratorType, class TDamageIntegratorType>
 double GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageIntegratorType>::
 CalculatePlasticParameters(
-    PlasticDamageParameters& rParameters, 
+    PlasticDamageParameters& rParameters,
     const Matrix& rConstitutiveMatrix,
     ConstitutiveLaw::Parameters& rValues
 )
