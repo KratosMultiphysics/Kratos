@@ -924,7 +924,7 @@ void VtkOutput::WritePropertiesIdsToFile(
                 << rContainer.size() << "  int\n";
 
     for (const auto& r_entity : rContainer) {
-        WriteScalarDataToFile(r_entity.GetProperties().Id(), rFileStream);
+        WriteScalarDataToFile((int)r_entity.GetProperties().Id(), rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
@@ -942,7 +942,7 @@ void VtkOutput::WriteIdsToFile(
                 << rContainer.size() << "  int\n";
 
     for (const auto& r_entity : rContainer) {
-        WriteScalarDataToFile(r_entity.Id(), rFileStream);
+        WriteScalarDataToFile((int)r_entity.Id(), rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
