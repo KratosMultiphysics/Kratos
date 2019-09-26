@@ -93,9 +93,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         force_coefficient /= self.reference_area
 
-        self.lift_coefficient = _DotProduct(force_coefficient,self.wake_normal)
-        self.drag_coefficient = _DotProduct(force_coefficient,self.wake_direction)
-        self.lateral_force_coefficient = _DotProduct(force_coefficient,self.span_direction)
+        self._ProjectForceToFreeStreamVelocity(force_coefficient)
 
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ', self.lift_coefficient)
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cd = ', self.drag_coefficient)
@@ -203,3 +201,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_FAR_FIELD, self.lift_coefficient_far_field)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT_FAR_FIELD, self.drag_coefficient_far_field)
+
+    def _ProjectForceToFreeStreamVelocity(self, force_coefficient):
+
+        self.lift_coefficient = _DotProduct(force_coefficient,self.wake_normal)
+        self.drag_coefficient = _DotProduct(force_coefficient,self.wake_direction)
+        self.lateral_force_coefficient = _DotProduct(force_coefficient,self.span_direction)
