@@ -12,7 +12,9 @@
 //
 
 // System includes
-#include <ctime>
+#include <chrono>  // chrono::system_clock
+#include <ctime>   // localtime
+#include <iomanip> // put_time
 
 
 // External includes
@@ -36,13 +38,12 @@ namespace Kratos
 
   std::string LoggerMessage::GetTimeStamp() const
   {
-    time_t raw_time;
-    char buffer[10];
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
-    time (&raw_time);
-
-    strftime(buffer, sizeof(buffer), "%H:%M:%S", localtime(&raw_time));
-    return std::string(buffer);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%X");
+    return ss.str();
   }
 
   /// Print information about this object.
