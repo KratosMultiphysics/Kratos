@@ -820,7 +820,7 @@ private:
 
       //Properties 0 in order to change the Id to 0 and then write tube elements in another layer
       /* ModelPart::PropertiesContainerType::ContainerType& PropertiesArray = mrModelPart.PropertiesArray(); */
-      /* PropertiesArray[0] = Kratos::make_shared<PropertiesType>(0); */
+      /* PropertiesArray[0] = Kratos::make_intrusive<PropertiesType>(0); */
       /* PropertiesArray[0]->Data() =PropertiesArray[1]->Data();    */
       /* Properties::Pointer pProperties = PropertiesArray[0]; */
 
@@ -971,7 +971,7 @@ private:
 
       //Properties 0 in order to change the Id to 0 and then write tube elements in another layer
       /* ModelPart::PropertiesContainerType::ContainerType& PropertiesArray = mrModelPart.PropertiesArray(); */
-      /* PropertiesArray[0] = Kratos::make_shared<PropertiesType>(0); */
+      /* PropertiesArray[0] = Kratos::make_intrusive<PropertiesType>(0); */
       /* PropertiesArray[0]->Data() =PropertiesArray[1]->Data();    */
       /* Properties::Pointer pProperties = PropertiesArray[0]; */
 

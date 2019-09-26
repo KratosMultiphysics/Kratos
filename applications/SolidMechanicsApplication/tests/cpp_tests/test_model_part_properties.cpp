@@ -28,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartSetProperties, KratosSolidMechanicsFastSuite)
 
   ModelPart& sub_model_part = model_part.CreateSubModelPart("Part1");
 
-  Properties::Pointer NewProperty = Kratos::make_shared<Properties>(0);
+  Properties::Pointer NewProperty = Kratos::make_intrusive<Properties>(0);
 
   model_part.AddProperties(NewProperty);
     

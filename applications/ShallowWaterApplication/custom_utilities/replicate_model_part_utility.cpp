@@ -98,7 +98,7 @@ void ReplicateModelPartUtility::Replicate()
     for (IndexType i = 0; i < mrOriginModelPart.NumberOfProperties(); ++i)
     {
         auto it_prop = mrOriginModelPart.PropertiesBegin() + i;
-        auto new_prop = Kratos::make_shared<Properties>(*it_prop);
+        auto new_prop = Kratos::make_intrusive<Properties>(*it_prop);
         new_prop->SetId(++unique_prop_id);
         mrDestinationModelPart.AddProperties(new_prop);
         replicated_properties_map[it_prop->Id()] = new_prop;
