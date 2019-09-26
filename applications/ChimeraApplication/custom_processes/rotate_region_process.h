@@ -68,6 +68,7 @@ public:
                 "center_of_rotation":[],
                 "calculate_torque":false,
                 "moment_of_inertia":0.0,
+                "rotational_damping":0.0,
                 "angular_velocity_radians":0.0,
                 "axis_of_rotation":[],
                 "is_ale" : false
@@ -84,15 +85,22 @@ public:
     mTheta = 0.0;
     mToCalculateTorque = mParameters["calculate_torque"].GetBool();
     mMomentOfInertia = mParameters["moment_of_inertia"].GetDouble();
+    mRotationalDamping = mParameters["rotational_damping"].GetDouble();
     KRATOS_ERROR_IF(mToCalculateTorque && mAngularVelocityRadians != 0.0)
         << "RotateRegionProcess: both \"calculate_torque\" and "
            "\"angular_velocity_radians\" cannot be specified. Please check the "
            "input."
         << std::endl;
 
-    KRATOS_WARNING_IF("RotateRegionProcess", mToCalculateTorque && mMomentOfInertia == 0.0)
+    KRATOS_WARNING_IF("RotateRegionProcess",
+                      mToCalculateTorque && mMomentOfInertia == 0.0)
         << "No moment_of_inertia specified. So no rotation possible"
         << std::endl;
+
+    if (mToCalculateTorque) {
+      mpRotationSystem = Kratos::make_shared<RotationSystem>(
+          mMomentOfInertia, mRotationalDamping);
+    }
   }
 
   /// Destructor.
@@ -104,14 +112,11 @@ public:
     mAngularVelocityRadians = NewAngularVelocity;
   }
 
-  void SetTorque(const double NewTorque) {
-    mTorque = NewTorque;
-  }
+  void SetTorque(const double NewTorque) { mTorque = NewTorque; }
 
   void ExecuteInitializeSolutionStep() override {
     KRATOS_TRY;
     const auto &r_process_info = mrModelPart.GetProcessInfo();
-    const double dt = r_process_info[DELTA_TIME];
     const int domain_size = r_process_info[DOMAIN_SIZE];
 
     // Does the time integration and calculates the new theta and omega
@@ -205,17 +210,6 @@ private:
   ///@name Private member Variables
   ///@{
 
-  ModelPart &mrModelPart;
-  Parameters mParameters;
-  std::string mSubModelPartName;
-  double mAngularVelocityRadians;
-  DenseVector<double> mAxisOfRotationVector;
-  DenseVector<double> mCenterOfRotation;
-  double mTheta;
-  bool mToCalculateTorque;
-  double mMomentOfInertia;
-  double mTorque;
-
   /**
    * @class RotationSystem
    * @ingroup KratosChimeraApplication
@@ -227,18 +221,21 @@ private:
    */
   class RotationSystem {
   public:
+    /// Pointer definition of MoveRotorProcess
+    KRATOS_CLASS_POINTER_DEFINITION(RotationSystem);
     /*
      * @brief Constructor
      * @param MomentOfInertia The moment of inertia of the system.
      * @param DampingCoefficient The Damping Coefficient of the system.
      */
-    RotationSystem(const double MomentOfInertia, const double DampingCoefficient)
+    RotationSystem(const double MomentOfInertia,
+                   const double DampingCoefficient = 0.0)
         : mMomentOfInertia(MomentOfInertia), mDampingCoeff(DampingCoefficient),
           mTorque(0.0), mTime(0.0) {
-            mBdf2Coeff.resize(3,false);
-            mTheta.resize(3,false);
-            mOmega.resize(3,false);              
-          }
+      mBdf2Coeff.resize(3, false);
+      mTheta.resize(3, false);
+      mOmega.resize(3, false);
+    }
 
     /*
      * @brief Advances the rotation system in time
@@ -270,28 +267,25 @@ private:
      * @brief Calculates the current state of the system
      */
     void CalculateCurrentRotationState() {
-        Predict();
-        double LHS = ComputeLHS();
-        double RHS = ComputeRHS();
-        double d_theta = RHS/LHS;
-        Update(d_theta);
+      Predict();
+      double LHS = ComputeLHS();
+      double RHS = ComputeRHS();
+      double d_theta = RHS / LHS;
+      Update(d_theta);
     }
 
     /*
      * @brief Gives the current angle of rotation Theta
      * @out Current angle of rotation Theta
      */
-    double GetCurrentTheta() const {
-        return mTheta[0];
-    }
+    double GetCurrentTheta() const { return mTheta[0]; }
 
     /*
      * @brief Gives the current angular velocity Omega
      * @out Current angular velocity Omega
      */
-    double GetCurrentOmega() const {
-        return mOmega[0];
-    }    
+    double GetCurrentOmega() const { return mOmega[0]; }
+
   private:
     double mDt;
     double mMomentOfInertia;
@@ -307,23 +301,24 @@ private:
      * @out The inertial torque
      */
     double CalculateInertiaTorque() const {
-        return mMomentOfInertia * (mBdf2Coeff[0]*mOmega[0] + mBdf2Coeff[1]*mOmega[1] + mBdf2Coeff[2]*mOmega[2] );
+      return mMomentOfInertia *
+             (mBdf2Coeff[0] * mOmega[0] + mBdf2Coeff[1] * mOmega[1] +
+              mBdf2Coeff[2] * mOmega[2]);
     }
 
     /*
      * @brief Calculates the Damping torque acting on the system
      * @out The damping torque
      */
-    double CalculateDampingTorque() const {
-        return mDampingCoeff * mOmega[0];
-    }
+    double CalculateDampingTorque() const { return mDampingCoeff * mOmega[0]; }
 
     /*
      * @brief Computes the LHS of the Euler's equations
      * @out The LHS
      */
     double ComputeLHS() const {
-        return std::pow(mBdf2Coeff[0],2)*mMomentOfInertia + mBdf2Coeff[0]*mDampingCoeff;
+      return std::pow(mBdf2Coeff[0], 2) * mMomentOfInertia +
+             mBdf2Coeff[0] * mDampingCoeff;
     }
 
     /*
@@ -331,10 +326,10 @@ private:
      * @out The RHS
      */
     double ComputeRHS() const {
-        double t_inertia = CalculateInertiaTorque();
-        double t_damping = CalculateDampingTorque();
-        double res = mTorque - t_inertia - t_damping;
-        return res;
+      double t_inertia = CalculateInertiaTorque();
+      double t_damping = CalculateDampingTorque();
+      double res = mTorque - t_inertia - t_damping;
+      return res;
     }
 
     /*
@@ -342,8 +337,8 @@ private:
      * @out The predicted value
      */
     void Predict() {
-        double d_theta = mOmega[1] * mDt;
-        Update(d_theta);
+      double d_theta = mOmega[1] * mDt;
+      Update(d_theta);
     }
 
     /*
@@ -351,10 +346,24 @@ private:
      * @param UpdateTheta The update of theta
      */
     void Update(double UpdateTheta) {
-        mTheta[0] += UpdateTheta;
-        mOmega[0] = mBdf2Coeff[0]*mTheta[0] + mBdf2Coeff[1]*mTheta[1] + mBdf2Coeff[2]*mTheta[2];
+      mTheta[0] += UpdateTheta;
+      mOmega[0] = mBdf2Coeff[0] * mTheta[0] + mBdf2Coeff[1] * mTheta[1] +
+                  mBdf2Coeff[2] * mTheta[2];
     }
   };
+
+  ModelPart &mrModelPart;
+  Parameters mParameters;
+  std::string mSubModelPartName;
+  double mAngularVelocityRadians;
+  DenseVector<double> mAxisOfRotationVector;
+  DenseVector<double> mCenterOfRotation;
+  double mTheta;
+  bool mToCalculateTorque;
+  double mMomentOfInertia;
+  double mRotationalDamping;
+  double mTorque;
+  RotationSystem::Pointer mpRotationSystem;
 
   ///@}
 
@@ -363,7 +372,19 @@ private:
     return *this;
   }
 
-  void CalculateCurrentRotationState() {}
+  void CalculateCurrentRotationState() {
+    const auto &r_process_info = mrModelPart.GetProcessInfo();
+    if (mToCalculateTorque) {
+      const double time = r_process_info[TIME];
+      mpRotationSystem->CloneTimeStep(time);
+      mpRotationSystem->CalculateCurrentRotationState();
+      mTheta = mpRotationSystem->GetCurrentTheta();
+      mAngularVelocityRadians = mpRotationSystem->GetCurrentOmega();
+    } else {
+      const double dt = r_process_info[DELTA_TIME];
+      mTheta += mAngularVelocityRadians * dt;
+    }
+  }
 
   /*
    * @brief Calculates the linear velocity v = r x w
