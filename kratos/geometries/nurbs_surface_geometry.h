@@ -263,9 +263,9 @@ public:
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
-    Interval DomainIntervalU() const
+    NurbsInterval DomainIntervalU() const
     {
-        return Interval(
+        return NurbsInterval(
             mKnotsU[mPolynomialDegreeU - 1],
             mKnotsU[NumberOfKnotsU() - mPolynomialDegreeU]);
     }
@@ -273,9 +273,9 @@ public:
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
-    Interval DomainIntervalV() const
+    NurbsInterval DomainIntervalV() const
     {
-        return Interval(
+        return NurbsInterval(
             mKnotsV[mPolynomialDegreeV - 1],
             mKnotsV[NumberOfKnotsV() - mPolynomialDegreeV]);
     }
@@ -283,20 +283,20 @@ public:
     /* Provides all knot span intervals of the surface in u-direction.
     @return vector of knot span intervals.
     */
-    std::vector<Interval> KnotSpanIntervalsU() const
+    std::vector<NurbsInterval> KnotSpanIntervalsU() const
     {
         const SizeType first_span = mPolynomialDegreeU - 1;
         const SizeType last_span = NumberOfKnotsU() - mPolynomialDegreeU - 1;
 
         const SizeType number_of_spans = last_span - first_span + 1;
 
-        std::vector<Interval> result(number_of_spans);
+        std::vector<NurbsInterval> result(number_of_spans);
 
         for (int i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsU[first_span + i];
             const double t1 = mKnotsU[first_span + i + 1];
 
-            result[i] = Interval(t0, t1);
+            result[i] = NurbsInterval(t0, t1);
         }
 
         return result;
@@ -305,20 +305,20 @@ public:
     /* Provides all knot span intervals of the surface in u-direction.
     @return vector of knot span intervals.
     */
-    std::vector<Interval> KnotSpanIntervalsV() const
+    std::vector<NurbsInterval> KnotSpanIntervalsV() const
     {
         const SizeType first_span = mPolynomialDegreeV - 1;
         const SizeType last_span = NumberOfKnotsV() - mPolynomialDegreeV - 1;
 
         const SizeType number_of_spans = last_span - first_span + 1;
 
-        std::vector<Interval> result(number_of_spans);
+        std::vector<NurbsInterval> result(number_of_spans);
 
         for (int i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsV[first_span + i];
             const double t1 = mKnotsV[first_span + i + 1];
 
-            result[i] = Interval(t0, t1);
+            result[i] = NurbsInterval(t0, t1);
         }
 
         return result;
