@@ -14,10 +14,7 @@
 #if !defined(KRATOS_UPDATE_PRESSURE_VALUE_PFEM_CONDITIONS_PROCESS)
 #define KRATOS_UPDATE_PRESSURE_VALUE_PFEM_CONDITIONS_PROCESS
 
-#include "includes/model_part.h"
 #include "processes/process.h"
-#include <pybind11/pybind11.h>
-#include <list>
 #include "fem_to_dem_application_variables.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"

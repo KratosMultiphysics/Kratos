@@ -14,7 +14,6 @@
 #if !defined(KRATOS_REGENERATE_PFEM_PRESSURE_CONDITIONS_PROCESS)
 #define KRATOS_REGENERATE_PFEM_PRESSURE_CONDITIONS_PROCESS
 
-#include "includes/model_part.h"
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
 #include "includes/define.h"
