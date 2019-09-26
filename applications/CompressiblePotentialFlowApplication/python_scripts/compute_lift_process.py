@@ -86,10 +86,24 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         for cond in self.body_model_part.Conditions:
             surface_normal = cond.GetGeometry().Normal()
-            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
 
-            # Computing forces
+            pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
             force_coefficient += surface_normal*pressure_coefficient
+
+            # norm = surface_normal.norm_2()
+            # if abs(norm) < 1e-9:
+            #     raise Exception('The norm of the condition ', cond.Id , ' should be larger than 0.')
+            # surface_normal_normalized = surface_normal/norm
+            # span_projection = _DotProduct(surface_normal_normalized, self.span_direction)
+
+            # cond_y = cond.GetGeometry().Center().Y
+            # if cond_y > -1.0 and cond_y < 1.0:
+            #     pressure_coefficient = cond.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+            #     # Computing forces
+            #     force_coefficient += surface_normal*pressure_coefficient
+            # # else:
+            # #     for node in cond.GetNodes():
+            # #         print(node.Id)
 
         force_coefficient /= self.reference_area
 
@@ -197,9 +211,11 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         force_coefficient = force_coefficient_pres + force_coefficient_vel
         self.lift_coefficient_far_field = _DotProduct(force_coefficient,self.wake_normal)
         self.drag_coefficient_far_field = _DotProduct(force_coefficient,self.wake_direction)
+        self.lateral_force_coefficient_far_field = _DotProduct(force_coefficient,self.span_direction)
 
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cl = ', self.lift_coefficient_far_field, 'Far field')
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cd = ', self.drag_coefficient_far_field, 'Far field')
+        KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cq = ', self.lateral_force_coefficient_far_field, 'Far field')
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.LIFT_COEFFICIENT_FAR_FIELD, self.lift_coefficient_far_field)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.DRAG_COEFFICIENT_FAR_FIELD, self.drag_coefficient_far_field)

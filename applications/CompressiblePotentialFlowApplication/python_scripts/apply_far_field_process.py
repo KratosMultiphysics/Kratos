@@ -56,6 +56,22 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.free_stream_speed_of_sound)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
 
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.PSI,1e0)
+        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,1)
+
+        # for cond in self.far_field_model_part.Conditions:
+        #     surface_normal = cond.GetGeometry().Normal()
+        #     norm = surface_normal.norm_2()
+        #     if abs(norm) < 1e-9:
+        #         raise Exception('The norm of the condition ', cond.Id , ' should be larger than 0.')
+        #     surface_normal_normalized = surface_normal/norm
+        #     if surface_normal_normalized[0] > 0.0:
+        #         for condNode in cond.GetNodes():
+        #             condNode.SetValue(CPFApp.WING_TIP, True)
+
+        # for node in self.far_field_model_part.Nodes:
+        #     node.SetValue(CPFApp.WING_TIP, True)
+
     def ExecuteInitializeSolutionStep(self):
         far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field)
         far_field_process.Execute()

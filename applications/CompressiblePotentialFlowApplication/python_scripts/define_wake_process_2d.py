@@ -41,9 +41,79 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
+        #CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
-        #self.__FindWakeElements()
+        self.__FindWakeElements()
+
+        # number_of_elements_with_no_free_nodes = 0
+        # number_of_elements_with_free_nodes = 0
+        # for elem in self.wake_sub_model_part.Elements:
+        #     counter = 0
+        #     for elnode in elem.GetNodes():
+        #         if elnode.GetValue(CPFApp.WING_TIP):
+        #             counter += 1
+        #     if counter > 1:
+        #         elem.SetValue(CPFApp.WING_TIP, True)
+
+        #     element_already_entered = False
+        #     for elnode in elem.GetNodes():
+        #         if elnode.GetValue(CPFApp.TRAILING_EDGE) or \
+        #            elnode.GetValue(CPFApp.WING_TIP) or \
+        #            elnode.GetValue(CPFApp.ZERO_VELOCITY_CONDITION):
+        #             element_already_entered = True
+
+        #     free_nodes = KratosMultiphysics.Vector(3)
+        #     counter = 0
+        #     for elnode in elem.GetNodes():
+        #         if not elnode.GetValue(CPFApp.ZERO_VELOCITY_CONDITION) and\
+        #             not element_already_entered and\
+        #             not elnode.GetValue(CPFApp.TRAILING_EDGE) and\
+        #             not elnode.GetValue(CPFApp.WING_TIP) and\
+        #             elnode.GetValue(CPFApp.WAKE_DISTANCE) < 0.0 and\
+        #             elem.GetGeometry().Center().X > 15.0 and\
+        #             elem.GetGeometry().Center().X < 200.0 and\
+        #             elem.GetGeometry().Center().Y < self.trailing_edge_node.Y:
+        #             elnode.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
+        #             elem.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
+        #             #elem.Set(KratosMultiphysics.STRUCTURE)
+        #             free_nodes[counter] = True
+        #             element_already_entered = True
+        #             # for node in elem.GetNodes():
+        #             #     node.SetValue(CPFApp.WING_TIP, True)
+        #         else:
+        #             free_nodes[counter] = False
+        #         counter += 1
+        #     elem.SetValue(CPFApp.FREE_NODES, free_nodes)
+        #     counter = 0
+        #     number_of_free_nodes = 0
+        #     for elnode in elem.GetNodes():
+        #         if free_nodes[counter]:
+        #             number_of_free_nodes += 1
+        #         counter +=1
+        #     if number_of_free_nodes > 1:
+        #         print(' number of free nodes > 1', elem.Id)
+        #     elif number_of_free_nodes < 1:
+        #         number_of_elements_with_no_free_nodes += 1
+        #     if number_of_free_nodes > 0:
+        #         number_of_elements_with_free_nodes += 1
+
+        # print(' number of elements with no free nodes = ', number_of_elements_with_no_free_nodes)
+        # print(' number of elements with free nodes = ', number_of_elements_with_free_nodes)
+        print(' number of wake elements = ', self.wake_sub_model_part.NumberOfElements())
+
+        # with open("wake_elements_id.dat", 'w') as wake_elements_file:
+        #     for elem in self.wake_sub_model_part.Elements:
+        #         wake_elements_file.write('{0:15d}\n'.format(elem.Id))
+
+        # for elem in self.trailing_edge_model_part.Elements:
+        #     for elnode in elem.GetNodes():
+        #         if(elnode.GetValue(CPFApp.TRAILING_EDGE)):
+        #             #elnode.Fix(CPFApp.PSI)
+        #             #elnode.Fix(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+        #             #elnode.SetSolutionStepValue(CPFApp.PSI,0,1028.8536214370697)
+        #             #elnode.SetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL,0,1028.8536214370697)
+        #             break
+        #     break
 
     def ExecuteFinalizeSolutionStep(self):
         if not self.fluid_model_part.HasSubModelPart("wake_sub_model_part"):
@@ -52,6 +122,14 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
 
         absolute_tolerance = 1e-9
         CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled2D(self.wake_sub_model_part, absolute_tolerance, self.echo_level)
+
+        for elem in self.wake_sub_model_part.Elements:
+            for elnode in elem.GetNodes():
+                if(elnode.GetValue(CPFApp.TRAILING_EDGE)):
+                    print(elem.Id)
+                    print(elnode.Id)
+                    print(elnode.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL))
+                    print(elnode.GetSolutionStepValue(CPFApp.PSI))
 
 
     def __FindWakeElements(self):

@@ -212,16 +212,19 @@ private:
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
                                             BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
-                                            const ElementalData<NumNodes, Dim>& data) const;
+                                            const ElementalData<NumNodes, Dim>& data,
+                                            const ProcessInfo& rCurrentProcessInfo) const;
 
     void AssignLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
                                       BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
-                                      const ElementalData<NumNodes, Dim>& data) const;
+                                      const ElementalData<NumNodes, Dim>& data,
+                                      const ProcessInfo& rCurrentProcessInfo) const;
 
     void AssignLocalSystemWakeNode(MatrixType& rLeftHandSideMatrix,
                                    BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
                                    const ElementalData<NumNodes, Dim>& data,
-                                   unsigned int& row) const;
+                                   unsigned int& row,
+                                   const ProcessInfo& rCurrentProcessInfo) const;
 
     void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 

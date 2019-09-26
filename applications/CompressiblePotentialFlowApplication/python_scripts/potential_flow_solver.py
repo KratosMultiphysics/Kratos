@@ -118,6 +118,7 @@ class PotentialFlowSolver(FluidSolver):
         # Degrees of freedom
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.PSI)
 
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
@@ -130,6 +131,7 @@ class PotentialFlowSolver(FluidSolver):
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.PSI, self.main_model_part)
 
     def Initialize(self):
         self._ComputeNodalNeighbours()
@@ -175,3 +177,56 @@ class PotentialFlowSolver(FluidSolver):
         avg_node_num = 10
         KratosMultiphysics.FindNodalNeighboursProcess(
             self.main_model_part, avg_elem_num, avg_node_num).Execute()
+
+    def SolveSolutionStep(self):
+        import time as time
+        start_time = time.time()
+        super(PotentialFlowSolver, self).SolveSolutionStep()
+        exe_time = time.time() - start_time
+        print('Executing SolveSolutionStep took ' + str(round(exe_time/60, 2)) + ' min')
+        # start_time = time.time()
+        # self._ComputeConditionNumber()
+        # exe_time = time.time() - start_time
+        # print('Executing _ComputeConditionNumber took ' + str(round(exe_time, 2)) + ' sec')
+
+    def _ComputeConditionNumber(self):
+        KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowSolver]:: ", "Computing Condition Number")
+
+        import eigen_solver_factory
+        settings_max = KratosMultiphysics.Parameters("""
+        {
+            "solver_type"             : "power_iteration_highest_eigenvalue_solver",
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-9,
+            "required_eigen_number"   : 1,
+            "verbosity"               : 0,
+            "linear_solver_settings"  : {
+                "solver_type"             : "ExternalSolversApplication.super_lu",
+                "max_iteration"           : 500,
+                "tolerance"               : 1e-9,
+                "scaling"                 : false,
+                "verbosity"               : 0
+            }
+        }
+        """)
+        eigen_solver_max = eigen_solver_factory.ConstructSolver(settings_max)
+        settings_min = KratosMultiphysics.Parameters("""
+        {
+            "solver_type"             : "power_iteration_eigenvalue_solver",
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-9,
+            "required_eigen_number"   : 1,
+            "verbosity"               : 0,
+            "linear_solver_settings"  : {
+                "solver_type"             : "ExternalSolversApplication.super_lu",
+                "max_iteration"           : 500,
+                "tolerance"               : 1e-9,
+                "scaling"                 : false,
+                "verbosity"               : 0
+            }
+        }
+        """)
+
+        eigen_solver_min = eigen_solver_factory.ConstructSolver(settings_min)
+        condition_number = KratosMultiphysics.ConditionNumberUtility().GetConditionNumber(self.solver.GetSystemMatrix(), eigen_solver_max, eigen_solver_min)
+        KratosMultiphysics.Logger.PrintInfo(' condition_number = ', "{:.2e}".format(condition_number))

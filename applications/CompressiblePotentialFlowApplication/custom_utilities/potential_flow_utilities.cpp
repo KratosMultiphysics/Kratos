@@ -40,7 +40,8 @@ BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElem
                 potentials[i] = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             }
             else {
-                potentials[i] = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                //potentials[i] = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                potentials[i] = r_geometry[i].FastGetSolutionStepValue(PSI);
             }
         }
     }
@@ -99,6 +100,12 @@ BoundedVector<double, NumNodes> GetPotentialOnLowerWakeElement(
         }
         else{
             lower_potentials[i] = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+            // if(r_geometry[i].GetValue(TRAILING_EDGE)){
+            //     lower_potentials[i] = r_geometry[i].FastGetSolutionStepValue(PSI);
+            // }
+            // else{
+            //     lower_potentials[i] = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+            // }
         }
     }
 
@@ -204,13 +211,13 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
     unsigned int number_of_unfulfilled_wake_conditions = 0;
     const double absolute_tolerance = rTolerance;
     const double relative_tolerance = rTolerance;
-    BoundedVector<int, 3> number_of_unfulfilled_wake_conditions_absolute_tolerance = ZeroVector(3);
-    BoundedVector<int, 3> number_of_unfulfilled_wake_conditions_relative_tolerance = ZeroVector(3);
+    BoundedVector<int, Dim> number_of_unfulfilled_wake_conditions_absolute_tolerance = ZeroVector(Dim);
+    BoundedVector<int, Dim> number_of_unfulfilled_wake_conditions_relative_tolerance = ZeroVector(Dim);
     for (auto& r_element : rWakeModelPart.Elements()){
         const auto upper_velocity = ComputeVelocityUpperWakeElement<Dim,Dim+1>(r_element);
         const auto lower_velocity = ComputeVelocityLowerWakeElement<Dim,Dim+1>(r_element);
 
-        for (unsigned int i = 0; i < 3; i++){
+        for (unsigned int i = 0; i < Dim; i++){
             double reference = std::abs(upper_velocity[i]);
             if(reference < 1e-8){
                 reference = 1e-8;
@@ -224,6 +231,9 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
             }
             if(relative_error > relative_tolerance){
                 number_of_unfulfilled_wake_conditions_relative_tolerance[i] += 1;
+                // KRATOS_WARNING_IF("CheckWakeCondition", rEchoLevel > 0)
+                //     << "WAKE CONDITION NOT FULFILLED WITH A RELATIVE TOLERANCE OF " << relative_tolerance
+                //     << " IN ELEMENT # " << r_element.Id() << std::endl;
             }
         }
 
@@ -236,19 +246,21 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
     }
     KRATOS_WARNING_IF("\nCheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
         << " THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
+        << " OF " << rWakeModelPart.NumberOfElements()
         << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
 
-    for (unsigned int i = 0; i < 3; i++){
+    for (unsigned int i = 0; i < Dim; i++){
         KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions_absolute_tolerance[i] > 0)
             << " THE WAKE CONDITION IS NOT FULFILLED IN THE " << i
             << " COMPONENT IN " << number_of_unfulfilled_wake_conditions_absolute_tolerance[i]
             << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << absolute_tolerance << std::endl;
     }
 
-    for (unsigned int i = 0; i < 3; i++){
+    for (unsigned int i = 0; i < Dim; i++){
         KRATOS_WARNING_IF("CheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions_relative_tolerance[i] > 0)
             << " THE WAKE CONDITION IS NOT FULFILLED IN THE " << i
             << " COMPONENT IN " << number_of_unfulfilled_wake_conditions_relative_tolerance[i]
+            << " OF " << rWakeModelPart.NumberOfElements()
             << " ELEMENTS WITH A RELATIVE TOLERANCE OF " << relative_tolerance << std::endl;
     }
 }
@@ -260,6 +272,12 @@ const bool CheckWakeCondition(const Element& rElement, const double& rTolerance,
     const auto lower_velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
 
     bool wake_condition_is_fulfilled = true;
+    // if(std::abs(upper_velocity[0] - lower_velocity[0]) > rTolerance){
+    //     wake_condition_is_fulfilled = false;
+    // }
+    // if(std::abs(upper_velocity[2] - lower_velocity[2]) > rTolerance){
+    //     wake_condition_is_fulfilled = false;
+    // }
     for (unsigned int i = 0; i < upper_velocity.size(); i++){
         if(std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance){
             wake_condition_is_fulfilled = false;
