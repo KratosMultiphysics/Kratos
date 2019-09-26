@@ -23,7 +23,7 @@
 #include "structural_mechanics_application_variables.h"
 
 // Constitutive law
-#include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
+#include "custom_advanced_constitutive/small_strain_isotropic_damage_3d.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -35,7 +35,7 @@ namespace Testing
 typedef Node<3> NodeType;
 
 // Check the correct calculation of the integrated stress with the CL's in small strain
-KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnly3D, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosStructuralMechanicsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
@@ -54,6 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
     material_properties.SetValue(POISSON_RATIO, 0.3);
     material_properties.SetValue(YIELD_STRESS, 0.5);
     material_properties.SetValue(INFINITY_YIELD_STRESS, 0.7);
+    //material_properties.SetValue(ISOTROPIC_HARDENING_MODULUS, 0.3);
     Vector hardening_moduli(2);
     hardening_moduli(0) = 0.3; hardening_moduli(1) = 0.15;
     material_properties.SetValue(HARDENING_MODULI_VECTOR, hardening_moduli);
@@ -70,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
     cl_parameters.SetStressVector(stress_vector);
     cl_parameters.SetConstitutiveMatrix(const_matrix);
     // Create the CL
-    SmallStrainIsotropicDamageTractionOnly3D cl = SmallStrainIsotropicDamageTractionOnly3D();
+    SmallStrainIsotropicDamage3D cl = SmallStrainIsotropicDamage3D();
 
     // Set variables for the test
     const double tolerance = 1.0e-4;
@@ -128,6 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
 
     ser[0]=5.503392e-05; ser[1]=2.476526e-04; ser[2]=1.491855e-03; ser[3]=1.491855e-03;
     dvr[0]=1.327988e-01; dvr[1]=5.663994e-01; dvr[2]=7.649198e-01; dvr[3]=7.649198e-01;
+
 
     // Here we must simulate the call sequence of the element
     Vector dummy;
@@ -191,38 +193,38 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
     epr(2,0)=-1.000000e-03; epr(2,1)=-1.000000e-03; epr(2,2)=0.000000e+00; epr(2,3)=-1.000000e-03; epr(2,4)=0.000000e+00; epr(2,5)=0.000000e+00;
     epr(3,0)=1.000000e-03; epr(3,1)=1.000000e-03; epr(3,2)=0.000000e+00; epr(3,3)=1.000000e-03; epr(3,4)=0.000000e+00; epr(3,5)=0.000000e+00;
 
-    str(0,0)=-5.769231e-01; str(0,1)=-5.769231e-01; str(0,2)=-3.461538e-01; str(0,3)=-1.153846e-01; str(0,4)=0.000000e+00; str(0,5)=0.000000e+00;
-    str(1,0)=-1.730769e+00; str(1,1)=-1.730769e+00; str(1,2)=-1.038462e+00; str(1,3)=-3.461538e-01; str(1,4)=0.000000e+00; str(1,5)=0.000000e+00;
-    str(2,0)=-5.769231e+00; str(2,1)=-5.769231e+00; str(2,2)=-3.461538e+00; str(2,3)=-1.153846e+00; str(2,4)=0.000000e+00; str(2,5)=0.000000e+00;
+    str(0,0)=-5.003084e-01; str(0,1)=-5.003084e-01; str(0,2)=-3.001850e-01; str(0,3)=-1.000617e-01; str(0,4)=0.000000e+00; str(0,5)=0.000000e+00;
+    str(1,0)=-7.504626e-01; str(1,1)=-7.504626e-01; str(1,2)=-4.502775e-01; str(1,3)=-1.500925e-01; str(1,4)=0.000000e+00; str(1,5)=0.000000e+00;
+    str(2,0)=-1.356232e+00; str(2,1)=-1.356232e+00; str(2,2)=-8.137391e-01; str(2,3)=-2.712464e-01; str(2,4)=0.000000e+00; str(2,5)=0.000000e+00;
     str(3,0)=1.356232e+00; str(3,1)=1.356232e+00; str(3,2)=8.137391e-01; str(3,3)=2.712464e-01; str(3,4)=0.000000e+00; str(3,5)=0.000000e+00;
 
-    cmr(0, 0)=4.038462e+03; cmr(0, 1)=1.730769e+03; cmr(0, 2)=1.730769e+03; cmr(0, 3)=0.000000e+00; cmr(0, 4)=0.000000e+00; cmr(0, 5)=0.000000e+00;
-    cmr(0, 6)=1.730769e+03; cmr(0, 7)=4.038462e+03; cmr(0, 8)=1.730769e+03; cmr(0, 9)=0.000000e+00; cmr(0,10)=0.000000e+00; cmr(0,11)=0.000000e+00;
-    cmr(0,12)=1.730769e+03; cmr(0,13)=1.730769e+03; cmr(0,14)=4.038462e+03; cmr(0,15)=0.000000e+00; cmr(0,16)=0.000000e+00; cmr(0,17)=0.000000e+00;
-    cmr(0,18)=0.000000e+00; cmr(0,19)=0.000000e+00; cmr(0,20)=0.000000e+00; cmr(0,21)=1.153846e+03; cmr(0,22)=0.000000e+00; cmr(0,23)=0.000000e+00;
-    cmr(0,24)=0.000000e+00; cmr(0,25)=0.000000e+00; cmr(0,26)=0.000000e+00; cmr(0,27)=0.000000e+00; cmr(0,28)=1.153846e+03; cmr(0,29)=0.000000e+00;
-    cmr(0,30)=0.000000e+00; cmr(0,31)=0.000000e+00; cmr(0,32)=0.000000e+00; cmr(0,33)=0.000000e+00; cmr(0,34)=0.000000e+00; cmr(0,35)=1.153846e+03;
-    cmr(1, 0)=4.038462e+03; cmr(1, 1)=1.730769e+03; cmr(1, 2)=1.730769e+03; cmr(1, 3)=0.000000e+00; cmr(1, 4)=0.000000e+00; cmr(1, 5)=0.000000e+00;
-    cmr(1, 6)=1.730769e+03; cmr(1, 7)=4.038462e+03; cmr(1, 8)=1.730769e+03; cmr(1, 9)=0.000000e+00; cmr(1,10)=0.000000e+00; cmr(1,11)=0.000000e+00;
-    cmr(1,12)=1.730769e+03; cmr(1,13)=1.730769e+03; cmr(1,14)=4.038462e+03; cmr(1,15)=0.000000e+00; cmr(1,16)=0.000000e+00; cmr(1,17)=0.000000e+00;
-    cmr(1,18)=0.000000e+00; cmr(1,19)=0.000000e+00; cmr(1,20)=0.000000e+00; cmr(1,21)=1.153846e+03; cmr(1,22)=0.000000e+00; cmr(1,23)=0.000000e+00;
-    cmr(1,24)=0.000000e+00; cmr(1,25)=0.000000e+00; cmr(1,26)=0.000000e+00; cmr(1,27)=0.000000e+00; cmr(1,28)=1.153846e+03; cmr(1,29)=0.000000e+00;
-    cmr(1,30)=0.000000e+00; cmr(1,31)=0.000000e+00; cmr(1,32)=0.000000e+00; cmr(1,33)=0.000000e+00; cmr(1,34)=0.000000e+00; cmr(1,35)=1.153846e+03;
-    cmr(2, 0)=4.038462e+03; cmr(2, 1)=1.730769e+03; cmr(2, 2)=1.730769e+03; cmr(2, 3)=0.000000e+00; cmr(2, 4)=0.000000e+00; cmr(2, 5)=0.000000e+00;
-    cmr(2, 6)=1.730769e+03; cmr(2, 7)=4.038462e+03; cmr(2, 8)=1.730769e+03; cmr(2, 9)=0.000000e+00; cmr(2,10)=0.000000e+00; cmr(2,11)=0.000000e+00;
-    cmr(2,12)=1.730769e+03; cmr(2,13)=1.730769e+03; cmr(2,14)=4.038462e+03; cmr(2,15)=0.000000e+00; cmr(2,16)=0.000000e+00; cmr(2,17)=0.000000e+00;
-    cmr(2,18)=0.000000e+00; cmr(2,19)=0.000000e+00; cmr(2,20)=0.000000e+00; cmr(2,21)=1.153846e+03; cmr(2,22)=0.000000e+00; cmr(2,23)=0.000000e+00;
-    cmr(2,24)=0.000000e+00; cmr(2,25)=0.000000e+00; cmr(2,26)=0.000000e+00; cmr(2,27)=0.000000e+00; cmr(2,28)=1.153846e+03; cmr(2,29)=0.000000e+00;
-    cmr(2,30)=0.000000e+00; cmr(2,31)=0.000000e+00; cmr(2,32)=0.000000e+00; cmr(2,33)=0.000000e+00; cmr(2,34)=0.000000e+00; cmr(2,35)=1.153846e+03;
-    cmr(3, 0)=7.262499e+02; cmr(3, 1)=1.837572e+02; cmr(3, 2)=2.730021e+02; cmr(3, 3)=-4.462247e+01; cmr(3, 4)=0.000000e+00; cmr(3, 5)=0.000000e+00;
-    cmr(3, 6)=1.837572e+02; cmr(3, 7)=7.262499e+02; cmr(3, 8)=2.730021e+02; cmr(3, 9)=-4.462247e+01; cmr(3,10)=0.000000e+00; cmr(3,11)=0.000000e+00;
-    cmr(3,12)=2.730021e+02; cmr(3,13)=2.730021e+02; cmr(3,14)=8.690418e+02; cmr(3,15)=-2.677348e+01; cmr(3,16)=0.000000e+00; cmr(3,17)=0.000000e+00;
-    cmr(3,18)=-4.462247e+01; cmr(3,19)=-4.462247e+01; cmr(3,20)=-2.677348e+01; cmr(3,21)=2.623219e+02; cmr(3,22)=0.000000e+00; cmr(3,23)=0.000000e+00;
+    cmr(0, 0)=2.014743e+03; cmr(0, 1)=1.350944e+01; cmr(0, 2)=6.084757e+02; cmr(0, 3)=-2.974831e+02; cmr(0, 4)=0.000000e+00; cmr(0, 5)=0.000000e+00;
+    cmr(0, 6)=1.350944e+01; cmr(0, 7)=2.014743e+03; cmr(0, 8)=6.084757e+02; cmr(0, 9)=-2.974831e+02; cmr(0,10)=0.000000e+00; cmr(0,11)=0.000000e+00;
+    cmr(0,12)=6.084757e+02; cmr(0,13)=6.084757e+02; cmr(0,14)=2.966689e+03; cmr(0,15)=-1.784899e+02; cmr(0,16)=0.000000e+00; cmr(0,17)=0.000000e+00;
+    cmr(0,18)=-2.974831e+02; cmr(0,19)=-2.974831e+02; cmr(0,20)=-1.784899e+02; cmr(0,21)=9.411201e+02; cmr(0,22)=0.000000e+00; cmr(0,23)=0.000000e+00;
+    cmr(0,24)=0.000000e+00; cmr(0,25)=0.000000e+00; cmr(0,26)=0.000000e+00; cmr(0,27)=0.000000e+00; cmr(0,28)=1.000617e+03; cmr(0,29)=0.000000e+00;
+    cmr(0,30)=0.000000e+00; cmr(0,31)=0.000000e+00; cmr(0,32)=0.000000e+00; cmr(0,33)=0.000000e+00; cmr(0,34)=0.000000e+00; cmr(0,35)=1.000617e+03;
+    cmr(1, 0)=1.007371e+03; cmr(1, 1)=6.754721e+00; cmr(1, 2)=3.042379e+02; cmr(1, 3)=-1.487416e+02; cmr(1, 4)=0.000000e+00; cmr(1, 5)=0.000000e+00;
+    cmr(1, 6)=6.754721e+00; cmr(1, 7)=1.007371e+03; cmr(1, 8)=3.042379e+02; cmr(1, 9)=-1.487416e+02; cmr(1,10)=0.000000e+00; cmr(1,11)=0.000000e+00;
+    cmr(1,12)=3.042379e+02; cmr(1,13)=3.042379e+02; cmr(1,14)=1.483344e+03; cmr(1,15)=-8.924494e+01; cmr(1,16)=0.000000e+00; cmr(1,17)=0.000000e+00;
+    cmr(1,18)=-1.487416e+02; cmr(1,19)=-1.487416e+02; cmr(1,20)=-8.924494e+01; cmr(1,21)=4.705601e+02; cmr(1,22)=0.000000e+00; cmr(1,23)=0.000000e+00;
+    cmr(1,24)=0.000000e+00; cmr(1,25)=0.000000e+00; cmr(1,26)=0.000000e+00; cmr(1,27)=0.000000e+00; cmr(1,28)=5.003084e+02; cmr(1,29)=0.000000e+00;
+    cmr(1,30)=0.000000e+00; cmr(1,31)=0.000000e+00; cmr(1,32)=0.000000e+00; cmr(1,33)=0.000000e+00; cmr(1,34)=0.000000e+00; cmr(1,35)=5.003084e+02;
+    cmr(2, 0)=7.262499e+02; cmr(2, 1)=1.837572e+02; cmr(2, 2)=2.730021e+02; cmr(2, 3)=-4.462247e+01; cmr(2, 4)=0.000000e+00; cmr(2, 5)=0.000000e+00;
+    cmr(2, 6)=1.837572e+02; cmr(2, 7)=7.262499e+02; cmr(2, 8)=2.730021e+02; cmr(2, 9)=-4.462247e+01; cmr(2,10)=0.000000e+00; cmr(2,11)=0.000000e+00;
+    cmr(2,12)=2.730021e+02; cmr(2,13)=2.730021e+02; cmr(2,14)=8.690418e+02; cmr(2,15)=-2.677348e+01; cmr(2,16)=0.000000e+00; cmr(2,17)=0.000000e+00;
+    cmr(2,18)=-4.462247e+01; cmr(2,19)=-4.462247e+01; cmr(2,20)=-2.677348e+01; cmr(2,21)=2.623219e+02; cmr(2,22)=0.000000e+00; cmr(2,23)=0.000000e+00;
+    cmr(2,24)=0.000000e+00; cmr(2,25)=0.000000e+00; cmr(2,26)=0.000000e+00; cmr(2,27)=0.000000e+00; cmr(2,28)=2.712464e+02; cmr(2,29)=0.000000e+00;
+    cmr(2,30)=0.000000e+00; cmr(2,31)=0.000000e+00; cmr(2,32)=0.000000e+00; cmr(2,33)=0.000000e+00; cmr(2,34)=0.000000e+00; cmr(2,35)=2.712464e+02;
+    cmr(3, 0)=9.493622e+02; cmr(3, 1)=4.068695e+02; cmr(3, 2)=4.068695e+02; cmr(3, 3)=0.000000e+00; cmr(3, 4)=0.000000e+00; cmr(3, 5)=0.000000e+00;
+    cmr(3, 6)=4.068695e+02; cmr(3, 7)=9.493622e+02; cmr(3, 8)=4.068695e+02; cmr(3, 9)=0.000000e+00; cmr(3,10)=0.000000e+00; cmr(3,11)=0.000000e+00;
+    cmr(3,12)=4.068695e+02; cmr(3,13)=4.068695e+02; cmr(3,14)=9.493622e+02; cmr(3,15)=0.000000e+00; cmr(3,16)=0.000000e+00; cmr(3,17)=0.000000e+00;
+    cmr(3,18)=0.000000e+00; cmr(3,19)=0.000000e+00; cmr(3,20)=0.000000e+00; cmr(3,21)=2.712464e+02; cmr(3,22)=0.000000e+00; cmr(3,23)=0.000000e+00;
     cmr(3,24)=0.000000e+00; cmr(3,25)=0.000000e+00; cmr(3,26)=0.000000e+00; cmr(3,27)=0.000000e+00; cmr(3,28)=2.712464e+02; cmr(3,29)=0.000000e+00;
     cmr(3,30)=0.000000e+00; cmr(3,31)=0.000000e+00; cmr(3,32)=0.000000e+00; cmr(3,33)=0.000000e+00; cmr(3,34)=0.000000e+00; cmr(3,35)=2.712464e+02;
 
-    ser[0]=6.346154e-05; ser[1]=5.711538e-04; ser[2]=6.346154e-03; ser[3]=1.491855e-03;
-    dvr[0]=0.000000e+00; dvr[1]=0.000000e+00; dvr[2]=0.000000e+00; dvr[3]=7.649198e-01;
+    ser[0]=5.503392e-05; ser[1]=2.476526e-04; ser[2]=1.491855e-03; ser[3]=1.491855e-03;
+    dvr[0]=1.327988e-01; dvr[1]=5.663994e-01; dvr[2]=7.649198e-01; dvr[3]=7.649198e-01;
 
     // Here we must simulate the call sequence of the element
     cl.InitializeMaterial(material_properties, geometry, dummy);

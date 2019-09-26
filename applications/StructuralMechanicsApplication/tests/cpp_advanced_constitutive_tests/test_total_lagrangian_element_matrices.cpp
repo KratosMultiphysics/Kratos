@@ -30,7 +30,7 @@
 // Application includes
 #include "custom_elements/total_lagrangian.h"
 #include "custom_constitutive/linear_plane_strain.h"
-#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_advanced_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
 
 namespace Kratos
 {
