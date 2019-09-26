@@ -29,6 +29,7 @@
 #include "custom_elements/steady_convection_diffusion_FIC_element.hpp"
 #include "custom_elements/transient_convection_diffusion_FIC_element.hpp"
 #include "custom_elements/transient_convection_diffusion_FIC_explicit_element.hpp"
+#include "custom_elements/transient_convection_diffusion_PFEM2_FIC_element.hpp"
 
 
 namespace Kratos
@@ -202,6 +203,11 @@ private:
 	const TransientConvectionDiffusionFICExplicitElement<2,4> mTransientConvectionDiffusionFICExplicitElement2D4N;
 	const TransientConvectionDiffusionFICExplicitElement<3,4> mTransientConvectionDiffusionFICExplicitElement3D4N;
 	const TransientConvectionDiffusionFICExplicitElement<3,8> mTransientConvectionDiffusionFICExplicitElement3D8N;
+
+	const TransientConvectionDiffusionPFEM2FICElement<2,3> mTransientConvectionDiffusionPFEM2FICElement2D3N;
+	const TransientConvectionDiffusionPFEM2FICElement<2,4> mTransientConvectionDiffusionPFEM2FICElement2D4N;
+	const TransientConvectionDiffusionPFEM2FICElement<3,4> mTransientConvectionDiffusionPFEM2FICElement3D4N;
+	const TransientConvectionDiffusionPFEM2FICElement<3,8> mTransientConvectionDiffusionPFEM2FICElement3D8N;
 
 	// const Elem2D   mElem2D;
 	// const Elem3D   mElem3D;
