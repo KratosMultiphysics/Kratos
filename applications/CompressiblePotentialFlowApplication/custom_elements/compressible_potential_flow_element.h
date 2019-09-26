@@ -202,6 +202,12 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
+protected:
+
+    double ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const;
+
+    double ComputeDensityDerivative(const double density,
+                                    const ProcessInfo& rCurrentProcessInfo) const;
 
 private:
     ///@name Private Operators
@@ -273,11 +279,6 @@ private:
                                         const array_1d<double, NumNodes>& distances) const;
 
     double ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputeDensityDerivative(const double density,
-                                    const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Private Operations

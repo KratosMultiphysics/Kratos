@@ -70,6 +70,51 @@ void PairedCondition::Initialize( )
 
     BaseType::Initialize();
 
+    // The normal of the paired condition
+    const auto& r_paired_geometry = GetPairedGeometry();
+    GeometryType::CoordinatesArrayType aux_coords;
+    r_paired_geometry.PointLocalCoordinates(aux_coords, r_paired_geometry.Center());
+    mPairedNormal = r_paired_geometry.UnitNormal(aux_coords);
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void PairedCondition::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    BaseType::InitializeSolutionStep(rCurrentProcessInfo);
+
+    // The normal of the paired condition
+    const auto& r_paired_geometry = GetPairedGeometry();
+    GeometryType::CoordinatesArrayType aux_coords;
+    r_paired_geometry.PointLocalCoordinates(aux_coords, r_paired_geometry.Center());
+    mPairedNormal = r_paired_geometry.UnitNormal(aux_coords);
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void PairedCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
+
+    // We update the normals if necessary
+    const auto normal_variation = rCurrentProcessInfo.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(rCurrentProcessInfo.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
+    if (normal_variation != NO_DERIVATIVES_COMPUTATION) {
+        const auto& r_paired_geometry = GetPairedGeometry();
+        GeometryType::CoordinatesArrayType aux_coords;
+        r_paired_geometry.PointLocalCoordinates(aux_coords, r_paired_geometry.Center());
+        mPairedNormal = r_paired_geometry.UnitNormal(aux_coords);
+    }
+
     KRATOS_CATCH( "" );
 }
 
