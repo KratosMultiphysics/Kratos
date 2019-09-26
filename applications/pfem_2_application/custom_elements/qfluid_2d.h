@@ -34,7 +34,6 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #include "includes/serializer.h"
 
 

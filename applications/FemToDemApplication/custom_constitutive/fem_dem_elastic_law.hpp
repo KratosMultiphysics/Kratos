@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 
@@ -79,34 +79,34 @@ public:
 
     double& CalculateValue(Parameters& rParameterValues,
                                             const Variable<double>& rThisVariable,
-                                            double& rValue);
+                                            double& rValue) override;
 
 
     double& GetValue(const Variable<double>& rThisVariable,
-                                    double& rValue);
+                                    double& rValue) override;
 
 
     Vector& GetValue(const Variable<Vector>& rThisVariable,
-                                    Vector& rValue);
+                                    Vector& rValue) override;
 
 
     Matrix& GetValue(const Variable<Matrix>& rThisVariable,
-                                    Matrix& rValue);
+                                    Matrix& rValue) override;
 
 
     void SetValue(const Variable<double>& rThisVariable,
                                     const double& rValue,
-                                    const ProcessInfo& rCurrentProcessInfo);
+                                    const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void SetValue(const Variable<Vector>& rThisVariable,
                                     const Vector& rValue,
-                                    const ProcessInfo& rCurrentProcessInfo);
+                                    const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void SetValue(const Variable<Matrix>& rThisVariable,
                                     const Matrix& rValue,
-                                    const ProcessInfo& rCurrentProcessInfo);
+                                    const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
 
@@ -145,7 +145,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }
 
-    void load(Serializer& rSerializer) 
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }

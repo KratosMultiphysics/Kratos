@@ -263,6 +263,10 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNo
                 break;
             case BaseType::TypeSolution::FrictionalPenaltyMethod :
                 break;
+            case BaseType::TypeSolution::OtherFrictionless :
+                break;
+            case BaseType::TypeSolution::OtherFrictional :
+                break;
         }
     } else {
         ItNode->Set(ACTIVE, true);
@@ -284,6 +288,10 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNo
             case BaseType::TypeSolution::FrictionlessPenaltyMethod :
                 break;
             case BaseType::TypeSolution::FrictionalPenaltyMethod :
+                break;
+            case BaseType::TypeSolution::OtherFrictionless :
+                break;
+            case BaseType::TypeSolution::OtherFrictional :
                 break;
         }
     }

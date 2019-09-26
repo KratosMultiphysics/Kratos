@@ -123,7 +123,7 @@ namespace Kratos
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs = number_of_nodes * dimension;
-        rOutput = ZeroMatrix(number_of_nodes, num_dofs);
+        rOutput = ZeroMatrix(0, num_dofs);
 
         KRATOS_CATCH( "" )
     }
@@ -138,6 +138,7 @@ namespace Kratos
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
         const SizeType mat_size = number_of_nodes * dimension;
+
         if( rDesignVariable == POINT_LOAD )
         {
             if ((rOutput.size1() != mat_size) || (rOutput.size2() != mat_size))
@@ -147,9 +148,13 @@ namespace Kratos
             for(IndexType i = 0; i < mat_size; ++i)
                 rOutput(i,i) = 1.0;
         }
-        else
+        else if( rDesignVariable == SHAPE_SENSITIVITY )
         {
             rOutput = ZeroMatrix(mat_size, mat_size);
+        }
+        else
+        {
+            rOutput = ZeroMatrix(0, mat_size);
         }
 
         KRATOS_CATCH( "" )
@@ -183,7 +188,7 @@ namespace Kratos
     }
 
     // TODO find out what to do with KRATOS_API
-    template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSemiAnalyticPointLoadCondition<PointLoadCondition>;
+    template class AdjointSemiAnalyticPointLoadCondition<PointLoadCondition>;
 
 } // Namespace Kratos
 

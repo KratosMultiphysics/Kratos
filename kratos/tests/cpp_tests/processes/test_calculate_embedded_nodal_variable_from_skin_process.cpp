@@ -80,7 +80,6 @@ namespace Testing {
             "skin_model_part_name": "Skin",
             "skin_variable_name": "TEMPERATURE",
             "embedded_nodal_variable_name": "TEMPERATURE",
-            "level_set_type": "continuous",
             "gradient_penalty_coefficient": 1.0e-5
         }
         )");
@@ -145,7 +144,6 @@ namespace Testing {
             "skin_model_part_name": "Skin",
             "skin_variable_name": "DISPLACEMENT",
             "embedded_nodal_variable_name": "DISPLACEMENT",
-            "level_set_type": "discontinuous",
             "gradient_penalty_coefficient": 1.0e-5
         }
         )");

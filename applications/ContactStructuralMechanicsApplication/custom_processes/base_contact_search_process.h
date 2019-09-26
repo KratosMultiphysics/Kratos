@@ -17,9 +17,9 @@
 // External includes
 
 // Project includes
-#include "processes/simple_mortar_mapper_process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "custom_processes/normal_gap_process.h"
 
 /* Custom includes*/
 #include "custom_includes/point_item.h"
@@ -94,7 +94,7 @@ public:
     typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// The type of mapper considered
-    typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, TNumNodesMaster> MapperType;
+    typedef NormalGapProcess<TDim, TNumNodes, TNumNodesMaster> NormalGapProcessType;
 
     /// The definition of zero tolerance
     static constexpr double GapThreshold = 2.0e-3;
@@ -122,7 +122,7 @@ public:
 
     enum class CheckGap {NoCheck = 0, DirectCheck = 1, MappingCheck = 2};
 
-    enum class TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2, FrictionlessPenaltyMethod = 3, FrictionalPenaltyMethod = 4};
+    enum class TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2, FrictionlessPenaltyMethod = 3, FrictionalPenaltyMethod = 4, OtherFrictionless = 5, OtherFrictional = 6};
 
     ///@}
     ///@name Life Cycle
@@ -338,8 +338,9 @@ protected:
      * @param rMasterNormal The normal of the master condition
      * @param pIndexesPairs The map of indexes considered
      * @param pProperties The pointer to the Properties of the condition
+     * @return The new created condition
      */
-    virtual bool AddPairing(
+    virtual Condition::Pointer AddPairing(
         ModelPart& rComputingModelPart,
         IndexType& rConditionId,
         GeometricalObject::Pointer pObjectSlave,
@@ -468,10 +469,35 @@ private:
         );
 
     /**
-     * @brief This method is used in case of not predefined master/slave we assign the master/slave nodes and conditions
-     * @param rModelPart The model part to assign the flags
+     * @brief This method fills mPointListDestination
      */
-    static inline void NotPredefinedMasterSlave(ModelPart& rModelPart);
+    void FillPointListDestination();
+
+    /**
+     * @brief This method clears the destination list and
+     * @param rSubContactModelPart The submodel part studied
+     */
+    void ClearDestinationListAndAssignFlags(ModelPart& rSubContactModelPart);
+
+    /**
+     * @brief This method computes search with KDTree
+     * @param rTreePoints The tree points for search
+     * @param rPointsFound The points found
+     * @param rGeometry The geometry of the condition
+     * @param TypeSearch The search type
+     * @param SearchFactor The searh factor applied
+     * @param AllocationSize The allocation size
+     * @param Dynamic if the dynamic search is considered
+     */
+    inline IndexType PerformKDTreeSearch(
+        KDTree& rTreePoints,
+        PointVector& rPointsFound,
+        GeometryType& rGeometry,
+        const SearchTreeType TypeSearch = SearchTreeType::KdtreeInBox,
+        const double SearchFactor = 3.5,
+        const IndexType AllocationSize = 1000,
+        const bool Dynamic = false
+        );
 
     /**
      * @brief This method gets the maximum the ID of the conditions
@@ -516,20 +542,6 @@ private:
     inline void ComputeWeightedReaction();
 
     /**
-     * @brief This method switchs the flag of an array of nodes
-     * @param rNodes The set of nodes where the flags are reset
-     */
-    static inline void SwitchFlagNodes(NodesArrayType& rNodes)
-    {
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(rNodes.size()); ++i) {
-            auto it_node = rNodes.begin() + i;
-            it_node->Flip(SLAVE);
-            it_node->Flip(MASTER);
-        }
-    }
-
-    /**
      * @brief This method creates the auxiliar the pairing
      * @param rContactModelPart The modelpart  used in the assemble of the system
      * @param rComputingModelPart The modelpart  used in the assemble of the system
@@ -540,6 +552,31 @@ private:
         ModelPart& rComputingModelPart,
         IndexType& rConditionId
         );
+
+    /**
+     * @brief This method creates a debug file for normals
+     * @param rModelPart The corresponding model part
+     * @param rName The begining of the file name
+     */
+    void CreateDebugFile(
+        ModelPart& rModelPart,
+        const std::string& rName
+        );
+
+    /**
+     * @brief The whole model part name
+     * @param rModelPart The model part of interest
+     * @param rName The name of interest
+     */
+    static inline void GetWholeModelPartName(
+        const ModelPart& rModelPart,
+        std::string& rName
+        )
+    {
+        rName = rModelPart.Name() + "." + rName;
+        if (rModelPart.IsSubModelPart())
+            GetWholeModelPartName(*rModelPart.GetParentModelPart(), rName);
+    }
 
     /**
      * @brief Calculates the minimal distance between one node and its center

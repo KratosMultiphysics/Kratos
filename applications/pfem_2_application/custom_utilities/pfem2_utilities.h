@@ -32,7 +32,7 @@
 #include "includes/node.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "pfem_2_application.h"
+#include "pfem_2_application_variables.h"
 #include "boost/smart_ptr.hpp"
 #include "includes/cfd_variables.h"
 #include "includes/c2c_variables.h"
