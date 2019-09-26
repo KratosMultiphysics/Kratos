@@ -31,6 +31,7 @@
 #include "custom_advanced_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
 
 // Plastic, damage laws and viscosities
+#include "custom_advanced_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
 #include "custom_advanced_constitutive/small_strain_isotropic_plasticity_factory.h"
 #include "custom_advanced_constitutive/small_strain_kinematic_plasticity_factory.h"
 #include "custom_advanced_constitutive/finite_strain_isotropic_plasticity_factory.h"
