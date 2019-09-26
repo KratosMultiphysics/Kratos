@@ -96,9 +96,9 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         timer.StartTimer()
 
         for self.optimization_iteration in range(1,self.max_iterations):
-            KM.Logger.PrintInfo("\nShapeOpt", "===================================================================")
+            KM.Logger.Print("\n===============================================================================")
             KM.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting optimization iteration ", self.optimization_iteration)
-            KM.Logger.PrintInfo("ShapeOpt", "===================================================================\n")
+            KM.Logger.Print("===============================================================================\n")
 
             timer.StartNewLap()
 

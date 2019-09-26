@@ -89,9 +89,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         timer.StartTimer()
 
         for self.opt_iteration in range(1,self.algorithm_settings["max_iterations"].GetInt()+1):
-            KM.Logger.PrintInfo("\nShapeOpt", "===================================================================")
+            KM.Logger.Print("\n===============================================================================")
             KM.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting optimization iteration ",self.opt_iteration)
-            KM.Logger.PrintInfo("ShapeOpt", "===================================================================\n")
+            KM.Logger.Print("===============================================================================\n")
 
             timer.StartNewLap()
 

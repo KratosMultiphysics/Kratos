@@ -199,9 +199,9 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 total_iteration += 1
                 timer.StartNewLap()
 
-                KM.Logger.PrintInfo("\nShapeOpt", "=======================================================================================")
+                KM.Logger.Print("=======================================================================================")
                 KM.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting iteration ",outer_iteration,".",inner_iteration,".",total_iteration,"(outer . inner . total)")
-                KM.Logger.PrintInfo("ShapeOpt", "=======================================================================================\n")
+                KM.Logger.Print("=======================================================================================\n")
 
                 # Initialize new shape
                 self.model_part_controller.UpdateTimeStep(total_iteration)

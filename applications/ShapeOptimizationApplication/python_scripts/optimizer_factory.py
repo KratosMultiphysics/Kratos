@@ -139,9 +139,9 @@ class VertexMorphingMethod:
     def Optimize(self):
         algorithm_name = self.optimization_settings["optimization_algorithm"]["name"].GetString()
 
-        KM.Logger.PrintInfo("\nShapeOpt", "==============================================================================================================")
+        KM.Logger.Print("\n===============================================================================")
         KM.Logger.PrintInfo("ShapeOpt", Timer().GetTimeStamp(), ": Starting optimization using the following algorithm: ", algorithm_name)
-        KM.Logger.PrintInfo("ShapeOpt", "==============================================================================================================\n")
+        KM.Logger.Print("===============================================================================\n")
 
         algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
                                                                   self.analyzer,
@@ -152,8 +152,8 @@ class VertexMorphingMethod:
         algorithm.RunOptimizationLoop()
         algorithm.FinalizeOptimizationLoop()
 
-        KM.Logger.PrintInfo("\nShapeOpt", "==============================================================================================================")
-        KM.Logger.PrintInfo("ShapeOpt", "Finished optimization                                                                                           ")
-        KM.Logger.PrintInfo("ShapeOpt", "==============================================================================================================\n")
+        KM.Logger.Print("\n===============================================================================")
+        KM.Logger.PrintInfo("ShapeOpt", "Finished optimization")
+        KM.Logger.Print("===============================================================================\n")
 
 # ==============================================================================
