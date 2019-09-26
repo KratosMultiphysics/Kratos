@@ -57,6 +57,12 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def SolveSolutionStep(self):
+
+        self.ComputeSkinFEMDEMBoundary()
+        for node in self.FEMDEM_Solution.FEM_Solution.main_model_part.GetSubModelPart("SkinDEMModelPart").Nodes:
+            node.SetValue(PFEM.NO_MESH, True)
+
+
         # It's necessary to Fix in order to maintain the FEMDEM Kinematics
         self.FixNodesModelPart(self.FEMDEM_Solution.FEM_Solution.main_model_part)
 
@@ -145,3 +151,11 @@ class MainCouplingPfemFemDem_Solution:
             node.Free(KM.VELOCITY_Z)
 
 #============================================================================================================================
+    def ComputeSkinFEMDEMBoundary(self):
+        if self.FEMDEM_Solution.domain_size == 2:
+            skin_detection_process = KM.SkinDetectionProcess2D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
+                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)
+        else: # 3D
+            skin_detection_process = KM.SkinDetectionProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
+                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)    
+        skin_detection_process.Execute()
