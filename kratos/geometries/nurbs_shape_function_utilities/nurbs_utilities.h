@@ -33,7 +33,6 @@ namespace Kratos {
  */
 namespace NurbsUtilities
 {
-public:
     ///@name Type Definitions
     ///@{
 
