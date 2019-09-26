@@ -188,7 +188,6 @@ namespace Kratos {
         static bool first_time_entered = true;
 
         if (mDebugPrintingOption) {
-
             unsigned int sphere_id = 2;
             const std::string filename = "normal_forces_damage.txt";
 
@@ -270,7 +269,6 @@ namespace Kratos {
         LocalElasticContactForce[2] = BondedLocalElasticContactForce2 + mUnbondedLocalElasticContactForce2;
 
         if (mDebugPrintingOption) {
-
             unsigned int sphere_id = 2;
 
             if (element1->Id() == sphere_id) {
@@ -495,7 +493,6 @@ namespace Kratos {
         }
 
         if (mDebugPrintingOption) {
-
             unsigned int sphere_id = 2;
 
             if (element1->Id() == sphere_id) {
