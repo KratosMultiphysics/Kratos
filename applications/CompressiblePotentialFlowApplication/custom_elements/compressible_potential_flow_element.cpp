@@ -417,7 +417,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormal
     const BoundedMatrix<double, NumNodes, NumNodes> rLaplacianMatrix =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
 
-    data.potentials= PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
+    data.potentials= PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
     noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.potentials);
 }
 
