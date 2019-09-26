@@ -30,7 +30,7 @@ namespace Kratos
 //************************************************************************************
 
 ZarateLaw::ZarateLaw()
-	: LinearElasticPlaneStrain2DLaw()
+    : LinearElasticPlaneStrain2DLaw()
 {
 }
 
@@ -38,7 +38,7 @@ ZarateLaw::ZarateLaw()
 //************************************************************************************
 
 ZarateLaw::ZarateLaw(const ZarateLaw &rOther)
-	: LinearElasticPlaneStrain2DLaw(rOther)
+    : LinearElasticPlaneStrain2DLaw(rOther)
 {
 }
 
@@ -47,8 +47,8 @@ ZarateLaw::ZarateLaw(const ZarateLaw &rOther)
 
 ConstitutiveLaw::Pointer ZarateLaw::Clone() 
 {
-	ZarateLaw::Pointer p_clone(new ZarateLaw(*this));
-	return p_clone;
+    ZarateLaw::Pointer p_clone(new ZarateLaw(*this));
+    return p_clone;
 }
 
 //*******************************DESTRUCTOR*******************************************
