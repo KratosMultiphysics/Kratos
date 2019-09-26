@@ -115,7 +115,7 @@ public:
       //create properties for the rigid body
       unsigned int NumberOfProperties = rMainModelPart.NumberOfProperties();
 
-      PropertiesType::Pointer pProperties = Kratos::make_shared<PropertiesType>(NumberOfProperties);
+      PropertiesType::Pointer pProperties = Kratos::make_intrusive<PropertiesType>(NumberOfProperties);
 
       double Mass = 0;
       Vector CenterOfGravity   = ZeroVector(3);

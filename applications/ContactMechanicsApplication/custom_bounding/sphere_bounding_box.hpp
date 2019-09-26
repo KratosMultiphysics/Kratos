@@ -610,7 +610,7 @@ protected:
 
       //PROPERTIES:
       int number_of_properties = rModelPart.NumberOfProperties();
-      Properties::Pointer pProperties = Kratos::make_shared<Properties>(number_of_properties);
+      Properties::Pointer pProperties = Kratos::make_intrusive<Properties>(number_of_properties);
 
       //Shere numeration matrix:
       matrix<int> Connectivities(angular_partitions+2,angular_partitions+1);
