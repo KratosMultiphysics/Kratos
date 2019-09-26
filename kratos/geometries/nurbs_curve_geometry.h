@@ -60,7 +60,7 @@ public:
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
     {
-        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
+        KRATOS_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
             << "Number of knots and control points do not match!" << std::endl;
     }
 
@@ -75,10 +75,10 @@ public:
         , mKnots(rKnots)
         , mWeights(rWeights)
     {
-        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
+        KRATOS_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
             << "Number of knots and control points do not match!" << std::endl;
 
-        KRATOS_DEBUG_ERROR_IF(rWeights.size() != rThisPoints.size())
+        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
     }
 
@@ -279,7 +279,7 @@ public:
     {
         NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, std::min(DerivativeOrder, PolynomialDegree()));
 
-        if (IsRational()) {
+        if (this->IsRational()) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
         }
         else {
@@ -298,11 +298,6 @@ public:
             }
         }
 
-        //fill up the vector with zeros
-        for (IndexType order = shape_function_container.NumberOfShapeFunctionRows(); order <= DerivativeOrder; order++) {
-            IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
-            derivatives[order] = (*this)[index_0] * 0.0;
-        }
         return derivatives;
     }
 
