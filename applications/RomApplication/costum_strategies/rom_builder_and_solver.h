@@ -408,9 +408,7 @@ public:
     /*@{ */
 
     /**
-            Function to perform the building and solving phase at the same time.
-            It is ideally the fastest and safer function to use when it is possible to solve
-            just after building
+            This should be added in a separate utility, callable from Python at the end of the simulation
      */
     virtual void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
