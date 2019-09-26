@@ -89,7 +89,7 @@ public:
         mAngularVelocityRadians = NewAngularVelocity;
     }
 
-    void ExecuteFinalizeSolutionStep() override
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
         const auto &r_process_info = mrModelPart.GetProcessInfo();
@@ -144,7 +144,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    void ExecuteInitializeSolutionStep() override
+    void ExecuteFinalizeSolutionStep() override
     {
     }
 
