@@ -20,6 +20,9 @@
 
 #include "includes/node.h"
 
+#include "includes/model_part.h"
+#include "containers/model.h"
+
 #include "geometries/line_2d_3.h"
 #include "geometries/quadrature_point.h"
 #include "geometries/triangle_2d_3.h"
@@ -29,19 +32,27 @@ namespace Kratos {
         typedef Geometry<Node<3>> GeometryType;
         typedef Node<3> NodeType;
 
-        Geometry<Node<3>>::Pointer GenerateLine2D3Test() {
+        Geometry<Node<3>>::Pointer GenerateLine2D3Test(ModelPart& rModelPart) {
+            rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            rModelPart.CreateNewNode(3, 0.5, 0.0, 0.0);
+
             return Kratos::make_shared<Line2D3<Node<3>>>(
-                new NodeType(1, 0.0, 0.0, 0.0),
-                new NodeType(2, 1.0, 0.0, 0.0),
-                new NodeType(3, 0.5, 0.0, 0.0)
+                rModelPart.pGetNode(1),
+                rModelPart.pGetNode(2),
+                rModelPart.pGetNode(3)
                 );
         }
 
-        Geometry<Node<3>>::Pointer GenerateLine2D3TestLoad() {
+        Geometry<Node<3>>::Pointer GenerateLine2D3TestLoad(ModelPart& rModelPart) {
+            rModelPart.CreateNewNode(4, 20, 0.0, 0.0);
+            rModelPart.CreateNewNode(5, 20, 0.0, 0.0);
+            rModelPart.CreateNewNode(6, 20, 0.0, 0.0);
+
             return Kratos::make_shared<Line2D3<Node<3>>>(
-                new NodeType(4, 20, 0.0, 0.0),
-                new NodeType(5, 20, 0.0, 0.0),
-                new NodeType(6, 20, 0.0, 0.0)
+                rModelPart.pGetNode(4),
+                rModelPart.pGetNode(5),
+                rModelPart.pGetNode(6)
                 );
         }
 
@@ -49,16 +60,20 @@ namespace Kratos {
          * Generates a point type right triangle with origin in the origin and leg size 1.
          * @return  Pointer to a triangle2D3
          */
-        Geometry<Node<3>>::Pointer GeneratePointsTriangle2D3TestQP() {
+        Geometry<Node<3>>::Pointer GeneratePointsTriangle2D3TestQP(ModelPart& rModelPart) {
+            rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+
             return Kratos::make_shared<Triangle2D3<NodeType>>(
-                new NodeType(1, 0.0, 0.0, 0.0),
-                new NodeType(2, 1.0, 0.0, 0.0),
-                new NodeType(3, 0.0, 1.0, 0.0)
+                rModelPart.pGetNode(1),
+                rModelPart.pGetNode(2),
+                rModelPart.pGetNode(3)
                 );
         }
 
-        Geometry<Node<3>>::Pointer GenerateQuadraturePoint2() {
-            auto triangle = GeneratePointsTriangle2D3TestQP();
+        Geometry<Node<3>>::Pointer GenerateQuadraturePoint2(ModelPart& rModelPart) {
+            auto triangle = GeneratePointsTriangle2D3TestQP(rModelPart);
 
             auto integration_points = triangle->IntegrationPoints();
 
@@ -88,14 +103,18 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerLine2D3, KratosCoreFastSuite)
         {
+            Model model;
+            auto& mp = model.CreateModelPart("SerializerLine2D3");
+
             StreamSerializer serializer;
 
-            auto line_saved = GenerateLine2D3Test();
+            auto line_saved = GenerateLine2D3Test(mp);
 
-            auto line_loaded = GenerateLine2D3TestLoad();
+            auto line_loaded = GenerateLine2D3TestLoad(mp);
 
             const std::string tag_string("LoadLine");
 
+            KRATOS_CHECK_EQUAL(line_saved->size(), 3);
             serializer.save(tag_string, line_saved);
             serializer.load(tag_string, line_loaded);
 
@@ -103,13 +122,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR((*line_saved)[0].Y(), (*line_loaded)[0].Y(), 1e-6);
             KRATOS_CHECK_NEAR((*line_saved)[0].Z(), (*line_loaded)[0].Z(), 1e-6);
 
-            for (std::size_t i = 0; i < line_saved->size(); ++i)
-            {
-                for (std::size_t j = 0; j < line_saved->IntegrationPointsNumber(); ++j)
-                {
-                    KRATOS_CHECK_NEAR(line_saved->ShapeFunctionValue(j,i), line_loaded->ShapeFunctionValue(j, i), 1e-6);
-                }
-            }
+            KRATOS_CHECK_MATRIX_NEAR(line_saved->ShapeFunctionsValues(), line_loaded->ShapeFunctionsValues(), 1e-6);
 
             KRATOS_CHECK_EQUAL(line_saved->size(), line_loaded->size());
             KRATOS_CHECK_EQUAL(line_saved->GetDefaultIntegrationMethod(), line_loaded->GetDefaultIntegrationMethod());
@@ -119,11 +132,14 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerQuadraturePoint, KratosCoreFastSuite)
         {
+            Model model;
+            auto& mp = model.CreateModelPart("SerializerLine2D3");
+
             StreamSerializer serializer;
 
-            auto quadrature_saved = GenerateQuadraturePoint2();
+            auto quadrature_saved = GenerateQuadraturePoint2(mp);
 
-            auto quadrature_loaded = GenerateQuadraturePoint2();
+            auto quadrature_loaded = GenerateQuadraturePoint2(mp);
 
             serializer.save("qp", quadrature_saved);
             serializer.load("qp", quadrature_loaded);
