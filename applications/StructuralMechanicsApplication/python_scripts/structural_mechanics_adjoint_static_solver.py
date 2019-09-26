@@ -128,8 +128,6 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         self.response_function.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        KratosMultiphysics.OpenMPUtils.SetNumThreads(self.max_number_of_threads)
-
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
         self.response_function.FinalizeSolutionStep()
@@ -140,6 +138,10 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             return True
         else:
             return super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
+
+    def Finalize(self):
+        super(StructuralMechanicsAdjointStaticSolver, self).Finalize()
+        KratosMultiphysics.OpenMPUtils.SetNumThreads(self.max_number_of_threads)
 
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):
         for node in self.main_model_part.Nodes:
