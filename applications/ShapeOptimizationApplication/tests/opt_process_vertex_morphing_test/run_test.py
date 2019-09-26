@@ -16,11 +16,10 @@
 #
 # Import Kratos core and apps
 import KratosMultiphysics as KM
-import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
-from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
+from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, os
@@ -28,6 +27,7 @@ import csv, os
 # =======================================================================================================
 # Define external analyzer
 # =======================================================================================================
+
 class CustomAnalyzer(AnalyzerBaseClass):
 
     # --------------------------------------------------------------------------------------------------

@@ -1,6 +1,5 @@
 # Import Kratos core and apps
 import KratosMultiphysics as KM
-import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory

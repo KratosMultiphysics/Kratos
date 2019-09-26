@@ -147,7 +147,7 @@ public:
     typedef Element BaseType;
 
     // Counted pointer of BaseSolidElement
-    KRATOS_CLASS_POINTER_DEFINITION( BaseSolidElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
 
     ///@}
     ///@name Life Cycle
@@ -865,7 +865,7 @@ protected:
      * @param PointNumber The id of the integration point considered
      * @return The vector of body forces
      */
-    array_1d<double, 3> GetBodyForce(
+    virtual array_1d<double, 3> GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
         ) const;

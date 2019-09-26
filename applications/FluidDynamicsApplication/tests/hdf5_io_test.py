@@ -10,7 +10,7 @@ except ImportError:
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from fluid_analysis_without_solution import FluidAnalysisWithoutSolution
 
 class ControlledExecutionScope:

@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_KRATOS_FLAGS_H_INCLUDED )
@@ -75,48 +75,13 @@ KRATOS_CREATE_FLAG(FREE_SURFACE,    37);
 KRATOS_CREATE_FLAG(BLOCKED,         36);
 KRATOS_CREATE_FLAG(MARKER,          35);
 KRATOS_CREATE_FLAG(PERIODIC,        34);
+// KRATOS_CREATE_FLAG(,33);
+// KRATOS_CREATE_FLAG(,32);
+// KRATOS_CREATE_FLAG(,31);
+// KRATOS_CREATE_FLAG(,30);
 
-//          KRATOS_DEFINE_FLAG(STRUCTURE);
-//          KRATOS_DEFINE_FLAG(FLUID);
-//          KRATOS_DEFINE_FLAG(THERMAL);
-//          KRATOS_DEFINE_FLAG(VISITED);
-//          KRATOS_DEFINE_FLAG(SELECTED);
-//          KRATOS_DEFINE_FLAG(BOUNDARY);
-//          KRATOS_DEFINE_FLAG(INLET);
-//          KRATOS_DEFINE_FLAG(OUTLET);
-//          KRATOS_DEFINE_FLAG(SLIP);
-//          KRATOS_DEFINE_FLAG(INTERFACE);
-//          KRATOS_DEFINE_FLAG(CONTACT);
-//          KRATOS_DEFINE_FLAG(TO_SPLIT);
-//          KRATOS_DEFINE_FLAG(TO_ERASE);
-//          KRATOS_DEFINE_FLAG(TO_REFINE);
-//          KRATOS_DEFINE_FLAG(NEW_ENTITY);
-//          KRATOS_DEFINE_FLAG(OLD_ENTITY);
-//          KRATOS_DEFINE_FLAG(ACTIVE);
-//          KRATOS_DEFINE_FLAG(MODIFIED);
-//          KRATOS_DEFINE_FLAG(RIGID);
-//          KRATOS_DEFINE_FLAG(SOLID);
-//          KRATOS_DEFINE_FLAG(MPI_BOUNDARY);
-//          KRATOS_DEFINE_FLAG(INTERACTION);
-//          KRATOS_DEFINE_FLAG(ISOLATED);
-//          KRATOS_DEFINE_FLAG(MASTER);
-//          KRATOS_DEFINE_FLAG(SLAVE);
-//          KRATOS_DEFINE_FLAG(INSIDE);
-//          KRATOS_DEFINE_FLAG(FREE_SURFACE);
-//          KRATOS_DEFINE_FLAG(BLOCKED);
-//          KRATOS_DEFINE_FLAG(MARKER);
-//          KRATOS_DEFINE_FLAG(,33);
-//          KRATOS_DEFINE_FLAG(,32);
-//          KRATOS_DEFINE_FLAG(,31);
-//          KRATOS_DEFINE_FLAG(,30);
-
-
-
-
-
-
-
-
+const Flags ALL_DEFINED(Flags::AllDefined());
+const Flags ALL_TRUE(Flags::AllTrue());
 
   ///@}
   ///@name Type Definitions

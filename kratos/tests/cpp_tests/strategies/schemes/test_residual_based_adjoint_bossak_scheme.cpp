@@ -163,14 +163,15 @@ namespace NonLinearSpringMassDamper
 class PrimalElement : public Element
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(PrimalElement);
+    typedef Kratos::intrusive_ptr<PrimalElement> Pointer;
+    typedef Kratos::unique_ptr<PrimalElement> UniquePointer;
 
     static Pointer Create(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
     {
         auto nodes = PointerVector<Node<3>>{};
         nodes.push_back(pNode1);
         nodes.push_back(pNode2);
-        return Kratos::make_shared<PrimalElement>(nodes);
+        return Kratos::make_intrusive<PrimalElement>(nodes);
     }
 
     PrimalElement(const NodesArrayType& ThisNodes)
@@ -345,14 +346,16 @@ class AdjointElement : public Element
     };
 
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointElement);
+    typedef Kratos::intrusive_ptr<AdjointElement> Pointer;
+    typedef Kratos::unique_ptr<AdjointElement> UniquePointer;
+
 
     static Pointer Create(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
     {
         auto nodes = PointerVector<Node<3>>{};
         nodes.push_back(pNode1);
         nodes.push_back(pNode2);
-        return Kratos::make_shared<AdjointElement>(nodes);
+        return Kratos::make_intrusive<AdjointElement>(nodes);
     }
 
     AdjointElement(const NodesArrayType& ThisNodes)
@@ -598,6 +601,7 @@ struct PrimalResults : Base::PrimalResults
 
 void InitializePrimalModelPart(ModelPart& rModelPart)
 {
+    rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 1);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -621,6 +625,7 @@ void InitializePrimalModelPart(ModelPart& rModelPart)
 
 void InitializeAdjointModelPart(ModelPart& rModelPart)
 {
+    rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 1);
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);

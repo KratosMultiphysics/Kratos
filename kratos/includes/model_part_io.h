@@ -669,6 +669,12 @@ private:
 
     inline void CreatePartition(unsigned int NumberOfThreads,const int NumberOfRows, DenseVector<unsigned int>& partitions);
 
+    /// Iterate over a Node block, calling ReorderedNodeId on each node.
+    /** This method allows derived implementations to initalize reordering
+     *  without storing the nodes.
+     */
+    void ScanNodeBlock();
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -677,7 +683,6 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods

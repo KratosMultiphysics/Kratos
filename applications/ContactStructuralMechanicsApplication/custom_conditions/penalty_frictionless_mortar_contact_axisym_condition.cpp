@@ -20,7 +20,7 @@
 
 /* Utilities */
 
-namespace Kratos 
+namespace Kratos
 {
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
@@ -31,7 +31,7 @@ Condition::Pointer PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNod
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_shared< PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -43,7 +43,20 @@ Condition::Pointer PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNod
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_shared< PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive< PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< std::size_t TNumNodes, bool TNormalVariation >
+Condition::Pointer PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
+    IndexType NewId,
+    GeometryPointerType pGeom,
+    PropertiesPointerType pProperties,
+    GeometryPointerType pMasterGeom) const
+{
+    return Kratos::make_intrusive< PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -87,17 +100,17 @@ double PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVa
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
     {
         // Displacement from the reference to the current configuration
-//         const array_1d<double, 3 > DeltaDisplacement = this->GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);  
-	    const array_1d<double, 3 > current_position = this->GetGeometry()[i_node].Coordinates();
+//         const array_1d<double, 3 > DeltaDisplacement = this->GetParentGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT) - GetParentGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
+	    const array_1d<double, 3 > current_position = this->GetParentGeometry()[i_node].Coordinates();
 // 	    const array_1d<double, 3 > ReferencePosition = current_position - DeltaDisplacement;
-	    
+
 	    current_radius   += current_position[0] * rVariables.NSlave[i_node];
 // 	    reference_radius += ReferencePosition[0] * rVariables.NSlave[i_node];
     }
-    
+
     return current_radius;
 //     return reference_radius;
-        
+
     KRATOS_CATCH( "" );
 }
 

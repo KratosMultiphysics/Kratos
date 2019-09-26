@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 #include "processes/process.h"
 
 /* Several includes */
@@ -156,7 +156,7 @@ public:
      */
     Condition::Pointer GetCondition()
     {
-        KRATOS_DEBUG_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointBoundary class" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mpOriginCond.get() == nullptr) << "Condition no initialized in the PointBoundary class" << std::endl;
         return mpOriginCond;
     }
 
@@ -169,7 +169,7 @@ public:
 
         auto aux_coord = Kratos::make_shared<array_1d<double, 3>>(this->Coordinates());
         KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointBoundary class" << std::endl;
-        KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointBoundary class" << std::endl;
+        KRATOS_ERROR_IF(mpOriginCond.get() == nullptr) << "Condition no initialized in the PointBoundary class" << std::endl;
 
         KRATOS_CATCH("");
     }

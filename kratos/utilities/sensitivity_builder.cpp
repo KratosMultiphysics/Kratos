@@ -218,10 +218,11 @@ void AssembleNodalSolutionStepContainerContributions(const SensitivityVariables<
         builder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
                                           rResponseFunction, rProcessInfo);
         // if rElement does not contribute to local sensitivity, skip assembly
-        if (builder.LocalSensitivity.size() != 0){
+        if (builder.LocalSensitivity.size() != 0)
+        {
             builder.LocalSensitivity *= ScalingFactor;
             AssembleNodalSolutionStepValues(*rVariables.pOutputVariable,
-                                            builder.LocalSensitivity, r_geom);
+                                        builder.LocalSensitivity, r_geom);
         }
     });
     KRATOS_CATCH("");
@@ -295,10 +296,11 @@ void CalculateNonHistoricalSensitivities(const SensitivityVariables<TDataType>& 
         builder.CalculateLocalSensitivity(*rVariables.pDesignVariable, rElement,
                                           rResponseFunction, rProcessInfo);
         // if rElement does not contribute to local sensitivity, skip assembly
-        if (builder.LocalSensitivity.size() != 0){
+        if (builder.LocalSensitivity.size() != 0)
+        {
             builder.LocalSensitivity *= ScalingFactor;
             AssembleOnDataValueContainer(*rVariables.pOutputVariable,
-                                        builder.LocalSensitivity, rElement.Data());
+                                     builder.LocalSensitivity, rElement.Data());
         }
     });
     KRATOS_CATCH("");

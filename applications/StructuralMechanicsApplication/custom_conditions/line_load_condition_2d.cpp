@@ -49,7 +49,7 @@ Condition::Pointer LineLoadCondition2D::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<LineLoadCondition2D>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<LineLoadCondition2D>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
@@ -61,7 +61,7 @@ Condition::Pointer LineLoadCondition2D::Create(
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<LineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<LineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -74,7 +74,7 @@ Condition::Pointer LineLoadCondition2D::Clone (
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_shared<LineLoadCondition2D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_intrusive<LineLoadCondition2D>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;
@@ -88,6 +88,52 @@ Condition::Pointer LineLoadCondition2D::Clone (
 
 LineLoadCondition2D::~LineLoadCondition2D()
 {
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LineLoadCondition2D::GetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector< array_1d<double, 3 > >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    this->CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo );
+
+    KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LineLoadCondition2D::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector< array_1d<double, 3 > >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    const auto& r_geometry = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
+
+    if ( rOutput.size() != r_integration_points.size() )
+        rOutput.resize( r_integration_points.size() );
+
+    if (rVariable == NORMAL) {
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            rOutput[point_number] = r_geometry.UnitNormal(r_integration_points[point_number].Coordinates());
+        }
+    } else {
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            rOutput[point_number] = ZeroVector(3);
+        }
+    }
+
+    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/

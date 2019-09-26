@@ -7,6 +7,7 @@ import sys
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
+from KratosMultiphysics import read_materials_process
 
 dependencies_are_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "FluidDynamicsApplication")
 if dependencies_are_available:
@@ -84,7 +85,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
     def test_input_python(self):
         self._prepare_test()
-        import read_materials_process
         read_materials_process.Factory(self.test_settings,self.current_model)
         self._check_results()
 
@@ -96,7 +96,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self._check_results()
 
     def test_overdefined_materials(self):
-        import read_materials_process
         current_model = KratosMultiphysics.Model()
         test_settings = KratosMultiphysics.Parameters(""" { "Parameters": { "materials_filename": ""}} """)
 
@@ -141,6 +140,21 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
         with self.assertRaisesRegex(Exception, expected_error_msg):
             read_materials_process.Factory(test_settings, current_model)
+
+    @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication or FluidDynamicsApplication are not available")
+    def test_input_without_tables_and_variables(self):
+        self._prepare_test()
+        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("auxiliar_files_for_python_unnitest/materials_files/material_without_tables_and_variables.json"))
+
+        KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
+        for elem in self.current_model["Inlets"].Elements:
+            self.assertEqual(elem.Properties.Id, 1)
+        for cond in self.current_model["Inlets"].Conditions:
+            self.assertEqual(cond.Properties.Id, 1)
+        for elem in self.current_model["Outlet"].Elements:
+            self.assertEqual(elem.Properties.Id, 2)
+        for cond in self.current_model["Outlet"].Conditions:
+            self.assertEqual(cond.Properties.Id, 2)
 
 
 if __name__ == '__main__':

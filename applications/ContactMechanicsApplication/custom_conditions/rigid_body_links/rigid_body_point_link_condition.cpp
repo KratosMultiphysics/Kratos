@@ -54,7 +54,7 @@ RigidBodyPointLinkCondition::RigidBodyPointLinkCondition( RigidBodyPointLinkCond
 //***********************************************************************************
 Condition::Pointer RigidBodyPointLinkCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<RigidBodyPointLinkCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+  return Kratos::make_intrusive<RigidBodyPointLinkCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -286,8 +286,8 @@ void RigidBodyPointLinkCondition::Initialize()
     DofsContainerType& rDofs = GetGeometry()[i].GetDofs();
     for(DofsContainerType::iterator it = rDofs.begin(); it != rDofs.end(); ++it)
     {
-      if(it->GetVariable() != PRESSURE) // it must be some way to fix only kinematic dofs.
-        it->FixDof();
+      if((*it)->GetVariable() != PRESSURE) // it must be some way to fix only kinematic dofs.
+        (*it)->FixDof();
     }
   }
 

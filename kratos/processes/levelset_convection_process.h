@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -62,10 +62,10 @@ class LevelSetConvectionProcess
     : public Process
 {
 public:
-    
+
     KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
     KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -98,7 +98,7 @@ public:
           mMaxSubsteps(max_substeps)
     {
         KRATOS_TRY
-        
+
         // Check that there is at least one element and node in the model
         const auto n_nodes = rBaseModelPart.NumberOfNodes();
         const auto n_elems = rBaseModelPart.NumberOfElements();
@@ -110,13 +110,13 @@ public:
         VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(VELOCITY, rBaseModelPart.Nodes());
 
         if(TDim == 2){
-            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) << 
+            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle" << std::endl;
         } else if(TDim == 3) {
-            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) << 
+            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }
-        
+
         // Allocate if needed the variable DYNAMIC_TAU of the process info, and if it does not exist, set it to zero
         if( rBaseModelPart.GetProcessInfo().Has(DYNAMIC_TAU) == false){
             rBaseModelPart.GetProcessInfo().SetValue(DYNAMIC_TAU,0.0);
@@ -153,9 +153,9 @@ public:
             CalculateNormDxFlag);
 
         mpSolvingStrategy->SetEchoLevel(0);
-        
+
         rBaseModelPart.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, cross_wind_stabilization_factor);
-        
+
         //TODO: check flag DO_EXPENSIVE_CHECKS
         mpSolvingStrategy->Check();
 
@@ -163,7 +163,7 @@ public:
     }
 
     /// Destructor.
-    ~LevelSetConvectionProcess() override 
+    ~LevelSetConvectionProcess() override
     {
         mrBaseModelPart.GetModel().DeleteModelPart("DistanceConvectionPart");
     }
@@ -213,16 +213,16 @@ public:
 
         for(unsigned int step = 1; step <= n_substep; ++step){
 
-            KRATOS_INFO_IF("LevelSetConvectionProcess", mpSolvingStrategy->GetEchoLevel() > 0 && rank == 0) << 
+            KRATOS_INFO_IF("LevelSetConvectionProcess", mpSolvingStrategy->GetEchoLevel() > 0 && rank == 0) <<
                 "Doing step "<< step << " of " << n_substep << std::endl;
 
             // Compute shape functions of old and new step
             const double Nold = 1.0 - static_cast<double>(step) / static_cast<double>(n_substep);
             const double Nnew = 1.0 - Nold;
-            
+
             const double Nold_before = 1.0 - static_cast<double>(step-1) / static_cast<double>(n_substep);
-            const double Nnew_before = 1.0 - Nold_before;            
-            
+            const double Nnew_before = 1.0 - Nold_before;
+
             // Emulate clone time step by copying the new distance onto the old one
             #pragma omp parallel for
             for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
@@ -235,14 +235,14 @@ public:
                 it_node->FastGetSolutionStepValue(VELOCITY, 1) = Nold_before * v_old + Nnew_before * v;
                 it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
             }
-            
+
             mpSolvingStrategy->Solve();
         }
 
-        // Reset the processinfo to the original settings 
+        // Reset the processinfo to the original settings
         rCurrentProcessInfo.SetValue(DELTA_TIME, previous_delta_time);
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(r_previous_var);
-        
+
         // Reset the velocities and levelset values to the one saved before the solution process
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
@@ -251,7 +251,7 @@ public:
             it_node->FastGetSolutionStepValue(VELOCITY,1) = mVelocityOld[i_node];
             it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[i_node];
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -263,7 +263,7 @@ public:
         mDistancePartIsInitialized = false;
 
         mpSolvingStrategy->Clear();
-        
+
         mVelocity.clear();
         mVelocityOld.clear();
         mOldDistance.clear();
@@ -315,7 +315,7 @@ protected:
     Variable<double>& mrLevelSetVar;
 
     const double mMaxAllowedCFL;
-    
+
     bool mDistancePartIsInitialized;
 
 	const unsigned int mMaxSubsteps;
@@ -355,13 +355,13 @@ protected:
 
         if(current_model.HasModelPart("DistanceConvectionPart"))
             current_model.DeleteModelPart("DistanceConvectionPart");
-        
+
         mpDistanceModelPart= &(current_model.CreateModelPart("DistanceConvectionPart"));
 
 
         // Check buffer size
         const auto base_buffer_size = rBaseModelPart.GetBufferSize();
-        KRATOS_ERROR_IF(base_buffer_size < 2) << 
+        KRATOS_ERROR_IF(base_buffer_size < 2) <<
             "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
         // Generate
@@ -383,21 +383,21 @@ protected:
         // Generating the elements
         mpDistanceModelPart->Elements().reserve(rBaseModelPart.NumberOfElements());
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element = Kratos::make_shared< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
+            Element::Pointer p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
                 it_elem->pGetProperties());
 
             // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_element->pGetGeometry() = it_elem->pGetGeometry();
-            
+
             mpDistanceModelPart->Elements().push_back(p_element);
         }
 
         // Next is for mpi (but mpi would also imply calling an mpi strategy)
         Communicator::Pointer pComm = rBaseModelPart.GetCommunicator().Create();
         mpDistanceModelPart->SetCommunicator(pComm);
-        
+
         // Resize the arrays
         const auto n_nodes = mpDistanceModelPart->NumberOfNodes();
         mVelocity.resize(n_nodes);
@@ -411,10 +411,10 @@ protected:
 
 
     unsigned int EvaluateNumberOfSubsteps(){
-        // First of all compute the cfl number 
+        // First of all compute the cfl number
         const auto n_elem = mpDistanceModelPart->NumberOfElements();
         const double dt = mpDistanceModelPart->GetProcessInfo()[DELTA_TIME];
-        
+
 		// Vector where each thread will store its maximum (VS does not support OpenMP reduce max)
 		int NumThreads = OpenMPUtils::GetNumThreads();
 		std::vector<double> list_of_max_local_cfl(NumThreads, 0.0);
@@ -466,9 +466,9 @@ protected:
         max_cfl_found *= dt;
 
         // Synchronize maximum CFL between processes
-        mpDistanceModelPart->GetCommunicator().MaxAll(max_cfl_found);
-        
-        unsigned int n_steps = static_cast<unsigned int>(max_cfl_found / mMaxAllowedCFL); 
+        max_cfl_found = mpDistanceModelPart->GetCommunicator().GetDataCommunicator().MaxAll(max_cfl_found);
+
+        unsigned int n_steps = static_cast<unsigned int>(max_cfl_found / mMaxAllowedCFL);
         if(n_steps < 1){
             n_steps = 1;
         }
@@ -477,7 +477,7 @@ protected:
 		if (mMaxSubsteps > 0 && mMaxSubsteps < n_steps){
             n_steps = mMaxSubsteps;
         }
-        
+
         return n_steps;
     }
 
@@ -565,6 +565,6 @@ inline std::ostream& operator << (
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined 
+#endif // KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED  defined
 
 

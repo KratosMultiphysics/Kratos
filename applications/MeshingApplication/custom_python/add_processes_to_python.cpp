@@ -84,6 +84,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     // HESSIAN PROCESS
     py::class_<ComputeHessianSolMetricProcess, ComputeHessianSolMetricProcess::Pointer, Process>(m, "ComputeHessianSolMetricProcess")
+    .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&>())
     .def(py::init<ModelPart&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ComponentType&>())
@@ -137,21 +138,27 @@ void  AddProcessesToPython(pybind11::module& m)
     /* MMG PROCESS */
 #ifdef INCLUDE_MMG
     // 2D
-    py::class_<MmgProcess<MMGLibray::MMG2D>, MmgProcess<MMGLibray::MMG2D>::Pointer, Process>(m, "MmgProcess2D")
+    py::class_<MmgProcess<MMGLibrary::MMG2D>, MmgProcess<MMGLibrary::MMG2D>::Pointer, Process>(m, "MmgProcess2D")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &MmgProcess<MMGLibrary::MMG2D>::OutputMdpa)
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMG2D>::CleanSuperfluousNodes)
     ;
 
     // 3D
-    py::class_<MmgProcess<MMGLibray::MMG3D>, MmgProcess<MMGLibray::MMG3D>::Pointer, Process>(m, "MmgProcess3D")
+    py::class_<MmgProcess<MMGLibrary::MMG3D>, MmgProcess<MMGLibrary::MMG3D>::Pointer, Process>(m, "MmgProcess3D")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &MmgProcess<MMGLibrary::MMG3D>::OutputMdpa)
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMG3D>::CleanSuperfluousNodes)
     ;
 
     // 3D surfaces
-    py::class_<MmgProcess<MMGLibray::MMGS>, MmgProcess<MMGLibray::MMGS>::Pointer, Process>(m, "MmgProcess3DSurfaces")
+    py::class_<MmgProcess<MMGLibrary::MMGS>, MmgProcess<MMGLibrary::MMGS>::Pointer, Process>(m, "MmgProcess3DSurfaces")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &MmgProcess<MMGLibrary::MMGS>::OutputMdpa)
+    .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMGS>::CleanSuperfluousNodes)
     ;
 #endif
 }

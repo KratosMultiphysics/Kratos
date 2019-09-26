@@ -76,7 +76,7 @@ UpdatedLagrangianVElement&  UpdatedLagrangianVElement::operator=(UpdatedLagrangi
 
 Element::Pointer UpdatedLagrangianVElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< UpdatedLagrangianVElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< UpdatedLagrangianVElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -122,7 +122,7 @@ Element::Pointer UpdatedLagrangianVElement::Clone( IndexType NewId, NodesArrayTy
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< UpdatedLagrangianVElement >(NewElement);
+    return Kratos::make_intrusive< UpdatedLagrangianVElement >(NewElement);
 }
 
 //*******************************DESTRUCTOR*******************************************

@@ -135,7 +135,7 @@ Element::Pointer AdjointSolidElement<TPrimalElement>::Create(IndexType NewId,
                                                              NodesArrayType const& ThisNodes,
                                                              PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<AdjointSolidElement<TPrimalElement>>(
+    return Kratos::make_intrusive<AdjointSolidElement<TPrimalElement>>(
         NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
@@ -144,7 +144,7 @@ Element::Pointer AdjointSolidElement<TPrimalElement>::Create(IndexType NewId,
                                                              GeometryType::Pointer pGeom,
                                                              PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<AdjointSolidElement<TPrimalElement>>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<AdjointSolidElement<TPrimalElement>>(NewId, pGeom, pProperties);
 }
 
 template <class TPrimalElement>
@@ -333,6 +333,6 @@ void AdjointSolidElement<TPrimalElement>::CalculateSensitivityMatrix(
     KRATOS_CATCH("");
 }
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSolidElement<TotalLagrangian>;
+template class AdjointSolidElement<TotalLagrangian>;
 
 } // namespace Kratos.

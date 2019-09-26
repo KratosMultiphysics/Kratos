@@ -55,7 +55,7 @@ public:
     ///@{
 
     /// Pointer definition of QSVMS
-    KRATOS_CLASS_POINTER_DEFINITION(QSVMS);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(QSVMS);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;

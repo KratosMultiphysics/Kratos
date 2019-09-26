@@ -46,39 +46,39 @@ namespace Python{
     // Triangular and Tetrahedral 2D and 3D
     Element::Pointer CreateUpdatedLagragian2D3N()
     {
-        return Kratos::make_shared<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
     }
 
     Element::Pointer CreateUpdatedLagragianUP2D3N()
     {
-        return Kratos::make_shared<UpdatedLagrangianUP>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangianUP>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
     }
 
     Element::Pointer CreateUpdatedLagragian3D4N()
     {
-        return Kratos::make_shared<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
     }
 
     // Quadrilateral and Hexahedral 2D and 3D
     Element::Pointer CreateUpdatedLagragian2D4N()
     {
-        return Kratos::make_shared<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
 
     }
     Element::Pointer CreateUpdatedLagragian3D8N()
     {
-        return Kratos::make_shared<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) );
     }
 
     // Axis Symmetry Element 2D (Triangular and Quadrilateral)
     Element::Pointer CreateUpdatedLagragianAxis2D3N()
     {
-        return Kratos::make_shared<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
     }
 
     Element::Pointer CreateUpdatedLagragianAxis2D4N()
     {
-        return Kratos::make_shared<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
+        return Kratos::make_intrusive<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
     }
 
     PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
@@ -127,8 +127,12 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPC_AREA);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_NORMAL);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_DISPLACEMENT);
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_IMPOSED_DISPLACEMENT);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_VELOCITY);
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_IMPOSED_VELOCITY);
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_ACCELERATION);
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_IMPOSED_ACCELERATION);
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MPC_CONTACT_FORCE);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PARTICLES_PER_CONDITION);
 
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MP_DISPLACEMENT);

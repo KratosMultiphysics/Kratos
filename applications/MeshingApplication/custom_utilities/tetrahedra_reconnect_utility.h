@@ -244,7 +244,8 @@ public:
             Node<3>::Pointer v1 = mrModelPart.pGetNode(t->vertexes[1]->getID());
             Node<3>::Pointer v2 = mrModelPart.pGetNode(t->vertexes[2]->getID());
             Node<3>::Pointer v3 = mrModelPart.pGetNode(t->vertexes[3]->getID());
-            if ((v0 == nullptr) || (v1==nullptr) || (v2 == nullptr) || (v3 == nullptr))
+            if ((v0.get() == nullptr) || (v1.get()==nullptr) || (v2.get() == nullptr) || (v3.get() == nullptr))
+            
             {
                 if (!messageShown)
                     std::cout << "Invalid vertex access " << t->getID() <<"\n";

@@ -37,7 +37,7 @@ TrussElementLinear3D2N::Create(IndexType NewId,
                                PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
-    return Kratos::make_shared<TrussElementLinear3D2N>(
+    return Kratos::make_intrusive<TrussElementLinear3D2N>(
                NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
@@ -46,7 +46,7 @@ TrussElementLinear3D2N::Create(IndexType NewId,
                                GeometryType::Pointer pGeom,
                                PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_shared<TrussElementLinear3D2N>(
+    return Kratos::make_intrusive<TrussElementLinear3D2N>(
                NewId, pGeom, pProperties);
 }
 
@@ -244,19 +244,21 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
 
 BoundedVector<double,TrussElementLinear3D2N::msLocalSize>
 TrussElementLinear3D2N::GetConstitutiveLawTrialResponse(
-    const ProcessInfo& rCurrentProcessInfo,const bool rSaveInternalVariables)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
     Vector stress_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
     strain_vector[0] = CalculateLinearStrain();
 
-    Matrix temp_matrix;
-    Vector temp_vector;
 
-    mpConstitutiveLaw->CalculateMaterialResponse(strain_vector,
-            temp_matrix,stress_vector,temp_matrix,rCurrentProcessInfo,GetProperties(),
-            GetGeometry(),temp_vector,true,true,rSaveInternalVariables);
+    ConstitutiveLaw::Parameters element_parameters;
+    element_parameters.SetMaterialProperties(GetProperties());
+    element_parameters.SetStressVector(stress_vector);
+    element_parameters.SetStrainVector(strain_vector);
+
+    mpConstitutiveLaw->CalculateMaterialResponse(element_parameters,ConstitutiveLaw::StressMeasure_PK2);
+
 
     BoundedVector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize);
     internal_forces[0] = -1.0 * GetProperties()[CROSS_AREA] * stress_vector[0];

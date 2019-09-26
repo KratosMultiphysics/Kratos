@@ -64,7 +64,7 @@ namespace Kratos
 
    Condition::Pointer HydraulicAxisymRigidContactPenalty2DCondition::Create(IndexType NewId, const NodesArrayType& ThisNodes, PropertiesType::Pointer pProperties) const
    {
-     return Kratos::make_shared<HydraulicAxisymRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
+     return Kratos::make_intrusive<HydraulicAxisymRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
    }
 
    //************************************CLONE*******************************************
@@ -72,7 +72,7 @@ namespace Kratos
 
    Condition::Pointer HydraulicAxisymRigidContactPenalty2DCondition::Clone(IndexType NewId, const NodesArrayType& ThisNodes) const
    {
-     return Kratos::make_shared<HydraulicAxisymRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
+     return Kratos::make_intrusive<HydraulicAxisymRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
    }
 
 

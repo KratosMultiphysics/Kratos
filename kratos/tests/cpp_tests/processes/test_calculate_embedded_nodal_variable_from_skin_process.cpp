@@ -35,10 +35,10 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(CalculateEmbeddedNodalVariableFromSkinProcessDouble, KratosCoreFastSuite)
     {
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, 0.00, 0.00, 0.00);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, 0.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3, 1.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4, 1.00, 0.00, 0.00);
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 1.00, 0.00);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.00, 1.00, 0.00);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.00, 0.00, 0.00);
 
         Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -80,7 +80,7 @@ namespace Testing {
             "skin_model_part_name": "Skin",
             "skin_variable_name": "TEMPERATURE",
             "embedded_nodal_variable_name": "TEMPERATURE",
-            "level_set_type": "continuous"
+            "gradient_penalty_coefficient": 1.0e-5
         }
         )");
         EmbeddedNodalVariableProcessDouble emb_nod_var_from_skin_proc(current_model, settings);
@@ -99,10 +99,10 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(CalculateEmbeddedNodalVariableFromSkinProcessArray, KratosCoreFastSuite)
     {
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, 0.00, 0.00, 0.00);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, 0.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3, 1.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4, 1.00, 0.00, 0.00);
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 1.00, 0.00);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.00, 1.00, 0.00);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.00, 0.00, 0.00);
 
         Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -144,7 +144,7 @@ namespace Testing {
             "skin_model_part_name": "Skin",
             "skin_variable_name": "DISPLACEMENT",
             "embedded_nodal_variable_name": "DISPLACEMENT",
-            "level_set_type": "discontinuous"
+            "gradient_penalty_coefficient": 1.0e-5
         }
         )");
         EmbeddedNodalVariableProcessArray emb_nod_var_from_skin_proc(current_model, settings);

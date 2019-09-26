@@ -8,8 +8,8 @@ import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-import trilinos_import_model_part_utility
-import trilinos_linear_solver_factory
+from KratosMultiphysics.mpi import distributed_import_model_part_utility
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -60,9 +60,9 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
         # Import the model part, perform the partitioning and create communicators
         import_settings = KratosMultiphysics.Parameters(self.parameters)
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part, import_settings)
-        TrilinosModelPartImporter.ImportModelPart()
-        TrilinosModelPartImporter.CreateCommunicators()
+        DistributedModelPartImporter = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.model_part, import_settings)
+        DistributedModelPartImporter.ImportModelPart()
+        DistributedModelPartImporter.CreateCommunicators()
 
         # Recall to set the buffer size
         self.model_part.SetBufferSize(2)
@@ -103,8 +103,9 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
-        min_distance = self.model_part.GetCommunicator().MinAll(min_distance)
-        max_distance = self.model_part.GetCommunicator().MaxAll(max_distance)
+        comm = self.model_part.GetCommunicator().GetDataCommunicator()
+        min_distance = comm.MinAll(min_distance)
+        max_distance = comm.MaxAll(max_distance)
 
         self.assertAlmostEqual(max_distance, 0.7904255118014996)
         self.assertAlmostEqual(min_distance,-0.11710292469993094)

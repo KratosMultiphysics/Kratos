@@ -39,11 +39,7 @@ def GetDefaultInputParameters():
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
-            "solver_settings" :{
-                "strategy"                 : "deprecated_key.invalid_strategy",
-                "RemoveBallsInitiallyTouchingWalls": false,
-                "do_search_neighbours": true
-            },
+            "solver_settings" : {},
             "echo_level"                  : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",
@@ -89,6 +85,7 @@ def GetDefaultInputParameters():
             "ShearStrainParallelToBondOption"  : true,
             "DontSearchUntilFailure"           : false,
             "ContactMeshOption"                : false,
+            "MaxNumberOfIntactBondsToConsiderASphereBroken" : 0,
             "OutputFileType"                   : "Binary",
             "Multifile"                        : "multiple_files",
             "TestType"                         : "None",

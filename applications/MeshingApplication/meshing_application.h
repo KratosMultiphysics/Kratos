@@ -25,8 +25,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
-#include "includes/condition.h"
 #include "includes/element.h"
 
 namespace Kratos
@@ -35,27 +33,6 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-typedef array_1d<double,3> Vector3;
-
-// Variables definition
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, AVERAGE_NODAL_ERROR);                          // The average nodal error
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, ANISOTROPIC_RATIO);                            // The anisotropic aspect ratio
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, Vector3, AUXILIAR_GRADIENT);                           // An auxiliar gradient needed to compute the metric
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, Vector,  AUXILIAR_HESSIAN);                            // An auxiliar hessian needed to compute the metric
-KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(MESHING_APPLICATION, METRIC_TENSOR_2D); // A 2D metric vector
-KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(MESHING_APPLICATION, METRIC_TENSOR_3D); // A 3D metric vector
-
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, int, NUMBER_OF_DIVISIONS);      // The number of divisions for the multi scale refining
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, int, SUBSCALE_INDEX)
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, Node<3>::Pointer, SLAVE_NODE)
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, Element::Pointer, FATHER_ELEMENT)
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, Condition::Pointer, FATHER_CONDITION)
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, std::vector<double>, FATHER_NODES_WEIGHTS)
-
-//for ULF (surface_tension) application:
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, TRIPLE_POINT)
-KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, CONTACT_ANGLE)
-
 ///@}
 ///@name Type Definitions
 ///@{
@@ -63,6 +40,26 @@ KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, CONTACT_ANGLE)
 ///@}
 ///@name  Enum's
 ///@{
+
+    /**
+     * @brief This enum defines the type of MMG libray used
+     */
+    enum class MMGLibrary
+    {
+        MMG2D = 0,
+        MMG3D = 1,
+        MMGS  = 2
+    };
+
+    /**
+     * @brief This enums allows to differentiate the working framework
+     */
+    enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
+
+    /**
+     * @brief This enums allows to differentiate the discretization options
+     */
+    enum class DiscretizationOption {STANDARD = 0, LAGRANGIAN = 1, ISOSURFACE = 2};
 
 ///@}
 ///@name  Functions
@@ -151,7 +148,6 @@ public:
         KratosComponents<Condition>().PrintData(rOStream);
     }
 
-
     ///@}
     ///@name Friends
     ///@{
@@ -204,9 +200,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
     const Element mTestElement2D;
     const Element mTestElement3D;
-
 
     ///@}
     ///@name Private Operators

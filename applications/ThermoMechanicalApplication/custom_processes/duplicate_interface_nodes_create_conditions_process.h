@@ -141,11 +141,11 @@ public:
                 nd != mr_model_part.NodesEnd() ; ++nd)
         {
 
-            WeakPointerVector< Element >& neighbor_els = nd->GetValue(NEIGHBOUR_ELEMENTS);
+            GlobalPointersVector< Element >& neighbor_els = nd->GetValue(NEIGHBOUR_ELEMENTS);
             int num_material = 0;
 
             //loop to find # of different material
-            for(WeakPointerVector< Element >::iterator ele_base = neighbor_els.begin(); ele_base!=neighbor_els.end(); ele_base++)
+            for(GlobalPointersVector< Element >::iterator ele_base = neighbor_els.begin(); ele_base!=neighbor_els.end(); ele_base++)
             {
                 double counted = ele_base->GetValue(IS_VISITED);
                 if(counted == 0.0)
@@ -155,7 +155,7 @@ public:
                     int ele_base_mat = (ele_base->pGetProperties())->Id();
 
                     //loop over neighbors to find similar flag
-                    for(WeakPointerVector< Element >::iterator ngh_ele = neighbor_els.begin(); ngh_ele!=neighbor_els.end(); ngh_ele++)
+                    for(GlobalPointersVector< Element >::iterator ngh_ele = neighbor_els.begin(); ngh_ele!=neighbor_els.end(); ngh_ele++)
                         if(ngh_ele->Id() != ele_base->Id())
                         {
                             int ngh_ele_mat = (ngh_ele->pGetProperties())->Id();
@@ -169,7 +169,7 @@ public:
             }
 
             //reset is_visited
-            for(WeakPointerVector< Element >::iterator ele = neighbor_els.begin(); ele!=neighbor_els.end(); ele++)
+            for(GlobalPointersVector< Element >::iterator ele = neighbor_els.begin(); ele!=neighbor_els.end(); ele++)
                 ele->GetValue(IS_VISITED) = 0.0;
 
             //check if at least one material is created
@@ -187,7 +187,7 @@ public:
                 //Exclude one material type because (num_material -1) copy is going to be created
                 neighbor_els.begin()->GetValue(IS_VISITED) = 1.0;
                 int begin_elem_mat = (neighbor_els.begin()->pGetProperties())->Id();
-                for(WeakPointerVector< Element >::iterator ngh_ele = neighbor_els.begin()+1; ngh_ele!=neighbor_els.end(); ngh_ele++)
+                for(GlobalPointersVector< Element >::iterator ngh_ele = neighbor_els.begin()+1; ngh_ele!=neighbor_els.end(); ngh_ele++)
                 {
                     int ngh_elem_mat = (ngh_ele->pGetProperties())->Id();
                     int is_contact = 1.0;
@@ -200,7 +200,7 @@ public:
 
                 //Duplicate for the rest of material types
                 int kk = 0;
-                for(WeakPointerVector< Element >::iterator ele_base = neighbor_els.begin(); ele_base!=neighbor_els.end(); ele_base++)
+                for(GlobalPointersVector< Element >::iterator ele_base = neighbor_els.begin(); ele_base!=neighbor_els.end(); ele_base++)
                 {
                     kk+=1;
                     if(ele_base->GetValue(IS_VISITED) == 0.0)
@@ -222,7 +222,7 @@ public:
 
 
                         //Look for similar Material
-                        for(WeakPointerVector< Element >::iterator ngh_ele = neighbor_els.begin()+kk; ngh_ele!=neighbor_els.end(); ngh_ele++)
+                        for(GlobalPointersVector< Element >::iterator ngh_ele = neighbor_els.begin()+kk; ngh_ele!=neighbor_els.end(); ngh_ele++)
                             if( ngh_ele->Id() != ele_base->Id() )
                             {
                                 int ngh_ele_mat = (ngh_ele->pGetProperties())->Id();
@@ -247,7 +247,7 @@ public:
 
             }//End of Adding
             //reset is_visited
-            for(WeakPointerVector< Element >::iterator ele = neighbor_els.begin(); ele!=neighbor_els.end(); ele++)
+            for(GlobalPointersVector< Element >::iterator ele = neighbor_els.begin(); ele!=neighbor_els.end(); ele++)
                 ele->GetValue(IS_VISITED) = 0.0;
             //add to model part reser is_visited for ne created node
         }//End Of loop over nodes
@@ -381,7 +381,7 @@ public:
 
 // 			for(ModelPart::ElementsContainerType::iterator Belem = mr_model_part.ElementsBegin(); Belem != mr_model_part.ElementsEnd(); ++Belem)
 // 			{
-// 		           WeakPointerVector< Element >& Belem_ngh = Belem->GetValue(NEIGHBOUR_ELEMENTS);
+// 		           GlobalPointersVector< Element >& Belem_ngh = Belem->GetValue(NEIGHBOUR_ELEMENTS);
 // 		           int Belem_mat = (Belem->pGetProperties())->Id();
 // 			   Belem->GetValue(IS_VISITED) = 1.0;
 // 		           Geometry< Node<3> >& Belem_geom = Belem->GetGeometry();

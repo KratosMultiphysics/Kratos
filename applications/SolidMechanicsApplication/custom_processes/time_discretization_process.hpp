@@ -36,9 +36,9 @@ typedef ModelPart::NodesContainerType                      NodesContainerType;
 typedef ModelPart::ElementsContainerType                ElementsContainerType;
 typedef ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
-typedef WeakPointerVector<Node<3> >       NodeWeakPtrVectorType;
-typedef WeakPointerVector<Element>     ElementWeakPtrVectorType;
-typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+typedef GlobalPointersVector<Node<3> >       NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
+typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 ///@}
 ///@name  Enum's
 ///@{

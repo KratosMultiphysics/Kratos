@@ -16,28 +16,26 @@ def CreateSolver(model, custom_settings):
 class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
     """The trilinos structural mechanics implicit dynamic solver.
 
-    Public member variables:
-    dynamic_settings -- settings for the implicit dynamic solvers.
-
     For more information see:
     structural_mechanics_solver.py
     trilinos_structural_mechanics_solver.py
     """
     def __init__(self, model, custom_settings):
-        # Set defaults and validate custom settings.
-        self.dynamic_settings = KratosMultiphysics.Parameters("""
-        {
-            "scheme_type"   : "bossak",
-            "damp_factor_m" :-0.3,
-            "rayleigh_alpha": 0.0,
-            "rayleigh_beta" : 0.0
-        }
-        """)
-        self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
-        # Validate the remaining settings in the base class.
-
         # Construct the base solver.
         super(TrilinosImplicitMechanicalSolver, self).__init__(model, custom_settings)
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImplicitMechanicalSolver]:: ", "Construction finished")
+
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
+            "time_integration_method" : "implicit",
+            "scheme_type"             : "bossak",
+            "damp_factor_m"           :-0.3,
+            "rayleigh_alpha"          : 0.0,
+            "rayleigh_beta"           : 0.0
+        }""")
+        this_defaults.AddMissingParameters(super(TrilinosImplicitMechanicalSolver, cls).GetDefaultSettings())
+        return this_defaults
 
     def AddVariables(self):
         super(TrilinosImplicitMechanicalSolver, self).AddVariables()
@@ -52,13 +50,13 @@ class TrilinosImplicitMechanicalSolver(TrilinosMechanicalSolver):
     #### Private functions ####
 
     def _create_solution_scheme(self):
-        scheme_type = self.dynamic_settings["scheme_type"].GetString()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
+        scheme_type = self.settings["scheme_type"].GetString()
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.settings["rayleigh_beta"].GetDouble()
         if (scheme_type == "newmark"):
             damp_factor_m = 0.0
         elif (scheme_type == "bossak"):
-            damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
+            damp_factor_m = self.settings["damp_factor_m"].GetDouble()
         else:
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
             err_msg += "Available options are: \"newmark\", \"bossak\""

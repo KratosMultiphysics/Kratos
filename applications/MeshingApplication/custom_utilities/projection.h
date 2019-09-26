@@ -11,7 +11,7 @@
 #define  KRATOS_PROJECTION
 
 // /* External includes */
-// #include "boost/smart_ptr.hpp"
+#include <boost/timer.hpp>
 
 // System includes
 #include <string>
@@ -24,11 +24,10 @@
 #include "includes/model_part.h"
 #include "includes/deprecated_variables.h"
 #include "geometries/triangle_2d_3.h"
-#include "utilities/timer.h"
 
 // #include "geometries/tetrahedra_3d_4.h"
 
-#include "meshing_application.h"
+#include "meshing_application_variables.h"
 
 // #include "containers/kratos_spacial_search.h"
 
@@ -1048,6 +1047,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PROJECTION  defined 
+#endif // KRATOS_PROJECTION  defined
 
 

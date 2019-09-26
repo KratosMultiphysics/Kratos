@@ -44,7 +44,7 @@ public:
     ///@name Type Definitions
     ///@{
     // Counted pointer of LineElasticCondition
-    KRATOS_CLASS_POINTER_DEFINITION( LineElasticCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineElasticCondition );
     ///@}
 
     ///@name Life Cycle
