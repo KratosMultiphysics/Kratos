@@ -13,6 +13,8 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_element.h"
+#include "embedded_incompressible_potential_flow_element.h"
+#include "embedded_compressible_potential_flow_element.h"
 #include "adjoint_finite_difference_potential_flow_element.h"
 
 namespace Kratos
@@ -89,6 +91,47 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
+    void AdjointFiniteDifferencePotentialFlowElement<TPrimalElement>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                    Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+        const double delta = this->GetPerturbationSize();
+        ProcessInfo process_info = rCurrentProcessInfo;
+
+        Vector RHS;
+        Vector RHS_perturbed;
+
+        auto pPrimalElement = this->pGetPrimalElement();
+        const auto& r_geometry = this->GetGeometry();
+
+        pPrimalElement->CalculateRightHandSide(RHS, process_info);
+
+        if (rOutput.size1() != NumNodes || rOutput.size2() != RHS.size())
+            rOutput.resize(NumNodes, RHS.size(), false);
+
+        for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+            if (!r_geometry[i_node].GetValue(TRAILING_EDGE) && this->Is(ACTIVE)){
+                double distance_value = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+                //perturbate distance
+                pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distance_value+delta;
+                //compute perturbated RHS
+                pPrimalElement->CalculateRightHandSide(RHS_perturbed, process_info);
+                //recover distance value
+                pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distance_value;
+                for (unsigned int i_dof =0;i_dof<RHS.size();i_dof++) {
+                    rOutput(i_node,i_dof) = (RHS_perturbed(i_dof)-RHS(i_dof))/delta;
+                }
+            }
+            else {
+                for(unsigned int i_dof = 0; i_dof < RHS.size(); ++i_dof)
+                    rOutput(i_node, i_dof) = 0.0;
+            }
+        }
+        KRATOS_CATCH("")
+    }
+
+    template <class TPrimalElement>
     double AdjointFiniteDifferencePotentialFlowElement<TPrimalElement>::GetPerturbationSize()
     {
         const double delta = this->GetValue(SCALE_FACTOR);
@@ -130,5 +173,7 @@ namespace Kratos
 
     template class AdjointFiniteDifferencePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
     template class AdjointFiniteDifferencePotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
+    template class AdjointFiniteDifferencePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
+    template class AdjointFiniteDifferencePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<3,4>>;
 } // namespace Kratos.
 
