@@ -3,6 +3,7 @@ import os
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.DemStructuresCouplingApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 import gid_output
 
 

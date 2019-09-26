@@ -25,8 +25,8 @@
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
 #include "custom_elements/embedded_incompressible_potential_flow_element.h"
+#include "custom_elements/embedded_compressible_potential_flow_element.h"
 #include "custom_conditions/potential_wall_condition.h"
-
 #include "custom_elements/adjoint_analytical_incompressible_potential_flow_element.h"
 #include "custom_elements/adjoint_finite_difference_potential_flow_element.h"
 #include "custom_conditions/adjoint_potential_wall_condition.h"
@@ -108,6 +108,7 @@ private:
     const AdjointFiniteDifferencePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointIncompressiblePotentialFlowElement2D3N;
     const AdjointFiniteDifferencePotentialFlowElement<CompressiblePotentialFlowElement<2,3>> mAdjointCompressiblePotentialFlowElement2D3N;
     const EmbeddedIncompressiblePotentialFlowElement<2,3> mEmbeddedIncompressiblePotentialFlowElement2D3N;
+    const EmbeddedCompressiblePotentialFlowElement<2,3> mEmbeddedCompressiblePotentialFlowElement2D3N;
 
     const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
     const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
