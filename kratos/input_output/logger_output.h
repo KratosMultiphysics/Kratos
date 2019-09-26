@@ -116,6 +116,15 @@ public:
     return mCategory;
   }
 
+
+  void SetTimeStampFlag(bool WriteTimeStamp) {
+    mWriteTimeStamp = WriteTimeStamp;
+  }
+
+  bool GetTimeStampFlag() const {
+    return mWriteTimeStamp;
+  }
+
   ///@}
   ///@name Inquiry
   ///@{
@@ -171,6 +180,7 @@ private:
   std::size_t mMaxLevel;
   LoggerMessage::Severity mSeverity;
   LoggerMessage::Category mCategory;
+  bool mWriteTimeStamp=false;
 
   ///@}
 }; // Class LoggerOutput

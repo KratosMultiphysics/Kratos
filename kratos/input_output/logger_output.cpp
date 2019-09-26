@@ -43,6 +43,9 @@ namespace Kratos
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
+            if(mWriteTimeStamp && TheMessage.GetLabel().size() && TheMessage.GetMessage().size())
+                mrStream << TheMessage.GetTimeStamp() << " - ";
+                
 #ifdef KRATOS_LOGGER_USE_COLORS
             mrStream << TheMessage.GetColorCode();
 #endif // ifdef KRATOS_LOGGER_USE_COLORS

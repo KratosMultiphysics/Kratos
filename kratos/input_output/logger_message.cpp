@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <ctime>
 
 
 // External includes
@@ -31,6 +32,17 @@ namespace Kratos
   std::string LoggerMessage::Info() const
   {
     return "LoggerMessage";
+  }
+
+  std::string LoggerMessage::GetTimeStamp() const
+  {
+    time_t raw_time;
+    char buffer[10];
+
+    time (&raw_time);
+
+    strftime(buffer, sizeof(buffer), "%H:%M:%S", localtime(&raw_time));
+    return std::string(buffer);
   }
 
   /// Print information about this object.

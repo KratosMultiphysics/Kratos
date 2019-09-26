@@ -161,6 +161,8 @@ void  AddLoggerToPython(pybind11::module& m) {
     .def("GetSeverity", &LoggerOutput::GetSeverity)
     .def("SetCategory", &LoggerOutput::SetCategory)
     .def("GetCategory", &LoggerOutput::GetCategory)
+    .def("SetTimeStampFlag", &LoggerOutput::SetTimeStampFlag)
+    .def("GetTimeStampFlag", &LoggerOutput::GetTimeStampFlag)
     ;
 
     py::class_<Logger, Kratos::shared_ptr<Logger>> logger_scope(m,"Logger");

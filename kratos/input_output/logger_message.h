@@ -290,6 +290,8 @@ public:
   return mTime;
   }
 
+  std::string GetTimeStamp() const;
+
   std::string GetPrefix() const {
   return mPrefix;
   }
