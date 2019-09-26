@@ -1,0 +1,33 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElastic3DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 7850.0,
+                "YOUNG_MODULUS" : 206900000000.0,
+                "POISSON_RATIO" : 0.29,
+                "FRICTION_COEFFICIENT" : 0.1
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Parts_Auto2",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElastic3DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 7850.0,
+                "YOUNG_MODULUS" : 206900000000.0,
+                "POISSON_RATIO" : 0.29,
+                "FRICTION_COEFFICIENT" : 0.1
+            },
+            "Tables"           : {}
+        }
+    }]
+}

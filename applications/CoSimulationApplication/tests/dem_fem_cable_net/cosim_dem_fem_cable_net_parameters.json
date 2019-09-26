@@ -21,10 +21,10 @@
         },
         "coupling_operations" : {
             "create_sub_load_condition" : {
-                "type"                  : "create_point_load_model_part",
-                "solver"                : "structure",
-                "sub_model_part_name"   : "struct_sub",
-                "computing_model_part_name"   : "Structure.computing_domain"
+                "type"                      : "create_point_load_model_part",
+                "solver"                    : "structure",
+                "sub_model_part_name"       : "struct_sub",
+                "computing_model_part_name" : "Structure"
             }
         },
         "coupling_sequence":
@@ -96,17 +96,17 @@
                 },
                 "data" : {
                     "disp" : {
-                        "model_part_name" : "Structure.computing_domain.struct_sub",
+                        "model_part_name" : "Structure.struct_sub",
                         "variable_name"   : "DISPLACEMENT",
                         "dimension"       : 3
                     },
                     "load" : {
-                        "model_part_name" : "Structure.computing_domain.struct_sub",
+                        "model_part_name" : "Structure.struct_sub",
                         "variable_name"   : "POINT_LOAD",
                         "dimension"       : 3
                     },
                     "velocity" : {
-                        "model_part_name" : "Structure.computing_domain.struct_sub",
+                        "model_part_name" : "Structure.struct_sub",
                         "variable_name"   : "VELOCITY",
                         "dimension"       : 3
                     }
