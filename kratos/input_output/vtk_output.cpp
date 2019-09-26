@@ -800,11 +800,10 @@ void VtkOutput::WritePropertiesIdsToFile(
     std::ofstream& rFileStream) const
 {
     rFileStream << "PROPERTIES_ID" << " 1 "
-                << rContainer.size() << "  float\n";
+                << rContainer.size() << "  int\n";
 
     for (const auto& r_entity : rContainer) {
-        const float properties_id = static_cast<float>(r_entity.GetProperties().Id());
-        WriteScalarDataToFile(properties_id, rFileStream);
+        WriteScalarDataToFile(r_entity.GetProperties().Id(), rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
@@ -819,11 +818,10 @@ void VtkOutput::WriteIdsToFile(
     std::ofstream& rFileStream) const
 {
     rFileStream << DataName << " 1 "
-                << rContainer.size() << "  float\n";
+                << rContainer.size() << "  int\n";
 
     for (const auto& r_entity : rContainer) {
-        const float id = static_cast<float>(r_entity.Id());
-        WriteScalarDataToFile(id, rFileStream);
+        WriteScalarDataToFile(r_entity.Id(), rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
