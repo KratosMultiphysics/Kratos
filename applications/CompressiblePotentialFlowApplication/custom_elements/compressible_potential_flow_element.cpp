@@ -194,7 +194,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
 
     if (rVariable == PRESSURE_COEFFICIENT)
     {
-        rValues[0] = ComputePressureCoefficient(rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputeCompressiblePressureCoefficient<Dim, NumNodes>(*this, rCurrentProcessInfo);
     }
     if (rVariable == DENSITY)
     {
@@ -653,34 +653,6 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEner
 
     double internal_energy = 0.5 * inner_prod(velocity, velocity);
     this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
-}
-
-
-template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficient(
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    // Reading free stream conditions
-    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
-    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
-
-    // Computing local velocity
-    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
-
-    // Computing squares
-    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
-    const double M_inf_2 = M_inf * M_inf;
-    double v_2 = inner_prod(v, v);
-
-    KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
-        << "Error on element -> " << this->Id() << "\n"
-        << "v_inf_2 must be larger than zero." << std::endl;
-
-    const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
-
-    return 2 * (pow(base, heat_capacity_ratio / (heat_capacity_ratio - 1)) - 1) /
-           (heat_capacity_ratio * M_inf_2);
 }
 
 template <int Dim, int NumNodes>
