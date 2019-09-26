@@ -27,10 +27,10 @@ class MeshControllerBasicUpdating(MeshController):
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, variable):
-        KM.Logger.PrintInfo("\nShapeOptimization", "Starting to update the mesh")
+        KM.Logger.PrintInfo("\nShapeOpt", "Starting to update the mesh")
         startTime = timer.time()
         KSO.MeshControllerUtilities(self.OptimizationModelPart).UpdateMeshAccordingInputVariable(variable)
         KSO.MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(variable)
-        KM.Logger.PrintInfo("ShapeOptimization", "Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
+        KM.Logger.PrintInfo("ShapeOpt", "Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
 # ==============================================================================

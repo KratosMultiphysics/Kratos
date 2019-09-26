@@ -93,7 +93,7 @@ class ValueLogger():
             self.obj_reference_value = self.communicator.getValue( objective_id )
 
             if abs(self.obj_reference_value)<1e-12:
-                KM.Logger.PrintWarning("ShapeOptimization", "Objective reference value < 1e-12!! Therefore, standard reference value of 1 is assumed! ")
+                KM.Logger.PrintWarning("ShapeOpt", "Objective reference value < 1e-12!! Therefore, standard reference value of 1 is assumed! ")
                 self.obj_reference_value = 1.0
 
             self.history["abs_change_objective"] = {self.current_index: 0.0}

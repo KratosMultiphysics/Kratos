@@ -95,16 +95,16 @@ class DataLogger():
         numberOfObjectives = self.OptimizationSettings["objectives"].size()
         numberOfConstraints = self.OptimizationSettings["constraints"].size()
 
-        KM.Logger.PrintInfo("\nShapeOptimization", "The following objectives are defined:\n")
+        KM.Logger.PrintInfo("\nShapeOpt", "The following objectives are defined:\n")
         for objectiveNumber in range(numberOfObjectives):
             KM.Logger.Print(self.OptimizationSettings["objectives"][objectiveNumber])
 
         if numberOfConstraints != 0:
-            KM.Logger.PrintInfo("ShapeOptimization", "The following constraints are defined:\n")
+            KM.Logger.PrintInfo("ShapeOpt", "The following constraints are defined:\n")
             for constraintNumber in range(numberOfConstraints):
                 KM.Logger.Print(self.OptimizationSettings["constraints"][constraintNumber],"\n")
         else:
-            KM.Logger.PrintInfo("ShapeOptimization", "No constraints defined.\n")
+            KM.Logger.PrintInfo("ShapeOpt", "No constraints defined.\n")
 
     # --------------------------------------------------------------------------
     def InitializeDataLogging( self ):

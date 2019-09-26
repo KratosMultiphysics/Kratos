@@ -291,7 +291,7 @@ def QuadProg(A, b, max_itr, tolerance):
 
         # Drop and error if divergence is detected
         if Norm2(deltaXYLAff)>1e20:
-            KM.Logger.PrintWarning("ShapeOptimization", "custom_math::quadprodg: deltaXYLAff is NAN. The reason is, that feasible domain might be empty. This happens e.g. when the dJdX is parallel to dCdX (like at convergence with a single constraint)")
+            KM.Logger.PrintWarning("ShapeOpt", "custom_math::quadprodg: deltaXYLAff is NAN. The reason is, that feasible domain might be empty. This happens e.g. when the dJdX is parallel to dCdX (like at convergence with a single constraint)")
             exit_code = 2
             return
 
@@ -373,12 +373,12 @@ def PerformBisectioning(func, a, b, target, tolerance, max_itr):
         error = abs(fb_value_0-target)
 
     elif abs(fa_value_0-fb_value_0) < 1e-13:
-        KM.Logger.PrintWarning("ShapeOptimization", "Bisectioning intervall yiels to identical function values!")
+        KM.Logger.PrintWarning("ShapeOpt", "Bisectioning intervall yiels to identical function values!")
         res_function_argument = a
         error = abs(fb_value_0-target)
 
     elif (fa_value_0-target)*(fb_value_0-target)>0:
-        KM.Logger.PrintWarning("ShapeOptimization", "Bisectioning on function, that has no root in specified intervall!! Returning the argument which yiels a closer value to the target.")
+        KM.Logger.PrintWarning("ShapeOpt", "Bisectioning on function, that has no root in specified intervall!! Returning the argument which yiels a closer value to the target.")
 
         if abs(fa_value_0-target) < abs(fb_value_0-target):
             res_function_argument = a
@@ -410,7 +410,7 @@ def PerformBisectioning(func, a, b, target, tolerance, max_itr):
 
             if itr == max_itr:
                 res_function_argument = last_allowed_function_argument
-                KM.Logger.PrintWarning("ShapeOptimization", "Bisectioning did not converge in the specified maximum number of iterations!")
+                KM.Logger.PrintWarning("ShapeOpt", "Bisectioning did not converge in the specified maximum number of iterations!")
                 break
 
             elif error < tolerance:
@@ -437,7 +437,7 @@ def PerformGramSchmidtOrthogonalization(vector_space):
         if norm2_v>1e-10:
             B.append( ScalarVectorProduct(1/norm2_v,v) )
         else:
-            KM.Logger.PrintWarning("ShapeOptimization", "Zero basis vector after Gram-Schmidt orthogonalization!")
+            KM.Logger.PrintWarning("ShapeOpt", "Zero basis vector after Gram-Schmidt orthogonalization!")
             B.append(v)
 
     return B
