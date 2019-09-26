@@ -12,7 +12,7 @@ def Wait():
 def KratosPrintInfo(message):
     """This function prints info on screen
     """
-    KM.Logger.Print(message, label="")
+    KM.Logger.Print(" ", message)
     KM.Logger.Flush()
 #============================================================================================================================
 class MainCouplingPfemFemDem_Solution:
@@ -26,12 +26,11 @@ class MainCouplingPfemFemDem_Solution:
         self.PFEM_Solution = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, 
                                                                                   self.FEMDEM_Solution.FEM_Solution.main_model_part,
                                                                                   PFEMparameters)
-        KratosPrintInfo("   ___                  _          _            _ _   _         ___  ___  __        ")
-        KratosPrintInfo("  / __\___  _   _ _ __ | | ___  __| | __      _(_) |_| |__     / _ \/ __\/__\/\/\   ")
-        KratosPrintInfo(" / /  / _ \| | | | '_ \| |/ _ \/ _` | \ \ /\ / / | __| '_ \   / /_)/ _\ /_\ /    \  ")
-        KratosPrintInfo("/ /__| (_) | |_| | |_) | |  __/ (_| |  \ V  V /| | |_| | | | / ___/ /  //__/ /\/\ \ ")
-        KratosPrintInfo("\____/\___/ \__,_| .__/|_|\___|\__,_|   \_/\_/ |_|\__|_| |_| \/   \/   \__/\/    \/ ")
-        KratosPrintInfo("")
+        KratosPrintInfo("  ___                  _          _            _ _   _         ___  ___  __       "  + "\n" +
+                      "   / __\___  _   _ _ __ | | ___  __| | __      _(_) |_| |__     / _ \/ __\/__\/\/\   " + "\n" +
+                      "  / /  / _ \| | | | '_ \| |/ _ \/ _` | \ \ /\ / / | __| '_ \   / /_)/ _\ /_\ /    \  " + "\n" +
+                      " / /__| (_) | |_| | |_) | |  __/ (_| |  \ V  V /| | |_| | | | / ___/ /  //__/ /\/\ \ " + "\n" +
+                      " \____/\___/ \__,_| .__/|_|\___|\__,_|   \_/\_/ |_|\__|_| |_| \/   \/   \__/\/    \/ " + "\n")
 
 #============================================================================================================================
     def Run(self):
