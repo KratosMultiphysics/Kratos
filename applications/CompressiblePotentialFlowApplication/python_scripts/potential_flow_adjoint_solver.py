@@ -34,8 +34,24 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
         self.condition_name = "AdjointPotentialWallCondition"
 
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
-        raise RuntimeError("Adjoint embedded element currently not implemented")
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "",
+            "gradient_mode": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
 
+        self.element_name = "AdjointEmbeddedIncompressiblePotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
+
+    def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "",
+            "gradient_mode": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "AdjointEmbeddedCompressiblePotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowAdjointSolver(model, custom_settings)
