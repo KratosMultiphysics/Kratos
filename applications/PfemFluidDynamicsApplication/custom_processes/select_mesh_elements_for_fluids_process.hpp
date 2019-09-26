@@ -165,6 +165,7 @@ public:
 				unsigned int numsolid = 0;
 				unsigned int numinlet = 0;
 				unsigned int numisolated = 0;
+                bool noremesh = false;
 				// unsigned int  numinsertednodes =0;
 				std::vector<double> normVelocityP;
 				normVelocityP.resize(nds);
@@ -206,6 +207,11 @@ public:
 					if (vertices.back().Is(BOUNDARY))
 					{
 						numboundary++;
+						// std::cout<<" BOUNDARY COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
+					}
+					if (vertices.back().Is(NO_MESH))
+					{
+						noremesh = true;
 						// std::cout<<" BOUNDARY COORDINATES: "<<vertices.back().Coordinates()<<std::endl;
 					}
 					if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
@@ -374,7 +380,7 @@ public:
 					}
 				}
 
-				if (numrigid == nds)
+				if (numrigid == nds || noremesh == true)
 				{
 					accepted = false;
 					//   if(isolatedWallElement==true || (dimension==2 && countIsolatedWallNodes==0)){
