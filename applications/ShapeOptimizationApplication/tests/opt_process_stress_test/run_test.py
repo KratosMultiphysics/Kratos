@@ -85,8 +85,10 @@ with open(optimization_log_filename, 'r') as csvfile:
             last_line = line
 
     resulting_abs_improvement = float(last_line[2].strip())
-
     TestCase().assertAlmostEqual(resulting_abs_improvement, -62.0931, 4)
+
+    norm_df = float(last_line[4].strip())
+    TestCase().assertAlmostEqual(norm_df, 1.93278E+06, 4)
 
 os.chdir(original_directory)
 
