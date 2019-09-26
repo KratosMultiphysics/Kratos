@@ -99,7 +99,7 @@ public:
     /**
      * Pointer definition of Triangle3D3
      */
-    KRATOS_CLASS_POINTER_DEFINITION( Triangle3D3 );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( Triangle3D3 );
 
     /**
      * Integration methods implemented in geometry.
@@ -338,7 +338,7 @@ public:
     }
 
 
-    // Kratos::shared_ptr< Geometry< Point<3> > > Clone() const override
+    // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -1305,9 +1305,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_intrusive<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back( Kratos::make_intrusive<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        edges.push_back( Kratos::make_intrusive<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
 
@@ -1339,7 +1339,7 @@ public:
     {
         GeometriesArrayType faces = GeometriesArrayType();
 
-        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 )) );
+        faces.push_back( Kratos::make_intrusive<FaceType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 )) );
         return faces;
     }
 

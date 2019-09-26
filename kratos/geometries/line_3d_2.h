@@ -73,7 +73,7 @@ public:
     using Geometry<TPointType>::ShapeFunctionsValues;
 
     /// Pointer definition of Line3D2
-    KRATOS_CLASS_POINTER_DEFINITION( Line3D2 );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( Line3D2 );
 
     /// Type of edge geometry
     typedef Line3D2<TPointType> EdgeType;
@@ -660,7 +660,7 @@ public:
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back( Kratos::make_intrusive<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
         return edges;
     }
 

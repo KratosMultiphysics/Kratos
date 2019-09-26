@@ -71,7 +71,7 @@ public:
     typedef Geometry<TPointType> BaseType;
 
     /// Pointer definition of Line3D3
-    KRATOS_CLASS_POINTER_DEFINITION( Line3D3 );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( Line3D3 );
 
     /** Integration methods implemented in geometry.
     */

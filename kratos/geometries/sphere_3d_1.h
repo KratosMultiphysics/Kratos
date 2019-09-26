@@ -64,7 +64,7 @@ public:
     typedef Geometry<TPointType> BaseType;
 
     /// Pointer definition of Sphere3D1
-    KRATOS_CLASS_POINTER_DEFINITION( Sphere3D1 );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( Sphere3D1 );
 
     /** Integration methods implemented in geometry.
     */

@@ -69,7 +69,7 @@ public:
     /**
      * Pointer definition of Hexahedra3D20
      */
-    KRATOS_CLASS_POINTER_DEFINITION( Hexahedra3D20 );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( Hexahedra3D20 );
 
     /**
      * Integration methods implemented in geometry.
