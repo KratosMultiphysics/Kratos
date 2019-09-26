@@ -221,7 +221,7 @@ private:
                 mIntegrationMethod = GeometryData::GI_GAUSS_5;
             else
             {
-                KRATOS_WARNING("ShapeOptimization") << "\n> Number_of_gauss_points: " << number_of_gauss_points << " not valid! Using default: 2 " << std::endl;
+                KRATOS_WARNING("ShapeOpt::MapperVertexMorphingImprovedIntegration") << "\n> Number_of_gauss_points: " << number_of_gauss_points << " not valid! Using default: 2 " << std::endl;
                 mIntegrationMethod = GeometryData::GI_GAUSS_2;
             }
         }
@@ -233,7 +233,7 @@ private:
     // --------------------------------------------------------------------------
     void FindNeighbourConditions()
     {
-        KRATOS_INFO("ShapeOptimization") << "Computing neighbour conditions ..." << std::endl;
+        KRATOS_INFO("ShapeOpt") << "Computing neighbour conditions ..." << std::endl;
         FindConditionsNeighboursProcess find_conditions_neighbours_process(mrOriginModelPart, mrOriginModelPart.GetProcessInfo()[DOMAIN_SIZE]);
         find_conditions_neighbours_process.Execute();
     }
