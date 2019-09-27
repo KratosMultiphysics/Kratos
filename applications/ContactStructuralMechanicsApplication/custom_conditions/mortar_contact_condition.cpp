@@ -104,7 +104,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 {
     KRATOS_TRY;
 
-    // NOTE: Add things if necessary
+    BaseType::InitializeSolutionStep(rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
 }
@@ -117,6 +117,8 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 {
     KRATOS_TRY;
 
+    BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
+
     KRATOS_CATCH( "" );
 }
 
@@ -128,7 +130,7 @@ void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 {
     KRATOS_TRY;
 
-    // NOTE: Add things if necessary
+    BaseType::FinalizeSolutionStep(rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
 }
@@ -140,6 +142,8 @@ template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TN
 void MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
+
+    BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
 }
@@ -320,7 +324,7 @@ void MortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNum
 
     // The master geometry
     const GeometryType& r_master_geometry = this->GetPairedGeometry();
-    const array_1d<double, 3>& r_normal_master = this->GetValue(PAIRED_NORMAL);
+    const array_1d<double, 3>& r_normal_master = this->GetPairedNormal();
 
     // Reading integration points
     ConditionArrayListType conditions_points_slave;
@@ -491,7 +495,7 @@ bool MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 //
 //     // We define the normals
 //     const array_1d<double, 3> normal_slave = this->GetValue(NORMAL);
-//     const array_1d<double, 3>& normal_master = this->GetValue(PAIRED_NORMAL);
+//     const array_1d<double, 3>& r_normal_master = this->GetPairedNormal();
 //
 //     const double angle_slave = MathUtils<double>::VectorsAngle(delta_disp_vect_slave, normal_slave);
 //     const double angle_master = MathUtils<double>::VectorsAngle(delta_disp_vect_master, normal_master);
