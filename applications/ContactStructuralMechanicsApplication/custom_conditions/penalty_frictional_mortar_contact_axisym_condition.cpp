@@ -20,44 +20,57 @@
 
 /* Utilities */
 
-namespace Kratos 
+namespace Kratos
 {
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-template< std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
+template< std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster >
+Condition::Pointer PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation, TNumNodesMaster>::Create(
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_shared<  PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
+template< std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster >
+Condition::Pointer PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation, TNumNodesMaster>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_shared< PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive< PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, pGeom, pProperties );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster >
+Condition::Pointer PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation, TNumNodesMaster>::Create(
+    IndexType NewId,
+    GeometryPointerType pGeom,
+    PropertiesPointerType pProperties,
+    GeometryPointerType pMasterGeom) const
+{
+    return Kratos::make_intrusive< PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-template< std::size_t TNumNodes, bool TNormalVariation >
-PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation>::~PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition( )
+template< std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster >
+PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation, TNumNodesMaster>::~PenaltyMethodFrictionalMortarContactAxisymCondition( )
 = default;
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TNumNodes, bool TNormalVariation >
-bool PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::IsAxisymmetric() const
+template< std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster >
+bool PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation, TNumNodesMaster>::IsAxisymmetric() const
 {
     return true;
 }
@@ -65,8 +78,8 @@ bool PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNod
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TNumNodes, bool TNormalVariation >
-double PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
+template< std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster >
+double PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation, TNumNodesMaster>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
 {
     const double radius = CalculateRadius(rVariables);
     const double thickness = this->GetProperties()[THICKNESS];
@@ -76,35 +89,29 @@ double PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumN
 /*************************COMPUTE AXYSIMMETRIC RADIUS*******************************/
 /***********************************************************************************/
 
-template< std::size_t TNumNodes, bool TNormalVariation >
-double PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateRadius(const GeneralVariables& rVariables) const
+template< std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster >
+double PenaltyMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation, TNumNodesMaster>::CalculateRadius(const GeneralVariables& rVariables) const
 {
     KRATOS_TRY;
 
     double current_radius = 0.0;
-//     double reference_radius = 0.0;
 
-    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
-    {
+    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
         // Displacement from the reference to the current configuration
-//         const array_1d<double, 3 > DeltaDisplacement = this->GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);  
-	    const array_1d<double, 3 > current_position = this->GetGeometry()[i_node].Coordinates();
-// 	    const array_1d<double, 3 > ReferencePosition = current_position - DeltaDisplacement;
-	    
-	    current_radius   += current_position[0] * rVariables.NSlave[i_node];
-// 	    reference_radius += ReferencePosition[0] * rVariables.NSlave[i_node];
+        const array_1d<double, 3 >& r_current_position = this->GetParentGeometry()[i_node].Coordinates();
+
+        current_radius += r_current_position[0] * rVariables.NSlave[i_node];
     }
-    
+
     return current_radius;
-//     return reference_radius;
-        
+
     KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<2, false>;
-template class PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<2, true>;
+template class PenaltyMethodFrictionalMortarContactAxisymCondition<2, false>;
+template class PenaltyMethodFrictionalMortarContactAxisymCondition<2, true>;
 
 } // Namespace Kratos

@@ -45,7 +45,7 @@ UpdatedLagrangian::UpdatedLagrangian( IndexType NewId, GeometryType::Pointer pGe
 
 Element::Pointer UpdatedLagrangian::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<UpdatedLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<UpdatedLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -53,7 +53,7 @@ Element::Pointer UpdatedLagrangian::Create( IndexType NewId, NodesArrayType cons
 
 Element::Pointer UpdatedLagrangian::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared<UpdatedLagrangian>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<UpdatedLagrangian>( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -159,7 +159,7 @@ Element::Pointer UpdatedLagrangian::Clone (
 {
     KRATOS_TRY
 
-    UpdatedLagrangian::Pointer p_new_elem = Kratos::make_shared<UpdatedLagrangian>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    UpdatedLagrangian::Pointer p_new_elem = Kratos::make_intrusive<UpdatedLagrangian>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 

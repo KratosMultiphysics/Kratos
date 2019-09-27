@@ -38,7 +38,7 @@ Element::Pointer
 LaplacianMeshMovingElement::Create(IndexType NewId,
                                    NodesArrayType const &rThisNodes,
                                    PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<LaplacianMeshMovingElement>(
+  return Kratos::make_intrusive<LaplacianMeshMovingElement>(
       NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
@@ -47,7 +47,7 @@ LaplacianMeshMovingElement::Create(IndexType NewId,
 Element::Pointer
 LaplacianMeshMovingElement::Create(IndexType NewId, GeometryType::Pointer pGeom,
                                    PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<LaplacianMeshMovingElement>(NewId, pGeom,
+  return Kratos::make_intrusive<LaplacianMeshMovingElement>(NewId, pGeom,
                                                          pProperties);
 }
 

@@ -8,14 +8,11 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import run_cpp_unit_tests
 
 # Import the tests or test_classes to create the suits
-from SmallTests import NearestNeighborTest_1 as TNearestNeighborTest_1
-from SmallTests import NearestElementTest2D_1 as TNearestElementTest2D_1
-from SmallTests import MapperTests as TMapperTests
-from test_mapper_tests import MapperTests
-from test_mapper_flags_tests import MapperFlagsTests
+import test_nearest_neighbor_mapper
+import test_nearest_element_mapper
+
 from test_patch_test_mappers import TestPatchTestMappers
 
-KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
@@ -34,17 +31,27 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     # smallSuite will contain the following tests:
     smallSuite = suites['small']
-    smallSuite.addTest(TNearestNeighborTest_1('test_execution'))
-    smallSuite.addTest(TNearestElementTest2D_1('test_execution'))
-    smallSuite.addTest(TMapperTests('test_execution'))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperTests]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperFlagsTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPatchTestMappers]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.NearestNeighborBasicTestsLine]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.NearestNeighborBasicTestsLineSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.NearestNeighborBasicTestsSurface]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.NearestNeighborBasicTestsSurfaceSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.NearestNeighborBasicTestsVolume]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.NearestNeighborBasicTestsVolumeSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.NearestNeighborBladeMapping]))
+
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsLine]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsLineSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsSurface]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsSurfaceSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsVolume]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsVolumeSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBladeMapping]))
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
@@ -54,6 +61,7 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     print("Running cpp unit tests for MappingApplication...")
     run_cpp_unit_tests.run()
     print("Finished running cpp unit tests!")

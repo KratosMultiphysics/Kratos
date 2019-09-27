@@ -266,7 +266,7 @@ private:
             }
             else
             {
-                const WeakPointerVector<Condition>& rConditions = node_j.GetValue(NEIGHBOUR_CONDITIONS);
+                const GlobalPointersVector<Condition>& rConditions = node_j.GetValue(NEIGHBOUR_CONDITIONS);
 
                 // loop conditions
                 for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)
@@ -338,7 +338,7 @@ private:
                 const int& i = node_i.GetValue(MAPPING_ID);
 
                 // Get all neighbour conditions
-                const WeakPointerVector<Condition>& rConditions = node_i.GetValue(NEIGHBOUR_CONDITIONS);
+                const GlobalPointersVector<Condition>& rConditions = node_i.GetValue(NEIGHBOUR_CONDITIONS);
 
                 // loop conditions
                 for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)

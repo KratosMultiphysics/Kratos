@@ -9,41 +9,21 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ContactStructuralMechanicsApplication )
 
-## generate variables with the sources
-set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
+## ContactStructuralMechanics Core sources
+file(GLOB_RECURSE KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ## MAIN FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/contact_structural_mechanics_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/contact_structural_mechanics_application_variables.cpp
-
     ## UTILITIES
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mortar_explicit_contribution_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ## FRICTIONAL LAWS
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_frictional_laws/*.cpp
     ## PROCESSES
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/aalm_adapt_penalty_value_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/master_slave_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_fast_init_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_variables_calculation_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_dynamic_factor_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_spr_error_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/base_contact_search_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_search_wrapper_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/advanced_contact_search_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/simple_contact_search_process.cpp
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ## CONDITIONS
-    # Mortar condition
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/paired_condition.cpp # Paired condition
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mesh_tying_mortar_condition.cpp # Mesh tying
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_condition.cpp # Base class
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_mortar_contact_condition.cpp # Frictionless
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_components_mortar_contact_condition.cpp # Frictionless (components)
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_mortar_contact_axisym_condition.cpp # Frictionless axisym
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_frictionless_mortar_contact_condition.cpp # Frictionless (penalty)
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/penalty_frictionless_mortar_contact_axisym_condition.cpp # Frictionless (penalty) axisym
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictional_mortar_contact_condition.cpp # Frictional
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictional_mortar_contact_axisym_condition.cpp # Frictional axisym
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ## CONSTRAINTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_master_slave_constraints/*.cpp
     ## EXTERNAL LIBRARIES
 )
 
@@ -51,16 +31,8 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-## generate variables with the sources
-set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE
-    ## CUSTOM PYTHON
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/contact_structural_mechanics_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_linear_solvers_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/process_factory_utility.cpp
-)
+## ContactStructuralMechanics python interface sources
+file(GLOB_RECURSE KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosContactStructuralMechanicsCore SHARED ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosContactStructuralMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore)
@@ -85,9 +57,15 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-if(${INSTALL_TESTING_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+  PATTERN "*.git" EXCLUDE
+  PATTERN "*.c" EXCLUDE
+  PATTERN "*.h" EXCLUDE
+  PATTERN "*.cpp" EXCLUDE
+  PATTERN "*.hpp" EXCLUDE
+)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

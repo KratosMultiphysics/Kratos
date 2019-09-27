@@ -79,9 +79,9 @@ public:
     ///BaseLengths
     typedef ContactDomainUtilities::BaseLengths           BaseLengths;
 
-    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-    typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+    typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+    typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
 protected:
 
@@ -162,7 +162,7 @@ protected:
 public:
 
     /// Counted pointer of ThermalContactDomainCondition
-    KRATOS_CLASS_POINTER_DEFINITION(ThermalContactDomainCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ThermalContactDomainCondition);
 
     ///@}
     ///@name Life Cycle

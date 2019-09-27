@@ -113,9 +113,8 @@ class TrescaPlasticPotential
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
+        array_1d<double, VoigtSize> second_vector, third_vector;
 
-        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
@@ -125,9 +124,7 @@ class TrescaPlasticPotential
 
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
-        const double c1 = 0.0;
         double c2, c3;
-
         if (checker < 29.0) {
             c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
             c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
@@ -136,7 +133,7 @@ class TrescaPlasticPotential
             c3 = 0.0;
         }
 
-        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        noalias(rGFlux) = c2 * second_vector + c3 * third_vector;
     }
 
     /**

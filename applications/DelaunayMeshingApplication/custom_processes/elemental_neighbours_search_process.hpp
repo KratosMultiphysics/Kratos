@@ -55,13 +55,13 @@ class ElementalNeighboursSearchProcess
   typedef  ModelPart::NodesContainerType NodesContainerType;
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
 
-  typedef Kratos::weak_ptr<Node<3> > NodeWeakPtrType;
-  typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
-  typedef Kratos::weak_ptr<Condition> ConditionWeakPtrType;
+  typedef Node<3>::WeakPointer NodeWeakPtrType;
+  typedef Element::WeakPointer ElementWeakPtrType;
+  typedef Condition::WeakPointer ConditionWeakPtrType;
 
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
+  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
+  typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -227,10 +227,10 @@ class ElementalNeighboursSearchProcess
   ///@name Private Operators
   ///@{
   template<class TDataType> void  AddUniquePointer
-  (WeakPointerVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
+  (GlobalPointersVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
   {
-    typename WeakPointerVector< TDataType >::iterator i = v.begin();
-    typename WeakPointerVector< TDataType >::iterator endit = v.end();
+    typename GlobalPointersVector< TDataType >::iterator i = v.begin();
+    typename GlobalPointersVector< TDataType >::iterator endit = v.end();
     while ( i != endit && (i)->Id() != (candidate.lock())->Id())
     {
       i++;
@@ -256,13 +256,13 @@ class ElementalNeighboursSearchProcess
           {
             if(i_nelem->Id() != i_elem->Id())
             {
-              return *i_nelem.base();
+              return Element::WeakPointer(*i_nelem.base());
             }
           }
         }
       }
     }
-    return *i_elem.base();
+    return Element::WeakPointer(*i_elem.base());
   }
 
 
@@ -339,7 +339,7 @@ class ElementalNeighboursSearchProcess
     //*************  Erase old node neighbours  *************//
     for(auto& i_node : mrModelPart.Nodes())
     {
-      ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
       nElements.clear();
       nElements.reserve(mAverageElements);
 
@@ -349,7 +349,7 @@ class ElementalNeighboursSearchProcess
     //************* Erase old element neighbours ************//
     for(auto& i_elem : mrModelPart.Elements())
     {
-      ElementWeakPtrVectorType& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
       nElements.clear();
       nElements.resize(i_elem.GetGeometry().FacesNumber());
 
@@ -369,7 +369,7 @@ class ElementalNeighboursSearchProcess
     {
       std::cout<<"["<<i_node.Id()<<"]:"<<std::endl;
       std::cout<<"( ";
-      ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
       for(const auto& i_nelem : nElements)
       {
         std::cout<< i_nelem.Id()<<", ";
@@ -385,7 +385,7 @@ class ElementalNeighboursSearchProcess
     {
       std::cout<<"["<<i_elem.Id()<<"]:"<<std::endl;
       std::cout<<"( ";
-      ElementWeakPtrVectorType& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
+      auto& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
       for(auto& i_nelem : nElements)
       {
         std::cout<< i_nelem.Id()<<", ";
@@ -441,7 +441,7 @@ class ElementalNeighboursSearchProcess
 
         if( rGeometry.FacesNumber() == 3 ){
 
-          ElementWeakPtrVectorType& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
+          auto& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
           //vector of the 3 faces around the given face
           if(nElements.size() != 3 )
             nElements.resize(3);
@@ -476,7 +476,7 @@ class ElementalNeighboursSearchProcess
         }
         else if( rGeometry.FacesNumber() == 2 ){
 
-          ElementWeakPtrVectorType& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
+          auto& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
 
           //vector of the 2 faces around the given face
           if( nElements.size() != 2 )
@@ -522,7 +522,7 @@ class ElementalNeighboursSearchProcess
         if(rGeometry.FacesNumber() == 4){
 
           //vector of the 4 faces around the given element (3D tetrahedron)
-          ElementWeakPtrVectorType& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
+          auto& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
 
           if(nElements.size() != 4)
             nElements.resize(4);
@@ -562,7 +562,7 @@ class ElementalNeighboursSearchProcess
         else if(rGeometry.FacesNumber() == 3){
 
           //vector of the 3 faces around the given element (3D triangle)
-          ElementWeakPtrVectorType& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
+          auto& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
 
           if(nElements.size() != 3)
             nElements.resize(3);
@@ -690,7 +690,7 @@ class ElementalNeighboursSearchProcess
 
         ipoin=lhelp(1);   //select a point
 
-        ElementWeakPtrVectorType& nElements = rNodes[ipoin].GetValue(NEIGHBOUR_ELEMENTS);
+        auto& nElements = rNodes[ipoin].GetValue(NEIGHBOUR_ELEMENTS);
 
         for(auto& i_nelem : nElements)  //loop over elements surronding a point
         {

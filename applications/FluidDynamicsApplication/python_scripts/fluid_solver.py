@@ -1,25 +1,23 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 def CreateSolver(model, custom_settings):
     return FluidSolver(model, custom_settings)
 
 class FluidSolver(PythonSolver):
 
-    def __init__(self, model, custom_settings):
-        settings = self._ValidateSettings(custom_settings)
+    def __init__(self, model, settings):
 
         super(FluidSolver,self).__init__(model, settings)
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
 
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
@@ -53,8 +51,7 @@ class FluidSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Fluid solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Fluid solver DOFs added correctly.")
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
@@ -69,16 +66,14 @@ class FluidSolver(PythonSolver):
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.min_buffer_size)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model reading finished.")
 
     def ExportModelPart(self):
         ## Model part writing
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model export finished.")
+        KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model export finished.")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -106,10 +101,13 @@ class FluidSolver(PythonSolver):
     def SolveSolutionStep(self):
         if self._TimeBufferIsInitialized():
             is_converged = self.solver.SolveSolutionStep()
-            if not is_converged and self._IsPrintingRank():
+            if not is_converged:
                 msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
                 msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
                 KratosMultiphysics.Logger.PrintWarning("FluidSolver",msg)
+            return is_converged
+        else:
+            return True
 
     def FinalizeSolutionStep(self):
         if self._TimeBufferIsInitialized():
@@ -131,15 +129,6 @@ class FluidSolver(PythonSolver):
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input)
         return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
-
-    def _IsPrintingRank(self):
-        return self._is_printing_rank
-
-    def _ValidateSettings(self, settings):
-        raise Exception("Please define the _ValidateSettings() method in your derived solver class to validate the Kratos::Parameters configuration.")
-        # Suggested implementation:
-        #settings.ValidateAndAssignDefaults(KratosMultiphysics.Parameters(r'{}'))
-        #return settings
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
@@ -184,7 +173,7 @@ class FluidSolver(PythonSolver):
         else:
             element_num_nodes = 0
 
-        element_num_nodes = self.main_model_part.GetCommunicator().MaxAll(element_num_nodes)
+        element_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(element_num_nodes)
         return element_num_nodes
 
     def _GetConditionNumNodes(self):
@@ -196,7 +185,7 @@ class FluidSolver(PythonSolver):
         else:
             condition_num_nodes = 0
 
-        condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
+        condition_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes
 
     def _ExecuteCheckAndPrepare(self):
@@ -205,7 +194,6 @@ class FluidSolver(PythonSolver):
         prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
 
-        import check_and_prepare_model_process_fluid
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
     def _ComputeDeltaTime(self):

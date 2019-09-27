@@ -115,7 +115,7 @@ public:
 
         for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
         {
-            Node < 3 > ::DofType& rDof = *iii;
+            Node < 3 > ::DofType& rDof = **iii;
             Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
 
             // The variables are left as free for the internal node
@@ -227,7 +227,7 @@ public:
 	  {
 	      to_be_deleted++;
 
-          WeakPointerVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
+          GlobalPointersVector< Element >& rChildElements = it->GetValue(NEIGHBOUR_ELEMENTS);
           // We will use this flag to identify the element later, when operating on
           // SubModelParts. Note that fully refined elements already have this flag set
           // to true, but this is not the case for partially refined element, so we set it here.
@@ -314,12 +314,12 @@ public:
                   if( iElem->GetValue(SPLIT_ELEMENT) )
                   {
                       to_be_deleted++;
-                      WeakPointerVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
+                      GlobalPointersVector< Element >& rChildElements = iElem->GetValue(NEIGHBOUR_ELEMENTS);
 
                       for ( auto iChild = rChildElements.ptr_begin();
                               iChild != rChildElements.ptr_end(); iChild++ )
                       {
-                          NewElements.push_back( (*iChild).lock() );
+                          NewElements.push_back((*iChild)->shared_from_this());
                       }
                   }
               }
@@ -393,7 +393,7 @@ public:
 
                     if(create_condition==true)
                     {
-                        WeakPointerVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                        GlobalPointersVector< Condition >& rChildConditions = it->GetValue(NEIGHBOUR_CONDITIONS);
                         // We will use this flag to identify the condition later, when operating on
                         // SubModelParts.
                         it->SetValue(SPLIT_ELEMENT,true);
@@ -476,12 +476,12 @@ public:
                         if( iCond->GetValue(SPLIT_ELEMENT) )
                         {
                             to_be_deleted++;
-                            WeakPointerVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
+                            GlobalPointersVector< Condition >& rChildConditions = iCond->GetValue(NEIGHBOUR_CONDITIONS);
 
                             for ( auto iChild = rChildConditions.ptr_begin();
                                     iChild != rChildConditions.ptr_end(); iChild++ )
                             {
-                                NewConditions.push_back( (*iChild).lock() );
+                                NewConditions.push_back((*iChild)->shared_from_this());
                             }
                         }
                     }

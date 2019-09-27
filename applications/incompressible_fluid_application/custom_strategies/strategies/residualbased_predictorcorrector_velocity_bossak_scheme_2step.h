@@ -480,10 +480,10 @@ namespace Kratos
 			double extrapolate_flag = 1.0;	
 		         double ngh_ngh_water_pr = 0.0;
 			 double cnt = 0.0; //counter for water neighbours of a neighbor
-   			 WeakPointerVector< Node<3> >& neighbor_nds = base->GetValue(NEIGHBOUR_NODES);
+   			 GlobalPointersVector< Node<3> >& neighbor_nds = base->GetValue(NEIGHBOUR_NODES);
 
    			 //if there is a Water neighbor there is no need to extrapolate
-   			 for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
+   			 for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
 				   {
     					double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_WATER);
 					if(ngh_flag == 1.0)
@@ -494,11 +494,11 @@ namespace Kratos
   			 //check if the neighbors have a WATER neighbor or no
 		        if(extrapolate_flag == 1.0)
 			 {   
-		     	  for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
+		     	  for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
 	 		    {
-			     WeakPointerVector< Node<3> >& ngh_of_ngh = ngh_ind->GetValue(NEIGHBOUR_NODES);
+			     GlobalPointersVector< Node<3> >& ngh_of_ngh = ngh_ind->GetValue(NEIGHBOUR_NODES);
 
-				for(WeakPointerVector< Node<3> >::iterator ngh_ngh_it = ngh_of_ngh.begin(); ngh_ngh_it !=ngh_of_ngh.end(); ngh_ngh_it++)
+				for(GlobalPointersVector< Node<3> >::iterator ngh_ngh_it = ngh_of_ngh.begin(); ngh_ngh_it !=ngh_of_ngh.end(); ngh_ngh_it++)
 				  {
 						double water_flag = ngh_ngh_it->FastGetSolutionStepValue(IS_WATER);
 						if(water_flag == 1.0)

@@ -1,7 +1,7 @@
 {
             "mesh_id"                          : 0,
-            "filename"                         : "Voladizo",
-            "model_part_name"                  : "MainModelPart",
+            "filename"                         : "CorrectedVersion",
+            "model_part_name"                  : "Structure",
             "strategy"                         : "Hessian",
             "level_set_strategy_parameters"              :{
                 "scalar_variable"                  : "DISTANCE",
@@ -19,13 +19,13 @@
             "hessian_strategy_parameters"              :{
                 "metric_variable"                  : ["EQUIVALENT_NODAL_STRESS"],
                 "estimate_interpolation_error"     : false,
-                "interpolation_error"              : 0.001, 
+                "interpolation_error"              : 1.0e-6, 
                 "mesh_dependent_constant"          : 0.28125
             },
             "enforce_current"                  : false,
-            "initial_step"                     : 1,
-            "step_frequency"                   : 30,
-            "automatic_remesh"                 : true,
+            "initial_step"                     : 7,
+            "step_frequency"                   : 2,
+            "automatic_remesh"                 : false,
             "automatic_remesh_parameters"      :{
                 "automatic_remesh_type"            : "Ratio",
                 "min_size_ratio"                   : 0.01,
@@ -34,8 +34,9 @@
             },
             "initial_remeshing"                : false,
             "fix_contour_model_parts"          : [],
-            "minimal_size"                     : 0.01,
-            "maximal_size"                     : 1.0,
+			"fix_elements_model_parts"         : [],
+            "minimal_size"                     : 0.015,
+            "maximal_size"                     : 0.5,
             "force_min"                        : false,
             "force_max"                        : false,
             "advanced_parameters"                  :
@@ -57,6 +58,6 @@
             },
             "save_external_files"              : false,
             "max_number_of_searchs"            : 1000,
-            "debug_mode"                       : false,
+            "debug_mode"                       : "",
             "echo_level"                       : 0
         }

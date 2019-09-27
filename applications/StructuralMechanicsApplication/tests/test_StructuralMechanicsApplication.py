@@ -31,8 +31,10 @@ from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchT
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
 from test_patch_test_truss import TestTruss3D2N as TTestTruss3D2N
-from test_patch_test_cr_beam import TestCrBeam3D2N as TTestCrBeam3D2N
-from test_patch_test_cr_beam import TestCrBeam2D2N as TTestCrBeam2D2N
+from test_patch_test_cr_beam import DynamicPatchTestBeam3D2N as TDynamicPatchTestBeam3D2N
+from test_patch_test_cr_beam import StaticPatchTestBeam3D2N as TStaticPatchTestBeam3D2N
+from test_patch_test_cr_beam import DynamicPatchTestBeam2D2N as TDynamicPatchTestBeam2D2N
+from test_patch_test_cr_beam import StaticPatchTestBeam2D2N as TStaticPatchTestBeam2D2N
 from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
 from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
 from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTestFormfinding
@@ -51,11 +53,15 @@ from test_spring_damper_element import SpringDamperElementTests as TSpringDamper
 # Harmonic analysis tests
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
 from test_harmonic_analysis import HarmonicAnalysisTestsWithHDF5 as THarmonicAnalysisTestsWithHDF5
+# Dynamic eigenvalue test
+from test_dynamic_eigenvalue_analysis import TestDynamicEigenvalueAnalysis as TTestDynamicEigenvalueAnalysis
 # Dynamic basic tests
 from test_dynamic_schemes import FastDynamicSchemesTests as TFastDynamicSchemesTests
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 # Eigenvalues Postprocessing Process test
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
+# Eigensolver with Constraints test
+from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
 # local-axis visualization tests
 from test_local_axis_visualization import TestLocalAxisVisualization as TTestLocalAxisVisualization
 # Test adjoint elements
@@ -63,10 +69,10 @@ from test_cr_beam_adjoint_element_3d2n import TestCrBeamAdjointElement as TTestC
 from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElement3D3N as TTestShellThinAdjointElement3D3N
 from test_truss_adjoint_element_3d2n import TestTrussAdjointElement as TTestTrussAdjointElement
 from test_truss_adjoint_element_3d2n import TestTrussLinearAdjointElement as TTestTrussLinearAdjointElement
-from test_adjoint_sensitity_analysis_beam_3d2n_structure import TestAdjointSensitivityAnalysisBeamStructure as TTestAdjointSensitivityAnalysisBeamStructure
-from test_adjoint_sensitity_analysis_shell_3d3n_structure import TestAdjointSensitivityAnalysisShell3D3NStructure as TTestAdjointSensitivityAnalysisShell3D3NStructure
-from test_adjoint_sensitity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
-from test_adjoint_sensitity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
+from test_adjoint_sensitivity_analysis_beam_3d2n_structure import TestAdjointSensitivityAnalysisBeamStructure as TTestAdjointSensitivityAnalysisBeamStructure
+from test_adjoint_sensitivity_analysis_shell_3d3n_structure import TestAdjointSensitivityAnalysisShell3D3NStructure as TTestAdjointSensitivityAnalysisShell3D3NStructure
+from test_adjoint_sensitivity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
+from test_adjoint_sensitivity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -265,18 +271,23 @@ def AssembleTestSuites():
     # Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     # Beams
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam3D2N]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam2D2N])) # TODO should be in smallSuite but is too slow
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestBeam3D2N]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestBeam2D2N]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestBeam3D2N]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestBeam2D2N]))
     # Loading Conditions
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsLine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsSurface]))
+    # Dynamic Eigenvalue Analysis
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDynamicEigenvalueAnalysis]))
     # Nodal Damping
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
     # Dynamic basic tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TFastDynamicSchemesTests]))
     # Eigenvalues Postprocessing Process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
     # local-axis visualization tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
     # Adjoint Elements
@@ -457,16 +468,16 @@ if __name__ == '__main__':
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
-    try:
-        import KratosMultiphysics.mpi as KratosMPI
-        import KratosMultiphysics.MetisApplication as MetisApplication
-        import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"], stdout=subprocess.PIPE)
+    if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
+        p = subprocess.Popen(
+            ["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"],
+            stdout=subprocess.PIPE,
+            cwd=os.path.dirname(os.path.abspath(__file__)))
         p.wait()
         KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
-    except ImportError:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "mpi is not available!")
+    else:
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nSkipping mpi python tests due to missing dependencies")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())

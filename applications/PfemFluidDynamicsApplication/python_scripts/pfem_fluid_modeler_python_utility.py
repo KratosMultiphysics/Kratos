@@ -236,8 +236,8 @@ class ModelerUtility:
             if( parameters["Refine"] ):
                 removing_options.Set(ModelerUtilities.REMOVE_NODES, True)
                 removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_DISTANCE, True)
-                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_ERROR, True)
-                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_THRESHOLD, True)
+                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_ERROR, False)
+                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_THRESHOLD, False)
 
             self.RefiningParameters.SetRemovingOptions(removing_options)
 
@@ -284,14 +284,6 @@ class ModelerUtility:
 
             self.RefiningParameters.SetErrorVariable(globals()[parameters["ErrorVariable"]])
             self.RefiningParameters.SetReferenceError(parameters["CriticalError"])
-
-
-            # set transfer parameters
-            self.TransferParameters = TransferParameters()
-            cauchy_stress = "CAUCHY_STRESS_VECTOR"
-            deformation_gradient = "DEFORMATION_GRADIENT"
-            self.TransferParameters.SetVariable(globals()[cauchy_stress])
-            self.TransferParameters.SetVariable(globals()[deformation_gradient])
 
             # set meshing parameters to mesh modeler
             self.MeshingParameters = MeshingParameters()

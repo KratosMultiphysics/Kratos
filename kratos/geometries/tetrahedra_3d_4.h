@@ -33,25 +33,25 @@ namespace Kratos
  * @class Tetrahedra3D4
  * @ingroup KratosCore
  * @brief A four node tetrahedra geometry with linear shape functions
- * @details The node ordering corresponds with:       
+ * @details The node ordering corresponds with:
  *                             v
  *                            .
  *                          ,/
  *                         /
- *                      2                                                            
- *                    ,/|`\                                                       
- *                  ,/  |  `\                         
- *                ,/    '.   `\                      
- *              ,/       |     `\                 
- *            ,/         |       `\                
- *           0-----------'.--------1 --> u        
- *            `\.         |      ,/               
- *               `\.      |    ,/                     
- *                  `\.   '. ,/                      
- *                     `\. |/                                
- *                        `3                                   
+ *                      2
+ *                    ,/|`\
+ *                  ,/  |  `\
+ *                ,/    '.   `\
+ *              ,/       |     `\
+ *            ,/         |       `\
+ *           0-----------'.--------1 --> u
+ *            `\.         |      ,/
+ *               `\.      |    ,/
+ *                  `\.   '. ,/
+ *                     `\. |/
+ *                        `3
  *                           `\.
- *                              ` w       
+ *                              ` w
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -771,7 +771,7 @@ public:
 
     /** Calculates the min dihedral angle quality metric.
      * Calculates the min dihedral angle quality metric.
-     * The min dihedral angle is min angle between two faces of the element 
+     * The min dihedral angle is min angle between two faces of the element
      * In radians
      * @return [description]
      */
@@ -782,7 +782,7 @@ public:
       for (unsigned int i = 0; i < 6; i++)
       {
          if (dihedral_angles[i]<min_dihedral_angle)  min_dihedral_angle=dihedral_angles[i];
-      } 
+      }
       return min_dihedral_angle;
     }
 
@@ -835,12 +835,12 @@ public:
           rSolidAngles.resize(4, false);
 
       Vector dihedral_angles(6);
-      ComputeDihedralAngles(dihedral_angles); 
+      ComputeDihedralAngles(dihedral_angles);
 
-      rSolidAngles[0] = dihedral_angles[0] + dihedral_angles[1] + dihedral_angles[2]  - Globals::Pi;     
-      rSolidAngles[1] = dihedral_angles[0] + dihedral_angles[3] + dihedral_angles[4]  - Globals::Pi;     
-      rSolidAngles[2] = dihedral_angles[2] + dihedral_angles[4] + dihedral_angles[5]  - Globals::Pi;     
-      rSolidAngles[3] = dihedral_angles[1] + dihedral_angles[3] + dihedral_angles[5]  - Globals::Pi;     
+      rSolidAngles[0] = dihedral_angles[0] + dihedral_angles[1] + dihedral_angles[2]  - Globals::Pi;
+      rSolidAngles[1] = dihedral_angles[0] + dihedral_angles[3] + dihedral_angles[4]  - Globals::Pi;
+      rSolidAngles[2] = dihedral_angles[2] + dihedral_angles[4] + dihedral_angles[5]  - Globals::Pi;
+      rSolidAngles[3] = dihedral_angles[1] + dihedral_angles[3] + dihedral_angles[5]  - Globals::Pi;
     }
 
 
@@ -869,7 +869,7 @@ public:
       const int node1[]  = {1, 3, 2, 3, 2, 3};
       const int node2a[] = {2, 1, 1, 0, 0, 0};
       const int node2b[] = {3, 2, 3, 2, 3, 1};
-        
+
       array_1d<double,3> edge1,edge2a,edge2b,normal1,normal2;
 
      //now we only loop through the six edges to see which one has the lowest angle
@@ -1030,7 +1030,7 @@ public:
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) override
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -1051,30 +1051,35 @@ public:
         return false;
     }
 
-    /** This method gives you number of all edges of this
-    geometry.
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    ///@}
+    ///@name Edge
+    ///@{
+
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
     SizeType EdgesNumber() const override
     {
         return 6;
     }
 
-    SizeType FacesNumber() const override
-    {
-        return 4;
-    }
-
-    /** This method gives you all edges of this geometry.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
      */
-    GeometriesArrayType Edges(void) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -1100,7 +1105,31 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces(void) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 4;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -1652,11 +1681,12 @@ protected:
      */
 
 private:
+    ///@name Static Member Variables
+    ///@{
 
-    /**
-     * Static Member Variables
-     */
     static const GeometryData msGeometryData;
+
+    static const GeometryDimension msGeometryDimension;
 
 
     ///@}
@@ -1970,11 +2000,16 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Tetrahedra3D4<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_1,
+    &msGeometryDimension,
+    GeometryData::GI_GAUSS_1,
     Tetrahedra3D4<TPointType>::AllIntegrationPoints(),
     Tetrahedra3D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
+
+template<class TPointType>
+const GeometryDimension Tetrahedra3D4<TPointType>::msGeometryDimension(
+    3, 3, 3);
 
 }// namespace Kratos.
 

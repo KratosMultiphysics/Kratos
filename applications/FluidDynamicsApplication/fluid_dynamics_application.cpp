@@ -188,7 +188,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("QSVMS2D4N",mQSVMS2D4N);
     KRATOS_REGISTER_ELEMENT("QSVMS3D8N",mQSVMS3D8N);
     KRATOS_REGISTER_ELEMENT("TimeIntegratedQSVMS2D3N",mTimeIntegratedQSVMS2D3N);
-    KRATOS_REGISTER_ELEMENT("TimeIntegratedQSVMS3D4M",mTimeIntegratedQSVMS3D4N);
+    KRATOS_REGISTER_ELEMENT("TimeIntegratedQSVMS3D4N",mTimeIntegratedQSVMS3D4N);
     KRATOS_REGISTER_ELEMENT("DVMS2D3N",mDVMS2D3N);
     KRATOS_REGISTER_ELEMENT("DVMS3D4N",mDVMS3D4N);
     KRATOS_REGISTER_ELEMENT("FIC2D3N",mFIC2D3N);
@@ -196,7 +196,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("FIC3D4N",mFIC3D4N);
     KRATOS_REGISTER_ELEMENT("FIC3D8N",mFIC3D8N);
     KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC2D3N",mTimeIntegratedFIC2D3N);
-    KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC3D4M",mTimeIntegratedFIC3D4N);
+    KRATOS_REGISTER_ELEMENT("TimeIntegratedFIC3D4N",mTimeIntegratedFIC3D4N);
     KRATOS_REGISTER_ELEMENT("SymbolicNavierStokes2D3N",mSymbolicNavierStokes2D3N);
     KRATOS_REGISTER_ELEMENT("SymbolicNavierStokes3D4N",mSymbolicNavierStokes3D4N);
     KRATOS_REGISTER_ELEMENT("EmbeddedSymbolicNavierStokes2D3N",mEmbeddedSymbolicNavierStokes2D3N);
@@ -236,6 +236,8 @@ void KratosFluidDynamicsApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS2D", mHerschelBulkleyVMS2D);
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS3D", mHerschelBulkleyVMS3D);
+    KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS2D3N", mHerschelBulkleyVMS2D); //this is the name the element should have according to the naming convention
+    KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS3D4N", mHerschelBulkleyVMS3D); //this is the name the element should have according to the naming convention
 
     KRATOS_REGISTER_ELEMENT("Stokes3D4N", mStokes3D);
     KRATOS_REGISTER_ELEMENT("StokesTwoFluid3D4N", mStokes3DTwoFluid);

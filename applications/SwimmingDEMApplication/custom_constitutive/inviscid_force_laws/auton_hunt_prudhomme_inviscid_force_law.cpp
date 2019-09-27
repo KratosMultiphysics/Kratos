@@ -31,7 +31,7 @@ namespace Kratos {
     }
 
     double AutonHuntPrudhommeInviscidForceLaw::GetVirtualMassCoefficient(Geometry<Node<3> >& r_geometry,
-                                                                         const array_1d<double, 3>& slip_acc)
+                                                                         const array_1d<double, 3>& minus_slip_acc)
     {
         return 0.5;
     }
@@ -45,17 +45,17 @@ namespace Kratos {
         const array_1d<double, 3>& fluid_acc = r_geometry[0].FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
         const double radius = r_geometry[0].FastGetSolutionStepValue(RADIUS);
 
-        array_1d<double, 3> slip_acc = fluid_acc; // the particle acceleration is assumed to be treated implicitly through the added_mass
+        array_1d<double, 3> minus_slip_acc = fluid_acc; // the particle acceleration is assumed to be treated implicitly through the added_mass
         const double fluid_mass = displaced_volume * fluid_density;
-        const double virtual_mass_coeff = this->GetVirtualMassCoefficient(r_geometry, slip_acc);
+        const double virtual_mass_coeff = this->GetVirtualMassCoefficient(r_geometry, minus_slip_acc);
         mLastVirtualMassAddedMass = virtual_mass_coeff * fluid_mass;
 
         if (mDoApplyFaxenCorrections) {
             const array_1d<double, 3>& fluid_vel_laplacian_rate = r_geometry[0].FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
-            noalias(slip_acc) -= 0.1 * radius * radius * fluid_vel_laplacian_rate; // add Faxen term
+            noalias(minus_slip_acc) -= 0.1 * radius * radius * fluid_vel_laplacian_rate; // add Faxen term
         }
 
-        noalias(virtual_mass_plus_undisturbed_flow_force) = fluid_mass * (virtual_mass_coeff * slip_acc + fluid_acc);
+        noalias(virtual_mass_plus_undisturbed_flow_force) = fluid_mass * (virtual_mass_coeff * minus_slip_acc + fluid_acc);
     }
 
 } // namespace Kratos

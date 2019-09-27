@@ -33,14 +33,14 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A nine node 2D quadrilateral geometry with quadratic shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
- *      3-----6-----2 
- *      |           |  
- *      |           |          
- *      7     8     5         
- *      |           |    
- *      |           |  
- *      0-----4-----1 
+ * The node ordering corresponds with:
+ *      3-----6-----2
+ *      |           |
+ *      |           |
+ *      7     8     5
+ *      |           |
+ *      |           |
+ *      0-----4-----1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -432,7 +432,7 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
@@ -440,10 +440,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -458,33 +458,31 @@ public:
         return false;
     }
 
-    /** This method gives you number of all edges of this
-    geometry. This method will gives you number of all the edges
-    with one dimension less than this geometry. for example a
-    triangle would return three or a tetrahedral would return
-    four but won't return nine related to its six edge lines.
-
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
     SizeType EdgesNumber() const override
     {
         return 4;
     }
 
-    /** This method gives you all edges of this geometry. This
-     * method will gives you all the edges with one dimension less
-     * than this geometry. for example a triangle would return
-     * three lines as its edges or a tetrahedral would return four
-     * triangle as its edges but won't return its six edge
-     * lines by this method.
-     *
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
      * @return GeometriesArrayType containes this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
-    GeometriesArrayType Edges( void ) override
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 4 ), this->pGetPoint( 1 ) ) );
@@ -546,7 +544,7 @@ public:
 
         return 0;
     }
-    
+
         /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
@@ -1044,6 +1042,8 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Serialization
     ///@{
@@ -1261,16 +1261,12 @@ private:
  * Input and output
  */
 
-/**
- * input stream function
- */
+/// input stream function
 template< class TPointType > inline std::istream& operator >> (
     std::istream& rIStream,
     Quadrilateral2D9<TPointType>& rThis );
 
-/**
- * output stream function
- */
+/// output stream function
 template< class TPointType > inline std::ostream& operator << (
     std::ostream& rOStream,
     const Quadrilateral2D9<TPointType>& rThis )
@@ -1283,13 +1279,17 @@ template< class TPointType > inline std::ostream& operator << (
 
 template<class TPointType>
 const GeometryData Quadrilateral2D9<TPointType>::msGeometryData(
-    2, 2, 2,
+    &msGeometryDimension,
     GeometryData::GI_GAUSS_3,
     Quadrilateral2D9<TPointType>::AllIntegrationPoints(),
     Quadrilateral2D9<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
+template<class TPointType>
+const GeometryDimension Quadrilateral2D9<TPointType>::msGeometryDimension(
+    2, 2, 2);
+
 }  // namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_2D_9_H_INCLUDED  defined 
+#endif // KRATOS_QUADRILATERAL_2D_9_H_INCLUDED  defined

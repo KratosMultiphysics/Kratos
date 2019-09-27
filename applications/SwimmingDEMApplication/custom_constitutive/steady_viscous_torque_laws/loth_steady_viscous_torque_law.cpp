@@ -28,14 +28,14 @@ namespace Kratos {
                                                   double particle_radius,
                                                   double fluid_density,
                                                   double fluid_kinematic_viscosity,
-                                                  array_1d<double, 3>& slip_velocity,
+                                                  array_1d<double, 3>& minus_slip_velocity,
                                                   array_1d<double, 3>& steady_viscous_torque,
                                                   const ProcessInfo& r_current_process_info)
     {
         Node<3>& node = r_geometry[0];
-        const array_1d<double, 3> slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
+        const array_1d<double, 3> minus_slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
                                               - node.FastGetSolutionStepValue(ANGULAR_VELOCITY));
-        const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
+        const double norm_of_slip_rot = SWIMMING_MODULUS_3(minus_slip_rot);
 
         if (norm_of_slip_rot){
             // First compute Rubinow and Keller's torque
@@ -44,12 +44,12 @@ namespace Kratos {
                                                     particle_radius,
                                                     fluid_density,
                                                     fluid_kinematic_viscosity,
-                                                    slip_velocity,
+                                                    minus_slip_velocity,
                                                     steady_viscous_torque,
                                                     r_current_process_info);
 
             // Then apply Loth's correction
-            const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
+            const double norm_of_slip_rot = SWIMMING_MODULUS_3(minus_slip_rot);
             const double rot_reynolds = this->ComputeParticleRotationReynoldsNumber(norm_of_slip_rot,
                                                                                     particle_radius,
                                                                                     fluid_kinematic_viscosity) / norm_of_slip_rot;

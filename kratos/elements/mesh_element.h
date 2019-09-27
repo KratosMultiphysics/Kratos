@@ -73,7 +73,7 @@ public:
     typedef BaseType::NodesArrayType NodesArrayType;
 
     /// Counted pointer of MeshElement
-    KRATOS_CLASS_POINTER_DEFINITION( MeshElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MeshElement);
 
     ///@}
 

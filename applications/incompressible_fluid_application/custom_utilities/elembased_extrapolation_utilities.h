@@ -120,8 +120,8 @@ public:
 // 					//Layer(0) is constructed with the fluid nodes closest to the free surface BUT THEY ARE NOT THE MOST EXTERNAL LAYER CALUCLATED.
 // 					if( inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are only the ones inside the fluid domain
 // 					{
-// 						WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-// 						for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+// 						GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+// 						for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
 // 						{
 // 							if(i->FastGetSolutionStepValue(DISTANCE) > 0.0) //add the node as free surface if one of its neighb is outside
 // 							{
@@ -138,8 +138,8 @@ public:
             // AUX_INDEX = 1 indicates a calculated node!!!
             if( inode->FastGetSolutionStepValue(AUX_INDEX) != 0.0) //candidates are only the ones inside the fluid domain
             {
-                WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     if(i->FastGetSolutionStepValue(AUX_INDEX) == 0.0) //add the node as free surface if one of its neighb is outside
                     {
@@ -163,8 +163,8 @@ public:
         {
             for( PointIterator iii=(layers[il]).begin(); iii!=(layers[il]).end(); iii++)
             {
-                WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for(WeakPointerVector< Node<3> >::iterator jjj=neighb_nodes.begin(); jjj !=neighb_nodes.end(); jjj++) //destination = origin1 + value * Minv*origin
+                GlobalPointersVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for(GlobalPointersVector< Node<3> >::iterator jjj=neighb_nodes.begin(); jjj !=neighb_nodes.end(); jjj++) //destination = origin1 + value * Minv*origin
                 {
                     if( jjj->FastGetSolutionStepValue(DISTANCE) > 0 &&
                             jjj->GetValue(IS_VISITED) == 0.0 )
@@ -192,8 +192,8 @@ public:
                 noalias(aux) = ZeroVector(3);
                 double avg_number = 0.0;
 
-                WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for(WeakPointerVector< Node<3> >::iterator i=neighb_nodes.begin(); 	i !=neighb_nodes.end(); i++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for(GlobalPointersVector< Node<3> >::iterator i=neighb_nodes.begin(); 	i !=neighb_nodes.end(); i++)
                 {
                     //if the neighbour is a node of the previous layer
                     if(i->GetValue(IS_VISITED) < il+1 && i->GetValue(IS_VISITED) > 0.0)
@@ -277,8 +277,8 @@ public:
 // // 		  KRATOS_WATCH("layer 1**************final");
 // // 		  KRATOS_WATCH(iii->Id());
 //
-//                     WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-//                     for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+//                     GlobalPointersVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+//                     for (GlobalPointersVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
 //                     {
 //                         if (i->GetValue(IS_VISITED) < 2 && i->GetValue(IS_VISITED) > 0) {
 // // KRATOS_WATCH("layer 0**************final");

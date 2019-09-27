@@ -1,4 +1,6 @@
-from KratosMultiphysics import *
+import KratosMultiphysics as Kratos
+from KratosMultiphysics import Vector
+from swimming_DEM_analysis import Say
 import math
 import numpy as np
 import h5py
@@ -57,8 +59,8 @@ class Rotator:
 
             node.X, node.Y, node.Z = P[0], P[1], P[2]
 
-            node.SetSolutionStepValue(DISPLACEMENT, Vector(list(Displacement)))
-            node.SetSolutionStepValue(MESH_VELOCITY, Vector(list(Velocity)))
+            node.SetSolutionStepValue(Kratos.DISPLACEMENT, Vector(list(Displacement)))
+            node.SetSolutionStepValue(Kratos.MESH_VELOCITY, Vector(list(Velocity)))
 
         Say('Mesh movement finshed.')
 

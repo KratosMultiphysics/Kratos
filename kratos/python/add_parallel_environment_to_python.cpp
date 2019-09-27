@@ -26,14 +26,17 @@ void AddParallelEnvironmentToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    py::class_<ParallelEnvironment>(m,"ParallelEnvironment")
+    py::class_<ParallelEnvironment, std::unique_ptr<ParallelEnvironment, py::nodelete>>(m,"ParallelEnvironment")
     .def_property_readonly("MakeDefault", [](const ParallelEnvironment& self) { return ParallelEnvironment::MakeDefault; } )
     .def_property_readonly("DoNotMakeDefault", [](const ParallelEnvironment& self) { return ParallelEnvironment::DoNotMakeDefault; } )
     .def_static("RegisterDataCommunicator", &ParallelEnvironment::RegisterDataCommunicator)
     .def_static("GetDataCommunicator",&ParallelEnvironment::GetDataCommunicator, py::return_value_policy::reference)
     .def_static("GetDefaultDataCommunicator",&ParallelEnvironment::GetDefaultDataCommunicator, py::return_value_policy::reference)
     .def_static("SetDefaultDataCommunicator",&ParallelEnvironment::SetDefaultDataCommunicator)
+    .def_static("GetDefaultRank",&ParallelEnvironment::GetDefaultRank)
+    .def_static("GetDefaultSize",&ParallelEnvironment::GetDefaultSize)
     .def_static("HasDataCommunicator",&ParallelEnvironment::HasDataCommunicator)
+    .def_static("GetDefaultDataCommunicatorName",&ParallelEnvironment::GetDefaultDataCommunicatorName)
     .def_static("Info", []() {
         std::stringstream ss;
         ParallelEnvironment::PrintInfo(ss);

@@ -7,7 +7,7 @@ import tracemalloc
 import objgraph
 objgraph.show_growth(limit=10)
 tracemalloc.start(10)
-from KratosMultiphysics import *
+from KratosMultiphysics import Parameters
 import KratosSwimmingDEM as script
 # import t_junction_analysis
 import pre_calculated_fluid_analysis
@@ -15,8 +15,8 @@ import pre_calculated_fluid_analysis
 varying_parameters = dict()
 combinations_that_failed = []
 errors = []
-varying_parameters["fluid_already_calculated"] = True
-varying_parameters["do_search_neighbours"] = False
+varying_parameters["custom_fluid"]["fluid_already_calculated"] = True
+varying_parameters["custom_dem"]["do_search_neighbours"] = False
 # varying_parameters["full_particle_history_watcher"] = 'ParticlesHistoryWatcher'
 varying_parameters["stationary_problem_option"] = True
 varying_parameters["store_full_gradient_option"] = True

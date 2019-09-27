@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/line_load_condition.h"
 
 namespace Kratos
 {
@@ -45,14 +45,14 @@ namespace Kratos
  */
 
 class AxisymLineLoadCondition2D
-    : public LineLoadCondition2D
+    : public LineLoadCondition<2>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Counted pointer of AxisymLineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymLineLoadCondition2D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymLineLoadCondition2D);
 
     ///@}
     ///@name Life Cycle
@@ -157,7 +157,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    AxisymLineLoadCondition2D() : LineLoadCondition2D()
+    AxisymLineLoadCondition2D() : LineLoadCondition<2>()
     {
     }
 

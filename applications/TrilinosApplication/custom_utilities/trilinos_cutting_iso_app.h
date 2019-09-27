@@ -14,7 +14,7 @@
 
 /* Project includes */
 #include "utilities/geometry_utilities.h"
-#include "custom_utilities/parallel_fill_communicator.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
 #include "Epetra_Vector.h"
 #include "Epetra_Map.h"

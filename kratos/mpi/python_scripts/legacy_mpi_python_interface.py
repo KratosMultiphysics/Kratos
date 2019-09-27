@@ -4,13 +4,39 @@ import KratosMultiphysics
 
 class LegacyMPICommInterface(object):
 
-    def __init__(self, comm):
-        self.comm = comm
+    def __init__(self,registered_comm_name):
+        # Note: the communicator should be initialized lazily, since the mpi
+        # legacy module may be imported before (or even without) ever
+        # initializing MPI and the ParallelEnvironment, which holds
+        # all avaliable (registered) DataCommunicator instances.
+        self.comm = None
+        self.comm_name = registered_comm_name
 
     def barrier(self):
         self.GetWithDeprecationWarning("barrier").Barrier()
 
+    @property
+    def rank(self):
+        return self.GetWithDeprecationWarning("rank").Rank()
+
+    @property
+    def size(self):
+        return self.GetWithDeprecationWarning("size").Size()
+
     def GetWithDeprecationWarning(self, func_name):
+        if not self.comm:
+            if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator(self.comm_name):
+                self.comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator(self.comm_name)
+            else:
+                msg = [
+                    "DataCommunicator \"",
+                    self.comm_name,
+                    "\" is not registered in ParallelEnvironment.\n",
+                    "If the missing communicator is \"World\", ",
+                    "the most likely cause of this error is trying to run a ",
+                    "MPI case without passing the --using-mpi command line flag.\n"
+                ]
+                raise Exception("".join(msg))
         if self.comm.Rank() == 0:
             msg = [
                 "Calling the legacy MPI Python interface function ",
@@ -22,17 +48,22 @@ class LegacyMPICommInterface(object):
                 "  KratosMultiphysics.DataCommunicator.GetDefault()\n",
                 "See the tests in kratos/mpi/tests/test_mpi_data_communicator_python.py for examples of usage."
             ]
-            KratosMultiphysics.Logger.PrintWarning("MPI Interface","".join(msg))
+            KratosMultiphysics.Logger.PrintWarning("MPI Interface","".join(msg),data_communicator=self.comm)
         return self.comm
 
 
 class LegacyMPIPythonInterface(object):
 
     def __init__(self):
-        self.__world = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
-        self.world = LegacyMPICommInterface(self.__world)
-        self.rank = self.__world.Rank()
-        self.size = self.__world.Size()
+        self.world = LegacyMPICommInterface("World")
+
+    @property
+    def rank(self):
+        return self.world.GetWithDeprecationWarning("rank").Rank()
+
+    @property
+    def size(self):
+        return self.world.GetWithDeprecationWarning("size").Size()
 
     def broadcast_double(self, comm_wrapper, value, source_rank):
         return comm_wrapper.GetWithDeprecationWarning("broadcast_double").Broadcast(value, source_rank)
@@ -100,14 +131,14 @@ class LegacyMPIPythonInterface(object):
 
     def gatherv_double(self, comm_wrapper, local_values, gather_rank):
         output = comm_wrapper.GetWithDeprecationWarning("gatherv_double").GathervDoubles(local_values, gather_rank)
-        if self.__world.Rank() == gather_rank:
+        if comm_wrapper.comm.Rank() == gather_rank:
             return output
         else:
             return []
 
     def gatherv_int(self, comm_wrapper, local_values, gather_rank):
         output = comm_wrapper.GetWithDeprecationWarning("gatherv_int").GathervInts(local_values, gather_rank)
-        if self.__world.Rank() == gather_rank:
+        if comm_wrapper.comm.Rank() == gather_rank:
             return output
         else:
             return []
