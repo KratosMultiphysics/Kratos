@@ -87,6 +87,8 @@ public:
 
     void UpdatePrimitiveVariables(ModelPart& rModelPart);
 
+    void ComputeAccelerations(ModelPart& rModelPart);
+
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
 
     void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);

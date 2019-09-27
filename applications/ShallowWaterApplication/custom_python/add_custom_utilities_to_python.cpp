@@ -58,6 +58,7 @@ namespace Python
         .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
         .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
         .def("UpdatePrimitiveVariables", &ShallowWaterUtilities::UpdatePrimitiveVariables)
+        .def("ComputeAccelerations", &ShallowWaterUtilities::ComputeAccelerations)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
         .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
