@@ -337,6 +337,9 @@ public:
     * @param DerivativeOrderIndex defines the wanted order of the derivative
     * @param DerivativeOrderRowIndex within each derivative the entries can
     *        be accessed differently.
+    *        e.g. DerivativeOrderIndex = 1,
+    *                   DerivativeOrderRowIndex = 0 provides dN_de
+    *                   DerivativeOrderRowIndex = 1 provides dN_du
     * @return the shape function or derivative value related to the input parameters.
     */
     double& ShapeFunctionDerivativeValue(
