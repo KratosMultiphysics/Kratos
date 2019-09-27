@@ -179,7 +179,7 @@ void SWE<TNumNodes, TFramework>::GetValueOnIntegrationPoints(
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM || rVariable == MIU)
+    if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM)
     {
         for (size_t PointNumber = 0; PointNumber < 1; PointNumber++)
             rValues[PointNumber] = double(this->GetValue(rVariable));
@@ -211,8 +211,6 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.manning2 = std::pow(rVariables.manning2, 2);
 
     rVariables.porosity *= rVariables.lumping_factor;
-    if (rVariables.porosity < 1.0)
-        rVariables.porosity = 0.0;
 }
 
 
@@ -297,7 +295,7 @@ void SWE<TNumNodes, TFramework>::CalculateElementValues(
     rVariables.surface_grad *= rVariables.height_units;
     rVariables.projected_momentum *= rVariables.lumping_factor;
 
-    rVariables.wave_vel_2 = rVariables.gravity * std::abs(rVariables.height);
+    rVariables.wave_vel_2 = rVariables.gravity * rVariables.height;
 }
 
 
@@ -444,7 +442,7 @@ void SWE<TNumNodes, TFramework>::AddFrictionTerms(
     ElementVariables& rVariables)
 {
     const double abs_momentum = norm_2(rVariables.projected_momentum);
-    const double height73 = std::pow(std::abs(rVariables.height), 2.333333333333333) + rVariables.Epsilon;
+    const double height73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.Epsilon;
     LocalMatrixType vector_mass_matrix = prod(trans(rVariables.N_q), rVariables.N_q);
     rLeftHandSideMatrix += rVariables.gravity * rVariables.manning2 * abs_momentum / height73 * vector_mass_matrix;
 }
