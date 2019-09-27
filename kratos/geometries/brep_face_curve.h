@@ -214,8 +214,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
-        rResult = rPoint;
-        return mCurveInterval.IsInside(rResult[0]);
+        KRATOS_ERROR << "IsInside is not yet implemented within the BrepFaceCurve";
     }
 
     ///@name Shape Function
