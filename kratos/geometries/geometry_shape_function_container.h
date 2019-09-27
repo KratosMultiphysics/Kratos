@@ -82,7 +82,7 @@ public:
     /// Higher order derivatives
     typedef DenseVector<Matrix>
         ShapeFunctionsDerivativesType;
-    typedef DenseVector<DenseVector<ShapeFunctionsDerivativesType> >
+    typedef DenseVector<ShapeFunctionsDerivativesType >
         ShapeFunctionsDerivativesIntegrationPointArrayType;
     typedef std::array<ShapeFunctionsDerivativesIntegrationPointArrayType, IntegrationMethod::NumberOfIntegrationMethods>
         ShapeFunctionsDerivativesContainerType;
@@ -318,7 +318,7 @@ public:
     {
         if (DerivativeOrderIndex > 1)
         {
-            return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 1];
+            return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2];
         }
         if (DerivativeOrderIndex == 1)
         {
@@ -326,9 +326,9 @@ public:
         }
 
         /* Shape function values are stored within a Matrix, however, only one row
-          should be provided here. Thus, currently it is not possible to provide the 
-          needed source to this object.*/
-        KRATOS_ERROR_IF(DerivativeOrdeIndex == 0)
+           should be provided here. Thus, currently it is not possible to provide the 
+           needed source to this object.*/
+        KRATOS_ERROR_IF(DerivativeOrderIndex == 0)
             << "Shape functions cannot be accessed through ShapeFunctionDerivatives()" << std::endl;
     }
 
