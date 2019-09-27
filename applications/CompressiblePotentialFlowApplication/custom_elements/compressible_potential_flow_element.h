@@ -269,27 +269,6 @@ private:
 
     void ComputeElementInternalEnergy();
 
-    void GetPotentialOnWakeElement(Vector& split_element_values,
-                                   const array_1d<double, NumNodes>& distances) const;
-
-    void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes>& rUpperPotentials,
-                                        const array_1d<double, NumNodes>& distances) const;
-
-    void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& rLowerPotentials,
-                                        const array_1d<double, NumNodes>& distances) const;
-
-    void ComputeVelocityUpper(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityLower(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityNormalElement(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityUpperWakeElement(array_1d<double, Dim>& velocity) const;
-
-    void ComputeVelocityLowerWakeElement(array_1d<double, Dim>& velocity) const;
-
-    double ComputePressureCoefficient(const ProcessInfo& rCurrentProcessInfo) const;
-
     ///@}
     ///@name Private Operations
     ///@{
