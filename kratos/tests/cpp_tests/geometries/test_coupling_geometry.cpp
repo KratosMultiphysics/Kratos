@@ -20,6 +20,7 @@
 #include "testing/testing.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
 #include "geometries/coupling_geometry.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
@@ -36,6 +37,14 @@ namespace Kratos {
          */
         Triangle2D3<Point>::Pointer GeneratePointTriangle() {
             return Kratos::make_shared<Triangle2D3<Point>>(
+                Kratos::make_unique<Point>(0.0, 0.0, 0.0),
+                Kratos::make_unique<Point>(1.0, 0.0, 0.0),
+                Kratos::make_unique<Point>(0.0, 1.0, 0.0)
+                );
+        }
+
+        Triangle3D3<Point>::Pointer GeneratePointTriangle3D() {
+            return Kratos::make_shared<Triangle3D3<Point>>(
                 Kratos::make_unique<Point>(0.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(1.0, 0.0, 0.0),
                 Kratos::make_unique<Point>(0.0, 1.0, 0.0)
@@ -60,13 +69,11 @@ namespace Kratos {
                 );
         }
 
-        /// Tests
-
         /**
          * Initial test for checking direct use
          * Test 1
          */
-        KRATOS_TEST_CASE_IN_SUITE(CouplingNode, KratosCoreGeometriesFastSuite) {
+        KRATOS_TEST_CASE_IN_SUITE(CouplingGeometryNode, KratosCoreGeometriesFastSuite) {
             auto p_triangle_master = GenerateNodeTriangle();
             auto p_triangle_slave = GenerateNodeTriangle2();
             auto p_triangle_second_slave = GenerateNodeTriangle();
@@ -108,7 +115,7 @@ namespace Kratos {
                 KRATOS_CHECK_LESS(norm_2(r_geometry_1[i].Coordinates() - r_geometry_slave[i].Coordinates()), 1.0e-6);
             }
         }
-
+      
         /**
          * Test for checking using with elements
          * Test 2
@@ -162,7 +169,7 @@ namespace Kratos {
          * Test for checking using with points
          * Test 3
          */
-        KRATOS_TEST_CASE_IN_SUITE(CouplingPoint, KratosCoreGeometriesFastSuite) {
+        KRATOS_TEST_CASE_IN_SUITE(CouplingGeometryPoint, KratosCoreGeometriesFastSuite) {
             auto p_triangle_master = GeneratePointTriangle();
             auto p_triangle_slave = GeneratePointTriangle();
 
@@ -170,6 +177,30 @@ namespace Kratos {
                 new CouplingGeometry<Point>(p_triangle_master, p_triangle_slave));
 
             KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 2);
+        }
+
+        /**
+         * Test to exchange the master of the coupling geometry
+         * Test 4
+         */
+        KRATOS_TEST_CASE_IN_SUITE(CouplingGeometryChangeMaster, KratosCoreGeometriesFastSuite) {
+            auto p_triangle_master = GeneratePointTriangle();
+            auto p_triangle_slave = GeneratePointTriangle();
+
+            auto p_triangle_master_2 = GeneratePointTriangle3D();
+
+            auto p_coupling_geometry = CouplingGeometry<Point>::Pointer(
+                new CouplingGeometry<Point>(p_triangle_master, p_triangle_slave));
+
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->Dimension(), 2);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 2);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
+
+            p_coupling_geometry->SetGeometryPart(CouplingGeometry<Point>::Master, p_triangle_master_2);
+
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->Dimension(), 2);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 3);
+            KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
         }
     } // namespace Testing.
 } // namespace Kratos.

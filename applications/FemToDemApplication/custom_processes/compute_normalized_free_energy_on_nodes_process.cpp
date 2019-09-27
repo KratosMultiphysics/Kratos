@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //
@@ -42,7 +42,7 @@ ComputeNormalizedFreeEnergyOnNodesProcess::ComputeNormalizedFreeEnergyOnNodesPro
 
 void ComputeNormalizedFreeEnergyOnNodesProcess::Execute()
 {
-	std::size_t max_id;
+    std::size_t max_id;
     this->ObtainMaximumNodeId(max_id);
     NodeNormalizedFreeEnergy *NodeNormalizedFreeEnergyVector = new NodeNormalizedFreeEnergy[max_id];
     this->NormalizedFreeEnergyExtrapolation(NodeNormalizedFreeEnergyVector);

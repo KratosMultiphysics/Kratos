@@ -16,16 +16,42 @@
 // External includes
 
 // Project includes
+#include "includes/key_hash.h"
 #include "custom_utilities/meshing_utilities.h"
 
 namespace Kratos
 {
 namespace MeshingUtilities
 {
-void EnsureModelPartOwnsProperties(ModelPart& rModelPart)
+void RecursiveEnsureModelPartOwnsProperties(
+    ModelPart& rModelPart,
+    const bool RemovePreviousProperties
+    )
 {
+    // First we do in this model part
+    EnsureModelPartOwnsProperties(rModelPart, RemovePreviousProperties);
+
+    // Now we do in submodelparts
+    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+        RecursiveEnsureModelPartOwnsProperties(r_sub_model_part, RemovePreviousProperties);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void EnsureModelPartOwnsProperties(
+    ModelPart& rModelPart,
+    const bool RemovePreviousProperties
+    )
+{
+    // First we clear the properties if we want so
+    if (RemovePreviousProperties) {
+        rModelPart.GetMesh(0).pProperties()->clear();
+    }
+
     // The list of properties
-    std::unordered_set<Properties::Pointer> list_of_properties;
+    std::unordered_set<Properties::Pointer, IndexedObjecPointertHasher<Properties::Pointer>, IndexedObjectPointerComparator<Properties::Pointer>> list_of_properties;
 
     // Iterating over the elements
     auto& r_elements_array = rModelPart.Elements();
@@ -40,7 +66,7 @@ void EnsureModelPartOwnsProperties(ModelPart& rModelPart)
     #pragma omp parallel
     {
         // The list of properties
-        std::unordered_set<Properties::Pointer> buffer_list_of_properties;
+        std::unordered_set<Properties::Pointer, IndexedObjecPointertHasher<Properties::Pointer>, IndexedObjectPointerComparator<Properties::Pointer>> buffer_list_of_properties;
 
         #pragma omp for schedule(guided, 512) nowait
         for (int i = 0; i < number_of_elements; ++i) {
