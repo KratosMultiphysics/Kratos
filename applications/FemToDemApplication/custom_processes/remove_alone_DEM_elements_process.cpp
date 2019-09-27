@@ -43,10 +43,23 @@ void RemoveAloneDEMElementsProcess::Execute()
         auto it_elem = it_elem_begin + i;
         auto& r_geometry = it_elem->GetGeometry();
         for (int i_node = 0; i_node < r_geometry.PointsNumber(); i_node++) {
-
+            auto& r_node = r_geometry[i];
+            int& r_number_of_active_elements = r_node->GetValue(NUMBER_OF_ACTIVE_ELEMENTS);
+            r_number_of_active_elements++;
         }
     }
 
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+        auto it_node = it_node_begin + i;
+        const int& r_number_of_active_elements = r_node->GetValue(NUMBER_OF_ACTIVE_ELEMENTS);
+        if (r_number_of_active_elements == 0) {
+            auto& p_associated_DEM = it_node->GetValue(DEM_PARTICLE_POINTER);
+            const int DEM_id = p_associated_DEM->Id();
+            mrDEMModelPart.GetNode(DEM_id).Set(TO_ERASE, true);
+        }
+    }
+    mrDEMModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 }
 
 /***********************************************************************************/
