@@ -54,7 +54,7 @@ namespace Kratos
         typedef MixedULMLinearSolver<SparseSpaceType,  LocalSpaceType, PreconditionerType, ReordererType> MixedULMLinearSolverType;
 
         // Dof arrays
-        typedef PointerVectorSet<Dof<double>, SetIdentityFunction<Dof<double>>, std::less<SetIdentityFunction<Dof<double>>::result_type>, std::equal_to<SetIdentityFunction<Dof<double>>::result_type>, Dof<double>* > DofsArrayType;
+        typedef ModelPart::DofsArrayType DofsArrayType;
 
         /**
          * @brief This creates the auxiliar files
@@ -128,7 +128,7 @@ namespace Kratos
             DofsArrayType Doftemp;
             Doftemp.reserve(DoF.size());
             for (auto it= DoF.begin(); it!= DoF.end(); it++)
-                Doftemp.push_back( it->get() );
+                Doftemp.push_back( *it );
 
             const std::size_t system_size = 4;
             CompressedMatrix A(system_size, system_size);
@@ -220,7 +220,7 @@ namespace Kratos
             DofsArrayType Doftemp;
             Doftemp.reserve(DoF.size());
             for (auto it= DoF.begin(); it!= DoF.end(); it++)
-                Doftemp.push_back( it->get() );
+                Doftemp.push_back( *it );
 
             const std::size_t system_size = 5;
             CompressedMatrix A(system_size, system_size);
@@ -304,7 +304,7 @@ namespace Kratos
             DofsArrayType Doftemp;
             Doftemp.reserve(DoF.size());
             for (auto it= DoF.begin(); it!= DoF.end(); it++)
-                Doftemp.push_back( it->get() );
+                Doftemp.push_back( *it );
 
             const std::size_t system_size = 4;
             CompressedMatrix A(system_size, system_size);
@@ -425,7 +425,7 @@ namespace Kratos
             DofsArrayType Doftemp;
             Doftemp.reserve(DoF.size());
             for (auto it= DoF.begin(); it!= DoF.end(); it++)
-                Doftemp.push_back( it->get() );
+                Doftemp.push_back( *it );
 
             const std::size_t system_size = 8;
             CompressedMatrix A(system_size, system_size);
@@ -518,7 +518,7 @@ namespace Kratos
             DofsArrayType Doftemp;
             Doftemp.reserve(DoF.size());
             for (auto it= DoF.begin(); it!= DoF.end(); it++)
-                Doftemp.push_back( it->get() );
+                Doftemp.push_back( *it );
 
             const std::size_t system_size = 8;
             CompressedMatrix A(system_size, system_size);
@@ -664,7 +664,7 @@ namespace Kratos
             DofsArrayType Doftemp;
             Doftemp.reserve(DoF.size());
             for (auto it= DoF.begin(); it!= DoF.end(); it++)
-                Doftemp.push_back( it->get() );
+                Doftemp.push_back( *it );
 
             const std::size_t system_size = 12;
             CompressedMatrix A(system_size, system_size);
@@ -765,7 +765,7 @@ namespace Kratos
             DofsArrayType Doftemp;
             Doftemp.reserve(DoF.size());
             for (auto it= DoF.begin(); it!= DoF.end(); it++)
-                Doftemp.push_back( it->get() );
+                Doftemp.push_back( *it );
 
             const std::size_t system_size = 12;
             CompressedMatrix A(system_size, system_size);
@@ -947,7 +947,7 @@ namespace Kratos
             DofsArrayType Doftemp;
             Doftemp.reserve(DoF.size());
             for (auto it= DoF.begin(); it!= DoF.end(); it++)
-                Doftemp.push_back( it->get() );
+                Doftemp.push_back( *it );
 
             const std::size_t system_size = 16;
             CompressedMatrix A(system_size, system_size);

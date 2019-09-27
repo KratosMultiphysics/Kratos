@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //
@@ -115,24 +115,24 @@ public:
     ///@name Life Cycle
     ///@{
 
-	/// Default constructors
-	GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry);
-	GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    /// Default constructors
+    GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-	///Copy constructor
-	GenericSmallStrainFemDemElement(GenericSmallStrainFemDemElement const &rOther);
+    ///Copy constructor
+    GenericSmallStrainFemDemElement(GenericSmallStrainFemDemElement const &rOther);
 
-	/// Destructor.
-	virtual ~GenericSmallStrainFemDemElement();
+    /// Destructor.
+    virtual ~GenericSmallStrainFemDemElement();
 
-	/// Assignment operator.
-	GenericSmallStrainFemDemElement &operator=(GenericSmallStrainFemDemElement const &rOther);
-	Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const override;
-	Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
+    /// Assignment operator.
+    GenericSmallStrainFemDemElement &operator=(GenericSmallStrainFemDemElement const &rOther);
+    Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-	GenericSmallStrainFemDemElement()
-	{
-	}
+    GenericSmallStrainFemDemElement()
+    {
+    }
 
     /**
      * this is called in the beginning of each solution step
@@ -192,14 +192,14 @@ public:
      */
     void SaveEdgeNeighboursContainer(const std::vector<std::vector<Element*>>& rtoSave) {mEdgeNeighboursContainer = rtoSave;}
 
-	void SetNodeIndexes(Matrix& rMatrix) // Defines the numbering of the edges with the corresponding nodes
-	{
-		rMatrix.resize(6, 2);
-		rMatrix(0, 0) = 0; rMatrix(0, 1) = 1; rMatrix(1, 0) = 0;
-		rMatrix(1, 1) = 2; rMatrix(2, 0) = 0; rMatrix(2, 1) = 3;
-		rMatrix(3, 0) = 1; rMatrix(3, 1) = 2; rMatrix(4, 0) = 1;
-		rMatrix(4, 1) = 3; rMatrix(5, 0) = 2; rMatrix(5, 1) = 3;
-	}
+    void SetNodeIndexes(Matrix& rMatrix) // Defines the numbering of the edges with the corresponding nodes
+    {
+        rMatrix.resize(6, 2);
+        rMatrix(0, 0) = 0; rMatrix(0, 1) = 1; rMatrix(1, 0) = 0;
+        rMatrix(1, 1) = 2; rMatrix(2, 0) = 0; rMatrix(2, 1) = 3;
+        rMatrix(3, 0) = 1; rMatrix(3, 1) = 2; rMatrix(4, 0) = 1;
+        rMatrix(4, 1) = 3; rMatrix(5, 0) = 2; rMatrix(5, 1) = 3;
+    }
 
     /**
      * this imposes the damage/threshold to be equal
@@ -222,7 +222,7 @@ public:
     /**
      * this computes the average vector on the edge for a certain variable
      */
-	void CalculateAverageVariableOnEdge(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
     void CalculateAverageVariableOnEdge2D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
     void CalculateAverageVariableOnEdge3D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
 
@@ -301,9 +301,9 @@ public:
      * GetValueOnIntegrationPoints: get the values for given Variable.
      * these methods are: OPTIONAL
      */
-	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-	void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-	void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate variables on Integration points.
@@ -314,9 +314,9 @@ public:
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
      * these methods are: OPTIONAL
      */
-	void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-	void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 
@@ -327,12 +327,12 @@ protected:
     ///@name Member Variables
     ///@{
 
-	Vector mNonConvergedThresholds;     // Equivalent stress
-	Vector mThresholds;                 // Stress mThreshold on edge
-	Vector mDamages;                    // Converged Damage on each edge
-	Vector mNonConvergedDamages;        // Damages at edges of "i" iteration
-	double mThreshold = 0.0;            // Converged Threshold
-	double mDamage = 0.0;               // Converged Damage
+    Vector mNonConvergedThresholds;     // Equivalent stress
+    Vector mThresholds;                 // Stress mThreshold on edge
+    Vector mDamages;                    // Converged Damage on each edge
+    Vector mNonConvergedDamages;        // Damages at edges of "i" iteration
+    double mThreshold = 0.0;            // Converged Threshold
+    double mDamage = 0.0;               // Converged Damage
 
     // Vector to storage the neigh elements sharing a certain edge
     std::vector<std::vector<Element*>> mEdgeNeighboursContainer;

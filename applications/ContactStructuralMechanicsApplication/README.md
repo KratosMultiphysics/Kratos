@@ -7,8 +7,10 @@ The Contact Structural Mechanics Application contains the contact mechanics impl
  <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/in_ring/data/animation.gif" alt="Solution" style="width: 600px;"/>
   <img src="https://github.com/KratosMultiphysics/Examples/raw/master/contact_structural_mechanics/use_cases/hyperelastic_tubes/data/half_cylinders.gif" alt="Solution" style="width: 600px;"/>
  <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/mmg_remeshing_examples/use_cases/contacting_cylinders/data/nodal_h.gif" alt="Solution" style="width: 600px;"/>
+  <img src="https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/contact_structural_mechanics/use_cases/self_contact/data/animation.gif" alt="Solution" style="width: 600px;"/>
 </p>
- 
+
+
 The application includes tests to check the proper functioning of the application
  
 ### Features: 
@@ -25,8 +27,18 @@ The application includes tests to check the proper functioning of the applicatio
 
      * Frictionless formulation
 
+     * Frictional
+
+- Simplified **MPC** conditions based in mortar formulation. With the mortar formulation the weight are computed, allowing to compute a Simplified *NTN* and a simplified *NTS*
+
+     * Frictionless formulation
+
      * Frictional formulation
+
+     * Mesh tying formulation, with tension checking
  
+- Self-contact compatible
+
 - Strategies, processes, solvers and convergence criterias used by the contact formulation
 
 - Several strategies for adaptive remeshing
@@ -35,7 +47,7 @@ The application includes tests to check the proper functioning of the applicatio
 
 - Frictional laws (WIP) in order to consider different types of frictional behaviour 
 
-- +100 tests, including Validation tests and cpp tests
+- +115 *Python* unittest, including Validation tests, and +85 cpp tests
 
 ### Examples:
 
