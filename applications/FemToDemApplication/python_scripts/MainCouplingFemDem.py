@@ -447,7 +447,7 @@ class MainCoupledFemDem_Solution:
             dem_generator_process.Execute()
 
             # We remove the inactive DEM associated to fem_nodes
-            self.RemoveAloneDEMElements()
+            # self.RemoveAloneDEMElements()
             # self.RemoveIsolatedFiniteElements()
             element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
             element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
