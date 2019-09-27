@@ -126,11 +126,11 @@ namespace Kratos
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
                 // Apply F.D in all cut nodes that are not trailing edge nodes.
                 if (!r_geometry[i_node].GetValue(TRAILING_EDGE)){
-                    //perturbate distance
+                    // Perturbate distance
                     pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i_node]+delta;
-                    //compute perturbated RHS
+                    // Compute perturbated RHS
                     pPrimalElement->CalculateRightHandSide(RHS_perturbed, process_info);
-                    //recover distance value
+                    // Recover distance value
                     pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i_node];
 
                     for (unsigned int i_dof =0;i_dof<RHS.size();i_dof++) {
