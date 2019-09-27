@@ -169,7 +169,7 @@ private:
 
     ModelPart& mrAdjointModelPart;
     std::string mCriticalPartName;
-    Element::Pointer mpTracedElementInAdjointPart;
+    Element::Pointer mpTracedElementInAdjointPart {nullptr};
     StressTreatment mStressTreatment;
     TracedStressType mTracedStressType;
     SizeType mEchoLevel = 0;

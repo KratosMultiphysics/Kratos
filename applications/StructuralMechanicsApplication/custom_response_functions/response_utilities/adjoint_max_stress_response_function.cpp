@@ -33,12 +33,6 @@ namespace Kratos
 
         KRATOS_ERROR_IF(mStressTreatment != StressTreatment::Mean)
             << "AdjointMaxStressResponseFunction::AdjointMaxStressResponseFunction: Specified stress treatment not supported: " << ResponseSettings["stress_type"].GetString() << std::endl;
-
-        // Set default traced element in adjoint model part (first in the list of agglomerated elements).
-        ModelPart& adjoint_agglomeration_part = mrAdjointModelPart.GetSubModelPart(mCriticalPartName);
-        auto first_element = *(adjoint_agglomeration_part.ElementsBegin());
-        mpTracedElementInAdjointPart = mrAdjointModelPart.pGetElement(first_element.Id());
-        mpTracedElementInAdjointPart->SetValue(TRACED_STRESS_TYPE, static_cast<int>(mTracedStressType));
     }
 
     // --------------------------------------------------------------------------
@@ -73,8 +67,8 @@ namespace Kratos
             }
         }
 
-        KRATOS_INFO_IF("  AdjointMaxStressResponseFunction::CalculateValue", mEchoLevel > 0) << "Id of element with max stress value = " << elem_id_at_max << std::endl;
-        KRATOS_INFO_IF("  AdjointMaxStressResponseFunction::CalculateValue", mEchoLevel > 0) << "Max mean stress value = " << max_mean_stress << std::endl;
+        KRATOS_INFO_IF("AdjointMaxStressResponseFunction::CalculateValue", mEchoLevel > 0) << "Id of element with max stress value = " << elem_id_at_max << std::endl;
+        KRATOS_INFO_IF("AdjointMaxStressResponseFunction::CalculateValue", mEchoLevel > 0) << "Max mean stress value = " << max_mean_stress << std::endl;
 
         // Set traced element in adjoint model part corresponding to the found element in the primal part
         mpTracedElementInAdjointPart = mrAdjointModelPart.pGetElement(elem_id_at_max);
@@ -93,6 +87,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        KRATOS_ERROR_IF(mpTracedElementInAdjointPart == nullptr)
+            << "AdjointMaxStressResponseFunction::CalculateGradient: Traced element not initialized. First call \"CalculateValue\"!" << std::endl;
+
         if(rAdjointElement.Id() == mpTracedElementInAdjointPart->Id())
         {
             Matrix stress_displacement_derivative;
@@ -101,7 +98,7 @@ namespace Kratos
             this->ExtractMeanStressDerivative(stress_displacement_derivative, rResponseGradient);
 
             KRATOS_ERROR_IF(rResponseGradient.size() != rResidualGradient.size1())
-                << "Size of stress displacement derivative does not fit!" << std::endl;
+                << "AdjointMaxStressResponseFunction::CalculateGradient: Size of stress displacement derivative does not fit!" << std::endl;
 
             rResponseGradient *= (-1);
         }
@@ -124,6 +121,9 @@ namespace Kratos
                                                                        const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
+
+        KRATOS_ERROR_IF(mpTracedElementInAdjointPart == nullptr)
+            << "AdjointMaxStressResponseFunction::CalculateGradient: traced element not initialized. First call \"CalculateValue\"!" << std::endl;
 
         if(rAdjointElement.Id() == mpTracedElementInAdjointPart->Id())
         {
@@ -159,6 +159,9 @@ namespace Kratos
                                                                        const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
+
+        KRATOS_ERROR_IF(mpTracedElementInAdjointPart == nullptr)
+            << "AdjointMaxStressResponseFunction::CalculateGradient: traced element not initialized. First call \"CalculateValue\"!" << std::endl;
 
         if(rAdjointElement.Id() == mpTracedElementInAdjointPart->Id())
         {

@@ -3,6 +3,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as KCSM
 
 # Additional imports
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
 import time
 from decimal import Decimal
@@ -31,7 +32,9 @@ kratos_response_settings = KM.Parameters("""
 
 list_of_move_nodes = [5, 65]
 finite_difference_levels = [2,3,4,5,6,7,8,9,10,11,12]
+
 results_filename = "fd_geometry_space_results.txt"
+delete_results_afterwards = True
 
 # ==============================================================================
 # Preprocessing
@@ -118,3 +121,14 @@ for move_node_id in list_of_move_nodes:
             line_to_write += '%.6E' % Decimal(str(fd_gradient_z)) + ",\t"
             line_to_write += str(time.ctime()) + "\n"
             open_file.write(line_to_write)
+
+# ==============================================================================
+# Postprocessing
+# ==============================================================================
+if delete_results_afterwards:
+    kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
+    kratos_utilities.DeleteFileIfExisting("sensitivity_verification_process_test.post.lst")
+    kratos_utilities.DeleteFileIfExisting(results_filename)
+    kratos_utilities.DeleteFileIfExisting("structure.post.bin")
+    kratos_utilities.DeleteFileIfExisting("reference_part.post.bin")
+    kratos_utilities.DeleteFileIfExisting("perturbed_part.post.bin")
