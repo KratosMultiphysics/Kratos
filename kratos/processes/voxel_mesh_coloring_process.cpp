@@ -257,7 +257,7 @@ namespace Kratos
 
             // Creating the ray
             double ray[3] = {r_coords[0], r_coords[1], r_coords[2]};
-			OctreeType* pOctree = mFindIntersectedObjectsProcess.GetOctreePointer();
+			OctreeType* pOctree = mFindIntersectedObjectsProcess.GetOctreePointer().get();
             pOctree->NormalizeCoordinates(ray);
             ray[i_direction] = 0; // Starting from the lower extreme
 
@@ -318,7 +318,7 @@ namespace Kratos
         rIntersections.clear();
 
 		// Get the octree from the parent discontinuous distance process
-        OctreeType* pOctree = mFindIntersectedObjectsProcess.GetOctreePointer();
+        OctreeType* pOctree = mFindIntersectedObjectsProcess.GetOctreePointer().get();
 
 		// Compute the normalized ray key
         OctreeType::key_type ray_key[3] = {pOctree->CalcKeyNormalized(ray[0]), pOctree->CalcKeyNormalized(ray[1]), pOctree->CalcKeyNormalized(ray[2])};
@@ -380,7 +380,7 @@ namespace Kratos
 		double ray_point2[3] = {ray[0], ray[1], ray[2]};
 		double normalized_coordinate;
 
-		OctreeType* pOctree = mFindIntersectedObjectsProcess.GetOctreePointer();
+		OctreeType* pOctree = mFindIntersectedObjectsProcess.GetOctreePointer().get();
 		pOctree->CalculateCoordinateNormalized(ray_key[direction], normalized_coordinate);
 		ray_point1[direction] = normalized_coordinate;
 		ray_point2[direction] = ray_point1[direction] + pOctree->CalcSizeNormalized(cell);
@@ -441,7 +441,7 @@ namespace Kratos
 		this->GetExtraRayOrigins(RayPerturbation, rCoords, extra_ray_origs);
 
 		// Get the pointer to the base Octree binary
-		OctreeType* p_octree = mFindIntersectedObjectsProcess.GetOctreePointer();
+		OctreeType* p_octree = mFindIntersectedObjectsProcess.GetOctreePointer().get();
 
 		// Loop the extra rays to compute its color
 		unsigned int n_ray_pos = 0; // Positive rays counter
