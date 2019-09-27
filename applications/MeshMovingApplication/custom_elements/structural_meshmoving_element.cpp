@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/mesh_moving_variables.h"
+#include "includes/variables.h"
 #include "custom_elements/structural_meshmoving_element.h"
 #include "custom_utilities/move_mesh_utilities.h"
 
@@ -117,7 +118,7 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
                          // elements; 0 = no stiffening
   const double quotient = factor / detJ0[PointNumber];
   const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi);
-  const double poisson_coefficient = 0.3;
+  const double poisson_coefficient = this->pGetProperties()->GetValue(POISSON_RATIO);
 
   // The ratio between lambda and mu affects relative stiffening against
   // volume or shape change.
