@@ -40,8 +40,8 @@ BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElem
                 potentials[i] = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             }
             else {
-                //potentials[i] = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-                potentials[i] = r_geometry[i].FastGetSolutionStepValue(PSI);
+                potentials[i] = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+                //potentials[i] = r_geometry[i].FastGetSolutionStepValue(PSI);
             }
         }
     }
@@ -209,6 +209,7 @@ template <int Dim>
 void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel)
 {
     unsigned int number_of_unfulfilled_wake_conditions = 0;
+    unsigned int number_of_unfulfilled_wing_tip_wake_conditions = 0;
     const double absolute_tolerance = rTolerance;
     const double relative_tolerance = rTolerance;
     BoundedVector<int, Dim> number_of_unfulfilled_wake_conditions_absolute_tolerance = ZeroVector(Dim);
@@ -242,11 +243,15 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
         if (!wake_condition_is_fulfilled)
         {
             number_of_unfulfilled_wake_conditions += 1;
+            if(r_element.GetValue(WING_TIP)){
+                number_of_unfulfilled_wing_tip_wake_conditions +=1;
+            }
         }
     }
     KRATOS_WARNING_IF("\nCheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
         << " THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
         << " OF " << rWakeModelPart.NumberOfElements()
+        << " OUT OF WHICH WING TIP ARE " << number_of_unfulfilled_wing_tip_wake_conditions
         << " ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
 
     for (unsigned int i = 0; i < Dim; i++){
@@ -286,7 +291,8 @@ const bool CheckWakeCondition(const Element& rElement, const double& rTolerance,
     }
 
     KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 0)
-        << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id() << std::endl;
+        << "WAKE CONDITION NOT FULFILLED IN ELEMENT WING TIP" << rElement.GetValue(WING_TIP)
+        << " WITH ID # " << rElement.Id() << std::endl;
     KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 1)
         << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
         << " upper_velocity  = " << upper_velocity
@@ -317,7 +323,8 @@ const bool CheckWakeConditionXDirection(const Element& rElement, const int& rCom
     KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 0)
         << "WAKE CONDITION NOT FULFILLED WITH AN ABSOLUTE ERROR = " << absolute_error
         << "AND A RELATIVE ERROR = " << relative_error
-        << " IN THE " << rComponent << "COMPONENT, IN ELEMENT # " << rElement.Id() << std::endl;
+        << " IN THE " << rComponent << "COMPONENT, IN ELEMENT WING TIP" << rElement.GetValue(WING_TIP)
+        << " WITH ID # " << rElement.Id() << std::endl;
     KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 1)
         << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << rElement.Id()
         << " upper_velocity  = " << upper_velocity

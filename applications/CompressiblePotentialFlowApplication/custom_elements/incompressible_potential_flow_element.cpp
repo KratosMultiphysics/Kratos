@@ -361,8 +361,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKutta
         if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
             rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         else{
-            //rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
-            rResult[i] = GetGeometry()[i].GetDof(PSI).EquationId();
+            rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+            //rResult[i] = GetGeometry()[i].GetDof(PSI).EquationId();
         }
     }
 }
@@ -420,8 +420,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListKuttaElement(D
         if (!GetGeometry()[i].GetValue(TRAILING_EDGE))
             rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
         else{
-            //rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(PSI);
+            rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
+            //rElementalDofList[i] = GetGeometry()[i].pGetDof(PSI);
         }
     }
 }
@@ -620,6 +620,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     // }
 
     // CalculateLocalSystemSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
+    //if (this->GetValue(WING_TIP))
     if (this->Is(STRUCTURE))
     {
         //array_1d<bool, TNumNodes> free_nodes = this->GetValue(FREE_NODES);
@@ -640,19 +641,52 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
                 //++number_of_free_nodes;
                 for (unsigned int j = 0; j < NumNodes; ++j){
                     rLeftHandSideMatrix(row, j) = lhs_positive(row, j);// + penalty_te*lhs_total2(row, j);//lhs_positive(row, j);
-                    rLeftHandSideMatrix(row + NumNodes, j + NumNodes) = penalty_te*lhs_total2(row, j);//lhs_negative(row, j) + penalty_te*lhs_total2(row, j);//(penalty+1)*lhs_negative(row, j);//penalty*lhs_negative(row, j);//2*lhs_negative(row, j);//0.0;//lhs_negative(row, j);
+                    rLeftHandSideMatrix(row + NumNodes, j + NumNodes) = lhs_negative(row, j);// penalty_te*lhs_total2(row, j);//lhs_negative(row, j) + penalty_te*lhs_total2(row, j);//(penalty+1)*lhs_negative(row, j);//penalty*lhs_negative(row, j);//2*lhs_negative(row, j);//0.0;//lhs_negative(row, j);
                     // Off-diagonal block
                     //rLeftHandSideMatrix(row , j + NumNodes) = -penalty_te*lhs_total2(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2
-                    rLeftHandSideMatrix(row + NumNodes, j) = -penalty_te*lhs_total2(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2
-                    rLeftHandSideMatrix(2*NumNodes + te_counter, j + NumNodes) = lhs_negative(row, j);
+                    //rLeftHandSideMatrix(row + NumNodes, j) = -penalty_te*lhs_total2(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2
+                    rLeftHandSideMatrix(2*NumNodes + te_counter, j + NumNodes) = lhs_total2(row, j);//lhs_negative(row, j);
+                    rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -lhs_total2(row, j);
                     //rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -lhs_negative(row, j);
+                    rLeftHandSideMatrix(j, 2*NumNodes + te_counter) = -lhs_total2(row, j);
+                    rLeftHandSideMatrix(j + NumNodes, 2*NumNodes + te_counter) = lhs_total2(row, j);
                 }
                 // Diagonal term
-                rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = lhs_negative(row, row)+ lhs_total(row, row);
-                rLeftHandSideMatrix(2*NumNodes + te_counter, row + NumNodes) = -lhs_total(row, row);
+                //rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = lhs_total(row, row);// lhs_negative(row, row) + lhs_total(row, row);
+                // if(te_counter == 0){
+                //     rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = 2*lhs_total(row, row);
+                //     rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter + 1) = -lhs_total(row, row);
+                // }
+                // else{
+                //     rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = lhs_total(row, row);
+                // }
+                // if(this->Id()==10156){
+                //     if(te_counter == 0){
+                //         rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = 2*lhs_total(row, row);
+                //         rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter + 1) = -lhs_total(row, row);
+                //     }
+                //     else{
+                //         rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = lhs_total(row, row);
+                //     }
+                // }
+                // else{
+                //     rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = 2*lhs_total(row, row);
+                //     if(te_counter == 0){
+                //         rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter + 1) = -lhs_total(row, row);
+                //     }
+                //     else{
+                //         rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter - 1) = -lhs_total(row, row);
+                //     }
+                // }
+
+
+                // rLeftHandSideMatrix(2*NumNodes + te_counter, row + NumNodes) = -lhs_total(row, row);
                 // rLeftHandSideMatrix(row + NumNodes, row + NumNodes) += lhs_total(row, row);
                 // rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter) -= lhs_total(row, row);
                 te_counter +=1;
+                if(this->Id()==10156){
+                    KRATOS_WATCH(row)
+                }
                 //KRATOS_WATCH(this->Id())
                 //KRATOS_WATCH(GetGeometry()[row].Id())
             }
@@ -676,8 +710,12 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
                         rLeftHandSideMatrix(row, column + NumNodes) = -penalty*lhs_total2(row, column); // Side 1
                         // //rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column);
                         // if (GetGeometry()[column].GetValue(TRAILING_EDGE)){
-                        //     rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = 0.0;
-                        //     rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter) = lhs_total(row, column);
+                        //     rLeftHandSideMatrix(row + NumNodes, column + NumNodes) += lhs_total(row, column);
+                        //     rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter_c) = -lhs_total(row, column);
+                        //     // rLeftHandSideMatrix(row, column + NumNodes) += penalty*lhs_total2(row, column);
+                        //     // rLeftHandSideMatrix(row,  2*NumNodes + te_counter_c) = -penalty*lhs_total2(row, column);
+                        //     // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = 0.0;
+                        //     // rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter) = lhs_total(row, column);
                         //     // rLeftHandSideMatrix(row, 2*NumNodes + te_counter) = -penalty*lhs_total2(row, column);
                         //     // rLeftHandSideMatrix(row, column + NumNodes) += penalty*lhs_total2(row, column);
                         //     te_counter_c += 1;
@@ -685,7 +723,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
                     }
                 }
                 else if (data.distances[row] > 0.0){
-                    unsigned int te_counter_c = 0;
+                    //unsigned int te_counter_c = 0;
                     for (unsigned int column = 0; column < NumNodes; ++column){
                         // Diagonal block
                         rLeftHandSideMatrix(row, column) = lhs_total(row, column);
@@ -693,14 +731,20 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
                         // Off-diagonal block
                         rLeftHandSideMatrix(row + NumNodes, column) = -penalty*lhs_total2(row, column); // Side 2
                         //rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column);
-                        if (GetGeometry()[column].GetValue(TRAILING_EDGE)){
-                            rLeftHandSideMatrix(row + NumNodes, column + NumNodes) += penalty*lhs_total2(row, column);
-                            rLeftHandSideMatrix(row + NumNodes,  2*NumNodes + te_counter_c) = -penalty*lhs_total2(row, column);
-                            // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = 0.0;
-                            // rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter) = penalty*lhs_total2(row, column);
-                            te_counter_c += 1;
-                        }
+                        // if (GetGeometry()[column].GetValue(TRAILING_EDGE)){
+                        //     // Applying equality in phi dof
+                        //     // rLeftHandSideMatrix(row, column + NumNodes) = lhs_total(row, column);
+                        //     // rLeftHandSideMatrix(row, 2*NumNodes + te_counter_c) = -lhs_total(row, column);
+                        //     //Aplying equality in theta dof
+                        //     // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) += penalty*lhs_total2(row, column);
+                        //     // rLeftHandSideMatrix(row + NumNodes,  2*NumNodes + te_counter_c) = -penalty*lhs_total2(row, column);
+
+                        //     // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = 0.0;
+                        //     // rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter) = penalty*lhs_total2(row, column);
+                        //     te_counter_c += 1;
+                        // }
                     }
+
                 }
             }
         }
@@ -719,71 +763,62 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     //     for (unsigned int row = 0; row < NumNodes; ++row){
     //         // The TE node takes the contribution of the subdivided element and
     //         // we do not apply the wake condition on the TE node
-    //         if (GetGeometry()[row].GetValue(TRAILING_EDGE)){
+    //         if (GetGeometry()[row].GetValue(TRAILING_EDGE)){//} && free_nodes[row]){
     //             number_of_trailing_edge_nodes += 1;
+    //             //++number_of_free_nodes;
     //             for (unsigned int j = 0; j < NumNodes; ++j){
-    //                 rLeftHandSideMatrix(row, j) = lhs_positive(row, j);//lhs_positive(row, j);
-    //                 rLeftHandSideMatrix(row + NumNodes, j + NumNodes) = penalty_te*lhs_total2(row, j);//lhs_negative(row, j) + penalty_te*lhs_total2(row, j);//lhs_negative(row, j);// + penalty*lhs_total(row, j);//(penalty+1)*lhs_negative(row, j);//penalty*lhs_negative(row, j);//2*lhs_negative(row, j);//0.0;//lhs_negative(row, j);
+    //                 rLeftHandSideMatrix(row, j) = lhs_positive(row, j);// + penalty_te*lhs_total2(row, j);//lhs_positive(row, j);
+    //                 rLeftHandSideMatrix(row + NumNodes, j + NumNodes) = lhs_negative(row, j);//penalty_te*lhs_total2(row, j);//lhs_negative(row, j) + penalty_te*lhs_total2(row, j);//(penalty+1)*lhs_negative(row, j);//penalty*lhs_negative(row, j);//2*lhs_negative(row, j);//0.0;//lhs_negative(row, j);
     //                 // Off-diagonal block
-    //                 rLeftHandSideMatrix(row + NumNodes, j) = -penalty_te*lhs_total2(row, j);//0.0;//-penalty*lhs_total(row, j);//-penalty*lhs_negative(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2
-    //                 rLeftHandSideMatrix(2*NumNodes + te_counter, j + NumNodes) = lhs_negative(row, j);
+    //                 //rLeftHandSideMatrix(row , j + NumNodes) = -penalty_te*lhs_total2(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2
+    //                 //rLeftHandSideMatrix(row + NumNodes, j) = -penalty_te*lhs_total2(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2
+    //                 rLeftHandSideMatrix(2*NumNodes + te_counter, j + NumNodes) = lhs_total2(row, j);//lhs_negative(row, j);
+    //                 rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -lhs_total2(row, j);
+    //                 //rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -lhs_negative(row, j);
     //             }
     //             // Diagonal term
-    //             rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = lhs_negative(row, row) + lhs_total(row, row);
-    //             rLeftHandSideMatrix(2*NumNodes + te_counter, row + NumNodes) = - lhs_total(row, row);
-    //             rLeftHandSideMatrix(row + NumNodes, row + NumNodes) += lhs_total(row, row);
-    //             rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter) -= lhs_total(row, row);
-    //             te_counter +=1;
-    //             // if(this->Id()==74756){
-    //             //     KRATOS_WATCH(row)
-    //             // }
+    //             rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = lhs_total(row, row);//lhs_negative(row, row) + lhs_total(row, row);
+    //             //rLeftHandSideMatrix(2*NumNodes + te_counter, row + NumNodes) = -lhs_total(row, row);
+    //             // rLeftHandSideMatrix(row + NumNodes, row + NumNodes) += lhs_total(row, row);
+    //             // rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter) -= lhs_total(row, row);
+    //             //te_counter +=1;
+    //             //KRATOS_WATCH(this->Id())
+    //             //KRATOS_WATCH(GetGeometry()[row].Id())
     //         }
-    //         // else if (GetGeometry()[row].GetValue(TRAILING_EDGE) && number_of_trailing_edge_nodes > 0.5){
-    //         //     KRATOS_WATCH(this->Id())
-    //         //     number_of_trailing_edge_nodes += 1;
+    //         // else if (GetGeometry()[row].GetValue(TRAILING_EDGE)){
     //         //     for (unsigned int j = 0; j < NumNodes; ++j){
-    //         //         rLeftHandSideMatrix(row, j) = lhs_positive(row, j);//lhs_positive(row, j);
-    //         //         rLeftHandSideMatrix(row + NumNodes, j + NumNodes) = lhs_negative(row, j);//2*lhs_negative(row, j);//0.0;//lhs_negative(row, j);
+    //         //         rLeftHandSideMatrix(row, j) = lhs_positive(row, j);
+    //         //         rLeftHandSideMatrix(row + NumNodes, j + NumNodes) = lhs_negative(row, j);// + penalty*lhs_total(row, j);//(penalty+1)*lhs_negative(row, j);//penalty*lhs_negative(row, j);//2*lhs_negative(row, j);//0.0;//lhs_negative(row, j);
     //         //         // Off-diagonal block
-    //         //         rLeftHandSideMatrix(row + NumNodes, j) = 0.0;//-penalty*lhs_negative(row, j); // Side 2
-    //         //     }
-    //         // }
-    //         // else if (abs(free_nodes[row] > 0.0)){
-    //         //     if (data.distances[row] < 0.0){
-    //         //         ++number_of_free_nodes;
-    //         //         this->SetValue(ZERO_VELOCITY_CONDITION, true);
-    //         //         KRATOS_WATCH(this->Id())
-    //         //         for (unsigned int column = 0; column < NumNodes; ++column){
-    //         //             // Diagonal block
-    //         //             rLeftHandSideMatrix(row, column) = 0.0;
-    //         //             rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
-    //         //             // Off-diagonal block
-    //         //             rLeftHandSideMatrix(row, column + NumNodes) = 0.0; // Side 1
-    //         //         }
-    //         //     }
-    //         //     else if (data.distances[row] > 0.0){
-    //         //         for (unsigned int column = 0; column < NumNodes; ++column){
-    //         //             // Diagonal block
-    //         //             rLeftHandSideMatrix(row, column) = lhs_total(row, column);
-    //         //             rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total2(row, column);
-    //         //             // Off-diagonal block
-    //         //             rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total3(row, column); // Side 2
-    //         //         }
+    //         //         rLeftHandSideMatrix(row + NumNodes, j) = 0.0;//-penalty*lhs_total(row, j);//-penalty*lhs_negative(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2
     //         //     }
     //         // }
     //         else{
     //             // Applying wake condition on the AUXILIARY_VELOCITY_POTENTIAL dofs
     //             if (data.distances[row] < 0.0){
+    //                 //unsigned int te_counter_c = 0;
     //                 for (unsigned int column = 0; column < NumNodes; ++column){
     //                     // Diagonal block
     //                     rLeftHandSideMatrix(row, column) = penalty*lhs_total2(row, column);
     //                     rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
     //                     // Off-diagonal block
     //                     rLeftHandSideMatrix(row, column + NumNodes) = -penalty*lhs_total2(row, column); // Side 1
-    //                     //rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column);
+    //                     // //rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column);
+    //                     // if (GetGeometry()[column].GetValue(TRAILING_EDGE)){
+    //                     //     rLeftHandSideMatrix(row + NumNodes, column + NumNodes) += lhs_total(row, column);
+    //                     //     rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter_c) = -lhs_total(row, column);
+    //                     //     // rLeftHandSideMatrix(row, column + NumNodes) += penalty*lhs_total2(row, column);
+    //                     //     // rLeftHandSideMatrix(row,  2*NumNodes + te_counter_c) = -penalty*lhs_total2(row, column);
+    //                     //     // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = 0.0;
+    //                     //     // rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter) = lhs_total(row, column);
+    //                     //     // rLeftHandSideMatrix(row, 2*NumNodes + te_counter) = -penalty*lhs_total2(row, column);
+    //                     //     // rLeftHandSideMatrix(row, column + NumNodes) += penalty*lhs_total2(row, column);
+    //                     //     te_counter_c += 1;
+    //                     // }
     //                 }
     //             }
     //             else if (data.distances[row] > 0.0){
+    //                 //unsigned int te_counter_c = 0;
     //                 for (unsigned int column = 0; column < NumNodes; ++column){
     //                     // Diagonal block
     //                     rLeftHandSideMatrix(row, column) = lhs_total(row, column);
@@ -791,7 +826,20 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     //                     // Off-diagonal block
     //                     rLeftHandSideMatrix(row + NumNodes, column) = -penalty*lhs_total2(row, column); // Side 2
     //                     //rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column);
+    //                     // if (GetGeometry()[column].GetValue(TRAILING_EDGE)){
+    //                     //     // Applying equality in phi dof
+    //                     //     // rLeftHandSideMatrix(row, column + NumNodes) = lhs_total(row, column);
+    //                     //     // rLeftHandSideMatrix(row, 2*NumNodes + te_counter_c) = -lhs_total(row, column);
+    //                     //     //Aplying equality in theta dof
+    //                     //     rLeftHandSideMatrix(row + NumNodes, column + NumNodes) += penalty*lhs_total2(row, column);
+    //                     //     rLeftHandSideMatrix(row + NumNodes,  2*NumNodes + te_counter_c) = -penalty*lhs_total2(row, column);
+
+    //                     //     // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = 0.0;
+    //                     //     // rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter) = penalty*lhs_total2(row, column);
+    //                     //     te_counter_c += 1;
+    //                     // }
     //                 }
+
     //             }
     //         }
     //     }
@@ -877,14 +925,46 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     // }
 
 
-    std::fixed;
-    if(this->Id()==74756){
+    //std::fixed;
+    std::cout.precision(5);
+    std::cout << std::scientific;
+    std::cout << std::showpos;
+    if(this->Id()==74756 || this->Id()==10156){
+        std::cout << std::endl;
+        KRATOS_WATCH(this->Id())
         for(unsigned int row = 0; row < rLeftHandSideMatrix.size1(); ++row){
             for(unsigned int column = 0; column < rLeftHandSideMatrix.size2(); column++){
-                std::cout << " " << rLeftHandSideMatrix(row, column) << " ";
+                if(column == 3 || column == 7){
+                    std::cout << " " << rLeftHandSideMatrix(row, column) << " |";
+                }
+                else{
+                    std::cout << " " << rLeftHandSideMatrix(row, column) << " ";
+                }
             }
-            std::cout << " " << std::endl;
+
+            std::cout << std::endl;
+            // for(unsigned int j = 0; j < 14*3; j++){
+            //     std::cout << " " << std::endl;
+            // }
+            if(row ==3|| row == 7){
+                for(unsigned int j = 0; j < 15*rLeftHandSideMatrix.size1(); j++){
+                std::cout << "_" ;
+                }
+                std::cout << " " << std::endl;
+            }
+            else{
+                for(unsigned int i = 0; i < 3; i++){
+                    for(unsigned int j = 0; j < 14*4; j++){
+                        std::cout << " " ;
+                    }
+                    if(i != 2){
+                        std::cout << "|" ;
+                    }
+                }
+            }
+            std::cout << std::endl;
         }
+        std::cout << std::endl;
     }
 
     // BoundedVector<double, 2*NumNodes> split_element_values;
