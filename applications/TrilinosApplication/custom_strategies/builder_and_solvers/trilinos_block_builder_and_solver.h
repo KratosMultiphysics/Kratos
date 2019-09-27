@@ -526,7 +526,7 @@ public:
 
             for(typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
-                Doftemp.push_back( i->get() );
+                Doftemp.push_back( *i );
             }
         }
 
@@ -539,7 +539,7 @@ public:
 
             for(typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
-                Doftemp.push_back( i->get() );
+                Doftemp.push_back( *i );
             }
         }
 
@@ -684,7 +684,7 @@ public:
                 for(ModelPart::NodeIterator i_node = r_interface_nodes.begin(); i_node != r_interface_nodes.end(); ++i_node)
                     for(ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
                     {
-                        send_buffer[position++] = i_dof->EquationId();
+                        send_buffer[position++] = (*i_dof)->EquationId();
 
                     }
 
@@ -714,7 +714,7 @@ public:
                     if(i_node->GetSolutionStepValue(PARTITION_INDEX) == destination)
                         for(ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
                         {
-                            i_dof->SetEquationId(receive_buffer[position++]);
+                            (*i_dof)->SetEquationId(receive_buffer[position++]);
 
                         }
 

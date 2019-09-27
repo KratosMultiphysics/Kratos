@@ -1083,6 +1083,25 @@ public:
         return normal_vector;
     }
 
+    ///@}
+    ///@name  Geometry Data
+    ///@{
+
+    /**
+    * @brief GeometryData contains all information about dimensions
+    *        and has a set of precomputed values for integration points
+    *        and shape functions, including derivatives.
+    * @return the geometry data of a certain geometry class.
+    */
+    GeometryData const& GetGeometryData() const
+    {
+        return *mpGeometryData;
+    }
+
+    ///@}
+    ///@name Quality
+    ///@{
+
     /** Calculates the quality of the geometry according to a given criteria.
      *
      * Calculates the quality of the geometry according to a given criteria. In General
@@ -1228,6 +1247,29 @@ public:
         KRATOS_TRY
         return mPoints[Index];
         KRATOS_CATCH(mPoints);
+    }
+
+    /**
+    * @brief This function is necessary for composite geometries. It returns the
+    * geometry part which is accessable with a certain index.
+    * @details This index
+    * is dependent on the derived implementation.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes
+    * @return geometry, which is connected through the Index
+     */
+    virtual GeometryType& GetGeometryPart(IndexType Index) const
+    {
+        KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function."
+            <<" Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @return the number of geometry parts that this geometry contains.
+    */
+    virtual SizeType NumberOfGeometryParts() const
+    {
+        return 0;
     }
 
     /**
@@ -2668,19 +2710,18 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
+    ///@name Geometry Data
     ///@{
 
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
+    /**
+    * @brief updates the pointer to GeometryData of the
+    *        respective geometry.
+    * @param pGeometryData pointer to const GeometryData.
+    */
+    void SetGeometryData(GeometryData const* pGeometryData)
+    {
+        mpGeometryData = pGeometryData;
+    }
 
     ///@}
     ///@name Protected Operations
