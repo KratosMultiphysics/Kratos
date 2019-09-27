@@ -57,7 +57,7 @@ class AdjointFluidSolver(PythonSolver):
             ## Set fluid properties from materials json file
             materials_imported = self._SetPhysicalProperties()
             if not materials_imported:
-                Kratos.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
+                KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
             ## Executes the check and prepare model process
