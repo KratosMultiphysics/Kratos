@@ -1091,7 +1091,7 @@ private:
 
 
     void SortDofs(){
-        std::sort(mDofs.begin(), mDofs.end(), [](Kratos::unique_ptr<DofType>& First, Kratos::unique_ptr<DofType>& Second)->bool{
+        std::sort(mDofs.begin(), mDofs.end(), [](Kratos::unique_ptr<DofType> const& First, Kratos::unique_ptr<DofType> const& Second)->bool{
             return First->GetVariable().Key() < Second->GetVariable().Key();
         });
     }
@@ -1120,7 +1120,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        NodalData* p_nodal_data = &mNodalData; 
+        NodalData* p_nodal_data = &mNodalData;
         rSerializer.load("NodalData", p_nodal_data);
         rSerializer.load("Data", mData);
         rSerializer.load("Initial Position", mInitialPosition);
