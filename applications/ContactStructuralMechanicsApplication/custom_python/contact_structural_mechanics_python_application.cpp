@@ -68,6 +68,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISTANCE_THRESHOLD )                                    // The distance threshold considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ZERO_TOLERANCE_FACTOR )                                 // The epsilon factor considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ACTIVE_CHECK_FACTOR )                                   // The factor employed to search an active/inactive node
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SLIP_THRESHOLD )                                        // The threshold employed to search an slip/stick node
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORMAL_GAP )                                            // The normal gap employed in contact formulation
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TANGENT_SLIP )                       // The tangent slip employed in contact formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WEIGHTED_GAP )                                          // The integrated gap employed in mortar formulation
