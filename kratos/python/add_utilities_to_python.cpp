@@ -38,7 +38,6 @@
 #include "includes/global_pointer_variables.h"
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
-#include "utilities/divide_elem_utils.h"
 #include "utilities/timer.h"
 
 #include "utilities/binbased_fast_point_locator.h"
@@ -675,11 +674,6 @@ void AddUtilitiesToPython(pybind11::module &m)
 //             .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
 //                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
 //             ;
-
-    py::class_<DivideElemUtils >(m,"DivideElemUtils")
-        .def(py::init<>())
-        .def("DivideElement_2D", &DivideElemUtils::DivideElement_2D)
-        ;
 
     py::class_<Timer >(m,"Timer")
         .def(py::init<>())

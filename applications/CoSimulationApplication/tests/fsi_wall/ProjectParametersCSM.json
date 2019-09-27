@@ -36,16 +36,15 @@
             "solver_type" : "ExternalSolversApplication.super_lu",
             "scaling"     : false
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet","PointLoad2D_FSI_Interface"],
-        "rotation_dofs"                      : false
+        "use_computing_model_part" : false,
+        "rotation_dofs"            : false
     },
     "processes" : {
         "constraints_process_list" : [{
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Dirichlet",
+                "model_part_name" : "Structure.DISPLACEMENT_Dirichlet",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
@@ -54,25 +53,5 @@
         }],
         "loads_process_list"       : [],
         "list_other_processes"     : []
-    },
-    "_output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : false,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","POINT_LOAD"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
     }
 }
