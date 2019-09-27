@@ -35,8 +35,8 @@ void UpdateDemKinematicsProcess::Execute()
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
         if (it_node->GetValue(IS_DEM)) {
-            auto p_associated_dem = it_node.GetValue(DEM_PARTICLE_POINTER);
-            this->UpdateKinematics(it_node, p_associated_dem);
+            auto p_associated_dem = it_node->GetValue(DEM_PARTICLE_POINTER);
+            this->UpdateKinematics(it_node, p_associated_dem->GetGeometry()[0]);
         }
     }
 }
