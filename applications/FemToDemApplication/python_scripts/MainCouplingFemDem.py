@@ -147,7 +147,7 @@ class MainCoupledFemDem_Solution:
         self.FEM_Solution.step = self.FEM_Solution.step + 1
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
 
-        self.FindNeighboursIfNecessary()	
+        self.FindNeighboursIfNecessary()    
         self.PerformRemeshingIfNecessary()
 
         if self.echo_level > 0:
@@ -439,8 +439,8 @@ class MainCoupledFemDem_Solution:
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: GenerateDEM")
 
-		# If we want to compute sand production
-		# self.CountErasedVolume()
+        # If we want to compute sand production
+        # self.CountErasedVolume()
 
         if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
             dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
