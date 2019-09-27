@@ -1754,10 +1754,9 @@ public:
     *         The list is structured as following:
     *           [0] - global coordinates
     *           [1 - loc_space_dim] - base vectors
-    *           [...] - higher order vectors (du^2, dudv, dv^2
-    *                                      or du^2, dudv, dv^2, dvdw, dw^2, dwdu)
+    *           [...] - higher order vectors (2D: du^2, dudv, dv^2)
     */
-    virtual void GlobalDerivatives(
+    virtual void GlobalSpaceDerivatives(
         std::vector<CoordinatesArrayType>& rGlobalCoordinates,
         const CoordinatesArrayType& rLocalCoordinates,
         const SizeType DerivativeOrder) const
@@ -1816,10 +1815,9 @@ public:
     *         The list is structured as following:
     *           [0] - global coordinates
     *           [1 - loc_space_dim] - base vectors
-    *           [...] - higher order vectors (du^2, dudv, dv^2
-    *                                      or du^2, dudv, dv^2, dvdw, dw^2, dwdu)
+    *           [...] - higher order vectors (2D: du^2, dudv, dv^2)
     */
-    virtual void GlobalDerivatives(
+    virtual void GlobalSpaceDerivatives(
         std::vector<CoordinatesArrayType>& rGlobalCoordinates,
         IndexType IntegrationPointIndex,
         const SizeType DerivativeOrder) const
