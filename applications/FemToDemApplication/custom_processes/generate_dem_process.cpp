@@ -112,10 +112,10 @@ void GenerateDemProcess::CreateDEMParticle(
     NodeType& rNode
 )
 {
-    auto SphericParticle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, "SphericParticle3D");
+    auto spheric_particle = mParticleCreator.CreateSphericParticleRaw(mrDEMModelPart, Id, Coordinates, pProperties, Radius, "SphericParticle3D");
     rNode.SetValue(IS_DEM, true);
     rNode.SetValue(RADIUS, Radius);
-    rNode.SetValue(DEM_PARTICLE_POINTER, SphericParticle);
+    rNode.SetValue(DEM_PARTICLE_POINTER, spheric_particle);
 }
 
 
