@@ -70,6 +70,12 @@ public:
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
+    /// The definition of the Voigt array type
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+
     /// Counted pointer of GenericSmallStrainKinematicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainKinematicPlasticity);
 
@@ -103,12 +109,10 @@ public:
     */
     GenericSmallStrainKinematicPlasticity(const GenericSmallStrainKinematicPlasticity &rOther)
         : BaseType(rOther),
-        mPlasticDissipation(rOther.mPlasticDissipation),
-        mThreshold(rOther.mThreshold),
-        mPlasticStrain(rOther.mPlasticStrain),
-        mUniaxialStress(rOther.mUniaxialStress),
-        mPreviousStressVector(rOther.mPreviousStressVector),
-        mBackStressVector(rOther.mBackStressVector)
+          mPlasticDissipation(rOther.mPlasticDissipation),
+          mThreshold(rOther.mThreshold),
+          mPlasticStrain(rOther.mPlasticStrain),
+          mPreviousStressVector(rOther.mPreviousStressVector)
     {
     }
 
@@ -162,21 +166,6 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues
-        ) override;
-
-    /**
-     * @brief To be called at the end of each solution step
-     * @details (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties &rMaterialProperties,
-        const GeometryType &rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -379,9 +368,6 @@ protected:
     void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
     void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
 
-    void SetBackStressVector (const Vector& toBS) {mBackStressVector = toBS; }
-    Vector& GetBackStressVector() { return mBackStressVector; }
-
     void SetPreviousStressVector (const Vector& toBS) {mPreviousStressVector = toBS; }
     Vector& GetPreviousStressVector() { return mPreviousStressVector;}
 
@@ -415,12 +401,8 @@ protected:
     double mThreshold = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
 
-    // Auxiliar to print (NOTE: Alejandro do we need this now?)
-    double mUniaxialStress = 0.0;
-
     // Kinematic variables
     Vector mPreviousStressVector = ZeroVector(VoigtSize);
-    Vector mBackStressVector = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
@@ -459,7 +441,6 @@ protected:
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
         rSerializer.save("PreviousStressVector", mPreviousStressVector);
-        rSerializer.save("BackStressVector", mBackStressVector);
     }
 
     void load(Serializer &rSerializer) override
@@ -469,7 +450,6 @@ protected:
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
         rSerializer.load("PreviousStressVector", mPreviousStressVector);
-        rSerializer.load("BackStressVector", mBackStressVector);
     }
 
     ///@}

@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -24,7 +24,6 @@
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "utilities/geometry_utilities.h"
-#include "utilities/divide_elem_utils.h"
 #include "convection_diffusion_application.h"
 
 namespace Kratos
@@ -200,29 +199,6 @@ public:
             double Volume;
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
 
-//******************************************************************************************
-// 			//check if divided
-// 			bool is_divided = false;
-// 			double toll = 0.01;
-// 			BoundedMatrix<double,4,2> aux_gp = ZeroMatrix(4,2);
-// 			array_1d<double,4> A_on_agp = ZeroVector(4);
-// 			BoundedMatrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
-// 			array_1d<double,4> dist_on_agp = ZeroVector(4);
-//
-// 			DivideElemUtils::DivideElement_2D(geom, toll, is_divided, aux_gp, A_on_agp, N_on_agp, dist_on_agp);
-//
-// // 			if(is_divided == true)
-// // 			{
-// // 				KRATOS_WATCH(i->Id());
-// // 				//KRATOS_WATCH(virt_nodes);
-// // // 				KRATOS_WATCH(aux_gp);
-// // // 				KRATOS_WATCH(Area);
-// // // 				KRATOS_WATCH(A_on_agp);
-// // // 				KRATOS_WATCH(N_on_agp);
-// // // 				KRATOS_WATCH(dist_on_agp);
-// // 			}
-
-//******************************************************************************************
             //finiding local indices
             for(int ii = 0; ii<TDim+1; ii++)
             {
@@ -551,5 +527,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_PURE_CONVECTION_CRANKN_UTILITIES_INCLUDED defined
-
-
