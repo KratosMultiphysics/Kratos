@@ -21,6 +21,7 @@ set( KRATOS_GEODATA_PROCESSING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/extrusion_height_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/cleaning_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fill_cfd_modelpart_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/building_utilities.cpp
 )
 
 # define library Kratos which defines the basic python interface
