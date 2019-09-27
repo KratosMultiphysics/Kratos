@@ -3,7 +3,7 @@
 This process:
  - stores the initial model part in an .h5 file.
  - stores historical and non-historical results in one .h5 file per output step.
-   The variable ACCELERATION is stored in Bossak weighted form for 
+   The variable ACCELERATION is stored in Bossak weighted form for
    time-dependent adjoint simulations.
 
 This process works with or without MPI.
@@ -24,7 +24,7 @@ from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
 
 def Factory(settings, Model):
     """Return a process for single mesh primal output with HDF5.
-    
+
     The input settings are given in the following table:
     +-------------------------------------+------------+---------------------------------+
     | Setting                             | Type       | Default Value                   |
@@ -62,7 +62,7 @@ def SingleMeshPrimalOutputProcessFactory(core_settings, Model):
 
 def CreateCoreSettings(user_settings):
     """Return the core settings.
-    
+
     The core setting "io_type" cannot be overwritten by the user. It is
     automatically set depending on whether or not MPI is used.
     """
@@ -108,13 +108,15 @@ def CreateCoreSettings(user_settings):
         for key in user_settings["file_settings"]:
             core_settings[i]["io_settings"][key] = user_settings["file_settings"][key]
     if IsDistributed():
+        model_part_output_type = "partitioned_model_part_output"
         core_settings[0]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
         core_settings[1]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
     else:
+        model_part_output_type = "model_part_output"
         core_settings[0]["io_settings"]["io_type"] = "serial_hdf5_file_io"
         core_settings[1]["io_settings"]["io_type"] = "serial_hdf5_file_io"
     core_settings[0]["list_of_operations"] = [
-        CreateOperationSettings("model_part_output", user_settings["model_part_output_settings"]),
+        CreateOperationSettings(model_part_output_type, user_settings["model_part_output_settings"]),
         CreateOperationSettings("primal_bossak_output", user_settings["nodal_solution_step_data_settings"]),
         CreateOperationSettings("nodal_data_value_output", user_settings["nodal_data_value_settings"]),
         CreateOperationSettings("element_data_value_output", user_settings["element_data_value_settings"])
@@ -126,4 +128,4 @@ def CreateCoreSettings(user_settings):
     ]
     for key in user_settings["output_time_settings"]:
         core_settings[1]["controller_settings"][key] = user_settings["output_time_settings"][key]
-    return core_settings.parameters
+    return core_settings

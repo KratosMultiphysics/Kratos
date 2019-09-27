@@ -7,6 +7,7 @@ import KratosMultiphysics.mpi as KratosMPI                          # MPI-python
 # Import applications
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
+from KratosMultiphysics.FluidDynamicsApplication import TrilinosExtension as TrilinosFluid
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
@@ -139,7 +140,7 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
-            self.solver_settings = KratosTrilinos.TrilinosFractionalStepSettingsPeriodic(self.EpetraComm,
+            self.solver_settings = TrilinosFluid.TrilinosFractionalStepSettingsPeriodic(self.EpetraComm,
                                                                                         self.computing_model_part,
                                                                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                                         self.settings["time_order"].GetInt(),
@@ -149,30 +150,30 @@ class TrilinosNavierStokesSolverFractionalStep(NavierStokesSolverFractionalStep)
                                                                                         KratosFluid.PATCH_INDEX)
 
         else:
-            self.solver_settings = KratosTrilinos.TrilinosFractionalStepSettings(self.EpetraComm,
-                                                                                 self.computing_model_part,
-                                                                                 self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                                 self.settings["time_order"].GetInt(),
-                                                                                 self.settings["use_slip_conditions"].GetBool(),
-                                                                                 self.settings["move_mesh_flag"].GetBool(),
-                                                                                 self.settings["reform_dofs_at_each_step"].GetBool())
+            self.solver_settings = TrilinosFluid.TrilinosFractionalStepSettings(self.EpetraComm,
+                                                                                self.computing_model_part,
+                                                                                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                                self.settings["time_order"].GetInt(),
+                                                                                self.settings["use_slip_conditions"].GetBool(),
+                                                                                self.settings["move_mesh_flag"].GetBool(),
+                                                                                self.settings["reform_dofs_at_each_step"].GetBool())
 
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        self.solver_settings.SetStrategy(KratosTrilinos.TrilinosStrategyLabel.Velocity,
+        self.solver_settings.SetStrategy(TrilinosFluid.TrilinosStrategyLabel.Velocity,
                                          self.velocity_linear_solver,
                                          self.settings["velocity_tolerance"].GetDouble(),
                                          self.settings["maximum_velocity_iterations"].GetInt())
 
-        self.solver_settings.SetStrategy(KratosTrilinos.TrilinosStrategyLabel.Pressure,
+        self.solver_settings.SetStrategy(TrilinosFluid.TrilinosStrategyLabel.Pressure,
                                          self.pressure_linear_solver,
                                          self.settings["pressure_tolerance"].GetDouble(),
                                          self.settings["maximum_pressure_iterations"].GetInt())
 
-        self.solver = KratosTrilinos.TrilinosFSStrategy(self.computing_model_part,
-                                                        self.solver_settings,
-                                                        self.settings["predictor_corrector"].GetBool(),
-                                                        KratosFluid.PATCH_INDEX)
+        self.solver = TrilinosFluid.TrilinosFSStrategy(self.computing_model_part,
+                                                       self.solver_settings,
+                                                       self.settings["predictor_corrector"].GetBool(),
+                                                       KratosFluid.PATCH_INDEX)
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())

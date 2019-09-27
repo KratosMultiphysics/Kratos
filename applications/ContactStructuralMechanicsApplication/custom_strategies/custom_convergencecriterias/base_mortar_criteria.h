@@ -153,8 +153,20 @@ public:
 
         // We update the normals if necessary
         const auto normal_variation = r_process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(r_process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
-        if (normal_variation != NO_DERIVATIVES_COMPUTATION)
+        if (normal_variation != NO_DERIVATIVES_COMPUTATION) {
             ComputeNodesMeanNormalModelPartWithPairedNormal(rModelPart); // Update normal of the conditions
+        }
+
+        // Update tangent (must be updated even for constant normal)
+        const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
+        if (frictional_problem) {
+            const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+            if (has_lm && mOptions.IsNot(BaseMortarConvergenceCriteria::PURE_SLIP)) {
+                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
+            } else {
+                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
+            }
+        }
 
         const bool adapt_penalty = r_process_info.Has(ADAPT_PENALTY) ? r_process_info.GetValue(ADAPT_PENALTY) : false;
         const bool dynamic_case = rModelPart.HasNodalSolutionStepVariable(VELOCITY);
@@ -439,15 +451,6 @@ private:
         // Compute normal and tangent
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
         MortarUtilities::ComputeNodesMeanNormalModelPart(r_contact_model_part);
-        const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
-        if (frictional_problem) {
-            const bool has_lm = rModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            if (has_lm && mOptions.IsNot(BaseMortarConvergenceCriteria::PURE_SLIP)) {
-                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part);
-            } else {
-                MortarUtilities::ComputeNodesTangentModelPart(r_contact_model_part, &WEIGHTED_SLIP, 1.0, true);
-            }
-        }
 
         // Iterate over the computing conditions
         ModelPart& r_computing_contact_model_part = rModelPart.GetSubModelPart("ComputingContact");
@@ -462,14 +465,9 @@ private:
             Point::CoordinatesArrayType aux_coords;
 
             // We update the paired normal
-            GeometryType& this_geometry = it_cond->GetGeometry();
-            aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
-            it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
-
-            // We update the paired normal
-            GeometryType::Pointer p_paired_geometry = it_cond->GetValue(PAIRED_GEOMETRY);
-            aux_coords = p_paired_geometry->PointLocalCoordinates(aux_coords, p_paired_geometry->Center());
-            it_cond->SetValue(PAIRED_NORMAL, p_paired_geometry->UnitNormal(aux_coords));
+            GeometryType& r_parent_geometry = it_cond->GetGeometry().GetGeometryPart(0);
+            aux_coords = r_parent_geometry.PointLocalCoordinates(aux_coords, r_parent_geometry.Center());
+            it_cond->SetValue(NORMAL, r_parent_geometry.UnitNormal(aux_coords));
         }
     }
 

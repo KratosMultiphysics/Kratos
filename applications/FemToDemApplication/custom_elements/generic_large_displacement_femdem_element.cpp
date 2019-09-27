@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //
@@ -26,9 +26,9 @@ namespace Kratos
 //************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
 GenericLargeDisplacementFemDemElement<TDim, TyieldSurf>::GenericLargeDisplacementFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
-	: GenericSmallStrainFemDemElement<TDim, TyieldSurf>(NewId, pGeometry)
+    : GenericSmallStrainFemDemElement<TDim, TyieldSurf>(NewId, pGeometry)
 {
-	//DO NOT ADD DOFS HERE!!!
+    //DO NOT ADD DOFS HERE!!!
 }
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
@@ -38,27 +38,27 @@ GenericLargeDisplacementFemDemElement<TDim, TyieldSurf>::GenericLargeDisplacemen
     GeometryType::Pointer pGeometry, 
     PropertiesType::Pointer pProperties
     )
-	: GenericSmallStrainFemDemElement<TDim, TyieldSurf>(NewId, pGeometry, pProperties)
+    : GenericSmallStrainFemDemElement<TDim, TyieldSurf>(NewId, pGeometry, pProperties)
 {
-	// BY DEFAULT, THE GEOMETRY WILL DEFINE THE INTEGRATION METHOD
-	this->mThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
+    // BY DEFAULT, THE GEOMETRY WILL DEFINE THE INTEGRATION METHOD
+    this->mThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
 
-	// Each component == Each edge
-	if (this->mNonConvergedThresholds.size() != NumberOfEdges)
-    	this->mNonConvergedThresholds.resize(NumberOfEdges);
-	noalias(this->mNonConvergedThresholds) = ZeroVector(NumberOfEdges);   // Equivalent stress
+    // Each component == Each edge
+    if (this->mNonConvergedThresholds.size() != NumberOfEdges)
+        this->mNonConvergedThresholds.resize(NumberOfEdges);
+    noalias(this->mNonConvergedThresholds) = ZeroVector(NumberOfEdges);   // Equivalent stress
 
-	if (this->mThresholds.size() != NumberOfEdges)
-    	this->mThresholds.resize(NumberOfEdges);
-	noalias(this->mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+    if (this->mThresholds.size() != NumberOfEdges)
+        this->mThresholds.resize(NumberOfEdges);
+    noalias(this->mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
 
-	if (this->mDamages.size() != NumberOfEdges)
-    	this->mDamages.resize(NumberOfEdges);
-	noalias(this->mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
+    if (this->mDamages.size() != NumberOfEdges)
+        this->mDamages.resize(NumberOfEdges);
+    noalias(this->mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 
-	if (this->mNonConvergedDamages.size() != NumberOfEdges)
-		this->mNonConvergedDamages.resize(NumberOfEdges);
-	noalias(this->mNonConvergedDamages) = ZeroVector(NumberOfEdges); // mDamages on edges of "i" iteration
+    if (this->mNonConvergedDamages.size() != NumberOfEdges)
+        this->mNonConvergedDamages.resize(NumberOfEdges);
+    noalias(this->mNonConvergedDamages) = ZeroVector(NumberOfEdges); // mDamages on edges of "i" iteration
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -68,7 +68,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::GenericLargeDisplacementFemDemElement(
     GenericLargeDisplacementFemDemElement const& rOther
     )
-	: GenericSmallStrainFemDemElement<TDim,TyieldSurf>(rOther)
+    : GenericSmallStrainFemDemElement<TDim,TyieldSurf>(rOther)
 {
 }
 
@@ -80,8 +80,8 @@ GenericLargeDisplacementFemDemElement<TDim, TyieldSurf>& GenericLargeDisplacemen
     GenericLargeDisplacementFemDemElement<TDim, TyieldSurf> const& rOther
     )
 {
-	GenericSmallStrainFemDemElement<TDim, TyieldSurf>::operator=(rOther);
-	return *this;
+    GenericSmallStrainFemDemElement<TDim, TyieldSurf>::operator=(rOther);
+    return *this;
 }
 
 //*********************************OPERATIONS*****************************************
@@ -94,7 +94,7 @@ Element::Pointer GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::Create(
     PropertiesType::Pointer pProperties
     ) const 
 {
-	return Element::Pointer(new GenericLargeDisplacementFemDemElement(NewId, this->GetGeometry().Create(rThisNodes), pProperties));
+    return Element::Pointer(new GenericLargeDisplacementFemDemElement(NewId, this->GetGeometry().Create(rThisNodes), pProperties));
 }
 
 //************************************CLONE*******************************************
@@ -103,8 +103,8 @@ Element::Pointer GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::Create(
 template<unsigned int TDim, unsigned int TyieldSurf>
 Element::Pointer GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::Clone(IndexType NewId, NodesArrayType const &rThisNodes) const
 {
-	GenericLargeDisplacementFemDemElement NewElement(NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
-	return Element::Pointer(new GenericLargeDisplacementFemDemElement<TDim, TyieldSurf>(NewElement));
+    GenericLargeDisplacementFemDemElement NewElement(NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
+    return Element::Pointer(new GenericLargeDisplacementFemDemElement<TDim, TyieldSurf>(NewElement));
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -130,22 +130,22 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::InitializeNonLinear
     Matrix B, F, DN_DX, InvJ0, J, J0;
     B.resize(VoigtSize, dimension * number_of_nodes);
 
-	//create constitutive law parameters:
-	ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-	//set constitutive law flags:
-	Flags& r_constitutive_law_options = values.GetOptions();
-	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    //create constitutive law parameters:
+    ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    //set constitutive law flags:
+    Flags& r_constitutive_law_options = values.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-	//create and initialize element variables:
-	ElementDataType variables;
-	this->InitializeElementData(variables, rCurrentProcessInfo);
+    //create and initialize element variables:
+    ElementDataType variables;
+    this->InitializeElementData(variables, rCurrentProcessInfo);
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& r_integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     // Loop over Gauss Points
     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         //calculate the elastic matrix
-		this->CalculateMaterialResponse(variables, values, point_number);
+        this->CalculateMaterialResponse(variables, values, point_number);
         Matrix& r_constitutive_matrix = values.GetConstitutiveMatrix();
         J = this->GetGeometry().Jacobian(J, point_number, this->mThisIntegrationMethod);
         const double detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, this->mThisIntegrationMethod);
@@ -171,9 +171,9 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::InitializeNonLinear
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
-	MatrixType& rLeftHandSideMatrix,
-	VectorType& rRightHandSideVector,
-	ProcessInfo& rCurrentProcessInfo
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo
     )
 {
     const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
@@ -187,16 +187,16 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
     const SizeType mat_size = number_of_nodes * dimension;
     B.resize(VoigtSize, dimension * number_of_nodes);
 
-	//create constitutive law parameters:
-	ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-	//set constitutive law flags:
-	Flags& r_constitutive_law_options = values.GetOptions();
-	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    //create constitutive law parameters:
+    ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    //set constitutive law flags:
+    Flags& r_constitutive_law_options = values.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-	//create and initialize element variables:
-	ElementDataType variables;
-	this->InitializeElementData(variables, rCurrentProcessInfo);
+    //create and initialize element variables:
+    ElementDataType variables;
+    this->InitializeElementData(variables, rCurrentProcessInfo);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size, mat_size, false);
@@ -215,15 +215,16 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
     // Loop over Gauss Points
     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number ) {
         //calculate the elastic matrix
-		this->CalculateMaterialResponse(variables, values, point_number);
+        this->CalculateMaterialResponse(variables, values, point_number);
         Matrix& r_constitutive_matrix = values.GetConstitutiveMatrix();
 
-		J = this->GetGeometry().Jacobian(J, point_number, this->mThisIntegrationMethod);
+        J = this->GetGeometry().Jacobian(J, point_number, this->mThisIntegrationMethod);
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, this->mThisIntegrationMethod);
 
         double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
-        const Matrix &Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
-		Vector N = row(Ncontainer, point_number);
+        integration_weigth = this->CalculateIntegrationWeight(integration_weigth);
+        const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
+        Vector N = row(Ncontainer, point_number);
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
         this->CalculateB(B, F, DN_DX);
@@ -231,7 +232,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
         this->CalculateGreenLagrangeStrainVector(strain_vector, F);
         bool is_damaging = false;
         if (yield_surface != "Elastic") {
-    		// Loop over edges of the element...
+            // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
             Vector average_strain_edge(VoigtSize);
             noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
@@ -242,7 +243,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
                 double damage_edge = this->mDamages[edge];
-				double threshold = this->mThresholds[edge];
+                double threshold = this->mThresholds[edge];
                 
                 this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
                     average_stress_edge, edge, characteristic_length, values, is_damaging);
@@ -251,13 +252,13 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
                 this->mNonConvergedThresholds[edge] = threshold;
             } // Loop over edges
         }  else {
-			noalias(this->mNonConvergedDamages) = ZeroVector(NumberOfEdges);
-		}
+            noalias(this->mNonConvergedDamages) = ZeroVector(NumberOfEdges);
+        }
 
         const double damage_element = this->CalculateElementalDamage(this->mNonConvergedDamages);
 
-		Vector stress_vector = ZeroVector(VoigtSize);
-		this->CalculateStressVectorPredictor(stress_vector, r_constitutive_matrix, strain_vector);
+        Vector stress_vector = ZeroVector(VoigtSize);
+        this->CalculateStressVectorPredictor(stress_vector, r_constitutive_matrix, strain_vector);
         const Vector& r_integrated_stress_vector = (1.0 - damage_element) * stress_vector;
         Matrix tangent_tensor;
 
@@ -270,7 +271,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLocalSyste
 
         this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, r_integrated_stress_vector, integration_weigth);
         Vector volume_force = ZeroVector(dimension);
-		volume_force = this->CalculateVolumeForce(volume_force, N);
+        volume_force = this->CalculateVolumeForce(volume_force, N);
         this->CalculateAndAddExternalForces(rRightHandSideVector, variables, volume_force, integration_weigth);
         this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
     }
@@ -295,15 +296,15 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLeftHandSi
     const SizeType mat_size = number_of_nodes * dimension;
     B.resize(VoigtSize, dimension * number_of_nodes);
 
-	//create constitutive law parameters:
-	ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-	//set constitutive law flags:
-	Flags& r_constitutive_law_options = values.GetOptions();
-	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    //create constitutive law parameters:
+    ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    //set constitutive law flags:
+    Flags& r_constitutive_law_options = values.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-	//create and initialize element variables:
-	ElementDataType variables;
-	this->InitializeElementData(variables, rCurrentProcessInfo);
+    //create and initialize element variables:
+    ElementDataType variables;
+    this->InitializeElementData(variables, rCurrentProcessInfo);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size, mat_size, false);
@@ -315,22 +316,23 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateLeftHandSi
     // Loop over Gauss Points
     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number ) {
         //calculate the elastic matrix
-		this->CalculateMaterialResponse(variables, values, point_number);
+        this->CalculateMaterialResponse(variables, values, point_number);
         Matrix& r_constitutive_matrix = values.GetConstitutiveMatrix();
 
-		J = this->GetGeometry().Jacobian(J, point_number, this->mThisIntegrationMethod);
+        J = this->GetGeometry().Jacobian(J, point_number, this->mThisIntegrationMethod);
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, this->mThisIntegrationMethod);
 
-        const double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
+        double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
+        integration_weigth = this->CalculateIntegrationWeight(integration_weigth);
         const Matrix& r_Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
-		Vector N = row(r_Ncontainer, point_number);
+        Vector N = row(r_Ncontainer, point_number);
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
         this->CalculateB(B, F, DN_DX);
 
         const double damage_element = this->CalculateElementalDamage(this->mDamages);
 
-		const Vector& r_stress_vector = this->GetValue(STRESS_VECTOR);
+        const Vector& r_stress_vector = this->GetValue(STRESS_VECTOR);
         const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_stress_vector;
 
         this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, r_constitutive_matrix, integration_weigth, damage_element);
@@ -358,16 +360,16 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
     const SizeType mat_size = number_of_nodes * dimension;
     B.resize(VoigtSize, dimension * number_of_nodes);
 
-	//create constitutive law parameters:
-	ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-	//set constitutive law flags:
-	Flags& r_constitutive_law_options = values.GetOptions();
-	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    //create constitutive law parameters:
+    ConstitutiveLaw::Parameters values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    //set constitutive law flags:
+    Flags& r_constitutive_law_options = values.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-	//create and initialize element variables:
-	ElementDataType variables;
-	this->InitializeElementData(variables, rCurrentProcessInfo);
+    //create and initialize element variables:
+    ElementDataType variables;
+    this->InitializeElementData(variables, rCurrentProcessInfo);
 
     // Resizing as needed the RHS
     if (rRightHandSideVector.size() != mat_size)
@@ -382,15 +384,16 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
     // Loop over Gauss Points
     for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
         //calculate the elastic matrix
-		this->CalculateMaterialResponse(variables, values, point_number);
+        this->CalculateMaterialResponse(variables, values, point_number);
         Matrix& r_constitutive_matrix = values.GetConstitutiveMatrix();
 
-		J = this->GetGeometry().Jacobian(J, point_number, this->mThisIntegrationMethod);
+        J = this->GetGeometry().Jacobian(J, point_number, this->mThisIntegrationMethod);
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, this->mThisIntegrationMethod);
 
         double integration_weigth = r_integration_points[point_number].Weight() * detJ0;
+        integration_weigth = this->CalculateIntegrationWeight(integration_weigth);
         const Matrix &Ncontainer = this->GetGeometry().ShapeFunctionsValues(this->mThisIntegrationMethod);
-		Vector N = row(Ncontainer, point_number);
+        Vector N = row(Ncontainer, point_number);
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
         this->CalculateB(B, F, DN_DX);
@@ -400,7 +403,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
         Vector damages(NumberOfEdges);
 
         if (yield_surface != "Elastic") {
-    		// Loop over edges of the element...
+            // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
             Vector average_strain_edge(VoigtSize);
             noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
@@ -411,7 +414,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
                 double damage_edge = this->mDamages[edge];
-				double threshold = this->mThresholds[edge];
+                double threshold = this->mThresholds[edge];
                 
                 this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
                     average_stress_edge, edge, characteristic_length, values, is_damaging);
@@ -419,20 +422,20 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateRightHandS
                 damages[edge] = damage_edge;
             } // Loop over edges
         }  else {
-			noalias(damages) = ZeroVector(NumberOfEdges);
-		}
+            noalias(damages) = ZeroVector(NumberOfEdges);
+        }
         const double damage_element = this->CalculateElementalDamage(damages);
 
-		Vector stress_vector = ZeroVector(VoigtSize);
-		this->CalculateStressVectorPredictor(stress_vector, r_constitutive_matrix, strain_vector);
+        Vector stress_vector = ZeroVector(VoigtSize);
+        this->CalculateStressVectorPredictor(stress_vector, r_constitutive_matrix, strain_vector);
         const Vector& r_integrated_stress_vector = (1.0 - damage_element) * stress_vector;
 
-		this->SetValue(STRESS_VECTOR, stress_vector);
-		this->SetValue(STRESS_VECTOR_INTEGRATED, r_integrated_stress_vector);
-		this->SetValue(STRAIN_VECTOR, strain_vector);
+        this->SetValue(STRESS_VECTOR, stress_vector);
+        this->SetValue(STRESS_VECTOR_INTEGRATED, r_integrated_stress_vector);
+        this->SetValue(STRAIN_VECTOR, strain_vector);
 
         Vector volume_force = ZeroVector(dimension);
-		volume_force = this->CalculateVolumeForce(volume_force, N);
+        volume_force = this->CalculateVolumeForce(volume_force, N);
         this->CalculateAndAddExternalForces(rRightHandSideVector, variables, volume_force, integration_weigth);
         this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, r_integrated_stress_vector, integration_weigth);
     }
@@ -538,7 +541,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateB3D(
     const Matrix& rDN_DX
     )
 {
-	const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
+    const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     for (SizeType i = 0; i < number_of_nodes; ++i) {
         const auto index = 3 * i;
         rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
@@ -634,7 +637,7 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateAndAddMate
     const Matrix& B,
     const Matrix& D,
     const double IntegrationWeight,
-	const double Damage
+    const double Damage
     )
 {
     // Secant Constitutive Tensor
@@ -673,20 +676,20 @@ void  GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateTangentTe
     const Matrix& rDeformationGradientGP,
     const Matrix& rElasticMatrix,
     ConstitutiveLaw::Parameters& rValues
-	)
+    )
 {
-	const double number_components = rStrainVectorGP.size();
-	rTangentTensor.resize(number_components, number_components);
-	Vector perturbed_stress, perturbed_strain;
-	perturbed_strain.resize(number_components);
-	perturbed_stress.resize(number_components);
+    const double number_components = rStrainVectorGP.size();
+    rTangentTensor.resize(number_components, number_components);
+    Vector perturbed_stress, perturbed_strain;
+    perturbed_strain.resize(number_components);
+    perturbed_stress.resize(number_components);
     Matrix perturbed_deformation_gradient;
     perturbed_deformation_gradient.resize(number_components, number_components);
     const double size_1 = rDeformationGradientGP.size1();
     const double size_2 = rDeformationGradientGP.size2();
-	
-	for (unsigned int i_component = 0; i_component < size_1; i_component++) {
-	    for (unsigned int j_component = i_component; j_component < size_2; j_component++) {
+    
+    for (unsigned int i_component = 0; i_component < size_1; i_component++) {
+        for (unsigned int j_component = i_component; j_component < size_2; j_component++) {
             double perturbation;
             const int component_voigt_index = this->CalculateVoigtIndex(number_components, i_component, j_component);
             this->CalculatePerturbation(rStrainVectorGP, perturbation, component_voigt_index);
@@ -696,7 +699,7 @@ void  GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateTangentTe
             const Vector& r_delta_stress = perturbed_stress - rStressVectorGP;
             this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, perturbation, component_voigt_index);
         }
-	}
+    }
 }
 
 /***********************************************************************************/

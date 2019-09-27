@@ -749,9 +749,11 @@ namespace Kratos
 
             MathUtils<double>::CrossProduct(c, b, a);
             MathUtils<double>::UnitCrossProduct(d, b, a);
+            array_1d<double,3> e = MathUtils<double>::CrossProduct(b, a);
 
             KRATOS_CHECK_EQUAL(c[2], 2.0);
             KRATOS_CHECK_EQUAL(d[2], 1.0);
+            KRATOS_CHECK_EQUAL(e[2], 2.0);
         }
 
         /** Checks if it calculates the orthonormal base
