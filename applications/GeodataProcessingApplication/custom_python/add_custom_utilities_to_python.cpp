@@ -30,6 +30,7 @@
 #include "custom_utilities/cleaning_utilities.h"
 #include "custom_utilities/extrusion_height_utilities.h"
 #include "custom_utilities/fill_cfd_modelpart_utilities.h"
+#include "custom_utilities/building_utilities.h"
 // #include "custom_utilities/nicola.h"
 
 
@@ -78,6 +79,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("FillOutlet", &FillCfdModelpartUtilities::FillOutlet)
         .def("FillSlip", &FillCfdModelpartUtilities::FillSlip)
         .def("FillNoslip", &FillCfdModelpartUtilities::FillNoslip)
+        ;
+    
+
+    // some operations on buildings
+    py::class_<BuildingUtilities>(m,"BuildingUtilities")
+        .def(py::init< ModelPart& >())
+        .def("SplitBuilding", &BuildingUtilities::SplitBuilding)
         ;
 }
 
