@@ -119,7 +119,7 @@ public:
 
         const bool success = m_solver.Solve(b, x);
 
-        KRATOS_ERROR_IF(!success) << "Decomposition failed!" << std::endl;
+        KRATOS_ERROR_IF(!success) << "Solving failed!" << std::endl;
     }
 
     /**
