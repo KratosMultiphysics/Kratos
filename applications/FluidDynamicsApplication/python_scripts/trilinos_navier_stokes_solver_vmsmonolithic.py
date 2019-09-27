@@ -7,6 +7,7 @@ import KratosMultiphysics.mpi as KratosMPI                          # MPI-python
 # Import applications
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD     # Fluid dynamics application
+from KratosMultiphysics.FluidDynamicsApplication import TrilinosExtension as TrilinosFluid
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
@@ -195,25 +196,26 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         else:
             if not hasattr(self, "_turbulence_model_solver"):
                 if self.settings["time_scheme"].GetString() == "bossak":
+                    # TODO: Can we remove this periodic check, Is the PATCH_INDEX used in this scheme?
                     if self.settings["consider_periodic_conditions"].GetBool() == True:
-                        self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.time_scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                             KratosCFD.PATCH_INDEX)
                     else:
-                        self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                        self.time_scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             self.settings["move_mesh_strategy"].GetInt(),
                             self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    self.time_scheme = KratosTrilinos.TrilinosResidualBasedSimpleSteadyScheme(
+                    self.time_scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
             else:
                 self._turbulence_model_solver.Initialize()
                 if self.settings["time_scheme"].GetString() == "bossak":
-                    self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
+                    self.time_scheme = TrilinosFluid.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(
                             self.settings["alpha"].GetDouble(),
                             self.settings["move_mesh_strategy"].GetInt(),
                             self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
@@ -221,12 +223,11 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                             self._turbulence_model_solver.GetTurbulenceSolvingProcess())
                 # Time scheme for steady state fluid solver
                 elif self.settings["time_scheme"].GetString() == "steady":
-                    self.time_scheme = KratosTrilinos.TrilinosResidualBasedSimpleSteadyScheme(
+                    self.time_scheme = TrilinosFluid.TrilinosResidualBasedSimpleSteadyScheme(
                             self.settings["velocity_relaxation"].GetDouble(),
                             self.settings["pressure_relaxation"].GetDouble(),
                             self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                             self._turbulence_model_solver.GetTurbulenceSolvingProcess())
-
 
         ## Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
