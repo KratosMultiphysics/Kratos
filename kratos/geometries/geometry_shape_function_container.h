@@ -305,6 +305,34 @@ public:
     }
 
     /*
+    * @brief access to the shape function derivatives.
+    * @param DerivativeOrderIndex defines the wanted order of the derivative
+    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @return the shape function or derivative value related to the input parameters
+    *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    */
+    const Matrix& ShapeFunctionDerivatives(
+        IndexType IntegrationPointIndex,
+        IndexType DerivativeOrderIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        if (DerivativeOrderIndex > 1)
+        {
+            return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 1];
+        }
+        if (DerivativeOrderIndex == 1)
+        {
+            return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+        }
+
+        /* Shape function values are stored within a Matrix, however, only one row
+          should be provided here. Thus, currently it is not possible to provide the 
+          needed source to this object.*/
+        KRATOS_ERROR_IF(DerivativeOrdeIndex == 0)
+            << "Shape functions cannot be accessed through ShapeFunctionDerivatives()" << std::endl;
+    }
+
+    /*
     * @brief access each item separateley.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
     * @param DerivativeOrderRowIndex within each derivative the entries can
