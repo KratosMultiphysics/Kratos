@@ -4,7 +4,6 @@ import KratosMultiphysics.MeshingApplication as MeshingApplication
 import math
 import time
 
-
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -19,7 +18,9 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
                 "model_part_name": "insert_model_part",
                 "skin_model_part_name": "insert_skin_model_part",
                 "maximum_iterations": 1,
+                "update_coefficient": 0.5,
                 "remeshing_flag": false,
+                "ray_casting_tolerance": 1e-9,
                 "moving_parameters":    {
                     "origin"                        : [0.0,0.0,0.0],
                     "rotation_angle"                : 0.0,
@@ -59,12 +60,19 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self.do_remeshing = settings["remeshing_flag"].GetBool()
         self.step = 0
         self.max_iter = settings["maximum_iterations"].GetInt()
+        self.update_coefficient = settings["update_coefficient"].GetDouble()
 
         self.moving_parameters = settings["moving_parameters"]
+        # Synchronizing parameters for the wake process
+        if self.moving_parameters.Has("rotation_point"):
+            self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.WAKE_ORIGIN, self.moving_parameters["rotation_point"].GetVector())
+        else:
+            self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.WAKE_ORIGIN, self.moving_parameters["origin"].GetVector())
+        self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.ROTATION_ANGLE, self.moving_parameters["rotation_angle"].GetDouble())
+
         self.metric_parameters = settings["metric_parameters"]
         self.distance_modification_parameters = settings["distance_modification_parameters"]
-
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(MeshingApplication.METRIC_TENSOR_2D, self.main_model_part.Nodes)
+        self.ray_casting_tolerance = settings["ray_casting_tolerance"].GetDouble()
 
     def ExecuteInitialize(self):
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Executing Initialize Geometry')
@@ -87,12 +95,14 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         ''' This function loads and moves the skin_model_part in the main_model_part to the desired initial point (origin).
             It also rotates the skin model part around the origin point according to the rotation_angle'''
         self.skin_model_part=self.model.CreateModelPart("skin")
+
         ini_time=time.time()
         # Reading skin model part
         KratosMultiphysics.ModelPartIO(self.skin_model_part_name).ReadModelPart(self.skin_model_part)
         # Moving and rotating the skin model part
         angle=math.radians(-self.moving_parameters["rotation_angle"].GetDouble())
         self.moving_parameters["rotation_angle"].SetDouble(angle)
+
         CompressiblePotentialFlow.MoveModelPartProcess(self.skin_model_part, self.moving_parameters).Execute()
 
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','InitializeSkin time: ',time.time()-ini_time)
@@ -100,7 +110,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
     def _CalculateDistance(self):
         ''' This function calculate the distance to skin for every node in the main_model_part.'''
         ini_time=time.time()
-        KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part).Execute()
+        KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part,self.ray_casting_tolerance).Execute()
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','CalculateDistance time: ',time.time()-ini_time)
 
     def _ExtendDistance(self):
@@ -121,7 +131,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             "coarsening_type":"ruge_stuben",
             "coarse_enough" : 5000,
             "krylov_type": "lgmres",
-            "tolerance": 1e-3,
+            "tolerance": 1e-8,
             "verbosity": 0,
             "scaling": false
         }""")
@@ -169,7 +179,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
     def _UpdateParameters(self):
         ''' This process updates remeshing parameters in case more than one iteration is performed'''
         previous_size=self.metric_parameters["minimal_size"].GetDouble()
-        self.metric_parameters["minimal_size"].SetDouble(previous_size*0.5)
+        self.metric_parameters["minimal_size"].SetDouble(previous_size*self.update_coefficient)
 
     def _ModifyFinalDistance(self):
         ''' This function modifies the distance field to avoid ill defined cuts.

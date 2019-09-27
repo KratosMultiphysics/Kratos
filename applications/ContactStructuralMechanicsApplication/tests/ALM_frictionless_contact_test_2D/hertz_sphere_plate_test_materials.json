@@ -1,7 +1,7 @@
 {
     "properties": [
     {
-            "model_part_name": "Parts_parts_hemisphere",
+            "model_part_name": "Structure.Parts_parts_hemisphere",
             "properties_id": 1,
             "Material": {
                     "name": "Material",
@@ -18,7 +18,7 @@
             }
     },
     {
-            "model_part_name": "Parts_parts_plate",
+            "model_part_name": "Structure.Parts_parts_plate",
             "properties_id": 2,
             "Material": {
                     "name": "Material",

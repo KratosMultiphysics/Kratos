@@ -22,7 +22,6 @@
 #include "trilinos_space.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/trilinos_pointer_wrapper.h"
-#include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
@@ -86,16 +85,6 @@ void AuxiliarUpdateSolution(
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    py::class_<TrilinosDeactivationUtility >
-        (m,"TrilinosDeactivationUtility")
-        .def(py::init<>() )
-        .def("Deactivate", &TrilinosDeactivationUtility::Deactivate )
-        .def("Reactivate", &TrilinosDeactivationUtility::Reactivate )
-        .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
-        .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
-        .def("Initialize", &TrilinosDeactivationUtility::Initialize )
-        ;
-
     py::class_<TrilinosCuttingApplication>(m,"TrilinosCuttingApplication").def(py::init< Epetra_MpiComm& >() )
         .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
         .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )

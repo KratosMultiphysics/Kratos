@@ -11,6 +11,7 @@ cmake .. -G "Visual Studio 15 2017 Win64"                                       
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                   ^
 -DSWIMMING_DEM_APPLICATION=ON                                                   ^
 -DMESH_MOVING_APPLICATION=ON                                                    ^
+-DMESHING_APPLICATION=ON                                                        ^
 -DSOLID_MECHANICS_APPLICATION=ON                                                ^
 -DCONSTITUTIVE_MODELS_APPLICATION=ON                                            ^
 -DDELAUNAY_MESHING_APPLICATION=ON                                               ^
