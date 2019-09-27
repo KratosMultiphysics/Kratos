@@ -120,8 +120,8 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(init<ModelPart &, const std::string&>())
         .def("Execute", &FixFreeVelocityOnNodesProcess::Execute);
 
-    class_<RemoveAloneDEMElementsProcess, RemoveAloneDEMElementsProcess::Pointer, Process>(m, "ComputeSandProduction")
-        .def(init<ModelPart &>())
+    class_<RemoveAloneDEMElementsProcess, RemoveAloneDEMElementsProcess::Pointer, Process>(m, "RemoveAloneDEMElementsProcess")
+        .def(init<ModelPart &, ModelPart &>())
         .def("Execute", &RemoveAloneDEMElementsProcess::Execute);
 }
 } // namespace Python.

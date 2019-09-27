@@ -34,17 +34,18 @@ void RemoveAloneDEMElementsProcess::Execute()
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
-        it_node->SetValue(NUMBER_OF_ACTIVE_ELEMENTS, 0)
+        it_node->SetValue(NUMBER_OF_ACTIVE_ELEMENTS, 0);
     }
 
     const auto it_elem_begin = mrModelPart.ElementsBegin();
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         auto it_elem = it_elem_begin + i;
         auto& r_geometry = it_elem->GetGeometry();
-        for (int i_node = 0; i_node < r_geometry.PointsNumber(); i_node++) {
+        for (SizeType i_node = 0; i_node < r_geometry.PointsNumber(); i_node++) {
             auto& r_node = r_geometry[i];
-            int& r_number_of_active_elements = r_node->GetValue(NUMBER_OF_ACTIVE_ELEMENTS);
+            int& r_number_of_active_elements = r_node.GetValue(NUMBER_OF_ACTIVE_ELEMENTS);
+            #pragma omp atomic
             r_number_of_active_elements++;
         }
     }
@@ -52,7 +53,7 @@ void RemoveAloneDEMElementsProcess::Execute()
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
-        const int& r_number_of_active_elements = r_node->GetValue(NUMBER_OF_ACTIVE_ELEMENTS);
+        const int& r_number_of_active_elements = it_node->GetValue(NUMBER_OF_ACTIVE_ELEMENTS);
         if (r_number_of_active_elements == 0) {
             auto& p_associated_DEM = it_node->GetValue(DEM_PARTICLE_POINTER);
             const int DEM_id = p_associated_DEM->Id();
