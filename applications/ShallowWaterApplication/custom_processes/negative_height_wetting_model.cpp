@@ -58,12 +58,13 @@ void NegativeHeightWettingModel::ExecuteInitializeSolutionStep()
         double& equivalent_manning = it_node->FastGetSolutionStepValue(EQUIVALENT_MANNING);
         double& porosity = it_node->FastGetSolutionStepValue(POROSITY);
 
-        if (height > 0) {
+        double zero_value = 1e-3;
+        if (height > zero_value) {
             equivalent_manning = manning;
             porosity = 1.0;
         }
         else {
-            equivalent_manning = manning * (1 - mBeta * height);
+            equivalent_manning = manning * (1 - mBeta * (height - zero_value));
             porosity = 0.0;
         }
     }
