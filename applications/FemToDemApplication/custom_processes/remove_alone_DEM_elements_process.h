@@ -29,13 +29,13 @@ class RemoveAloneDEMElementsProcess : public Process
 {
  public:
 
-  /// Pointer definition of ApplyMultipointConstraintsProcess
+    /// Pointer definition of ApplyMultipointConstraintsProcess
   KRATOS_CLASS_POINTER_DEFINITION(RemoveAloneDEMElementsProcess);
 
   typedef std::size_t IndexType;
 
   // Constructor
-  RemoveAloneDEMElementsProcess(ModelPart& rModelPart);
+  RemoveAloneDEMElementsProcess(ModelPart& rModelPart, ModelPart& rDemModelPart);
 
   // Destructor
   ~RemoveAloneDEMElementsProcess() override = default;
@@ -48,6 +48,7 @@ protected:
 
   // Member Variables
   ModelPart& mrModelPart;
+  ModelPart& mrDEMModelPart;
 
 };  // Class
 

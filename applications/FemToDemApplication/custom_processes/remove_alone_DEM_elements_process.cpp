@@ -19,8 +19,9 @@ namespace Kratos {
 
 RemoveAloneDEMElementsProcess::RemoveAloneDEMElementsProcess(
     ModelPart& rModelPart,
-    const std::string& rFreeOrFix)
-    : mrModelPart(rModelPart)
+    ModelPart& rDemModelPart)
+    : mrModelPart(rModelPart),
+      mrDEMModelPart(rDemModelPart)
 {
 }
 
@@ -29,6 +30,22 @@ RemoveAloneDEMElementsProcess::RemoveAloneDEMElementsProcess(
 
 void RemoveAloneDEMElementsProcess::Execute() 
 {
+    const auto it_node_begin = mrModelPart.NodesBegin();
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+        auto it_node = it_node_begin + i;
+        it_node->SetValue(NUMBER_OF_ACTIVE_ELEMENTS, 0)
+    }
+
+    const auto it_elem_begin = mrModelPart.ElementsBegin();
+    // #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+        auto it_elem = it_elem_begin + i;
+        auto& r_geometry = it_elem->GetGeometry();
+        for (int i_node = 0; i_node < r_geometry.PointsNumber(); i_node++) {
+
+        }
+    }
 
 }
 
