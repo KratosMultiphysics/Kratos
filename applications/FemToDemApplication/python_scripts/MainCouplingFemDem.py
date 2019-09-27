@@ -5,7 +5,6 @@ import MainFEM_for_coupling as FEM
 import FEMDEMParticleCreatorDestructor as PCD
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
-import CouplingFemDem
 import math
 import os
 import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -15,8 +14,8 @@ import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 def Wait():
     input("Press Something")
 
+#============================================================================================================================
 class MainCoupledFemDem_Solution:
-
 #============================================================================================================================
     def __init__(self, Model):
         # Initialize solutions
@@ -401,10 +400,10 @@ class MainCoupledFemDem_Solution:
         # Search the skin nodes for the remeshing
         if self.domain_size == 2:
             skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
-                                                                                self.SkinDetectionProcessParameters)
+                                                                               self.SkinDetectionProcessParameters)
         else: # 3D
             skin_detection_process = KratosMultiphysics.SkinDetectionProcess3D(self.FEM_Solution.main_model_part,
-                                                                            skin_detection_process_param)    
+                                                                               self.SkinDetectionProcessParameters)    
         skin_detection_process.Execute()
         self.GenerateDemAfterRemeshing()
 

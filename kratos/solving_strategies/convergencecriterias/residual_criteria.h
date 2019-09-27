@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "includes/define.h"
+#include "utilities/constraint_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
@@ -199,6 +200,7 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         BaseType::Initialize(rModelPart);
+        KRATOS_ERROR_IF(rModelPart.IsDistributed() && rModelPart.NumberOfMasterSlaveConstraints() > 0) << "This Criteria does not yet support constraints in MPI!" << std::endl;
     }
 
     /**
@@ -221,29 +223,7 @@ public:
 
         // Filling mActiveDofs when MPC exist
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            mActiveDofs.resize(rDofSet.size());
-
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(mActiveDofs.size()); ++i) {
-                mActiveDofs[i] = true;
-            }
-
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(rDofSet.size()); ++i) {
-                const auto it_dof = rDofSet.begin() + i;
-                if (it_dof->IsFixed()) {
-                    mActiveDofs[it_dof->EquationId()] = false;
-                }
-            }
-
-            for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
-                for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
-                    mActiveDofs[r_dof->EquationId()] = false;
-                }
-                for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
-                    mActiveDofs[r_dof->EquationId()] = false;
-                }
-            }
+            ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
         }
 
         SizeType size_residual;

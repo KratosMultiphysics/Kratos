@@ -1,4 +1,6 @@
 import subprocess
+from os.path import dirname
+from os.path import abspath
 
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -46,7 +48,11 @@ def run_cpp_unit_tests():
     This runs a subprocess because the HDF5 used by h5py clashed with the HDF5
     linked to the c++ unit tests on some systems. h5py is used by some XDMF tests.
     """
-    return subprocess.check_output(['python3', 'run_cpp_unit_tests.py']).decode('utf-8')
+    # We set cwd in case the script is run from another directory. This is needed
+    # when testing from the core.
+    out_bytes = subprocess.check_output(
+        ['python3', 'run_cpp_unit_tests.py'], cwd=abspath(dirname(__file__)))
+    return out_bytes.decode('utf-8')
 
 
 if __name__ == '__main__':

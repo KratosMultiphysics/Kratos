@@ -48,6 +48,12 @@ struct rhs_of {
     typedef T type;
 };
 
+/// Replace scalar type in the static matrix
+template<class T, class S, class Enable = void>
+struct replace_scalar {
+    typedef S type;
+};
+
 /// Whether the value type is a statically sized matrix.
 template <class T, class Enable = void>
 struct is_static_matrix : std::false_type {};
