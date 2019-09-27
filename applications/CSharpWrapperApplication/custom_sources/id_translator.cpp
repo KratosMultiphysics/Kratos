@@ -13,59 +13,55 @@
 //
 //  Main authors:    Hubert Balcerzak
 //                   Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
-#include <stdlib.h>
-#include <iostream>
-#define EXPORT __declspec(dllexport)
 
 // External includes
 
 // Project includes
-#include "external_interface.h"
+#include "custom_includes/id_translator.h"
 
-using namespace std;
 using namespace CSharpKratosWrapper;
 
-extern "C" {
+//nodes - sorted vector with kratos IDs of surface nodes.
+void IdTranslator::init(std::vector<int> &nodes) {
+    int nodesSize = nodes.size();
+    pmKratosIds = new int[nodesSize];
 
-#if defined(KRATOS_COMPILED_IN_WINDOWS)
-    EXPORT void __stdcall Init(char* path) {
-        CSharpInterface::init(path);
+    for (int i = 0; i < nodesSize; i++) {
+        pmKratosIds[i] = nodes.at(i);
     }
+    pmSurfaceIds = new int[pmKratosIds[nodesSize - 1]];
+    for (int i = 0; i < pmKratosIds[nodesSize - 1]; i++) pmSurfaceIds[i] = -1;
 
-    EXPORT float* __stdcall GetXCoordinates() {
-        return CSharpInterface::getXCoordinates();
+    for (int i = 0; i < nodesSize; i++) {
+        pmSurfaceIds[pmKratosIds[i]] = i;
     }
+}
 
-    EXPORT float* __stdcall GetYCoordinates() {
-        return CSharpInterface::getYCoordinates();
-    }
+int IdTranslator::getSurfaceId(int kratosId) {
+    return pmSurfaceIds[kratosId];
+}
 
-    EXPORT float* __stdcall GetZCoordinates() {
-        return CSharpInterface::getZCoordinates();
-    }
+int IdTranslator::getKratosId(int unityId) {
+    return pmKratosIds[unityId];
+}
 
-    EXPORT int __stdcall GetNodesCount() {
-        return CSharpInterface::getNodesCount();
-    }
+bool IdTranslator::hasKratosId(int surfaceId) {
+    return surfaceId < mKratosIdsSize;
+}
 
-    EXPORT int* __stdcall GetTriangles() {
-        return CSharpInterface::getTriangles();
-    }
+bool IdTranslator::hasSurfaceId(int kratosId) {
+    return mSurfaceIdsSize < kratosId && pmSurfaceIds[kratosId] != -1;
+}
 
-    EXPORT int __stdcall GetTrianglesCount() {
-        return CSharpInterface::getTrianglesCount();
-    }
+int IdTranslator::safeGetKratosId(int surfaceId) {
+    if (surfaceId >= mKratosIdsSize) return -1;
+    return pmKratosIds[surfaceId];
+}
 
-    EXPORT void __stdcall UpdateNodePos(int nodeId, float x, float y, float z) {
-        CSharpInterface::updateNodePos(nodeId, x, y, z);
-    }
-
-    EXPORT void __stdcall Calculate() {
-        CSharpInterface::calculate();
-    }
-#endif
+int IdTranslator::safeGetSurfaceId(int kratosId) {
+    if (kratosId >= mSurfaceIdsSize) return -1;
+    return pmSurfaceIds[kratosId];
 }
