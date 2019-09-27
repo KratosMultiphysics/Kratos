@@ -31,8 +31,6 @@
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
 
-#include "external_includes/epetra_default_setter.h"
-
 #ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER
 #include "external_includes/aztec_solver.h"
 #endif
@@ -74,11 +72,6 @@ void  AddLinearSolvers(pybind11::module& m)
         .def(py::init<>())
         .def("Solve", Solve);
 
-    py::class_<EpetraDefaultSetter>(m,"EpetraDefaultSetter")
-        .def( py::init<>())
-        .def("SetDefaults", &EpetraDefaultSetter::SetDefaults)
-        ;
-
 #ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER
     typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
     py::class_<AztecSolverType, typename AztecSolverType::Pointer, TrilinosLinearSolverType >
@@ -115,6 +108,7 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("SetScalingType", &MLSolverType::SetScalingType)
         .def("SetReformPrecAtEachStep", &MLSolverType::SetReformPrecAtEachStep)
         .def("__str__", PrintObject<MLSolverType>)
+        .def_static("SetDefaults", &MLSolverType::SetDefaults)
         ;
 
     py::enum_<MLSolverType::ScalingType>(m,"MLSolverScalingType")
