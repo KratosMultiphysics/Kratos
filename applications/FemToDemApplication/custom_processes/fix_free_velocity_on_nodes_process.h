@@ -14,12 +14,9 @@
 #if !defined(KRATOS_FIX_FREE_VELOCITY_ON_NODES_PROCESS)
 #define KRATOS_FIX_FREE_VELOCITY_ON_NODES_PROCESS
 
-
-#include "includes/model_part.h"
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
 #include "solid_mechanics_application_variables.h"
-#include "DEM_application_variables.h"
 #include "includes/variables.h"
 
 namespace Kratos {
@@ -28,20 +25,20 @@ typedef std::size_t SizeType;
 typedef Node<3> NodeType;
 typedef ModelPart::NodesContainerType::iterator NodeIteratorType;
 
-class TransferNodalForcesToFem : public Process 
+class FixFreeVelocityOnNodesProcess : public Process 
 {
  public:
 
   /// Pointer definition of ApplyMultipointConstraintsProcess
-  KRATOS_CLASS_POINTER_DEFINITION(TransferNodalForcesToFem);
+  KRATOS_CLASS_POINTER_DEFINITION(FixFreeVelocityOnNodesProcess);
 
   typedef std::size_t IndexType;
 
   // Constructor
-  TransferNodalForcesToFem(ModelPart& rModelPart, ModelPart& rDemModelPart);
+  FixFreeVelocityOnNodesProcess(ModelPart& rModelPart, const std::string& rFreeOrFix = "Fix" );
 
   // Destructor
-  ~TransferNodalForcesToFem() override = default;
+  ~FixFreeVelocityOnNodesProcess() override = default;
 
   void operator()() { Execute(); }
 
@@ -51,7 +48,7 @@ protected:
 
   // Member Variables
   ModelPart& mrModelPart;
-  ModelPart& mrDEMModelPart;
+  std::string mFreeOrFix;
 
 };  // Class
 
