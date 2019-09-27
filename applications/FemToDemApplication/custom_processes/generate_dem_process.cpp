@@ -89,7 +89,8 @@ void GenerateDemProcess::Execute()
                         radius = this->GetMinimumValue(distances)*0.5;
                     }
                     const array_1d<double,3>& r_coordinates = r_node.Coordinates();
-                    this->CreateDEMParticle(r_node.Id(), r_coordinates, p_DEM_properties, radius, r_node);
+                    const int max_id = this->GetMaximumDEMId();
+                    this->CreateDEMParticle(max_id, r_coordinates, p_DEM_properties, radius, r_node);
                 }
             }
             it_elem->SetValue(DEM_GENERATED, true);
@@ -151,5 +152,19 @@ double GenerateDemProcess::GetMinimumValue(
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+int GenerateDemProcess::GetMaximumDEMId()
+{
+    int max_id = 1;
+    const auto it_DEM_begin = mrDEMModelPart.ElementsBegin();
+    // #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrDEMModelPart.Elements().size()); i++) {
+        auto it_DEM = it_DEM_begin + i;
+        auto& r_geometry = it_DEM->GetGeometry();
+        const int DEM_id = r_geometry[0].Id();
+        max_id = (max_id < DEM_id) ? DEM_id : max_id;
+    }
+    return max_id;
+}
 
 }  // namespace Kratos
