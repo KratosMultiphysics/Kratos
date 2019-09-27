@@ -164,6 +164,7 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
 
+        array_1d <double, TNumNodes> AuxMVector;
         array_1d <double, TNumNodes> AuxMVector1;
         array_1d <double, TNumNodes> AuxMVector2;
 
@@ -179,6 +180,12 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
 
         // We are not considering MMatrixAux2, which is the h term
         MMatrixAux += MMatrixAux1 ;
+
+        /////////////////////////////////////////////////////////////////////////
+        // To make the M matrix consistent uncomment the next 2 lines and comment the for loop next
+
+        // noalias(AuxMVector) = AuxMVector1 + AuxMVector2;
+        // noalias(rLeftHandSideMatrix) += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
     }
 
     for (unsigned int i = 0 ; i < TNumNodes ; i++ )
@@ -190,7 +197,8 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
         }
     }
 
-    //rLeftHandSideMatrix = MMatrixAuxRight;
+    // We are using a lumped M matrix for the cases in which we reach a stationary. In the case of fully transient
+    // problems we use a consistent matrix with the temporal stabilization term AuxMVector2
 
     //RightHandSideVector
 
@@ -385,6 +393,20 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     {
         rVariables.lv = std::sqrt(2.0*Domain);
         rVariables.lsc = rVariables.lv;
+
+        if (TNumNodes == 3)
+        {
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                array_1d <double, 3> AuxNodeNormal = rGeom[i].FastGetSolutionStepValue(NORMAL);
+                double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
+
+                if (NormAuxNodeNormal > rVariables.LowTolerance)
+                {
+                    rVariables.lsc = std::sqrt(2.0) * rVariables.lv;
+                }
+            }
+        }
     }
     else
     {
@@ -416,7 +438,6 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.HighTolerance);
 
         rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
-
     }
     else
     {
@@ -434,7 +455,6 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
 
         rVariables.AlphaVBar = 1.0 / tanh(rVariables.Peclet) - 1.0 / rVariables.Peclet;
-
     }
 
     rVariables.LambdaV = std::sqrt(rVariables.Peclet * rVariables.Peclet + rVariables.OmegaV);

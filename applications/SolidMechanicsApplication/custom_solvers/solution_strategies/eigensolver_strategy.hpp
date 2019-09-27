@@ -547,17 +547,17 @@ class EigensolverStrategy
 
       // the jth column index of EIGENVECTOR_MATRIX corresponds to the jth nodal dof. therefore,
       // the dof ordering must not change.
-      if(NodeDofs.IsSorted() == false)
-      {
-        NodeDofs.Sort();
-      }
+      // if(NodeDofs.IsSorted() == false)
+      // {
+      //   NodeDofs.Sort();
+      // }
 
       // fill the EIGENVECTOR_MATRIX
       for (std::size_t i = 0; i < NumEigenvalues; i++)
         for (std::size_t j = 0; j < NumNodeDofs; j++)
         {
           auto itDof = std::begin(NodeDofs) + j;
-          rNodeEigenvectors(i,j) = rEigenvectors(i,itDof->EquationId());
+          rNodeEigenvectors(i,j) = rEigenvectors(i,(*itDof)->EquationId());
         }
     }
 

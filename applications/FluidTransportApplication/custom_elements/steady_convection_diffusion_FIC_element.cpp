@@ -777,6 +777,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.HighTolerance);
 
+        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
     }
     else
     {
@@ -1206,11 +1207,11 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculatePeclet(Elemen
 
     if (conductivity < rVariables.HighTolerance)
     {
-        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / rVariables.HighTolerance;
+        rVariables.Peclet = NormVel * rVariables.lv / rVariables.HighTolerance;
     }
     else
     {
-        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
+        rVariables.Peclet = NormVel * rVariables.lv / (2.0 * rVariables.AuxDiffusion);
     }
 
 }
@@ -1722,8 +1723,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSAdve
 
     noalias(rRightHandSideVector) -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
 
-     //rVariables.Aux1 -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
-
 }
 //----------------------------------------------------------------------------------------
 
@@ -1735,8 +1734,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSDiff
     noalias(rVariables.DifMatrixAuxTwo) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
 
     noalias(rRightHandSideVector) -= prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
-
-    //rVariables.Aux2 -= prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
 
 }
 

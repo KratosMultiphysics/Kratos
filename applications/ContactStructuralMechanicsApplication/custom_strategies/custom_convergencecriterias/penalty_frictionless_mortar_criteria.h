@@ -304,13 +304,13 @@ private:
 
 /// Local Flags
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags PenaltyFrictionlessMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(2));
+const Kratos::Flags PenaltyFrictionlessMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::PRINTING_OUTPUT(Kratos::Flags::Create(3));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags PenaltyFrictionlessMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(2, false));
+const Kratos::Flags PenaltyFrictionlessMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_PRINTING_OUTPUT(Kratos::Flags::Create(3, false));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags PenaltyFrictionlessMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(3));
+const Kratos::Flags PenaltyFrictionlessMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(4));
 template<class TSparseSpace, class TDenseSpace>
-const Kratos::Flags PenaltyFrictionlessMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(3, false));
+const Kratos::Flags PenaltyFrictionlessMortarConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(4, false));
 
 }  // namespace Kratos
 

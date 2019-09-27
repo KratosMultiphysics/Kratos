@@ -453,6 +453,7 @@ void KratosApplication::RegisterVariables() {
     KratosApplication::RegisterFSIVariables();      //TODO: move to application
     KratosApplication::RegisterMATVariables();      //TODO: move to application
     KratosApplication::RegisterLegacyStructuralAppVariables();  //TODO: move to application
+    KratosApplication::RegisterGlobalPointerVariables();
 
     // Variables that should be moved to applications (but have too many dependencies)
     KRATOS_REGISTER_VARIABLE(FRACTIONAL_STEP)

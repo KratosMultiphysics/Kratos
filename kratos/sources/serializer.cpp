@@ -49,14 +49,15 @@ void Serializer::load(std::string const & rTag, ModelPart*& pValue)
             if(pointer_type == SP_BASE_CLASS_POINTER)
             {
                 KRATOS_ERROR_IF(!pValue) << "an already constructed modelpart must be passed to load a ModelPart" <<std::endl;
-
-                load(rTag, *pValue);
             }
             else if(pointer_type == SP_DERIVED_CLASS_POINTER)
             {
                 KRATOS_ERROR << "should not find SP_DERIVED_CLASS_POINTER for ModelPart load" << std::endl;
             }
+
+            // Load the pointer address before loading the content
             mLoadedPointers[p_pointer]=&pValue;
+            load(rTag, *pValue);
         }
         else
         {
@@ -80,14 +81,15 @@ void Serializer::load(std::string const & rTag, Kratos::unique_ptr<ModelPart>& p
             if(pointer_type == SP_BASE_CLASS_POINTER)
             {
                 KRATOS_ERROR_IF(!pValue) << "an already constructed modelpart must be passed to load a ModelPart" <<std::endl;
-
-                load(rTag, *pValue);
             }
             else if(pointer_type == SP_DERIVED_CLASS_POINTER)
             {
                 KRATOS_ERROR << "should not find SP_DERIVED_CLASS_POINTER for ModelPart load" << std::endl;
             }
+
+            // Load the pointer address before loading the content
             mLoadedPointers[p_pointer]=&pValue;
+            load(rTag, *pValue);
         }
         else
         {
@@ -111,14 +113,15 @@ void Serializer::load(std::string const & rTag, Kratos::shared_ptr<ModelPart>& p
             if(pointer_type == SP_BASE_CLASS_POINTER)
             {
                 KRATOS_ERROR_IF(!pValue) << "an already constructed modelpart must be passed to load a ModelPart" <<std::endl;
-
-                load(rTag, *pValue);
             }
             else if(pointer_type == SP_DERIVED_CLASS_POINTER)
             {
                 KRATOS_ERROR << "should not find SP_DERIVED_CLASS_POINTER for ModelPart load" << std::endl;
             }
+
+            // Load the pointer address before loading the content
             mLoadedPointers[p_pointer]=&pValue;
+            load(rTag, *pValue);
         }
         else
         {

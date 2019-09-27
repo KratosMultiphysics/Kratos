@@ -5,20 +5,26 @@ def GetSympyVersion():
     """
     return sympy.__version__
 
-def DefineMatrix( name, m, n ):
+def DefineMatrix( name, m, n, mode = "Function" ):
     """ This method defines a symbolic matrix
 
     Keyword arguments:
     name -- Name of variables.
     m -- Number of rows.
     n -- Number of columns.
+    mode -- The type of variable is defined (function or symbol)
     """
     if float(GetSympyVersion()) <= 1.2:
         return sympy.Matrix( m,n, lambda i,j: sympy.var(name+'_%d_%d' % (i,j)) )
     else:
-        raise Exception("Not implemented yet")
+        if mode == "Symbol":
+            return sympy.Matrix( m,n, lambda i,j: sympy.var(name+'_%d_%d' % (i,j)) )
+        elif mode == "Function":
+            return sympy.Matrix( m,n, lambda i,j: sympy.symbols(name+'_%d_%d' % (i,j), cls=sympy.Function))
+        else:
+            raise Exception("Not implemented yet")
 
-def DefineSymmetricMatrix( name, m, n = -1):
+def DefineSymmetricMatrix( name, m, n = -1, mode = "Symbol"):
     """ This method defines a symbolic symmetric matrix
 
     Keyword arguments:
@@ -38,17 +44,23 @@ def DefineSymmetricMatrix( name, m, n = -1):
    
     return tmp
 
-def DefineVector( name, m):
+def DefineVector( name, m, mode = "Symbol"):
     """ This method defines a symbolic vector
 
     Keyword arguments:
     name -- Name of variables.
-    m -- Number of rows.
+    m -- Number of components.
+    mode -- The type of variable is defined (function or symbol)
     """
     if float(GetSympyVersion()) <= 1.2:
         return sympy.Matrix( m,1, lambda i,j: sympy.var(name+'_%d' % (i)) )
     else:
-        raise Exception("Not implemented yet")
+        if mode == "Symbol":
+            return sympy.Matrix( m,1, lambda i,j: sympy.var(name+'_%d' % (i)) )
+        elif mode == "Function":
+            return sympy.Matrix( m,1, lambda i,j: sympy.symbols(name+'_%d' % (i), cls=sympy.Function))
+        else:
+            raise Exception("Not implemented yet")
 
 def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity = False):
     """ This method defines shape functions and derivatives
@@ -372,7 +384,7 @@ def Compute_RHS(functional, testfunc, do_simplifications = False):
     for i in range(0,testfunc.shape[0]):
         rhs[i] = sympy.diff(functional[0,0], testfunc[i])
         
-        if(do_simplifications):
+        if do_simplifications:
             rhs[i] = sympy.simplify(rhs[i])
 
     return rhs
@@ -391,7 +403,7 @@ def Compute_LHS(rhs, testfunc, dofs, do_simplifications = False):
         for j in range(0,lhs.shape[1]):
             lhs[i,j] = -sympy.diff(rhs[i,0], dofs[j,0])
             
-            if(do_simplifications):
+            if do_simplifications:
                 lhs[i,j] = sympy.simplify(lhs[i,j])
 
     return lhs

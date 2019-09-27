@@ -15,9 +15,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         self._validate_settings_in_baseclass = True
         super(ShallowWaterBaseSolver, self).__init__(model, settings)
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
         self.element_name = None
@@ -55,6 +52,10 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.EQUIVALENT_MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
         self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.POROSITY)
+        # Projection variables
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_VECTOR1)
         # Auxiliary variables
         self.main_model_part.AddNodalSolutionStepVariable(KM.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
@@ -190,9 +191,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.solver.Clear()
 
     #### Specific internal functions ####
-
-    def _IsPrintingRank(self):
-        return self._is_printing_rank
 
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input), but the wetting model should modify this extra step

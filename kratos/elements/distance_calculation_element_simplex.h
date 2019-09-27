@@ -33,6 +33,7 @@
 
 // Application includes
 #include "includes/variables.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
