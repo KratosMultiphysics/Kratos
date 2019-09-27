@@ -60,6 +60,8 @@ from test_dynamic_schemes import FastDynamicSchemesTests as TFastDynamicSchemesT
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 # Eigenvalues Postprocessing Process test
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
+# Eigensolver with Constraints test
+from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
 # local-axis visualization tests
 from test_local_axis_visualization import TestLocalAxisVisualization as TTestLocalAxisVisualization
 # Test adjoint elements
@@ -285,6 +287,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TFastDynamicSchemesTests]))
     # Eigenvalues Postprocessing Process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
     # local-axis visualization tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
     # Adjoint Elements
@@ -465,16 +468,16 @@ if __name__ == '__main__':
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
-    try:
-        import KratosMultiphysics.mpi as KratosMPI
-        import KratosMultiphysics.MetisApplication as MetisApplication
-        import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"], stdout=subprocess.PIPE)
+    if kratos_utilities.IsMPIAvailable() and kratos_utilities.CheckIfApplicationsAvailable("MetisApplication", "TrilinosApplication"):
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
+        p = subprocess.Popen(
+            ["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"],
+            stdout=subprocess.PIPE,
+            cwd=os.path.dirname(os.path.abspath(__file__)))
         p.wait()
         KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
-    except ImportError:
-        KratosMultiphysics.Logger.PrintInfo("Unittests", "mpi is not available!")
+    else:
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "\nSkipping mpi python tests due to missing dependencies")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())

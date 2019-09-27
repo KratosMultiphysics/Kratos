@@ -262,7 +262,7 @@ private:
 	      //generating the dofs
 	      for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); ++i_dof)
 		{
-		  NodeType::DofType& rDof = *i_dof;
+		  NodeType::DofType& rDof = **i_dof;
 		  NodeType::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
 
 		  (pNewDof)->FreeDof();

@@ -53,8 +53,8 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
             "normal_variation"              : "no_derivatives_computation",
             "frictional_law"                : "Coulomb",
             "tangent_factor"                : 1.0e-4,
-            "slip_convergence_coefficient"  : 1.0,
-            "slip_augmentation_coefficient" : 1.0,
+            "slip_augmentation_coefficient" : 0.0,
+            "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "clear_inactive_for_post"       : true,
@@ -69,7 +69,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
-                "normal_orientation_threshold"        : 0.0,
+                "normal_orientation_threshold"        : 1.0e-1,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -78,6 +78,7 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
                     "bounding_box_factor"             : 0.1,
                     "debug_obb"                       : false,
                     "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "build_from_bounding_box"         : true,
                     "lower_bounding_box_coefficient"  : 0.0,
                     "higher_bounding_box_coefficient" : 1.0
                 }
@@ -173,9 +174,9 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
 
             # Calling for the active set utilities (to activate deactivate nodes)
             if self.contact_settings["contact_type"].GetString() == "Frictionless":
-                CSMA.ComputePenaltyFrictionlessActiveSet(self.computing_model_part)
+                CSMA.ActiveSetUtilities.ComputePenaltyFrictionlessActiveSet(self.computing_model_part)
             else:
-                CSMA.ComputePenaltyFrictionalActiveSet(self.computing_model_part)
+                CSMA.ActiveSetUtilities.ComputePenaltyFrictionalActiveSet(self.computing_model_part)
 
             # Activate/deactivate conditions
             CSMA.ContactUtilities.ActivateConditionWithActiveNodes(self.computing_model_part)

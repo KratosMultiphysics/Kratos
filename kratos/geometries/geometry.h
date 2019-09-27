@@ -2710,19 +2710,18 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
+    ///@name Geometry Data
     ///@{
 
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
+    /**
+    * @brief updates the pointer to GeometryData of the
+    *        respective geometry.
+    * @param pGeometryData pointer to const GeometryData.
+    */
+    void SetGeometryData(GeometryData const* pGeometryData)
+    {
+        mpGeometryData = pGeometryData;
+    }
 
     ///@}
     ///@name Protected Operations
