@@ -154,6 +154,9 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
             if now - self.last_flush > self.flush_frequency:
                 sys.stdout.flush()
                 self.last_flush = now
+        
+        AAA = romapp.CalculateMeanTemperature(self._GetSolver().GetComputingModelPart())
+        AAA.Execute()
 
         ##############################################################################################
 
