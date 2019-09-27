@@ -30,7 +30,20 @@ FixFreeVelocityOnNodesProcess::FixFreeVelocityOnNodesProcess(
 
 void FixFreeVelocityOnNodesProcess::Execute() 
 {
-
+    const auto& it_node_begin = mrModelPart.NodesBegin();
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+        auto it_node = it_node_begin + i;
+        if (mFreeOrFix == "Fix") {
+            it_node->Fix(VELOCITY_X);
+            it_node->Fix(VELOCITY_Y);
+            it_node->Fix(VELOCITY_Z);
+        } else {
+            it_node->Free(VELOCITY_X);
+            it_node->Free(VELOCITY_Y);
+            it_node->Free(VELOCITY_Z);
+        }
+    }
 }
 
 /***********************************************************************************/
