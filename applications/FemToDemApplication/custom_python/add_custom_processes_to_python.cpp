@@ -34,6 +34,7 @@
 #include "custom_processes/regenerate_pfem_pressure_conditions_process.h"
 #include "custom_processes/update_pressure_value_pfem_conditions_process.h"
 #include "custom_processes/fix_free_velocity_on_nodes_process.h"
+#include "custom_processes/remove_alone_DEM_elements_process.h"
 
 
 namespace Kratos
@@ -118,6 +119,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
     class_<FixFreeVelocityOnNodesProcess, FixFreeVelocityOnNodesProcess::Pointer, Process>(m, "FixFreeVelocityOnNodesProcess")
         .def(init<ModelPart &, const std::string&>())
         .def("Execute", &FixFreeVelocityOnNodesProcess::Execute);
+
+    class_<RemoveAloneDEMElementsProcess, RemoveAloneDEMElementsProcess::Pointer, Process>(m, "ComputeSandProduction")
+        .def(init<ModelPart &>())
+        .def("Execute", &RemoveAloneDEMElementsProcess::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos
