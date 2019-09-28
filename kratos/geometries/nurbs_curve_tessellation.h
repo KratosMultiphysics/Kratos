@@ -7,10 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Andreas Apostolatos
-//					 Tobias Teschemacher
-//					 Thomas Oberbichler
-//					
+//  Main authors:    Thomas Oberbichler
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
@@ -35,6 +32,8 @@ public:
 
     ///@name Type Definitions
     ///@{
+
+    using Vector = array_1d<double, TWorkingSpaceDimension>;
 
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
     typedef NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType> NurbsCurveGeometryType;
@@ -63,6 +62,7 @@ public:
     NurbsCurveTessellation()
     {
     }
+
 
     /** 
     * @brief This method tessellates a curve and stores the tessellation in the class
@@ -100,7 +100,7 @@ public:
     * @return std::map<double, typename GeometryType::CoordinatesArrayType> with the coordinates in local and working space
     * @see ANurbs library (https://github.com/oberbichler/ANurbs)
     */
-	static std::vector<std::pair<double, Vector>> ComputeTessellation(
+    static std::map<double, typename GeometryType::CoordinatesArrayType> ComputeTessellation(
         typename GeometryType::Pointer pGeometry,
         int PolynomialDegree,
         Interval DomainInterval,
@@ -108,8 +108,8 @@ public:
         const double Tolerance
         )
     {
-		static std::vector<std::pair<double, Vector>> sample_points;
-		static std::vector<std::pair<double, Vector>> points;
+        static std::map<double, typename GeometryType::CoordinatesArrayType> sample_points;
+        static std::map<double, typename GeometryType::CoordinatesArrayType> points;
 
         typename GeometryType::CoordinatesArrayType point;
         typename GeometryType::CoordinatesArrayType result;
@@ -129,7 +129,8 @@ public:
             
             point = pGeometry->GlobalCoordinates(result, t0);
 
-            sample_points.emplace_back(t, point);
+            // sample_points.emplace_back(t, point);
+            sample_points.insert(std::pair<double, typename GeometryType::CoordinatesArrayType>(t, point));
         }
 
         typename GeometryType::CoordinatesArrayType t_at_normalized;
@@ -137,44 +138,39 @@ public:
 
         point = pGeometry->GlobalCoordinates(result, t_at_normalized);
 
-		sample_points.emplace_back(1.0, point);
-
-		std::sort(std::begin(sample_points), std::end(sample_points),
-			[](auto const& lhs, auto const& rhs) {
-				return std::get<0>(lhs) > std::get<0>(rhs);
-			}
-		);
+        sample_points.insert(std::pair<double, typename GeometryType::CoordinatesArrayType>(1.0, point));
 
         // compute polyline
 
         const int n = PolynomialDegree * 2 + 1;
 
         while (true) {
-            const auto parameter_point_a = sample_points.back();
-			
-			const auto t_a = std::get<0>(parameter_point_a);
-			const auto point_a = std::get<1>(parameter_point_a);
+            const auto parameter_point_a = *sample_points.rbegin();
 
-			sample_points.pop_back();
+            const auto t_a = std::get<0>(parameter_point_a);
+            const auto point_a = std::get<1>(parameter_point_a);
 
-			points.emplace_back(DomainInterval.GetParameterAtNormalized(t_a), point_a);
+            // sample_points.pop_back();
+            sample_points.erase(std::prev(sample_points.end()));
+
+            points.insert(std::pair<double, typename GeometryType::CoordinatesArrayType>(DomainInterval.GetParameterAtNormalized(t_a), point_a));
 
             if (sample_points.size() == 0) {
                 break;
             }
 
             while (true) {
-				const auto parameter_point_b = sample_points.back();
+                const auto parameter_point_b = *sample_points.rbegin();
 
-				const auto t_b = std::get<0>(parameter_point_b);
-				const auto point_b = std::get<1>(parameter_point_b);
+                const auto t_b = std::get<0>(parameter_point_b);
+                const auto point_b = std::get<1>(parameter_point_b);
 
                 double max_distance {0};
-				std::pair<double, Vector> max_point;
+                std::pair<double, typename GeometryType::CoordinatesArrayType> max_point;
 
                 for (int i = 1; i <= n; i++) {
                     const double t = Interval::GetParameterAtNormalized(t_a,
-                        t_b, i / (double(n) + 1.0));
+                        t_b, i / double(n + 1));
 
                     t_at_normalized[0] = DomainInterval.GetParameterAtNormalized(t);
 
@@ -194,7 +190,7 @@ public:
                     break;
                 }
 
-				sample_points.push_back(max_point);
+                sample_points.insert(max_point);
             }
         }
 
@@ -209,7 +205,7 @@ public:
     ///@name Private Member Variables
     ///@{
 
-		std::vector<std::pair<double, Vector>> mTesselation;
+    static std::map<double, typename GeometryType::CoordinatesArrayType> mTesselation;
 
     ///@}
     ///@name Private Operations

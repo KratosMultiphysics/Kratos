@@ -7,10 +7,9 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Andreas Apostolatos
-//					 Tobias Teschemacher
-//					 Thomas Oberbichler
-//                   
+//  Main authors:    Thomas Oberbichler
+//                   Tobias Teschemacher
+//                   Andreas Apostolatos
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
@@ -67,7 +66,8 @@ namespace Testing {
             geometry->KnotSpanIntervals(), 
             1e-2);
 
-		std::vector<std::pair<double, Vector>>::iterator it;
+        std::map<double, array_1d<double, 3>>::iterator it;
+        // std::vector<std::pair<double, array_1d<double, 3>>>::iterator it;
 
         double point_expected[17][3] = {{0.0, 0.0,  0.0}, 
                                         {0.125, 0.2421875,  0.21875},
@@ -88,8 +88,8 @@ namespace Testing {
                                         {2.0, 3.0, -1.0}};
 
         unsigned counter = 0;
-		for (it = tessellation.begin(); it != tessellation.end(); it++) {
-			KRATOS_CHECK_NEAR(it->first,point_expected[counter][0], TOLERANCE);
+        for (it = tessellation.begin(); it != tessellation.end(); it++) {
+            KRATOS_CHECK_NEAR(it->first,point_expected[counter][0], TOLERANCE);
             KRATOS_CHECK_VECTOR_NEAR(it->second, Point(point_expected[counter][1], point_expected[counter][2]), TOLERANCE)
             counter++;
         }
