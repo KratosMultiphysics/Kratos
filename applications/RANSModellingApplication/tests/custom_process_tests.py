@@ -283,7 +283,8 @@ class CustomProcessTest(UnitTest.TestCase):
                 self.assertAlmostEqual(node_value[i], value[i], 9)
 
     def testWallDistanceCalculationProcess(self):
-        self.__CreateModel()
+        self.__CreateModel(
+            variable_list=[Kratos.DISTANCE, Kratos.FLAG_VARIABLE])
 
         settings = Kratos.Parameters(r'''
         [
@@ -419,7 +420,6 @@ class CustomProcessTest(UnitTest.TestCase):
             }
         ]''')
 
-
         factory = KratosProcessFactory(self.model)
         self.process_list = factory.ConstructListOfProcesses(settings)
         self.__ExecuteProcesses()
@@ -427,7 +427,8 @@ class CustomProcessTest(UnitTest.TestCase):
         c_mu = 0.09
         for node in self.model_part.Nodes:
             k = node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY)
-            epsilon = node.GetSolutionStepValue(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
+            epsilon = node.GetSolutionStepValue(
+                KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
             node_value = node.GetSolutionStepValue(Kratos.TURBULENT_VISCOSITY)
             print(node_value, k, epsilon)
             self.assertAlmostEqual(node_value, c_mu * k * k / epsilon, 9)
@@ -442,19 +443,20 @@ class CustomProcessTest(UnitTest.TestCase):
 #   .----.------.
 #   1    2      3
 
-    def __CreateModel(self):
+    def __CreateModel(
+            self,
+            variable_list=[
+                Kratos.VELOCITY, Kratos.NORMAL, Kratos.DENSITY,
+                Kratos.KINEMATIC_VISCOSITY, Kratos.DISTANCE,
+                Kratos.FLAG_VARIABLE, Kratos.TURBULENT_VISCOSITY,
+                KratosRANS.RANS_Y_PLUS, KratosRANS.TURBULENT_KINETIC_ENERGY,
+                KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE
+            ]):
         self.model = Kratos.Model()
         self.model_part = self.model.CreateModelPart("test")
-        self.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
-        self.model_part.AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
-        self.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
-        self.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
-        self.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
+        for variable in variable_list:
+            self.model_part.AddNodalSolutionStepVariable(variable)
+
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
         self.model_part.CreateNewNode(3, 2.0, 0.0, 0.0)
@@ -503,24 +505,35 @@ class CustomProcessTest(UnitTest.TestCase):
             vector[0] = random.random()
             vector[1] = random.random()
             vector[2] = random.random()
-            vector = node.SetSolutionStepValue(Kratos.VELOCITY, 0, vector)
+            if (node.SolutionStepsDataHas(Kratos.VELOCITY)):
+                vector = node.SetSolutionStepValue(Kratos.VELOCITY, 0, vector)
 
             vector = Kratos.Vector(3)
             vector[0] = random.random()
             vector[1] = random.random()
             vector[2] = random.random()
-            vector = node.SetSolutionStepValue(Kratos.NORMAL, 0, vector)
+            if (node.SolutionStepsDataHas(Kratos.NORMAL)):
+                vector = node.SetSolutionStepValue(Kratos.NORMAL, 0, vector)
 
             scalar = random.random()
-            node.SetSolutionStepValue(Kratos.DENSITY, 0, scalar)
+            if (node.SolutionStepsDataHas(Kratos.DENSITY)):
+                node.SetSolutionStepValue(Kratos.DENSITY, 0, scalar)
 
             scalar = random.random() * 1e-3
-            node.SetSolutionStepValue(Kratos.KINEMATIC_VISCOSITY, 0, scalar)
+            if (node.SolutionStepsDataHas(Kratos.KINEMATIC_VISCOSITY)):
+                node.SetSolutionStepValue(Kratos.KINEMATIC_VISCOSITY, 0,
+                                          scalar)
 
             scalar = random.random()
-            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY, 0, scalar)
+            if (node.SolutionStepsDataHas(
+                    KratosRANS.TURBULENT_KINETIC_ENERGY)):
+                node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY,
+                                          0, scalar)
             scalar = random.random()
-            node.SetSolutionStepValue(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 0, scalar)
+            if (node.SolutionStepsDataHas(
+                    KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)):
+                node.SetSolutionStepValue(
+                    KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 0, scalar)
 
     def __ExecuteProcesses(self):
         for process in self.process_list:
