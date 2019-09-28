@@ -336,33 +336,6 @@ class CustomProcessTest(UnitTest.TestCase):
             {
                 "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
                 "python_module" : "apply_custom_process",
-                "process_name"  : "ApplyFlagProcess",
-                "Parameters" : {
-                    "model_part_name"                : "test.submodelpart_1",
-                    "echo_level"                     : 0,
-                    "flag_variable_name"             : "STRUCTURE",
-                    "flag_variable_value"            : true,
-                    "apply_to_model_part_conditions" : "all"
-                }
-            },
-            {
-                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
-                "process_name"  : "WallDistanceCalculationProcess",
-                "Parameters" :             {
-                    "model_part_name"          : "test",
-                    "max_iterations"           : 1000,
-                    "echo_level"               : 0,
-                    "wall_flag_variable_name"  : "STRUCTURE",
-                    "wall_flag_variable_value" : true,
-                    "linear_solver_settings" : {
-                        "solver_type"     : "amgcl"
-                    }
-                }
-            },
-            {
-                "kratos_module" : "KratosMultiphysics.RANSModellingApplication",
-                "python_module" : "apply_custom_process",
                 "process_name"  : "LogarithmicYPlusCalculationProcess",
                 "Parameters" :             {
                     "model_part_name" : "test",
@@ -377,6 +350,9 @@ class CustomProcessTest(UnitTest.TestCase):
                 }
             }
         ]''')
+
+        # for node, distance in zip(self.model_part.Nodes, distance_value):
+        #     node.SetSolutionStepValue(Kratos.DISTANCE, 0, distance)
 
         factory = KratosProcessFactory(self.model)
         self.process_list = factory.ConstructListOfProcesses(settings)
@@ -534,6 +510,10 @@ class CustomProcessTest(UnitTest.TestCase):
                     KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)):
                 node.SetSolutionStepValue(
                     KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 0, scalar)
+
+            scalar = random.random()
+            if (node.SolutionStepsDataHas(Kratos.DISTANCE)):
+                node.SetSolutionStepValue(Kratos.DISTANCE, 0, scalar)
 
     def __ExecuteProcesses(self):
         for process in self.process_list:
