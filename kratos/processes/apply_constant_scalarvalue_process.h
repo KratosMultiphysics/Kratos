@@ -262,9 +262,7 @@ public:
 
 
     /// Execute method is used to execute the ApplyConstantScalarValueProcess algorithms.
-    void Execute() override {
-        ExecuteInitialize();
-    }
+    void Execute() override {}
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
