@@ -45,19 +45,19 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GenericResidualBasedSimpleSteadyScalarScheme);
 
-    typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
+    using BaseType =  Scheme<TSparseSpace, TDenseSpace>;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    typedef Element::GeometryType GeometryType;
+    using GeometryType = Element::GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -358,8 +358,8 @@ private:
 
     VtkOutput* mVtkOutput;
 
-    typedef RelaxedDofUpdater<TSparseSpace> DofUpdaterType;
-    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
+    using DofUpdaterType = RelaxedDofUpdater<TSparseSpace>;
+    using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
 
     DofUpdaterPointerType mpDofUpdater = Kratos::make_unique<DofUpdaterType>();
 

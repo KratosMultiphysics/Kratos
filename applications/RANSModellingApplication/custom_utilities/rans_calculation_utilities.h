@@ -49,10 +49,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(RansCalculationUtilities);
 
     /// Node type
-    typedef ModelPart::NodeType NodeType;
+    using NodeType = ModelPart::NodeType;
 
     /// Geometry type (using with given NodeType)
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     ///@}
     ///@name Life Cycle

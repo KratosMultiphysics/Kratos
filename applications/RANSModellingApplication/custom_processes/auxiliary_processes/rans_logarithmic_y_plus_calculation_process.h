@@ -83,7 +83,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using NodeType = ModelPart::NodeType;
 
     /// Pointer definition of RansLogarithmicYPlusCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansLogarithmicYPlusCalculationProcess);

@@ -72,25 +72,14 @@ public:
     /// Pointer definition of RansEvmVmsMonolithicWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmVmsMonolithicWallCondition);
 
-    typedef MonolithicWallCondition<TDim, TNumNodes> BaseType;
-
-    typedef Node<3> NodeType;
-
-    typedef Properties PropertiesType;
-
-    typedef Geometry<NodeType> GeometryType;
-
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-
-    typedef Vector VectorType;
-
-    typedef Matrix MatrixType;
-
-    typedef std::size_t IndexType;
-
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
+    using BaseType = MonolithicWallCondition<TDim, TNumNodes>;
+    using NodeType = Node<3>;
+    using PropertiesType = Properties;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -229,7 +218,7 @@ public:
 
         const GeometryType& r_geometry = this->GetGeometry();
 
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
         {
             const NodeType& r_node = r_geometry[i_node];
 
@@ -365,7 +354,7 @@ protected:
                         // f(utau) = utau*(1/kappa * log(y*utau/nu) + B) - wall_vel = 0
                         // note that f'(utau) = 1/kappa * log(y*utau/nu) + B + 1/kappa
 
-                        unsigned int iter = 0;
+                        IndexType iter = 0;
                         double dx = 1e10;
                         const double tol = 1e-6;
                         double uplus = Ikappa * log(yplus) + B;

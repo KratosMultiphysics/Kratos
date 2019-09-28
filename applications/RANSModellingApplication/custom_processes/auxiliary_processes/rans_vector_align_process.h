@@ -57,7 +57,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using NodeType = ModelPart::NodeType;
 
     /// Pointer definition of RansVectorAlignProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansVectorAlignProcess);

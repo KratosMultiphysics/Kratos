@@ -31,35 +31,39 @@ void AddCustomSolvingProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
     // Adding solving strategies
-    typedef ScalarCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> ScalarCoSolvingProcessType;
+    using ScalarCoSolvingProcessType =
+        ScalarCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     py::class_<ScalarCoSolvingProcessType, ScalarCoSolvingProcessType::Pointer, Process>(
         m, "ScalarCoSolvingProcess")
         .def(py::init<ModelPart&, Parameters&, Variable<double>&>())
         .def("AddStrategy", &ScalarCoSolvingProcessType::AddStrategy)
         .def("AddAuxiliaryProcess", &ScalarCoSolvingProcessType::AddAuxiliaryProcess);
 
-    typedef KEpsilonCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType> KEpsilonCoSolvingProcessType;
+    using KEpsilonCoSolvingProcessType =
+        KEpsilonCoSolvingProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     py::class_<KEpsilonCoSolvingProcessType, KEpsilonCoSolvingProcessType::Pointer, ScalarCoSolvingProcessType, Process>(
         m, "KEpsilonCoSolvingProcess")
         .def(py::init<ModelPart&, Parameters&>());
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> MPISparseSpaceType;
-    typedef LinearSolver<MPISparseSpaceType, LocalSpaceType> MPILinearSolverType;
+    using MPISparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
+    using MPILinearSolverType = LinearSolver<MPISparseSpaceType, LocalSpaceType>;
 
-    typedef ScalarCoSolvingProcess<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType> MPIScalarCoSolvingProcessType;
+    using MPIScalarCoSolvingProcessType =
+        ScalarCoSolvingProcess<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
     py::class_<MPIScalarCoSolvingProcessType, MPIScalarCoSolvingProcessType::Pointer, Process>(
         m, "MPIScalarCoSolvingProcess")
         .def(py::init<ModelPart&, Parameters&, Variable<double>&>())
         .def("AddStrategy", &MPIScalarCoSolvingProcessType::AddStrategy)
         .def("AddAuxiliaryProcess", &MPIScalarCoSolvingProcessType::AddAuxiliaryProcess);
 
-    typedef KEpsilonCoSolvingProcess<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType> MPIKEpsilonCoSolvingProcessType;
+    using MPIKEpsilonCoSolvingProcessType =
+        KEpsilonCoSolvingProcess<MPISparseSpaceType, LocalSpaceType, MPILinearSolverType>;
     py::class_<MPIKEpsilonCoSolvingProcessType, MPIKEpsilonCoSolvingProcessType::Pointer, MPIScalarCoSolvingProcessType, Process>(
         m, "MPIKEpsilonCoSolvingProcess")
         .def(py::init<ModelPart&, Parameters&>());

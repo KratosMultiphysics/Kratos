@@ -56,8 +56,8 @@ namespace Kratos
 /**
  * @brief Epsilon Neumann wall condition
  *
- * This is a Neumann wall condition for $\epsilon$ equation in $k-\epsilon$ formulation of RANS
- * based on eddy viscosity model formulation.
+ * This is a Neumann wall condition for $\epsilon$ equation in $k-\epsilon$
+ * formulation of RANS based on eddy viscosity model formulation.
  *
  * @tparam TNumNodes Number of nodes in the wall condition
  */
@@ -72,23 +72,15 @@ public:
     /// Pointer definition of RansEvmEpsilonWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(RansEvmEpsilonWallCondition);
 
-    typedef Node<3> NodeType;
-
-    typedef Properties PropertiesType;
-
-    typedef Geometry<NodeType> GeometryType;
-
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-
-    typedef Vector VectorType;
-
-    typedef Matrix MatrixType;
-
-    typedef std::size_t IndexType;
-
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
+    using NodeType = Node<3>;
+    using PropertiesType = Properties;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
+    using IndexType = std::size_t;
+    using EquationIdVectorType = std::vector<IndexType>;
+    using DofsVectorType = std::vector<Dof<double>::Pointer>;
 
     ///@}
     ///@name Life Cycle
@@ -129,8 +121,8 @@ public:
      @param pProperties Pointer to the element's properties
      */
     RansEvmEpsilonWallCondition(IndexType NewId,
-                            GeometryType::Pointer pGeometry,
-                            PropertiesType::Pointer pProperties)
+                                GeometryType::Pointer pGeometry,
+                                PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
     {
     }
@@ -287,7 +279,7 @@ public:
         // Get Shape function data
         const GeometryType::IntegrationPointsArrayType& integration_points =
             r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const std::size_t num_gauss_points = integration_points.size();
+        const IndexType num_gauss_points = integration_points.size();
         MatrixType shape_functions =
             r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
@@ -300,7 +292,7 @@ public:
             rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
         const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
         const double eps = std::numeric_limits<double>::epsilon();
-        for (unsigned int g = 0; g < num_gauss_points; g++)
+        for (IndexType g = 0; g < num_gauss_points; g++)
         {
             const Vector& gauss_shape_functions = row(shape_functions, g);
             const double weight = J * integration_points[g].Weight();
@@ -323,9 +315,9 @@ public:
                 const double value =
                     weight * (nu + nu_t / epsilon_sigma) * u_tau / (y_plus * nu);
 
-                for (unsigned int a = 0; a < TNumNodes; ++a)
+                for (IndexType a = 0; a < TNumNodes; ++a)
                 {
-                    for (unsigned int b = 0; b < TNumNodes; ++b)
+                    for (IndexType b = 0; b < TNumNodes; ++b)
                     {
                         rDampingMatrix(a, b) -= gauss_shape_functions[a] *
                                                 gauss_shape_functions[b] * value;
@@ -354,7 +346,7 @@ public:
 
         const GeometryType& r_geometry = this->GetGeometry();
 
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
         {
             const NodeType& r_node = r_geometry[i_node];
 
@@ -382,7 +374,7 @@ public:
         if (rResult.size() != TNumNodes)
             rResult.resize(TNumNodes, false);
 
-        for (unsigned int i = 0; i < TNumNodes; i++)
+        for (IndexType i = 0; i < TNumNodes; i++)
             rResult[i] = Condition::GetGeometry()[i]
                              .GetDof(TURBULENT_ENERGY_DISSIPATION_RATE)
                              .EquationId();
@@ -398,7 +390,7 @@ public:
         if (ConditionDofList.size() != TNumNodes)
             ConditionDofList.resize(TNumNodes);
 
-        for (unsigned int i = 0; i < TNumNodes; i++)
+        for (IndexType i = 0; i < TNumNodes; i++)
             ConditionDofList[i] =
                 Condition::GetGeometry()[i].pGetDof(TURBULENT_ENERGY_DISSIPATION_RATE);
     }

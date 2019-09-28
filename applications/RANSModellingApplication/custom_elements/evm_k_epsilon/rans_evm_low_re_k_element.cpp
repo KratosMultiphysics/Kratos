@@ -51,7 +51,8 @@ RansEvmLowReKElement<TDim, TNumNodes>::RansEvmLowReKElement(IndexType NewId)
  * Constructor using an array of nodes
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmLowReKElement<TDim, TNumNodes>::RansEvmLowReKElement(IndexType NewId, const NodesArrayType& ThisNodes)
+RansEvmLowReKElement<TDim, TNumNodes>::RansEvmLowReKElement(IndexType NewId,
+                                                            const NodesArrayType& ThisNodes)
     : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReKElementData>(
           NewId, ThisNodes)
 {
@@ -61,7 +62,8 @@ RansEvmLowReKElement<TDim, TNumNodes>::RansEvmLowReKElement(IndexType NewId, con
  * Constructor using Geometry
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmLowReKElement<TDim, TNumNodes>::RansEvmLowReKElement(IndexType NewId, GeometryType::Pointer pGeometry)
+RansEvmLowReKElement<TDim, TNumNodes>::RansEvmLowReKElement(IndexType NewId,
+                                                            GeometryType::Pointer pGeometry)
     : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReKElementData>(
           NewId, pGeometry)
 {
@@ -72,8 +74,8 @@ RansEvmLowReKElement<TDim, TNumNodes>::RansEvmLowReKElement(IndexType NewId, Geo
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 RansEvmLowReKElement<TDim, TNumNodes>::RansEvmLowReKElement(IndexType NewId,
-                                                    GeometryType::Pointer pGeometry,
-                                                    PropertiesType::Pointer pProperties)
+                                                            GeometryType::Pointer pGeometry,
+                                                            PropertiesType::Pointer pProperties)
     : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReKElementData>(
           NewId, pGeometry, pProperties)
 {
@@ -128,9 +130,8 @@ RansEvmLowReKElement<TDim, TNumNodes>& RansEvmLowReKElement<TDim, TNumNodes>::op
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer RansEvmLowReKElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                           NodesArrayType const& ThisNodes,
-                                                           PropertiesType::Pointer pProperties) const
+Element::Pointer RansEvmLowReKElement<TDim, TNumNodes>::Create(
+    IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmLowReKElement>(
@@ -146,9 +147,8 @@ Element::Pointer RansEvmLowReKElement<TDim, TNumNodes>::Create(IndexType NewId,
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer RansEvmLowReKElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                           GeometryType::Pointer pGeom,
-                                                           PropertiesType::Pointer pProperties) const
+Element::Pointer RansEvmLowReKElement<TDim, TNumNodes>::Create(
+    IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmLowReKElement>(NewId, pGeom, pProperties);
@@ -164,7 +164,7 @@ Element::Pointer RansEvmLowReKElement<TDim, TNumNodes>::Create(IndexType NewId,
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer RansEvmLowReKElement<TDim, TNumNodes>::Clone(IndexType NewId,
-                                                          NodesArrayType const& ThisNodes) const
+                                                              NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmLowReKElement>(
@@ -180,7 +180,7 @@ Element::Pointer RansEvmLowReKElement<TDim, TNumNodes>::Clone(IndexType NewId,
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmLowReKElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                         ProcessInfo& CurrentProcessInfo)
+                                                             ProcessInfo& CurrentProcessInfo)
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
@@ -196,7 +196,7 @@ void RansEvmLowReKElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorTyp
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmLowReKElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                   ProcessInfo& rCurrentProcessInfo)
+                                                       ProcessInfo& rCurrentProcessInfo)
 {
     if (rElementalDofList.size() != TNumNodes)
         rElementalDofList.resize(TNumNodes);
@@ -434,18 +434,16 @@ void RansEvmLowReKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReaction
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmLowReKElement<TDim, TNumNodes>::CalculateReactionTerm(const RansEvmLowReKElementData& rData,
-                                                                const ProcessInfo& rCurrentProcessInfo,
-                                                                const int Step) const
+double RansEvmLowReKElement<TDim, TNumNodes>::CalculateReactionTerm(
+    const RansEvmLowReKElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
 {
     return 2.0 * rData.KinematicViscosity / std::pow(rData.WallDistance, 2) +
            rData.Gamma;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double RansEvmLowReKElement<TDim, TNumNodes>::CalculateSourceTerm(const RansEvmLowReKElementData& rData,
-                                                              const ProcessInfo& rCurrentProcessInfo,
-                                                              const int Step) const
+double RansEvmLowReKElement<TDim, TNumNodes>::CalculateSourceTerm(
+    const RansEvmLowReKElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
 {
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
     this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);

@@ -47,21 +47,21 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBossakVelocityScheme);
 
-    typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
+    using BaseType = Scheme<TSparseSpace, TDenseSpace>;
 
-    typedef typename BaseType::TSystemMatrixType SystemMatrixType;
+    using SystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType SystemVectorType;
+    using SystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef ModelPart::NodeType NodeType;
+    using NodeType = ModelPart::NodeType;
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -226,8 +226,6 @@ public:
         (pCurrentCondition)->CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentCondition)->CalculateLocalVelocityContribution(mDampingMatrix[k], rRHS_Contribution, rCurrentProcessInfo);
         (pCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
-
-
 
         if (mUpdateAcceleration)
         {
@@ -523,8 +521,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    typedef RelaxedDofUpdater<TSparseSpace> DofUpdaterType;
-    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
+    using DofUpdaterType = RelaxedDofUpdater<TSparseSpace>;
+    using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
 
     DofUpdaterPointerType mpDofUpdater = Kratos::make_unique<DofUpdaterType>();
 

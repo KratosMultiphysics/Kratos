@@ -35,9 +35,8 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "rans_modelling_application_variables.h"
 #include "scalar_co_solving_process.h"
-#include "scalar_co_solving_utilities.h"
 
-//debugging
+// debugging
 #include "input_output/vtk_output.h"
 
 namespace Kratos
@@ -64,11 +63,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef ScalarCoSolvingProcess<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    using BaseType = ScalarCoSolvingProcess<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef ModelPart::NodeType NodeType;
+    using NodeType = ModelPart::NodeType;
 
-    typedef ModelPart::NodesContainerType NodesContainerType;
+    using NodesContainerType = ModelPart::NodesContainerType;
 
     /// Pointer definition of KEpsilonCoSolvingProcess
     KRATOS_CLASS_POINTER_DEFINITION(KEpsilonCoSolvingProcess);
@@ -78,10 +77,10 @@ public:
     ///@{
 
     /// Constructor.
-    KEpsilonCoSolvingProcess(ModelPart& rModelPart,
-                             Parameters& rParameters)
+    KEpsilonCoSolvingProcess(ModelPart& rModelPart, Parameters& rParameters)
         : BaseType(rModelPart, rParameters, TURBULENT_VISCOSITY)
-    {}
+    {
+    }
 
     /// Destructor.
     ~KEpsilonCoSolvingProcess() override
@@ -210,9 +209,6 @@ private:
 
             r_node.FastGetSolutionStepValue(VISCOSITY) = nu_t + nu;
         }
-
-
-
     }
 
     ///@}

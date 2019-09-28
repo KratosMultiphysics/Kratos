@@ -52,7 +52,7 @@ RansEvmLowReEpsilonElement<TDim, TNumNodes>::RansEvmLowReEpsilonElement(IndexTyp
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 RansEvmLowReEpsilonElement<TDim, TNumNodes>::RansEvmLowReEpsilonElement(IndexType NewId,
-                                                                const NodesArrayType& ThisNodes)
+                                                                        const NodesArrayType& ThisNodes)
     : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData>(
           NewId, ThisNodes)
 {
@@ -63,7 +63,7 @@ RansEvmLowReEpsilonElement<TDim, TNumNodes>::RansEvmLowReEpsilonElement(IndexTyp
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 RansEvmLowReEpsilonElement<TDim, TNumNodes>::RansEvmLowReEpsilonElement(IndexType NewId,
-                                                                GeometryType::Pointer pGeometry)
+                                                                        GeometryType::Pointer pGeometry)
     : StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData>(
           NewId, pGeometry)
 {
@@ -164,7 +164,7 @@ Element::Pointer RansEvmLowReEpsilonElement<TDim, TNumNodes>::Create(
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer RansEvmLowReEpsilonElement<TDim, TNumNodes>::Clone(IndexType NewId,
-                                                                NodesArrayType const& ThisNodes) const
+                                                                    NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmLowReEpsilonElement>(
@@ -180,7 +180,7 @@ Element::Pointer RansEvmLowReEpsilonElement<TDim, TNumNodes>::Clone(IndexType Ne
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmLowReEpsilonElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                               ProcessInfo& CurrentProcessInfo)
+                                                                   ProcessInfo& CurrentProcessInfo)
 {
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
@@ -197,7 +197,7 @@ void RansEvmLowReEpsilonElement<TDim, TNumNodes>::EquationIdVector(EquationIdVec
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                         ProcessInfo& rCurrentProcessInfo)
+                                                             ProcessInfo& rCurrentProcessInfo)
 {
     if (rElementalDofList.size() != TNumNodes)
         rElementalDofList.resize(TNumNodes);
@@ -215,7 +215,7 @@ void RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetValuesVector(VectorType& rV
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetFirstDerivativesVector(VectorType& rValues,
-                                                                        int Step)
+                                                                            int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -231,7 +231,7 @@ void RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vect
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmLowReEpsilonElement<TDim, TNumNodes>::GetSecondDerivativesVector(VectorType& rValues,
-                                                                         int Step)
+                                                                             int Step)
 {
     if (rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
@@ -454,7 +454,9 @@ void RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionRe
 
 template <unsigned int TDim, unsigned int TNumNodes>
 double RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateReactionTerm(
-    const RansEvmLowReEpsilonElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
+    const RansEvmLowReEpsilonElementData& rData,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
 {
     return rData.C2 * rData.F2 * rData.Gamma + 2.0 * rData.KinematicViscosity *
                                                    std::exp(-0.5 * rData.YPlus) /
@@ -463,7 +465,9 @@ double RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateReactionTerm(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 double RansEvmLowReEpsilonElement<TDim, TNumNodes>::CalculateSourceTerm(
-    const RansEvmLowReEpsilonElementData& rData, const ProcessInfo& rCurrentProcessInfo, const int Step) const
+    const RansEvmLowReEpsilonElementData& rData,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
 {
     BoundedMatrix<double, TDim, TDim> velocity_gradient_matrix;
     this->CalculateGradient(velocity_gradient_matrix, VELOCITY, rData.ShapeFunctionDerivatives);

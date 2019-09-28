@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "containers/global_pointers_vector.h"
 #include "containers/model.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utils.h"
@@ -59,7 +58,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using NodeType = ModelPart::NodeType;
 
     /// Pointer definition of RansScalarCellCenterAveragingProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansScalarCellCenterAveragingProcess);
