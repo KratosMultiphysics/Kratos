@@ -87,14 +87,6 @@ public:
         const Condition& rReferenceBoundaryCondition
     ) override;
 
-    void GenerateModelPart(
-        ModelPart& OriginModelPart,
-        ModelPart& DestinationModelPart,
-        const Element& rReferenceElement,
-        const Condition& rReferenceBoundaryCondition,
-        const Condition& rOriginalBoundaryCondition
-    ) override;
-
     /// Generate a copy of rOriginModelPart in rDestinationModelPart, using the given element type.
     /** This function fills rDestinationModelPart using data obtained from
      *  rOriginModelPart. The elements of rDestinationModelPart part use the
@@ -158,13 +150,6 @@ private:
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         const Condition& rReferenceBoundaryCondition
-    ) const;
-
-    void DuplicateConditions(
-        ModelPart& rOriginModelPart,
-        ModelPart& rDestinationModelPart,
-        const Condition& rReferenceBoundaryCondition,
-        const Condition& rOriginalBoundaryCondition
     ) const;
 
     void DuplicateCommunicatorData(

@@ -11,14 +11,25 @@ def CreateDuplicateModelPart(origin_modelpart, destination_modelpart_name,
 
     if not model.HasModelPart(destination_modelpart_name):
         model_part = model.CreateModelPart(destination_modelpart_name)
-        # TODO: Remove this line once the warnings from connectivity preserve modeller is gone
+
+        # TODO: Remove this line once the warnings from connectivity preserve modeller is gone, otherwise,
+        #       output will be cluttered with lots of missing variable warnings
         KratosRANS.RansVariableUtils().CopyNodalSolutionStepVariablesList(
             origin_modelpart, model_part)
 
+        # TODO: [PeriodicCondition]
+        #       Currently, all the conditions will be replaced with the given new condition. This is an issue
+        #       in the case of periodic cases in mpi, there we have to put PeriodicConditions in the mdpa file,
+        #       where MetisParitioner will use that condition list to properly partition it. Therefore, "original_condition_name"
+        #       is not used in this method at the moment.
+        #       Following is one of the proposals to make PeriodicConditions to work with connectivity_preserve_modeller.
+        # connectivity_preserve_modeler.GenerateModelPart(
+        #     origin_modelpart, model_part, element_name, condition_name,
+        #     original_condition_name + str(domain_size) + "D" + str(domain_size)
+        #     + "N")
+
         connectivity_preserve_modeler.GenerateModelPart(
-            origin_modelpart, model_part, element_name, condition_name,
-            original_condition_name + str(domain_size) + "D" + str(domain_size)
-            + "N")
+            origin_modelpart, model_part, element_name, condition_name)
 
     Kratos.Logger.PrintInfo("RANSModelPartFactory",
                             "Created " + destination_modelpart_name)
