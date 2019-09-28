@@ -42,21 +42,19 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(MPIGenericConvergenceCriteria);
 
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> BaseType;
+    using BaseType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
-    typedef TSparseSpace SparseSpaceType;
+    using SparseSpaceType = TSparseSpace;
 
-    typedef typename BaseType::TDataType TDataType;
+    using TDataType = typename BaseType::TDataType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef OpenMPUtils::PartitionVector PartitionVector;
-
-    typedef std::size_t KeyType;
+    using PartitionVector = OpenMPUtils::PartitionVector;
 
     ///@}
     ///@name Life Cycle

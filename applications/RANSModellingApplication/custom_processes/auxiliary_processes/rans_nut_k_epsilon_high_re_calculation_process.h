@@ -72,7 +72,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using NodeType = ModelPart::NodeType;
+
+    using NodesContainerType = ModelPart::NodesContainerType;
 
     /// Pointer definition of RansNutKEpsilonHighReCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansNutKEpsilonHighReCalculationProcess);

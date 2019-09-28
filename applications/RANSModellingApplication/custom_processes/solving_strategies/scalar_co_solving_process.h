@@ -56,7 +56,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> SolvingStrategyType;
+    using SolvingStrategyType = SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// Pointer definition of ScalarCoSolvingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ScalarCoSolvingProcess);

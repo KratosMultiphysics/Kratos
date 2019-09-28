@@ -76,10 +76,6 @@ void CalculateTurbulentValues(double& turbulent_kinetic_energy,
                               const double mixing_length,
                               const double c_mu);
 
-template <class NodeType>
-bool HasConditionWithFlag(const typename Geometry<NodeType>::GeometriesArrayType& rConditionsArray,
-                          const Flags& rFlag);
-
 } // namespace EvmKepsilonModelUtilities
 
 ///@}

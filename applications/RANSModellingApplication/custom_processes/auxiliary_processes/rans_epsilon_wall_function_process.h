@@ -58,7 +58,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using NodeType = ModelPart::NodeType;
 
     /// Pointer definition of RansEpsilonWallFunctionProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansEpsilonWallFunctionProcess);

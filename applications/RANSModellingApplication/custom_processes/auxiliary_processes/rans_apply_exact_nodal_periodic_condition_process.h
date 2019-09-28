@@ -77,7 +77,7 @@ public:
     /// Pointer definition of RansApplyExactNodalPeriodicConditionProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansApplyExactNodalPeriodicConditionProcess);
 
-    typedef ModelPart::NodeType NodeType;
+    using NodeType = ModelPart::NodeType;
 
     ///@}
     ///@name Life Cycle

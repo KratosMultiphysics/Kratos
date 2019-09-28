@@ -200,6 +200,24 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
         if is_periodic:
             self.__InitializePeriodicConditions(model_part, scalar_variable)
 
+        # TODO:
+        if is_periodic and self.is_distributed:
+            msg = "\nCurrently periodic conditions in mpi is not supported due to following reasons:\n\n"
+            msg += "    1. TrilinosResidualCriteria [ConvergenceCriterian]\n"
+            msg += "PeriodicConditions duplicates one patch's equation ids to the counter patch. "
+            msg += "The node and its corresponding dof might not fall in to the same partition raising an error in convergence calculation.\n\n"
+            msg += "    2. ConnectivityPreserveModeller\n"
+            msg += "Currently connectivity preserve modeller replaces all the conditions in an mdpa with given new condition. "
+            msg += "This modeller is used to create modelparts having k-epsilon elements and conditions while sharing the same nodes as in VMS solution. "
+            msg += "In the case of MPI, it is essential to have the PeriodicConditions in the mdpa file in order to properly distribute nodes to partitions using MetisApplication. "
+            msg += "But if this is the case, PeriodicConditions also will be replaced by k-epsilon specific conditions casuing a segmentation fault.\n"
+            msg += "    3. TrilinosBlockBuilderAndSolverPeriodic\n"
+            msg += "In the case of MPI periodic in 2D, problem uses TrilinosBlockBuilderAndSolverPeriodic block builder and solver, which identifies "
+            msg += "periodic conditions by number of nodes in the condition. So, In 2D all wall conditions and PeriodicConditions have only 2 nodes, all will be "
+            msg += "considered as PeriodicConditions and will make the global assembly accordingly which is wrong."
+            msg += "Therefore this error msg is printed in order to avoid confusion."
+            raise Exception(msg)
+
         builder_and_solver = self.__CreateBuilderAndSolver(
             linear_solver, is_periodic)
 

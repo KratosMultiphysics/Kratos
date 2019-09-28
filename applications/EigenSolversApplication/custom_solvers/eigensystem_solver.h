@@ -179,8 +179,6 @@ class EigensystemSolver
         typename TSolverType::TSolver solver;
         solver.compute(a);
 
-        KRATOS_ERROR_IF(solver.info() != Eigen::Success) << "EigensystemSolver: Linear solver failed before solving the eigenvalue system: " << solver.lastErrorMessage() << std::endl;
-
         int iteration = 0;
 
         Eigen::GeneralizedSelfAdjointEigenSolver<matrix_t> eig;

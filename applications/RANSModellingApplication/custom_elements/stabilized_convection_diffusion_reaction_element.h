@@ -18,15 +18,15 @@
 // External includes
 
 // Project includes
+#include "containers/array_1d.h"
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "rans_modelling_application_variables.h"
 #include "stabilized_convection_diffusion_reaction_utilities.h"
-#include "utilities/time_discretization.h"
-#include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
-#include "containers/array_1d.h"
+#include "utilities/time_discretization.h"
 
 namespace Kratos
 {
@@ -56,43 +56,33 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Element BaseType;
+    using BaseType = Element;
 
     /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    using NodeType = Node<3>;
 
     /// Geometry type (using with given NodeType)
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// Definition of nodes container type, redefined from GeometryType
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
     /// Vector type for local contributions to the linear system
-    typedef Vector VectorType;
+    using VectorType = Vector;
 
     /// Matrix type for local contributions to the linear system
-    typedef Matrix MatrixType;
+    using MatrixType = Matrix;
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
+    using EquationIdVectorType = std::vector<IndexType>;
 
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    /// Type for shape function values container
-    typedef MatrixRow<Matrix> ShapeFunctionsType;
-
-    /// Type for a matrix containing the shape function gradients
-    typedef Kratos::Matrix ShapeFunctionDerivativesType;
+    using DofsVectorType = std::vector<Dof<double>::Pointer>;
 
     /// Type for an array of shape function gradient matrices
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
 
-    typedef TConvectionDiffusionReactionData ConvectionDiffusionReactionDataType;
+    using ConvectionDiffusionReactionDataType = TConvectionDiffusionReactionData;
 
     ///@}
     ///@name Pointer Definitions
@@ -324,7 +314,7 @@ public:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const ShapeFunctionDerivativesArrayType& r_parameter_derivatives =
             this->GetGeometryParameterDerivatives();
-        const unsigned int num_gauss_points = gauss_weights.size();
+        const IndexType num_gauss_points = gauss_weights.size();
 
         const double delta_time = this->GetDeltaTime(rCurrentProcessInfo);
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
@@ -332,7 +322,7 @@ public:
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
         const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
 
-        for (unsigned int g = 0; g < num_gauss_points; g++)
+        for (IndexType g = 0; g < num_gauss_points; g++)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
@@ -359,15 +349,16 @@ public:
 
             double tau, element_length;
             StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
-                tau, element_length, velocity, contravariant_metric_tensor, reaction,
-                effective_kinematic_viscosity, bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
+                tau, element_length, velocity, contravariant_metric_tensor,
+                reaction, effective_kinematic_viscosity, bossak_alpha,
+                bossak_gamma, delta_time, dynamic_tau);
 
             BoundedVector<double, TNumNodes> velocity_convective_terms;
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
             const double s = std::abs(reaction);
 
-            for (unsigned int a = 0; a < TNumNodes; ++a)
+            for (IndexType a = 0; a < TNumNodes; ++a)
             {
                 double value = 0.0;
 
@@ -519,7 +510,7 @@ public:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const ShapeFunctionDerivativesArrayType& r_parameter_derivatives =
             this->GetGeometryParameterDerivatives();
-        const unsigned int num_gauss_points = gauss_weights.size();
+        const IndexType num_gauss_points = gauss_weights.size();
 
         const double delta_time = this->GetDeltaTime(rCurrentProcessInfo);
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
@@ -527,7 +518,7 @@ public:
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
         const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
 
-        for (unsigned int g = 0; g < num_gauss_points; g++)
+        for (IndexType g = 0; g < num_gauss_points; g++)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
@@ -557,14 +548,15 @@ public:
 
             double tau, element_length;
             StabilizedConvectionDiffusionReactionUtilities::CalculateStabilizationTau(
-                tau, element_length, velocity, contravariant_metric_tensor, reaction,
-                effective_kinematic_viscosity, bossak_alpha, bossak_gamma, delta_time, dynamic_tau);
+                tau, element_length, velocity, contravariant_metric_tensor,
+                reaction, effective_kinematic_viscosity, bossak_alpha,
+                bossak_gamma, delta_time, dynamic_tau);
 
             const double s = std::abs(reaction);
 
             // Add mass stabilization terms
-            for (unsigned int i = 0; i < TNumNodes; ++i)
-                for (unsigned int j = 0; j < TNumNodes; ++j)
+            for (IndexType i = 0; i < TNumNodes; ++i)
+                for (IndexType j = 0; j < TNumNodes; ++j)
                     rMassMatrix(i, j) +=
                         gauss_weights[g] * tau *
                         (velocity_convective_terms[i] + s * gauss_shape_functions[i]) *
@@ -596,7 +588,7 @@ public:
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const ShapeFunctionDerivativesArrayType& r_parameter_derivatives =
             this->GetGeometryParameterDerivatives();
-        const unsigned int num_gauss_points = gauss_weights.size();
+        const IndexType num_gauss_points = gauss_weights.size();
 
         const double delta_time = this->GetDeltaTime(rCurrentProcessInfo);
         const double bossak_alpha = rCurrentProcessInfo[BOSSAK_ALPHA];
@@ -604,7 +596,7 @@ public:
             TimeDiscretization::Bossak(bossak_alpha, 0.25, 0.5).GetGamma();
         const double dynamic_tau = rCurrentProcessInfo[DYNAMIC_TAU];
 
-        for (unsigned int g = 0; g < num_gauss_points; g++)
+        for (IndexType g = 0; g < num_gauss_points; g++)
         {
             const Matrix& r_shape_derivatives = shape_derivatives[g];
             const Vector gauss_shape_functions = row(shape_functions, g);
@@ -660,21 +652,24 @@ public:
 
                 double chi, k1, k2;
                 StabilizedConvectionDiffusionReactionUtilities::CalculateCrossWindDiffusionParameters(
-                    chi, k1, k2, velocity_magnitude, tau, effective_kinematic_viscosity,
-                    reaction, bossak_alpha, bossak_gamma, delta_time, element_length, dynamic_tau);
+                    chi, k1, k2, velocity_magnitude, tau,
+                    effective_kinematic_viscosity, reaction, bossak_alpha,
+                    bossak_gamma, delta_time, element_length, dynamic_tau);
 
-                stream_line_diffusion = residual * chi * k1 * (1.0 / velocity_magnitude_square);
-                cross_wind_diffusion = residual * chi * k2 * (1.0 / velocity_magnitude_square);
+                stream_line_diffusion =
+                    residual * chi * k1 * (1.0 / velocity_magnitude_square);
+                cross_wind_diffusion =
+                    residual * chi * k2 * (1.0 / velocity_magnitude_square);
             }
 
             const double s = std::abs(reaction);
 
-            for (unsigned int a = 0; a < TNumNodes; a++)
+            for (IndexType a = 0; a < TNumNodes; a++)
             {
-                for (unsigned int b = 0; b < TNumNodes; b++)
+                for (IndexType b = 0; b < TNumNodes; b++)
                 {
                     double dNa_dNb = 0.0;
-                    for (unsigned int i = 0; i < TDim; i++)
+                    for (IndexType i = 0; i < TDim; i++)
                         dNa_dNb += r_shape_derivatives(a, i) * r_shape_derivatives(b, i);
 
                     double value = 0.0;
@@ -707,41 +702,6 @@ public:
         }
 
         KRATOS_CATCH("");
-    }
-
-    /// Implementation of Calculate to compute an error estimate.
-    /**
-     * If rVariable == ERROR_RATIO, this function will provide an a posteriori
-     * estimate of the norm of the subscale velocity, calculated as TauOne*||MomentumResidual||.
-     * Note that the residual of the momentum equation is evaluated at the element center
-     * and that the result has units of velocity (L/T).
-     * The error estimate both saved as the elemental ERROR_RATIO variable and returned as rOutput.
-     * If rVARIABLE == NODAL_AREA, the element's contribution to nodal area is added to its nodes.
-     * @param rVariable Use ERROR_RATIO or NODAL_AREA
-     * @param rOutput Returns the error estimate for ERROR_RATIO, unused for NODAL_AREA
-     * @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
-     * @see MarkForRefinement for a use of the error ratio
-     */
-    void Calculate(const Variable<double>& rVariable,
-                   double& rOutput,
-                   const ProcessInfo& rCurrentProcessInfo) override
-    {
-        // if (rVariable == NODAL_AREA)
-        // {
-        //     // Get the element's geometric parameters
-        //     double Area;
-        //     array_1d<double, TNumNodes> N;
-        //     BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-        //     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-        //     // Carefully write results to nodal variables, to avoid parallelism problems
-        //     for (unsigned int i = 0; i < TNumNodes; ++i)
-        //     {
-        //         this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-        //         this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
-        //         this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
-        //     }
-        // }
     }
 
     /**
@@ -803,11 +763,11 @@ public:
         double value = 0.0;
         const GeometryType& r_geometry = this->GetGeometry();
 
-        for (unsigned int i = 0; i < TNumNodes; ++i)
+        for (IndexType i = 0; i < TNumNodes; ++i)
         {
             const array_1d<double, 3>& r_value =
                 r_geometry[i].FastGetSolutionStepValue(rVariable, Step);
-            for (unsigned int j = 0; j < TDim; ++j)
+            for (IndexType j = 0; j < TDim; ++j)
             {
                 value += r_value[j] * rShapeDerivatives(i, j);
             }
@@ -948,8 +908,8 @@ protected:
                                const Matrix& rShapeDerivatives) const
     {
         rOutput.clear();
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-            for (unsigned int j = 0; j < TDim; j++)
+        for (IndexType i = 0; i < TNumNodes; ++i)
+            for (IndexType j = 0; j < TDim; j++)
             {
                 rOutput[i] += rVector[j] * rShapeDerivatives(i, j);
             }
@@ -993,7 +953,7 @@ protected:
 
     void AddLumpedMassMatrix(MatrixType& rMassMatrix, const double Mass)
     {
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+        for (IndexType iNode = 0; iNode < TNumNodes; ++iNode)
             rMassMatrix(iNode, iNode) += Mass;
     }
 
@@ -1035,7 +995,7 @@ private:
         // }
         // else
         // {
-            return rProcessInfo[DELTA_TIME];
+        return rProcessInfo[DELTA_TIME];
         // }
     }
 

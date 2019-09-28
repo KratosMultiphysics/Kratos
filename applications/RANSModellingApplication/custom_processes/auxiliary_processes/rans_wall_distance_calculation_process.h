@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "containers/global_pointers_vector.h"
 #include "containers/model.h"
 #include "custom_utilities/rans_variable_utils.h"
 #include "includes/cfd_variables.h"
@@ -27,7 +26,6 @@
 #include "includes/define.h"
 #include "factories/linear_solver_factory.h"
 #include "includes/model_part.h"
-#include "processes/find_nodal_neighbours_process.h"
 #include "processes/process.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "rans_modelling_application_variables.h"
@@ -63,7 +61,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using NodeType = ModelPart::NodeType;
 
     /// Pointer definition of RansWallDistanceCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansWallDistanceCalculationProcess);

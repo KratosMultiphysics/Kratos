@@ -1,8 +1,11 @@
 from __future__ import print_function, absolute_import, division  #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.RANSModellingApplication.fluid_solver_no_replace import FluidSolverNoReplace
-from KratosMultiphysics.RANSModellingApplication.trilinos_fluid_solver_no_replace import TrilinosFluidSolverNoReplace
+if (CheckIfApplicationsAvailable("TrilinosApplication")):
+    from KratosMultiphysics.RANSModellingApplication.trilinos_fluid_solver_no_replace import TrilinosFluidSolverNoReplace
 
 
 class PeriodicFluidDynamicsAnalysis(FluidDynamicsAnalysis):
@@ -12,5 +15,10 @@ class PeriodicFluidDynamicsAnalysis(FluidDynamicsAnalysis):
             return FluidSolverNoReplace(
                 self.model, self.project_parameters["solver_settings"])
         else:
-            return TrilinosFluidSolverNoReplace(
-                self.model, self.project_parameters["solver_settings"])
+            if (CheckIfApplicationsAvailable("TrilinosApplication")):
+                return TrilinosFluidSolverNoReplace(
+                    self.model, self.project_parameters["solver_settings"])
+            else:
+                raise Exception(
+                    "Trying to run PeriodicFluidDynamicAnalysis in MPI without TrilinosApplication. Please re-install/compile Kratos with TrilinosApplication."
+                )

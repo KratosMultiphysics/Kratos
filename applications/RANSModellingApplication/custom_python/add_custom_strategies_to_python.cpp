@@ -39,28 +39,13 @@ namespace Kratos
 {
 namespace Python
 {
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-#ifdef KRATOS_USING_MPI
-typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> MPISparseSpaceType;
-void MoveMesh(Scheme<MPISparseSpaceType, LocalSpaceType>& dummy,
-              ModelPart::NodesContainerType& rNodes)
-{
-    for (ModelPart::NodeIterator i = rNodes.begin(); i != rNodes.end(); ++i)
-    {
-        const array_1d<double, 3>& disp = i->FastGetSolutionStepValue(DISPLACEMENT);
-        (i)->X() = (i)->X0() + disp[0];
-        (i)->Y() = (i)->Y0() + disp[1];
-        (i)->Z() = (i)->Z0() + disp[2];
-    }
-}
-#endif
-
 void AddCustomStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using BaseSchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
 
     // Convergence criteria
     py::class_<GenericConvergenceCriteria<SparseSpaceType, LocalSpaceType>,
@@ -81,11 +66,11 @@ void AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init<const double>());
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
+    using MPISparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
 
-    typedef Scheme<MPISparseSpaceType, LocalSpaceType> MPIBaseSchemeType;
+    using MPIBaseSchemeType = Scheme<MPISparseSpaceType, LocalSpaceType>;
 
-    typedef ConvergenceCriteria<MPISparseSpaceType, LocalSpaceType> MPIConvergenceCriteria;
-
+    using MPIConvergenceCriteria = ConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>;
 
     py::class_<MPIGenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>,
                typename MPIGenericConvergenceCriteria<MPISparseSpaceType, LocalSpaceType>::Pointer, MPIConvergenceCriteria>(

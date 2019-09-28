@@ -65,7 +65,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using NodeType = ModelPart::NodeType;
 
     /// Pointer definition of RansClipScalarVariableProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansClipScalarVariableProcess);

@@ -79,9 +79,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef ModelPart::NodeType NodeType;
+    using NodeType = ModelPart::NodeType;
 
-    typedef ModelPart::NodesContainerType NodesContainerType;
+    using NodesContainerType = ModelPart::NodesContainerType;
 
     /// Pointer definition of RansKTurbulentIntensityInletProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansKTurbulentIntensityInletProcess);
