@@ -2,6 +2,11 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosRANSModellingApplication ****")
 
+# check for fluid dynamics application
+if(NOT (${FLUID_DYNAMICS_APPLICATION} MATCHES ON))
+  message(FATAL_ERROR "RANSModellingApplication requires FluidDynamicsApplication, Please re-compile with -DFLUID_DYNAMICS_APPLICATION=ON flag.")
+endif(NOT (${FLUID_DYNAMICS_APPLICATION} MATCHES ON))
+
 ################### PYBIND11
 include(pybind11Tools)
 
