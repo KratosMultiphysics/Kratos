@@ -194,7 +194,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
 
     if (rVariable == PRESSURE_COEFFICIENT)
     {
-        rValues[0] = ComputePressureCoefficient(rCurrentProcessInfo);
+        rValues[0] = PotentialFlowUtilities::ComputeCompressiblePressureCoefficient<Dim, NumNodes>(*this, rCurrentProcessInfo);
     }
     if (rVariable == DENSITY)
     {
@@ -238,17 +238,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoint
     if (rVariable == VELOCITY)
     {
         array_1d<double, 3> v(3, 0.0);
-        array_1d<double, Dim> vaux;
-        ComputeVelocityUpper(vaux);
-        for (unsigned int k = 0; k < Dim; k++)
-            v[k] = vaux[k];
-        rValues[0] = v;
-    }
-    else if (rVariable == VELOCITY_LOWER)
-    {
-        array_1d<double, 3> v(3, 0.0);
-        array_1d<double, Dim> vaux;
-        ComputeVelocityLower(vaux);
+        array_1d<double, Dim> vaux = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k];
         rValues[0] = v;
@@ -405,8 +395,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormal
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
-    array_1d<double, Dim> v;
-    ComputeVelocityNormalElement(v);
+    array_1d<double, Dim> v =  PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes> (*this);
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
 
@@ -417,7 +406,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemNormal
     const BoundedMatrix<double, NumNodes, NumNodes> rLaplacianMatrix =
         data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
 
-    data.potentials= PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
+    data.potentials= PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
     noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.potentials);
 }
 
@@ -446,8 +435,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
-    array_1d<double, Dim> v;
-    ComputeVelocityUpperWakeElement(v);
+    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim, NumNodes>(*this);
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
 
@@ -479,7 +467,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWakeEl
     }
 
     Vector split_element_values(2 * NumNodes);
-    GetPotentialOnWakeElement(split_element_values, data.distances);
+    split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
     noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, split_element_values);
 }
 
@@ -525,8 +513,7 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubdiv
     const double DrhoDu2 = ComputeDensityDerivative(density, rCurrentProcessInfo);
 
     // Computing local velocity
-    array_1d<double, Dim> v;
-    ComputeVelocityUpperWakeElement(v);
+    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim, NumNodes>(*this);
 
     const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, v);
 
@@ -662,164 +649,10 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const
 template <int Dim, int NumNodes>
 void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEnergy()
 {
-    double internal_energy = 0.0;
-    array_1d<double, Dim> velocity;
+    array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
 
-    const CompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0) // Normal element (non-wake) - eventually an embedded
-        ComputeVelocityNormalElement(velocity);
-    else // Wake element
-        ComputeVelocityUpperWakeElement(velocity);
-
-    internal_energy = 0.5 * inner_prod(velocity, velocity);
+    double internal_energy = 0.5 * inner_prod(velocity, velocity);
     this->SetValue(INTERNAL_ENERGY, std::abs(internal_energy));
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnWakeElement(
-    Vector& split_element_values, const array_1d<double, NumNodes>& distances) const
-{
-    array_1d<double, NumNodes> upper_phis;
-    GetPotentialOnUpperWakeElement(upper_phis, distances);
-
-    array_1d<double, NumNodes> lower_phis;
-    GetPotentialOnLowerWakeElement(lower_phis, distances);
-
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        split_element_values[i] = upper_phis[i];
-        split_element_values[NumNodes + i] = lower_phis[i];
-    }
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnUpperWakeElement(
-    array_1d<double, NumNodes>& rUpperPotentials, const array_1d<double, NumNodes>& distances) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++)
-        if (distances[i] > 0)
-            rUpperPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        else
-            rUpperPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeElement(
-    array_1d<double, NumNodes>& rLowerPotentials, const array_1d<double, NumNodes>& distances) const
-{
-    for (unsigned int i = 0; i < NumNodes; i++)
-        if (distances[i] < 0)
-            rLowerPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        else
-            rLowerPotentials[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(
-    array_1d<double, Dim>& velocity) const
-{
-    velocity.clear();
-
-    const CompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        ComputeVelocityNormalElement(velocity);
-    else
-        ComputeVelocityUpperWakeElement(velocity);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLower(
-    array_1d<double, Dim>& velocity) const
-{
-    velocity.clear();
-
-    const CompressiblePotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake == 0)
-        ComputeVelocityNormalElement(velocity);
-    else
-        ComputeVelocityLowerWakeElement(velocity);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityNormalElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpperWakeElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    GetPotentialOnUpperWakeElement(data.potentials, distances);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
-}
-
-template <int Dim, int NumNodes>
-void CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWakeElement(
-    array_1d<double, Dim>& velocity) const
-{
-    ElementalData<NumNodes, Dim> data;
-
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    GetPotentialOnLowerWakeElement(data.potentials, distances);
-
-    noalias(velocity) = prod(trans(data.DN_DX), data.potentials);
-}
-
-template <int Dim, int NumNodes>
-double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureCoefficient(
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    // Reading free stream conditions
-    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const double M_inf = rCurrentProcessInfo[FREE_STREAM_MACH];
-    const double heat_capacity_ratio = rCurrentProcessInfo[HEAT_CAPACITY_RATIO];
-
-    // Computing local velocity
-    array_1d<double, Dim> v;
-    ComputeVelocityUpper(v);
-
-    // Computing squares
-    const double v_inf_2 = inner_prod(vinfinity, vinfinity);
-    const double M_inf_2 = M_inf * M_inf;
-    double v_2 = inner_prod(v, v);
-
-    KRATOS_ERROR_IF(v_inf_2 < std::numeric_limits<double>::epsilon())
-        << "Error on element -> " << this->Id() << "\n"
-        << "v_inf_2 must be larger than zero." << std::endl;
-
-    const double base = 1 + (heat_capacity_ratio - 1) * M_inf_2 * (1 - v_2 / v_inf_2) / 2;
-
-    return 2 * (pow(base, heat_capacity_ratio / (heat_capacity_ratio - 1)) - 1) /
-           (heat_capacity_ratio * M_inf_2);
 }
 
 template <int Dim, int NumNodes>
@@ -833,8 +666,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
     const double a_inf = rCurrentProcessInfo[SOUND_VELOCITY];
 
     // Computing local velocity
-    array_1d<double, Dim> v;
-    ComputeVelocityUpper(v);
+    array_1d<double, Dim> v = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
 
     // Computing squares
     const double v_inf_2 = inner_prod(vinfinity, vinfinity);
@@ -895,5 +727,6 @@ void CompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer& rSerializ
 // Template class instantiation
 
 template class CompressiblePotentialFlowElement<2, 3>;
+template class CompressiblePotentialFlowElement<3, 4>;
 
 } // namespace Kratos
