@@ -210,7 +210,11 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
             msg += "Currently connectivity preserve modeller replaces all the conditions in an mdpa with given new condition. "
             msg += "This modeller is used to create modelparts having k-epsilon elements and conditions while sharing the same nodes as in VMS solution. "
             msg += "In the case of MPI, it is essential to have the PeriodicConditions in the mdpa file in order to properly distribute nodes to partitions using MetisApplication. "
-            msg += "But if this is the case, PeriodicConditions also will be replaced by k-epsilon specific conditions casuing a segmentation fault. "
+            msg += "But if this is the case, PeriodicConditions also will be replaced by k-epsilon specific conditions casuing a segmentation fault.\n"
+            msg += "    3. TrilinosBlockBuilderAndSolverPeriodic\n"
+            msg += "In the case of MPI periodic in 2D, problem uses TrilinosBlockBuilderAndSolverPeriodic block builder and solver, which identifies "
+            msg += "periodic conditions by number of nodes in the condition. So, In 2D all wall conditions and PeriodicConditions have only 2 nodes, all will be "
+            msg += "considered as PeriodicConditions and will make the global assembly accordingly which is wrong."
             msg += "Therefore this error msg is printed in order to avoid confusion."
             raise Exception(msg)
 
