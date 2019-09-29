@@ -81,14 +81,6 @@
             "Parameters"    : {
                 "model_part_name" : "NoSlip2D"
             }
-        },{
-            "python_module" : "apply_distance_modification_process",
-            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"  : "ApplyDistanceModificationProcess",
-            "Parameters"    : {
-                "model_part_name"           : "Parts_Fluid",
-                "check_at_each_time_step"   : false
-            }
         }],
         "gravity"                          : [{
             "python_module" : "assign_vector_by_direction_process",

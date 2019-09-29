@@ -508,7 +508,7 @@ protected:
             if (r_int_obj_vect[i_elem].size() != 0) {
                 // Initialize the element values
                 auto &r_geom = it_elem->GetGeometry();
-                const auto edges = r_geom.Edges();
+                const auto edges = r_geom.GenerateEdges();
 
                 // Loop the edges
                 for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {

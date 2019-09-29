@@ -1,13 +1,11 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import sys
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
-import swimming_DEM_procedures as SDP
-import swimming_DEM_analysis
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
+import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_analysis as swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
-sys.path.insert(0,'')
 
 class SDEMPFEMAnalysis(BaseAnalysis):
 
@@ -127,7 +125,7 @@ class SDEMPFEMAnalysis(BaseAnalysis):
 
     def _GetFluidAnalysis(self):
         if not hasattr(self, '_fluid_phase_analysis'):
-            import DEM_coupled_pfem_fluid_dynamics_analysis as fluid_analysis
+            import KratosMultiphysics.SwimmingDEMApplication.DEM_coupled_pfem_fluid_dynamics_analysis as fluid_analysis
             self._fluid_phase_analysis = fluid_analysis.DEMCoupledPFEMFluidDynamicsAnalysis(self.model, self.project_parameters, self.vars_man)
             self._fluid_phase_analysis.main_path = self.main_path
         return self._fluid_phase_analysis
