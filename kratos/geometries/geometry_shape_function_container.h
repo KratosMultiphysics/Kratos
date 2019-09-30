@@ -77,6 +77,7 @@ public:
 
     /// First derivatives/ gradients
     typedef DenseVector<Matrix> ShapeFunctionsGradientsType;
+    typedef std::array<DenseVector<Matrix>, IntegrationMethod::NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
 
     /// Higher order derivatives
     typedef DenseVector<Matrix>
@@ -85,8 +86,6 @@ public:
         ShapeFunctionsDerivativesIntegrationPointArrayType;
     typedef std::array<ShapeFunctionsDerivativesIntegrationPointArrayType, IntegrationMethod::NumberOfIntegrationMethods>
         ShapeFunctionsDerivativesContainerType;
-
-    typedef std::array<DenseVector<Matrix>, IntegrationMethod::NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -124,7 +123,7 @@ public:
         mShapeFunctionsLocalGradients[ThisDefaultMethod] = DN_De_array;
     }
 
-    /// Constructor ONLY for single integration point with first derivatives
+    /// Constructor ONLY for single integration point with multiple derivatives
     GeometryShapeFunctionContainer(
         IntegrationMethod ThisDefaultMethod,
         const IntegrationPointType& ThisIntegrationPoint,
@@ -323,7 +322,7 @@ public:
             return mShapeFunctionsValues[ThisMethod](IntegrationPointIndex, ShapeFunctionIndex);
         if (DerivativeOrderIndex == 1)
             return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](DerivativeOrderRowIndex, ShapeFunctionIndex);
-        if (DerivativeOrderIndex > 2)
+        if (DerivativeOrderIndex > 1)
             return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](DerivativeOrderRowIndex, ShapeFunctionIndex);
     }
 
