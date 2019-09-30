@@ -20,7 +20,7 @@
 namespace Kratos
 {
 template<unsigned int Dim, unsigned int NumNodes>
-class ComputeEmbeddedLiftProcess: public Process
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputeEmbeddedLiftProcess: public Process
 {
 public:
     ///@name Type Definitions
