@@ -29,7 +29,7 @@ namespace Testing {
 
     typedef Node<3> NodeType;
 
-    NurbsSurfaceGeometry<3, NodeType>::Pointer GenerateReferenceNodeSurfaceHalfCirclePointer() {
+    NurbsSurfaceGeometry<3, PointerVector<NodeType>>::Pointer GenerateReferenceNodeSurfaceHalfCirclePointer() {
         Geometry<NodeType>::PointsArrayType points;
 
         points.push_back(NodeType::Pointer(new NodeType(1, 10, 0, 0)));
@@ -69,12 +69,12 @@ namespace Testing {
         weights[8] = 0.70710678118654757;
         weights[9] = 1.0;
 
-        return Kratos::make_shared < NurbsSurfaceGeometry<3, NodeType >>(points, p, q, knot_u, knot_v, weights);
+        return Kratos::make_shared < NurbsSurfaceGeometry<3, PointerVector<NodeType> >>(points, p, q, knot_u, knot_v, weights);
     }
 
-    NurbsCurveGeometry<2, Point>::Pointer GenerateReference1Curve2dPointer()
+    NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReference1Curve2dPointer()
     {
-        NurbsCurveGeometry<2, Point>::PointsArrayType points;
+        NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType points;
 
         points.push_back(Point::Pointer(new Point(0, 0)));
         points.push_back(Point::Pointer(new Point(31.415926535897931, 0)));
@@ -85,12 +85,12 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, Point>>(points, p, knot_vector);
+        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
-    NurbsCurveGeometry<2, Point>::Pointer GenerateReference2Curve2dPointer()
+    NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReference2Curve2dPointer()
     {
-        NurbsCurveGeometry<2, Point>::PointsArrayType points;
+        NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType points;
 
         points.push_back(Point::Pointer(new Point(31.415926535897931, 0)));
         points.push_back(Point::Pointer(new Point(31.415926535897931, 10)));
@@ -101,12 +101,12 @@ namespace Testing {
 
         int p = 1;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, Point>>(points, p, knot_vector);
+        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
-    NurbsCurveGeometry<2, Point>::Pointer GenerateReference3Curve2dPointer()
+    NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReference3Curve2dPointer()
     {
-        NurbsCurveGeometry<2, Point>::PointsArrayType points;
+        NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType points;
 
         points.push_back(Point::Pointer(new Point(31.415926535897931, 10)));
         points.push_back(Point::Pointer(new Point(28.500619950938574, 10)));
@@ -141,7 +141,7 @@ namespace Testing {
 
         int p = 3;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, Point>>(points, p, knot_vector);
+        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     ///// Tests
@@ -151,23 +151,23 @@ namespace Testing {
         auto p_curve_2 = GenerateReference2Curve2dPointer();
         auto p_curve_3 = GenerateReference3Curve2dPointer();
 
-        auto p_brep_face_curve_1 = Kratos::make_shared<BrepFaceCurve<NodeType, Point>>(
+        auto p_brep_face_curve_1 = Kratos::make_shared<BrepFaceCurve<PointerVector<NodeType>, PointerVector<Point>>>(
             p_surface, p_curve_1);
-        auto p_brep_face_curve_2 = Kratos::make_shared<BrepFaceCurve<NodeType, Point>>(
+        auto p_brep_face_curve_2 = Kratos::make_shared<BrepFaceCurve<PointerVector<NodeType>, PointerVector<Point>>>(
             p_surface, p_curve_2);
-        auto p_brep_face_curve_3 = Kratos::make_shared<BrepFaceCurve<NodeType, Point>>(
+        auto p_brep_face_curve_3 = Kratos::make_shared<BrepFaceCurve<PointerVector<NodeType>, PointerVector<Point>>>(
             p_surface, p_curve_3);
 
-        BrepFace<NodeType, Point>::BrepFaceCurveLoopType outer_loop(3);
+        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepFaceCurveLoopType outer_loop(3);
         outer_loop[0] = p_brep_face_curve_1;
         outer_loop[1] = p_brep_face_curve_2;
         outer_loop[2] = p_brep_face_curve_3;
 
-        BrepFace<NodeType, Point>::BrepFaceCurveLoopArrayType outer_loops(1);
+        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepFaceCurveLoopArrayType outer_loops(1);
         outer_loops[0] = outer_loop;
-        BrepFace<NodeType, Point>::BrepFaceCurveLoopArrayType inner_loops(0);
+        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepFaceCurveLoopArrayType inner_loops(0);
 
-        auto brep_face = BrepFace<NodeType, Point>(
+        auto brep_face = BrepFace<PointerVector<NodeType>, PointerVector<Point>>(
             p_surface, outer_loops, inner_loops);
 
         //// Check general information, input to ouput
