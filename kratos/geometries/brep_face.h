@@ -37,9 +37,9 @@ namespace Kratos
  * @brief The BrepFace acts as topology for faces. Those
  *        can be enclosed by a certain set of brep face curves.
  */
-template<class TPointType, class TPointEmbeddedType = TPointType>
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType>
 class BrepFace
-    : public Geometry<TPointType>
+    : public Geometry<typename TContainerPointType::value_type>
 {
 public:
     ///@}
@@ -49,15 +49,15 @@ public:
     /** Pointer definition of BrepFace */
     KRATOS_CLASS_POINTER_DEFINITION( BrepFace );
 
-    typedef TPointType PointType;
+    typedef typename TContainerPointType::value_type PointType;
 
-    typedef Geometry<TPointType> BaseType;
-    typedef Geometry<TPointType> GeometryType;
+    typedef Geometry<typename TContainerPointType::value_type> BaseType;
+    typedef Geometry<typename TContainerPointType::value_type> GeometryType;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    typedef NurbsSurfaceGeometry<3, TPointType> NurbsSurfaceType;
-    typedef BrepFaceCurve<TPointType, TPointEmbeddedType> BrepFaceCurveType;
+    typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
+    typedef BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType> BrepFaceCurveType;
 
     typedef DenseVector<typename BrepFaceCurveType::Pointer> BrepFaceCurveLoopType;
     typedef DenseVector<DenseVector<typename BrepFaceCurveType::Pointer>> BrepFaceCurveLoopArrayType;
@@ -125,8 +125,8 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType, class TOtherPointEmbeddedType> explicit BrepFace(
-        BrepFace<TOtherPointType, TOtherPointEmbeddedType> const& rOther )
+    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType> explicit BrepFace(
+        BrepFace<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -166,8 +166,8 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    template<class TOtherPointType, class TOtherPointEmbeddedType>
-    BrepFace& operator=( BrepFace<TOtherPointType, TOtherPointEmbeddedType> const & rOther )
+    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
+    BrepFace& operator=( BrepFace<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
         return *this;
@@ -314,26 +314,21 @@ private:
     {}
 
     ///@}
-    ///@name Private Friends
-    ///@{
 
-    template<class TOtherPointType, class TOtherPointEmbeddedType> friend class BrepFace;
-
-    ///@}
 }; // Class BrepFace
 
 ///@name Input and output
 ///@{
 
 /// input stream functions
-template<class TPointType, class TPointEmbeddedType> inline std::istream& operator >> (
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
     std::istream& rIStream,
-    BrepFace<TPointType, TPointEmbeddedType>& rThis );
+    BrepFace<TContainerPointType, TContainerPointEmbeddedType>& rThis );
 
 /// output stream functions
-template<class TPointType, class TPointEmbeddedType> inline std::ostream& operator << (
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const BrepFace<TPointType, TPointEmbeddedType>& rThis )
+    const BrepFace<TContainerPointType, TContainerPointEmbeddedType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -345,8 +340,8 @@ template<class TPointType, class TPointEmbeddedType> inline std::ostream& operat
 ///@name Static Type Declarations
 ///@{
 
-template<class TPointType, class TPointEmbeddedType> const
-GeometryData BrepFace<TPointType, TPointEmbeddedType>::msGeometryData(
+template<class TContainerPointType, class TContainerPointEmbeddedType> const
+GeometryData BrepFace<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     2, 3, 2,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
