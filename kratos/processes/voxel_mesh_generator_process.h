@@ -34,6 +34,76 @@
 
 namespace Kratos
 {
+  namespace Internals
+  {
+    class CartesianRay{
+      int mDirection;
+      Point mPoint1;
+      Point mPoint2;
+      std::vector<double> mIntersectionPoints;
+    public:
+      CartesianRay() = delete;
+
+      CartesianRay(int Direction, Point const& Point1, Point const& Point2): mDirection(Direction), mPoint1(Point1), mPoint2(Point2) {}
+
+      template<typename TGeometryType>
+      void AddIntersection(TGeometryType const& rGeometry, double Tolerance){
+        // Call the line - triangle intersection util
+        array_1d<double,3> intersection_point = ZeroVector(3);
+        const int is_intersected = IntersectionUtilities::ComputeTriangleLineIntersection(
+          rGeometry,
+          mPoint1,
+          mPoint2,
+          intersection_point,
+          Tolerance);
+
+          if(is_intersected == 1){ // There is an intersection but not coplanar
+            mIntersectionPoints.push_back(intersection_point[mDirection]);
+          }
+      }
+
+      void CollapseIntersectionPoints(double Tolerance){
+        if (!mIntersectionPoints.empty()) {
+            // Sort
+            std::sort(mIntersectionPoints.begin(), mIntersectionPoints.end());
+            // Unique
+            auto i_begin = mIntersectionPoints.begin();
+            auto i_intersection = mIntersectionPoints.begin();
+            while (++i_begin != mIntersectionPoints.end()) {
+                // considering the very near points as the same points
+                if (std::abs(*i_begin - *i_intersection) > Tolerance) // if the hit points are far enough they are not the same
+                    *(++i_intersection) = *i_begin;
+            }
+          mIntersectionPoints.resize((++i_intersection) - mIntersectionPoints.begin());
+        }
+      }
+
+      std::vector<double> const& GetIntersectionPoints() const {return mIntersectionPoints;}
+    };
+
+    class CartesianMeshColors{
+      array_1d<DenseVector<double>, 3> mCoordinates;
+      DenseVector<array_1d<double,3>> mColors;
+     public:
+      CartesianMeshColors(){}
+      DenseVector<double> const& GetCoordinates(int Index) const {return mCoordinates[Index];}
+      void SetCoordinates(array_1d<DenseVector<double>, 3>&& TheCoordinates){
+        mCoordinates = TheCoordinates;
+        mColors.resize(mCoordinates[0].size()*mCoordinates[1].size()*mCoordinates[2].size());
+      }
+
+      array_1d<double, 3>& GetColor(std::size_t I, std::size_t J, std::size_t K){
+        const std::size_t index = I + J * mCoordinates[0].size() + K * mCoordinates[1].size() * mCoordinates[0].size();
+        return mColors[index];
+      }
+
+      Point GetPoint(std::size_t I, std::size_t J, std::size_t K){
+        return Point(mCoordinates[0][I], mCoordinates[1][J], mCoordinates[2][K]);
+      }
+
+    };
+  }
+
   ///@addtogroup KratosCore
   ///@{
 
@@ -133,7 +203,7 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
-          Hexahedra3D8<Point> mGeometry;
+        Internals::CartesianMeshColors mColors;
           const Point mMinPoint;
           const Point mMaxPoint;
 		  array_1d<std::size_t,3> mNumberOfDivisions;
@@ -147,7 +217,6 @@ namespace Kratos
           bool mCreateSkinSubModelPart;
 		  ModelPart& mrVolumePart;
 		  ModelPart& mrSkinPart;
-          FindIntersectedGeometricalObjectsProcess mFindIntersectedObjectsProcess;
           std::vector<bool> mCellIsEmpty;
           array_1d<double,3> mCellSizes;
 
