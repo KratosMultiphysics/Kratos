@@ -596,9 +596,9 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
 
-    py::class_<VoxelMeshColoringProcess, VoxelMeshColoringProcess::Pointer, Process>(m,"VoxelMeshColoringProcess")
-            .def(py::init<Point const&, Point const&, array_1d<std::size_t,3> const&, ModelPart&, ModelPart&, Parameters&>()) 
-    ;
+    // py::class_<VoxelMeshColoringProcess, VoxelMeshColoringProcess::Pointer, Process>(m,"VoxelMeshColoringProcess")
+    //         .def(py::init<Point const&, Point const&, array_1d<std::size_t,3> const&, ModelPart&, ModelPart&, Parameters&>()) 
+    // ;
 
     py::class_<VoxelMeshGeneratorProcess, VoxelMeshGeneratorProcess::Pointer, Process>(m,"VoxelMeshGeneratorProcess")
             .def(py::init<Point const&, Point const&, ModelPart&, ModelPart&, Parameters&>()) 
