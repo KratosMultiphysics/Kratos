@@ -184,8 +184,9 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
         output_file_name += mOutputSettings["folder_name"].GetString() + "/";
     }
-    const std::string& custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
-    output_file_name += custom_name_prefix + model_part_name + "_" + std::to_string(rank) + "_" + label + ".vtk";
+    const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
+    const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
+    output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label + ".vtk";
 
     return output_file_name;
 }
@@ -1058,6 +1059,7 @@ Parameters VtkOutput::GetDefaultParameters()
         "output_sub_model_parts"                      : false,
         "folder_name"                                 : "VTK_Output",
         "custom_name_prefix"                          : "",
+        "custom_name_postfix"                         : "",
         "save_output_files_in_folder"                 : true,
         "write_deformed_configuration"                : false,
         "write_properties_id"                         : false,
