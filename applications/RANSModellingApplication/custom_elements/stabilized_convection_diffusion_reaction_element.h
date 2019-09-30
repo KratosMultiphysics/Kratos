@@ -146,16 +146,6 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
-    StabilizedConvectionDiffusionReactionElement& operator=(
-        StabilizedConvectionDiffusionReactionElement const& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        // mpProperties = rOther.mpProperties;
-        return *this;
-    }
-
     ///@}
     ///@name Operations
     ///@{

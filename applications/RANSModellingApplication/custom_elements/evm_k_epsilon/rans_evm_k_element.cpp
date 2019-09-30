@@ -101,17 +101,6 @@ RansEvmKElement<TDim, TNumNodes>::~RansEvmKElement()
 ///@name Operators
 ///@{
 
-/// Assignment operator.
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKElement<TDim, TNumNodes>& RansEvmKElement<TDim, TNumNodes>::operator=(
-    RansEvmKElement<TDim, TNumNodes> const& rOther)
-{
-    BaseType::operator=(rOther);
-    Flags::operator=(rOther);
-    // mpProperties = rOther.mpProperties;
-    return *this;
-}
-
 ///@}
 ///@name Operations
 ///@{

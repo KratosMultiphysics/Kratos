@@ -103,17 +103,6 @@ RansEvmEpsilonElement<TDim, TNumNodes>::~RansEvmEpsilonElement()
 ///@name Operators
 ///@{
 
-/// Assignment operator.
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmEpsilonElement<TDim, TNumNodes>& RansEvmEpsilonElement<TDim, TNumNodes>::operator=(
-    RansEvmEpsilonElement<TDim, TNumNodes> const& rOther)
-{
-    BaseType::operator=(rOther);
-    Flags::operator=(rOther);
-    // mpProperties = rOther.mpProperties;
-    return *this;
-}
-
 ///@}
 ///@name Operations
 ///@{

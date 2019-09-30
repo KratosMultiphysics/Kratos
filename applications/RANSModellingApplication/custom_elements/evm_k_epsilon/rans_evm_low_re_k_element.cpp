@@ -102,17 +102,6 @@ RansEvmLowReKElement<TDim, TNumNodes>::~RansEvmLowReKElement()
 ///@name Operators
 ///@{
 
-/// Assignment operator.
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmLowReKElement<TDim, TNumNodes>& RansEvmLowReKElement<TDim, TNumNodes>::operator=(
-    RansEvmLowReKElement<TDim, TNumNodes> const& rOther)
-{
-    BaseType::operator=(rOther);
-    Flags::operator=(rOther);
-    // mpProperties = rOther.mpProperties;
-    return *this;
-}
-
 ///@}
 ///@name Operations
 ///@{

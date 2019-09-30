@@ -138,9 +138,6 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
-    RansEvmKElement& operator=(RansEvmKElement const& rOther);
-
     ///@}
     ///@name Operations
     ///@{

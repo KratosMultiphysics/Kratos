@@ -142,9 +142,6 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
-    RansEvmLowReEpsilonElement& operator=(RansEvmLowReEpsilonElement const& rOther);
-
     ///@}
     ///@name Operations
     ///@{
