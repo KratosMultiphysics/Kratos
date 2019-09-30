@@ -48,8 +48,46 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         kratos_utils.DeleteFileIfExisting("Structure_EigenResults_15_0.post.msh")
         kratos_utils.DeleteFileIfExisting("Structure_EigenResults_15_0.post.res") # usually this is deleted by the check process but not if it fails
 
+    def test_PostprocessEigenvaluesProcess_GiD(self):
+        # here the minimum settings are specified to test the default values!
+        settings_eigen_process = KratosMultiphysics.Parameters("""{
+            "Parameters" : {
+                "result_file_format_use_ascii" : true,
+                "file_format"                  : "gid"
+            }
+        }""")
 
-    def test_PostprocessEigenvaluesProcess(self):
+        settings_check_process = KratosMultiphysics.Parameters("""
+        {
+            "reference_file_name"   : "%s",
+            "output_file_name"      : "%s",
+            "remove_output_file"    : true,
+            "comparison_type"       : "post_res_file"
+        }
+        """ % (GetFilePath("test_postprocess_eigenvalues_process.ref"), "Structure_EigenResults_15_0.post.res"))
+
+        self.__ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, settings_check_process)
+
+    def test_PostprocessEigenvaluesProcess_Vtk(self):
+        # here the minimum settings are specified to test the default values!
+        settings_eigen_process = KratosMultiphysics.Parameters("""{
+            "Parameters" : {
+                "result_file_format_use_ascii" : true
+            }
+        }""")
+
+        settings_check_process = KratosMultiphysics.Parameters("""
+        {
+            "reference_file_name"   : "%s",
+            "output_file_name"      : "%s",
+            "remove_output_file"    : true,
+            "comparison_type"       : "vtk"
+        }
+        """ % (GetFilePath("test_postprocess_eigenvalues_process.vtk.ref"), "Structure_EigenResults_15_0.vtk"))
+
+        self.__ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, settings_check_process)
+
+    def __ExecuteTestPostprocessEigenvaluesProcess(self, eigen_post_parameters, check_parameters):
         test_model = KratosMultiphysics.Model()
         model_part = test_model.CreateModelPart("Structure")
         comp_model_part = model_part.CreateSubModelPart("computing_domain")
@@ -82,15 +120,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
                           GetEigenVectorMatrix(num_eigenvalues, node.Id))
 
         # Use the process
-        # here the minimum settings are specified to test the default values!
-        settings_eigen_process = KratosMultiphysics.Parameters("""{
-            "Parameters" : {
-                "result_file_format_use_ascii" : true,
-                "file_format"                  : "gid"
-            }
-        }""")
-
-        post_eigen_process = postprocess_eigenvalues_process.Factory(settings_eigen_process, test_model)
+        post_eigen_process = postprocess_eigenvalues_process.Factory(eigen_post_parameters, test_model)
 
         post_eigen_process.ExecuteInitialize()
         post_eigen_process.ExecuteBeforeSolutionLoop()
@@ -101,19 +131,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         post_eigen_process.ExecuteFinalize()
 
         # check the results
-        settings_check_process = KratosMultiphysics.Parameters("""
-        {
-            "reference_file_name"   : "",
-            "output_file_name"      : "",
-            "remove_output_file"    : true,
-            "comparison_type"       : "post_res_file"
-        }
-        """)
-
-        settings_check_process["reference_file_name"].SetString(GetFilePath("test_postprocess_eigenvalues_process.ref"))
-        settings_check_process["output_file_name"].SetString("Structure_EigenResults_15_0.post.res")
-
-        check_process = CompareTwoFilesCheckProcess(settings_check_process).Execute()
+        check_process = CompareTwoFilesCheckProcess(check_parameters).Execute()
 
 
 if __name__ == '__main__':
