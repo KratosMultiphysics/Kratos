@@ -81,11 +81,11 @@ public:
     BrepFaceCurve(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
-        Interval CurveInterval)
+        NurbsInterval CurveNurbsInterval)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
         , mpNurbsCurve(pCurve)
-        , mCurveInterval(CurveInterval)
+        , mCurveNurbsInterval(CurveNurbsInterval)
     {
     }
 
@@ -290,7 +290,7 @@ private:
     typename NurbsSurfaceType::Pointer mpNurbsSurface;
     typename NurbsCurveType::Pointer mpNurbsCurve;
 
-    Interval mCurveInterval;
+    NurbsInterval mCurveNurbsInterval;
 
     ///@}
     ///@name Serialization
