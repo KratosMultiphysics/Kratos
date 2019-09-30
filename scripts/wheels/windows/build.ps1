@@ -13,7 +13,7 @@ foreach ($python in $pythons){
 
     $pythonPath = "$($env:python)\$($python)\python.exe"
     cmd.exe /c "call configure.bat $($pythonPath)"
-    MSBuild.exe /m:8 INSTALL.vcxproj /p:Configuration=Custom /p:Platform="x64"
+    MSBuild.exe /m INSTALL.vcxproj /p:Configuration=Custom /p:Platform="x64"
 
     echo "Finished build"
     echo "Begining wheel construction for python $($python)"

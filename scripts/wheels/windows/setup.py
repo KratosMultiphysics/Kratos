@@ -12,11 +12,9 @@ class BinaryDistribution(setuptools.Distribution):
 
 setuptools.setup(
     name="KratosMultiphysicsWheelTest",
-    version="0.0.10",
-
-    author="Example Author",
-    author_email="author@example.com",
-    description="Kratos Multiphisics wheel test",
+    version="0.1",
+    author="Kratos Multiphysics",
+    description="KRATOS Multiphysics (\"Kratos\") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface.",
     url="https://github.com/KratosMultiphysics/",
     packages=setuptools.find_packages(),
     classifiers=[
