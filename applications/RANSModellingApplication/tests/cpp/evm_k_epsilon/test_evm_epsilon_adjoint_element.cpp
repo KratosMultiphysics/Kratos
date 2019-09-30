@@ -35,7 +35,7 @@ namespace Kratos
 {
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_EquationIdVector, RANSEvModelsKEpsilonElementMethods)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointElement2D3N_EquationIdVector, RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -58,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_EquationIdVector, RANSEvM
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_GetDofList, RANSEvModelsKEpsilonElementMethods)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointElement2D3N_GetDofList, RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_GetDofList, RANSEvModelsK
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_GetValuesVector,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointElement2D3N_GetValuesVector,
                           RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_GetValuesVector,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_GetFirstDerivativesVector,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointElement2D3N_GetFirstDerivativesVector,
                           RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
@@ -134,7 +134,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_GetFirstDerivativesVector
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_GetSecondDerivativesVector,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointElement2D3N_GetSecondDerivativesVector,
                           RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_GetSecondDerivativesVecto
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_CalculateFirstDerivativesLHS,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointElement2D3N_CalculateFirstDerivativesLHS,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;
@@ -214,7 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_CalculateFirstDerivatives
         calculate_sensitivity_matrix, perturb_variable, 1e-7, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_Calculate_RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointElement2D3N_Calculate_RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;
@@ -263,7 +263,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_Calculate_RANS_TURBULENT_
         calculate_sensitivity_matrix, perturb_variable, 1e-8, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_CalculateSecondDerivativesLHS,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointElement2D3N_CalculateSecondDerivativesLHS,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;
@@ -313,7 +313,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_CalculateSecondDerivative
         calculate_sensitivity_matrix, perturb_variable, 1e-6, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_CalculateSensitivityMatrix,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointElement2D3N_CalculateSensitivityMatrix,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;
@@ -362,7 +362,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_CalculateSensitivityMatri
         calculate_sensitivity_matrix, perturb_variable, 1e-7, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_Calculate_RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjointElement2D3N_Calculate_RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;
