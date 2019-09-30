@@ -1748,62 +1748,68 @@ public:
     /**
     * @brief This method maps from dimension space to working space and computes the
     *        number of derivatives at the dimension parameter.
-    * @param rLocalCoordinates The local coordinates in dimension space.
+    * @param rGlobalSpaceDerivatives The derivative in global space.
+    * @param rLocalCoordinates the local coordinates
     * @param rDerivativeOrder of computed derivatives
     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
     *         The list is structured as following:
     *           [0] - global coordinates
-    *           [1 - loc_space_dim] - base vectors
-    *           [...] - higher order vectors (2D: du^2, dudv, dv^2)
+    *           [1 - loc_space_dim] - base vectors (du, dv, dw)
+    *           [...] - second order vectors:
+    *                       1D: du^2
+    *                       2D: du^2, dudv, dv^2
+    *                       3D: du^2, dudv, dudw, dv^2, dvdw, dw^2
+    *           [...] - third order vectors:
+    *                       1D: du^3
+    *                       2D: du^3, du^2dv, dudv^2, dv^3
     */
     virtual void GlobalSpaceDerivatives(
-        std::vector<CoordinatesArrayType>& rGlobalCoordinates,
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
         const CoordinatesArrayType& rLocalCoordinates,
         const SizeType DerivativeOrder) const
     {
         if (DerivativeOrder == 0)
         {
-            if (rGlobalCoordinates.size() != 1)
-                rGlobalCoordinates.resize(1);
+            if (rGlobalSpaceDerivatives.size() != 1)
+                rGlobalSpaceDerivatives.resize(1);
 
             array_1d<double, 3> global_coordinates;
             this->GlobalCoordinates(
-                global_coordinates,
+                rGlobalSpaceDerivatives[0],
                 rLocalCoordinates);
-
-            rGlobalCoordinates[0] = global_coordinates;
-            return;
         }
-
-        if (DerivativeOrder == 1)
+        else if (DerivativeOrder == 1)
         {
             const double local_space_dimension = LocalSpaceDimension();
 
-            if (rGlobalCoordinates.size() != 1 + local_space_dimension)
-                rGlobalCoordinates.resize(1 + local_space_dimension);
+            if (rGlobalSpaceDerivatives.size() != 1 + local_space_dimension)
+                rGlobalSpaceDerivatives.resize(1 + local_space_dimension);
 
-            array_1d<double, 3> global_coordinates;
-            this->GlobalCoordinates(global_coordinates,
+            this->GlobalCoordinates(
+                rGlobalSpaceDerivatives[0,
                 rLocalCoordinates);
 
-            rGlobalCoordinates[0] = global_coordinates;
+            Matrix shape_functions_gradients(points_number, local_space_dimension);
+            ShapeFunctionsLocalGradients(shape_functions_gradients, rCoordinates);
 
-            Matrix J;
-            this->Jacobian(
-                J,
-                rLocalCoordinates);
-
-            for (IndexType dim = 0; dim < local_space_dimension; ++dim)
-            {
-                rGlobalCoordinates[1 + dim] = column(J, dim);
+            for (IndexType i = 0; i < points_number; ++i) {
+                const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                    const double value = r_coordinates[k];
+                    for (IndexType m = 0; m < local_space_dimension; ++m) {
+                        rGlobalSpaceDerivatives[m + 1][k] += value * shape_functions_gradients(i, m);
+                    }
+                }
             }
 
             return;
         }
-
-        KRATOS_ERROR << "Calling GlobalDerivatives within geometry.h."
-            << " Please check the definition within derived class. "
-            << *this << std::endl;
+        else
+        {
+            KRATOS_ERROR << "Calling GlobalDerivatives within geometry.h."
+                << " Please check the definition within derived class. "
+                << *this << std::endl;
+        }
     }
 
     /**
@@ -1818,53 +1824,54 @@ public:
     *           [...] - higher order vectors (2D: du^2, dudv, dv^2)
     */
     virtual void GlobalSpaceDerivatives(
-        std::vector<CoordinatesArrayType>& rGlobalCoordinates,
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
         IndexType IntegrationPointIndex,
         const SizeType DerivativeOrder) const
     {
         if (DerivativeOrder == 0)
         {
-            if (rGlobalCoordinates.size() != 1)
-                rGlobalCoordinates.resize(1);
+            if (rGlobalSpaceDerivatives.size() != 1)
+                rGlobalSpaceDerivatives.resize(1);
 
-            array_1d<double, 3> global_coordinates;
             GlobalCoordinates(
-                global_coordinates,
+                rGlobalSpaceDerivatives[0],
                 IntegrationPointIndex);
-
-            rGlobalCoordinates[0] = global_coordinates;
-            return;
         }
-
-        if (DerivativeOrder == 1)
+        else if (DerivativeOrder == 1)
         {
             const double local_space_dimension = LocalSpaceDimension();
 
-            if (rGlobalCoordinates.size() != 1 + local_space_dimension)
-                rGlobalCoordinates.resize(1 + local_space_dimension);
+            if (rGlobalSpaceDerivatives.size() != 1 + local_space_dimension)
+                rGlobalSpaceDerivatives.resize(1 + local_space_dimension);
 
-            array_1d<double, 3> global_coordinates;
-            GlobalCoordinates(global_coordinates,
+            this->GlobalCoordinates(
+                rGlobalSpaceDerivatives[0],
                 IntegrationPointIndex);
 
-            rGlobalCoordinates[0] = global_coordinates;
-
-            Matrix J;
-            this->Jacobian(
-                J,
-                IntegrationPointIndex);
-
-            for (IndexType dim = 0; dim < local_space_dimension; ++dim)
+            for (IndexType k = 0; k < local_space_dimension; ++k)
             {
-                rGlobalCoordinates[1 + dim] = column(J, dim);
+                rGlobalSpaceDerivatives[1 + k] = ZeroVector(3);
             }
 
-            return;
-        }
+            const Matrix& r_shape_functions_gradient_in_integration_point = ShapeFunctionLocalGradients(IntegrationPointIndex, ThisMethod);
 
-        KRATOS_ERROR << "Calling GlobalDerivatives within geometry.h."
-            << " Please check the definition within derived class. "
-            << *this << std::endl;
+            const SizeType points_number = this->PointsNumber();
+            for (IndexType i = 0; i < points_number; ++i) {
+                const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                    const double value = r_coordinates[k];
+                    for (IndexType m = 0; m < local_space_dimension; ++m) {
+                        rGlobalSpaceDerivatives[m + 1][k] += value * r_shape_functions_gradient_in_integration_point(i, m);
+                    }
+                }
+            }
+        }
+        else
+        {
+            KRATOS_ERROR << "Calling GlobalDerivatives within geometry.h."
+                << " Please check the definition within derived class. "
+                << *this << std::endl;
+        }
     }
 
     ///@}
