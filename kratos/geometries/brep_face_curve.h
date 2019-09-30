@@ -281,6 +281,8 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -315,12 +317,6 @@ private:
     {}
 
     ///@}
-    ///@name Private Friends
-    ///@{
-
-    template<class TOtherPointType, class TOtherPointEmbeddedType> friend class BrepFaceCurve;
-
-    ///@}
 }; // Class BrepFaceCurve
 
 ///@name Input and output
@@ -348,9 +344,13 @@ template<class TContainerPointType, class TContainerPointEmbeddedType = TContain
 
 template<class TContainerPointType, class TContainerPointEmbeddedType> const
 GeometryData BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
-    1, 3, 2,
+    &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
+
+template<class TContainerPointType, class TContainerPointEmbeddedType>
+const GeometryDimension BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
+    1, 3, 2);
 
 ///@}
 }// namespace Kratos.
