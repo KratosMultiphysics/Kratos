@@ -13,8 +13,9 @@ do
 
 	PYTHON_LOCATION=/opt/python/cp${PYTHON}-cp${PYTHON}m/bin/python
 
-	cd Kratos/cmake_build
+	cd cmake_build
 	cp /workspace/kratos/Kratos/scripts/wheels/linux/configure.sh ./configure.sh
+	chmod +x configure.sh
 	./configure.sh $PYTHON_LOCATION
 
 	make -j$1
