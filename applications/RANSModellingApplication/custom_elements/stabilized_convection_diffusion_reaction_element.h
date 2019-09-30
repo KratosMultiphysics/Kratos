@@ -202,9 +202,11 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
-        KRATOS_TRY
-        return Kratos::make_intrusive<StabilizedConvectionDiffusionReactionElement>(
-            NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        KRATOS_TRY;
+        KRATOS_ERROR
+            << "Attempting to Clone base "
+               "StabilizedConvectionDiffusionReactionElement instances."
+            << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -268,17 +270,6 @@ public:
 
         // Calculate RHS
         this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix only
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
-    {
     }
 
     /**
@@ -384,49 +375,6 @@ public:
     }
 
     /**
-     * this is called during the assembling process in order
-     * to calculate the first derivatives contributions for the LHS and RHS
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                                                VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-            rLeftHandSideMatrix.resize(0, 0, false);
-        if (rRightHandSideVector.size() != 0)
-            rRightHandSideVector.resize(0, false);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the first derivatives constributions
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                      ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-            rLeftHandSideMatrix.resize(0, 0, false);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the first derivatives constributions
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rRightHandSideVector.size() != 0)
-            rRightHandSideVector.resize(0, false);
-    }
-
-    /**
      * ELEMENTS inherited from this class must implement this methods
      * if they need to add dynamic element contributions
      * note: second derivatives means the accelerations if the displacements are the dof of the analysis
@@ -434,49 +382,6 @@ public:
      * CalculateSecondDerivativesContributions,
      * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
      */
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the second derivative contributions for the LHS and RHS
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                                                 VectorType& rRightHandSideVector,
-                                                 ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-            rLeftHandSideMatrix.resize(0, 0, false);
-        if (rRightHandSideVector.size() != 0)
-            rRightHandSideVector.resize(0, false);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the second derivatives constributions
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-            rLeftHandSideMatrix.resize(0, 0, false);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the second derivatives constributions
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-                                       ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rRightHandSideVector.size() != 0)
-            rRightHandSideVector.resize(0, false);
-    }
 
     /**
      * this is called during the assembling process in order
@@ -709,21 +614,14 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(this->Id() < 1)
-            << "StabilizedConvectionDiffusionReactionElement found with Id 0 "
-               "or negative"
-            << std::endl;
-
-        KRATOS_ERROR_IF(this->GetGeometry().Area() <= 0)
-            << "On StabilizedConvectionDiffusionReactionElement -> " << this->Id()
-            << "; Area cannot be less than or equal to 0" << std::endl;
+        int check = BaseType::Check(rCurrentProcessInfo);
 
         for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
         {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, this->GetGeometry()[iNode]);
         }
 
-        return 0;
+        return check;
 
         KRATOS_CATCH("");
     }
