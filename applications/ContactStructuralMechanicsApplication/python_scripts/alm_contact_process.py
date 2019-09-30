@@ -162,7 +162,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             if not not_normal_update_frictional and not "WithNormalUpdate" in contact_type:
                 contact_type += "WithNormalUpdate"
             self.is_frictional = True
-            self.slip_step_reset_frequency = self.settings["slip_step_reset_frequency"].GetInt()
+            self.slip_step_reset_frequency = self.contact_settings["slip_step_reset_frequency"].GetInt()
             self.slip_step_reset_counter = 0
             if "PureSlip" in contact_type:
                 self.pure_slip = True
