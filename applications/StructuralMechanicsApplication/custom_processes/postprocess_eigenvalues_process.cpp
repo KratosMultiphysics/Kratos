@@ -82,6 +82,7 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
     gid_eigen_io.WriteMesh(mrModelPart.GetMesh());
     gid_eigen_io.WriteNodeMesh(mrModelPart.GetMesh());
     gid_eigen_io.FinalizeMesh();
+    gid_eigen_io.InitializeResults(0.0, mrModelPart.GetMesh());
 
     const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
     // Note: this is omega^2
@@ -93,7 +94,6 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
     std::vector<Variable<array_1d<double,3>>> requested_vector_results;
     GetVariables(requested_double_results, requested_vector_results);
 
-    gid_eigen_io.InitializeResults(0.0, mrModelPart.GetMesh());
 
     for (SizeType i=0; i<num_animation_steps; ++i) {
         const double cos_angle = std::cos(2 * Globals::Pi * i / num_animation_steps);
