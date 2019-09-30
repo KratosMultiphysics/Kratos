@@ -42,6 +42,7 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_small_displacement_element.h"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -419,6 +420,9 @@ private:
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D6N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint3D4N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint3D8N;
+    const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D4N;
+    const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D6N;
+    const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D8N;
 
     /* CONDITIONS*/
     // Point load
