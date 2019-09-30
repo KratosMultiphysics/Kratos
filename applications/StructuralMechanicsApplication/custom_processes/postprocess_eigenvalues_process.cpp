@@ -24,8 +24,11 @@ namespace Kratos
 {
 
 namespace { // helpers namespace
+
 struct BaseEigenOutputWrapper
 {
+    virtual ~BaseEigenOutputWrapper() = default;
+
     virtual void PrintOutput(
         const std::string& rLabel,
         const int AnimationStep,
@@ -74,7 +77,6 @@ public:
         for (const auto& variable : rRequestedVectorResults) {
             mpGidEigenIO->WriteEigenResults(mrModelPart, variable, rLabel, AnimationStep);
         }
-
     }
 
 private:
@@ -115,7 +117,7 @@ struct VtkEigenOutputWrapper : public BaseEigenOutputWrapper
 
 };
 
-}
+} // helpers namespace
 
 PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPart,
                                                                 Parameters OutputParameters)
@@ -170,25 +172,6 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
         KRATOS_ERROR << "\"file_format\" can only be \"vtk\" or \"gid\"" << std::endl;
     }
 
-    auto post_mode = GiD_PostBinary;
-    if (mOutputParameters["result_file_format_use_ascii"].GetBool()) { // this format is only needed for testing
-        post_mode = GiD_PostAscii;
-    }
-
-    GidEigenIO gid_eigen_io(
-        result_file_name,
-        post_mode,
-        MultiFileFlag::SingleFile,
-        WriteDeformedMeshFlag::WriteUndeformed,
-        WriteConditionsFlag::WriteConditions);
-
-    // deliberately rewritting the mesh in case the geometry is updated
-    gid_eigen_io.InitializeMesh(0.0);
-    gid_eigen_io.WriteMesh(mrModelPart.GetMesh());
-    gid_eigen_io.WriteNodeMesh(mrModelPart.GetMesh());
-    gid_eigen_io.FinalizeMesh();
-    gid_eigen_io.InitializeResults(0.0, mrModelPart.GetMesh());
-
     const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
     // Note: this is omega^2
     const SizeType num_eigenvalues = eigenvalue_vector.size();
@@ -228,17 +211,8 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
             }
 
             p_eigen_io_wrapper->PrintOutput(label, i, requested_double_results, requested_vector_results);
-
-            for (const auto& variable : requested_double_results) {
-                gid_eigen_io.WriteEigenResults(mrModelPart, variable, label, i);
-            }
-
-            for (const auto& variable : requested_vector_results) {
-                gid_eigen_io.WriteEigenResults(mrModelPart, variable, label, i);
-            }
         }
     }
-    gid_eigen_io.FinalizeResults();
 }
 
 void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
