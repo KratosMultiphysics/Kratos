@@ -30,6 +30,7 @@
 #include "includes/kratos_parameters.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
+#include "processes/voxel_mesh_generator_process.h"
 
 
 namespace Kratos
@@ -69,7 +70,7 @@ namespace Kratos
 
       /// Constructors to be used. They take the geometry to be meshed and ModelPart to be filled. The second constructor is
       /// provided for the Python interface.
-      VoxelMeshColoringProcess(Point const& MinPoint, Point const& MaxPoint,  array_1d<std::size_t,3> const& NumberOfDivisions, 
+      VoxelMeshColoringProcess(Internals::CartesianMeshColors& MeshColors, Point const& MinPoint, Point const& MaxPoint,  array_1d<std::size_t,3> const& NumberOfDivisions, 
         ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters);
 
@@ -135,6 +136,7 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
+        Internals::CartesianMeshColors& mColors;
           Hexahedra3D8<Point> mGeometry;
           const Point mMinPoint;
           const Point mMaxPoint;
