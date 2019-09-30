@@ -27,10 +27,11 @@
 
 namespace Kratos
 {
-    VoxelMeshColoringProcess::VoxelMeshColoringProcess(Point const& MinPoint, Point const& MaxPoint,  array_1d<std::size_t,3> const& NumberOfDivisions,
+    VoxelMeshColoringProcess::VoxelMeshColoringProcess(Internals::CartesianMeshColors& MeshColors, Point const& MinPoint, Point const& MaxPoint,  array_1d<std::size_t,3> const& NumberOfDivisions,
         ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters)
 		: Process()
+		, mColors(MeshColors)
         , mGeometry(Point(MinPoint[0], MinPoint[1], MinPoint[2]),
                     Point( MaxPoint[0], MinPoint[1], MinPoint[2]),
                     Point( MaxPoint[0],  MaxPoint[1], MinPoint[2]),
@@ -212,7 +213,7 @@ namespace Kratos
                         previous_cell_was_empty = true;
                     }
                     else{
-                        const double ray_distance = ray_casting_process.DistancePositionInSpace(r_node);
+                        const double ray_distance = ray_casting_process.DistancePositionInSpace(mColors.GetPoint(i,j,k));
                         if (ray_distance < 0.0) {
                             node_distance = TheColor;
 							previous_cell_color = TheColor;
