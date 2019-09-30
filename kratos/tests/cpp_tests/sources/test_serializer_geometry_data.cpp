@@ -24,7 +24,7 @@
 #include "containers/model.h"
 
 #include "geometries/line_2d_3.h"
-#include "geometries/quadrature_point.h"
+#include "geometries/quadrature_point_geometry.h"
 #include "geometries/triangle_2d_3.h"
 
 namespace Kratos {
@@ -72,7 +72,7 @@ namespace Kratos {
                 );
         }
 
-        Geometry<Node<3>>::Pointer GenerateQuadraturePoint2(ModelPart& rModelPart) {
+        Geometry<Node<3>>::Pointer GenerateQuadraturePointGeometry2(ModelPart& rModelPart) {
             auto triangle = GeneratePointsTriangle2D3TestQP(rModelPart);
 
             auto integration_points = triangle->IntegrationPoints();
@@ -93,7 +93,7 @@ namespace Kratos {
                 DN_De);
 
             Geometry<Node<3>>::Pointer p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePoint<Node<3>, 2, 2>>(
+                Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2, 2>>(
                     triangle->Points(),
                     data_container,
                     triangle.get()));
@@ -128,16 +128,16 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(&(line_saved->GetGeometryData()), &(line_loaded->GetGeometryData()));
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(SerializerQuadraturePoint, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerQuadraturePointGeometry, KratosCoreFastSuite)
         {
             Model model;
             auto& mp = model.CreateModelPart("SerializerLine2D3");
 
             StreamSerializer serializer;
 
-            auto quadrature_saved = GenerateQuadraturePoint2(mp);
+            auto quadrature_saved = GenerateQuadraturePointGeometry2(mp);
 
-            auto quadrature_loaded = GenerateQuadraturePoint2(mp);
+            auto quadrature_loaded = GenerateQuadraturePointGeometry2(mp);
 
             serializer.save("qp", quadrature_saved);
             serializer.load("qp", quadrature_loaded);
