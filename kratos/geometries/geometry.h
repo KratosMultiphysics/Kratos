@@ -1710,7 +1710,7 @@ public:
     {
         noalias(rResult) = ZeroVector(3);
 
-        const Matrix& N = ShapeFunctionsValues();
+        const Matrix& N = this->ShapeFunctionsValues();
 
         for (IndexType i = 0; i < this->size(); i++)
             noalias(rResult) += N(IntegrationPointIndex, i) * (*this)[i];
@@ -1767,7 +1767,7 @@ public:
                 rGlobalCoordinates.resize(1);
 
             array_1d<double, 3> global_coordinates;
-            GlobalCoordinates(
+            this->GlobalCoordinates(
                 global_coordinates,
                 rLocalCoordinates);
 
@@ -1783,7 +1783,7 @@ public:
                 rGlobalCoordinates.resize(1 + local_space_dimension);
 
             array_1d<double, 3> global_coordinates;
-            GlobalCoordinates(global_coordinates,
+            this->GlobalCoordinates(global_coordinates,
                 rLocalCoordinates);
 
             rGlobalCoordinates[0] = global_coordinates;
