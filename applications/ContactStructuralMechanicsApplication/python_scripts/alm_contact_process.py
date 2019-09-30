@@ -76,6 +76,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "clear_inactive_for_post"       : true,
+            "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
                 "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,
@@ -161,6 +162,8 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             if not not_normal_update_frictional and not "WithNormalUpdate" in contact_type:
                 contact_type += "WithNormalUpdate"
             self.is_frictional = True
+            self.slip_step_reset_frequency = self.settings["slip_step_reset_frequency"].GetInt()
+            self.slip_step_reset_counter = 0
             if "PureSlip" in contact_type:
                 self.pure_slip = True
             else:
@@ -219,6 +222,14 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         """
         # We call to the base process
         super(ALMContactProcess, self).ExecuteFinalizeSolutionStep()
+
+        # Reset slip flag
+        if self.is_frictional:
+            if self.slip_step_reset_frequency > 0:
+                self.slip_step_reset_counter += 1
+                if self.slip_step_reset_counter >= self.slip_step_reset_frequency:
+                    KM.VariableUtils().SetFlag(KM.SLIP, False, self._get_process_model_part().Nodes)
+                    self.slip_step_reset_counter = 0
 
         # Debug we compute if the total load corresponds with the total contact force and the reactions
         if self.settings["search_parameters"]["debug_mode"].GetBool():
