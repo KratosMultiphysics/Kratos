@@ -371,7 +371,8 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        rSerializer.save("DefaultMethod", int(mDefaultMethod));
+        int default_method = int(mDefaultMethod);
+        rSerializer.save("default_method", default_method);
         rSerializer.save("IntegrationPoints", mIntegrationPoints);
         rSerializer.save("ShapeFunctionsValues", mShapeFunctionsValues);
         rSerializer.save("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
@@ -380,7 +381,8 @@ private:
 
     virtual void load( Serializer& rSerializer )
     {
-        rSerializer.save("DefaultMethod", mDefaultMethod);
+        rSerializer.save("default_method", default_method);
+        mDefaultMethod = static_cast<TIntegrationMethodType>(default_method);
         rSerializer.load("IntegrationPoints", mIntegrationPoints);
         rSerializer.load("ShapeFunctionsValues", mShapeFunctionsValues);
         rSerializer.load("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
