@@ -112,11 +112,9 @@ namespace Kratos {
 
             auto line_loaded = GenerateLine2D3TestLoad(mp);
 
-            const std::string tag_string("LoadLine");
-
             KRATOS_CHECK_EQUAL(line_saved->size(), 3);
-            serializer.save(tag_string, line_saved);
-            serializer.load(tag_string, line_loaded);
+            serializer.save("LoadLine", line_saved);
+            serializer.load("LoadLine", line_loaded);
 
             KRATOS_CHECK_NEAR((*line_saved)[0].X(), (*line_loaded)[0].X(), 1e-6);
             KRATOS_CHECK_NEAR((*line_saved)[0].Y(), (*line_loaded)[0].Y(), 1e-6);
@@ -128,6 +126,33 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(line_saved->GetDefaultIntegrationMethod(), line_loaded->GetDefaultIntegrationMethod());
 
             KRATOS_CHECK_EQUAL(&(line_saved->GetGeometryData()), &(line_loaded->GetGeometryData()));
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(SerializerQuadraturePoint, KratosCoreFastSuite)
+        {
+            Model model;
+            auto& mp = model.CreateModelPart("SerializerLine2D3");
+
+            StreamSerializer serializer;
+
+            auto quadrature_saved = GenerateQuadraturePoint2(mp);
+
+            auto quadrature_loaded = GenerateQuadraturePoint2(mp);
+
+            serializer.save("qp", quadrature_saved);
+            serializer.load("qp", quadrature_loaded);
+
+            KRATOS_CHECK_NEAR((*quadrature_saved)[0].X(), (*quadrature_loaded)[0].X(), 1e-6);
+            KRATOS_CHECK_NEAR((*quadrature_saved)[0].Y(), (*quadrature_loaded)[0].Y(), 1e-6);
+            KRATOS_CHECK_NEAR((*quadrature_saved)[0].Z(), (*quadrature_loaded)[0].Z(), 1e-6);
+
+            KRATOS_CHECK_MATRIX_NEAR(quadrature_saved->ShapeFunctionsValues(), quadrature_loaded->ShapeFunctionsValues(), 1e-6);
+
+            KRATOS_CHECK_EQUAL(quadrature_saved->size(), quadrature_loaded->size());
+            KRATOS_CHECK_EQUAL(quadrature_saved->WorkingSpaceDimension(), quadrature_loaded->WorkingSpaceDimension());
+            KRATOS_CHECK_EQUAL(quadrature_saved->GetDefaultIntegrationMethod(), quadrature_loaded->GetDefaultIntegrationMethod());
+
+            KRATOS_CHECK_EQUAL(&(quadrature_saved->GetGeometryData()), &(quadrature_loaded->GetGeometryData()));
         }
     } // namespace Testing
 }  // namespace Kratos.
