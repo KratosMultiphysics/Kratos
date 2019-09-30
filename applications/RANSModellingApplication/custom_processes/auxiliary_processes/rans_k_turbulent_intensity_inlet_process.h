@@ -297,15 +297,8 @@ private:
         const array_1d<double, 3>& r_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
         double velocity_magnitude = norm_2(r_velocity);
 
-        // if (velocity_magnitude > std::numeric_limits<double>::epsilon())
-        // {
-            rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) =
-                1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2);
-        // }
-        // else
-        // {
-        //     rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) = mMinValue;
-        // }
+        rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) =
+            1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2);
     }
 
     ///@}
