@@ -19,6 +19,7 @@
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_io/gid_eigen_io.h"
+#include "custom_io/vtk_eigen_output.h"
 
 namespace Kratos
 {
@@ -39,13 +40,29 @@ struct BaseEigenOutputWrapper
 struct GidEigenOutputWrapper : public BaseEigenOutputWrapper
 {
 public:
-    GidEigenOutputWrapper(ModelPart& rModelPart, const std::string& rFileName, const bool UseAscii)
+    GidEigenOutputWrapper(ModelPart& rModelPart, Parameters OutputParameters)
         : mrModelPart(rModelPart)
     {
-        const auto post_mode = UseAscii ? GiD_PostAscii : GiD_PostBinary;
+        std::string result_file_name = OutputParameters["result_file_name"].GetString();
+
+        if (result_file_name == "") { // use the name of the ModelPart in case nothing was assigned
+            result_file_name = mrModelPart.Name();
+        }
+
+        result_file_name += "_EigenResults_";
+
+        const std::string file_label = OutputParameters["file_label"].GetString();
+        if (file_label == "step") {
+            result_file_name += std::to_string(mrModelPart.GetProcessInfo()[STEP]);
+        } else if (file_label == "time") {
+            result_file_name += std::to_string(mrModelPart.GetProcessInfo()[TIME]);
+        } else {
+            KRATOS_ERROR << "\"file_label\" can only be \"step\" or \"time\"" << std::endl;
+        }
+        const auto post_mode = OutputParameters["result_file_format_use_ascii"].GetBool() ? GiD_PostAscii : GiD_PostBinary;
 
         mpGidEigenIO = Kratos::make_unique<GidEigenIO>(
-            rFileName,
+            result_file_name,
             post_mode,
             MultiFileFlag::SingleFile,
             WriteDeformedMeshFlag::WriteUndeformed,
@@ -53,10 +70,10 @@ public:
 
         // deliberately rewritting the mesh in case the geometry is updated
         mpGidEigenIO->InitializeMesh(0.0);
-        mpGidEigenIO->WriteMesh(rModelPart.GetMesh());
-        mpGidEigenIO->WriteNodeMesh(rModelPart.GetMesh());
+        mpGidEigenIO->WriteMesh(mrModelPart.GetMesh());
+        mpGidEigenIO->WriteNodeMesh(mrModelPart.GetMesh());
         mpGidEigenIO->FinalizeMesh();
-        mpGidEigenIO->InitializeResults(0.0, rModelPart.GetMesh());
+        mpGidEigenIO->InitializeResults(0.0, mrModelPart.GetMesh());
     }
 
     ~GidEigenOutputWrapper()
@@ -87,23 +104,27 @@ private:
 
 struct VtkEigenOutputWrapper : public BaseEigenOutputWrapper
 {
-    VtkEigenOutputWrapper(ModelPart& rModelPart, const std::string& rFileName, Parameters OutputParameters)
+public:
+    VtkEigenOutputWrapper(ModelPart& rModelPart, Parameters OutputParameters)
     {
-        // const auto post_mode = UseAscii ? GiD_PostAscii : GiD_PostBinary;
+        Parameters vtk_parameters(Parameters(R"(
+        {
+            "file_format"                        : "binary",
+            "save_output_files_in_folder"        : false,
+            "output_control_type"                : "step",
+            "custom_name_postfix"                : "_EigenResults_"
+        })" ));
 
-        // mpGidEigenIO = Kratos::make_unique<GidEigenIO>(
-        //     rFileName,
-        //     post_mode,
-        //     MultiFileFlag::SingleFile,
-        //     WriteDeformedMeshFlag::WriteUndeformed,
-        //     WriteConditionsFlag::WriteConditions);
+        KRATOS_WATCH(OutputParameters.PrettyPrintJsonString());
 
-        // // deliberately rewritting the mesh in case the geometry is updated
-        // mpGidEigenIO->InitializeMesh(0.0);
-        // mpGidEigenIO->WriteMesh(rModelPart.GetMesh());
-        // mpGidEigenIO->WriteNodeMesh(rModelPart.GetMesh());
-        // mpGidEigenIO->FinalizeMesh();
-        // mpGidEigenIO->InitializeResults(0.0, rModelPart.GetMesh());
+        vtk_parameters.AddValue("nodal_solution_step_data_variables", OutputParameters["list_of_result_variables"]);
+        KRATOS_WATCH(vtk_parameters.PrettyPrintJsonString());
+        vtk_parameters["output_control_type"].SetString(OutputParameters["file_label"].GetString());
+        if (OutputParameters["result_file_format_use_ascii"].GetBool()) {
+            vtk_parameters["file_format"].SetString("ascii");
+        }
+
+        mpVtkEigenOutput = Kratos::make_unique<VtkEigenOutput>(rModelPart, vtk_parameters);
     }
 
     void PrintOutput(
@@ -112,8 +133,18 @@ struct VtkEigenOutputWrapper : public BaseEigenOutputWrapper
         const std::vector<Variable<double>>& rRequestedDoubleResults,
         const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
     {
+        // for (const auto& variable : rRequestedDoubleResults) {
+        //     mpGidEigenIO->WriteEigenResults(mrModelPart, variable, rLabel, AnimationStep);
+        // }
 
+        // for (const auto& variable : rRequestedVectorResults) {
+        //     mpGidEigenIO->WriteEigenResults(mrModelPart, variable, rLabel, AnimationStep);
+        // }
     }
+
+
+private:
+    Kratos::unique_ptr<VtkEigenOutput> mpVtkEigenOutput;
 
 };
 
@@ -141,33 +172,12 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPa
 
 void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
 {
-    // note that the parameters are read each time output is written
-    // this is done in order to limit the members of this class
-
-    std::string result_file_name = mOutputParameters["result_file_name"].GetString();
-
-    if (result_file_name == "") { // use the name of the ModelPart in case nothing was assigned
-        result_file_name = mrModelPart.Name();
-    }
-
-    result_file_name += "_EigenResults_";
-
-    const std::string file_label = mOutputParameters["file_label"].GetString();
-    if (file_label == "step") {
-        result_file_name += std::to_string(mrModelPart.GetProcessInfo()[STEP]);
-    } else if (file_label == "time") {
-        result_file_name += std::to_string(mrModelPart.GetProcessInfo()[TIME]);
-    } else {
-        KRATOS_ERROR << "\"file_label\" can only be \"step\" or \"time\"" << std::endl;
-    }
-
     Kratos::unique_ptr<BaseEigenOutputWrapper> p_eigen_io_wrapper;
-    const bool use_ascii(mOutputParameters["result_file_format_use_ascii"].GetBool());
     const std::string file_format(mOutputParameters["file_format"].GetString());
     if (file_format == "vtk") {
-        p_eigen_io_wrapper = Kratos::make_unique<VtkEigenOutputWrapper>(mrModelPart, result_file_name, mOutputParameters);
+        p_eigen_io_wrapper = Kratos::make_unique<VtkEigenOutputWrapper>(mrModelPart, mOutputParameters);
     } else if (file_format == "gid") {
-        p_eigen_io_wrapper = Kratos::make_unique<GidEigenOutputWrapper>(mrModelPart, result_file_name, use_ascii);
+        p_eigen_io_wrapper = Kratos::make_unique<GidEigenOutputWrapper>(mrModelPart, mOutputParameters);
     } else {
         KRATOS_ERROR << "\"file_format\" can only be \"vtk\" or \"gid\"" << std::endl;
     }
