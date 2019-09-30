@@ -726,10 +726,6 @@ public:
             << "On StabilizedConvectionDiffusionReactionElement -> " << this->Id()
             << "; Area cannot be less than or equal to 0" << std::endl;
 
-        KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
-        KRATOS_CHECK_VARIABLE_KEY(BOSSAK_ALPHA);
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-
         for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
         {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, this->GetGeometry()[iNode]);

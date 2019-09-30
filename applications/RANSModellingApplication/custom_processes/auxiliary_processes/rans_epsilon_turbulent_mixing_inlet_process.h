@@ -176,10 +176,6 @@ public:
 
     int Check() override
     {
-        // Checking variable definitions
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
-
         RansCheckUtilities rans_check_utilities;
 
         rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);

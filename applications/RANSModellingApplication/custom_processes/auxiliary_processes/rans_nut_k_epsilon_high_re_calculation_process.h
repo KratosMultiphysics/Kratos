@@ -123,11 +123,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENCE_RANS_C_MU);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_VISCOSITY);
-
         RansCheckUtilities rans_check_utilities;
 
         rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
