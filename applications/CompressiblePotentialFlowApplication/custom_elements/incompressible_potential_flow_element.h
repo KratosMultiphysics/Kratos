@@ -175,6 +175,11 @@ public:
     ///@}
 
 private:
+    ///@name Member Variables
+    ///@{
+    int mTeElementCounter0;
+    int mTeElementCounter1;
+    ///@}
     ///@name Private Operators
     ///@{
 
@@ -184,13 +189,13 @@ private:
 
     void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const;
 
-    void GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const;
+    void GetEquationIdVectorWakeElement(EquationIdVectorType& rResult);
 
     void GetDofListNormalElement(DofsVectorType& rElementalDofList) const;
 
     void GetDofListKuttaElement(DofsVectorType& rElementalDofList) const;
 
-    void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
+    void GetDofListWakeElement(DofsVectorType& rElementalDofList);
 
     void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
                                            VectorType& rRightHandSideVector,
