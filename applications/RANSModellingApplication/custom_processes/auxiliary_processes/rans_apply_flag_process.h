@@ -55,8 +55,8 @@ namespace Kratos
  * @brief Apply a specific flag for nodes and conditions
  *
  * This process apply a given flag to nodes of the modelpart.
- * Then, if preferred, applies to all conditions in the given model, which has the
- * given flag applied to all the nodes in the specific condition.
+ * Then, if preferred, applies to all conditions in the given model, which has
+ * the given flag applied to all the nodes in the specific condition.
  *
  */
 
@@ -85,7 +85,7 @@ public:
             "echo_level"                     : 0,
             "flag_variable_name"             : "PLEASE_SPECIFY_FLAG_VARIABLE_NAME",
             "flag_variable_value"            : true,
-            "apply_to_model_part_conditions" : "all"
+            "apply_to_model_part_conditions" : ["ALL_MODEL_PARTS"]
         })");
 
         mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
@@ -94,15 +94,8 @@ public:
         mFlagVariableName = mrParameters["flag_variable_name"].GetString();
         mFlagVariableValue = mrParameters["flag_variable_value"].GetBool();
         mEchoLevel = mrParameters["echo_level"].GetInt();
-
-        if (mrParameters["apply_to_model_part_conditions"].GetString() == "all")
-        {
-            mIsAllModelPartsConsideredForConditionFlags = true;
-        }
-        else
-        {
-            mIsAllModelPartsConsideredForConditionFlags = false;
-        }
+        mModelPartsForConditionFlags =
+            mrParameters["apply_to_model_part_conditions"].GetStringArray();
 
         KRATOS_CATCH("");
     }
@@ -134,15 +127,20 @@ public:
     {
         ApplyNodeFlags();
 
-        if (mIsAllModelPartsConsideredForConditionFlags)
+        if (mModelPartsForConditionFlags.size() == 1 &&
+            mModelPartsForConditionFlags[0] == "ALL_MODEL_PARTS")
         {
-            const std::vector<std::string>& r_model_part_names =
-                mrModel.GetModelPartNames();
-            for (std::string model_part_name : r_model_part_names)
+            mModelPartsForConditionFlags.clear();
+            for (const std::string model_part_name : mrModel.GetModelPartNames())
             {
-                ModelPart& r_model_part = mrModel.GetModelPart(model_part_name);
-                ApplyConditionFlags(r_model_part);
+                mModelPartsForConditionFlags.push_back(model_part_name);
             }
+        }
+
+        for (std::string model_part_name : mModelPartsForConditionFlags)
+        {
+            ModelPart& r_model_part = mrModel.GetModelPart(model_part_name);
+            ApplyConditionFlags(r_model_part);
         }
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
@@ -230,7 +228,6 @@ private:
 
     std::string mFlagVariableName;
     bool mFlagVariableValue;
-    bool mIsAllModelPartsConsideredForConditionFlags;
     std::vector<std::string> mModelPartsForConditionFlags;
 
     ///@}
