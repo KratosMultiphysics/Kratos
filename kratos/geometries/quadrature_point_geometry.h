@@ -10,8 +10,8 @@
 //  Main authors:    Tobias Teschemacher
 //
 
-#if !defined(KRATOS_INTEGRATION_POINT_2D_H_INCLUDED )
-#define  KRATOS_INTEGRATION_POINT_2D_H_INCLUDED
+#if !defined(KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED )
+#define  KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED
 
 // System includes
 
@@ -25,7 +25,7 @@
 namespace Kratos
 {
 /**
- * @class QuadraturePoint
+ * @class QuadraturePointGeometry
  * @ingroup KratosCore
  * @brief A sinlge quadrature point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
@@ -39,13 +39,13 @@ template<class TPointType,
     int TWorkingSpaceDimension,
     int TLocalSpaceDimension = TWorkingSpaceDimension,
     int TDimension = TLocalSpaceDimension>
-class QuadraturePoint
+class QuadraturePointGeometry
     : public Geometry<TPointType>
 {
 public:
 
-    /// Pointer definition of QuadraturePoint
-    KRATOS_CLASS_POINTER_DEFINITION( QuadraturePoint );
+    /// Pointer definition of QuadraturePointGeometry
+    KRATOS_CLASS_POINTER_DEFINITION( QuadraturePointGeometry );
 
     typedef Geometry<TPointType> BaseType;
     typedef Geometry<TPointType> GeometryType;
@@ -78,7 +78,7 @@ public:
     ///@{
 
     /// Constructor with points and all shape function containers separately
-    QuadraturePoint(
+    QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
         const IntegrationPointsContainerType& rIntegrationPoints,
         ShapeFunctionsValuesContainerType& rShapeFunctionValues,
@@ -94,7 +94,7 @@ public:
     }
 
     /// Constructor with points and all shape function containers separately including the parent
-    QuadraturePoint(
+    QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
         const IntegrationPointsContainerType& rIntegrationPoints,
         const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
@@ -112,7 +112,7 @@ public:
     }
 
     /// Constructor with points and geometry shape function container
-    QuadraturePoint(
+    QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
         : BaseType(ThisPoints, &mGeometryData)
@@ -122,7 +122,7 @@ public:
     {
     }
     /// Constructor with points, geometry shape function container, parent
-    QuadraturePoint(
+    QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
         GeometryType* pGeometryParent)
@@ -134,7 +134,7 @@ public:
     {
     }
 
-    explicit QuadraturePoint(const PointsArrayType& ThisPoints)
+    explicit QuadraturePointGeometry(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -152,7 +152,7 @@ public:
      * Any changes to the new geometry points affect the source
      * geometry points too.
      */
-    QuadraturePoint( QuadraturePoint const& rOther )
+    QuadraturePointGeometry( QuadraturePointGeometry const& rOther )
         : BaseType( rOther )
     {
     }
@@ -170,13 +170,13 @@ public:
      * geometry points too.
      */
     template<class TOtherPointType>
-    QuadraturePoint( QuadraturePoint<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
+    QuadraturePointGeometry( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
         : BaseType( rOther )
     {
     }
 
     /// Destructor. Does nothing!!!
-    ~QuadraturePoint() override {}
+    ~QuadraturePointGeometry() override {}
 
     ///@}
     ///@name Operators
@@ -193,7 +193,7 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    QuadraturePoint& operator=( const QuadraturePoint& rOther )
+    QuadraturePointGeometry& operator=( const QuadraturePointGeometry& rOther )
     {
         BaseType::operator=( rOther );
 
@@ -212,7 +212,7 @@ public:
      * @see ClonePoints
      */
     template<class TOtherPointType>
-    QuadraturePoint& operator=( QuadraturePoint<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const & rOther )
+    QuadraturePointGeometry& operator=( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const & rOther )
     {
         BaseType::operator=( rOther );
 
@@ -225,7 +225,7 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new QuadraturePoint( ThisPoints ) );
+        return typename BaseType::Pointer( new QuadraturePointGeometry( ThisPoints ) );
     }
 
     ///@}
@@ -467,7 +467,7 @@ private:
 
     }
 
-    QuadraturePoint()
+    QuadraturePointGeometry()
         : BaseType(
             PointsArrayType(),
             &mGeometryData)
@@ -477,12 +477,6 @@ private:
             {}, {}, {})
     {
     }
-
-    ///@}
-    ///@name Private Friend
-    ///@{
-
-    //template<class TOtherPointType> friend class QuadraturePoint<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>;
 
     ///@}
 }; // Class Geometry
@@ -497,7 +491,7 @@ template<class TPointType,
     int TDimension>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    QuadraturePoint<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>& rThis );
+    QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>& rThis );
 
 /// output stream function
 template<class TPointType,
@@ -506,7 +500,7 @@ template<class TPointType,
     int TDimension>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const QuadraturePoint<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>& rThis )
+    const QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -523,7 +517,7 @@ template<class TPointType,
     int TWorkingSpaceDimension,
     int TLocalSpaceDimension,
     int TDimension>
-const GeometryDimension QuadraturePoint<
+const GeometryDimension QuadraturePointGeometry<
     TPointType,
     TWorkingSpaceDimension,
     TLocalSpaceDimension,
@@ -536,4 +530,4 @@ const GeometryDimension QuadraturePoint<
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTEGRATION_POINT_2D_H_INCLUDED  defined
+#endif // KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED  defined
