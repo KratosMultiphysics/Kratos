@@ -15,8 +15,8 @@ def Factory(settings, Model, parallel_type = "OpenMP"):
     model_type = settings["model_type"].GetString()
     if not model_type in turbulence_models_list:
         msg = "Uknown turbulence \"model_type\" name : \"" + model_type
-        msg += "\".\nSupported \"model_type\" names: " + turbulence_models_list.__str__(
-        )
+        msg += "\".\nSupported \"model_type\" names:"
+        msg += "\n\t".join(turbulence_models_list)
         raise Exception(msg)
 
     if model_type == "k_epsilon":
