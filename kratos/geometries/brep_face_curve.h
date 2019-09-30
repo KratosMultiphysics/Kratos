@@ -35,9 +35,9 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief The BrepFaceCurve acts as topology for curves on surfaces.
  */
-template<class TPointType, class TPointEmbeddedType = TPointType>
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType>
 class BrepFaceCurve
-    : public Geometry<TPointType>
+    : public Geometry<typename TContainerPointType::value_type>
 {
 public:
     ///@}
@@ -47,15 +47,15 @@ public:
     /** Pointer definition of BrepFaceCurve */
     KRATOS_CLASS_POINTER_DEFINITION( BrepFaceCurve );
 
-    typedef TPointType PointType;
+    typedef typename TContainerPointType::value_type PointType;
 
-    typedef Geometry<TPointType> BaseType;
-    typedef Geometry<TPointType> GeometryType;
+    typedef Geometry<typename TContainerPointType::value_type> BaseType;
+    typedef Geometry<typename TContainerPointType::value_type> GeometryType;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    typedef NurbsSurfaceGeometry<3, TPointType> NurbsSurfaceType;
-    typedef NurbsCurveGeometry<2, TPointEmbeddedType> NurbsCurveType;
+    typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
+    typedef NurbsCurveGeometry<2, TContainerPointEmbeddedType> NurbsCurveType;
 
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
 
@@ -120,8 +120,8 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType, class TOtherPointEmbeddedType> explicit BrepFaceCurve(
-        BrepFaceCurve<TOtherPointType, TOtherPointEmbeddedType> const& rOther )
+    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType> explicit BrepFace(
+        BrepFaceCurve<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
     {
     }
@@ -161,8 +161,8 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    template<class TOtherPointType, class TOtherPointEmbeddedType>
-    BrepFaceCurve& operator=( BrepFaceCurve<TOtherPointType, TOtherPointEmbeddedType> const & rOther )
+    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
+    BrepFaceCurve& operator=( BrepFaceCurve<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
         return *this;
@@ -327,14 +327,14 @@ private:
 ///@{
 
 /// input stream functions
-template<class TPointType, class TPointEmbeddedType> inline std::istream& operator >> (
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
     std::istream& rIStream,
-    BrepFaceCurve<TPointType, TPointEmbeddedType>& rThis );
+    BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType>& rThis );
 
 /// output stream functions
-template<class TPointType, class TPointEmbeddedType> inline std::ostream& operator << (
+template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const BrepFaceCurve<TPointType, TPointEmbeddedType>& rThis )
+    const BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -346,8 +346,8 @@ template<class TPointType, class TPointEmbeddedType> inline std::ostream& operat
 ///@name Static Type Declarations
 ///@{
 
-template<class TPointType, class TPointEmbeddedType> const
-GeometryData BrepFaceCurve<TPointType, TPointEmbeddedType>::msGeometryData(
+template<class TContainerPointType, class TContainerPointEmbeddedType> const
+GeometryData BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     1, 3, 2,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
