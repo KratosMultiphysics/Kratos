@@ -18,8 +18,8 @@
 #include "includes/define.h"
 #include "includes/define_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "costum_utilities/calculate_mean_temp.h"
-#include "costum_utilities/get_rom_residuals.h"
+#include "custom_utilities/calculate_mean_temp.h"
+#include "custom_utilities/get_rom_residuals.h"
 
 namespace Kratos
 {
@@ -32,12 +32,13 @@ using namespace pybind11;
   {
     class_<CalculateMeanTemperature, typename CalculateMeanTemperature::Pointer>(m, "CalculateMeanTemperature")
     .def(init<ModelPart&>()) // The input parameters is a model part 
-    .def("Execute",&CalculateMeanTemperature::Calculate) // When we call "Execute" in python, Calculate is called in C++. Notice we don't write the input parameters here. NO, IT DOESNT LIKE THE TYPE OF THE SCHEME 
+    .def("Execute",&CalculateMeanTemperature::Calculate) // When we call "Execute" in python, Calculate is called in C++. Notice we don't write the input parameters here.
     ;
 
-    class_<GetRomResiduals, typename GetRomResiduals::Pointer>(m, "GetRomResiduals")
-    .def( Parameters, typename TSchemeType::Pointer ,init<ModelPart&  >() ) //  Will it recognize the type of the scheme?
-    .def("Execute",&GetRomResiduals::Calculate) // 
+    // class_<GetRomResiduals, typename GetRomResiduals::Pointer>(m, "GetRomResiduals")
+    // .def(init<ModelPart&, Parameters, typename TSchemeType::Pointer>()) // 
+    // .def("Execute",&GetRomResiduals::Calculate) //
+    // ;  
 
   }
 
