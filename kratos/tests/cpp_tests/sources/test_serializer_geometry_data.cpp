@@ -24,7 +24,7 @@
 #include "containers/model.h"
 
 #include "geometries/line_2d_3.h"
-#include "geometries/quadrature_point.h"
+#include "geometries/quadrature_point_geometry.h"
 #include "geometries/triangle_2d_3.h"
 
 namespace Kratos {
