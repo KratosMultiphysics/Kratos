@@ -211,6 +211,12 @@ protected:
     void WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream) const;
 
     /**
+     * @brief It checks if the variable is compatible with the VTK format
+     * @param rVariableName name of the result to be written.
+     */
+    bool IsCompatibleVariable(const std::string& rVariableName) const;
+
+    /**
      * @brief Write the results on the nodes.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
