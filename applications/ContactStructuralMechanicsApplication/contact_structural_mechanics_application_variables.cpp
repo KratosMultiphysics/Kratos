@@ -31,6 +31,7 @@ KRATOS_CREATE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                       
 KRATOS_CREATE_VARIABLE( double, DISTANCE_THRESHOLD )                              // The distance threshold considered
 KRATOS_CREATE_VARIABLE( double, ZERO_TOLERANCE_FACTOR )                           // The epsilon factor considered
 KRATOS_CREATE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                             // The factor employed to search an active/inactive node
+KRATOS_CREATE_VARIABLE( double, SLIP_THRESHOLD )                                  // The threshold employed to search an slip/stick node
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )                 // Auxiliar coordinates used to map
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )                    // Delta coordinates used to map
 KRATOS_CREATE_VARIABLE( double, NORMAL_GAP )                                      // The normal gap employed in contact formulation
@@ -46,8 +47,7 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )           
 KRATOS_CREATE_VARIABLE( bool, ACTIVE_SET_COMPUTED )                               // To know if the active set has been computed
 KRATOS_CREATE_VARIABLE( bool, ACTIVE_SET_CONVERGED )                              // To know if the active set has converged
 KRATOS_CREATE_VARIABLE( bool, SLIP_SET_CONVERGED )                                // To know if the slip set has converged
-KRATOS_CREATE_VARIABLE( double, SLIP_CONVERGENCE_COEFFICIENT )                    // Coefficient to improve the slip computation convergence
-KRATOS_CREATE_VARIABLE( double, SLIP_AUGMENTATION_COEFFICIENT )                  // Coefficient to improve the slip computation convergence (augmented part related)
+KRATOS_CREATE_VARIABLE( double, SLIP_AUGMENTATION_COEFFICIENT )                   // Coefficient to improve the slip computation convergence (augmented part related)
 KRATOS_CREATE_VARIABLE( double, DYNAMIC_FACTOR )                                  // The factor considered for dynamic problems (in order to take intro account the gap evolution)
 KRATOS_CREATE_VARIABLE( double, LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )            // The lagrange multiplier for normal contact pressure
 KRATOS_CREATE_VARIABLE( double, AUGMENTED_NORMAL_CONTACT_PRESSURE )               // The resultant augmented pressure in the normal direction
