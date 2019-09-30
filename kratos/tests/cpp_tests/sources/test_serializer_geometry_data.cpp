@@ -93,7 +93,7 @@ namespace Kratos {
                 DN_De);
 
             Geometry<Node<3>>::Pointer p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePoint<Node<3>, 2, 2>>(
+                Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2, 2>>(
                     triangle->Points(),
                     data_container,
                     triangle.get()));
