@@ -22,7 +22,7 @@
 #include "geometries/point.h"
 
 #include "geometries/triangle_2d_3.h"
-#include "geometries/quadrature_point.h"
+#include "geometries/quadrature_point_geometry.h"
 #include "geometries/geometry_shape_function_container.h"
 
 namespace Kratos {
@@ -44,7 +44,7 @@ namespace Kratos {
                 );
         }
 
-        Geometry<Node<3>>::Pointer GenerateQuadraturePoint() {
+        Geometry<Node<3>>::Pointer GenerateQuadraturePointGeometry() {
             auto triangle = GeneratePointsTriangle2D3();
 
             //auto integration_method = triangle->GetDefaultIntegrationMethod();
@@ -66,7 +66,7 @@ namespace Kratos {
                 DN_De);
 
             Geometry<Node<3>>::Pointer p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePoint<Node<3>, 2, 2>>(
+                Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2, 2>>(
                     triangle->Points(),
                     data_container,
                     triangle.get()));
@@ -91,9 +91,9 @@ namespace Kratos {
             KRATOS_CHECK_MATRIX_NEAR(quadrature_points[1]->ShapeFunctionsLocalGradients()[0], triangle->ShapeFunctionsLocalGradients(GeometryData::GI_GAUSS_3)[1], 1e-6);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(QuadraturePoint2d, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(QuadraturePointGeometry2d, KratosCoreFastSuite)
         {
-            auto p_this_quadrature_point = GenerateQuadraturePoint();
+            auto p_this_quadrature_point = GenerateQuadraturePointGeometry();
 
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->size(), 3);
             KRATOS_CHECK_EQUAL(p_this_quadrature_point->WorkingSpaceDimension(), 2);
