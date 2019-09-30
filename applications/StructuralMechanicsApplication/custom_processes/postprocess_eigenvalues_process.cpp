@@ -105,10 +105,10 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
             for (int k=0; k<static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
                 // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
                 DofsContainerType& r_node_dofs = (nodes_begin+k)->GetDofs();
-                Matrix& r_node_eigenvectors = (nodes_begin+k)->GetValue(EIGENVECTOR_MATRIX);
+                const Matrix& r_node_eigenvectors = (nodes_begin+k)->GetValue(EIGENVECTOR_MATRIX);
 
                 KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2())
-                    << "Number of results on node " << (nodes_begin+i)->Id() << " is wrong" << std::endl;
+                    << "Number of results on node #" << (nodes_begin+i)->Id() << " is wrong" << std::endl;
 
                 SizeType l = 0;
                 for (auto& r_dof : r_node_dofs) {
