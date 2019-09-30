@@ -88,8 +88,7 @@ template<class TSparseSpace,
                         element_is_active = (it_el)->Is(ACTIVE);              
                     
                     if (element_is_active)
-                    {
-                    GET_ROM_RESIDUALS_H_INCLUDED //calculate elemental contribution
+                    {   //calculate elemental contribution
                         mpScheme->CalculateSystemContributions(*(it_el.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);                    
                         Element::DofsVectorType dofs;
                         it_el->GetDofList(dofs, CurrentProcessInfo);

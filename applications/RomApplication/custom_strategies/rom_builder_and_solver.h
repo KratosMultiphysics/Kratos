@@ -390,7 +390,6 @@ public:
                     element_is_active = (it_el)->Is(ACTIVE);
                 
                 
-
                 if (element_is_active)
                 {
                     //calculate elemental contribution
