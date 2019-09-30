@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateFi
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMKElement2D3N");
+        r_primal_model_part, "RansEvmK2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -212,7 +212,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateFi
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMEpsilonElement2D3N");
+        r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -376,7 +376,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateSe
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMKElement2D3N");
+        r_primal_model_part, "RansEvmK2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -455,7 +455,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateSe
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMEpsilonElement2D3N");
+        r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -587,7 +587,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateSe
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMKElement2D3N");
+        r_primal_model_part, "RansEvmK2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -639,7 +639,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMMonolithicKEpsilonVMSAdjointElement2D3N_CalculateSe
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMEpsilonElement2D3N");
+        r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");

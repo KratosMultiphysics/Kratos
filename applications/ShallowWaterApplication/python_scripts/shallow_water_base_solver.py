@@ -11,13 +11,9 @@ def CreateSolver(model, custom_settings):
     return ShallowWaterBaseSolver(model, custom_settings)
 
 class ShallowWaterBaseSolver(PythonSolver):
-    def __init__(self, model, custom_settings):  # Constructor of the class
-        settings = self._ValidateSettings(custom_settings)
-
+    def __init__(self, model, settings):  # Constructor of the class
+        self._validate_settings_in_baseclass = True
         super(ShallowWaterBaseSolver, self).__init__(model, settings)
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
 
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
@@ -56,6 +52,10 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.EQUIVALENT_MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
         self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.POROSITY)
+        # Projection variables
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_VECTOR1)
         # Auxiliary variables
         self.main_model_part.AddNodalSolutionStepVariable(KM.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
@@ -192,9 +192,6 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     #### Specific internal functions ####
 
-    def _IsPrintingRank(self):
-        return self._is_printing_rank
-
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input), but the wetting model should modify this extra step
         return self.main_model_part.ProcessInfo[KM.STEP] >= self.GetMinimumBufferSize()
@@ -207,8 +204,8 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         return delta_time
 
-    def _ValidateSettings(self, settings):
-        ##settings string in json format
+    @classmethod
+    def GetDefaultSettings(cls):
         default_settings = KM.Parameters("""
         {
             "solver_type"              : "shallow_water_base_solver",
@@ -245,9 +242,8 @@ class ShallowWaterBaseSolver(PythonSolver):
             },
             "multigrid_settings"       : {}
         }""")
-
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        default_settings.AddMissingParameters(super(ShallowWaterBaseSolver,cls).GetDefaultSettings())
+        return default_settings
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
@@ -281,16 +277,16 @@ class ShallowWaterBaseSolver(PythonSolver):
         else:
             element_num_nodes = 0
 
-        element_num_nodes = self.main_model_part.GetCommunicator().MaxAll(element_num_nodes)
+        element_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(element_num_nodes)
         return element_num_nodes
 
     def _GetConditionNumNodes(self):
         if self.main_model_part.NumberOfConditions() != 0:
-                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
+            condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
         else:
-            condition_num_nodes = 0
+            condition_num_nodes = 2
 
-        condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
+        condition_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes
 
     def _ExecuteCheckAndPrepare(self):
@@ -304,11 +300,14 @@ class ShallowWaterBaseSolver(PythonSolver):
     def _CreateWettingModel(self):
         if self.settings["wetting_drying_model"].Has("model_name"):
             if self.settings["wetting_drying_model"]["model_name"].GetString() == "rough_porous_layer":
-                wet_dry_module = SW.RoughPorousLayerWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
-                return wet_dry_module
+                return SW.RoughPorousLayerWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
+            if self.settings["wetting_drying_model"]["model_name"].GetString() == "negative_height":
+                return SW.NegativeHeightWettingModel(self.GetComputingModelPart(), self.settings["wetting_drying_model"])
             else:
                 msg = "Requested wetting drying model: " + self.settings["wetting_drying_model"]["model_name"].GetString() +"\n"
-                msg += "Available options are: \"rough_porous_layer\""
+                msg += "Available options are:\n"
+                msg += "\t\"rough_porous_layer\"\n"
+                msg += "\t\"negative_height\"\n"
                 raise Exception(msg)
         else:
             return None

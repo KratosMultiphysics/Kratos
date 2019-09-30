@@ -149,8 +149,7 @@ namespace Kratos
 
 	      //perform mpi sync if needed
 	      double global_dt = dt;
-	      ThisModelPart.GetCommunicator().MinAll(global_dt);
-	      dt = global_dt;
+	      dt = ThisModelPart.GetCommunicator().GetDataCommunicator().MinAll(global_dt);
 
 	      return dt;
 
@@ -220,7 +219,7 @@ namespace Kratos
 				  {
 					  max_delta_temp = std::max(max_delta_temp, mdelta[i]);
 				  }
-				  ThisModelPart.GetCommunicator().MaxAll(max_delta_temp);
+				  max_delta_temp = ThisModelPart.GetCommunicator().GetDataCommunicator().MaxAll(max_delta_temp);
 				  // Now we can keep on
 				  if( max_delta_temp > 0.0 )
 				  {
@@ -295,12 +294,12 @@ namespace Kratos
 					  max_nodal_volume = std::max(max_nodal_volume, mdelta[i]);
 				  }
 
-				  ThisModelPart.GetCommunicator().SumAll(current_solidified_volume);
-				  ThisModelPart.GetCommunicator().SumAll(old_solidified_volume);
-				  ThisModelPart.GetCommunicator().SumAll(tot_vol);
-				  ThisModelPart.GetCommunicator().SumAll(current_over_mushy_zone);
-				  ThisModelPart.GetCommunicator().SumAll(old_over_mushy_zone);
-				  ThisModelPart.GetCommunicator().MaxAll(max_nodal_volume);
+				  current_solidified_volume = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(current_solidified_volume);
+				  old_solidified_volume = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(old_solidified_volume);
+				  tot_vol = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(tot_vol);
+				  current_over_mushy_zone = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(current_over_mushy_zone);
+				  old_over_mushy_zone = ThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(old_over_mushy_zone);
+				  max_nodal_volume = ThisModelPart.GetCommunicator().GetDataCommunicator().MaxAll(max_nodal_volume);
 
 				  if(tot_vol == 0.0)   KRATOS_THROW_ERROR(std::logic_error, "inside ComputeSolidificationCoolingDt: total volume is zero!", "")
 
@@ -373,7 +372,7 @@ namespace Kratos
 				  max_delta_temp=std::max(-current_temp+old_temp,max_delta_temp);
 			  }
 
-			  ThisModelPart.GetCommunicator().MaxAll(max_delta_temp);
+			  max_delta_temp = ThisModelPart.GetCommunicator().GetDataCommunicator().MaxAll(max_delta_temp);
 
 			  if( max_delta_temp > 0.0 ){
 				  double new_delta_time = max_cooling_delta_temp / max_delta_temp;
@@ -618,7 +617,7 @@ namespace Kratos
 		      }
 		    }
 
-		ThisModelPart.GetCommunicator().MaxAll(is_in_range_point);
+		is_in_range_point = ThisModelPart.GetCommunicator().GetDataCommunicator().MaxAll(is_in_range_point);
 
 		return (is_in_range_point==1)? 1 : 0;
 	 }
@@ -749,8 +748,7 @@ namespace Kratos
 			double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
 			if( current_temp < last_temp){last_temp = current_temp;   }
 		}
-		ThisModelPart.GetCommunicator().MinAll(last_temp);
-		return last_temp;
+		return ThisModelPart.GetCommunicator().GetDataCommunicator().MinAll(last_temp);
 	 }
 	 //private:
 	//	 /////////////////////////////////////////////////////////////////////////////
@@ -781,7 +779,7 @@ namespace Kratos
 		 }
 
 
-		 ThisModelPart.GetCommunicator().MinAll(is_hot_point);
+		 is_hot_point = ThisModelPart.GetCommunicator().GetDataCommunicator().MinAll(is_hot_point);
 
 		 return (is_hot_point == 1.0) ? 1 : 0;
 	 }

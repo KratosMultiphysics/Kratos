@@ -17,6 +17,11 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+#include "Epetra_FEVector.h"
+#include "trilinos_space.h"
+#endif
+
 namespace Kratos
 {
 ///@addtogroup KratosCore
@@ -92,13 +97,12 @@ public:
      */
     virtual void Initialize(
         const DofsArrayType& rDofSet,
-        const SystemVectorType& rDx)
-    {}
+        const SystemVectorType& rDx);
 
     /// Free internal storage to reset the instance and/or optimize memory consumption.
     /** Note that the base RelaxedDofUpdater does not have internal data, so this does nothing.
      */
-    virtual void Clear() {}
+    virtual void Clear();
 
     /// Calculate new values for the problem's degrees of freedom using the update vector rDx.
     /** For each Dof in rDofSet, this function calculates the updated value for the corresponding
@@ -111,18 +115,7 @@ public:
     virtual void UpdateDofs(
         DofsArrayType& rDofSet,
         const SystemVectorType& rDx,
-        const double RelaxationFactor)
-    {
-        const int num_dof = static_cast<int>(rDofSet.size());
-
-        #pragma omp parallel for
-        for(int i = 0;  i < num_dof; ++i) {
-            auto it_dof = rDofSet.begin() + i;
-
-			if (it_dof->IsFree())
-                it_dof->GetSolutionStepValue() += RelaxationFactor * TSparseSpace::GetValue(rDx,it_dof->EquationId());
-        }
-    }
+        const double RelaxationFactor);
 
     /// Assign new values for the problem's degrees of freedom using the vector rX.
     /** For each Dof in rDofSet, this function assigns the value for the corresponding
@@ -131,30 +124,14 @@ public:
      *  @param[in] rX The solution vector.
      *  This method will check if Initialize() was called before and call it if necessary.
      */
-    virtual void AssignDofs(DofsArrayType& rDofSet, const SystemVectorType& rX)
-    {
-      const int num_dof = static_cast<int>(rDofSet.size());
-
-      #pragma omp parallel for
-      for(int i = 0;  i < num_dof; ++i)
-      {
-        auto it_dof = rDofSet.begin() + i;
-        if (it_dof->IsFree())
-          it_dof->GetSolutionStepValue() = TSparseSpace::GetValue(rX,it_dof->EquationId());
-      }
-    }
+    virtual void AssignDofs(DofsArrayType& rDofSet, const SystemVectorType& rX);
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "RelaxedDofUpdater" ;
-        return buffer.str();
-    }
+    virtual std::string Info() const;
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
@@ -169,6 +146,21 @@ public:
     }
 
     ///@}
+private:
+
+    //@name Member Variables
+    ///@{
+
+    /// This lets the class control if Initialize() was properly called.
+    bool mImportIsInitialized = false;
+
+    #ifdef KRATOS_USING_MPI // mpi-parallel compilation
+    /// Auxiliary trilinos data structure to import out-of-process data in the update vector.
+    std::unique_ptr<Epetra_Import> mpDofImport = nullptr;
+    #endif
+
+    ///@}
+
 
 }; // Class RelaxedDofUpdater
 

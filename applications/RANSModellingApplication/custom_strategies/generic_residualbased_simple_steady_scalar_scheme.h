@@ -45,26 +45,26 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GenericResidualBasedSimpleSteadyScalarScheme);
 
-    typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
+    using BaseType =  Scheme<TSparseSpace, TDenseSpace>;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    typedef Element::GeometryType GeometryType;
+    using GeometryType = Element::GeometryType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     GenericResidualBasedSimpleSteadyScalarScheme(const double RelaxationFactor)
-        : Scheme<TSparseSpace, TDenseSpace>(), mRelaxationFactor(RelaxationFactor)
+        : mRelaxationFactor(RelaxationFactor)
     {
         KRATOS_INFO("GenericResidualBasedSimpleSteadyScalarScheme")
             << " Using residual based simple steady scheme with relaxation "
@@ -86,10 +86,10 @@ public:
                                         TSystemVectorType &b) override
     {
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
-        if (TSparseSpace::Size(mPreviousB) != TSparseSpace::Size(b)) {
-            TSparseSpace::Resize(mPreviousB, TSparseSpace::Size(b));
-        }
-        TSparseSpace::SetToZero(mPreviousB);
+        // if (TSparseSpace::Size(mPreviousB) != TSparseSpace::Size(b)) {
+        //     TSparseSpace::Resize(mPreviousB, TSparseSpace::Size(b));
+        // }
+        // TSparseSpace::SetToZero(mPreviousB);
         mIterationCounter = 0;
     }
 
@@ -350,7 +350,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    TSystemVectorType mPreviousB;
+    // TSystemVectorType mPreviousB;
 
     double mPreviousRelaxationFactor;
 
@@ -358,8 +358,8 @@ private:
 
     VtkOutput* mVtkOutput;
 
-    typedef RelaxedDofUpdater<TSparseSpace> DofUpdaterType;
-    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
+    using DofUpdaterType = RelaxedDofUpdater<TSparseSpace>;
+    using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
 
     DofUpdaterPointerType mpDofUpdater = Kratos::make_unique<DofUpdaterType>();
 

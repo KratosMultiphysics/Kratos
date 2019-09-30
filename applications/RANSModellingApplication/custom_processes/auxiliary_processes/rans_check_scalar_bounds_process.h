@@ -65,7 +65,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using NodeType = ModelPart::NodeType;
 
     /// Pointer definition of RansCheckScalarBoundsProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansCheckScalarBoundsProcess);
@@ -77,7 +77,7 @@ public:
     /// Constructor
 
     RansCheckScalarBoundsProcess(Model& rModel, Parameters& rParameters)
-        : mrModel(rModel), mrParameters(rParameters)
+        : Process(), mrModel(rModel), mrParameters(rParameters)
     {
         KRATOS_TRY
 
@@ -112,19 +112,16 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> scalar_variable =
+        const Variable<double>& r_scalar_variable =
             KratosComponents<Variable<double>>::Get(mVariableName);
 
-        KRATOS_CHECK_VARIABLE_KEY(scalar_variable);
+        KRATOS_CHECK_VARIABLE_KEY(r_scalar_variable);
 
         RansCheckUtilities rans_check_utilities;
 
         rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
-
-        ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
-
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, scalar_variable);
+        rans_check_utilities.CheckIfVariableExistsInModelPart(
+            mrModel.GetModelPart(mModelPartName), r_scalar_variable);
 
         return 0;
 
@@ -135,20 +132,19 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> scalar_variable =
+        const Variable<double>& r_scalar_variable =
             KratosComponents<Variable<double>>::Get(mVariableName);
 
-        const ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
+        const ModelPart& r_model_part = mrModel.GetModelPart(mModelPartName);
 
         RansVariableUtils rans_variable_utils;
         const double min_value =
-            rans_variable_utils.GetMinimumScalarValue(r_nodes, scalar_variable);
+            rans_variable_utils.GetMinimumScalarValue(r_model_part, r_scalar_variable);
         const double max_value =
-            rans_variable_utils.GetMaximumScalarValue(r_nodes, scalar_variable);
+            rans_variable_utils.GetMaximumScalarValue(r_model_part, r_scalar_variable);
 
         KRATOS_INFO(this->Info())
-            << scalar_variable.Name() << " is bounded between [ " << min_value
+            << r_scalar_variable.Name() << " is bounded between [ " << min_value
             << ", " << max_value << " ] in " << mModelPartName << ".\n";
 
         KRATOS_CATCH("");

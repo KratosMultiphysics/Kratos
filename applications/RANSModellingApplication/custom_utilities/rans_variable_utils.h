@@ -71,13 +71,14 @@ public:
                             const double MinimumValue,
                             const double MaximumValue,
                             const Variable<double>& rVariable,
-                            ModelPart::NodesContainerType& rNodes)
+                            ModelPart& rModelPart) const
     {
         KRATOS_TRY
 
-        CheckVariableExists(rVariable, rNodes);
+        Communicator& r_communicator = rModelPart.GetCommunicator();
+        ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
 
-        const int number_of_nodes = rNodes.size();
+        const int number_of_nodes = r_nodes.size();
 
         unsigned int number_of_nodes_below_minimum = 0;
         unsigned int number_of_nodes_above_maximum = 0;
@@ -86,7 +87,7 @@ public:
 #pragma omp parallel for reduction( +: number_of_nodes_below_minimum, number_of_nodes_above_maximum, number_of_nodes_selected)
         for (int i = 0; i < number_of_nodes; i++)
         {
-            ModelPart::NodeType& r_node = *(rNodes.begin() + i);
+            ModelPart::NodeType& r_node = *(r_nodes.begin() + i);
             double& r_value = r_node.FastGetSolutionStepValue(rVariable);
 
             if (r_value < MinimumValue)
@@ -102,194 +103,249 @@ public:
             number_of_nodes_selected++;
         }
 
-        rNumberOfNodesBelowMinimum = number_of_nodes_below_minimum;
-        rNumberOfNodesAboveMaximum = number_of_nodes_above_maximum;
-        rNumberOfSelectedNodes = number_of_nodes_selected;
+        r_communicator.SynchronizeVariable(rVariable);
+
+        // Stores followings
+        // index - 0 : number_of_nodes_below_minimum
+        // index - 1 : number_of_nodes_above_maximum
+        // index - 2 : number_of_nodes_selected
+        std::vector<unsigned int> nodes_count = {number_of_nodes_below_minimum,
+                                                 number_of_nodes_above_maximum,
+                                                 number_of_nodes_selected};
+        const std::vector<unsigned int>& total_nodes_count =
+            r_communicator.GetDataCommunicator().SumAll(nodes_count);
+
+        rNumberOfNodesBelowMinimum = total_nodes_count[0];
+        rNumberOfNodesAboveMaximum = total_nodes_count[1];
+        rNumberOfSelectedNodes = total_nodes_count[2];
 
         KRATOS_CATCH("")
     }
 
-    unsigned int GetNumberOfNegativeScalarValueNodes(const ModelPart::NodesContainerType& rNodes,
-                                                     const Variable<double>& rVariable)
+    double GetMinimumScalarValue(const ModelPart& rModelPart,
+                                 const Variable<double>& rVariable) const
     {
         KRATOS_TRY
 
-        CheckVariableExists(rVariable, rNodes);
+        double min_value = std::numeric_limits<double>::max();
 
-        const int number_of_nodes = rNodes.size();
-        unsigned int number_of_negative_nodes = 0;
+        const Communicator& r_communicator = rModelPart.GetCommunicator();
 
-#pragma omp parallel for reduction(+ : number_of_negative_nodes)
-        for (int i = 0; i < number_of_nodes; i++)
+        const ModelPart::NodesContainerType& r_nodes =
+            r_communicator.LocalMesh().Nodes();
+
+        const int number_of_nodes = r_nodes.size();
+
+        if (number_of_nodes != 0)
         {
-            const double value = (rNodes.begin() + i)->FastGetSolutionStepValue(rVariable);
-            number_of_negative_nodes += (value < 0.0);
-        }
-
-        return number_of_negative_nodes;
-
-        KRATOS_CATCH("");
-    }
-
-    double GetMinimumScalarValue(const ModelPart::NodesContainerType& rNodes,
-                                 const Variable<double>& rVariable)
-    {
-        KRATOS_TRY
-
-        CheckVariableExists(rVariable, rNodes);
-
-        const int number_of_nodes = rNodes.size();
-
-        if (number_of_nodes == 0)
-            return 0.0;
-
-        double min_value = rNodes.begin()->FastGetSolutionStepValue(rVariable);
-
-        int number_of_threads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector node_partition;
-        OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
-        Vector min_values(number_of_threads);
+            int number_of_threads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector node_partition;
+            OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
+            Vector min_values(number_of_threads);
 
 #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            auto NodesBegin = rNodes.begin() + node_partition[k];
-            auto NodesEnd = rNodes.begin() + node_partition[k + 1];
-            min_values[k] = NodesBegin->FastGetSolutionStepValue(rVariable);
-
-            for (auto itNode = NodesBegin; itNode != NodesEnd; itNode++)
             {
-                const double value = itNode->FastGetSolutionStepValue(rVariable);
-                min_values[k] = std::min(min_values[k], value);
-            }
+                int k = OpenMPUtils::ThisThread();
 
-#pragma omp critical
-            {
-                for (int i = 0; i < number_of_threads; ++i)
-                {
-                    min_value = std::min(min_value, min_values[i]);
-                }
-            }
-        }
+                auto nodes_begin = r_nodes.begin() + node_partition[k];
+                auto nodes_end = r_nodes.begin() + node_partition[k + 1];
+                min_values[k] = nodes_begin->FastGetSolutionStepValue(rVariable);
 
-        return min_value;
-
-        KRATOS_CATCH("");
-    }
-
-    double GetFlaggedMinimumScalarValue(const ModelPart::NodesContainerType& rNodes,
-                                        const Variable<double>& rVariable,
-                                        const Flags& rCheckFlag,
-                                        const bool CheckFlagValue)
-    {
-        KRATOS_TRY
-
-        CheckVariableExists(rVariable, rNodes);
-
-        const int number_of_nodes = rNodes.size();
-
-        if (number_of_nodes == 0)
-            return 0.0;
-
-        double min_value = rNodes.begin()->FastGetSolutionStepValue(rVariable);
-
-        int number_of_threads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector node_partition;
-        OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
-        Vector min_values(number_of_threads);
-
-#pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            auto NodesBegin = rNodes.begin() + node_partition[k];
-            auto NodesEnd = rNodes.begin() + node_partition[k + 1];
-            min_values[k] = NodesBegin->FastGetSolutionStepValue(rVariable);
-
-            for (auto itNode = NodesBegin; itNode != NodesEnd; itNode++)
-            {
-                if ((itNode->Is(rCheckFlag) && CheckFlagValue) ||
-                    (!itNode->Is(rCheckFlag) && !CheckFlagValue))
+                for (auto itNode = nodes_begin; itNode != nodes_end; itNode++)
                 {
                     const double value = itNode->FastGetSolutionStepValue(rVariable);
                     min_values[k] = std::min(min_values[k], value);
                 }
-            }
 
 #pragma omp critical
-            {
-                for (int i = 0; i < number_of_threads; ++i)
                 {
-                    min_value = std::min(min_value, min_values[i]);
+                    for (int i = 0; i < number_of_threads; ++i)
+                    {
+                        min_value = std::min(min_value, min_values[i]);
+                    }
                 }
             }
         }
 
-        return min_value;
+        return r_communicator.GetDataCommunicator().MinAll(min_value);
 
         KRATOS_CATCH("");
     }
 
-    double GetMaximumScalarValue(const ModelPart::NodesContainerType& rNodes,
-                                 const Variable<double>& rVariable)
+    double GetFlaggedMinimumScalarValue(const ModelPart& rModelPart,
+                                        const Variable<double>& rVariable,
+                                        const Flags& rCheckFlag,
+                                        const bool CheckFlagValue) const
     {
         KRATOS_TRY
 
-        CheckVariableExists(rVariable, rNodes);
+        const Communicator& r_communicator = rModelPart.GetCommunicator();
+        const ModelPart::NodesContainerType& r_nodes =
+            r_communicator.LocalMesh().Nodes();
 
-        const int number_of_nodes = rNodes.size();
+        double min_value = std::numeric_limits<double>::max();
 
-        if (number_of_nodes == 0)
-            return 0.0;
+        const int number_of_nodes = r_nodes.size();
 
-        double max_value = rNodes.begin()->FastGetSolutionStepValue(rVariable);
-
-        int number_of_threads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector node_partition;
-        OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
-        Vector max_values(number_of_threads);
+        if (number_of_nodes != 0)
+        {
+            int number_of_threads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector node_partition;
+            OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
+            Vector min_values(number_of_threads);
 
 #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            auto NodesBegin = rNodes.begin() + node_partition[k];
-            auto NodesEnd = rNodes.begin() + node_partition[k + 1];
-            max_values[k] = NodesBegin->FastGetSolutionStepValue(rVariable);
-
-            for (auto itNode = NodesBegin; itNode != NodesEnd; itNode++)
             {
-                const double value = itNode->FastGetSolutionStepValue(rVariable);
-                max_values[k] = std::max(max_values[k], value);
-            }
+                int k = OpenMPUtils::ThisThread();
+
+                auto nodes_begin = r_nodes.begin() + node_partition[k];
+                auto nodes_end = r_nodes.begin() + node_partition[k + 1];
+                min_values[k] = nodes_begin->FastGetSolutionStepValue(rVariable);
+
+                for (auto itNode = nodes_begin; itNode != nodes_end; itNode++)
+                {
+                    if ((itNode->Is(rCheckFlag) && CheckFlagValue) ||
+                        (!itNode->Is(rCheckFlag) && !CheckFlagValue))
+                    {
+                        const double value = itNode->FastGetSolutionStepValue(rVariable);
+                        min_values[k] = std::min(min_values[k], value);
+                    }
+                }
 
 #pragma omp critical
-            {
-                for (int i = 0; i < number_of_threads; ++i)
                 {
-                    max_value = std::max(max_value, max_values[i]);
+                    for (int i = 0; i < number_of_threads; ++i)
+                    {
+                        min_value = std::min(min_value, min_values[i]);
+                    }
                 }
             }
         }
 
-        return max_value;
+        return r_communicator.GetDataCommunicator().MinAll(min_value);
+
+        KRATOS_CATCH("");
+    }
+
+    double GetMaximumScalarValue(const ModelPart& rModelPart,
+                                 const Variable<double>& rVariable) const
+    {
+        KRATOS_TRY
+
+        double max_value = std::numeric_limits<double>::min();
+
+        const Communicator& r_communicator = rModelPart.GetCommunicator();
+
+        const ModelPart::NodesContainerType& r_nodes =
+            r_communicator.LocalMesh().Nodes();
+
+        const int number_of_nodes = r_nodes.size();
+
+        if (number_of_nodes != 0)
+        {
+            int number_of_threads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector node_partition;
+            OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
+            Vector max_values(number_of_threads);
+
+#pragma omp parallel
+            {
+                int k = OpenMPUtils::ThisThread();
+
+                auto nodes_begin = r_nodes.begin() + node_partition[k];
+                auto nodes_end = r_nodes.begin() + node_partition[k + 1];
+                max_values[k] = nodes_begin->FastGetSolutionStepValue(rVariable);
+
+                for (auto itNode = nodes_begin; itNode != nodes_end; itNode++)
+                {
+                    const double value = itNode->FastGetSolutionStepValue(rVariable);
+                    max_values[k] = std::max(max_values[k], value);
+                }
+
+#pragma omp critical
+                {
+                    for (int i = 0; i < number_of_threads; ++i)
+                    {
+                        max_value = std::max(max_value, max_values[i]);
+                    }
+                }
+            }
+        }
+
+        return r_communicator.GetDataCommunicator().MaxAll(max_value);
+
+        KRATOS_CATCH("");
+    }
+
+    double GetFlaggedMaximumScalarValue(const ModelPart& rModelPart,
+                                        const Variable<double>& rVariable,
+                                        const Flags& rCheckFlag,
+                                        const bool CheckFlagValue) const
+    {
+        KRATOS_TRY
+
+        const Communicator& r_communicator = rModelPart.GetCommunicator();
+        const ModelPart::NodesContainerType& r_nodes =
+            r_communicator.LocalMesh().Nodes();
+
+        double max_value = std::numeric_limits<double>::min();
+
+        const int number_of_nodes = r_nodes.size();
+
+        if (number_of_nodes != 0)
+        {
+            int number_of_threads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector node_partition;
+            OpenMPUtils::DivideInPartitions(number_of_nodes, number_of_threads, node_partition);
+            Vector max_values(number_of_threads);
+
+#pragma omp parallel
+            {
+                int k = OpenMPUtils::ThisThread();
+
+                auto nodes_begin = r_nodes.begin() + node_partition[k];
+                auto nodes_end = r_nodes.begin() + node_partition[k + 1];
+                max_values[k] = nodes_begin->FastGetSolutionStepValue(rVariable);
+
+                for (auto itNode = nodes_begin; itNode != nodes_end; itNode++)
+                {
+                    if ((itNode->Is(rCheckFlag) && CheckFlagValue) ||
+                        (!itNode->Is(rCheckFlag) && !CheckFlagValue))
+                    {
+                        const double value = itNode->FastGetSolutionStepValue(rVariable);
+                        max_values[k] = std::max(max_values[k], value);
+                    }
+                }
+
+#pragma omp critical
+                {
+                    for (int i = 0; i < number_of_threads; ++i)
+                    {
+                        max_value = std::max(max_value, max_values[i]);
+                    }
+                }
+            }
+        }
+
+        return r_communicator.GetDataCommunicator().MaxAll(max_value);
 
         KRATOS_CATCH("");
     }
 
     void GetNodalVariablesVector(Vector& rValues,
                                  const ModelPart::NodesContainerType& rNodes,
-                                 const Variable<double>& rVariable)
+                                 const Variable<double>& rVariable) const
     {
         const int number_of_nodes = rNodes.size();
+
+        if (static_cast<int>(rValues.size()) != number_of_nodes)
+            rValues.resize(number_of_nodes);
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
             rValues[i_node] =
                 (rNodes.begin() + i_node)->FastGetSolutionStepValue(rVariable);
     }
-
     void GetNodalArray(Vector& rNodalValues, const Element& rElement, const Variable<double>& rVariable)
     {
         const Geometry<ModelPart::NodeType>& r_geometry = rElement.GetGeometry();
@@ -304,65 +360,21 @@ public:
         }
     }
 
-    void SetNodalVariables(const Vector& rValues,
-                           ModelPart::NodesContainerType& rNodes,
-                           const Variable<double>& rVariable)
+    void SetNodalVariables(ModelPart::NodesContainerType& rNodes,
+                           const Vector& rValues,
+                           const Variable<double>& rVariable) const
     {
         const int number_of_nodes = rNodes.size();
+
+        KRATOS_ERROR_IF(static_cast<int>(rValues.size()) != number_of_nodes)
+            << "rValues vector size mismatch with rNodes size in "
+               "SetNodalVariables. [ rValues.size = "
+            << rValues.size() << ", rNodes.size = " << rNodes.size() << " ]\n";
 
 #pragma omp parallel for
         for (int i_node = 0; i_node < number_of_nodes; ++i_node)
             (rNodes.begin() + i_node)->FastGetSolutionStepValue(rVariable) =
                 rValues[i_node];
-    }
-
-    double GetScalarVariableDifferenceNormSquare(const ModelPart::NodesContainerType& rNodes,
-                                                 const Variable<double>& rVariableA,
-                                                 const Variable<double>& rVariableB)
-    {
-        KRATOS_TRY
-
-        CheckVariableExists(rVariableA, rNodes);
-        CheckVariableExists(rVariableB, rNodes);
-
-        const int number_of_nodes = rNodes.size();
-        double increase_norm_square = 0.0;
-
-#pragma omp parallel for reduction(+ : increase_norm_square)
-        for (int i = 0; i < number_of_nodes; i++)
-        {
-            const ModelPart::NodeType& r_node = *(rNodes.begin() + i);
-            const double value_a = r_node.FastGetSolutionStepValue(rVariableA);
-            const double value_b = r_node.FastGetSolutionStepValue(rVariableB);
-            increase_norm_square += std::pow(value_a - value_b, 2);
-        }
-
-        return increase_norm_square;
-
-        KRATOS_CATCH("");
-    }
-
-    double GetScalarVariableSolutionNormSquare(const ModelPart::NodesContainerType& rNodes,
-                                               const Variable<double>& rVariable)
-    {
-        KRATOS_TRY
-
-        CheckVariableExists(rVariable, rNodes);
-
-        const int number_of_nodes = rNodes.size();
-        double solution_norm_square = 0.0;
-
-#pragma omp parallel for reduction(+ : solution_norm_square)
-        for (int i = 0; i < number_of_nodes; i++)
-        {
-            const double solution_value =
-                (rNodes.begin() + i)->FastGetSolutionStepValue(rVariable);
-            solution_norm_square += std::pow(solution_value, 2);
-        }
-
-        return solution_norm_square;
-
-        KRATOS_CATCH("");
     }
 
     void CopyNodalSolutionStepVariablesList(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)

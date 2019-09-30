@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
-from turbulence_eddy_viscosity_model_configuration import TurbulenceEddyViscosityModelConfiguration
+from KratosMultiphysics.RANSModellingApplication.turbulence_eddy_viscosity_model_configuration import TurbulenceEddyViscosityModelConfiguration
 
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
@@ -37,8 +37,7 @@ class TurbulenceKEpsilonConfiguration(
             },
             "flow_parameters":
             {
-                "ramp_up_time"            : 0.5,
-                "wall_y_plus"             : 11.06
+                "ramp_up_time"            : 0.5
             },
             "coupling_settings" :{}
         }''')
@@ -53,14 +52,13 @@ class TurbulenceKEpsilonConfiguration(
         self.model_settings = parameters["model_settings"]
 
         if (self.model_settings["use_high_re_elements"].GetBool()):
-            self.model_elements_list = ["RANSEVMK", "RANSEVMEpsilon"]
+            self.model_elements_list = ["RansEvmK", "RansEvmEpsilon"]
             self.model_conditions_list = [
-                "Condition", "RANSEVMEpsilonWallCondition"
+                "Condition", "RansEvmEpsilonWallCondition"
             ]
         else:
-            self.model_elements_list = ["RANSEVMLowReK", "RANSEVMLowReEpsilon"]
+            self.model_elements_list = ["RansEvmLowReK", "RansEvmLowReEpsilon"]
             self.model_conditions_list = ["Condition", "Condition"]
-        self.rans_solver_configurations = []
         self.is_initial_values_assigned = False
 
         self.ramp_up_time = self.model_settings["flow_parameters"][
@@ -91,11 +89,6 @@ class TurbulenceKEpsilonConfiguration(
         self.fluid_model_part.ProcessInfo[
             KratosRANS.TURBULENT_VISCOSITY_MAX] = self.nu_t_max
 
-        if (self.model_settings["use_high_re_elements"].GetBool()):
-            self.fluid_model_part.ProcessInfo[
-                KratosRANS.RANS_WALL_Y_PLUS] = self.model_settings[
-                    "flow_parameters"]["wall_y_plus"].GetDouble()
-
     def PrepareSolvingStrategy(self):
         scheme_settings = self.model_settings["scheme_settings"]
 
@@ -106,12 +99,9 @@ class TurbulenceKEpsilonConfiguration(
         scalar_variable = KratosRANS.TURBULENT_KINETIC_ENERGY
         scalar_variable_rate = KratosRANS.TURBULENT_KINETIC_ENERGY_RATE
         relaxed_scalar_variable_rate = KratosRANS.RANS_AUXILIARY_VARIABLE_1
-        self.rans_solver_configurations.append(
-            self.CreateStrategy(solver_settings, scheme_settings, model_part,
-                                scalar_variable, scalar_variable_rate,
-                                relaxed_scalar_variable_rate))
-
-        current_strategy = self.rans_solver_configurations[-1][0]
+        current_strategy = self.CreateStrategy(
+            solver_settings, scheme_settings, model_part, scalar_variable,
+            scalar_variable_rate, relaxed_scalar_variable_rate)
         self.strategies_list.append(current_strategy)
         self.GetTurbulenceSolvingProcess().AddStrategy(current_strategy,
                                                        scalar_variable)
@@ -123,12 +113,9 @@ class TurbulenceKEpsilonConfiguration(
         scalar_variable = KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE
         scalar_variable_rate = KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_2
         relaxed_scalar_variable_rate = KratosRANS.RANS_AUXILIARY_VARIABLE_2
-        self.rans_solver_configurations.append(
-            self.CreateStrategy(solver_settings, scheme_settings, model_part,
-                                scalar_variable, scalar_variable_rate,
-                                relaxed_scalar_variable_rate))
-
-        current_strategy = self.rans_solver_configurations[-1][0]
+        current_strategy = self.CreateStrategy(
+            solver_settings, scheme_settings, model_part, scalar_variable,
+            scalar_variable_rate, relaxed_scalar_variable_rate)
         self.strategies_list.append(current_strategy)
         self.GetTurbulenceSolvingProcess().AddStrategy(current_strategy,
                                                        scalar_variable)
@@ -151,8 +138,6 @@ class TurbulenceKEpsilonConfiguration(
             KratosRANS.RANS_AUXILIARY_VARIABLE_1)
         self.fluid_model_part.AddNodalSolutionStepVariable(
             KratosRANS.RANS_AUXILIARY_VARIABLE_2)
-        self.fluid_model_part.AddNodalSolutionStepVariable(
-            KratosRANS.WALL_VELOCITY)
 
         super(TurbulenceKEpsilonConfiguration, self).AddVariables()
 
@@ -188,14 +173,24 @@ class TurbulenceKEpsilonConfiguration(
 
     def GetTurbulenceSolvingProcess(self):
         if self.turbulence_model_process is None:
-            self.turbulence_model_process = KratosRANS.KEpsilonCoSolvingProcess(
-                self.fluid_model_part,
-                self.model_settings["coupling_settings"])
+            if (self.is_distributed):
+                self.turbulence_model_process = KratosRANS.MPIKEpsilonCoSolvingProcess(
+                    self.fluid_model_part,
+                    self.model_settings["coupling_settings"])
 
-            Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                    "Created turbulence solving process.")
+                Kratos.Logger.PrintInfo(
+                    self.__class__.__name__,
+                    "Created MPI turbulence solving process.")
+            else:
+                self.turbulence_model_process = KratosRANS.KEpsilonCoSolvingProcess(
+                    self.fluid_model_part,
+                    self.model_settings["coupling_settings"])
+
+                Kratos.Logger.PrintInfo(
+                    self.__class__.__name__,
+                    "Created non-MPI turbulence solving process.")
 
         return self.turbulence_model_process
 
     def GetFluidVelocityPressureConditionName(self):
-        return "RANSEVMVMSMonolithicWallCondition"
+        return "RansEvmVmsMonolithicWallCondition"

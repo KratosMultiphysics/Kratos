@@ -62,7 +62,7 @@ void AdjointFiniteDifferenceTrussElementLinear<TPrimalElement>::load(Serializer&
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
 
-template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N>;
+template class AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N>;
 
 } // namespace Kratos.
 

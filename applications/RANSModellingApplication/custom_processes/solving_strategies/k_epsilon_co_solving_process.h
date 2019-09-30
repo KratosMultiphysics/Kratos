@@ -35,9 +35,8 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "rans_modelling_application_variables.h"
 #include "scalar_co_solving_process.h"
-#include "scalar_co_solving_utilities.h"
 
-//debugging
+// debugging
 #include "input_output/vtk_output.h"
 
 namespace Kratos
@@ -64,11 +63,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef ScalarCoSolvingProcess<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    using BaseType = ScalarCoSolvingProcess<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef ModelPart::NodeType NodeType;
+    using NodeType = ModelPart::NodeType;
 
-    typedef ModelPart::NodesContainerType NodesContainerType;
+    using NodesContainerType = ModelPart::NodesContainerType;
 
     /// Pointer definition of KEpsilonCoSolvingProcess
     KRATOS_CLASS_POINTER_DEFINITION(KEpsilonCoSolvingProcess);
@@ -78,57 +77,14 @@ public:
     ///@{
 
     /// Constructor.
-    KEpsilonCoSolvingProcess(ModelPart& rModelPart,
-                             Parameters& rParameters)
+    KEpsilonCoSolvingProcess(ModelPart& rModelPart, Parameters& rParameters)
         : BaseType(rModelPart, rParameters, TURBULENT_VISCOSITY)
     {
-        // Debugging output
-        Parameters default_parameters = Parameters(R"(
-            {
-                "model_part_name"                    : "FluidModelPart",
-                "file_format"                        : "ascii",
-                "output_precision"                   : 7,
-                "output_control_type"                : "step",
-                "output_frequency"                   : 1.0,
-                "output_sub_model_parts"             : false,
-                "folder_name"                        : "VTK_Output",
-                "custom_name_prefix"                 : "",
-                "save_output_files_in_folder"        : true,
-                "nodal_solution_step_data_variables" : ["VELOCITY", "PRESSURE", "KINEMATIC_VISCOSITY", "TURBULENT_KINETIC_ENERGY", "TURBULENT_ENERGY_DISSIPATION_RATE", "TURBULENT_VISCOSITY", "VISCOSITY", "RANS_Y_PLUS"],
-                "nodal_data_value_variables"         : [],
-                "element_data_value_variables"       : [],
-                "condition_data_value_variables"     : [],
-                "gauss_point_variables"              : []
-            })" );
-
-            mVtkOutput = new VtkOutput(rModelPart, default_parameters);
     }
 
     /// Destructor.
     ~KEpsilonCoSolvingProcess() override
     {
-    }
-
-    /// Execute method is used to execute the ScalarCoSolvingProcess algorithms.
-    void ExecuteInitialize() override
-    {
-        BaseType::ExecuteInitialize();
-
-        NodesContainerType& r_nodes = this->mrModelPart.Nodes();
-        int number_of_nodes = r_nodes.size();
-
-#pragma omp parallel for
-        for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-        {
-            NodeType& r_node = *(r_nodes.begin() + i_node);
-
-            if (r_node.Is(STRUCTURE))
-                r_node.Set(SELECTED, false);
-            else if (r_node.Is(INLET))
-                r_node.Set(SELECTED, false);
-            else
-                r_node.Set(SELECTED, true);
-        }
     }
 
     void ExecuteInitializeSolutionStep() override
@@ -157,7 +113,6 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
         KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
-        KRATOS_CHECK_VARIABLE_KEY(RANS_WALL_Y_PLUS);
 
         NodesContainerType& r_nodes = this->mrModelPart.Nodes();
         int number_of_nodes = r_nodes.size();
@@ -220,8 +175,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    VtkOutput* mVtkOutput;
-
     ///@}
     ///@name Operations
     ///@{
@@ -240,8 +193,6 @@ private:
     void UpdateConvergenceVariable() override
     {
         this->ExecuteAuxiliaryProcesses();
-        // this->mrModelPart.GetProcessInfo()[STEP] += 1;
-        // mVtkOutput->PrintOutput();
     }
 
     void UpdateEffectiveViscosity()
@@ -258,9 +209,6 @@ private:
 
             r_node.FastGetSolutionStepValue(VISCOSITY) = nu_t + nu;
         }
-
-
-
     }
 
     ///@}

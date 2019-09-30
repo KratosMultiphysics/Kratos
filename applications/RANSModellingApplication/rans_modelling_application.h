@@ -20,15 +20,15 @@
 // Project includes
 #include "includes/kratos_application.h"
 
-// Primal element includes
-#include "custom_elements/evm_k_epsilon/evm_epsilon_element.h"
-#include "custom_elements/evm_k_epsilon/evm_k_element.h"
-#include "custom_elements/evm_k_epsilon/evm_low_re_epsilon_element.h"
-#include "custom_elements/evm_k_epsilon/evm_low_re_k_element.h"
+// Element includes
+#include "custom_elements/evm_k_epsilon/rans_evm_epsilon_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_low_re_epsilon_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_low_re_k_element.h"
 
-// Primal condition includes
-#include "custom_conditions/evm_k_epsilon/evm_epsilon_wall_condition.h"
-#include "custom_conditions/evm_k_epsilon/evm_vms_monolithic_wall_condition.h"
+// Condition includes
+#include "custom_conditions/evm_k_epsilon/rans_evm_epsilon_wall_condition.h"
+#include "custom_conditions/evm_k_epsilon/rans_evm_vms_monolithic_wall_condition.h"
 
 // Adjoint element includes
 #include "custom_elements/evm_k_epsilon/evm_epsilon_adjoint_element.h"
@@ -179,24 +179,24 @@ private:
     ///@{
 
     /// k-epsilon turbulence model elements
-    const EvmLowReKElement<2, 3> mEVMLowReKElement2D3N;
-    const EvmLowReKElement<3, 4> mEVMLowReKElement3D4N;
+    const RansEvmLowReKElement<2, 3> mRansEvmLowReK2D;
+    const RansEvmLowReKElement<3, 4> mRansEvmLowReK3D;
 
-    const EvmLowReEpsilonElement<2, 3> mEVMLowReEpsilonElement2D3N;
-    const EvmLowReEpsilonElement<3, 4> mEVMLowReEpsilonElement3D4N;
+    const RansEvmLowReEpsilonElement<2, 3> mRansEvmLowReEpsilon2D;
+    const RansEvmLowReEpsilonElement<3, 4> mRansEvmLowReEpsilon3D;
 
-    const EvmKElement<2, 3> mEVMKElement2D3N;
-    const EvmKElement<3, 4> mEVMKElement3D4N;
+    const RansEvmKElement<2, 3> mRansEvmK2D;
+    const RansEvmKElement<3, 4> mRansEvmK3D;
 
-    const EvmEpsilonElement<2, 3> mEVMEpsilonElement2D3N;
-    const EvmEpsilonElement<3, 4> mEVMEpsilonElement3D4N;
+    const RansEvmEpsilonElement<2, 3> mRansEvmEpsilon2D;
+    const RansEvmEpsilonElement<3, 4> mRansEvmEpsilon3D;
 
     /// k-epsilon turbulence model conditions
-    const EvmEpsilonWallCondition<2> mEVMEpsilonWallCondition2D2N;
-    const EvmEpsilonWallCondition<3> mEVMEpsilonWallCondition3D3N;
+    const RansEvmEpsilonWallCondition<2> mRansEvmEpsilonWallCondition2D2N;
+    const RansEvmEpsilonWallCondition<3> mRansEvmEpsilonWallCondition3D3N;
 
-    const EVMVMSMonolithicWallCondition<2> mEVMVMSMonolithicWallCondition2D2N;
-    const EVMVMSMonolithicWallCondition<3> mEVMVMSMonolithicWallCondition3D3N;
+    const RansEvmVmsMonolithicWallCondition<2> mRansEvmVmsMonolithicWallCondition2D2N;
+    const RansEvmVmsMonolithicWallCondition<3> mRansEvmVmsMonolithicWallCondition3D3N;
 
     // k-epsilon adjoint elements
     const EvmEpsilonAdjointElement<2, 3> mEVMEpsilonAdjointElement2D3N;

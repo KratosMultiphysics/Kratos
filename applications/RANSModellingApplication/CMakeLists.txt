@@ -2,9 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosRANSModellingApplication ****")
 
-if(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF )
-	message( SEND_ERROR "Please compile with -DFLUID_DYNAMICS_APPLICATION=ON, KratosRANSModellingApplication depends on KratosFluidDynamicsApplication." )
-endif(${FLUID_DYNAMICS_APPLICATION} MATCHES OFF )
+# check for fluid dynamics application
+if(NOT (${FLUID_DYNAMICS_APPLICATION} MATCHES ON))
+  message(FATAL_ERROR "RANSModellingApplication requires FluidDynamicsApplication, Please re-compile with -DFLUID_DYNAMICS_APPLICATION=ON flag.")
+endif(NOT (${FLUID_DYNAMICS_APPLICATION} MATCHES ON))
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -20,13 +21,14 @@ set( KRATOS_RANS_MODELLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/test_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_k_epsilon_adjoint_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_k_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_k_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_epsilon_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_epsilon_adjoint_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_low_re_k_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_low_re_epsilon_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/evm_k_epsilon_vms_adjoint_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_k_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_low_re_k_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_epsilon_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_low_re_epsilon_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/relaxed_dof_updater.cpp
 )
 
 set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
@@ -35,7 +37,20 @@ set( KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_auxiliary_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_solving_processes_to_python.cpp
 )
+
+set(KRATOS_RANS_MODELLING_APPLICATION_SOURCES_MPI "")
+set(KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS "")
+if(${MPI_NEEDED} MATCHES ON )
+    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
+    find_package(TRILINOS REQUIRED)
+    include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR}) # Included as "SYSTEM" to suppress warnings from it
+
+    set(KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS ${KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS} ${MPI_LIBRARIES})
+    set(KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS ${KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS} ${TRILINOS_LIBRARIES})
+endif(${MPI_NEEDED} MATCHES ON )
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
   file(GLOB_RECURSE
@@ -45,11 +60,11 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosRANSModellingCore SHARED ${KRATOS_RANS_MODELLING_APPLICATION_CORE} ${KRATOS_RANS_MODELLING_APPLICATION_TESTING})
-target_link_libraries(KratosRANSModellingCore PUBLIC KratosCore KratosFluidDynamicsCore)
+target_link_libraries(KratosRANSModellingCore PUBLIC KratosCore KratosFluidDynamicsCore ${KRATOS_RANS_MODELLING_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosRANSModellingCore PROPERTIES COMPILE_DEFINITIONS "RANS_MODELLING_APPLICATION=EXPORT,API")
 
 pybind11_add_module(KratosRANSModellingApplication MODULE THIN_LTO ${KRATOS_RANS_MODELLING_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosRANSModellingApplication PUBLIC KratosRANSModellingCore)
+target_link_libraries(KratosRANSModellingApplication PRIVATE KratosRANSModellingCore)
 set_target_properties(KratosRANSModellingApplication PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)

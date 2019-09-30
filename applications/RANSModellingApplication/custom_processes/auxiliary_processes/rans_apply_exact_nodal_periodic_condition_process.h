@@ -26,6 +26,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
+#include "processes/reorder_and_optimize_modelpart_process.h"
 #include "utilities/openmp_utils.h"
 
 #include "custom_utilities/rans_check_utilities.h"
@@ -76,7 +77,7 @@ public:
     /// Pointer definition of RansApplyExactNodalPeriodicConditionProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansApplyExactNodalPeriodicConditionProcess);
 
-    typedef ModelPart::NodeType NodeType;
+    using NodeType = ModelPart::NodeType;
 
     ///@}
     ///@name Life Cycle
@@ -106,7 +107,8 @@ public:
                 "center" : [0.0, 0.0, 0.0],
                 "angle"  : 0.0
             },
-            "echo_level"                     : 0
+            "echo_level"                     : 0,
+            "reorder"                        : true
         })");
 
         mrParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
@@ -115,10 +117,16 @@ public:
         mMasterModelPartName = mrParameters["master_model_part_name"].GetString();
         mSlaveModelPartName = mrParameters["slave_model_part_name"].GetString();
         mVariablesList = mrParameters["variable_names_list"].GetStringArray();
+        mReorder = mrParameters["reorder"].GetBool();
         mTolerance = mrParameters["tolerance"].GetDouble();
         mEchoLevel = mrParameters["echo_level"].GetInt();
 
         const double eps = std::numeric_limits<double>::epsilon();
+
+        KRATOS_ERROR_IF(mVariablesList.size() == 0)
+            << "No variables are provided. Please specify at least one "
+               "variable in \"variable_names_list\" to use periodic "
+               "conditions.\n";
 
         // translation settings
         noalias(mTranslationDirection) =
@@ -212,6 +220,13 @@ public:
     void ExecuteInitialize() override
     {
         CreatePeriodicConditions();
+        if (mReorder)
+        {
+            ModelPart& r_model_part = mrModel.GetModelPart(mBaseModelPartName);
+            Parameters default_params(R"({})");
+            ReorderAndOptimizeModelPartProcess reoder_process(r_model_part, default_params);
+            reoder_process.Execute();
+        }
     }
 
     ///@}
@@ -306,6 +321,8 @@ private:
     array_1d<double, 3> mRotationAxis;
     array_1d<double, 3> mRotationCenter;
     double mRotationAngle;
+
+    bool mReorder;
 
     ///@}
     ///@name Private Operators

@@ -7,8 +7,10 @@ import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
+from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
-import dam_mechanical_solver
+from KratosMultiphysics.DamApplication import dam_mechanical_solver
+from KratosMultiphysics.mpi import distributed_import_model_part_utility
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -60,12 +62,12 @@ class DamMPIMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
                 "characteristic_length": 0.05,
                 "search_neighbours_step": false,
                 "linear_solver_settings":{
-                    "solver_type": "AMGCL",
+                    "solver_type": "amgcl",
                     "tolerance": 1.0e-6,
                     "max_iteration": 100,
                     "scaling": false,
                     "verbosity": 0,
-                    "preconditioner_type": "ILU0Preconditioner",
+                    "preconditioner_type": "ilu0",
                     "smoother_type": "ilu0",
                     "krylov_type": "gmres",
                     "coarsening_type": "aggregation"
@@ -84,7 +86,6 @@ class DamMPIMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Construct the linear solver
-        import trilinos_linear_solver_factory
         self.linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
 
         print("Construction of Dam_MPI_MechanicalSolver finished")
@@ -97,18 +98,17 @@ class DamMPIMechanicalSolver(dam_mechanical_solver.DamMechanicalSolver):
 
     def ImportModelPart(self):
 
-        # Construct the Trilinos import model part utility
-        import trilinos_import_model_part_utility
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        # Construct the import model part utility
+        ModelPartImporter = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.main_model_part, self.settings)
 
         # Execute the Metis partitioning and reading
-        TrilinosModelPartImporter.ExecutePartitioningAndReading()
+        ModelPartImporter.ExecutePartitioningAndReading()
 
         # Create computing_model_part, set constitutive law and buffer size
         self._ExecuteAfterReading()
 
         # Construct the communicators
-        TrilinosModelPartImporter.CreateCommunicators()
+        ModelPartImporter.CreateCommunicators()
 
     def Initialize(self):
 

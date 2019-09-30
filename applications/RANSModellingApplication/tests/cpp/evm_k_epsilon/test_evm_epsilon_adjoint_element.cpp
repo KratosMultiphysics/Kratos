@@ -172,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_CalculateFirstDerivatives
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMEpsilonElement2D3N");
+        r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -220,7 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_Calculate_RANS_TURBULENT_
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMEpsilonElement2D3N");
+        r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -269,7 +269,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_CalculateSecondDerivative
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMEpsilonElement2D3N");
+        r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -319,7 +319,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_CalculateSensitivityMatri
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMEpsilonElement2D3N");
+        r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -368,7 +368,7 @@ KRATOS_TEST_CASE_IN_SUITE(EVMEpsilonAdjointElement2D3N_Calculate_RANS_VELOCITY_P
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_primal_model_part, "EVMEpsilonElement2D3N");
+        r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");

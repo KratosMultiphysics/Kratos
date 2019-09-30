@@ -86,6 +86,10 @@ def Factory(settings, Model):
         [
             "NutKEpsilonHighReSensitivitiesProcess",
             KratosRANS.RansNutKEpsilonHighReSensitivitiesProcess
+        ],
+        [
+            "LineOutputProcess",
+            KratosRANS.RansLineOutputProcess
         ]
     ]
 

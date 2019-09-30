@@ -9,6 +9,8 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/shallow_water_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/shallow_water_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shallow_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rv_swe.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cv_swe.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/primitive_var_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conserved_var_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/euler_prim_var_element.cpp
@@ -19,9 +21,10 @@ set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shallow_water_utilities.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/replicate_model_part_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/id_renumbering_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/initial_perturbation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_perturbation_function_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_sinusoidal_function_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/rough_porous_layer_wetting_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/negative_height_wetting_model.cpp
 )
 
 ## define python interface sources

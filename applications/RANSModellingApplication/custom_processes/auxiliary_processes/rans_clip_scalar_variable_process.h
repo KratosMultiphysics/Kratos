@@ -65,7 +65,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using NodeType = ModelPart::NodeType;
 
     /// Pointer definition of RansClipScalarVariableProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansClipScalarVariableProcess);
@@ -118,19 +118,14 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> scalar_variable =
+        const Variable<double>& r_scalar_variable =
             KratosComponents<Variable<double>>::Get(mVariableName);
-
-        KRATOS_CHECK_VARIABLE_KEY(scalar_variable);
 
         RansCheckUtilities rans_check_utilities;
 
         rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);
-
-        ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
-
-        rans_check_utilities.CheckIfVariableExistsInNodesContainer(r_nodes, scalar_variable);
+        rans_check_utilities.CheckIfVariableExistsInModelPart(
+            mrModel.GetModelPart(mModelPartName), r_scalar_variable);
 
         return 0;
 
@@ -141,19 +136,16 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> scalar_variable =
+        const Variable<double>& r_scalar_variable =
             KratosComponents<Variable<double>>::Get(mVariableName);
-
-        ModelPart::NodesContainerType& r_nodes =
-            mrModel.GetModelPart(mModelPartName).Nodes();
 
         RansVariableUtils rans_variable_utils;
 
         unsigned int nodes_below, nodes_above, total_nodes;
 
-        rans_variable_utils.ClipScalarVariable(nodes_below, nodes_above,
-                                               total_nodes, mMinValue, mMaxValue,
-                                               scalar_variable, r_nodes);
+        rans_variable_utils.ClipScalarVariable(
+            nodes_below, nodes_above, total_nodes, mMinValue, mMaxValue,
+            r_scalar_variable, mrModel.GetModelPart(mModelPartName));
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0 && (nodes_below > 0 || nodes_above > 0))
             << mVariableName << " is clipped between [ " << mMinValue << ", "

@@ -32,7 +32,8 @@
         "echo_level"                   : 0,
         "linear_solver_settings"       : {
             "solver_type"         : "ExternalSolversApplication.super_lu"
-        }
+        },
+        "reference_chord": 1.0
     },
     "processes" : {
         "boundary_conditions_process_list" : [
@@ -51,7 +52,6 @@
             "process_name"  : "DefineWakeProcess",
             "Parameters"    : {
                 "model_part_name" : "MainModelPart.Body2D_Body",
-                "wake_direction"  : [1.0,0.0,0.0],
                 "epsilon"         : 1e-9
             }
         }],
@@ -77,24 +77,10 @@
             "Parameters"            : {
                 "check_variables" : ["SHAPE_SENSITIVITY"],
                 "input_file_name" : "shape_sensitivity_test_results.json",
-                "model_part_name"  : "Body2D_Body",
+                "model_part_name"  : "MainModelPart.Body2D_Body",
                 "time_frequency"   : -2
             }
         }],
         "auxiliar_process_list" :[]
-    },
-    "_print_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["SHAPE_SENSITIVITY"],
-            "output_file_name" : "shape_sensitivity_test_results.json",
-            "model_part_name"  : "Body2D_Body",
-            "time_frequency"   : -2
-        }
     }
-    ]
 }

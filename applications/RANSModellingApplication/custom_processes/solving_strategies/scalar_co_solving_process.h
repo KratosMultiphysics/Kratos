@@ -56,7 +56,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> SolvingStrategyType;
+    using SolvingStrategyType = SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// Pointer definition of ScalarCoSolvingProcess
     KRATOS_CLASS_POINTER_DEFINITION(ScalarCoSolvingProcess);
@@ -102,10 +102,11 @@ public:
     ///@name Operations
     ///@{
 
-    void AddStrategy(SolvingStrategyType* pStrategy, Variable<double>* pScalarVariable)
+    void AddStrategy(typename SolvingStrategyType::Pointer pStrategy,
+                     const Variable<double>& rScalarVariable)
     {
         mrSolvingStrategiesList.push_back(pStrategy);
-        mrSolvingVariablesList.push_back(pScalarVariable);
+        mrSolvingVariableNamesList.push_back(rScalarVariable.Name());
     }
 
     void AddAuxiliaryProcess(Process::Pointer pAuxiliaryProcess)
@@ -125,15 +126,12 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(IS_CO_SOLVING_PROCESS_ACTIVE);
         KRATOS_CHECK_VARIABLE_KEY(this->mrConvergenceVariable);
 
-        for (ModelPart::NodeType& r_node : mrModelPart.Nodes())
-        {
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(this->mrConvergenceVariable, r_node);
-        }
+        KRATOS_CHECK_IS_FALSE(!mrModelPart.HasNodalSolutionStepVariable(this->mrConvergenceVariable));
 
-        for (SolvingStrategyType* strategy : mrSolvingStrategiesList)
+        for (auto strategy : mrSolvingStrategiesList)
             strategy->Check();
 
-        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+        for (Process::Pointer auxiliary_process : mAuxiliaryProcessList)
             auxiliary_process->Check();
 
         KRATOS_ERROR_IF(mrSolvingStrategiesList.size() == 0)
@@ -144,7 +142,7 @@ public:
 
     virtual void ExecuteInitialize() override
     {
-        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+        for (Process::Pointer auxiliary_process : mAuxiliaryProcessList)
             auxiliary_process->ExecuteInitialize();
     }
 
@@ -218,13 +216,13 @@ protected:
 
     void ExecuteAuxiliaryProcesses()
     {
-        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+        for (Process::Pointer auxiliary_process : mAuxiliaryProcessList)
             auxiliary_process->Execute();
     }
 
     void ExecuteAuxiliaryProcessesInitializeSolutionStep()
     {
-        for (Process::Pointer auxiliary_process: mAuxiliaryProcessList)
+        for (Process::Pointer auxiliary_process : mAuxiliaryProcessList)
             auxiliary_process->ExecuteInitializeSolutionStep();
     }
 
@@ -232,7 +230,7 @@ protected:
     {
         this->UpdateBeforeSolveSolutionStep();
 
-        for (SolvingStrategyType* p_solving_strategy : this->mrSolvingStrategiesList)
+        for (auto p_solving_strategy : this->mrSolvingStrategiesList)
         {
             p_solving_strategy->InitializeSolutionStep();
             p_solving_strategy->Predict();
@@ -243,7 +241,9 @@ protected:
 
         RansVariableUtils rans_variable_utils;
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        Communicator& r_communicator = mrModelPart.GetCommunicator();
+
+        ModelPart::NodesContainerType& r_nodes = r_communicator.LocalMesh().Nodes();
         const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
 
         Vector old_values(r_nodes.size());
@@ -262,12 +262,12 @@ protected:
                  i < static_cast<int>(this->mrSolvingStrategiesList.size()); ++i)
             {
                 auto p_solving_strategy = this->mrSolvingStrategiesList[i];
-                auto p_scalar_variable = this->mrSolvingVariablesList[i];
+                auto scalar_variable_name = this->mrSolvingVariableNamesList[i];
 
                 p_solving_strategy->SolveSolutionStep();
                 const unsigned int iterations = r_current_process_info[NL_ITERATION_NUMBER];
                 KRATOS_INFO_IF(this->Info(), this->mEchoLevel > 0)
-                    << "Solving " << p_scalar_variable->Name() << " used "
+                    << "Solving " << scalar_variable_name << " used "
                     << iterations << " iterations.\n";
             }
 
@@ -277,18 +277,29 @@ protected:
                 new_values, r_nodes, this->mrConvergenceVariable);
             noalias(delta_values) = new_values - old_values;
 
-            double increase_norm = std::pow(norm_2(delta_values), 2);
-            double solution_norm = std::pow(norm_2(new_values), 2);
+            // This vector stores norms of the residual
+            // index - 0 : increase_norm
+            // index - 1 : solution_norm
+            // index - 3 : number of nodes
+            std::vector<double> residual_norms(3);
+            residual_norms[0] = std::pow(norm_2(delta_values), 2);
+            residual_norms[1] = std::pow(norm_2(new_values), 2);
+            residual_norms[2] = static_cast<double>(r_nodes.size());
+            const std::vector<double>& total_residual_norms =
+                r_communicator.GetDataCommunicator().SumAll(residual_norms);
 
             noalias(new_values) = old_values + delta_values * mRelaxationFactor;
-            rans_variable_utils.SetNodalVariables(new_values, r_nodes,
+            rans_variable_utils.SetNodalVariables(r_nodes, new_values,
                                                   this->mrConvergenceVariable);
+            r_communicator.SynchronizeVariable(this->mrConvergenceVariable);
 
-            if (solution_norm <= std::numeric_limits<double>::epsilon())
-                solution_norm = 1.0;
-
-            double convergence_relative = increase_norm / solution_norm;
-            double convergence_absolute = std::sqrt(increase_norm) / r_nodes.size();
+            double convergence_relative =
+                total_residual_norms[0] /
+                (total_residual_norms[1] <= std::numeric_limits<double>::epsilon()
+                     ? 1.0
+                     : total_residual_norms[1]);
+            double convergence_absolute =
+                std::sqrt(total_residual_norms[0]) / total_residual_norms[2];
 
             is_converged = (convergence_relative < this->mConvergenceRelativeTolerance ||
                             convergence_absolute < this->mConvergenceAbsoluteTolerance);
@@ -329,7 +340,7 @@ protected:
             << "\n-------------------------------------------------------"
             << "\n";
 
-        for (SolvingStrategyType* p_solving_strategy : this->mrSolvingStrategiesList)
+        for (auto p_solving_strategy : this->mrSolvingStrategiesList)
             p_solving_strategy->FinalizeSolutionStep();
     }
 
@@ -343,8 +354,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<SolvingStrategyType*> mrSolvingStrategiesList;
-    std::vector<Variable<double>*> mrSolvingVariablesList;
+    std::vector<typename SolvingStrategyType::Pointer> mrSolvingStrategiesList;
+    std::vector<std::string> mrSolvingVariableNamesList;
     std::vector<Process::Pointer> mAuxiliaryProcessList;
     Variable<double>& mrConvergenceVariable;
 

@@ -31,12 +31,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<RansVariableUtils, VariableUtils>(m, "RansVariableUtils")
         .def(py::init<>())
         .def("ClipScalarVariable", &RansVariableUtils::ClipScalarVariable)
-        .def("GetNumberOfNegativeScalarValueNodes", &RansVariableUtils::GetNumberOfNegativeScalarValueNodes)
         .def("GetMinimumScalarValue", &RansVariableUtils::GetMinimumScalarValue)
         .def("GetMaximumScalarValue", &RansVariableUtils::GetMaximumScalarValue)
-        .def("GetScalarVariableDifferenceNormSquare",
-             &RansVariableUtils::GetScalarVariableDifferenceNormSquare)
-        .def("GetScalarVariableSolutionNormSquare", &RansVariableUtils::GetScalarVariableSolutionNormSquare)
+        .def("GetFlaggedMinimumScalarValue", &RansVariableUtils::GetFlaggedMinimumScalarValue)
+        .def("GetFlaggedMaximumScalarValue", &RansVariableUtils::GetFlaggedMaximumScalarValue)
         .def("CopyNodalSolutionStepVariablesList",
              &RansVariableUtils::CopyNodalSolutionStepVariablesList);
 }

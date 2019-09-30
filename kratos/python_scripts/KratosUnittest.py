@@ -177,7 +177,6 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
 
 class WorkFolderScope:
     """ Helper-class to execute test in a specific target path
-
         Input
         -----
         - rel_path_work_folder: String

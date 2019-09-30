@@ -192,7 +192,7 @@ void CreateEquationIds(ModelPart& rModelPart)
     {
         for (auto& r_dof : r_node.GetDofs())
         {
-            r_dof.SetEquationId(global_equation_id++);
+            r_dof->SetEquationId(global_equation_id++);
         }
     }
 }

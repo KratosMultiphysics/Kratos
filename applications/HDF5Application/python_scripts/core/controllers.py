@@ -1,9 +1,13 @@
 '''HDF5 controllers.
 
+This module contains the controllers which control the frequency of HDF5 IO
+operations.
+
 license: HDF5Application/license.txt
 '''
+
+
 import KratosMultiphysics
-from . import utils as _utils
 
 
 class DefaultController(object):
@@ -33,11 +37,10 @@ class TemporalController(object):
     def __init__(self, model_part, io, settings):
         self.model_part = model_part
         self.io = io
-        default_setter = _utils.DefaultSetter(settings)
-        default_setter.AddDouble('time_frequency', 1.0)
-        default_setter.AddInt('step_frequency', 1)
-        self.time_frequency = settings['time_frequency'].GetDouble()
-        self.step_frequency = settings['step_frequency'].GetInt()
+        settings.SetDefault('time_frequency', 1.0)
+        settings.SetDefault('step_frequency', 1)
+        self.time_frequency = settings['time_frequency']
+        self.step_frequency = settings['step_frequency']
         self.operations = []
         self.current_time = 0.0
         self.current_step = 0
@@ -77,9 +80,8 @@ def Create(model_part, io, settings):
     Empty settings will contain default values after returning from the
     function call.
     '''
-    default_setter = _utils.DefaultSetter(settings)
-    default_setter.AddString('controller_type', 'default_controller')
-    controller_type = settings['controller_type'].GetString()
+    settings.SetDefault('controller_type', 'default_controller')
+    controller_type = settings['controller_type']
     if controller_type == 'default_controller':
         return DefaultController(model_part, io, settings)
     elif controller_type == 'temporal_controller':

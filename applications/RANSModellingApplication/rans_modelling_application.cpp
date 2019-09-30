@@ -25,45 +25,43 @@ namespace Kratos
 {
 KratosRANSModellingApplication::KratosRANSModellingApplication()
     : KratosApplication("RANSModellingApplication"),
-      mEVMLowReKElement2D3N(0,
-                            Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
-                                Element::GeometryType::PointsArrayType(3)))),
-      mEVMLowReKElement3D4N(0,
-                            Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
-                                Element::GeometryType::PointsArrayType(4)))),
-      mEVMLowReEpsilonElement2D3N(
-          0,
-          Element::GeometryType::Pointer(
-              new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mEVMLowReEpsilonElement3D4N(
-          0,
-          Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
-              Element::GeometryType::PointsArrayType(4)))),
-      mEVMKElement2D3N(0,
+      mRansEvmLowReK2D(0,
                        Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
                            Element::GeometryType::PointsArrayType(3)))),
-      mEVMKElement3D4N(0,
+      mRansEvmLowReK3D(0,
                        Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
                            Element::GeometryType::PointsArrayType(4)))),
-      mEVMEpsilonElement2D3N(0,
+      mRansEvmLowReEpsilon2D(0,
                              Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
                                  Element::GeometryType::PointsArrayType(3)))),
-      mEVMEpsilonElement3D4N(0,
+      mRansEvmLowReEpsilon3D(0,
                              Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
                                  Element::GeometryType::PointsArrayType(4)))),
-      mEVMEpsilonWallCondition2D2N(
+      mRansEvmK2D(0,
+                  Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
+                      Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmK3D(0,
+                  Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+                      Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmEpsilon2D(0,
+                        Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
+                            Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmEpsilon3D(0,
+                        Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+                            Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmEpsilonWallCondition2D2N(
           0,
           Element::GeometryType::Pointer(
               new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-      mEVMEpsilonWallCondition3D3N(
+      mRansEvmEpsilonWallCondition3D3N(
           0,
           Element::GeometryType::Pointer(
               new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mEVMVMSMonolithicWallCondition2D2N(
+      mRansEvmVmsMonolithicWallCondition2D2N(
           0,
           Element::GeometryType::Pointer(
               new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-      mEVMVMSMonolithicWallCondition3D3N(
+      mRansEvmVmsMonolithicWallCondition3D3N(
           0,
           Element::GeometryType::Pointer(
               new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
@@ -112,12 +110,10 @@ void KratosRANSModellingApplication::Register()
     KRATOS_REGISTER_VARIABLE(TURBULENT_ENERGY_DISSIPATION_RATE_2)
     KRATOS_REGISTER_VARIABLE(IS_CO_SOLVING_PROCESS_ACTIVE)
     KRATOS_REGISTER_VARIABLE(RANS_Y_PLUS)
-    KRATOS_REGISTER_VARIABLE(RANS_WALL_Y_PLUS)
     KRATOS_REGISTER_VARIABLE(RANS_AUXILIARY_VARIABLE_1)
     KRATOS_REGISTER_VARIABLE(RANS_AUXILIARY_VARIABLE_2)
     KRATOS_REGISTER_VARIABLE(WALL_SMOOTHNESS_BETA)
     KRATOS_REGISTER_VARIABLE(WALL_VON_KARMAN)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(WALL_VELOCITY)
     KRATOS_REGISTER_VARIABLE(TURBULENCE_RANS_C_MU)
     KRATOS_REGISTER_VARIABLE(TURBULENCE_RANS_C1)
     KRATOS_REGISTER_VARIABLE(TURBULENCE_RANS_C2)
@@ -126,7 +122,6 @@ void KratosRANSModellingApplication::Register()
     KRATOS_REGISTER_VARIABLE(TURBULENT_KINETIC_ENERGY_SIGMA)
     KRATOS_REGISTER_VARIABLE(TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA)
 
-    KRATOS_REGISTER_VARIABLE(RANS_AUXILIARY_PROCESS_LIST)
     KRATOS_REGISTER_VARIABLE(PARENT_ELEMENT)
     KRATOS_REGISTER_VARIABLE(NUMBER_OF_NEIGHBOUR_CONDITIONS)
 
@@ -151,24 +146,24 @@ void KratosRANSModellingApplication::Register()
     KRATOS_REGISTER_VARIABLE(RANS_SCALAR_2_ADJOINT_3)
     KRATOS_REGISTER_VARIABLE(RANS_AUX_ADJOINT_SCALAR_2)
 
-    // Register primal elements
-    KRATOS_REGISTER_ELEMENT("EVMLowReKElement2D3N", mEVMLowReKElement2D3N);
-    KRATOS_REGISTER_ELEMENT("EVMLowReKElement3D4N", mEVMLowReKElement3D4N);
-    KRATOS_REGISTER_ELEMENT("EVMLowReEpsilonElement2D3N", mEVMLowReEpsilonElement2D3N);
-    KRATOS_REGISTER_ELEMENT("EVMLowReEpsilonElement3D4N", mEVMLowReEpsilonElement3D4N);
+    // Register Elements
+    KRATOS_REGISTER_ELEMENT("RansEvmLowReK2D3N", mRansEvmLowReK2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmLowReK3D4N", mRansEvmLowReK3D);
+    KRATOS_REGISTER_ELEMENT("RansEvmLowReEpsilon2D3N", mRansEvmLowReEpsilon2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmLowReEpsilon3D4N", mRansEvmLowReEpsilon3D);
 
-    KRATOS_REGISTER_ELEMENT("EVMKElement2D3N", mEVMKElement2D3N);
-    KRATOS_REGISTER_ELEMENT("EVMKElement3D4N", mEVMKElement3D4N);
-    KRATOS_REGISTER_ELEMENT("EVMEpsilonElement2D3N", mEVMEpsilonElement2D3N);
-    KRATOS_REGISTER_ELEMENT("EVMEpsilonElement3D4N", mEVMEpsilonElement3D4N);
+    KRATOS_REGISTER_ELEMENT("RansEvmK2D3N", mRansEvmK2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmK3D4N", mRansEvmK3D);
+    KRATOS_REGISTER_ELEMENT("RansEvmEpsilon2D3N", mRansEvmEpsilon2D);
+    KRATOS_REGISTER_ELEMENT("RansEvmEpsilon3D4N", mRansEvmEpsilon3D);
 
-    KRATOS_REGISTER_CONDITION("EVMEpsilonWallCondition2D2N", mEVMEpsilonWallCondition2D2N);
-    KRATOS_REGISTER_CONDITION("EVMEpsilonWallCondition3D3N", mEVMEpsilonWallCondition3D3N);
+    KRATOS_REGISTER_CONDITION("RansEvmEpsilonWallCondition2D2N", mRansEvmEpsilonWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmEpsilonWallCondition3D3N", mRansEvmEpsilonWallCondition3D3N);
 
-    KRATOS_REGISTER_CONDITION("EVMVMSMonolithicWallCondition2D2N",
-                              mEVMVMSMonolithicWallCondition2D2N);
-    KRATOS_REGISTER_CONDITION("EVMVMSMonolithicWallCondition3D3N",
-                              mEVMVMSMonolithicWallCondition3D3N);
+    KRATOS_REGISTER_CONDITION("RansEvmVmsMonolithicWallCondition2D2N",
+                              mRansEvmVmsMonolithicWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmVmsMonolithicWallCondition3D3N",
+                              mRansEvmVmsMonolithicWallCondition3D3N);
 
     // Registering adjoint elements
     KRATOS_REGISTER_ELEMENT("EVMEpsilonAdjointElement2D3N", mEVMEpsilonAdjointElement2D3N);

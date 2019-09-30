@@ -19,15 +19,13 @@
 // External includes
 
 // Project includes
-#include "containers/global_pointers_vector.h"
 #include "containers/model.h"
 #include "custom_utilities/rans_variable_utils.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
-#include "includes/linear_solver_factory.h"
+#include "factories/linear_solver_factory.h"
 #include "includes/model_part.h"
-#include "processes/find_nodal_neighbours_process.h"
 #include "processes/process.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "rans_modelling_application_variables.h"
@@ -56,23 +54,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliary process to set Boussinesq buoyancy forces in variable temperature flows.
-/** This process modifies the BODY_FORCE variable according to the Boussinesq hypothesis
-    so that the fluid element can take natural convection into account.
-
-    This process makes use of the following data:
-    - TEMPERATURE from the nodal solution step data: current temperature for the node (mandatory).
-    - AMBIENT_TEMPERATURE from ProcessInfo: The reference temperature for the simulation (mandatory).
-    - gravity from the Parameters passed in the constructor: an array that defines the gravity vector (mandatory).
-    - thermal_expansion_coefficient from the Parameters: a double defining the thermal expansion coefficient for the fluid (optional).
-
-    With this, the process calculates the Boussinesq force and assings it to the BODY_FORCE solution step variable of each node.
-    The force is set to (1 + thermal_expansion_coefficient*(temperature - ambient_temperature) ) * g
-
-    If the thermal expansion coefficient is not provided, it is assumed to be (1/ambient_temperature).
-    This is the usual value for perfect gases (if the temperature is given in Kelvin).
- */
-
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class RansWallDistanceCalculationProcess : public Process
 {
@@ -80,7 +61,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    using NodeType = ModelPart::NodeType;
 
     /// Pointer definition of RansWallDistanceCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansWallDistanceCalculationProcess);

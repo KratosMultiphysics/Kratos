@@ -36,19 +36,19 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GenericResidualBasedBossakVelocityScalarScheme);
 
-    typedef Node<3> NodeType;
+    using BaseType = ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace>;
 
-    typedef ResidualBasedBossakVelocityScheme<TSparseSpace, TDenseSpace> BaseType;
+    using NodeType = ModelPart::NodeType;
 
-    typedef typename BaseType::SystemMatrixType SystemMatrixType;
+    using SystemMatrixType = typename BaseType::SystemMatrixType;
 
-    typedef typename BaseType::SystemVectorType SystemVectorType;
+    using SystemVectorType = typename BaseType::SystemVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// Constructor.
 
