@@ -76,6 +76,8 @@ class MainCouplingPfemFemDem_Solution:
                        " ==== SOLVING FEMDEM PART OF THE CALCULATION ====" + "\n" +
                        " ================================================")
         self.SolveSolutionStepFEMDEM()
+        self.PFEM_Solution.main_model_part.RemoveNodes(KM.TO_ERASE)
+
 
 #============================================================================================================================
     def SolveSolutionStepPFEM(self):
@@ -149,3 +151,4 @@ class MainCouplingPfemFemDem_Solution:
             skin_detection_process = KM.SkinDetectionProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
                                                                                self.FEMDEM_Solution.SkinDetectionProcessParameters)    
         skin_detection_process.Execute()
+
