@@ -371,6 +371,7 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
+        rSerializer.save("DefaultMethod", int(mDefaultMethod));
         rSerializer.save("IntegrationPoints", mIntegrationPoints);
         rSerializer.save("ShapeFunctionsValues", mShapeFunctionsValues);
         rSerializer.save("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
@@ -379,7 +380,7 @@ private:
 
     virtual void load( Serializer& rSerializer )
     {
-        KRATOS_ERROR << "load function for geometry_shape_function_container not yet implemented." << std::endl;
+        rSerializer.save("DefaultMethod", mDefaultMethod);
         rSerializer.load("IntegrationPoints", mIntegrationPoints);
         rSerializer.load("ShapeFunctionsValues", mShapeFunctionsValues);
         rSerializer.load("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);
