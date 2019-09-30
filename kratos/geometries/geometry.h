@@ -1773,7 +1773,6 @@ public:
             if (rGlobalSpaceDerivatives.size() != 1)
                 rGlobalSpaceDerivatives.resize(1);
 
-            array_1d<double, 3> global_coordinates;
             this->GlobalCoordinates(
                 rGlobalSpaceDerivatives[0],
                 rLocalCoordinates);
@@ -1781,20 +1780,21 @@ public:
         else if (DerivativeOrder == 1)
         {
             const double local_space_dimension = LocalSpaceDimension();
+            const SizeType points_number = this->size();
 
             if (rGlobalSpaceDerivatives.size() != 1 + local_space_dimension)
                 rGlobalSpaceDerivatives.resize(1 + local_space_dimension);
 
             this->GlobalCoordinates(
-                rGlobalSpaceDerivatives[0,
+                rGlobalSpaceDerivatives[0],
                 rLocalCoordinates);
 
             Matrix shape_functions_gradients(points_number, local_space_dimension);
-            ShapeFunctionsLocalGradients(shape_functions_gradients, rCoordinates);
+            this->ShapeFunctionsLocalGradients(shape_functions_gradients, rLocalCoordinates);
 
             for (IndexType i = 0; i < points_number; ++i) {
                 const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
-                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                for (IndexType k = 0; k < WorkingSpaceDimension(); ++k) {
                     const double value = r_coordinates[k];
                     for (IndexType m = 0; m < local_space_dimension; ++m) {
                         rGlobalSpaceDerivatives[m + 1][k] += value * shape_functions_gradients(i, m);
@@ -1840,6 +1840,7 @@ public:
         else if (DerivativeOrder == 1)
         {
             const double local_space_dimension = LocalSpaceDimension();
+            const SizeType points_number = this->size();
 
             if (rGlobalSpaceDerivatives.size() != 1 + local_space_dimension)
                 rGlobalSpaceDerivatives.resize(1 + local_space_dimension);
@@ -1853,12 +1854,11 @@ public:
                 rGlobalSpaceDerivatives[1 + k] = ZeroVector(3);
             }
 
-            const Matrix& r_shape_functions_gradient_in_integration_point = ShapeFunctionLocalGradients(IntegrationPointIndex, ThisMethod);
+            const Matrix& r_shape_functions_gradient_in_integration_point = this->ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-            const SizeType points_number = this->PointsNumber();
             for (IndexType i = 0; i < points_number; ++i) {
                 const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
-                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                for (IndexType k = 0; k < WorkingSpaceDimension(); ++k) {
                     const double value = r_coordinates[k];
                     for (IndexType m = 0; m < local_space_dimension; ++m) {
                         rGlobalSpaceDerivatives[m + 1][k] += value * r_shape_functions_gradient_in_integration_point(i, m);
