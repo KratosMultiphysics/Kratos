@@ -276,7 +276,7 @@ void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::PrintData(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateElementData(
-    RANSEvmVMSAdjointElementData& rData,
+    RANSEvmVMSAdjointData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo) const
@@ -322,7 +322,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateTurbulentKinematicViscosityScalarDerivatives(
     Vector& rOutput,
     const Variable<double>& rDerivativeVariable,
-    const RANSEvmVMSAdjointElementData& rCurrentData,
+    const RANSEvmVMSAdjointData& rCurrentData,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -377,7 +377,7 @@ void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Calculate(
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateTurbulentKinematicViscosityVelocityDerivatives(
     Matrix& rOutput,
-    const RANSEvmVMSAdjointElementData& rCurrentData,
+    const RANSEvmVMSAdjointData& rCurrentData,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     rOutput.clear();

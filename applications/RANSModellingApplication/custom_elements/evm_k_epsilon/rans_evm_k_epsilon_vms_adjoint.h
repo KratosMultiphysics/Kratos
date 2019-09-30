@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/rans_evm_vms_adjoint_element.h"
+#include "custom_elements/rans_evm_vms_adjoint.h"
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "includes/properties.h"
@@ -44,7 +44,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-struct RANSEvmVMSAdjointElementData
+struct RANSEvmVMSAdjointData
 {
     Matrix ShapeFunctionDerivatives;
     Vector ShapeFunctions;
@@ -60,7 +60,7 @@ struct RANSEvmVMSAdjointElementData
 
 template <unsigned int TDim, unsigned int TNumNodes = TDim + 1>
 class RansEvmKEpsilonVMSAdjoint
-    : public RANSEvmVMSAdjointElement<TDim, RANSEvmVMSAdjointElementData, TNumNodes>
+    : public RANSEvmVMSAdjoint<TDim, RANSEvmVMSAdjointData, TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -68,7 +68,7 @@ public:
 
     constexpr static unsigned int TFluidLocalSize = (TDim + 1) * TNumNodes;
 
-    typedef RANSEvmVMSAdjointElement<TDim, RANSEvmVMSAdjointElementData, TNumNodes> BaseType;
+    typedef RANSEvmVMSAdjoint<TDim, RANSEvmVMSAdjointData, TNumNodes> BaseType;
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -267,7 +267,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateElementData(RANSEvmVMSAdjointElementData& rData,
+    void CalculateElementData(RANSEvmVMSAdjointData& rData,
                               const Vector& rShapeFunctions,
                               const Matrix& rShapeFunctionDerivatives,
                               const ProcessInfo& rCurrentProcessInfo) const override;
@@ -275,12 +275,12 @@ private:
     void CalculateTurbulentKinematicViscosityScalarDerivatives(
         Vector& rOutput,
         const Variable<double>& rDerivativeVariable,
-        const RANSEvmVMSAdjointElementData& rCurrentData,
+        const RANSEvmVMSAdjointData& rCurrentData,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
     void CalculateTurbulentKinematicViscosityVelocityDerivatives(
         Matrix& rOutput,
-        const RANSEvmVMSAdjointElementData& rCurrentData,
+        const RANSEvmVMSAdjointData& rCurrentData,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}

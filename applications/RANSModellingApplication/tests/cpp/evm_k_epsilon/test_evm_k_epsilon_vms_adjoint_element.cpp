@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_EquationIdVector,
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     for (auto& element : r_adjoint_model_part.Elements())
     {
@@ -68,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_GetDofList, RANSEvMo
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     for (auto& element : r_adjoint_model_part.Elements())
     {
@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_GetValuesVector,
     ModelPart& r_adjoint_model_part =
         adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     for (IndexType i_element = 0;
          i_element < r_adjoint_model_part.NumberOfElements(); ++i_element)
@@ -131,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_GetFirstDerivativesV
     ModelPart& r_adjoint_model_part =
         adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     for (IndexType i_element = 0;
          i_element < r_adjoint_model_part.NumberOfElements(); ++i_element)
@@ -154,7 +154,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_GetSecondDerivatives
     ModelPart& r_adjoint_model_part =
         adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     for (IndexType i_element = 0;
          i_element < r_adjoint_model_part.NumberOfElements(); ++i_element)
@@ -193,7 +193,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_CalculateFirstDeriva
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     Parameters empty_y_plus_parameters = Parameters(R"({
         "model_part_name" : "test"
@@ -242,7 +242,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_CalculateSensitivity
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     Parameters empty_y_plus_parameters = Parameters(R"({
         "model_part_name" : "test"
@@ -291,7 +291,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_Calculate_RANS_TURBU
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     Parameters empty_y_plus_parameters = Parameters(R"({
         "model_part_name" : "test"
@@ -340,7 +340,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_Calculate_RANS_TURBU
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     Parameters empty_y_plus_parameters = Parameters(R"({
         "model_part_name" : "test"
@@ -389,7 +389,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_CalculateFirstDeriva
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     const int domain_size = r_primal_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
@@ -439,7 +439,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_CalculateSecondDeriv
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
     RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
-        r_adjoint_model_part, "EVMKEpsilonVMSAdjointElement2D3N");
+        r_adjoint_model_part, "RansEvmKEpsilonVMSAdjoint2D3N");
 
     Parameters empty_y_plus_parameters = Parameters(R"({
         "model_part_name" : "test"

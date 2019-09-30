@@ -65,33 +65,33 @@ KratosRANSModellingApplication::KratosRANSModellingApplication()
           0,
           Element::GeometryType::Pointer(
               new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mEVMEpsilonAdjointElement2D3N(
+      mRansEvmEpsilonAdjoint2D3N(
           0,
           Element::GeometryType::Pointer(
               new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mEVMEpsilonAdjointElement3D4N(
+      mRansEvmEpsilonAdjoint3D4N(
           0,
           Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
               Element::GeometryType::PointsArrayType(4)))),
-      mEVMKAdjointElement2D3N(0,
+      mRansEvmKAdjoint2D3N(0,
                               Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
                                   Element::GeometryType::PointsArrayType(3)))),
-      mEVMKAdjointElement3D4N(0,
+      mRansEvmKAdjoint3D4N(0,
                               Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
                                   Element::GeometryType::PointsArrayType(4)))),
-      mEVMKEpsilonVMSAdjointElement2D3N(
+      mRansEvmKEpsilonVMSAdjoint2D3N(
           0,
           Element::GeometryType::Pointer(
               new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mEVMKEpsilonVMSAdjointElement3D4N(
+      mRansEvmKEpsilonVMSAdjoint3D4N(
           0,
           Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
               Element::GeometryType::PointsArrayType(4)))),
-      mEVMMonolithicKEpsilonVMSAdjointElement2D3N(
+      mRansEvmMonolithicKEpsilonVMSAdjoint2D3N(
           0,
           Element::GeometryType::Pointer(
               new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mEVMMonolithicKEpsilonVMSAdjointElement3D4N(
+      mRansEvmMonolithicKEpsilonVMSAdjoint3D4N(
           0,
           Element::GeometryType::Pointer(
               new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
@@ -166,18 +166,18 @@ void KratosRANSModellingApplication::Register()
                               mRansEvmVmsMonolithicWallCondition3D3N);
 
     // Registering adjoint elements
-    KRATOS_REGISTER_ELEMENT("EVMEpsilonAdjointElement2D3N", mEVMEpsilonAdjointElement2D3N);
-    KRATOS_REGISTER_ELEMENT("EVMEpsilonAdjointElement3D4N", mEVMEpsilonAdjointElement3D4N);
+    KRATOS_REGISTER_ELEMENT("RansEvmEpsilonAdjoint2D3N", mRansEvmEpsilonAdjoint2D3N);
+    KRATOS_REGISTER_ELEMENT("RansEvmEpsilonAdjoint3D4N", mRansEvmEpsilonAdjoint3D4N);
 
-    KRATOS_REGISTER_ELEMENT("EVMKAdjointElement2D3N", mEVMKAdjointElement2D3N);
-    KRATOS_REGISTER_ELEMENT("EVMKAdjointElement3D4N", mEVMKAdjointElement3D4N);
+    KRATOS_REGISTER_ELEMENT("RansEvmKAdjoint2D3N", mRansEvmKAdjoint2D3N);
+    KRATOS_REGISTER_ELEMENT("RansEvmKAdjoint3D4N", mRansEvmKAdjoint3D4N);
 
-    KRATOS_REGISTER_ELEMENT("EVMKEpsilonVMSAdjointElement2D3N", mEVMKEpsilonVMSAdjointElement2D3N);
-    KRATOS_REGISTER_ELEMENT("EVMKEpsilonVMSAdjointElement3D4N", mEVMKEpsilonVMSAdjointElement3D4N);
+    KRATOS_REGISTER_ELEMENT("RansEvmKEpsilonVMSAdjoint2D3N", mRansEvmKEpsilonVMSAdjoint2D3N);
+    KRATOS_REGISTER_ELEMENT("RansEvmKEpsilonVMSAdjoint3D4N", mRansEvmKEpsilonVMSAdjoint3D4N);
 
-    KRATOS_REGISTER_ELEMENT("EVMMonolithicKEpsilonVMSAdjointElement2D3N",
-                            mEVMMonolithicKEpsilonVMSAdjointElement2D3N);
-    KRATOS_REGISTER_ELEMENT("EVMMonolithicKEpsilonVMSAdjointElement3D4N",
-                            mEVMMonolithicKEpsilonVMSAdjointElement3D4N);
+    KRATOS_REGISTER_ELEMENT("RansEvmMonolithicKEpsilonVMSAdjoint2D3N",
+                            mRansEvmMonolithicKEpsilonVMSAdjoint2D3N);
+    KRATOS_REGISTER_ELEMENT("RansEvmMonolithicKEpsilonVMSAdjoint3D4N",
+                            mRansEvmMonolithicKEpsilonVMSAdjoint3D4N);
 }
 } // namespace Kratos.

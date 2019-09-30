@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/rans_evm_vms_adjoint_element.h"
+#include "custom_elements/rans_evm_vms_adjoint.h"
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "includes/properties.h"

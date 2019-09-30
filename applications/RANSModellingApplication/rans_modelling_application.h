@@ -199,17 +199,17 @@ private:
     const RansEvmVmsMonolithicWallCondition<3> mRansEvmVmsMonolithicWallCondition3D3N;
 
     // k-epsilon adjoint elements
-    const RansEvmEpsilonAdjoint<2, 3> mEVMEpsilonAdjointElement2D3N;
-    const RansEvmEpsilonAdjoint<3, 4> mEVMEpsilonAdjointElement3D4N;
+    const RansEvmEpsilonAdjoint<2, 3> mRansEvmEpsilonAdjoint2D3N;
+    const RansEvmEpsilonAdjoint<3, 4> mRansEvmEpsilonAdjoint3D4N;
 
-    const RansEvmKAdjoint<2, 3> mEVMKAdjointElement2D3N;
-    const RansEvmKAdjoint<3, 4> mEVMKAdjointElement3D4N;
+    const RansEvmKAdjoint<2, 3> mRansEvmKAdjoint2D3N;
+    const RansEvmKAdjoint<3, 4> mRansEvmKAdjoint3D4N;
 
-    const RansEvmKEpsilonVMSAdjoint<2> mEVMKEpsilonVMSAdjointElement2D3N;
-    const RansEvmKEpsilonVMSAdjoint<3> mEVMKEpsilonVMSAdjointElement3D4N;
+    const RansEvmKEpsilonVMSAdjoint<2> mRansEvmKEpsilonVMSAdjoint2D3N;
+    const RansEvmKEpsilonVMSAdjoint<3> mRansEvmKEpsilonVMSAdjoint3D4N;
 
-    const RansEvmMonolithicKEpsilonVMSAdjoint<2> mEVMMonolithicKEpsilonVMSAdjointElement2D3N;
-    const RansEvmMonolithicKEpsilonVMSAdjoint<3> mEVMMonolithicKEpsilonVMSAdjointElement3D4N;
+    const RansEvmMonolithicKEpsilonVMSAdjoint<2> mRansEvmMonolithicKEpsilonVMSAdjoint2D3N;
+    const RansEvmMonolithicKEpsilonVMSAdjoint<3> mRansEvmMonolithicKEpsilonVMSAdjoint3D4N;
     ///@}
     ///@name Private Operators
     ///@{

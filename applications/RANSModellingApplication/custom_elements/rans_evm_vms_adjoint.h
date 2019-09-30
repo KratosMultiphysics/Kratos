@@ -44,8 +44,8 @@ namespace Kratos
  *
  * @see VMS monolithic fluid element
  */
-template <unsigned int TDim, class TRANSEvmVMSAdjointElementData, unsigned int TNumNodes = TDim + 1>
-class RANSEvmVMSAdjointElement
+template <unsigned int TDim, class TRANSEvmVMSAdjointData, unsigned int TNumNodes = TDim + 1>
+class RANSEvmVMSAdjoint
     : public VMSAdjointElement<TDim>
 {
 public:
@@ -53,7 +53,7 @@ public:
     ///@{
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(RANSEvmVMSAdjointElement);
+    KRATOS_CLASS_POINTER_DEFINITION(RANSEvmVMSAdjoint);
 
     constexpr static unsigned int TBlockSize = TDim + 1;
 
@@ -91,23 +91,23 @@ public:
     ///@name Life Cycle
     ///@{
 
-    RANSEvmVMSAdjointElement(IndexType NewId = 0) : BaseType(NewId)
+    RANSEvmVMSAdjoint(IndexType NewId = 0) : BaseType(NewId)
     {
     }
 
-    RANSEvmVMSAdjointElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    RANSEvmVMSAdjoint(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseType(NewId, pGeometry)
     {
     }
 
-    RANSEvmVMSAdjointElement(IndexType NewId,
+    RANSEvmVMSAdjoint(IndexType NewId,
                              GeometryType::Pointer pGeometry,
                              PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
-    ~RANSEvmVMSAdjointElement() override
+    ~RANSEvmVMSAdjoint() override
     {
     }
 
@@ -250,14 +250,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "RANSEvmVMSAdjointElement"
+        buffer << "RANSEvmVMSAdjoint"
                << this->GetGeometry().WorkingSpaceDimension() << "D #" << this->Id();
         return buffer.str();
     }
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "RANSEvmVMSAdjointElement"
+        rOStream << "RANSEvmVMSAdjoint"
                  << this->GetGeometry().WorkingSpaceDimension() << "D #"
                  << this->Id() << std::endl;
         rOStream << "Number of Nodes: " << this->GetGeometry().PointsNumber() << std::endl;
@@ -276,14 +276,14 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void CalculateElementData(TRANSEvmVMSAdjointElementData& rData,
+    virtual void CalculateElementData(TRANSEvmVMSAdjointData& rData,
                                       const Vector& rShapeFunctions,
                                       const Matrix& rShapeFunctionDerivatives,
                                       const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to call base "
-                        "RANSEvmVMSAdjointElement "
+                        "RANSEvmVMSAdjoint "
                         "CalculateElementData method. "
                         "Please implement it in the derrived class."
                      << std::endl;
@@ -292,7 +292,7 @@ protected:
 
     virtual void CalculateTurbulentKinematicViscosityVelocityDerivatives(
         Matrix& rOutput,
-        const TRANSEvmVMSAdjointElementData& rCurrentData,
+        const TRANSEvmVMSAdjointData& rCurrentData,
         const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
@@ -301,7 +301,7 @@ protected:
             << "Calling base "
                "CalculateTurbulentKinematicViscosityVelocityDerivatives "
                "method in "
-               "RANSEvmVMSAdjointElement "
+               "RANSEvmVMSAdjoint "
                "class. Please implement it in the derrived class.";
 
         KRATOS_CATCH("");
@@ -310,7 +310,7 @@ protected:
     virtual void CalculateTurbulentKinematicViscosityScalarDerivatives(
         Vector& rOutput,
         const Variable<double>& rDerivativeVariable,
-        const TRANSEvmVMSAdjointElementData& rCurrentData,
+        const TRANSEvmVMSAdjointData& rCurrentData,
         const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
@@ -318,7 +318,7 @@ protected:
         KRATOS_ERROR << "Calling base "
                         "CalculateTurbulentKinematicViscosityScalarDerivatives "
                         "method in "
-                        "RANSEvmVMSAdjointElement "
+                        "RANSEvmVMSAdjoint "
                         "class. Please implement it in the derrived class.";
 
         KRATOS_CATCH("");
@@ -339,7 +339,7 @@ protected:
         double Volume;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
 
-        TRANSEvmVMSAdjointElementData current_data;
+        TRANSEvmVMSAdjointData current_data;
         this->CalculateElementData(current_data, N, DN_DX, rCurrentProcessInfo);
 
         // Density
@@ -451,7 +451,7 @@ protected:
 
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
 
-        TRANSEvmVMSAdjointElementData current_data;
+        TRANSEvmVMSAdjointData current_data;
         this->CalculateElementData(current_data, N, DN_DX, rCurrentProcessInfo);
 
         // Density
@@ -630,7 +630,7 @@ protected:
         double Volume;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
 
-        TRANSEvmVMSAdjointElementData current_data;
+        TRANSEvmVMSAdjointData current_data;
         this->CalculateElementData(current_data, N, DN_DX, rCurrentProcessInfo);
 
         // Density
@@ -759,7 +759,7 @@ protected:
 
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);
 
-        TRANSEvmVMSAdjointElementData current_data;
+        TRANSEvmVMSAdjointData current_data;
         this->CalculateElementData(current_data, N, DN_DX, rCurrentProcessInfo);
 
         // Density
@@ -957,13 +957,13 @@ private:
     ///@name Unaccessible methods
     ///@{
 
-    RANSEvmVMSAdjointElement& operator=(RANSEvmVMSAdjointElement const& rOther);
+    RANSEvmVMSAdjoint& operator=(RANSEvmVMSAdjoint const& rOther);
 
-    RANSEvmVMSAdjointElement(RANSEvmVMSAdjointElement const& rOther);
+    RANSEvmVMSAdjoint(RANSEvmVMSAdjoint const& rOther);
 
     ///@}
 
-}; // class RANSEvmVMSAdjointElement
+}; // class RANSEvmVMSAdjoint
 
 ///@} // Kratos classes
 
@@ -971,17 +971,17 @@ private:
 ///@{
 
 /// Defines an input stream operator that does nothing.
-template <unsigned int TDim, class TRANSEvmVMSAdjointElementData>
+template <unsigned int TDim, class TRANSEvmVMSAdjointData>
 inline std::istream& operator>>(std::istream& rIStream,
-                                RANSEvmVMSAdjointElement<TDim, TRANSEvmVMSAdjointElementData>& rThis)
+                                RANSEvmVMSAdjoint<TDim, TRANSEvmVMSAdjointData>& rThis)
 {
     return rIStream;
 }
 
 /// Defines an output stream operator that prints element info.
-template <unsigned int TDim, class TRANSEvmVMSAdjointElementData>
+template <unsigned int TDim, class TRANSEvmVMSAdjointData>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const RANSEvmVMSAdjointElement<TDim, TRANSEvmVMSAdjointElementData>& rThis)
+                                const RANSEvmVMSAdjoint<TDim, TRANSEvmVMSAdjointData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
