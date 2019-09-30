@@ -242,7 +242,7 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
 }
 
 void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
-                                                std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults)
+                                                std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) const
 {
     for (SizeType i=0; i<mOutputParameters["list_of_result_variables"].size(); ++i) {
         const std::string variable_name = mOutputParameters["list_of_result_variables"].GetArrayItem(i).GetString();
@@ -272,7 +272,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
 }
 
 std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue,
-                                                    const double EigenvalueSolution)
+                                                    const double EigenvalueSolution) const
 {
     double label_number;
 
