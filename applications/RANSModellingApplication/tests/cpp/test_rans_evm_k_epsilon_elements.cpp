@@ -72,11 +72,9 @@ double EffectiveKinematicViscosity(const Element& rElement, const ProcessInfo& r
     typename Element::GeometryType::ShapeFunctionsGradientsType DN_DX;
     r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
     typename EvmElement::BaseType::ConvectionDiffusionReactionDataType data;
-    double effective_kinematic_viscosity{};
     auto& rRANSElement = dynamic_cast<const typename EvmElement::BaseType&>(rElement);
-    rRANSElement.CalculateConvectionDiffusionReactionData(
-        data, effective_kinematic_viscosity, N, DN_DX[0], rProcessInfo);
-    return effective_kinematic_viscosity;
+    rRANSElement.CalculateConvectionDiffusionReactionData(data, N, DN_DX[0], rProcessInfo);
+    return rRANSElement.GetEffectiveKinematicViscosity(data, N, DN_DX[0], rProcessInfo);
 }
 
 template <typename EvmElement>
@@ -88,10 +86,8 @@ typename EvmElement::BaseType::ConvectionDiffusionReactionDataType ConvectionRea
     typename Element::GeometryType::ShapeFunctionsGradientsType DN_DX;
     r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
     typename EvmElement::BaseType::ConvectionDiffusionReactionDataType data;
-    double effective_kinematic_viscosity{};
     auto& rRANSElement = dynamic_cast<const typename EvmElement::BaseType&>(rElement);
-    rRANSElement.CalculateConvectionDiffusionReactionData(
-        data, effective_kinematic_viscosity, N, DN_DX[0], rProcessInfo);
+    rRANSElement.CalculateConvectionDiffusionReactionData(data, N, DN_DX[0], rProcessInfo);
     return data;
 }
 
@@ -161,12 +157,10 @@ void CalculateStreamlineAndCrossWindDiffusionParameters(double& rChi,
     typename Element::GeometryType::ShapeFunctionsGradientsType DN_DX;
     r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
     typename EvmElement::BaseType::ConvectionDiffusionReactionDataType data;
-    double effective_kinematic_viscosity{}, variable_gradient_norm{},
-        relaxed_variable_acceleration{};
     auto& rRANSElement = dynamic_cast<const typename EvmElement::BaseType&>(rElement);
-    rRANSElement.CalculateConvectionDiffusionReactionData(
-        data, effective_kinematic_viscosity, variable_gradient_norm,
-        relaxed_variable_acceleration, N, DN_DX[0], rProcessInfo);
+    rRANSElement.CalculateConvectionDiffusionReactionData(data, N, DN_DX[0], rProcessInfo);
+    const double effective_kinematic_viscosity =
+        rRANSElement.GetEffectiveKinematicViscosity(data, N, DN_DX[0], rProcessInfo);
     const array_1d<double, 3> velocity = rRANSElement.EvaluateInPoint(VELOCITY, N);
     const double velocity_magnitude = norm_2(velocity);
     const Matrix r_parameter_derivatives_g =
@@ -301,8 +295,8 @@ void EvmKElement2D3N_AssignTestData(ModelPart& rModelPart)
     node3.FastGetSolutionStepValue(TURBULENT_VISCOSITY) = 1.11;
     node3.FastGetSolutionStepValue(VELOCITY_X) = 0.01;
     node3.FastGetSolutionStepValue(VELOCITY_Y) = -0.65;
-    CheckEvmElementTestData<RansEvmKElement<2, 3>>(rModelPart.Elements().front(),
-                                               rModelPart.GetProcessInfo());
+    CheckEvmElementTestData<RansEvmKElement<2, 3>>(
+        rModelPart.Elements().front(), rModelPart.GetProcessInfo());
 }
 
 void EvmEpsilonElement2D3N_AssignTestData(ModelPart& rModelPart)

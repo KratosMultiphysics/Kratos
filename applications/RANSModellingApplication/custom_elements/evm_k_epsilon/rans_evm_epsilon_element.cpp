@@ -365,7 +365,6 @@ void RansEvmEpsilonElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) c
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
     RansEvmEpsilonElementData& rData,
-    double& rEffectiveKinematicViscosity,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
@@ -374,8 +373,6 @@ void RansEvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactio
     const double c1 = rCurrentProcessInfo[TURBULENCE_RANS_C1];
     const double c2 = rCurrentProcessInfo[TURBULENCE_RANS_C2];
     const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    const double epsilon_sigma =
-        rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
 
     const double nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
     const double nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
@@ -387,35 +384,47 @@ void RansEvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactio
     rData.Gamma = gamma;
     rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
     rData.TurbulentKinematicViscosity = nu_t;
+    rData.KinematicViscosity = nu;
     rData.TurbulentKineticEnergy = tke;
     rData.VelocityDivergence =
         this->GetDivergenceOperator(VELOCITY, rShapeFunctionDerivatives);
-
-    rEffectiveKinematicViscosity = nu + nu_t / epsilon_sigma;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmEpsilonElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
+double RansEvmEpsilonElement<TDim, TNumNodes>::GetEffectiveKinematicViscosity(
     RansEvmEpsilonElementData& rData,
-    double& rEffectiveKinematicViscosity,
-    double& rVariableGradientNorm,
-    double& rVariableRelaxedAcceleration,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
-    this->CalculateConvectionDiffusionReactionData(
-        rData, rEffectiveKinematicViscosity, rShapeFunctions,
-        rShapeFunctionDerivatives, rCurrentProcessInfo, Step);
+    const double epsilon_sigma = rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
+    return rData.KinematicViscosity + rData.TurbulentKinematicViscosity / epsilon_sigma;
+}
 
+template <unsigned int TDim, unsigned int TNumNodes>
+double RansEvmEpsilonElement<TDim, TNumNodes>::GetScalarVariableGradientNorm(
+    RansEvmEpsilonElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
+{
     array_1d<double, 3> epsilon_gradient;
     this->CalculateGradient(epsilon_gradient, TURBULENT_ENERGY_DISSIPATION_RATE,
                             rShapeFunctionDerivatives);
-    rVariableGradientNorm = norm_2(epsilon_gradient);
+    return norm_2(epsilon_gradient);
+}
 
-    rVariableRelaxedAcceleration =
-        this->EvaluateInPoint(RANS_AUXILIARY_VARIABLE_2, rShapeFunctions);
+template <unsigned int TDim, unsigned int TNumNodes>
+double RansEvmEpsilonElement<TDim, TNumNodes>::GetScalarVariableRelaxedAcceleration(
+    RansEvmEpsilonElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
+{
+    return this->EvaluateInPoint(RANS_AUXILIARY_VARIABLE_2, rShapeFunctions);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

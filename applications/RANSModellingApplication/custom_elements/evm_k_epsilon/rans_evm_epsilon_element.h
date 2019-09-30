@@ -55,6 +55,7 @@ struct RansEvmEpsilonElementData
     double Gamma;
     double TurbulentKineticEnergy;
     double TurbulentKinematicViscosity;
+    double KinematicViscosity;
 
     Matrix ShapeFunctionDerivatives;
     double VelocityDivergence;
@@ -68,7 +69,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmEpsilonElementData>;
+    using BaseType =
+        StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmEpsilonElementData>;
 
     /// Node type (default is: Node<3>)
     using NodeType = Node<3>;
@@ -291,20 +293,28 @@ private:
     ///@{
 
     void CalculateConvectionDiffusionReactionData(RansEvmEpsilonElementData& rData,
-                                                  double& rEffectiveKinematicViscosity,
                                                   const Vector& rShapeFunctions,
                                                   const Matrix& rShapeFunctionDerivatives,
                                                   const ProcessInfo& rCurrentProcessInfo,
                                                   const int Step = 0) const override;
 
-    void CalculateConvectionDiffusionReactionData(RansEvmEpsilonElementData& rData,
-                                                  double& rEffectiveKinematicViscosity,
-                                                  double& rVariableGradientNorm,
-                                                  double& rVariableRelaxedAcceleration,
-                                                  const Vector& rShapeFunctions,
-                                                  const Matrix& rShapeFunctionDerivatives,
-                                                  const ProcessInfo& rCurrentProcessInfo,
-                                                  const int Step = 0) const override;
+    double GetEffectiveKinematicViscosity(RansEvmEpsilonElementData& rData,
+                                          const Vector& rShapeFunctions,
+                                          const Matrix& rShapeFunctionDerivatives,
+                                          const ProcessInfo& rCurrentProcessInfo,
+                                          const int Step = 0) const override;
+
+    double GetScalarVariableGradientNorm(RansEvmEpsilonElementData& rData,
+                                         const Vector& rShapeFunctions,
+                                         const Matrix& rShapeFunctionDerivatives,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const int Step = 0) const override;
+
+    double GetScalarVariableRelaxedAcceleration(RansEvmEpsilonElementData& rData,
+                                                const Vector& rShapeFunctions,
+                                                const Matrix& rShapeFunctionDerivatives,
+                                                const ProcessInfo& rCurrentProcessInfo,
+                                                const int Step = 0) const override;
 
     double CalculateReactionTerm(const RansEvmEpsilonElementData& rData,
                                  const ProcessInfo& rCurrentProcessInfo,

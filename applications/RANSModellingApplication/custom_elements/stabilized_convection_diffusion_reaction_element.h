@@ -327,10 +327,10 @@ public:
                 this->EvaluateInPoint(VELOCITY, gauss_shape_functions);
 
             TConvectionDiffusionReactionData r_current_data;
-            double effective_kinematic_viscosity;
             this->CalculateConvectionDiffusionReactionData(
-                r_current_data, effective_kinematic_viscosity,
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double effective_kinematic_viscosity = this->GetEffectiveKinematicViscosity(
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
             const double reaction =
                 this->CalculateReactionTerm(r_current_data, rCurrentProcessInfo);
@@ -528,10 +528,10 @@ public:
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
             TConvectionDiffusionReactionData r_current_data;
-            double effective_kinematic_viscosity;
             this->CalculateConvectionDiffusionReactionData(
-                r_current_data, effective_kinematic_viscosity,
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double effective_kinematic_viscosity = this->GetEffectiveKinematicViscosity(
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
             const double reaction =
                 this->CalculateReactionTerm(r_current_data, rCurrentProcessInfo);
@@ -604,12 +604,14 @@ public:
             const double velocity_magnitude = norm_2(velocity);
 
             TConvectionDiffusionReactionData r_current_data;
-            double effective_kinematic_viscosity, variable_gradient_norm,
-                relaxed_variable_acceleration;
             this->CalculateConvectionDiffusionReactionData(
-                r_current_data, effective_kinematic_viscosity,
-                variable_gradient_norm, relaxed_variable_acceleration,
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double effective_kinematic_viscosity = this->GetEffectiveKinematicViscosity(
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double variable_gradient_norm = this->GetScalarVariableGradientNorm(
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double relaxed_variable_acceleration = this->GetScalarVariableRelaxedAcceleration(
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
             const double reaction =
                 this->CalculateReactionTerm(r_current_data, rCurrentProcessInfo);
@@ -762,13 +764,11 @@ public:
         return value;
     }
 
-    virtual void CalculateConvectionDiffusionReactionData(
-        TConvectionDiffusionReactionData& rData,
-        double& rEffectiveKinematicViscosity,
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo,
-        const int Step = 0) const
+    virtual void CalculateConvectionDiffusionReactionData(TConvectionDiffusionReactionData& rData,
+                                                          const Vector& rShapeFunctions,
+                                                          const Matrix& rShapeFunctionDerivatives,
+                                                          const ProcessInfo& rCurrentProcessInfo,
+                                                          const int Step = 0) const
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to call base "
@@ -779,20 +779,46 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual void CalculateConvectionDiffusionReactionData(
-        TConvectionDiffusionReactionData& rData,
-        double& rEffectiveKinematicViscosity,
-        double& rVariableGradientNorm,
-        double& rVariableRelaxedAcceleration,
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo,
-        const int Step = 0) const
+    virtual double GetEffectiveKinematicViscosity(TConvectionDiffusionReactionData& rData,
+                                                  const Vector& rShapeFunctions,
+                                                  const Matrix& rShapeFunctionDerivatives,
+                                                  const ProcessInfo& rCurrentProcessInfo,
+                                                  const int Step = 0) const
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to call base "
                         "StabilizedConvectionDiffusionReactionElement "
-                        "CalculateConvectionDiffusionReactionData method. "
+                        "GetEffectiveKinematicViscosity method. "
+                        "Please implement it in the derrived class."
+                     << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    virtual double GetScalarVariableGradientNorm(TConvectionDiffusionReactionData& rData,
+                                                 const Vector& rShapeFunctions,
+                                                 const Matrix& rShapeFunctionDerivatives,
+                                                 const ProcessInfo& rCurrentProcessInfo,
+                                                 const int Step = 0) const
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Attempting to call base "
+                        "StabilizedConvectionDiffusionReactionElement "
+                        "GetScalarVariableGradientNorm method. "
+                        "Please implement it in the derrived class."
+                     << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    virtual double GetScalarVariableRelaxedAcceleration(TConvectionDiffusionReactionData& rData,
+                                                        const Vector& rShapeFunctions,
+                                                        const Matrix& rShapeFunctionDerivatives,
+                                                        const ProcessInfo& rCurrentProcessInfo,
+                                                        const int Step = 0) const
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Attempting to call base "
+                        "StabilizedConvectionDiffusionReactionElement "
+                        "GetScalarVariableRelaxedAcceleration method. "
                         "Please implement it in the derrived class."
                      << std::endl;
         KRATOS_CATCH("");
