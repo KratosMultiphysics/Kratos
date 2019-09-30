@@ -23,6 +23,100 @@
 namespace Kratos
 {
 
+namespace { // helpers namespace
+struct BaseEigenOutputWrapper
+{
+    virtual void PrintOutput(
+        const std::string& rLabel,
+        const int AnimationStep,
+        const std::vector<Variable<double>>& rRequestedDoubleResults,
+        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) = 0;
+};
+
+struct GidEigenOutputWrapper : public BaseEigenOutputWrapper
+{
+public:
+    GidEigenOutputWrapper(ModelPart& rModelPart, const std::string& rFileName, const bool UseAscii)
+        : mrModelPart(rModelPart)
+    {
+        const auto post_mode = UseAscii ? GiD_PostAscii : GiD_PostBinary;
+
+        mpGidEigenIO = Kratos::make_unique<GidEigenIO>(
+            rFileName,
+            post_mode,
+            MultiFileFlag::SingleFile,
+            WriteDeformedMeshFlag::WriteUndeformed,
+            WriteConditionsFlag::WriteConditions);
+
+        // deliberately rewritting the mesh in case the geometry is updated
+        mpGidEigenIO->InitializeMesh(0.0);
+        mpGidEigenIO->WriteMesh(rModelPart.GetMesh());
+        mpGidEigenIO->WriteNodeMesh(rModelPart.GetMesh());
+        mpGidEigenIO->FinalizeMesh();
+        mpGidEigenIO->InitializeResults(0.0, rModelPart.GetMesh());
+    }
+
+    ~GidEigenOutputWrapper()
+    {
+        mpGidEigenIO->FinalizeResults();
+    }
+
+    void PrintOutput(
+        const std::string& rLabel,
+        const int AnimationStep,
+        const std::vector<Variable<double>>& rRequestedDoubleResults,
+        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
+    {
+        for (const auto& variable : rRequestedDoubleResults) {
+            mpGidEigenIO->WriteEigenResults(mrModelPart, variable, rLabel, AnimationStep);
+        }
+
+        for (const auto& variable : rRequestedVectorResults) {
+            mpGidEigenIO->WriteEigenResults(mrModelPart, variable, rLabel, AnimationStep);
+        }
+
+    }
+
+private:
+    Kratos::unique_ptr<GidEigenIO> mpGidEigenIO;
+    ModelPart& mrModelPart;
+
+};
+
+struct VtkEigenOutputWrapper : public BaseEigenOutputWrapper
+{
+    VtkEigenOutputWrapper(ModelPart& rModelPart, const std::string& rFileName, Parameters OutputParameters)
+    {
+        // const auto post_mode = UseAscii ? GiD_PostAscii : GiD_PostBinary;
+
+        // mpGidEigenIO = Kratos::make_unique<GidEigenIO>(
+        //     rFileName,
+        //     post_mode,
+        //     MultiFileFlag::SingleFile,
+        //     WriteDeformedMeshFlag::WriteUndeformed,
+        //     WriteConditionsFlag::WriteConditions);
+
+        // // deliberately rewritting the mesh in case the geometry is updated
+        // mpGidEigenIO->InitializeMesh(0.0);
+        // mpGidEigenIO->WriteMesh(rModelPart.GetMesh());
+        // mpGidEigenIO->WriteNodeMesh(rModelPart.GetMesh());
+        // mpGidEigenIO->FinalizeMesh();
+        // mpGidEigenIO->InitializeResults(0.0, rModelPart.GetMesh());
+    }
+
+    void PrintOutput(
+        const std::string& rLabel,
+        const int AnimationStep,
+        const std::vector<Variable<double>>& rRequestedDoubleResults,
+        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
+    {
+
+    }
+
+};
+
+}
+
 PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPart,
                                                                 Parameters OutputParameters)
                                                                 : mrModelPart(rModelPart),
@@ -31,6 +125,7 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPa
     Parameters default_parameters(R"(
         {
             "result_file_name"              : "Structure",
+            "file_format"                   : "vtk",
             "file_label"                    : "step",
             "result_file_format_use_ascii"  : false,
             "animation_steps"               : 20,
@@ -56,13 +151,23 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
     result_file_name += "_EigenResults_";
 
     const std::string file_label = mOutputParameters["file_label"].GetString();
-
     if (file_label == "step") {
         result_file_name += std::to_string(mrModelPart.GetProcessInfo()[STEP]);
     } else if (file_label == "time") {
         result_file_name += std::to_string(mrModelPart.GetProcessInfo()[TIME]);
     } else {
         KRATOS_ERROR << "\"file_label\" can only be \"step\" or \"time\"" << std::endl;
+    }
+
+    Kratos::unique_ptr<BaseEigenOutputWrapper> p_eigen_io_wrapper;
+    const bool use_ascii(mOutputParameters["result_file_format_use_ascii"].GetBool());
+    const std::string file_format(mOutputParameters["file_format"].GetString());
+    if (file_format == "vtk") {
+        p_eigen_io_wrapper = Kratos::make_unique<VtkEigenOutputWrapper>(mrModelPart, result_file_name, mOutputParameters);
+    } else if (file_format == "gid") {
+        p_eigen_io_wrapper = Kratos::make_unique<GidEigenOutputWrapper>(mrModelPart, result_file_name, use_ascii);
+    } else {
+        KRATOS_ERROR << "\"file_format\" can only be \"vtk\" or \"gid\"" << std::endl;
     }
 
     auto post_mode = GiD_PostBinary;
@@ -121,6 +226,8 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
                 ConstraintUtilities::ResetSlaveDofs(mrModelPart);
                 ConstraintUtilities::ApplyConstraints(mrModelPart);
             }
+
+            p_eigen_io_wrapper->PrintOutput(label, i, requested_double_results, requested_vector_results);
 
             for (const auto& variable : requested_double_results) {
                 gid_eigen_io.WriteEigenResults(mrModelPart, variable, label, i);
