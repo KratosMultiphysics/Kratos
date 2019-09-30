@@ -381,6 +381,7 @@ private:
 
     virtual void load( Serializer& rSerializer )
     {
+        int default_method;
         rSerializer.load("default_method", default_method);
         mDefaultMethod = static_cast<TIntegrationMethodType>(default_method);
         rSerializer.load("IntegrationPoints", mIntegrationPoints);
