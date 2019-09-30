@@ -472,16 +472,16 @@ protected:
                       VectorType& rLocalVector,
                       ProcessInfo& rCurrentProcessInfo) override
     {
-        if (!this->Is(SLIP))
-            return;
-
-        if (rCurrentProcessInfo[IS_CO_SOLVING_PROCESS_ACTIVE])
+        if (this->Is(SLIP))
         {
-            this->ApplyRansBasedWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
-        }
-        else
-        {
-            this->ApplyLogarithmicWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
+            if (rCurrentProcessInfo[IS_CO_SOLVING_PROCESS_ACTIVE])
+            {
+                this->ApplyRansBasedWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
+            }
+            else
+            {
+                this->ApplyLogarithmicWallLaw(rLocalMatrix, rLocalVector, rCurrentProcessInfo);
+            }
         }
     }
 
