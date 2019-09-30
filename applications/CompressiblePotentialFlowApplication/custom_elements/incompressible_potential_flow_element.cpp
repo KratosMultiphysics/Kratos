@@ -641,15 +641,27 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
                 //++number_of_free_nodes;
                 for (unsigned int j = 0; j < NumNodes; ++j){
                     rLeftHandSideMatrix(row, j) = lhs_positive(row, j);// + penalty_te*lhs_total2(row, j);//lhs_positive(row, j);
-                    rLeftHandSideMatrix(row + NumNodes, j + NumNodes) = lhs_negative(row, j);// penalty_te*lhs_total2(row, j);//lhs_negative(row, j) + penalty_te*lhs_total2(row, j);//(penalty+1)*lhs_negative(row, j);//penalty*lhs_negative(row, j);//2*lhs_negative(row, j);//0.0;//lhs_negative(row, j);
+                    rLeftHandSideMatrix(row + NumNodes, j + NumNodes) = lhs_negative(row, j);// + penalty_te*lhs_total2(row, j);//lhs_negative(row, j);// penalty_te*lhs_total2(row, j);//(penalty+1)*lhs_negative(row, j);//penalty*lhs_negative(row, j);//2*lhs_negative(row, j);//0.0;//lhs_negative(row, j);
                     // Off-diagonal block
                     //rLeftHandSideMatrix(row , j + NumNodes) = -penalty_te*lhs_total2(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2
                     //rLeftHandSideMatrix(row + NumNodes, j) = -penalty_te*lhs_total2(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2
-                    rLeftHandSideMatrix(2*NumNodes + te_counter, j + NumNodes) = lhs_total2(row, j);//lhs_negative(row, j);
-                    rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -lhs_total2(row, j);
+                    rLeftHandSideMatrix(2*NumNodes + te_counter, j + NumNodes) = penalty_te*lhs_total2(row, j);//lhs_negative(row, j);
+                    rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -penalty_te*lhs_total2(row, j);
                     //rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -lhs_negative(row, j);
                     rLeftHandSideMatrix(j, 2*NumNodes + te_counter) = -lhs_total2(row, j);
                     rLeftHandSideMatrix(j + NumNodes, 2*NumNodes + te_counter) = lhs_total2(row, j);
+                    // if(free_nodes[row]){
+                    //     rLeftHandSideMatrix(2*NumNodes + te_counter, j + NumNodes) = penalty_te*lhs_total2(row, j);//lhs_negative(row, j);
+                    //     rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -penalty_te*lhs_total2(row, j);
+                    //     //rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -lhs_negative(row, j);
+                    //     rLeftHandSideMatrix(j, 2*NumNodes + te_counter) = -lhs_total2(row, j);
+                    //     rLeftHandSideMatrix(j + NumNodes, 2*NumNodes + te_counter) = lhs_total2(row, j);
+                    //     // if (!GetGeometry()[j].GetValue(TRAILING_EDGE)){
+                    //     //     //rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -lhs_negative(row, j);
+                    //     //     rLeftHandSideMatrix(j, 2*NumNodes + te_counter) = -lhs_total2(row, j);
+                    //     //     rLeftHandSideMatrix(j + NumNodes, 2*NumNodes + te_counter) = lhs_total2(row, j);
+                    //     // }
+                    //}
                 }
                 // Diagonal term
                 //rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = lhs_total(row, row);// lhs_negative(row, row) + lhs_total(row, row);
@@ -686,6 +698,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
                 te_counter +=1;
                 if(this->Id()==10156){
                     KRATOS_WATCH(row)
+                    // if(free_nodes[row]){
+                    //     KRATOS_WATCH(row)
+                    //     KRATOS_WATCH(GetGeometry()[row].Id())
+                    // }
                 }
                 //KRATOS_WATCH(this->Id())
                 //KRATOS_WATCH(GetGeometry()[row].Id())
@@ -775,9 +791,11 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     //                 rLeftHandSideMatrix(2*NumNodes + te_counter, j + NumNodes) = lhs_total2(row, j);//lhs_negative(row, j);
     //                 rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -lhs_total2(row, j);
     //                 //rLeftHandSideMatrix(2*NumNodes + te_counter, j) = -lhs_negative(row, j);
+    //                 rLeftHandSideMatrix(j, 2*NumNodes + te_counter) = -lhs_total2(row, j);
+    //                 rLeftHandSideMatrix(j + NumNodes, 2*NumNodes + te_counter) = lhs_total2(row, j);
     //             }
     //             // Diagonal term
-    //             rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = lhs_total(row, row);//lhs_negative(row, row) + lhs_total(row, row);
+    //             //rLeftHandSideMatrix(2*NumNodes + te_counter, 2*NumNodes + te_counter) = lhs_total(row, row);//lhs_negative(row, row) + lhs_total(row, row);
     //             //rLeftHandSideMatrix(2*NumNodes + te_counter, row + NumNodes) = -lhs_total(row, row);
     //             // rLeftHandSideMatrix(row + NumNodes, row + NumNodes) += lhs_total(row, row);
     //             // rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + te_counter) -= lhs_total(row, row);

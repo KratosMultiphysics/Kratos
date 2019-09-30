@@ -506,6 +506,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                     self.double_trailing_edge_element_id_list.append(elem.Id)
                 elif count > 0:
                     elem.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
+                    # for elnode in elem.GetNodes():
+                    #     if(elnode.Id == 465):
+                    #         print(elem.Id)
                 else:
                     #elem.Reset(KratosMultiphysics.STRUCTURE)
                     pass
@@ -526,48 +529,49 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 #print(elem.Id)
                 pass
 
-        # if(self.fluid_model_part.HasSubModelPart("double_trailing_edge_elements_model_part")):
-        #     for elem in self.double_trailing_edge_elements_model_part.Elements:
-        #         elem.Set(KratosMultiphysics.TO_ERASE)
-        #     self.double_trailing_edge_elements_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
-        # else:
-        #     self.double_trailing_edge_elements_model_part = self.fluid_model_part.CreateSubModelPart("double_trailing_edge_elements_model_part")
-        # self.double_trailing_edge_elements_model_part.AddElements(self.double_trailing_edge_element_id_list)
+        if(self.fluid_model_part.HasSubModelPart("double_trailing_edge_elements_model_part")):
+            for elem in self.double_trailing_edge_elements_model_part.Elements:
+                elem.Set(KratosMultiphysics.TO_ERASE)
+            self.double_trailing_edge_elements_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
+        else:
+            self.double_trailing_edge_elements_model_part = self.fluid_model_part.CreateSubModelPart("double_trailing_edge_elements_model_part")
+        self.double_trailing_edge_elements_model_part.AddElements(self.double_trailing_edge_element_id_list)
 
 
-        # min_y_coordinate = 1e+30
-        # current_min = -1e+30
-        # number_of_free_nodes = 0
-        # self.space_utils = KratosMultiphysics.UblasSparseSpace()
-        # for _ in range(self.double_trailing_edge_elements_model_part.NumberOfElements()):
-        #     for elem in self.double_trailing_edge_elements_model_part.Elements:
-        #         elem_y = elem.GetGeometry().Center().Y
-        #         if elem_y < min_y_coordinate and elem_y > current_min:
-        #             min_y_coordinate = elem.GetGeometry().Center().Y
-        #             tmp_min_y_te_elem = elem
-        #     current_min = min_y_coordinate
-        #     min_y_coordinate = 1e+30
-        #     #print(tmp_min_y_te_elem.Id)
+        min_y_coordinate = 1e+30
+        current_min = -1e+30
+        number_of_free_nodes = 0
+        self.space_utils = KratosMultiphysics.UblasSparseSpace()
+        for _ in range(self.double_trailing_edge_elements_model_part.NumberOfElements()):
+            for elem in self.double_trailing_edge_elements_model_part.Elements:
+                elem_y = elem.GetGeometry().Center().Y
+                if elem_y < min_y_coordinate and elem_y > current_min:
+                    min_y_coordinate = elem.GetGeometry().Center().Y
+                    tmp_min_y_te_elem = elem
+            current_min = min_y_coordinate
+            min_y_coordinate = 1e+30
+            #print(tmp_min_y_te_elem.Id)
 
-        #     elem_number_of_free_nodes = 0
-        #     free_nodes = KratosMultiphysics.Vector(4)
-        #     free_nodes[0] = False
-        #     free_nodes[1] = False
-        #     free_nodes[2] = False
-        #     free_nodes[3] = False
-        #     #self.space_utils.SetToZeroVector(free_nodes)
-        #     counter = 0
-        #     for elnode in tmp_min_y_te_elem.GetNodes():
-        #         if(elnode.GetValue(CPFApp.TRAILING_EDGE) and\
-        #                 not elnode.GetValue(CPFApp.ZERO_VELOCITY_CONDITION)):
-        #             free_nodes[counter] = True
-        #             elnode.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
-        #             number_of_free_nodes += 1
-        #             elem_number_of_free_nodes +=1
-        #         counter +=1
-        #     tmp_min_y_te_elem.SetValue(CPFApp.FREE_NODES, free_nodes)
-        #     # if (elem_number_of_free_nodes > 1.5):
-        #     #     print(tmp_min_y_te_elem.Id)
+            elem_number_of_free_nodes = 0
+            free_nodes = KratosMultiphysics.Vector(4)
+            free_nodes[0] = False
+            free_nodes[1] = False
+            free_nodes[2] = False
+            free_nodes[3] = False
+            #self.space_utils.SetToZeroVector(free_nodes)
+            counter = 0
+            for elnode in tmp_min_y_te_elem.GetNodes():
+                if(elnode.GetValue(CPFApp.TRAILING_EDGE) and\
+                        not elnode.GetValue(CPFApp.ZERO_VELOCITY_CONDITION)):
+                    free_nodes[counter] = True
+                    elnode.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
+                    number_of_free_nodes += 1
+                    elem_number_of_free_nodes +=1
+                    #print(elnode.Id)
+                counter +=1
+            tmp_min_y_te_elem.SetValue(CPFApp.FREE_NODES, free_nodes)
+            # if (elem_number_of_free_nodes > 1.5):
+            #     print(tmp_min_y_te_elem.Id)
 
 
 
@@ -596,7 +600,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
 
 
-        #print('\nnumber_of_free_nodes = ', number_of_free_nodes)
+        print('\nnumber_of_free_nodes = ', number_of_free_nodes)
         print('\ncounter_structure = ', counter_structure)
         print('counter_kutta = ', counter_kutta)
         print('counter_normal = ', counter_normal)
