@@ -15,7 +15,7 @@
 // External includes
 
 // Include Base h
-#include "evm_k_epsilon_vms_adjoint_element.h"
+#include "rans_evm_k_epsilon_vms_adjoint.h"
 
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_adjoint_utilities.h"
 #include "custom_elements/evm_k_epsilon/evm_k_epsilon_utilities.h"
@@ -48,7 +48,7 @@ namespace Kratos
  * Constructor.
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::EvmKEpsilonVMSAdjointElement(IndexType NewId)
+RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmKEpsilonVMSAdjoint(IndexType NewId)
     : BaseType(NewId)
 {
 }
@@ -57,7 +57,7 @@ EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::EvmKEpsilonVMSAdjointElement(Inde
  * Constructor using Geometry
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::EvmKEpsilonVMSAdjointElement(
+RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmKEpsilonVMSAdjoint(
     IndexType NewId, GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
 {
@@ -67,7 +67,7 @@ EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::EvmKEpsilonVMSAdjointElement(
  * Constructor using Properties
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::EvmKEpsilonVMSAdjointElement(
+RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmKEpsilonVMSAdjoint(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : BaseType(NewId, pGeometry, pProperties)
 {
@@ -77,7 +77,7 @@ EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::EvmKEpsilonVMSAdjointElement(
  * Destructor
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::~EvmKEpsilonVMSAdjointElement()
+RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::~RansEvmKEpsilonVMSAdjoint()
 {
 }
 
@@ -102,11 +102,11 @@ EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::~EvmKEpsilonVMSAdjointElement()
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Create(
+Element::Pointer RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EvmKEpsilonVMSAdjointElement>(
+    return Kratos::make_intrusive<RansEvmKEpsilonVMSAdjoint>(
         NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
@@ -119,11 +119,11 @@ Element::Pointer EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Create(
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Create(
+Element::Pointer RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EvmKEpsilonVMSAdjointElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<RansEvmKEpsilonVMSAdjoint>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
@@ -135,11 +135,11 @@ Element::Pointer EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Create(
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Clone(
+Element::Pointer RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Clone(
     IndexType NewId, NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<EvmKEpsilonVMSAdjointElement>(
+    return Kratos::make_intrusive<RansEvmKEpsilonVMSAdjoint>(
         NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
     KRATOS_CATCH("");
 }
@@ -154,7 +154,7 @@ Element::Pointer EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Clone(
  * this method is: MANDATORY
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-int EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Check(
+int RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Check(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -199,26 +199,26 @@ int EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Check(
 /// Turn back information as a string.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::string EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Info() const
+std::string RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Info() const
 {
     std::stringstream buffer;
-    buffer << "EvmKEpsilonVMSAdjointElement #" << Element::Id();
+    buffer << "RansEvmKEpsilonVMSAdjoint #" << Element::Id();
     return buffer.str();
 }
 
 /// Print information about this object.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::PrintInfo(
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::PrintInfo(
     std::ostream& rOStream) const
 {
-    rOStream << "EvmKEpsilonVMSAdjointElement #" << Element::Id();
+    rOStream << "RansEvmKEpsilonVMSAdjoint #" << Element::Id();
 }
 
 /// Print object's data.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::PrintData(
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::PrintData(
     std::ostream& rOStream) const
 {
     Element::pGetGeometry()->PrintData(rOStream);
@@ -275,7 +275,7 @@ void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::PrintData(
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::CalculateElementData(
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateElementData(
     RANSEvmVMSAdjointElementData& rData,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
@@ -319,7 +319,7 @@ void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::CalculateElementData(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::CalculateTurbulentKinematicViscosityScalarDerivatives(
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateTurbulentKinematicViscosityScalarDerivatives(
     Vector& rOutput,
     const Variable<double>& rDerivativeVariable,
     const RANSEvmVMSAdjointElementData& rCurrentData,
@@ -340,14 +340,14 @@ void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::CalculateTurbulentKinematicV
     else
     {
         KRATOS_ERROR << "Unsupported partial derivative variable "
-                     << rDerivativeVariable.Name() << " used in EvmKAdjointElement::CalculateEffectiveKinematicViscosityDerivatives method.";
+                     << rDerivativeVariable.Name() << " used in RansEvmKAdjoint::CalculateEffectiveKinematicViscosityDerivatives method.";
     }
 
     KRATOS_CATCH("");
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Calculate(
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Calculate(
     const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -375,7 +375,7 @@ void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::Calculate(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::CalculateTurbulentKinematicViscosityVelocityDerivatives(
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateTurbulentKinematicViscosityVelocityDerivatives(
     Matrix& rOutput,
     const RANSEvmVMSAdjointElementData& rCurrentData,
     const ProcessInfo& rCurrentProcessInfo) const
@@ -388,7 +388,7 @@ void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::CalculateTurbulentKinematicV
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 
@@ -397,7 +397,7 @@ void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::save(Serializer& rSerializer
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 
@@ -430,13 +430,13 @@ void EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>::load(Serializer& rSerializer
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::istream& operator>>(
     std::istream& rIStream,
-    EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>& rThis);
+    RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>& rThis);
 
 /// output stream function
 
 template <unsigned int TDim, unsigned int TNumNodes>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const EvmKEpsilonVMSAdjointElement<TDim, TNumNodes>& rThis)
+                                const RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << " : " << std::endl;
@@ -446,7 +446,7 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
 // Class template instantiation
 
-template class EvmKEpsilonVMSAdjointElement<2>;
-template class EvmKEpsilonVMSAdjointElement<3>;
+template class RansEvmKEpsilonVMSAdjoint<2>;
+template class RansEvmKEpsilonVMSAdjoint<3>;
 
 } // namespace Kratos.

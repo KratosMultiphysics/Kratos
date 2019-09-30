@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_EVM_K_EPSILON_ADJOINT_UTILITIES_H_INCLUDED)
-#define KRATOS_EVM_K_EPSILON_ADJOINT_UTILITIES_H_INCLUDED
+#if !defined(KRATOS_RANS_EVM_K_EPSILON_ADJOINT_UTILITIES_H_INCLUDED)
+#define KRATOS_RANS_EVM_K_EPSILON_ADJOINT_UTILITIES_H_INCLUDED
 
 // System includes
 

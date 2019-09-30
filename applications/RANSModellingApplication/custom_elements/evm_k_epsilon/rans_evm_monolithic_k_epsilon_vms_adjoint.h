@@ -10,8 +10,8 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_EVM_MONOLITHIC_K_EPSILON_VMS_ADJOINT_ELEMENT_H_INCLUDED)
-#define KRATOS_EVM_MONOLITHIC_K_EPSILON_VMS_ADJOINT_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_RANS_EVM_MONOLITHIC_K_EPSILON_VMS_ADJOINT_ELEMENT_H_INCLUDED)
+#define KRATOS_RANS_EVM_MONOLITHIC_K_EPSILON_VMS_ADJOINT_ELEMENT_H_INCLUDED
 
 // System includes
 #include <algorithm>
@@ -30,9 +30,9 @@
 #include "rans_modelling_application_variables.h"
 #include "utilities/adjoint_extensions.h"
 
-#include "custom_elements/evm_k_epsilon/evm_epsilon_adjoint_element.h"
-#include "custom_elements/evm_k_epsilon/evm_k_adjoint_element.h"
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_vms_adjoint_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_epsilon_adjoint.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_adjoint.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_vms_adjoint.h"
 
 namespace Kratos
 {
@@ -56,7 +56,7 @@ namespace Kratos
 ///@{
 
 template <unsigned int TDim, unsigned int TNumNodes = TDim + 1>
-class EvmMonolithicKEpsilonVMSAdjointElement : public Element
+class RansEvmMonolithicKEpsilonVMSAdjoint : public Element
 {
     class ThisExtensions : public AdjointExtensions
     {
@@ -158,11 +158,11 @@ public:
     // defining the base type
     typedef Element BaseType;
     // defining the base adjoint base fluid element type
-    typedef EvmKEpsilonVMSAdjointElement<TDim, TNumNodes> AdjointFluidElement;
+    typedef RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes> AdjointFluidElement;
     // defining the k element type
-    typedef EvmKAdjointElement<TDim, TNumNodes> AdjointKElement;
+    typedef RansEvmKAdjoint<TDim, TNumNodes> AdjointKElement;
     // defining the epsilon element type
-    typedef EvmEpsilonAdjointElement<TDim, TNumNodes> AdjointEpsilonElement;
+    typedef RansEvmEpsilonAdjoint<TDim, TNumNodes> AdjointEpsilonElement;
 
     constexpr static unsigned int TFluidBlockSize = (TDim + 1);
 
@@ -199,8 +199,8 @@ public:
     typedef Element::MatrixType MatrixType;
 
     ///@name Pointer Definitions
-    /// Pointer definition of EvmMonolithicKEpsilonVMSAdjointElement
-    KRATOS_CLASS_POINTER_DEFINITION(EvmMonolithicKEpsilonVMSAdjointElement);
+    /// Pointer definition of RansEvmMonolithicKEpsilonVMSAdjoint
+    KRATOS_CLASS_POINTER_DEFINITION(RansEvmMonolithicKEpsilonVMSAdjoint);
 
     ///@}
 
@@ -211,7 +211,7 @@ public:
     /**
      * Constructor.
      */
-    EvmMonolithicKEpsilonVMSAdjointElement(IndexType NewId = 0)
+    RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId = 0)
         : BaseType(NewId)
     {
     }
@@ -219,7 +219,7 @@ public:
     /**
      * Constructor using Geometry
      */
-    EvmMonolithicKEpsilonVMSAdjointElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseType(NewId, pGeometry)
     {
     }
@@ -227,7 +227,7 @@ public:
     /**
      * Constructor using Properties
      */
-    EvmMonolithicKEpsilonVMSAdjointElement(IndexType NewId,
+    RansEvmMonolithicKEpsilonVMSAdjoint(IndexType NewId,
                                            GeometryType::Pointer pGeometry,
                                            PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
@@ -237,7 +237,7 @@ public:
     /**
      * Destructor
      */
-    ~EvmMonolithicKEpsilonVMSAdjointElement() override
+    ~RansEvmMonolithicKEpsilonVMSAdjoint() override
     {
     }
 
@@ -271,7 +271,7 @@ public:
                             PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive<EvmMonolithicKEpsilonVMSAdjointElement>(
+        return Kratos::make_intrusive<RansEvmMonolithicKEpsilonVMSAdjoint>(
             NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
@@ -288,7 +288,7 @@ public:
                             PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive<EvmMonolithicKEpsilonVMSAdjointElement>(
+        return Kratos::make_intrusive<RansEvmMonolithicKEpsilonVMSAdjoint>(
             NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
@@ -303,7 +303,7 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
-        return Kratos::make_intrusive<EvmMonolithicKEpsilonVMSAdjointElement>(
+        return Kratos::make_intrusive<RansEvmMonolithicKEpsilonVMSAdjoint>(
             NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
         KRATOS_CATCH("");
     }
@@ -498,7 +498,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "EvmMonolithicKEpsilonVMSAdjointElement::"
+        KRATOS_ERROR << "RansEvmMonolithicKEpsilonVMSAdjoint::"
                         "CalculateLocalSystem method is not implemented.";
 
         KRATOS_CATCH("");
@@ -519,7 +519,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "EvmMonolithicKEpsilonVMSAdjointElement::"
+        KRATOS_ERROR << "RansEvmMonolithicKEpsilonVMSAdjoint::"
                         "CalculateRightHandSide method is not implemented.";
 
         KRATOS_CATCH("");
@@ -628,7 +628,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "EvmMonolithicKEpsilonVMSAdjointElement::"
+        KRATOS_ERROR << "RansEvmMonolithicKEpsilonVMSAdjoint::"
                         "CalculateMassMatrix method is not implemented.";
 
         KRATOS_CATCH("")
@@ -639,7 +639,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "EvmMonolithicKEpsilonVMSAdjointElement::"
+        KRATOS_ERROR << "RansEvmMonolithicKEpsilonVMSAdjoint::"
                         "CalculateDampingMatrix method is not implemented.";
 
         KRATOS_CATCH("")
@@ -706,14 +706,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "EvmMonolithicKEpsilonVMSAdjointElement #" << Element::Id();
+        buffer << "RansEvmMonolithicKEpsilonVMSAdjoint #" << Element::Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "EvmMonolithicKEpsilonVMSAdjointElement #" << Element::Id();
+        rOStream << "RansEvmMonolithicKEpsilonVMSAdjoint #" << Element::Id();
     }
 
     /// Print object's data.

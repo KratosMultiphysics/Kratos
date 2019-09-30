@@ -36,7 +36,7 @@ namespace Kratos
 {
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_EquationIdVector,
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_EquationIdVector,
                           RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_EquationIdVector,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_GetDofList, RANSEvModelsKEpsilonElementMethods)
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_GetDofList, RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_GetDofList, RANSE
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_GetValuesVector,
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_GetValuesVector,
                           RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
@@ -124,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_GetValuesVector,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_GetFirstDerivativesVector,
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_GetFirstDerivativesVector,
                           RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
@@ -147,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_GetFirstDerivativ
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_GetSecondDerivativesVector,
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_GetSecondDerivativesVector,
                           RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
@@ -182,7 +182,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_GetSecondDerivati
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_CalculateFirstDerivativesLHS_VELOCITY,
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_CalculateFirstDerivativesLHS_VELOCITY,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;
@@ -231,7 +231,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_CalculateFirstDer
         calculate_sensitivity_matrix, perturb_variable, 1e-7, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_CalculateSensitivityMatrix,
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_CalculateSensitivityMatrix,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;
@@ -280,7 +280,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_CalculateSensitiv
         calculate_sensitivity_matrix, perturb_variable, 1e-7, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_Calculate_RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_Calculate_RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;
@@ -329,7 +329,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_Calculate_RANS_TU
         calculate_sensitivity_matrix, perturb_variable, 1e-5, 6e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_Calculate_RANS_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE,
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_Calculate_RANS_TURBULENT_ENERGY_DISSIPATION_RATE_PARTIAL_DERIVATIVE,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;
@@ -378,7 +378,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_Calculate_RANS_TU
         calculate_sensitivity_matrix, perturb_variable, 1e-5, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_CalculateFirstDerivativesLHS_PRESSURE,
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_CalculateFirstDerivativesLHS_PRESSURE,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;
@@ -428,7 +428,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_CalculateFirstDer
         calculate_sensitivity_matrix, perturb_variable, 1e-6, 1e-3, domain_size);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKEpsilonVMSAdjointElement2D3N_CalculateSecondDerivativesLHS,
+KRATOS_TEST_CASE_IN_SUITE(RansRansEvmKEpsilonVMSAdjoint2D3N_CalculateSecondDerivativesLHS,
                           RANSModellingApplicationInterfaces)
 {
     Model primal_model;

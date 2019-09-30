@@ -10,16 +10,15 @@
 //  Main authors:    Suneth Warnakulasuriya (https://github.com/sunethwarna)
 //
 
-#if !defined(KRATOS_EVM_K_EPSILON_VMS_ADJOINT_ELEMENT_H_INCLUDED)
-#define KRATOS_EVM_K_EPSILON_VMS_ADJOINT_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_RANS_EVM_EPSILON_ADJOINT_ELEMENT_H_INCLUDED)
+#define KRATOS_RANS_EVM_EPSILON_ADJOINT_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/rans_evm_vms_adjoint_element.h"
-#include "includes/checks.h"
+#include "custom_elements/stabilized_convection_diffusion_reaction_adjoint_element.h"
 #include "includes/element.h"
 #include "includes/properties.h"
 
@@ -44,31 +43,48 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-struct RANSEvmVMSAdjointElementData
+struct RansEvmEpsilonAdjointData
 {
+    double C1;
+    double C2;
+
+    double KinematicViscosity;
+    double EffectiveKinematicViscosity;
+    double WallDistance;
+    double Gamma;
+    double Fmu;
+    double y_plus;
+    double f2;
+    double VelocityDivergence;
+
+    double TurbulentKineticEnergy;
+    double TurbulentKinematicViscosity;
+    double TurbulentEnergyDissipationRate;
+
+    double TurbulentReynoldsNumber;
+
     Matrix ShapeFunctionDerivatives;
     Vector ShapeFunctions;
 
     Vector NodalTurbulentKineticEnergy;
     Vector NodalTurbulentEnergyDissipationRate;
-    Vector NodalYPlus;
     Vector NodalFmu;
+    Vector NodalYPlus;
+    Matrix NodalVelocity;
 
     Vector TurbulentKinematicViscositySensitivitiesK;
     Vector TurbulentKinematicViscositySensitivitiesEpsilon;
 };
 
-template <unsigned int TDim, unsigned int TNumNodes = TDim + 1>
-class EvmKEpsilonVMSAdjointElement
-    : public RANSEvmVMSAdjointElement<TDim, RANSEvmVMSAdjointElementData, TNumNodes>
+template <unsigned int TDim, unsigned int TNumNodes>
+class RansEvmEpsilonAdjoint
+    : public StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, RansEvmEpsilonAdjointData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    constexpr static unsigned int TFluidLocalSize = (TDim + 1) * TNumNodes;
-
-    typedef RANSEvmVMSAdjointElement<TDim, RANSEvmVMSAdjointElementData, TNumNodes> BaseType;
+    typedef StabilizedConvectionDiffusionReactionAdjointElement<TDim, TNumNodes, RansEvmEpsilonAdjointData> BaseType;
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -88,6 +104,19 @@ public:
     /// Vector type for local contributions to the linear system
     typedef Vector VectorType;
 
+    /// Matrix type for local contributions to the linear system
+    typedef Matrix MatrixType;
+
+    typedef std::size_t IndexType;
+
+    typedef std::size_t SizeType;
+
+    typedef std::vector<std::size_t> EquationIdVectorType;
+
+    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
+
+    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+
     /// Type for shape function values container
     typedef MatrixRow<Matrix> ShapeFunctionsType;
 
@@ -97,12 +126,10 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-
-
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of EvmKEpsilonVMSAdjointElement
-    KRATOS_CLASS_POINTER_DEFINITION(EvmKEpsilonVMSAdjointElement);
+    /// Pointer definition of RansEvmEpsilonAdjoint
+    KRATOS_CLASS_POINTER_DEFINITION(RansEvmEpsilonAdjoint);
 
     ///@}
     ///@name Life Cycle
@@ -111,28 +138,41 @@ public:
     /**
      * Constructor.
      */
-    EvmKEpsilonVMSAdjointElement(IndexType NewId = 0);
+    RansEvmEpsilonAdjoint(IndexType NewId = 0);
+
+    /**
+     * Constructor using an array of nodes
+     */
+    RansEvmEpsilonAdjoint(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /**
      * Constructor using Geometry
      */
-    EvmKEpsilonVMSAdjointElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    RansEvmEpsilonAdjoint(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /**
      * Constructor using Properties
      */
-    EvmKEpsilonVMSAdjointElement(IndexType NewId,
-                                 GeometryType::Pointer pGeometry,
-                                 PropertiesType::Pointer pProperties);
+    RansEvmEpsilonAdjoint(IndexType NewId,
+                             GeometryType::Pointer pGeometry,
+                             PropertiesType::Pointer pProperties);
+
+    /**
+     * Copy Constructor
+     */
+    RansEvmEpsilonAdjoint(RansEvmEpsilonAdjoint const& rOther);
 
     /**
      * Destructor
      */
-    ~EvmKEpsilonVMSAdjointElement() override;
+    ~RansEvmEpsilonAdjoint() override;
 
     ///@}
     ///@name Operators
     ///@{
+
+    /// Assignment operator.
+    RansEvmEpsilonAdjoint& operator=(RansEvmEpsilonAdjoint const& rOther);
 
     ///@}
     ///@name Operations
@@ -182,6 +222,7 @@ public:
      * @brief GetIntegrationMethod Return the integration order to be used.
      * @return Gauss Order
      */
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input
@@ -267,20 +308,76 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateElementData(RANSEvmVMSAdjointElementData& rData,
+    const Variable<double>& GetPrimalVariable() const override;
+
+    const Variable<double>& GetPrimalRelaxedRateVariable() const override;
+
+    const Variable<double>& GetAdjointVariable() const override;
+
+    const Variable<double>& GetAdjointSecondVariable() const override;
+
+    void CalculateElementData(RansEvmEpsilonAdjointData& rData,
                               const Vector& rShapeFunctions,
                               const Matrix& rShapeFunctionDerivatives,
                               const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateTurbulentKinematicViscosityScalarDerivatives(
+    double CalculateEffectiveKinematicViscosity(const RansEvmEpsilonAdjointData& rCurrentData,
+                                                const ProcessInfo& rCurrentProcessInfo) const override;
+
+    double CalculateReactionTerm(const RansEvmEpsilonAdjointData& rCurrentData,
+                                 const ProcessInfo& rCurrentProcessInfo) const override;
+
+    double CalculateSourceTerm(const RansEvmEpsilonAdjointData& rCurrentData,
+                               const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void CalculateEffectiveKinematicViscosityScalarDerivatives(
         Vector& rOutput,
         const Variable<double>& rDerivativeVariable,
-        const RANSEvmVMSAdjointElementData& rCurrentData,
+        const RansEvmEpsilonAdjointData& rCurrentData,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateTurbulentKinematicViscosityVelocityDerivatives(
+    void CalculateReactionTermScalarDerivatives(Vector& rOutput,
+                                                const Variable<double>& rDerivativeVariable,
+                                                const RansEvmEpsilonAdjointData& rCurrentData,
+                                                const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void CalculateSourceTermScalarDerivatives(Vector& rOutput,
+                                              const Variable<double>& rDerivativeVariable,
+                                              const RansEvmEpsilonAdjointData& rCurrentData,
+                                              const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void CalculateEffectiveKinematicViscosityVelocityDerivatives(
         Matrix& rOutput,
-        const RANSEvmVMSAdjointElementData& rCurrentData,
+        const RansEvmEpsilonAdjointData& rCurrentData,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void CalculateReactionTermVelocityDerivatives(Matrix& rOutput,
+                                                  const RansEvmEpsilonAdjointData& rCurrentData,
+                                                  const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void CalculateSourceTermVelocityDerivatives(Matrix& rOutput,
+                                                const RansEvmEpsilonAdjointData& rCurrentData,
+                                                const ProcessInfo& rCurrentProcessInfo) const override;
+
+    double CalculateEffectiveKinematicViscosityShapeSensitivity(
+        const RansEvmEpsilonAdjointData& rCurrentData,
+        const ShapeParameter& rShapeDerivative,
+        const double detJ_deriv,
+        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    double CalculateReactionTermShapeSensitivity(
+        const RansEvmEpsilonAdjointData& rCurrentData,
+        const ShapeParameter& rShapeDerivative,
+        const double detJ_deriv,
+        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    double CalculateSourceTermShapeSensitivity(
+        const RansEvmEpsilonAdjointData& rCurrentData,
+        const ShapeParameter& rShapeDerivative,
+        const double detJ_deriv,
+        const GeometricalSensitivityUtility::ShapeFunctionsGradientType& rDN_Dx_deriv,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
@@ -321,4 +418,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_EVM_K_EPSILON_VMS_ADJOINT_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_RANS_EVM_EPSILON_ADJOINT_ELEMENT_H_INCLUDED  defined

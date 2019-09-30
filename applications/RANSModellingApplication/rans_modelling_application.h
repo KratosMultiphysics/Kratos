@@ -31,10 +31,10 @@
 #include "custom_conditions/evm_k_epsilon/rans_evm_vms_monolithic_wall_condition.h"
 
 // Adjoint element includes
-#include "custom_elements/evm_k_epsilon/evm_epsilon_adjoint_element.h"
-#include "custom_elements/evm_k_epsilon/evm_k_adjoint_element.h"
-#include "custom_elements/evm_k_epsilon/evm_k_epsilon_vms_adjoint_element.h"
-#include "custom_elements/evm_k_epsilon/evm_monolithic_k_epsilon_vms_adjoint_element.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_epsilon_adjoint.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_adjoint.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_k_epsilon_vms_adjoint.h"
+#include "custom_elements/evm_k_epsilon/rans_evm_monolithic_k_epsilon_vms_adjoint.h"
 
 namespace Kratos
 {
@@ -199,17 +199,17 @@ private:
     const RansEvmVmsMonolithicWallCondition<3> mRansEvmVmsMonolithicWallCondition3D3N;
 
     // k-epsilon adjoint elements
-    const EvmEpsilonAdjointElement<2, 3> mEVMEpsilonAdjointElement2D3N;
-    const EvmEpsilonAdjointElement<3, 4> mEVMEpsilonAdjointElement3D4N;
+    const RansEvmEpsilonAdjoint<2, 3> mEVMEpsilonAdjointElement2D3N;
+    const RansEvmEpsilonAdjoint<3, 4> mEVMEpsilonAdjointElement3D4N;
 
-    const EvmKAdjointElement<2, 3> mEVMKAdjointElement2D3N;
-    const EvmKAdjointElement<3, 4> mEVMKAdjointElement3D4N;
+    const RansEvmKAdjoint<2, 3> mEVMKAdjointElement2D3N;
+    const RansEvmKAdjoint<3, 4> mEVMKAdjointElement3D4N;
 
-    const EvmKEpsilonVMSAdjointElement<2> mEVMKEpsilonVMSAdjointElement2D3N;
-    const EvmKEpsilonVMSAdjointElement<3> mEVMKEpsilonVMSAdjointElement3D4N;
+    const RansEvmKEpsilonVMSAdjoint<2> mEVMKEpsilonVMSAdjointElement2D3N;
+    const RansEvmKEpsilonVMSAdjoint<3> mEVMKEpsilonVMSAdjointElement3D4N;
 
-    const EvmMonolithicKEpsilonVMSAdjointElement<2> mEVMMonolithicKEpsilonVMSAdjointElement2D3N;
-    const EvmMonolithicKEpsilonVMSAdjointElement<3> mEVMMonolithicKEpsilonVMSAdjointElement3D4N;
+    const RansEvmMonolithicKEpsilonVMSAdjoint<2> mEVMMonolithicKEpsilonVMSAdjointElement2D3N;
+    const RansEvmMonolithicKEpsilonVMSAdjoint<3> mEVMMonolithicKEpsilonVMSAdjointElement3D4N;
     ///@}
     ///@name Private Operators
     ///@{
