@@ -12,36 +12,46 @@
 //   license: CSharpWrapperApplication/license.txt
 //
 //  Main authors:    Hubert Balcerzak
-//                   Riccardo Rossi
-//
 
-#if !defined(CSHARP_WRAPPER_APPLICATION_MESH_CONVERTER_H_INCLUDED )
-#define  CSHARP_WRAPPER_APPLICATION_MESH_CONVERTER_H_INCLUDED
+#ifndef KRATOSMULTIPHYSICS_KRATOS_WRAPPER_H
+#define KRATOSMULTIPHYSICS_KRATOS_WRAPPER_H
 
 // System includes
-#include <vector>
 
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
+#include "kratos_internals.h"
+#include "includes/node.h"
+#include "model_part_wrapper.h"
 
 namespace CSharpKratosWrapper {
 
-    struct face {
-        int nodes[4];
-    };
+    using NodeType = Kratos::Node<3>;
+    using ModelPart = Kratos::ModelPart;
 
-    class MeshConverter {
+    class KratosWrapper {
+
     public:
-        void ProcessMesh(std::vector<Kratos::intrusive_ptr<Kratos::Element>>& elements);
-        std::vector<face>& GetFaces();
-        std::vector<int>& GetNodes();
+
+        ~KratosWrapper();
+
+        void init(const char *MDPAFilePath, const char *JSONFilePath = NULL);
+
+        void initWithSettings(const char *JSONFilePath = NULL);
+
+        void calculate();
+
+        ModelPartWrapper* getRootModelPartWrapper();
+
     private:
-        std::vector<face> mFaces;
-        std::vector<int> mNodes;
+        KratosInternals mKratosInternals;
+        std::vector<NodeType::Pointer> mFixedNodes;
+        ModelPartWrapper* pmMainModelPartWrapper;
+
+        void freeNodes();
 
     };
 }
 
-#endif	/* CSHARP_WRAPPER_APPLICATION_MESH_CONVERTER_H_INCLUDED */
+#endif //KRATOSMULTIPHYSICS_KRATOS_WRAPPER_H

@@ -31,10 +31,10 @@
             "dynamic_tau"                  : 0.0,
             "use_orthogonal_subscales"     : false
         },
-        "relative_velocity_tolerance" : 1e-6,
-        "absolute_velocity_tolerance" : 1e-6,
-        "relative_pressure_tolerance" : 1e-6,
-        "absolute_pressure_tolerance" : 1e-6,
+        "relative_velocity_tolerance" : 1e-8,
+        "absolute_velocity_tolerance" : 1e-8,
+        "relative_pressure_tolerance" : 1e-8,
+        "absolute_pressure_tolerance" : 1e-8,
         "linear_solver_settings"      : {
             "solver_type"         : "amgcl",
             "max_iteration"       : 200,

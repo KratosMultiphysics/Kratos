@@ -119,9 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainKin
 
     // Check the results
     const double tolerance = 1.0e-4;
-    for (std::size_t comp = 0; comp < 6; ++comp){
-        KRATOS_CHECK_LESS_EQUAL(std::abs((VMres[comp] - TestVM[comp]) / VMres[comp]), tolerance);
-    }
+    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(VMres, TestVM, tolerance);
 }
 
 /**
@@ -203,9 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
 
     // Check the results
     const double tolerance = 1.0e-4;
-    for (std::size_t comp = 0; comp < 6; ++comp){
-        KRATOS_CHECK_LESS_EQUAL(std::abs((VMres[comp] - TestVM[comp]) / VMres[comp]), tolerance);
-    }
+    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(VMres, TestVM, tolerance);
 }
 
 } // namespace Testing
