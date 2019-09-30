@@ -278,6 +278,8 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -342,9 +344,13 @@ template<class TContainerPointType, class TContainerPointEmbeddedType = TContain
 
 template<class TContainerPointType, class TContainerPointEmbeddedType> const
 GeometryData BrepFace<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
-    2, 3, 2,
+    &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
+
+template<class TContainerPointType, class TContainerPointEmbeddedType>
+const GeometryDimension BrepFace<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
+    2, 3, 2);
 
 ///@}
 }// namespace Kratos.
