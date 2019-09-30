@@ -85,7 +85,8 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         # here the minimum settings are specified to test the default values!
         settings_eigen_process = KratosMultiphysics.Parameters("""{
             "Parameters" : {
-                "result_file_format_use_ascii" : true
+                "result_file_format_use_ascii" : true,
+                "file_format"                  : "gid"
             }
         }""")
 
@@ -112,15 +113,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         settings_check_process["reference_file_name"].SetString(GetFilePath("test_postprocess_eigenvalues_process.ref"))
         settings_check_process["output_file_name"].SetString("Structure_EigenResults_15_0.post.res")
 
-        check_process = CompareTwoFilesCheckProcess(settings_check_process)
-
-        check_process.ExecuteInitialize()
-        check_process.ExecuteBeforeSolutionLoop()
-        check_process.ExecuteInitializeSolutionStep()
-        check_process.ExecuteFinalizeSolutionStep()
-        check_process.ExecuteBeforeOutputStep()
-        check_process.ExecuteAfterOutputStep()
-        check_process.ExecuteFinalize()
+        check_process = CompareTwoFilesCheckProcess(settings_check_process).Execute()
 
 
 if __name__ == '__main__':
