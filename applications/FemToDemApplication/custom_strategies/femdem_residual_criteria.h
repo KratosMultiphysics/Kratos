@@ -107,6 +107,9 @@ public:
             KRATOS_WARNING("FemDemResidualCriteria") << "residual_relative_tolerance or relative_tolerance nor defined on settings. Using default 1.0e-4" << std::endl;
             mRatioTolerance = 1.0e-4;
         }
+        if (Settings.Has("max_iteration")) {
+            mMaxIterations = Settings["max_iteration"].GetInt();
+        }
 
         this->mActualizeRHSIsNeeded = true;
     }
@@ -159,6 +162,10 @@ public:
         const TSystemVectorType& rb
         ) override
     {
+        if (rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] == 1) {
+            KRATOS_INFO("") << "___________________________________________________________________" << std::endl;
+            KRATOS_INFO("") << "|    ITER     |     RATIO      |    ABS_NORM    |    CONVERGED    |" << std::endl;
+        }
         const SizeType size_b = TSparseSpace::Size(rb);
         if (size_b != 0) { //if we are solving for something
 
@@ -178,7 +185,7 @@ public:
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
-            if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm) { // Conevrged
+            if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm) { // Converged
                 if (rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] < 10) {
                     std::cout <<"|      " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << "      |  " 
                         << std::scientific << ratio << "  |  " 
@@ -198,6 +205,9 @@ public:
                     std::cout <<"|      " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << "     |  " 
                         << std::scientific << ratio << "  |  " 
                         << absolute_norm << "  |" << "      FALSE      |"<< std::endl;  
+                }
+                if (rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] == mMaxIterations) {
+                    KRATOS_INFO("") << " ATTENTION! SOLUTION STEP NOT CONVERGED AFTER " <<  mMaxIterations << "ITERATIONS" << std::endl;
                 }
                 return false;
             }
@@ -262,9 +272,6 @@ public:
 
         SizeType size_residual;
         CalculateResidualNorm(rModelPart, mInitialResidualNorm, size_residual, rDofSet, rb);
-
-        KRATOS_INFO("") << "___________________________________________________________________" << std::endl;
-        KRATOS_INFO("") << "|    ITER     |     RATIO      |    ABS_NORM    |    CONVERGED    |" << std::endl;
     }
 
     /**
@@ -435,6 +442,8 @@ private:
     TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
 
     std::vector<bool> mActiveDofs;  /// This vector contains the dofs that are active
+
+    int mMaxIterations;
 
     ///@}
     ///@name Private Operators
