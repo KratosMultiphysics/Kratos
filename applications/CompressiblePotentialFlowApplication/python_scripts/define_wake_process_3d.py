@@ -82,6 +82,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         if(self.output_wake):
             self.__VisualizeWake()
 
+        # Output element ids in the terminal
+        self.__TerminalPrint()
+
     def __SetWakeAndSpanDirections(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)
         if(free_stream_velocity.Size() != 3):
@@ -308,6 +311,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             else:
                 KratosMultiphysics.Logger.PrintInfo('...Setting non cut element to structure...', elem.Id)
                 elem.SetValue(CPFApp.WAKE, True)
+                self.wake_sub_model_part.AddElement(elem,0)
                 wake_elemental_distances = KratosMultiphysics.Vector(4)
             counter = 0
             counter2 = 0
@@ -397,6 +401,206 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         gid_output.PrintOutput()
         gid_output.ExecuteFinalizeSolutionStep()
         gid_output.ExecuteFinalize()
+
+    def __TerminalPrint(self):
+        # Print trailing_edge_model_part elements
+        counter_kutta = 0
+        counter_structure = 0
+        counter_normal = 0
+        self.double_trailing_edge_element_id_list = []
+        for elem in self.trailing_edge_elements_model_part.Elements:
+            if(elem.GetValue(CPFApp.WAKE)):
+                count = 0
+                for elnode in elem.GetNodes():
+                    if(elnode.GetValue(CPFApp.TRAILING_EDGE)):
+                        #elem.SetValue(CPFApp.WING_TIP, True)
+                        count +=1
+                if count > 1:
+                    #elem.Reset(KratosMultiphysics.STRUCTURE)
+                    #print(elem.Id)
+                    elem.SetValue(CPFApp.WING_TIP, True)
+                    self.double_trailing_edge_element_id_list.append(elem.Id)
+                    # for elnode in elem.GetNodes():
+                    #     number_of_neighbour_elements = elnode.GetValue(KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS)
+                    #     number_of_neighbour_elements += 1
+                    #     elnode.SetValue(KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS, number_of_neighbour_elements)
+                elif count > 0:
+                    elem.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
+                    # for elnode in elem.GetNodes():
+                    #     if(elnode.Id == 465):
+                    #         print(elem.Id)
+                else:
+                    #elem.Reset(KratosMultiphysics.STRUCTURE)
+                    pass
+                    #print(elem.Id)
+                #print(elem.Id)
+                counter_structure += 1
+                # if elem.GetValue(CPFApp.ZERO_VELOCITY_CONDITION):
+                #     print(elem.Id)
+                pass
+            elif(elem.GetValue(CPFApp.KUTTA)):
+                counter_kutta +=1
+                #print(elem.Id)
+                # if elem.GetValue(CPFApp.ZERO_VELOCITY_CONDITION):
+                #     print(elem.Id)
+                pass
+            else:
+                counter_normal += 1
+                #print(elem.Id)
+                pass
+
+        if(self.fluid_model_part.HasSubModelPart("double_trailing_edge_elements_model_part")):
+            for elem in self.double_trailing_edge_elements_model_part.Elements:
+                elem.Set(KratosMultiphysics.TO_ERASE)
+            self.double_trailing_edge_elements_model_part.RemoveElements(KratosMultiphysics.TO_ERASE)
+        else:
+            self.double_trailing_edge_elements_model_part = self.fluid_model_part.CreateSubModelPart("double_trailing_edge_elements_model_part")
+        self.double_trailing_edge_elements_model_part.AddElements(self.double_trailing_edge_element_id_list)
+
+
+        min_y_coordinate = 1e+30
+        for elem in self.double_trailing_edge_elements_model_part.Elements:
+            elem_y = elem.GetGeometry().Center().Y
+            if elem_y < min_y_coordinate:
+                min_y_coordinate = elem.GetGeometry().Center().Y
+
+
+        # print('printing elements with double nodes')
+        # min_y_coordinate = 1e+30
+        # current_min = -1e+30
+        # number_of_free_nodes = 0
+        # self.space_utils = KratosMultiphysics.UblasSparseSpace()
+        # for _ in range(self.double_trailing_edge_elements_model_part.NumberOfElements()):
+        #     for elem in self.double_trailing_edge_elements_model_part.Elements:
+        #         elem_y = elem.GetGeometry().Center().Y
+        #         if elem_y < min_y_coordinate and elem_y > current_min:
+        #             min_y_coordinate = elem.GetGeometry().Center().Y
+        #             tmp_min_y_te_elem = elem
+        #             # print(i)
+        #             # print(elem.Id)
+        #             # print(min_y_coordinate)
+        #     current_min = min_y_coordinate
+        #     min_y_coordinate = 1e+30
+        #     #print(tmp_min_y_te_elem.Id)
+
+        #     elem_number_of_free_nodes = 0
+        #     free_nodes = KratosMultiphysics.Vector(4)
+        #     free_nodes[0] = False
+        #     free_nodes[1] = False
+        #     free_nodes[2] = False
+        #     free_nodes[3] = False
+        #     #self.space_utils.SetToZeroVector(free_nodes)
+        #     counter = 0
+        #     for elnode in tmp_min_y_te_elem.GetNodes():
+        #         if(elnode.GetValue(CPFApp.TRAILING_EDGE) and\
+        #                 not elnode.GetValue(CPFApp.ZERO_VELOCITY_CONDITION)):
+        #             free_nodes[counter] = True
+        #             elnode.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
+        #             number_of_free_nodes += 1
+        #             elem_number_of_free_nodes +=1
+        #             #print(elnode.Id)
+        #         counter +=1
+        #     tmp_min_y_te_elem.SetValue(CPFApp.FREE_NODES, free_nodes)
+        #     if (elem_number_of_free_nodes > 1.5):
+        #         print(tmp_min_y_te_elem.Id)
+        # print('printing elements with double nodes end')
+
+
+
+        # number_of_free_nodes = 0
+        # for elem in self.trailing_edge_elements_model_part.Elements:
+        #     if(elem.GetValue(CPFApp.WING_TIP)):
+        #         elem_number_of_free_nodes = 0
+        #         free_nodes = KratosMultiphysics.Vector(4)
+        #         counter = 0
+        #         for elnode in elem.GetNodes():
+        #             if(elnode.GetValue(CPFApp.TRAILING_EDGE) and\
+        #                 not elnode.GetValue(CPFApp.ZERO_VELOCITY_CONDITION) and\
+        #                 elem_number_of_free_nodes < 1):
+        #                 free_nodes[counter] = True
+        #                 elnode.SetValue(CPFApp.ZERO_VELOCITY_CONDITION, True)
+        #                 number_of_free_nodes += 1
+        #                 elem_number_of_free_nodes +=1
+        #             else:
+        #                 free_nodes[counter] = False
+        #             counter +=1
+        #         elem.SetValue(CPFApp.FREE_NODES, free_nodes)
+        #         if (elem_number_of_free_nodes > 1.5):
+        #             print(elem.Id)
+        #             print(elem_number_of_free_nodes)
+        #             pass
+
+
+
+        #print('\nnumber_of_free_nodes = ', number_of_free_nodes)
+        print('\ncounter_structure = ', counter_structure)
+        print('counter_kutta = ', counter_kutta)
+        print('counter_normal = ', counter_normal)
+        print(' sum = ', counter_kutta + counter_structure + counter_normal)
+        print('counter_te_total = ', self.trailing_edge_elements_model_part.NumberOfElements())
+
+        # print('\n maximum number of neighbour elements = ', self.max_number_of_elements)
+        # print('node id = ', self.node_id)
+
+
+        # Print fluid_model_part elements
+        counter_structure = 0
+        counter_wake = 0
+        counter_kutta = 0
+        #with open("wake_elements_id.dat", 'w') as wake_elements_file:
+        for elem in self.fluid_model_part.Elements:
+            #print(elem.Id)
+            if(elem.Is(KratosMultiphysics.STRUCTURE)):# and elem.GetValue(CPFApp.WAKE)):
+                # if not elem.GetValue(CPFApp.WAKE):
+                #     print(elem.Id)
+                #print(elem.Id)
+                counter_structure += 1
+                pass
+            if(elem.GetValue(CPFApp.WAKE)):
+                #wake_elements_file.write('{0:15d}\n'.format(elem.Id))
+                #print(elem.Id)
+                counter_wake += 1
+                pass
+            elif(elem.GetValue(CPFApp.KUTTA)):
+                #print(elem.Id)
+                counter_kutta +=1
+                pass
+            else:
+                #print(elem.Id)
+                pass
+
+        # for elem in self.fluid_model_part.Elements:
+        #     if(elem.GetValue(CPFApp.WAKE)):
+        #         # Check if element is in wake_sub_model_part
+        #         is_in_wake_sub_model_part = False
+        #         for wake_elem in self.wake_sub_model_part.Elements:
+        #             if wake_elem.Id == elem.Id:
+        #                 is_in_wake_sub_model_part = True
+
+        #         if not is_in_wake_sub_model_part:
+        #             print(elem.Id)
+
+        with open("wake_elements_id.dat", 'w') as wake_elements_file:
+            for elem in self.wake_sub_model_part.Elements:
+                wake_elements_file.write('{0:15d}\n'.format(elem.Id))
+        with open("kutta_elements_id.dat", 'w') as kutta_elements_file:
+            for elem in self.trailing_edge_elements_model_part.Elements:
+                if(elem.GetValue(CPFApp.KUTTA)):
+                    kutta_elements_file.write('{0:15d}\n'.format(elem.Id))
+            #print( elem.Id)
+            #break
+
+
+        print('\ncounter_structure = ', counter_structure)
+        print('counter_kutta = ', counter_kutta)
+        print('\ncounter_wake = ', counter_wake)
+
+        counter_wake = 0
+        for elem in self.wake_sub_model_part.Elements:
+            #print(elem.Id)
+            counter_wake += 1
+
+        print('counter_wake = ', counter_wake)
 
     def ExecuteFinalizeSolutionStep(self):
         CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 0)
