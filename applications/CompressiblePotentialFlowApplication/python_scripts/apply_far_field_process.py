@@ -56,8 +56,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY,self.free_stream_speed_of_sound)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.HEAT_CAPACITY_RATIO,self.heat_capacity_ratio)
 
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.PSI,1e3)
-        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,1)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.PSI,1e0)
+        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,1e0)
 
         # for cond in self.far_field_model_part.Conditions:
         #     surface_normal = cond.GetGeometry().Normal()
