@@ -214,6 +214,9 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We call to the base process
         super(ALMContactProcess, self).ExecuteInitializeSolutionStep()
 
+        # Reset slip flag
+        self._reset_slip_flag()
+
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
 
@@ -222,15 +225,6 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         """
         # We call to the base process
         super(ALMContactProcess, self).ExecuteFinalizeSolutionStep()
-
-        # Reset slip flag
-        if self.is_frictional:
-            if not self.pure_slip:
-                if self.slip_step_reset_frequency > 0:
-                    self.slip_step_reset_counter += 1
-                    if self.slip_step_reset_counter >= self.slip_step_reset_frequency:
-                        KM.VariableUtils().SetFlag(KM.SLIP, False, self._get_process_model_part().Nodes)
-                        self.slip_step_reset_counter = 0
 
         # Debug we compute if the total load corresponds with the total contact force and the reactions
         if self.settings["search_parameters"]["debug_mode"].GetBool():
@@ -476,3 +470,18 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
 
         alm_init_var = CSMA.ALMFastInit(self._get_process_model_part())
         alm_init_var.Execute()
+
+    def _reset_slip_flag(self):
+        """ This method resets the SLIP flag
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        if self.is_frictional:
+            if not self.pure_slip:
+                if self.slip_step_reset_frequency > 0:
+                    self.slip_step_reset_counter += 1
+                    if self.slip_step_reset_counter >= self.slip_step_reset_frequency:
+                        KM.VariableUtils().SetFlag(KM.SLIP, False, self._get_process_model_part().Nodes)
+                        self.slip_step_reset_counter = 0
