@@ -24,8 +24,7 @@
 namespace Kratos
 {
 /** \brief VtkEigenOutput
-* A simple class that has functionality to write vtk output
-* @see : https://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf
+* A simple class to write Eigenresults in Vtk format
 */
 class KRATOS_API(KRATOS_CORE) VtkEigenOutput : public VtkOutput
 {
@@ -37,11 +36,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /**
-     * @brief Constructor by passing a ModelPart and Kratos-Parameters
-     * @param rModelPart The modelpart which is used for output
-     * @param Parameters Parameters including settings for the output
-     */
     explicit VtkEigenOutput(
         ModelPart& rModelPart,
         Parameters EigenOutputParameters,
@@ -56,9 +50,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Prints mrModelPart in VTK format together with the results
-     */
     void PrintEigenOutput(
         const std::string& rLabel,
         const int AnimationStep,
@@ -98,6 +89,13 @@ private:
     ///@name Operations
     ///@{
 
+    void OpenOutputFile(
+        const std::string& rFileName,
+        const std::ios::openmode OpenModeFlags,
+        std::ofstream& rOutputFile) const;
+
+    std::string GetEigenOutputFileName(const int AnimationStep) const;
+
     void WriteScalarEigenVariable(
         const ModelPart::NodesContainerType& rNodes,
         const Variable<double>& rVariable,
@@ -109,13 +107,6 @@ private:
         const Variable<array_1d<double, 3>>& rVariable,
         const std::string& rLabel,
         std::ofstream& rFileStream) const;
-
-    void OpenOutputFile(
-        const std::string& rFileName,
-        const std::ios::openmode OpenModeFlags,
-        std::ofstream& rOutputFile) const;
-
-    std::string GetEigenOutputFileName(const int AnimationStep) const;
 
     ///@}
 };

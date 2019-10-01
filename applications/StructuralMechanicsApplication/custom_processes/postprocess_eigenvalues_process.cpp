@@ -26,6 +26,7 @@ namespace Kratos
 
 namespace { // helpers namespace
 
+// helper struct to wrap the different outputs
 struct BaseEigenOutputWrapper
 {
     virtual ~BaseEigenOutputWrapper() = default;
