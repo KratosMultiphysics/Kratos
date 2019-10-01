@@ -449,14 +449,15 @@ private:
       array_1d<double, 3> r_vector =
           it_node->Coordinates() - mCenterOfRotation;
       auto reaction = it_node->FastGetSolutionStepValue(REACTION, 0);
+      const double rho = it_node->FastGetSolutionStepValue(DENSITY);
 
       torque_vector[0] = r_vector[1] * reaction[2] - r_vector[2] * reaction[1];
       torque_vector[1] = r_vector[2] * reaction[0] - r_vector[0] * reaction[2];
       torque_vector[2] = r_vector[0] * reaction[1] - r_vector[1] * reaction[0];
 
-      torque += torque_vector[0] * mAxisOfRotationVector[0] +
+      torque += rho*(torque_vector[0] * mAxisOfRotationVector[0] +
                 torque_vector[1] * mAxisOfRotationVector[1] +
-                torque_vector[2] * mAxisOfRotationVector[2];
+                torque_vector[2] * mAxisOfRotationVector[2]);
 
 //       torque += std::sqrt(torque_vector[0]*torque_vector[0] +
 //                           torque_vector[1]*torque_vector[1] +
