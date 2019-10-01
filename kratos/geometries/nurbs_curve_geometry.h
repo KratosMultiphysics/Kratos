@@ -60,7 +60,7 @@ public:
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
     {
-        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
+        KRATOS_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
             << "Number of knots and control points do not match!" << std::endl;
     }
 
@@ -75,12 +75,11 @@ public:
         , mKnots(rKnots)
         , mWeights(rWeights)
     {
-        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
+        KRATOS_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
             << "Number of knots and control points do not match!" << std::endl;
 
-        if (!rWeights.empty())
-            KRATOS_DEBUG_ERROR_IF(rWeights.size() != rThisPoints.size())
-                << "Number of control points and weights do not match!" << std::endl;
+        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
+            << "Number of control points and weights do not match!" << std::endl;
     }
 
     explicit NurbsCurveGeometry(const PointsArrayType& ThisPoints)
@@ -233,29 +232,29 @@ public:
     * @brief Provides the natural boundaries of the NURBS/B-Spline curve.
     * @return domain interval.
     */
-    Interval DomainInterval() const
+    NurbsInterval DomainInterval() const
     {
-        return Interval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
+        return NurbsInterval(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
     }
 
     /*
     * @brief Provides all knot intervals within one curve.
     * @return vector of domain intervals.
     */
-    std::vector<Interval> KnotSpanIntervals() const
+    std::vector<NurbsInterval> KnotSpanIntervals() const
     {
         const IndexType first_span = mPolynomialDegree - 1;
         const IndexType last_span = NumberOfKnots() - mPolynomialDegree - 1;
 
         const IndexType number_of_spans = last_span - first_span + 1;
 
-        std::vector<Interval> result(number_of_spans);
+        std::vector<NurbsInterval> result(number_of_spans);
 
         for (IndexType i = 0; i < number_of_spans; i++) {
             const double t0 = mKnots[first_span + i];
             const double t1 = mKnots[first_span + i + 1];
 
-            result[i] = Interval(t0, t1);
+            result[i] = NurbsInterval(t0, t1);
         }
 
         return result;
@@ -278,8 +277,9 @@ public:
         const CoordinatesArrayType& rCoordinates,
         const SizeType DerivativeOrder) const
     {
-        NurbsCurveShapeFunction shape_function_container(PolynomialDegree(), DerivativeOrder);
-        if (IsRational()) {
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, std::min(DerivativeOrder, PolynomialDegree()));
+
+        if (this->IsRational()) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
         }
         else {
@@ -296,11 +296,6 @@ public:
             }
         }
 
-        //fill up the vector with zeros
-        for (IndexType order = shape_function_container.NumberOfShapeFunctionRows(); order <= DerivativeOrder; order++) {
-            IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
-            derivatives[order] = (*this)[index_0] * 0.0;
-        }
         return derivatives;
     }
 
@@ -429,6 +424,8 @@ private:
 
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
     ///@}
     ///@name Private Member Variables
     ///@{
@@ -471,11 +468,13 @@ private:
 
 template<int TWorkingSpaceDimension, class TContainerPointType>
 const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryData(
-    1,
-    TWorkingSpaceDimension,
-    1,
+    &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
+
+template<int TWorkingSpaceDimension, class TContainerPointType>
+const GeometryDimension NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryDimension(
+    1, TWorkingSpaceDimension, 1);
 
 } // namespace Kratos
 

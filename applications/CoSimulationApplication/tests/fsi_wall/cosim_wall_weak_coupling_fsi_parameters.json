@@ -72,11 +72,6 @@
                         "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
                         "variable_name" : "REACTION",
                         "dimension" : 2
-                    },
-                    "velocity" : {
-                        "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
-                        "variable_name" : "VELOCITY",
-                        "dimension" : 2
                     }
                 }
             },
@@ -95,11 +90,6 @@
                     "load" : {
                         "model_part_name" : "Structure.GENERIC_FSI_Interface",
                         "variable_name" : "POINT_LOAD",
-                        "dimension" : 2
-                    },
-                    "velocity" : {
-                        "model_part_name" : "Structure.GENERIC_FSI_Interface",
-                        "variable_name" : "VELOCITY",
                         "dimension" : 2
                     }
                 }

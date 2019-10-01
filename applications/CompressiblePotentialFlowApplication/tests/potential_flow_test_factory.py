@@ -87,6 +87,22 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
+    def test_EmbeddedCircle(self):
+        if not hdf5_is_available:
+            self.skipTest("Missing required application: HDF5Application")
+        settings_file_name = "embedded_circle_parameters.json"
+        settings_adjoint_file_name = "embedded_circle_adjoint_parameters.json"
+        work_folder = "embedded_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], -0.08769331821378197, 0.0, 1e-9)
+            self._runTest(settings_adjoint_file_name)
+
+            for file_name in os.listdir(os.getcwd()):
+                if file_name.endswith(".h5"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
     def test_WakeProcess3DSmall(self):
         if not numpy_stl_is_available:
             self.skipTest("Missing required dependency: numpy-stl.")
@@ -128,6 +144,20 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [10, 11, 12, 13, 14, 15, 18, 23, 24]
             self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
+
+    def test_Rhombus3DIncompressible(self):
+        if not numpy_stl_is_available:
+            self.skipTest("Missing required dependency: numpy-stl.")
+        settings_file_name = "rhombus_3d_parameters.json"
+        work_folder = "rhombus_3d"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.7331131286069874, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT], 0.06480686535448453, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7228720706323188, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7287060122732945, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008517301562764179, 0.0, 1e-9)
 
     def _validateWakeProcess(self,reference_element_id_list, variable_name):
         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
