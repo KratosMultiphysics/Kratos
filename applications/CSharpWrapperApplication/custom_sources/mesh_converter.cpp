@@ -23,9 +23,9 @@
 // External includes
 
 // Project includes
-#include "mesh_converter.h"
+#include "custom_includes/mesh_converter.h"
 #include "containers/array_1d.h"
-#include "vector3.h"
+#include "custom_includes/vector3.h"
 
 using namespace CSharpKratosWrapper;
 using namespace std;

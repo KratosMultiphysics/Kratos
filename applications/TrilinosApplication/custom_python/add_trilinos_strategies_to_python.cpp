@@ -42,9 +42,6 @@
 //configuration files
 #include "linear_solvers/linear_solver.h"
 
-#include "FluidDynamicsApplication/custom_strategies/strategies/fs_strategy.h"
-#include "FluidDynamicsApplication/custom_utilities/solver_settings.h"
-
 namespace Kratos
 {
 namespace Python
@@ -139,15 +136,6 @@ void AddStrategies(pybind11::module& m)
     .def("FinalizeSolutionStep", &TrilinosBaseSolvingStrategyType::FinalizeSolutionStep)
     .def("SolveSolutionStep", &TrilinosBaseSolvingStrategyType::SolveSolutionStep)
     //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
-    ;
-
-    typedef FSStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosFSStrategy;
-    py::class_< TrilinosFSStrategy, typename TrilinosFSStrategy::Pointer, TrilinosBaseSolvingStrategyType >
-    (m,"TrilinosFSStrategy").def(py::init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool >())
-    .def(py::init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool, const Kratos::Variable<int>& >())
-    .def("CalculateReactions",&TrilinosFSStrategy::CalculateReactions)
-    .def("AddIterationStep",&TrilinosFSStrategy::AddIterationStep)
-    .def("ClearExtraIterationSteps",&TrilinosFSStrategy::ClearExtraIterationSteps)
     ;
 
     typedef ResidualBasedLinearStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosLinearStrategy;

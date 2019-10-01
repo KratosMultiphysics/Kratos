@@ -8,11 +8,12 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ )
 
 # Dependencies on other application -- TRILINOS specific
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 # Find trilinos solver package -- this is our own find package!!
-find_package(TRILINOS REQUIRED)
+if (NOT TRILINOS_FOUND)
+  find_package(TRILINOS REQUIRED)
+endif()
 include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
 
@@ -24,7 +25,6 @@ set( KRATOS_TRILINOS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/amgcl_mpi_solver_impl.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_linear_solver_factory.cpp
-    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp  #TODO: this should REALLY NOT BE HERE
 )
 
 # Sources for the Python module
