@@ -64,7 +64,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
             "remove_output_file"    : true,
             "comparison_type"       : "post_res_file"
         }
-        """ % (GetFilePath("test_postprocess_eigenvalues_process.ref"), "Structure_EigenResults_15_0.post.res"))
+        """ % (GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref"), "Structure_EigenResults_15_0.post.res"))
 
         self.__ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, settings_check_process)
 
