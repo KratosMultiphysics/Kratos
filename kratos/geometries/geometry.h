@@ -1703,7 +1703,7 @@ public:
     * @param IntegrationPointIndex The index of the integration point
     * @return the global coordinates
     */
-    virtual CoordinatesArrayType& GlobalCoordinates(
+    void GlobalCoordinates(
         CoordinatesArrayType& rResult,
         IndexType IntegrationPointIndex
     ) const
@@ -1714,8 +1714,6 @@ public:
 
         for (IndexType i = 0; i < this->size(); i++)
             noalias(rResult) += N(IntegrationPointIndex, i) * (*this)[i];
-
-        return rResult;
     }
 
     /** This method provides the global coordinates corresponding to the local coordinates provided, considering additionally a certain increment in the coordinates
