@@ -60,6 +60,11 @@ public:
         } else {
             KRATOS_ERROR << "\"file_label\" can only be \"step\" or \"time\"" << std::endl;
         }
+
+        if (OutputParameters["save_output_files_in_folder"].GetBool()) {
+            result_file_name = OutputParameters["folder_name"].GetString() + "/" + result_file_name;
+        }
+
         const auto post_mode = OutputParameters["result_file_format_use_ascii"].GetBool() ? GiD_PostAscii : GiD_PostBinary;
 
         mpGidEigenIO = Kratos::make_unique<GidEigenIO>(
@@ -147,6 +152,8 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPa
             "file_format"                   : "vtk",
             "file_label"                    : "step",
             "result_file_format_use_ascii"  : false,
+            "folder_name"                   : "EigenResults",
+            "save_output_files_in_folder"   : true,
             "animation_steps"               : 20,
             "label_type"                    : "frequency",
             "list_of_result_variables"      : ["DISPLACEMENT"]

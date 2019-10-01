@@ -100,6 +100,10 @@ std::string VtkEigenOutput::GetEigenOutputFileName(const int AnimationStep) cons
 
     output_file_name += "_" + std::to_string(AnimationStep) + ".vtk";
 
+    if (mEigenOutputSettings["save_output_files_in_folder"].GetBool()) {
+        output_file_name = mEigenOutputSettings["folder_name"].GetString() + "/" + output_file_name;
+    }
+
     return output_file_name;
 }
 

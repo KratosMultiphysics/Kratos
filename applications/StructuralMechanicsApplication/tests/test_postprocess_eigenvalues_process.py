@@ -64,7 +64,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
             "remove_output_file"    : true,
             "comparison_type"       : "post_res_file"
         }
-        """ % (GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref"), "Structure_EigenResults_15_0.post.res"))
+        """ % (GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref"), "EigenResults/Structure_EigenResults_15_0.post.res"))
 
         test_model = KratosMultiphysics.Model()
         self.__ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, test_model)
@@ -94,7 +94,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
                 "remove_output_file"    : true,
                 "comparison_type"       : "vtk"
             }
-            """ % (GetFilePath("eigen_postprocess_ref_files/Structure_EigenResults_15_{}.vtk.ref".format(i)), "Structure_EigenResults_15_{}.vtk".format(i)))
+            """ % (GetFilePath("eigen_postprocess_ref_files/Structure_EigenResults_15_{}.vtk.ref".format(i)), "EigenResults/Structure_EigenResults_15_{}.vtk".format(i)))
             CompareTwoFilesCheckProcess(settings_check_process).Execute()
 
     def __ExecuteTestPostprocessEigenvaluesProcess(self, eigen_post_parameters, test_model):
