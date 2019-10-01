@@ -55,7 +55,7 @@
         }],
         "loads_process_list"       : [{
         "python_module"   : "assign_vector_by_direction_to_condition_process",
-            "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+            "kratos_module" : "KratosMultiphysics",
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorByDirectionToConditionProcess",
             "Parameters"            : {
