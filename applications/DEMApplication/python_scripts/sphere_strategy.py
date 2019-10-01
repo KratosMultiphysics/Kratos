@@ -16,7 +16,11 @@ class ExplicitStrategy(object):
         {
             "strategy" : "sphere_strategy",
             "do_search_neighbours" : true,
-            "RemoveBallsInitiallyTouchingWalls": false
+            "RemoveBallsInitiallyTouchingWalls": false,
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            }
         }""")
         self.solver_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -56,6 +60,10 @@ class ExplicitStrategy(object):
         #self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
         self.clean_init_indentation_option = DEM_parameters["CleanIndentationsOption"].GetBool()
+
+        if self.clean_init_indentation_option and self.solver_settings["model_import_settings"]["input_type"].GetString() == 'rest':
+            Logger.PrintWarning("DEM", '\nWARNING!: \'clean_indentations_option\' is set to true in a restarted simulation. The particles\' radii could be modified before the first time step.\n' * 50)
+
         self.contact_mesh_option           = 0
         if "ContactMeshOption" in DEM_parameters.keys():
             self.contact_mesh_option      = DEM_parameters["ContactMeshOption"].GetBool()
@@ -167,6 +175,17 @@ class ExplicitStrategy(object):
 
 
         self.SetContinuumType()
+
+    @classmethod
+    def _GetRestartSettings(self, model_part_import_settings):
+        restart_settings = model_part_import_settings.Clone()
+        restart_settings.RemoveValue("input_type")
+        if not restart_settings.Has("restart_load_file_label"):
+            raise Exception('"restart_load_file_label" must be specified when starting from a restart-file!')
+        if model_part_import_settings.Has("echo_level"):
+            restart_settings.AddValue("echo_level", model_part_import_settings["echo_level"])
+
+        return restart_settings
 
     def SetContinuumType(self):
         self.continuum_type = False
@@ -325,8 +344,6 @@ class ExplicitStrategy(object):
 
     def SolveSolutionStep(self):
         (self.cplusplus_strategy).SolveSolutionStep()
-        return True
-
         return True
 
     def AdvanceInTime(self, time):

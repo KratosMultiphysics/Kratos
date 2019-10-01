@@ -15,9 +15,6 @@ def Create(settings, solver_name):
 
 class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
     def __init__(self, settings, solver_name):
-        if not settings['coupling_sequence'].size() == 2:
-            raise Exception("Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
-
         super(GaussSeidelStrongCoupledSolver, self).__init__(settings, solver_name)
 
         self.convergence_accelerators_list = cs_tools.CreateConvergenceAccelerators(
