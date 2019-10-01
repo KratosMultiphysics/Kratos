@@ -93,6 +93,18 @@ namespace Kratos
      */
     void SplitBuilding();
 
+    /**
+     * @brief Function to check if a node is in the map
+     *
+     */
+    bool CheckNodeInMap(std::unordered_map<IndexType, IndexType> new_nodes_map, IndexType node_id);
+
+    /**
+     * @brief Function to find the maximum node id
+     *
+     */
+    void FindMaxNodeId(IndexType new_node_id);
+
 
     ///@}
     ///@name Access
