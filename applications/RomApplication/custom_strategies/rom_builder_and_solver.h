@@ -425,7 +425,7 @@ public:
                     //PrintData(Telemental);
                     //KRATOS_WATCH(Telemental)
                     //KRATOS_WATCH(RHS_Contribution)
-                    KRATOS_WATCH(ResidualReduced)
+                    //KRATOS_WATCH(ResidualReduced)
                     //KRATOS_WATCH(Arom)
 
                     // clean local elemental me overridemory
@@ -483,11 +483,11 @@ public:
                 }
             }
 
-            std::ofstream myfile;
-            myfile.open ("/home/jrbravo/Desktop/PhD/example.txt");
-            myfile << MatrixResiduals;
-            myfile.close();            
-            KRATOS_WATCH(MatrixResiduals)
+            //std::ofstream myfile;
+            //myfile.open ("/home/jrbravo/Desktop/PhD/example.txt");
+            //myfile << MatrixResiduals;
+            //myfile.close();            
+            //KRATOS_WATCH(MatrixResiduals)
         }
 
         const double stop_build = OpenMPUtils::GetCurrentTime();

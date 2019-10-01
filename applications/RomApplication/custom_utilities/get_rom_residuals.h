@@ -46,7 +46,7 @@ class GetRomResiduals: public BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearS
         ModelPart& rModelPart,
         Parameters ThisParameters,
         typename TSchemeType::Pointer pScheme        
-        ): BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pScheme), mpModelPart(rModelPart)
+        ): mpScheme(pScheme), mpModelPart(rModelPart)
     {
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();        
         //Need to read the type of the variable and optain its size, incorrectly done here

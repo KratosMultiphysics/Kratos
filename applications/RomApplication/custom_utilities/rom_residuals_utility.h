@@ -45,6 +45,15 @@ namespace Kratos
         BaseSchemeType::Pointer pScheme             // Need to define a scheme in a simple way     
         ): mpModelPart(rModelPart), mpScheme(pScheme)
     {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "nodal_unknowns" : [],
+            "number_of_rom_dofs" : 10
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();        
         //Need to read the type of the variable and optain its size, incorrectly done here
         mNodalDofs = mNodalVariablesNames.size();
@@ -53,7 +62,7 @@ namespace Kratos
         //this->mpScheme = pScheme;
     }
 
-        ~GetRomResiduals();
+        ~GetRomResiduals()= default;
 
 
         Matrix Calculate() 
@@ -109,8 +118,6 @@ namespace Kratos
                     }
                     ResidualReduced = prod(trans(PhiElemental), RHS_Contribution);
                     row(MatrixResiduals, k) = ResidualReduced;
-                    KRATOS_WATCH(ResidualReduced)
-
                     // clean local elemental me overridemory
                     mpScheme->CleanMemory(*(it_el.base()));                
                 }

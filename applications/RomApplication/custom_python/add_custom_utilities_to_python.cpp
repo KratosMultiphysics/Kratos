@@ -61,7 +61,7 @@ using namespace pybind11;
     //     typename GetRomResiduals<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
     //     BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(m, "GetRomResiduals")
     // .def(init<ModelPart&, Parameters,typename BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>::TSchemeType::Pointer>())
-    // .def("Execute",&GetRomResiduals::Calculate)
+    // .def("Execute",&GetRomResiduals<SparseSpaceType, LocalSpaceType, LinearSolverType>::Calculate)
     // ;
 
 

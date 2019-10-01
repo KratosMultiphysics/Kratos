@@ -155,10 +155,12 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
                 sys.stdout.flush()
                 self.last_flush = now
         
-        AAA = romapp.CalculateMeanTemperature(self._GetSolver().GetComputingModelPart())
-        AAA.Execute()
-
-        BBB = romapp.GetRomResiduals()
+        #AAA = romapp.CalculateMeanTemperature(self._GetSolver().GetComputingModelPart())
+        #AAA.Execute()
+        # BBB = romapp.GetRomResiduals(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"],  KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
+        #print('HELLO WORLD')
+        # print(f'This is the residual matrix: \n {BBB.Execute()}')
+        print('Done ')
 
         ##############################################################################################
 
