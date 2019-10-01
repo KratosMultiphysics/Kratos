@@ -41,31 +41,54 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        if (self.settings["turbulence_model"].GetString() == "None"):
-            if self.settings["time_scheme"].GetString() == "bossak":
-                if self.settings["consider_periodic_conditions"].GetBool() == True:
-                    self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                                        self.settings["alpha"].GetDouble(),
-                                        self.settings["move_mesh_strategy"].GetInt(),
-                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                        KratosCFD.PATCH_INDEX)
-                else:
-                    self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                                        self.settings["alpha"].GetDouble(),
-                                        self.settings["move_mesh_strategy"].GetInt(),
-                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-            elif self.settings["time_scheme"].GetString() == "bdf2":
-                self.time_scheme = KratosCFD.GearScheme()
-            elif self.settings["time_scheme"].GetString() == "steady":
-                self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
-                                        self.settings["velocity_relaxation"].GetDouble(),
-                                        self.settings["pressure_relaxation"].GetDouble(),
-                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+       # Creating the time integration scheme
+        if (self.element_integrates_in_time):
+            # "Fake" scheme for those cases in where the element manages the time integration
+            # It is required to perform the nodal update once the current time step is solved
+            self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
+                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1)
+            # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
+            if (self.settings["time_scheme"].GetString() == "bdf2"):
+                time_order = 2
+                self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+            else:
+                err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
+                err_msg += "Available options are: \"bdf2\""
+                raise Exception(err_msg)
         else:
-            raise Exception("Turbulence models are not added yet.")
+            if not hasattr(self, "_turbulence_model_solver"):
+                # Bossak time integration scheme
+                if self.settings["time_scheme"].GetString() == "bossak":
+                    if self.settings["consider_periodic_conditions"].GetBool() == True:
+                        self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                            self.settings["alpha"].GetDouble(),
+                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                            KratosCFD.PATCH_INDEX)
+                    else:
+                        self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                            self.settings["alpha"].GetDouble(),
+                            self.settings["move_mesh_strategy"].GetInt(),
+                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                # BDF2 time integration scheme
+                elif self.settings["time_scheme"].GetString() == "bdf2":
+                    self.time_scheme = KratosCFD.GearScheme()
+                # Time scheme for steady state fluid solver
+                elif self.settings["time_scheme"].GetString() == "steady":
+                    self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                            self.settings["velocity_relaxation"].GetDouble(),
+                            self.settings["pressure_relaxation"].GetDouble(),
+                            self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                else:
+                    err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
+                    err_msg += "Available options are: \"bossak\", \"bdf2\" and \"steady\""
+                    raise Exception(err_msg)
+            else:
+                KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicForChimera turbulent solver is not possible.")
+                raise NotImplementedError
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera Periodic conditions are not implemented in this case .")
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicForChimera Periodic conditions are not implemented in this case .")
             raise NotImplementedError
         else:
             builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.linear_solver)
