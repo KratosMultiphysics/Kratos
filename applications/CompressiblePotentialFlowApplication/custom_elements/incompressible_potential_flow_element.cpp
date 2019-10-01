@@ -765,7 +765,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
                 // }
                 for (unsigned int j = 0; j < NumNodes; ++j){
                     rLeftHandSideMatrix(row, j) = lhs_positive(row, j);// + penalty_te*lhs_total2(row, j);//lhs_positive(row, j);
-                    rLeftHandSideMatrix(row + NumNodes, j + NumNodes) = lhs_negative(row, j);// + penalty_te*lhs_total2(row, j);//lhs_negative(row, j);// penalty_te*lhs_total2(row, j);//(penalty+1)*lhs_negative(row, j);//penalty*lhs_negative(row, j);//2*lhs_negative(row, j);//0.0;//lhs_negative(row, j);
+                    rLeftHandSideMatrix(row + NumNodes, j + NumNodes) = 0.0;//lhs_negative(row, j);// + penalty_te*lhs_total2(row, j);//lhs_negative(row, j);// penalty_te*lhs_total2(row, j);//(penalty+1)*lhs_negative(row, j);//penalty*lhs_negative(row, j);//2*lhs_negative(row, j);//0.0;//lhs_negative(row, j);
                     // Off-diagonal block
                     //rLeftHandSideMatrix(row , j + NumNodes) = -penalty_te*lhs_total2(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2
                     //rLeftHandSideMatrix(row + NumNodes, j) = -penalty_te*lhs_total2(row, j);//0.0;// -(penalty-1)*lhs_negative(row, j); // Side 2

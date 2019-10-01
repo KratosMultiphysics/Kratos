@@ -181,8 +181,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 self.left_wing_tip = node
         self.max_number_of_elements = 0
         self.node_id = 0
-        self.right_wing_tip.SetValue(CPFApp.WING_TIP, True)
-        self.left_wing_tip.SetValue(CPFApp.WING_TIP, True)
+        # self.right_wing_tip.SetValue(CPFApp.WING_TIP, True)
+        # self.left_wing_tip.SetValue(CPFApp.WING_TIP, True)
 
     def __ComputeLowerSurfaceNormals(self):
         for cond in self.body_model_part.Conditions:
@@ -434,7 +434,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
 
         # Elements with nodes above and below the wake are wake elements
-        elif(number_of_nodes_with_positive_distance > 0 and number_of_nodes_with_negative_distance > 0 and elem.GetValue(CPFApp.WAKE)):
+        elif(number_of_nodes_with_positive_distance > 0 and number_of_nodes_with_negative_distance > 0):# and elem.GetValue(CPFApp.WAKE)):
             # Wake elements touching the trailing edge are marked as structure
             # TODO: change STRUCTURE to a more meaningful variable name
             elem.Set(KratosMultiphysics.STRUCTURE)
