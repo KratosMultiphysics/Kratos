@@ -19,7 +19,7 @@ namespace Kratos {
 
 FixFreeVelocityOnNodesProcess::FixFreeVelocityOnNodesProcess(
     ModelPart& rModelPart,
-    const std::string& rFreeOrFix)
+    const int rFreeOrFix)
     : mrModelPart(rModelPart),
       mFreeOrFix(rFreeOrFix)
 {
@@ -34,7 +34,7 @@ void FixFreeVelocityOnNodesProcess::Execute()
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
-        if (mFreeOrFix == "Fix") {
+        if (mFreeOrFix == 0) {
             it_node->Fix(VELOCITY_X);
             it_node->Fix(VELOCITY_Y);
             it_node->Fix(VELOCITY_Z);
