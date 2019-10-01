@@ -66,29 +66,38 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         }
         """ % (GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref"), "Structure_EigenResults_15_0.post.res"))
 
-        self.__ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, settings_check_process)
+        test_model = KratosMultiphysics.Model()
+        self.__ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, test_model)
+
+        # check the results
+        CompareTwoFilesCheckProcess(settings_check_process).Execute()
 
     def test_PostprocessEigenvaluesProcess_Vtk(self):
         # here the minimum settings are specified to test the default values!
+        num_animation_steps = 5
         settings_eigen_process = KratosMultiphysics.Parameters("""{
             "Parameters" : {
-                "result_file_format_use_ascii" : true
+                "result_file_format_use_ascii" : true,
+                "animation_steps" : %d
             }
-        }""")
+        }""" % num_animation_steps)
 
-        settings_check_process = KratosMultiphysics.Parameters("""
-        {
-            "reference_file_name"   : "%s",
-            "output_file_name"      : "%s",
-            "remove_output_file"    : true,
-            "comparison_type"       : "vtk"
-        }
-        """ % (GetFilePath("test_postprocess_eigenvalues_process.vtk.ref"), "Structure_EigenResults_15_0.vtk"))
-
-        self.__ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, settings_check_process)
-
-    def __ExecuteTestPostprocessEigenvaluesProcess(self, eigen_post_parameters, check_parameters):
         test_model = KratosMultiphysics.Model()
+        self.__ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, test_model)
+
+        # check the results
+        for i in range(num_animation_steps):
+            settings_check_process = KratosMultiphysics.Parameters("""
+            {
+                "reference_file_name"   : "%s",
+                "output_file_name"      : "%s",
+                "remove_output_file"    : true,
+                "comparison_type"       : "vtk"
+            }
+            """ % (GetFilePath("eigen_postprocess_ref_files/Structure_EigenResults_15_{}.vtk.ref".format(i)), "Structure_EigenResults_15_{}.vtk".format(i)))
+            CompareTwoFilesCheckProcess(settings_check_process).Execute()
+
+    def __ExecuteTestPostprocessEigenvaluesProcess(self, eigen_post_parameters, test_model):
         model_part = test_model.CreateModelPart("Structure")
 
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -128,9 +137,6 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         post_eigen_process.ExecuteBeforeOutputStep()
         post_eigen_process.ExecuteAfterOutputStep()
         post_eigen_process.ExecuteFinalize()
-
-        # check the results
-        check_process = CompareTwoFilesCheckProcess(check_parameters).Execute()
 
 
 if __name__ == '__main__':
