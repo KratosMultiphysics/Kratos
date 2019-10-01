@@ -68,6 +68,9 @@
 #include "custom_elements/axisym_updated_lagrangian.h"
 #include "custom_elements/small_displacement_bbar.h"
 
+/* Adding the mixed solid elements */
+#include "custom_elements/small_displacement_mixed_strain_element.h"
+
 /* CONDITIONS */
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
@@ -360,6 +363,9 @@ private:
 
     const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
     const SmallDisplacementBbar mSmallDisplacementBbar3D8N;
+
+    const SmallDisplacementMixedStrainElement mSmallDisplacementMixedStrainElement2D3N;
+    const SmallDisplacementMixedStrainElement mSmallDisplacementMixedStrainElement3D4N;
 
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;
@@ -908,5 +914,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED  defined
-
-
