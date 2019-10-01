@@ -447,7 +447,7 @@ private:
 
       array_1d<double, 3> torque_vector;
       array_1d<double, 3> r_vector =
-          it_node->GetInitialPosition().Coordinates() - mAxisOfRotationVector;
+          it_node->Coordinates() - mCenterOfRotation;
       auto reaction = it_node->FastGetSolutionStepValue(REACTION, 0);
 
       torque_vector[0] = r_vector[1] * reaction[2] - r_vector[2] * reaction[1];
@@ -458,9 +458,9 @@ private:
                 torque_vector[1] * mAxisOfRotationVector[1] +
                 torque_vector[2] * mAxisOfRotationVector[2];
 
-      // torque += std::sqrt(torque_vector[0]*torque_vector[0] +
-      // torque_vector[1]*torque_vector[1]
-      //                     + torque_vector[2]*torque_vector[2]);
+//       torque += std::sqrt(torque_vector[0]*torque_vector[0] +
+//                           torque_vector[1]*torque_vector[1] +
+//                           torque_vector[2]*torque_vector[2]);
     }
     return torque;
   }
