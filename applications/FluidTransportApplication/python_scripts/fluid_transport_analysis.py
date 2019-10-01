@@ -15,7 +15,7 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from importlib import import_module
 
 class FluidTransportAnalysis(AnalysisStage):
-    '''Main script for poromechanics simulations.'''
+    '''Main script for fluid + fluid transport simulations.'''
 
     def __init__(self,model,parameters):
         # Time monitoring

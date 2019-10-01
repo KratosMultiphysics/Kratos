@@ -10,8 +10,10 @@ import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
 
 # Importing the base class
-from coupled_fluid_thermal_solver import CoupledFluidThermalSolver
-from python_solver import PythonSolver
+from KratosMultiphysics.ConvectionDiffusionApplication.coupled_fluid_thermal_solver import CoupledFluidThermalSolver
+from KratosMultiphysics.python_solver import PythonSolver
+
+from importlib import import_module
 
 def CreateSolver(main_model_part, custom_settings):
     return CoupledFluidTransportSolver(main_model_part, custom_settings)
@@ -20,10 +22,26 @@ class CoupledFluidTransportSolver(CoupledFluidThermalSolver):
 
     def __init__(self, model, custom_settings):
 
+        self._validate_settings_in_baseclass=True # To be removed eventually
+
         PythonSolver.__init__(self, model, custom_settings)
 
+        ## Get domain size
+        self.domain_size = self.settings["domain_size"].GetInt()
+
+        from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
+        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
+
+        python_module_name = "KratosMultiphysics.FluidTransportApplication"
+        full_module_name = python_module_name + "." + self.settings["thermal_solver_settings"]["solver_type"].GetString()
+        solver_module = import_module(full_module_name)
+        self.thermal_solver = solver_module.CreateSolver(self.model, self.settings["thermal_solver_settings"])
+
+    @classmethod
+    def GetDefaultSettings(cls):
+
         # TODO adapt thermal solver settings to FluidTransportReplaceSolver settings
-        default_settings = KratosMultiphysics.Parameters("""
+        this_defaults = KratosMultiphysics.Parameters("""
         {
             "solver_type" : "coupled_fluid_transport_solver",
             "domain_size" : -1,
@@ -52,17 +70,8 @@ class CoupledFluidTransportSolver(CoupledFluidThermalSolver):
         }
         """)
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
-        ## Get domain size
-        self.domain_size = self.settings["domain_size"].GetInt()
-
-        import python_solvers_wrapper_fluid
-        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
-
-        solver_module = __import__(self.settings["thermal_solver_settings"]["solver_type"].GetString())
-        self.thermal_solver = solver_module.CreateSolver(self.model, self.settings["thermal_solver_settings"])
+        this_defaults.AddMissingParameters(PythonSolver.GetDefaultSettings())
+        return this_defaults
 
     # def ImportModelPart(self):
     #     # Call the fluid solver to import the model part from the mdpa

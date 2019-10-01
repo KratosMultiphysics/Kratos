@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from fluid_transport_solver import FluidTransportSolver
+from KratosMultiphysics.FluidTransportApplication.fluid_transport_solver import FluidTransportSolver
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -21,58 +21,9 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
         # TODO check that we can derive from FluidTransportSolver instead of ConvectionDiffusionBaseSolver
         super(FluidTransportReplaceSolver,self).__init__(model, custom_settings)
 
-    def PrepareModelPart(self):
-
-        # Set ProcessInfo variables
-        # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-        #                                           self.settings["start_time"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                                  self.settings["time_step"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
-
-        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            # Check and prepare computing model part and import constitutive laws.
-            self._execute_after_reading()
-            # self._ExecuteCheckAndPrepare()
-
-            throw_errors = False
-            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
-
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
-
-            # self._set_and_fill_buffer()
-            self._SetBufferSize()
-
-        if (self.settings["echo_level"].GetInt() > 0):
-            self.print_on_rank_zero(self.model)
-
-        KratosMultiphysics.Logger.PrintInfo("FluidTransportReplaceSolver", "Model reading finished.")
-
-    def import_materials(self):
-        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
-        if (materials_filename != ""):
-            # Add constitutive laws and material properties from json file to model parts.
-            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
-            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
-            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
-
-            # We set the properties that are nodal
-            self._assign_nodally_properties()
-            materials_imported = True
-        else:
-            materials_imported = False
-        return materials_imported
-
-    def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
-
-    #### Specific internal functions ####
-
-    def _ValidateSettings(self, settings):
-
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
+    @classmethod
+    def GetDefaultSettings(cls):
+        this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type": "fluid_transport_solver",
             "model_part_name": "FluidTransportDomain",
             "domain_size": 2,
@@ -121,11 +72,57 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""]
-        }
-        """)
+        }""")
 
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
+        this_defaults.AddMissingParameters(super(FluidTransportReplaceSolver, cls).GetDefaultSettings())
+        return this_defaults
+
+    def PrepareModelPart(self):
+
+        # Set ProcessInfo variables
+        # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME,
+        #                                           self.settings["start_time"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
+                                                  self.settings["time_step"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
+
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            # Check and prepare computing model part and import constitutive laws.
+            self._execute_after_reading()
+            # self._ExecuteCheckAndPrepare()
+
+            throw_errors = False
+            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
+
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+
+            # self._set_and_fill_buffer()
+            self._SetBufferSize()
+
+        if (self.settings["echo_level"].GetInt() > 0):
+            self.print_on_rank_zero(self.model)
+
+        KratosMultiphysics.Logger.PrintInfo("FluidTransportReplaceSolver", "Model reading finished.")
+
+    def import_materials(self):
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            # Add constitutive laws and material properties from json file to model parts.
+            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+
+            # We set the properties that are nodal
+            self._assign_nodally_properties()
+            materials_imported = True
+        else:
+            materials_imported = False
+        return materials_imported
+
+    def GetComputingModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+
+    #### Specific internal functions ####
 
     def _execute_after_reading(self):
         """Prepare computing model part and import constitutive laws. """
@@ -137,7 +134,7 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
         # Assign mesh entities from domain and process sub model parts to the computing model part.
-        import check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
+        from KratosMultiphysics.ConvectionDiffusionApplication import check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Import constitutive laws.

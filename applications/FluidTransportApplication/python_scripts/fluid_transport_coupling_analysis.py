@@ -15,11 +15,11 @@ import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
 
-from fluid_transport_analysis import FluidTransportAnalysis
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.FluidTransportApplication.fluid_transport_analysis import FluidTransportAnalysis
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class FluidTransportCouplingAnalysis(FluidTransportAnalysis):
-    '''Main script for poromechanics simulations.'''
+    '''Main script for fluid + fluid transport simulations.'''
 
     def __init__(self,model,parameters):
 
