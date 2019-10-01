@@ -26,7 +26,11 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "consistent_mapping"         : false,
         "improved_integration"       : false,
         "integration_method"         : "gauss_integration",
-        "number_of_gauss_points"     : 5
+        "number_of_gauss_points"     : 5,
+        "robust_mapping"             : false,
+        "robust_filter_radius"       : 0.000000000001,
+        "robust_factor"              : 1.0,
+        "update"                     : true
     }""")
 
     mapper_settings.RecursivelyValidateAndAssignDefaults(default_settings)

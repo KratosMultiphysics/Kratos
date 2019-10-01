@@ -90,10 +90,21 @@ public:
 
     /// Default constructor.
     MapperVertexMorphing( ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters MapperSettings )
-        : mrOriginModelPart(rOriginModelPart),
+        : Mapper(),
+          mrOriginModelPart(rOriginModelPart),
           mrDestinationModelPart(rDestinationModelPart),
           mMapperSettings(MapperSettings)
     {
+        mUseRobustMapping = MapperSettings["robust_mapping"].GetBool();
+        if (mUseRobustMapping){
+            KRATOS_INFO("ShapeOptimization") << "Use robust mapping option" << std::endl;
+            Parameters robust_mapper_settings = MapperSettings.Clone();
+            robust_mapper_settings["filter_radius"].SetDouble(MapperSettings["robust_filter_radius"].GetDouble());
+            robust_mapper_settings["robust_mapping"].SetBool(false);
+            mpInitialMapper = Kratos::shared_ptr<MapperVertexMorphing>(new MapperVertexMorphing(
+                rOriginModelPart, rDestinationModelPart, robust_mapper_settings
+            ));
+        }
     }
 
     /// Destructor.
@@ -116,13 +127,37 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("ShapeOpt") << "Starting initialization of mapper..." << std::endl;
 
+        
         CreateListOfNodesInOriginModelPart();
         CreateFilterFunction();
+
         InitializeMappingVariables();
         AssignMappingIds();
 
         InitializeComputationOfMappingMatrix();
         CreateSearchTreeWithAllNodesInOriginModelPart();
+
+
+        if (mUseRobustMapping){        
+            KRATOS_INFO("ShapeOptimization") << "Initialize internal robust mapper ... " << std::endl;
+
+            mpInitialMapper->mListOfNodesInOriginModelPart.resize(mListOfNodesInOriginModelPart.size());
+            for (size_t i=0; i<mListOfNodesInOriginModelPart.size(); ++i)
+            {
+                mpInitialMapper->mListOfNodesInOriginModelPart[i] = mListOfNodesInOriginModelPart[i]->Clone();
+            }
+
+            mpInitialMapper->CreateFilterFunction();
+            mpInitialMapper->InitializeMappingVariables();
+            mpInitialMapper->AssignMappingIds();
+
+            mpInitialMapper->InitializeComputationOfMappingMatrix();
+            mpInitialMapper->CreateSearchTreeWithAllNodesInOriginModelPart();
+
+            mpInitialMapper->mIsMappingInitialized = true;
+            KRATOS_INFO("ShapeOptimization") << "Finished initializing internal robust mapper ... " << std::endl;
+        }
+
         ComputeMappingMatrix();
 
         mIsMappingInitialized = true;
@@ -308,6 +343,11 @@ public:
     // --------------------------------------------------------------------------
     void Update() override
     {
+        if (!mMapperSettings["update"].GetBool()){
+            KRATOS_WARNING("ShapeOpt::Mapper") << "Skip update of the mapping matrix" << std::endl;
+            return;
+        }
+        
         if (mIsMappingInitialized == false)
             KRATOS_ERROR << "Mapping has to be initialized before calling the Update-function!";
 
@@ -429,6 +469,9 @@ private:
     std::vector<Vector> mValuesOrigin;
     std::vector<Vector> mValuesDestination;
 
+    bool mUseRobustMapping = false;
+    MapperVertexMorphing::Pointer mpInitialMapper = nullptr;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -496,6 +539,12 @@ private:
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
         unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
+        double robust_radius = 0.0;
+        double robust_factor = 0.0;
+        if (mUseRobustMapping){
+            robust_radius = mMapperSettings["robust_filter_radius"].GetDouble();
+            robust_factor = mMapperSettings["robust_factor"].GetDouble();
+        }
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
             NodeVector neighbor_nodes( max_number_of_neighbors );
@@ -515,6 +564,62 @@ private:
                 KRATOS_WARNING("ShapeOpt::MapperVertexMorphing") << "For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
 
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            
+            if (mUseRobustMapping){
+                NodeTypePointer init_node_i;
+                for (size_t ii=0; ii<mpInitialMapper->mListOfNodesInOriginModelPart.size(); ++ii){
+                    if (mpInitialMapper->mListOfNodesInOriginModelPart[ii]->Id() == node_i.Id())
+                    {
+                        init_node_i = mpInitialMapper->mListOfNodesInOriginModelPart[ii];
+                        break;
+                    }
+                }
+
+                NodeVector init_neighbor_nodes( max_number_of_neighbors );
+                std::vector<double> tmp_resulting_squared_distances( max_number_of_neighbors );
+                unsigned int init_number_of_neighbors = mpInitialMapper->mpSearchTree->SearchInRadius( *init_node_i,
+                                                                                robust_radius,
+                                                                                init_neighbor_nodes.begin(),
+                                                                                tmp_resulting_squared_distances.begin(),
+                                                                                max_number_of_neighbors );
+
+                std::vector<double> init_list_of_weights( init_number_of_neighbors, 0.0 );
+                double init_sum_of_weights = 0.0;
+
+                mpInitialMapper->ComputeWeightForAllNeighbors( *init_node_i, init_neighbor_nodes, init_number_of_neighbors, init_list_of_weights, init_sum_of_weights );
+            
+                std::map<int, std::pair<NodeTypePointer, double> > id_to_weight;
+                for (size_t i=0; i<number_of_neighbors; ++i){
+                    id_to_weight[neighbor_nodes[i]->Id()] = std::make_pair(neighbor_nodes[i], list_of_weights[i]);
+                }
+
+                for (size_t i=0; i<init_number_of_neighbors; ++i){
+                    auto it = id_to_weight.find(init_neighbor_nodes[i]->Id());
+                    init_list_of_weights[i] *= robust_factor;
+                    if (it != id_to_weight.end()){
+                        it->second.second = std::max(it->second.second, init_list_of_weights[i]);
+                    }
+                    else{
+                        id_to_weight[init_neighbor_nodes[i]->Id()] = std::make_pair(init_neighbor_nodes[i], init_list_of_weights[i]);
+                    }
+                }
+
+                number_of_neighbors = id_to_weight.size();
+                neighbor_nodes.resize(0);
+                list_of_weights.resize(0);
+                neighbor_nodes.reserve(number_of_neighbors);
+                list_of_weights.reserve(number_of_neighbors);
+                sum_of_weights = 0.0;
+
+                for (const auto& pair_i : id_to_weight){
+                    neighbor_nodes.push_back(pair_i.second.first);
+                    list_of_weights.push_back(pair_i.second.second);
+                    sum_of_weights += list_of_weights.back();
+                }
+
+            }
+
+
             FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
     }

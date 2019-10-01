@@ -38,7 +38,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
                 "step_size"                  : 1.0
-            }
+            },
+            "DEBUG_max_update_everywhere"          : false
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
@@ -172,6 +173,17 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         else:
             self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
         self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
+
+        # TODO ARMIN REMOVE
+        if self.algorithm_settings["DEBUG_max_update_everywhere"].GetBool():
+            KM.Logger.PrintWarning("ShapeOpt::__computeShapeUpdate", "MODIFY UPDATE TO MAX IN EACH DIRECTION!!" )
+            for node in self.design_surface.Nodes:
+                update = node.GetSolutionStepValue(KSO.CONTROL_POINT_UPDATE)
+                for i, v in enumerate(update):
+                    if v == 0:
+                        continue
+                    update[i] = self.step_size if v > 0 else - self.step_size
+                node.SetSolutionStepValue(KSO.CONTROL_POINT_UPDATE, update)
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
