@@ -319,7 +319,7 @@ public:
         }
 
         if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
-            rGlobalSpaceDerivatives(DerivativeOrder + 1);
+            rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
         }
 
 

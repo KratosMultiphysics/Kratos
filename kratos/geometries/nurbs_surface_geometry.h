@@ -391,7 +391,7 @@ public:
         }
 
         if (rGlobalSpaceDerivatives.size() != shape_function_container.NumberOfShapeFunctionRows()) {
-            rGlobalSpaceDerivatives(shape_function_container.NumberOfShapeFunctionRows());
+            rGlobalSpaceDerivatives.resize(shape_function_container.NumberOfShapeFunctionRows());
         }
 
         for (IndexType shape_function_row_i = 0;
