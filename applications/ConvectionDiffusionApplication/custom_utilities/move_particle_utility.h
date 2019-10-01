@@ -178,7 +178,6 @@ namespace Kratos
 						}
 					mElemSize = sqrt(mElemSize);
 					ielem->GetValue(MEAN_SIZE) = mElemSize;
-
 				}
 			}
 
@@ -327,7 +326,7 @@ namespace Kratos
 					vector_mean_velocity *= nodal_weight;
 
 					const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
-					ielem->GetValue(MEAN_VEL_OVER_ELEM_SIZE) = mean_velocity / ( ielem->GetValue(MEAN_SIZE) );
+					ielem->GetValue(MEAN_VEL_OVER_ELEM_SIZE) = mean_velocity / (ielem->GetValue(MEAN_SIZE));
 				}
 			}
 			KRATOS_CATCH("")
@@ -502,8 +501,6 @@ namespace Kratos
 
 				if ( (results.size()) !=max_results)
 						results.resize(max_results);
-
-
 
 				unsigned int number_of_elements_in_trajectory=0; //excluding the origin one (current one, ielem)
 
@@ -880,7 +877,7 @@ namespace Kratos
 						InvertMatrix3x3( mass_matrix,  inverse_mass_matrix);
 					//and now compute the elemental contribution to the gobal system:
 
-					if(number_of_particles_in_elem>(TDim*3)) //otherwise it's impossible to define a correctly the gradients, therefore the results inside the element are useless.
+					if(number_of_particles_in_elem > static_cast<int>(TDim)*3) //otherwise it's impossible to define a correctly the gradients, therefore the results inside the element are useless.
 					{
 						for (int i=0 ; i!=(TDim+1); i++)
 						{

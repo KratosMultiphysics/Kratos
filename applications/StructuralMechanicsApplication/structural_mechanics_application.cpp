@@ -153,6 +153,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mTotalLagrangianAdjoint2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
       mTotalLagrangianAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mTotalLagrangianAdjoint3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+      mAdjointFiniteDifferencingSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mAdjointFiniteDifferencingSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
+      mAdjointFiniteDifferencingSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+
       /* CONDITIONS */
       // Adding point load conditions
       mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
@@ -570,6 +574,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement2D6N", mTotalLagrangianAdjoint2D6N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement3D4N", mTotalLagrangianAdjoint3D4N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement3D8N", mTotalLagrangianAdjoint3D8N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D4N", mAdjointFiniteDifferencingSmallDisplacementElement3D4N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D6N", mAdjointFiniteDifferencingSmallDisplacementElement3D6N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D8N", mAdjointFiniteDifferencingSmallDisplacementElement3D8N)
 
     // Register the conditions
     // Point loads
@@ -627,6 +634,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Damage and plasticity
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticityFactory", mSmallStrainIsotropicPlasticityFactory);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainKinematicPlasticityFactory", mSmallStrainKinematicPlasticityFactory);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamageFactory", mSmallStrainIsotropicDamageFactory);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedKelvin3D", mViscousGeneralizedKelvin3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedMaxwell3D", mViscousGeneralizedMaxwell3D);
@@ -741,6 +749,56 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookeanPlasticity3DMohrCoulombTresca", mHyperElasticIsotropicNeoHookeanPlasticity3DMohrCoulombTresca);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookeanPlasticity3DTrescaMohrCoulomb", mHyperElasticIsotropicNeoHookeanPlasticity3DTrescaMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticIsotropicNeoHookeanPlasticity3DDruckerPragerMohrCoulomb", mHyperElasticIsotropicNeoHookeanPlasticity3DDruckerPragerMohrCoulomb);
+
+    // Kirchhoff
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DVonMisesVonMises", mHyperElasticKirchhoffKinematicPlasticity3DVonMisesVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DVonMisesModifiedMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DVonMisesModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DVonMisesDruckerPrager", mHyperElasticKirchhoffKinematicPlasticity3DVonMisesDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DVonMisesTresca", mHyperElasticKirchhoffKinematicPlasticity3DVonMisesTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombVonMises", mHyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombDruckerPrager", mHyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombTresca", mHyperElasticKirchhoffKinematicPlasticity3DModifiedMohrCoulombTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DTrescaVonMises", mHyperElasticKirchhoffKinematicPlasticity3DTrescaVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DTrescaModifiedMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DTrescaModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DTrescaDruckerPrager", mHyperElasticKirchhoffKinematicPlasticity3DTrescaDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DTrescaTresca", mHyperElasticKirchhoffKinematicPlasticity3DTrescaTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DDruckerPragerVonMises", mHyperElasticKirchhoffKinematicPlasticity3DDruckerPragerVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DDruckerPragerModifiedMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DDruckerPragerModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DDruckerPragerDruckerPrager", mHyperElasticKirchhoffKinematicPlasticity3DDruckerPragerDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DDruckerPragerTresca", mHyperElasticKirchhoffKinematicPlasticity3DDruckerPragerTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DVonMisesMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DVonMisesMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DMohrCoulombVonMises", mHyperElasticKirchhoffKinematicPlasticity3DMohrCoulombVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DMohrCoulombMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DMohrCoulombMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DMohrCoulombDruckerPrager", mHyperElasticKirchhoffKinematicPlasticity3DMohrCoulombDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DMohrCoulombTresca", mHyperElasticKirchhoffKinematicPlasticity3DMohrCoulombTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DTrescaMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DTrescaMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticKirchhoffKinematicPlasticity3DDruckerPragerMohrCoulomb", mHyperElasticKirchhoffKinematicPlasticity3DDruckerPragerMohrCoulomb);
+
+    // Neo-Hookean
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DVonMisesVonMises", mHyperElasticNeoHookeanKinematicPlasticity3DVonMisesVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DVonMisesModifiedMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DVonMisesModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DVonMisesDruckerPrager", mHyperElasticNeoHookeanKinematicPlasticity3DVonMisesDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DVonMisesTresca", mHyperElasticNeoHookeanKinematicPlasticity3DVonMisesTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombVonMises", mHyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombDruckerPrager", mHyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombTresca", mHyperElasticNeoHookeanKinematicPlasticity3DModifiedMohrCoulombTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DTrescaVonMises", mHyperElasticNeoHookeanKinematicPlasticity3DTrescaVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DTrescaModifiedMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DTrescaModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DTrescaDruckerPrager", mHyperElasticNeoHookeanKinematicPlasticity3DTrescaDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DTrescaTresca", mHyperElasticNeoHookeanKinematicPlasticity3DTrescaTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerVonMises", mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerModifiedMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerDruckerPrager", mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerTresca", mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DVonMisesMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DVonMisesMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombVonMises", mHyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombDruckerPrager", mHyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombTresca", mHyperElasticNeoHookeanKinematicPlasticity3DMohrCoulombTresca);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DTrescaMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DTrescaMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerMohrCoulomb", mHyperElasticNeoHookeanKinematicPlasticity3DDruckerPragerMohrCoulomb);
 
     /// Damage
 

@@ -1,5 +1,6 @@
 import subprocess
 from os.path import dirname
+from os.path import abspath
 
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -50,7 +51,7 @@ def run_cpp_unit_tests():
     # We set cwd in case the script is run from another directory. This is needed
     # when testing from the core.
     out_bytes = subprocess.check_output(
-        ['python3', 'run_cpp_unit_tests.py'], cwd=dirname(__file__))
+        ['python3', 'run_cpp_unit_tests.py'], cwd=abspath(dirname(__file__)))
     return out_bytes.decode('utf-8')
 
 

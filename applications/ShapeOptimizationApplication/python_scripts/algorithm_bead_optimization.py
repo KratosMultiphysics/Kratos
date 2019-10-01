@@ -224,7 +224,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
                 self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
 
-                self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, total_iteration, self.communicator)
+                self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, total_iteration, self.communicator)
 
                 objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
                 objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
