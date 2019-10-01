@@ -46,16 +46,15 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
         auto it_elem=mrModelPart.ElementsBegin()+i;
         auto r_geometry = it_elem->GetGeometry();
 
-        BoundedVector<double, NumNodes> elemental_distances;
+        BoundedVector<double, NumNodes> geometry_distances;
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-            elemental_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+            geometry_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
         }
-        bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(elemental_distances);
+        bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(geometry_distances);
 
         if (is_embedded && it_elem->Is(ACTIVE)){
 
-            const Vector& r_elemental_distances = elemental_distances;
-            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it_elem->pGetGeometry(), r_elemental_distances);
+            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it_elem->pGetGeometry(), Vector(geometry_distances));
 
             // Computing Normal
             std::vector<Vector> cut_normal;
