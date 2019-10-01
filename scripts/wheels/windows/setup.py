@@ -21,7 +21,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
     ],
     package_data={
-        'KratosMultiphysics': list(map(lambda x: ".libs/" + x, os.listdir("KratosMultiphysics/libs")))
+        'KratosMultiphysics': list(map(lambda x: ".libs/" + x, os.listdir("KratosMultiphysics/.libs")))
     },
     python_requires='>=3.5',
     distclass=BinaryDistribution

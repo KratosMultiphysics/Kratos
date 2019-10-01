@@ -20,7 +20,8 @@ foreach ($python in $pythons){
 
     cd c:\kratos\kratos
     cp -r KratosMultiphysics c:\wheel
-    cp -r libs c:\wheel\KratosMultiphysics
+    mkdir c:\wheel\KratosMultiphysics\.libs
+    cp -r libs\* c:\wheel\KratosMultiphysics\.libs
     cp scripts\wheels\windows\__init__.py c:\wheel\KratosMultiphysics\__init__.py
     cp scripts\wheels\windows\setup.py c:\wheel\setup.py
     cd c:\wheel
