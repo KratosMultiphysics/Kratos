@@ -601,6 +601,12 @@ private:
         const IndexType PointNumber) const;
 
     /**
+     * Calculation of the deviatoric strain operator
+     * @param rDevStrainOp Reference to the deviatoric strain operator
+     */
+    void CalculateDeviatoricStrainOperator(Matrix& rDevStrainOp) const;
+
+    /**
      * @brief This method gets a value directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get

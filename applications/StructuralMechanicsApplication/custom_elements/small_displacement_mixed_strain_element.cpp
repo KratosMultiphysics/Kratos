@@ -75,7 +75,33 @@ void SmallDisplacementMixedStrainElement::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
 
+    const auto &r_geometry = GetGeometry();
+    const unsigned int n_nodes = r_geometry.PointsNumber();
+    const unsigned int dim = r_geometry.WorkingSpaceDimension();
+    const unsigned int dof_size  = n_nodes*(dim+1);
+
+    if (rResult.size() != dof_size){
+        rResult.resize(dof_size);
+    }
+
+    if (dim == 2) {
+        for(unsigned int i = 0; i < n_nodes; ++i) {
+            rResult[i * (dim + 1)] = this->GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[i * (dim + 1) + 1] = this->GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[i * (dim + 1) + 2] = this->GetGeometry()[i].GetDof(VOLUMETRIC_STRAIN).EquationId();
+        }
+    } else if (dim == 3) {
+        for(unsigned int i = 0; i < n_nodes; ++i){
+            rResult[i * (dim + 1)] = this->GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[i * (dim + 1) + 1] = this->GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[i * (dim + 1) + 2] = this->GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[i * (dim + 1) + 3] = this->GetGeometry()[i].GetDof(VOLUMETRIC_STRAIN).EquationId();
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -85,7 +111,33 @@ void SmallDisplacementMixedStrainElement::GetDofList(
     DofsVectorType& rElementalDofList,
     ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
 
+    const auto &r_geometry = GetGeometry();
+    const unsigned int n_nodes = r_geometry.PointsNumber();
+    const unsigned int dim = r_geometry.WorkingSpaceDimension();
+    const unsigned int dof_size  = n_nodes*(dim+1);
+
+    if (rElementalDofList.size() != dof_size){
+        rElementalDofList.resize(dof_size);
+    }
+
+    if (dim == 2) {
+        for(unsigned int i = 0; i < n_nodes; ++i) {
+            rElementalDofList[i * (dim + 1)] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+            rElementalDofList[i * (dim + 1) + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[i * (dim + 1) + 2] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN);
+        }
+    } else if (dim == 3) {
+        for(unsigned int i = 0; i < n_nodes; ++i){
+            rElementalDofList[i * (dim + 1)] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+            rElementalDofList[i * (dim + 1) + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[i * (dim + 1) + 2] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
+            rElementalDofList[i * (dim + 1) + 3] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN);
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -316,6 +368,43 @@ void SmallDisplacementMixedStrainElement::CalculateB(
     }
 
     KRATOS_CATCH( "" )
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedStrainElement::CalculateDeviatoricStrainOperator(Matrix& rDevStrainOp) const
+{
+    KRATOS_TRY;
+
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    rDevStrainOp = ZeroMatrix(strain_size, strain_size);
+
+    const double two_thirds = 2.0/3.0;
+    const double minus_one_third = -1.0/3.0;
+
+    if (strain_size == 3) {
+        rDevStrainOp(0,0) = two_thirds;
+        rDevStrainOp(0,1) = minus_one_third;
+        rDevStrainOp(1,0) = minus_one_third;
+        rDevStrainOp(1,1) = two_thirds;
+        rDevStrainOp(2,2) = 1.0;
+    } else if (strain_size == 6) {
+        rDevStrainOp(0,0) = two_thirds;
+        rDevStrainOp(0,1) = minus_one_third;
+        rDevStrainOp(0,2) = minus_one_third;
+        rDevStrainOp(1,0) = minus_one_third;
+        rDevStrainOp(1,1) = two_thirds;
+        rDevStrainOp(1,2) = minus_one_third;
+        rDevStrainOp(2,0) = minus_one_third;
+        rDevStrainOp(2,1) = minus_one_third;
+        rDevStrainOp(2,2) = two_thirds;
+        rDevStrainOp(3,3) = 1.0;
+        rDevStrainOp(4,4) = 1.0;
+        rDevStrainOp(5,5) = 1.0;
+    }
+
+    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
