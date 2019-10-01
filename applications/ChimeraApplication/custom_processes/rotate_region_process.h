@@ -448,7 +448,7 @@ private:
       array_1d<double, 3> torque_vector;
       array_1d<double, 3> r_vector =
           it_node->Coordinates() - mCenterOfRotation;
-      auto reaction = it_node->FastGetSolutionStepValue(REACTION, 0);
+      auto reaction = -1*it_node->FastGetSolutionStepValue(REACTION, 0);
       const double rho = it_node->FastGetSolutionStepValue(DENSITY);
 
       torque_vector[0] = r_vector[1] * reaction[2] - r_vector[2] * reaction[1];
