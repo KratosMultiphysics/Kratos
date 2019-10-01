@@ -309,7 +309,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates,
         const SizeType DerivativeOrder) const override
     {
-        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, std::min(DerivativeOrder, PolynomialDegree()));
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, DerivativeOrder);
 
         if (this->IsRational()) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rLocalCoordinates[0]);
