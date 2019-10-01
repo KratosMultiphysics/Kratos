@@ -86,11 +86,6 @@ class MainCoupledFemDem_Solution:
         if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
 
-        # if self.FEM_Solution.ProjectParameters.Has("displacement_perturbed_tangent") == False:
-        #     self.DisplacementPerturbedTangent = False
-        # else:
-        #     self.DisplacementPerturbedTangent = self.FEM_Solution.ProjectParameters["displacement_perturbed_tangent"].GetBool()
-
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
         {
             "name_auxiliar_model_part" : "SkinDEMModelPart",
@@ -152,7 +147,7 @@ class MainCoupledFemDem_Solution:
         self.FEM_Solution.step = self.FEM_Solution.step + 1
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
 
-        self.FindNeighboursIfNecessary()	
+        self.FindNeighboursIfNecessary()    
         self.PerformRemeshingIfNecessary()
 
         if self.echo_level > 0:
@@ -444,15 +439,15 @@ class MainCoupledFemDem_Solution:
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: GenerateDEM")
 
-		# If we want to compute sand production
-		# self.CountErasedVolume()
+        # If we want to compute sand production
+        # self.CountErasedVolume()
 
         if self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.GENERATE_DEM]:
             dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
             dem_generator_process.Execute()
 
             # We remove the inactive DEM associated to fem_nodes
-            self.RemoveAloneDEMElements()
+            # self.RemoveAloneDEMElements()
             # self.RemoveIsolatedFiniteElements()
             element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
             element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
@@ -808,25 +803,7 @@ class MainCoupledFemDem_Solution:
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: RemoveAloneDEMElements")
 
-        # method to remove the dem corresponding to inactive nodes
-        FEM_Nodes = self.FEM_Solution.main_model_part.Nodes
-        FEM_Elements = self.FEM_Solution.main_model_part.Elements
-
-        for node in FEM_Nodes:
-            node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, 0)
-
-        for Element in FEM_Elements:
-            for i in range(0, self.number_of_nodes_element): # Loop over nodes of the element
-                if Element.IsNot(KratosMultiphysics.TO_ERASE):
-                    node = Element.GetNodes()[i]
-                    NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
-                    NumberOfActiveElements += 1
-                    node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, NumberOfActiveElements)
-
-        NumberOfActiveElements = 0
-        for node in FEM_Nodes:
-            NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
-            if NumberOfActiveElements == 0:
-                self.SpheresModelPart.GetNode(node.Id).Set(KratosMultiphysics.TO_ERASE, True)
-
-        self.SpheresModelPart.RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
+        remove_alone_DEM_elements_process = KratosFemDem.RemoveAloneDEMElementsProcess(
+                                                         self.FEM_Solution.main_model_part, 
+                                                         self.SpheresModelPart)
+        remove_alone_DEM_elements_process.Execute()

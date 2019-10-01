@@ -57,6 +57,7 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def SolveSolutionStep(self):
+
         # It's necessary to Fix in order to maintain the FEMDEM Kinematics
         self.FixNodesModelPart(self.FEMDEM_Solution.FEM_Solution.main_model_part)
 
@@ -75,6 +76,8 @@ class MainCouplingPfemFemDem_Solution:
                        " ==== SOLVING FEMDEM PART OF THE CALCULATION ====" + "\n" +
                        " ================================================")
         self.SolveSolutionStepFEMDEM()
+        self.PFEM_Solution.main_model_part.RemoveNodes(KM.TO_ERASE)
+
 
 #============================================================================================================================
     def SolveSolutionStepPFEM(self):
@@ -130,18 +133,22 @@ class MainCouplingPfemFemDem_Solution:
         update_cond_process = FEMDEM.UpdatePressureValuePfemConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
         update_cond_process.Execute()
 
-
 #============================================================================================================================
     def FixNodesModelPart(self, ModelPart):
-        for node in ModelPart.Nodes:
-            node.Fix(KM.VELOCITY_X)
-            node.Fix(KM.VELOCITY_Y)
-            node.Fix(KM.VELOCITY_Z)
+        fix_nodes_model_part = FEMDEM.FixFreeVelocityOnNodesProcess(ModelPart, 0)
+        fix_nodes_model_part.Execute()
 
     def FreeNodesModelPart(self, ModelPart):
-        for node in ModelPart.Nodes:
-            node.Free(KM.VELOCITY_X)
-            node.Free(KM.VELOCITY_Y)
-            node.Free(KM.VELOCITY_Z)
+        free_nodes_model_part = FEMDEM.FixFreeVelocityOnNodesProcess(ModelPart, 1)
+        free_nodes_model_part.Execute()
 
 #============================================================================================================================
+    def ComputeSkinFEMDEMBoundary(self):
+        if self.FEMDEM_Solution.domain_size == 2:
+            skin_detection_process = KM.SkinDetectionProcess2D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
+                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)
+        else: # 3D
+            skin_detection_process = KM.SkinDetectionProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
+                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)    
+        skin_detection_process.Execute()
+
