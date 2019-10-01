@@ -135,11 +135,11 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def FixNodesModelPart(self, ModelPart):
-        fix_nodes_model_part = FEMDEM.FixFreeVelocityOnNodesProcess(self.FEMDEM_Solution.FEM_Solution.main_model_part, "Fix")
+        fix_nodes_model_part = FEMDEM.FixFreeVelocityOnNodesProcess(ModelPart, 0)
         fix_nodes_model_part.Execute()
 
     def FreeNodesModelPart(self, ModelPart):
-        free_nodes_model_part = FEMDEM.FixFreeVelocityOnNodesProcess(self.FEMDEM_Solution.FEM_Solution.main_model_part, "Free")
+        free_nodes_model_part = FEMDEM.FixFreeVelocityOnNodesProcess(ModelPart, 1)
         free_nodes_model_part.Execute()
 
 #============================================================================================================================

@@ -117,7 +117,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def("Execute", &UpdatePressureValuePfemConditionsProcess<3>::Execute);
 
     class_<FixFreeVelocityOnNodesProcess, FixFreeVelocityOnNodesProcess::Pointer, Process>(m, "FixFreeVelocityOnNodesProcess")
-        .def(init<ModelPart &, const std::string&>())
+        .def(init<ModelPart &, const int>())
         .def("Execute", &FixFreeVelocityOnNodesProcess::Execute);
 
     class_<RemoveAloneDEMElementsProcess, RemoveAloneDEMElementsProcess::Pointer, Process>(m, "RemoveAloneDEMElementsProcess")

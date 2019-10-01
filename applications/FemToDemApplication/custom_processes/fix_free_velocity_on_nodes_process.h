@@ -35,7 +35,7 @@ class FixFreeVelocityOnNodesProcess : public Process
   typedef std::size_t IndexType;
 
   // Constructor
-  FixFreeVelocityOnNodesProcess(ModelPart& rModelPart, const std::string& rFreeOrFix = "Fix" );
+  FixFreeVelocityOnNodesProcess(ModelPart& rModelPart, const int rFreeOrFix);
 
   // Destructor
   ~FixFreeVelocityOnNodesProcess() override = default;
@@ -48,7 +48,7 @@ protected:
 
   // Member Variables
   ModelPart& mrModelPart;
-  std::string mFreeOrFix;
+  int mFreeOrFix;
 
 };  // Class
 
