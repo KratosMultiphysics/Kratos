@@ -237,10 +237,6 @@ namespace Kratos
     {
         auto &r_elems = rOriginModelPart.Elements();
         ModelPart::ElementsContainerType new_elements_container;
-
-        Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
-        p_prop->GetValue(POISSON_RATIO) = 0.3;
-
         for(auto &elem : r_elems) {
             // Set the array of virtual nodes to create the element from the original ids.
             NodesArrayType new_nodes_array;
@@ -251,7 +247,7 @@ namespace Kratos
             auto p_new_geom = r_orig_geom.Create(new_nodes_array);
 
             // Create a structural mesh moving element with the same Id() but the virtual mesh nodes
-            auto p_elem = Kratos::make_intrusive<StructuralMeshMovingElement>(elem.Id(), p_new_geom, p_prop);
+            auto p_elem = Kratos::make_intrusive<StructuralMeshMovingElement>(elem.Id(), p_new_geom, elem.pGetProperties());
             new_elements_container.push_back(p_elem);
         }
         mrVirtualModelPart.AddElements(new_elements_container.begin(), new_elements_container.end());
