@@ -309,7 +309,17 @@ public:
     * @param DerivativeOrderIndex defines the wanted order of the derivative
     * @param IntegrationPointIndex the corresponding contorl point of this geometry
     * @return the shape function or derivative value related to the input parameters
-    *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    *         The matrix is structured: (the corresponding node, derivative direction)
+    *         The derivative direction within the matrix is structured as following:
+    *           [0] - Not possible -> error
+    *           [1] - dN_de: (du, dv, dw)
+    *           [2] - second order vectors:
+    *                       1D: du^2 (size2 = 1)
+    *                       2D: du^2, dudv, dv^2 (size2 = 2)
+    *                       3D: du^2, dudv, dudw, dv^2, dvdw, dw^2 (size2 = 6)
+    *           [3] - third order vectors:
+    *                       1D: du^3 (size2 = 1)
+    *                       2D: du^3, du^2dv, dudv^2, dv^3 (size2 = 4)
     */
     const Matrix& ShapeFunctionDerivatives(
         IndexType IntegrationPointIndex,
@@ -340,9 +350,17 @@ public:
     * @param DerivativeOrderIndex defines the wanted order of the derivative
     * @param DerivativeOrderRowIndex within each derivative the entries can
     *        be accessed differently.
-    *        e.g. DerivativeOrderIndex = 1,
-    *                   DerivativeOrderRowIndex = 0 provides dN_de
-    *                   DerivativeOrderRowIndex = 1 provides dN_du
+    *        DerivativeOrderIndex:,
+    *           [0] - N
+    *           [1] - dN_de, DerivativeOrderRowIndex: 
+    *                   [0] du, [1] dv, [2] dw
+    *           [2] - ddN_dde, DerivativeOrderRowIndex:
+    *                   1D: [0] du^2
+    *                   2D: [0] du^2, [1] dudv, [2] dv^2
+    *                   3D: [0] du^2, [1] dudv, [2] dudw, [3] dv^2, [4] dvdw, [5] dw^2
+    *           [3] - third order vectors:
+    *                   1D: [0] du^3
+    *                   2D: [0] du^3, [1] du^2dv, [2] dudv^2, [3] dv^3
     * @return the shape function or derivative value related to the input parameters.
     */
     double& ShapeFunctionDerivativeValue(
@@ -355,9 +373,9 @@ public:
         if (DerivativeOrderIndex == 0)
             return mShapeFunctionsValues[ThisMethod](IntegrationPointIndex, ShapeFunctionIndex);
         if (DerivativeOrderIndex == 1)
-            return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](DerivativeOrderRowIndex, ShapeFunctionIndex);
+            return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
         if (DerivativeOrderIndex > 1)
-            return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](DerivativeOrderRowIndex, ShapeFunctionIndex);
+            return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](ShapeFunctionIndex, DerivativeOrderRowIndex);
     }
 
     ///@}
