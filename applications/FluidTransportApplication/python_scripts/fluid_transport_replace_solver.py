@@ -100,7 +100,7 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
             self._SetBufferSize()
 
         if (self.settings["echo_level"].GetInt() > 0):
-            self.print_on_rank_zero(self.model)
+            KratosMultiphysics.Logger.PrintInfo(self.model)
 
         KratosMultiphysics.Logger.PrintInfo("FluidTransportReplaceSolver", "Model reading finished.")
 
@@ -140,9 +140,10 @@ class FluidTransportReplaceSolver(FluidTransportSolver):
         # Import constitutive laws.
         materials_imported = self.import_materials()
         if materials_imported:
-            self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Materials were successfully imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Materials were successfully imported.")
+
         else:
-            self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Materials were not imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Materials were not imported.")
 
     def _assign_nodally_properties(self):
 
