@@ -82,17 +82,14 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
     KRATOS_CATCH("");
 }
 
-template<unsigned int Dim, unsigned int NumNodes>
-ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess<Dim, NumNodes>::pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const {
-    GeometryData::KratosGeometryType geometry_type = pGeometry->GetGeometryType();
-    switch (geometry_type){
-        case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-            return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
-        case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-            return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
-        default:
-                KRATOS_ERROR << "Only Triangle2D3 and Tetrahedar3D4 geometries are currently implemented. The given geometry was: " << geometry_type;
-    }
+template<>
+ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess<2, 3>::pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const {
+        return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
+}
+
+template<>
+ModifiedShapeFunctions::Pointer ComputeEmbeddedLiftProcess<3, 4>::pGetModifiedShapeFunctions(const GeomPointerType pGeometry, const Vector& rDistances) const {
+        return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template class ComputeEmbeddedLiftProcess<2, 3>;
