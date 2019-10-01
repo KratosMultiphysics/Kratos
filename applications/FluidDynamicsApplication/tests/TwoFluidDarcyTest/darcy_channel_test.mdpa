@@ -460,7 +460,7 @@ Begin Nodes
 446        5.00000e+00        1.00000e+00        0.00000e+00
 End Nodes
 
-Begin Elements TwoFluidVMS3D
+Begin Elements Element3D4N
 1 0        195        203        179        183
 2 0        179        195        183        170
 3 0        195        203        183        218
@@ -2712,10 +2712,3 @@ Begin Conditions Condition3D
 551 0 16 56 46
 552 0 52 16 46
 End Conditions
-
-
-
-
-
-
-

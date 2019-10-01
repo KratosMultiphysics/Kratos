@@ -33,7 +33,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 "input_filename": "unknown_name"
             },
             "material_import_settings": {
-                "materials_filename": "unknown_materials.json"
+                "materials_filename": ""
             },
             "formulation": {
                 "element_type": "vms"
@@ -88,6 +88,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
         self.element_integrates_in_time = self.formulation.element_integrates_in_time
+        self.element_has_nodal_properties = self.formulation.element_has_nodal_properties
 
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":
