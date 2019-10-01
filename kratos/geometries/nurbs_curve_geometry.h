@@ -312,10 +312,10 @@ public:
         NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, std::min(DerivativeOrder, PolynomialDegree()));
 
         if (this->IsRational()) {
-            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rLocalCoordinates[0]);
         }
         else {
-            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rLocalCoordinates[0]);
         }
 
         if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {

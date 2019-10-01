@@ -383,11 +383,11 @@ public:
 
         if (IsRational()) {
             shape_function_container.ComputeNurbsShapeFunctionValues(
-                mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
+                mKnotsU, mKnotsV, mWeights, rLocalCoordinates[0], rLocalCoordinates[1]);
         }
         else {
             shape_function_container.ComputeBSplineShapeFunctionValues(
-                mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
+                mKnotsU, mKnotsV, rLocalCoordinates[0], rLocalCoordinates[1]);
         }
 
         if (rGlobalSpaceDerivatives.size() != shape_function_container.NumberOfShapeFunctionRows()) {
