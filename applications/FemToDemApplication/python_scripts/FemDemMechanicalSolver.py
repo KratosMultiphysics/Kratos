@@ -4,6 +4,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
+import KratosMultiphysics.FemToDemApplication.check_and_prepare_model_process as check_and_prepare_model_process
 
 def CreateSolver(main_model_part, custom_settings):
     return FemDemMechanicalSolver(main_model_part, custom_settings)
@@ -154,22 +155,13 @@ class FemDemMechanicalSolver(object):
             self.dof_variables = self.dof_variables + ['LAGRANGE_MULTIPLIER_NORMAL']
             self.dof_reactions = self.dof_reactions + ['LAGRANGE_MULTIPLIER_NORMAL_REACTION']
 
-
-
     def AddVariables(self):
-
         self.SetVariables()
-
         self.nodal_variables = self.nodal_variables + self.dof_variables + self.dof_reactions
-
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
-
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
-            #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
-
         print("::[Mechanical_Solver]:: General Variables ADDED")
-
 
     def AddDofs(self):
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, self.dof_variables, self.dof_reactions)
@@ -198,10 +190,9 @@ class FemDemMechanicalSolver(object):
             if(os.path.exists(restart_path+".rest") == False):
                 raise Exception("Restart file not found: " + restart_path + ".rest")
             print("   Loading Restart file: ", restart_path + ".rest ")
+
             # set serializer flag
             serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
-            # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
-            # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
             serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
             serializer.Load(self.main_model_part.Name, self.main_model_part)
@@ -331,7 +322,6 @@ class FemDemMechanicalSolver(object):
             params.AddValue("bodies_list",self.settings["bodies_list"])
 
         # CheckAndPrepareModelProcess creates the computating_model_part
-        import KratosMultiphysics.FemToDemApplication.check_and_prepare_model_process as check_and_prepare_model_process
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Import constitutive laws
