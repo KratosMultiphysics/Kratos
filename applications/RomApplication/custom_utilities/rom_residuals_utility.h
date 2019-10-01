@@ -19,40 +19,38 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
+#include "solving_strategies/strategies/solving_strategy.h"
+
 /* Application includes */
 #include "rom_application_variables.h"
- 
-// This utility returns the converged residuals projected onto the ROM basis Phi.
+
 namespace Kratos
-{
-    
-template<class TSparseSpace,
-         class TDenseSpace, // = DenseSpace<double>,
-         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-         >
-class GetRomResiduals: public BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>
+{    
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
+
+    // This utility returns the converged residuals projected onto the ROM basis Phi.
+    class GetRomResiduals
     {
         public:
         
         KRATOS_CLASS_POINTER_DEFINITION(GetRomResiduals);
-
-        typedef BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
-        typedef typename BaseType::TSchemeType TSchemeType;
-        typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-        typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
         
         GetRomResiduals(
         ModelPart& rModelPart,
         Parameters ThisParameters,
-        typename TSchemeType::Pointer pScheme        
-        ): BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pScheme), mpModelPart(rModelPart)
+        BaseSchemeType::Pointer pScheme             // Need to define a scheme in a simple way     
+        ): mpModelPart(rModelPart), mpScheme(pScheme)
     {
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();        
         //Need to read the type of the variable and optain its size, incorrectly done here
         mNodalDofs = mNodalVariablesNames.size();
-        mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();   
-        mpScheme = pScheme;
+        mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
+        //this->mpModelPart = rModelPart;
+        //this->mpScheme = pScheme;
     }
 
         ~GetRomResiduals();
@@ -70,8 +68,8 @@ class GetRomResiduals: public BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearS
             auto cond_begin = mpModelPart.ConditionsBegin();
 
             //contributions to the system
-            LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+            Matrix LHS_Contribution = ZeroMatrix(0, 0);
+            Vector RHS_Contribution = ZeroVector(0);
 
             //vector containing the localization in the system of the different
             //terms
@@ -159,23 +157,18 @@ class GetRomResiduals: public BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearS
                     // clean local elemental memory
                     mpScheme->CleanMemory(*(it.base()));
                 }
-                
-                // std::ofstream myfile;
-                // myfile.open ("/home/jrbravo/Desktop/PhD/example.txt");
-                // myfile << MatrixResiduals;
-                // myfile.close();            
-                // KRATOS_WATCH(MatrixResiduals)
 
             }
         return MatrixResiduals;        
         }
 
 
+        protected:
         
             std::vector< std::string > mNodalVariablesNames;
             int mNodalDofs;
             int mRomDofs;
-            typename TSchemeType::Pointer mpScheme;
+            BaseSchemeType::Pointer mpScheme;
             ModelPart& mpModelPart;
 
         };

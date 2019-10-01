@@ -19,26 +19,52 @@
 #include "includes/define_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/calculate_mean_temp.h"
-#include "custom_utilities/get_rom_residuals.h"
+#include "custom_utilities/rom_residuals_utility.h"
+//#include "custom_utilities/get_rom_residuals.h"
+
+
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
+#include "solving_strategies/strategies/solving_strategy.h"
 
 namespace Kratos
 {
 
 namespace Python
 {
+
+
+
 using namespace pybind11;
 
   void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
+
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+    typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
+
     class_<CalculateMeanTemperature, typename CalculateMeanTemperature::Pointer>(m, "CalculateMeanTemperature")
     .def(init<ModelPart&>()) // The input parameters is a model part 
     .def("Execute",&CalculateMeanTemperature::Calculate) // When we call "Execute" in python, Calculate is called in C++. Notice we don't write the input parameters here.
     ;
 
-    // class_<GetRomResiduals, typename GetRomResiduals::Pointer>(m, "GetRomResiduals")
-    // .def(init<ModelPart&, Parameters, typename TSchemeType::Pointer>()) // 
-    // .def("Execute",&GetRomResiduals::Calculate) //
-    // ;  
+    class_<GetRomResiduals, typename GetRomResiduals::Pointer>(m, "GetRomResiduals")
+    .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
+    .def("Execute",&GetRomResiduals::Calculate) //
+    ;  
+
+    // class_<GetRomResiduals<SparseSpaceType, LocalSpaceType, LinearSolverType>,
+    //     typename GetRomResiduals<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
+    //     BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(m, "GetRomResiduals")
+    // .def(init<ModelPart&, Parameters,typename BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>::TSchemeType::Pointer>())
+    // .def("Execute",&GetRomResiduals::Calculate)
+    // ;
+
+
 
   }
 

@@ -158,6 +158,8 @@ class ConvectionDiffusionAnalysisWithFlush(ConvectionDiffusionAnalysis):
         AAA = romapp.CalculateMeanTemperature(self._GetSolver().GetComputingModelPart())
         AAA.Execute()
 
+        BBB = romapp.GetRomResiduals()
+
         ##############################################################################################
 
 if __name__ == "__main__":
