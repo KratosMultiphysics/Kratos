@@ -210,6 +210,7 @@ protected:
 
         if (rModelPart.MasterSlaveConstraints().size() != 0)
         {
+            double start_constraints = OpenMPUtils::GetCurrentTime();
             BuildMasterSlaveConstraints(rModelPart);
             // We compute the transposed matrix of the global relation matrix
             TSystemMatrixType L_transpose_matrix(mL.size2(), mL.size1());
@@ -247,6 +248,8 @@ protected:
                     rb[slave_equation_id] = 0.0;
                 }
             }
+            const double stop_constraints = OpenMPUtils::GetCurrentTime();
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Applying constraints time: " << stop_constraints - start_constraints << std::endl;
         }
 
         KRATOS_CATCH("")

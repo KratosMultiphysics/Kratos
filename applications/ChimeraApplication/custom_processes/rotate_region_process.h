@@ -220,7 +220,7 @@ private:
    */
   class RotationSystem {
   public:
-    /// Pointer definition of MoveRotorProcess
+    /// Pointer definition of RotationSystem
     KRATOS_CLASS_POINTER_DEFINITION(RotationSystem);
     /*
      * @brief Constructor
