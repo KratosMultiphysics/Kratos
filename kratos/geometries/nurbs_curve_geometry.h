@@ -285,7 +285,9 @@ public:
         else {
             shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
         }
+        
         std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
+        
         for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
             IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
             derivatives[order] = (*this)[index_0] * shape_function_container(0, order);
