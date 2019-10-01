@@ -43,6 +43,9 @@ namespace Kratos
         auto message_severity = TheMessage.GetSeverity();
         if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
+            if (message_severity == LoggerMessage::Severity::WARNING)
+                mrStream << "[WARNING] ";
+
             if(TheMessage.IsDistributed())
                 mrStream << "Rank " << TheMessage.GetSourceRank() << ": ";
 
