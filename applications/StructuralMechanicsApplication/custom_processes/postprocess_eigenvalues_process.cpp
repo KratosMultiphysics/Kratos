@@ -87,12 +87,12 @@ public:
         const std::vector<Variable<double>>& rRequestedDoubleResults,
         const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
     {
-        for (const auto& variable : rRequestedDoubleResults) {
-            mpGidEigenIO->WriteEigenResults(mrModelPart, variable, rLabel, AnimationStep);
+        for (const auto& r_variable : rRequestedDoubleResults) {
+            mpGidEigenIO->WriteEigenResults(mrModelPart, r_variable, rLabel, AnimationStep);
         }
 
-        for (const auto& variable : rRequestedVectorResults) {
-            mpGidEigenIO->WriteEigenResults(mrModelPart, variable, rLabel, AnimationStep);
+        for (const auto& r_variable : rRequestedVectorResults) {
+            mpGidEigenIO->WriteEigenResults(mrModelPart, r_variable, rLabel, AnimationStep);
         }
     }
 
@@ -107,24 +107,15 @@ struct VtkEigenOutputWrapper : public BaseEigenOutputWrapper
 public:
     VtkEigenOutputWrapper(ModelPart& rModelPart, Parameters OutputParameters)
     {
-        Parameters vtk_parameters(Parameters(R"(
-        {
-            "file_format"                        : "binary",
-            "save_output_files_in_folder"        : false,
-            "output_control_type"                : "step",
-            "custom_name_postfix"                : "_EigenResults_"
+        Parameters vtk_parameters(Parameters(R"({
+            "file_format" : "binary"
         })" ));
 
-        KRATOS_WATCH(OutputParameters.PrettyPrintJsonString());
-
-        vtk_parameters.AddValue("nodal_solution_step_data_variables", OutputParameters["list_of_result_variables"]);
-        KRATOS_WATCH(vtk_parameters.PrettyPrintJsonString());
-        vtk_parameters["output_control_type"].SetString(OutputParameters["file_label"].GetString());
         if (OutputParameters["result_file_format_use_ascii"].GetBool()) {
             vtk_parameters["file_format"].SetString("ascii");
         }
 
-        mpVtkEigenOutput = Kratos::make_unique<VtkEigenOutput>(rModelPart, vtk_parameters);
+        mpVtkEigenOutput = Kratos::make_unique<VtkEigenOutput>(rModelPart, OutputParameters, vtk_parameters);
     }
 
     void PrintOutput(
@@ -133,13 +124,7 @@ public:
         const std::vector<Variable<double>>& rRequestedDoubleResults,
         const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
     {
-        // for (const auto& variable : rRequestedDoubleResults) {
-        //     mpGidEigenIO->WriteEigenResults(mrModelPart, variable, rLabel, AnimationStep);
-        // }
-
-        // for (const auto& variable : rRequestedVectorResults) {
-        //     mpGidEigenIO->WriteEigenResults(mrModelPart, variable, rLabel, AnimationStep);
-        // }
+        mpVtkEigenOutput->PrintEigenOutput(rLabel, AnimationStep, rRequestedDoubleResults, rRequestedVectorResults);
     }
 
 
