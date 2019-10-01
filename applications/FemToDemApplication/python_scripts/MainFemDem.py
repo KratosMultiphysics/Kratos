@@ -10,6 +10,8 @@ import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.FemToDemApplication.MainSolidFEM as MainSolidFEM
+import KratosMultiphysics.process_factory as process_factory
+import KratosMultiphysics.gid_output_process as gid_output_process
 
 
 def Wait():
@@ -92,8 +94,6 @@ class FEM_Solution(MainSolidFEM.Solution):
     def AddMaterials(self):
 
         # Assign material to model_parts (if Materials.json exists)
-        import KratosMultiphysics.process_factory as process_factory
-
         if os.path.isfile("Materials.json"):
             materials_file = open("Materials.json",'r')
             MaterialParameters = KratosMultiphysics.Parameters(materials_file.read())
@@ -194,53 +194,6 @@ class FEM_Solution(MainSolidFEM.Solution):
 
         self.end_time   = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
         self.delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
-=======
-    def AddMaterials(self):
-
-        # Assign material to model_parts (if Materials.json exists)
-        import process_factory
-
-        if os.path.isfile("Materials.json"):
-            materials_file = open("Materials.json",'r')
-            MaterialParameters = KratosMultiphysics.Parameters(materials_file.read())
-
-            if(MaterialParameters.Has("material_models_list")):
-
-                ## Get the list of the model_part's in the object Model
-                for i in range(self.ProjectParameters["solver_settings"]["problem_domain_sub_model_part_list"].size()):
-                    part_name = self.ProjectParameters["solver_settings"]["problem_domain_sub_model_part_list"][i].GetString()
-                    if( self.main_model_part.HasSubModelPart(part_name) ):
-                        self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-
-                assign_materials_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( MaterialParameters["material_models_list"] )
-            for process in assign_materials_processes:
-                process.Execute()
-        else:
-            self.KratosPrintInfo(" No Materials.json found ")
-                
-#============================================================================================================================          
-    def AddProcesses(self):
-
-        # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-        ## Get the list of the submodel part in the object Model
-        for i in range(self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-            part_name = self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-            if( self.main_model_part.HasSubModelPart(part_name) ):
-                self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-        
-        # Obtain the list of the processes to be applied
-        import KratosMultiphysics.SolidMechanicsApplication.process_handler
-
-        process_parameters = KratosMultiphysics.Parameters("{}") 
-        process_parameters.AddValue("echo_level", self.ProjectParameters["problem_data"]["echo_level"])
-        process_parameters.AddValue("constraints_process_list", self.ProjectParameters["constraints_process_list"])
-        process_parameters.AddValue("loads_process_list", self.ProjectParameters["loads_process_list"])
-        if( self.ProjectParameters.Has("problem_process_list") ):
-            process_parameters.AddValue("problem_process_list", self.ProjectParameters["problem_process_list"])
-        if( self.ProjectParameters.Has("output_process_list") ):
-            process_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
-
-        return (KratosMultiphysics.SolidMechanicsApplication.process_handler.ProcessHandler(self.Model, process_parameters))
 
 #============================================================================================================================    
     def Run(self):
@@ -366,9 +319,8 @@ class FEM_Solution(MainSolidFEM.Solution):
 
  #============================================================================================================================       
     def SetGraphicalOutput(self):
-        from gid_output_process import GiDOutputProcess
         self.output_settings = self.ProjectParameters["output_configuration"]
-        self.graphical_output = GiDOutputProcess(self.computing_model_part,
+        self.graphical_output = gid_output_process.GiDOutputProcess(self.computing_model_part,
                                       self.problem_name,
                                       self.output_settings)        
     #============================================================================================================================
