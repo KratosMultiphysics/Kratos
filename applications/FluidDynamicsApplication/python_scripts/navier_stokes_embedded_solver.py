@@ -53,6 +53,7 @@ class EmbeddedFormulation(object):
         self.element_name = "EmbeddedNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+        self.element_has_nodal_properties = True
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
@@ -73,6 +74,7 @@ class EmbeddedFormulation(object):
         self.element_name = "EmbeddedSymbolicNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+        self.element_has_nodal_properties = False
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
@@ -92,6 +94,7 @@ class EmbeddedFormulation(object):
         self.element_name = "EmbeddedAusasNavierStokes"
         self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+        self.element_has_nodal_properties = True
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
@@ -110,6 +113,7 @@ class EmbeddedFormulation(object):
         self.element_name = "EmbeddedSymbolicNavierStokesDiscontinuous"
         self.condition_name = "NavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+        self.element_has_nodal_properties = False
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
@@ -215,6 +219,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 "input_filename": "unknown_name",
                 "reorder": false
             },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
             "distance_reading_settings"    : {
                 "import_mode"         : "from_mdpa",
                 "distance_file_name"  : "no_distance_file"
@@ -279,6 +286,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         ## Set the formulation level set type
         self.level_set_type = self.embedded_formulation.level_set_type
 
+        ## Set the nodal properties flag
+        self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
+
         ## Construct the linear solver
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
@@ -319,12 +329,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
+        # Call the base solver PrepareModelPart()
         super(NavierStokesEmbeddedMonolithicSolver, self).PrepareModelPart()
+
+        # Set the extra requirements of the embedded formulation
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            ## Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
-            self._set_physical_properties()
-            ## Sets the constitutive law
-            self._set_constitutive_law()
             ## Sets the embedded formulation configuration
             self._set_embedded_formulation()
             ## Setting the nodal distance
@@ -451,16 +460,31 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if self._TimeBufferIsInitialized():
             self.__UpdateFMALEStepCounter()
 
-    def _set_physical_properties(self):
-        ## Set the SOUND_VELOCITY value (wave velocity)
-        if self.main_model_part.Properties[1].Has(KratosMultiphysics.SOUND_VELOCITY):
-            self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = self.main_model_part.Properties[1][KratosMultiphysics.SOUND_VELOCITY]
+    def _SetPhysicalProperties(self):
+        # Call the base solver _SetPhysicalProperties()
+        materials_imported = super(NavierStokesEmbeddedMonolithicSolver, self)._SetPhysicalProperties()
+
+        # Check if the SOUND_VELOCITY has been defined by the user
+        user_defined_sound_velocity = False
+        for elem in self.main_model_part.Elements:
+            if elem.Properties.Has(KratosMultiphysics.SOUND_VELOCITY):
+                user_defined_sound_velocity = True
+                sound_velocity = elem.Properties.GetValue(KratosMultiphysics.SOUND_VELOCITY)
+            break
+
+        # Set the SOUND_VELOCITY value (wave velocity)
+        # TODO: Save the SOUND_VELOCITY in the element Properties
+        if user_defined_sound_velocity:
+            self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = sound_velocity
         else:
             # If the wave velocity is not defined take a large enough value to consider the fluid as incompressible
             default_sound_velocity = 1e+12
             self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = default_sound_velocity
 
-        # Transfer density and (dynamic) viscostity to the nodes
+        return materials_imported
+
+    def _SetNodalProperties(self):
+        # Get density and dynamic viscostity from the properties of the first element
         for el in self.main_model_part.Elements:
             rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
             if rho <= 0.0:
@@ -469,8 +493,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             if dyn_viscosity <= 0.0:
                 raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
             break
-
-        # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
+        else:
+            raise Exception("No fluid elements found in the main model part.")
+        # Transfer the obtained properties to the nodes
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
 

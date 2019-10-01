@@ -82,6 +82,7 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
+                "normal_orientation_threshold"        : 1.0e-1,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
