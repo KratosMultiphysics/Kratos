@@ -50,7 +50,7 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
             geometry_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
         }
-        bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(geometry_distances);
+        const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(geometry_distances);
 
         if (is_embedded && it_elem->Is(ACTIVE)){
 
