@@ -509,7 +509,6 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
         // write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfElements() << "\n";
         const bool write_ids = mOutputSettings["write_ids"].GetBool();
-        const bool write_properties_id = mOutputSettings["write_properties_id"].GetBool();
         rFileStream << "FIELD FieldData " << counter_element_data_value_variables + element_flags.size() + (write_ids ? 2 : 0) + counter_gauss_point_variables_in_elements << "\n";
         for (IndexType entry = 0; entry < element_data_value_variables.size(); ++entry) {
             const std::string& r_element_result_name = element_data_value_variables[entry].GetString();
@@ -574,7 +573,6 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
         // Write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfConditions() << "\n";
         const bool write_ids = mOutputSettings["write_ids"].GetBool();
-        const bool write_properties_id = mOutputSettings["write_properties_id"].GetBool();
         rFileStream << "FIELD FieldData " << counter_condition_results + condition_flags.size() + (write_ids ? 2 : 0) + counter_gauss_point_variables_in_elements << "\n";
         for (IndexType entry = 0; entry < condition_results.size(); ++entry) {
             const std::string& r_condition_result_name = condition_results[entry].GetString();
