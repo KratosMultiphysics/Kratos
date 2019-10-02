@@ -6,8 +6,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
-# Check that KratosMultiphysics was imported in the main script
-#CheckForPreviousImport()
 
 import time
 
@@ -41,13 +39,13 @@ def AddDofs(model_part, compute_reactions):
             #adding dofs
             node.AddDof(DISPLACEMENT_X);
             node.AddDof(DISPLACEMENT_Y);
-            node.AddDof(DISPLACEMENT_Z);	    
+            node.AddDof(DISPLACEMENT_Z);
     elif (compute_reactions==1):
         for node in model_part.Nodes:
   #adding dofs
               node.AddDof(DISPLACEMENT_X, REACTION_X);
               node.AddDof(DISPLACEMENT_Y, REACTION_Y);
-              node.AddDof(DISPLACEMENT_Z, REACTION_Z);	      
+              node.AddDof(DISPLACEMENT_Z, REACTION_Z);
 
 ##THIS FUNCTION STORES THE NODES OF THE SECOND MOULD IN A SEPARATE SUBPART (THAT WILL BE DISACTIVATED IN THE STEPS OF THE FIRST BLOW)
 ##THE NODES OF THE SECOND MOULD ARE DISTINGUISHED BY THE FLAG
@@ -56,14 +54,14 @@ def AddDofs(model_part, compute_reactions):
   #second_mould_model_part=total_model_part.CreateSubModelPart("SecondMould");
   #for node in total_model_part.Nodes:
     #if (node.GetSolutionStepValue(FLAG_VARIABLE)==second_mould_flag_value):
-      #second_mould_model_part.AddNode(node, 0 );  
+      #second_mould_model_part.AddNode(node, 0 );
     #else:
-      #init_domain_model_part.AddNode(node, 0 );  
-  
+      #init_domain_model_part.AddNode(node, 0 );
+
   #for element in total_model_part.Elements:
-    #init_domain_model_part.AddElement(element, 0 );  
+    #init_domain_model_part.AddElement(element, 0 );
   #for condition in total_model_part.Conditions:
-    #init_domain_model_part.AddCondition(condition, 0 );  
+    #init_domain_model_part.AddCondition(condition, 0 );
 
 class ULF_FSISolver:
 
@@ -72,7 +70,7 @@ class ULF_FSISolver:
         self.compute_reactions=compute_reactions
         self.echo_level = 0
         self.blow_pressure=blow_pressure
-        
+
         #saving the different model parts
         self.combined_model_part  = combined_model_part; #contains both structure and fluid
         self.fluid_model_part     = fluid_model_part; #contains only fluid elements
@@ -124,15 +122,15 @@ class ULF_FSISolver:
         ##saving the limits of the box (all the nodes external to this will be erased)
         self.box_corner1 = box_corner1
         self.box_corner2 = box_corner2
-        
+
         if(domain_size == 2):
             #self.Mesher = TriGenPFEMModeler()
-            self.Mesher = TriGenGLASSModeler()            
+            self.Mesher = TriGenGLASSModeler()
             self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part,9,18)
             self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part,9,18)
             #this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part,2, 10)
-            
+
         elif (domain_size == 3):
             #self.Mesher = TetGenModeler()
             #improved mesher
@@ -141,13 +139,13 @@ class ULF_FSISolver:
             self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part,20,30)
             #this is needed if we want to also store the conditions a node belongs to
             self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part,3, 20)
-     
+
 
         print("after reading all the model contains:")
         print((self.fluid_model_part))
 
         #detect initial size distribution - note that initially the fluid model part contains
-        #all the elements of both structure and fluid ... this is only true after reading the input        
+        #all the elements of both structure and fluid ... this is only true after reading the input
         #Finding the nodal_h for the nodes that are not lonely
         (self.fluid_neigh_finder).Execute();
         Hfinder  = FindNodalHProcess(self.fluid_model_part);
@@ -161,7 +159,7 @@ class ULF_FSISolver:
     	#return (self.UlfUtils).EstimateDeltaTime(min_dt,max_dt,self.combined_model_part)
         return (self.ulf_time_step_dec_process).EstimateDeltaTime(max_dt,domain_size)
 
-    
+
     #######################################################################
     def Initialize(self):
 
@@ -171,7 +169,7 @@ class ULF_FSISolver:
         MoveMeshFlag = True
         import ulf_strategy_PGLASS
         self.solver = ulf_strategy_PGLASS.ULFStrategyPython(self.combined_model_part,self.time_scheme,self.model_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag,self.domain_size)
-        
+
         print(("self.echo_level = " , self.echo_level))
         (self.solver).SetEchoLevel(self.echo_level)
         print("finished initialization of the fluid strategy")
@@ -179,12 +177,12 @@ class ULF_FSISolver:
         #saving the structural elements
         (self.mark_fluid_process).Execute(); #we need this before saving the structrural elements
         print("Saving STRUCTURE")
-        (self.save_structure_model_part_process).SaveStructure(self.fluid_model_part, self.structure_model_part);        
+        (self.save_structure_model_part_process).SaveStructure(self.fluid_model_part, self.structure_model_part);
         (self.save_structure_conditions_process).SaveStructureConditions(self.fluid_model_part, self.structure_model_part);
-        
+
         #marking the fluid
         (self.fluid_neigh_finder).Execute();
-        (self.mark_free_surface_process).Execute();  
+        (self.mark_free_surface_process).Execute();
         (self.mark_fluid_process).Execute();
 
         #remeshing before the first solution
@@ -194,8 +192,8 @@ class ULF_FSISolver:
         #for node in self.fluid_model_part.Nodes:
         #  if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1.0):
         #    node.SetSolutionStepValue(FLAG_VARIABLE,0,1.0)
-        #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.combined_model_part) 
-        
+        #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.combined_model_part)
+
 
     ######################################################################
     def CheckForInvertedElements(self):
@@ -244,10 +242,10 @@ class ULF_FSISolver:
             print(" *************************************************** ")
 
             (self.solver).Solve(self.domain_size,self.UlfUtils)
-            [inverted_elements,vol] = self.CheckForInvertedElements()            
+            [inverted_elements,vol] = self.CheckForInvertedElements()
 
         if(inverted_elements == True):
-            
+
             print("***********************************************************************")
             print("***********************************************************************")
             print("CRITICAL: ... element is still inverted after reducing the time step")
@@ -257,7 +255,7 @@ class ULF_FSISolver:
             (self.UlfUtils).ReduceTimeStep(self.combined_model_part,factor);
             (self.UlfUtils).ReduceTimeStep(self.fluid_model_part,factor);
             (self.UlfUtils).ReduceTimeStep(self.structure_model_part,factor);
-            
+
 ##            for node in (self.combined_model_part).Nodes:
 ##                pold = node.GetSolutionStepValue(PRESSURE,1);
 ##                dispold = node.GetSolutionStepValue(DISPLACEMENT,1);
@@ -273,15 +271,15 @@ class ULF_FSISolver:
 
             print("advancing in time without doing anything...")
             (self.solver).PredictionStep(self.domain_size,self.UlfUtils)
-            
-                            
+
+
         #print "pressure contribution process" - to be executed using exclusively fluid elements
         #and neighbouring relationships
         self.lagrangian_inlet_process.Execute()
-        
+
         (self.fluid_neigh_finder).Execute();
         (self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
-              
+
         #(self.pressure_calculate_process).Execute();
         self.pressure_calculate_process_axisym.Execute();
         #self.lagrangian_inlet_process.Execute()
@@ -292,10 +290,10 @@ class ULF_FSISolver:
 
    ######################################################################
 ######################################################################
-    def Remesh(self):	        
+    def Remesh(self):
         self.UlfUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.1)
-        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.00005)	
-        
+        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.00005)
+
         ##erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();
@@ -309,25 +307,25 @@ class ULF_FSISolver:
         #self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part)
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
         self.node_erase_process.Execute()
-        
-         
+
+
         h_factor=0.25;
         ##remesh CHECK for 3D or 2D
-        if (self.domain_size == 2):           
+        if (self.domain_size == 2):
             #(self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
             #(self.Mesher).ReGenerateMesh("UlfAxisym","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
-            (self.Mesher).ReGenerateMeshGlass("UlfAxisym","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)            
+            (self.Mesher).ReGenerateMeshGlass("UlfAxisym","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)            
-              
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+
         ##calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
-        
+
         #print "marking fluid" and applying fluid boundary conditions
-        (self.mark_free_surface_process).Execute();  
+        (self.mark_free_surface_process).Execute();
         (self.mark_fluid_process).Execute();
-        
+
         #merging the structural elements back (they are saved in the Initialize)
         (self.merge_model_parts_process).MergeParts(self.fluid_model_part, self.structure_model_part, self.combined_model_part);
 
@@ -335,14 +333,14 @@ class ULF_FSISolver:
         (self.combined_neigh_finder).Execute();
         (self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
         #self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part)
-        
+
         self.node_erase_process.Execute()
         (self.mark_fluid_process).Execute();
-               
+
         #self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part)#, self.domain_size)
         self.node_erase_process.Execute()
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
-       
+
 ######################################################################################################
         for node in self.fluid_model_part.Nodes:
             #node.SetSolutionStepValue(FLAG_VARIABLE,0,0.0)
@@ -351,7 +349,7 @@ class ULF_FSISolver:
         #for node in self.fluid_model_part.Nodes:
         #    if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1.0 and node.GetSolutionStepValue(IS_INTERFACE)==0.0 and node.X>0.0001):
         #        node.SetSolutionStepValue(FLAG_VARIABLE, 0, 1.0)
-                
+
         #time_curr=self.fluid_model_part.ProcessInfo[TIME]
         #print (time_curr)
         #h= 0.1+0.1*time_curr
@@ -360,30 +358,30 @@ class ULF_FSISolver:
         #      node.SetSolutionStepValue(FLAG_VARIABLE,0,0)
         #
         for node in self.fluid_model_part.Nodes:
-            if (node.GetSolutionStepValue(FLAG_VARIABLE)==1.0 and node.GetSolutionStepValue(IS_FREE_SURFACE)==1.0):                
+            if (node.GetSolutionStepValue(FLAG_VARIABLE)==1.0 and node.GetSolutionStepValue(IS_FREE_SURFACE)==1.0):
                 node.SetSolutionStepValue(EXTERNAL_PRESSURE,0, self.blow_pressure)
         #FOR PFEM
-        NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part.Conditions, self.domain_size)         
-        
+        NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part.Conditions, self.domain_size)
+
         for node in self.fluid_model_part.Nodes:
           if (node.GetSolutionStepValue(FLAG_VARIABLE)!=1.0):
             node.SetSolutionStepValue(NORMAL_X,0,0.0)
             node.SetSolutionStepValue(NORMAL_Y,0,0.0)
             node.SetSolutionStepValue(NORMAL_Z,0,0.0)
-        AssignPointNeumannConditions().AssignPointNeumannConditionsDisp(self.combined_model_part) 
-######################################################################################################        
+        AssignPointNeumannConditions().AssignPointNeumannConditionsDisp(self.combined_model_part)
+######################################################################################################
         #FOR MEMBRANE
         #print "00000"
-        #NormalCalculationUtils().CalculateOnSimplex(self.combined_model_part, self.domain_size) 
+        #NormalCalculationUtils().CalculateOnSimplex(self.combined_model_part, self.domain_size)
         #print "aaaa"
         #print self.fluid_model_part
-        #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.combined_model_part) 
+        #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.combined_model_part)
         #print self.fluid_model_part
         #print "bbbb"
-        
-        
+
+
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
-        print("end of remesh fucntion")       
+        print("end of remesh fucntion")
     ######################################################################
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
@@ -401,7 +399,7 @@ class ULF_FSISolver:
         av_nodal_h=0.0
         for node in self.fluid_model_part.Nodes:
             if (node.GetSolutionStepValue(NODAL_H)!=0.0):
-               nnodes=nnodes+1;	    
+               nnodes=nnodes+1;
                nodal_h=nodal_h+node.GetSolutionStepValue(NODAL_H);
 
         av_nodal_h=nodal_h/nnodes
@@ -409,5 +407,4 @@ class ULF_FSISolver:
            if (node.GetSolutionStepValue(IS_STRUCTURE)==1.0 and node.GetSolutionStepValue(IS_FLUID)==0.0):
               node.SetSolutionStepValue(NODAL_H, av_nodal_h)
     ######################################################################
-    
-	  
+

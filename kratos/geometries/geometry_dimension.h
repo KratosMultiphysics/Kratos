@@ -25,22 +25,6 @@
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -186,8 +170,6 @@ public:
 
     ///@}
 
-protected:
-
 private:
     ///@name Member Variables
     ///@{
@@ -228,15 +210,8 @@ private:
 }; // Class GeometryDimension
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> ( std::istream& rIStream,
