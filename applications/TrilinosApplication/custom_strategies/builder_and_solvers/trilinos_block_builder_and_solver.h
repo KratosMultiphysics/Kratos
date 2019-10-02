@@ -175,8 +175,6 @@ public:
 
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
@@ -187,14 +185,8 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
-        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Conditions().ptr_begin();
-
         // assemble all elements
-        #pragma omp parallel for firstprivate(equation_ids_vector, LHS_Contribution, RHS_Contribution, r_current_process_info)
-        for (int k = 0; k < nelements; k++) {
-            auto it = el_begin + k;            
-
+        for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
             const bool element_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
@@ -218,10 +210,7 @@ public:
         RHS_Contribution.resize(0, false);
 
         // assemble all conditions
-        #pragma omp parallel for firstprivate(equation_ids_vector, LHS_Contribution, RHS_Contribution, r_current_process_info)
-        for (int k = 0; k < nconditions; k++) {
-            auto it = cond_begin + k;
-
+        for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // detect if the element is active or not. If the user did not make
             // any choice the element is active by default
             const bool condition_is_active = !((*it)->IsDefined(ACTIVE)) || (*it)->Is(ACTIVE);
@@ -261,9 +250,6 @@ public:
                   TSystemMatrixType& rA) override
     {
         KRATOS_TRY
-
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
@@ -274,13 +260,9 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
-        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Conditions().ptr_begin();
 
         // assemble all elements
-        #pragma omp parallel for firstprivate(equation_ids_vector, LHS_Contribution, r_current_process_info)
-        for (int k = 0; k < nelements; k++) {
-            auto it = el_begin + k;
+        for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
             pScheme->Calculate_LHS_Contribution(*(it.base()), LHS_Contribution,
                                                 equation_ids_vector, r_current_process_info);
 
@@ -294,9 +276,7 @@ public:
         LHS_Contribution.resize(0, 0, false);
 
         // assemble all conditions
-        #pragma omp parallel for firstprivate(equation_ids_vector, LHS_Contribution, r_current_process_info)
-        for (int k = 0; k < nconditions; k++) {
-            auto it = cond_begin + k;
+        for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // calculate elemental contribution
             pScheme->Condition_Calculate_LHS_Contribution(
                 *(it.base()), LHS_Contribution, equation_ids_vector, r_current_process_info);
@@ -454,9 +434,6 @@ public:
                   TSystemVectorType& rb) override
     {
         KRATOS_TRY
-
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
         // Resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*BaseType::mpReactionsVector);
 
@@ -467,13 +444,9 @@ public:
         // vector containing the localization in the system of the different terms
         Element::EquationIdVectorType equation_ids_vector;
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        const ModelPart::ElementsContainerType::ptr_iterator el_begin = rModelPart.Elements().ptr_begin();
-        const ModelPart::ConditionsContainerType::ptr_iterator cond_begin = rModelPart.Conditions().ptr_begin();
 
         // assemble all elements
-        #pragma omp parallel for firstprivate(equation_ids_vector, RHS_Contribution, r_current_process_info)
-        for (int k = 0; k < nelements; k++) {
-            auto it = el_begin + k;
+        for (auto it = rModelPart.Elements().ptr_begin(); it < rModelPart.Elements().ptr_end(); it++) {
             // calculate elemental Right Hand Side Contribution
             pScheme->Calculate_RHS_Contribution(*(it.base()), RHS_Contribution,
                                                 equation_ids_vector, r_current_process_info);
@@ -484,10 +457,8 @@ public:
 
         RHS_Contribution.resize(0, false);
 
-        // assemble all conditions 
-        #pragma omp parallel for firstprivate(equation_ids_vector, RHS_Contribution, r_current_process_info)               
-        for (int k = 0; k < nconditions; k++) {
-            auto it = cond_begin + k;
+        // assemble all conditions
+        for (auto it = rModelPart.Conditions().ptr_begin(); it < rModelPart.Conditions().ptr_end(); it++) {
             // calculate elemental contribution
             pScheme->Condition_Calculate_RHS_Contribution(
                 *(it.base()), RHS_Contribution, equation_ids_vector, r_current_process_info);
@@ -532,7 +503,7 @@ public:
             pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
             for (typename DofsVectorType::iterator i_dof = dof_list.begin();
                  i_dof != dof_list.end(); ++i_dof)
-                temp_dofs_array.push_back(i_dof->get());
+                temp_dofs_array.push_back(*i_dof);
         }
 
         // Taking dofs of conditions
@@ -541,7 +512,7 @@ public:
             pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
             for (typename DofsVectorType::iterator i_dof = dof_list.begin();
                  i_dof != dof_list.end(); ++i_dof)
-                temp_dofs_array.push_back(i_dof->get());
+                temp_dofs_array.push_back(*i_dof);
         }
 
         temp_dofs_array.Unique();
@@ -823,7 +794,6 @@ public:
         // store the RHS values in the reaction variable
         // NOTE: dofs are assumed to be numbered consecutively in the
         // BlockBuilderAndSolver
-#pragma omp parallel for firstprivate(ndofs)
         for (int k = 0; k < ndofs; k++) {
             typename DofsArrayType::iterator dof_iterator =
                 BaseType::mDofSet.begin() + k;
