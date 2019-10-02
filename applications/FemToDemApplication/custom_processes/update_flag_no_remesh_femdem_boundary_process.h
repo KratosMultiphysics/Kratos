@@ -35,7 +35,7 @@ class UpdateFlagNoRemeshFemDemBoundaryProcess : public Process
   typedef std::size_t IndexType;
 
   // Constructor
-  UpdateFlagNoRemeshFemDemBoundaryProcess(ModelPart& rModelPart, ModelPart& rDemModelPart);
+  UpdateFlagNoRemeshFemDemBoundaryProcess(ModelPart& rModelPart);
 
   // Destructor
   ~UpdateFlagNoRemeshFemDemBoundaryProcess() override = default;

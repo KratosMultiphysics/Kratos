@@ -18,7 +18,7 @@
 namespace Kratos {
 
 UpdateFlagNoRemeshFemDemBoundaryProcess::UpdateFlagNoRemeshFemDemBoundaryProcess(
-    ModelPart& rModelPart : mrModelPart(rModelPart),
+    ModelPart& rModelPart) : mrModelPart(rModelPart)
 {
 }
 
