@@ -109,6 +109,28 @@ public:
         int &rMaximumConditionId,
         ElementIterator itElem);
 
+    /**
+     * @brief Creates line loads for an element if there are 2 wet nodes
+     * @param NonWetLocalIdNode the local id of the non wet node
+     * @param PressureId the pressure id
+     * @param rMaximumConditionId the maximum condition id just to not repeat
+     * @param itElem the element analysed
+     */
+    void GenerateLineLoads2Nodes(
+        const int NonWetLocalIdNode,
+        int& rMaximumConditionId,
+        ModelPart::ElementsContainerType::ptr_iterator itElem);
+
+    /**
+     * @brief Creates line loads for an element if there are 3 wet nodes
+     * @param PressureId the pressure id
+     * @param rMaximumConditionId the maximum condition id just to not repeat
+     * @param itElem the element analysed
+     */
+    void GenerateLineLoads3Nodes(
+        int& rMaximumConditionId,
+        ModelPart::ElementsContainerType::ptr_iterator itElem);
+
 protected:
     // Member Variables
     ModelPart& mrModelPart;

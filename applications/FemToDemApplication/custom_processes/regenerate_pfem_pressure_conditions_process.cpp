@@ -26,7 +26,7 @@ RegeneratePfemPressureConditionsProcess<TDim>::RegeneratePfemPressureConditionsP
 /***********************************************************************************/
 /***********************************************************************************/
 template <>
-void ExtendPressureConditionProcess<2>::CreateLineLoads(
+void RegeneratePfemPressureConditionsProcess<2>::CreateLineLoads(
     const int Id1,
     const int Id2,
     ElementIterator itElem,
@@ -88,7 +88,7 @@ void RegeneratePfemPressureConditionsProcess<3>::CreatePressureLoads(
 /***********************************************************************************/
 /***********************************************************************************/
 template<>
-void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
+void RegeneratePfemPressureConditionsProcess<2>::GenerateLineLoads2Nodes(
     const int NonWetLocalIdNode,
     int& rMaximumConditionId,
     ElementIterator itElem
@@ -111,7 +111,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
 /***********************************************************************************/
 /***********************************************************************************/
 template<>
-void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
+void RegeneratePfemPressureConditionsProcess<2>::GenerateLineLoads3Nodes(
     int& rMaximumConditionId,
     ElementIterator itElem
     )
@@ -265,7 +265,7 @@ void RegeneratePfemPressureConditionsProcess<TDim>::ResetFlagOnElements()
 /***********************************************************************************/
 /***********************************************************************************/
 template <>
-void ExtendPressureConditionProcess<2>::CreateNewConditions()
+void RegeneratePfemPressureConditionsProcess<2>::CreateNewConditions()
 {
     int maximum_condition_id;
     this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
@@ -329,5 +329,6 @@ void RegeneratePfemPressureConditionsProcess<3>::CreateNewConditions()
 /***********************************************************************************/
 
 template class RegeneratePfemPressureConditionsProcess<3>;
+template class RegeneratePfemPressureConditionsProcess<2>;
 
 }  // namespace Kratos
