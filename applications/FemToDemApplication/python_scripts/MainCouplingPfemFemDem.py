@@ -130,11 +130,11 @@ class MainCouplingPfemFemDem_Solution:
     def RegenerateAndUpdatePFEMPressureConditions(self):
         if self.FEMDEM_Solution.FEM_Solution.domain_size == 2:
             regenerate_cond_process = FEMDEM.RegeneratePfemPressureConditionsProcess2D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
-            update_cond_process = FEMDEM.UpdatePressureValuePfemConditionsProcess2D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+            update_cond_process     = FEMDEM.UpdatePressureValuePfemConditionsProcess2D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
         else:
             regenerate_cond_process = FEMDEM.RegeneratePfemPressureConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
-            update_cond_process = FEMDEM.UpdatePressureValuePfemConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
-            
+            update_cond_process     = FEMDEM.UpdatePressureValuePfemConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+
         regenerate_cond_process.Execute()
         update_cond_process.Execute()
 
