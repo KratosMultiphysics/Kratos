@@ -24,8 +24,6 @@
 #include "utilities/timer.h"
 
 /* Trilinos includes */
-#include "EpetraExt_MultiVectorOut.h"
-#include "EpetraExt_RowMatrixOut.h"
 #include "Epetra_FECrsGraph.h"
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_Import.h"
