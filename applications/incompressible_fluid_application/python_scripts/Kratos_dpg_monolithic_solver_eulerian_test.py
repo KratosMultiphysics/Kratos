@@ -6,8 +6,6 @@ from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 import levelset_solver
 

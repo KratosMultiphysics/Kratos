@@ -5,8 +5,6 @@ from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 
 def AddVariables(model_part):

@@ -1,14 +1,13 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.MeshlessApplication import *
-CheckForPreviousImport()
 
 
-def AddVariables(model_part):  #this way we only need one command to add all the variables to our problem 
+def AddVariables(model_part):  #this way we only need one command to add all the variables to our problem
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    model_part.AddNodalSolutionStepVariable(VISCOSITY);  
+    model_part.AddNodalSolutionStepVariable(VISCOSITY);
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     model_part.AddNodalSolutionStepVariable(NODAL_MASS);
     model_part.AddNodalSolutionStepVariable(DENSITY);
@@ -26,7 +25,7 @@ def AddVariables(model_part):  #this way we only need one command to add all the
     model_part.AddNodalSolutionStepVariable(VISCOUS_ACC);
     model_part.AddNodalSolutionStepVariable(PRESSURE_ACC);
     model_part.AddNodalSolutionStepVariable(BOUNDARY_ACC);
-    
+
     model_part.AddNodalSolutionStepVariable(DUMMY_NORMALIZE_RHS);
     model_part.AddNodalSolutionStepVariable(DUMMY_APPLY_XSPH);
     model_part.AddNodalSolutionStepVariable(DUMMY_BOUNDARY_PRESSURES);
@@ -41,9 +40,9 @@ def AddVariables(model_part):  #this way we only need one command to add all the
     model_part.AddNodalSolutionStepVariable(RHS );
     model_part.AddNodalSolutionStepVariable(DELTA_TIME );
     model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
-    
-    
-    
+
+
+
 
 
 def AddDofs(model_part):
@@ -73,56 +72,56 @@ class MeshlessSolverWCSPHnew:
         #~ self.kernel_choice_for_velocity = kernel_choice_for_velocity;
         #~ self.kernel_choice_for_viscosity = kernel_choice_for_viscosity;
         #~ self.kernel_choice_for_pressure = kernel_choice_for_pressure;
-        
+
         ##saving the limits of the box (all the nodes external to this will be erased)
         self.box_corner1 = box_corner1
         self.box_corner2 = box_corner2
-        
-        
+
+
       ##  self.EraseNodes = NodeAndElementEraseProcess(model_part);
-        
+
         self.SPHTimeIntegrator = SPHTimeIntegrator()
 
-        
+
          #######################################################################
     def Initialize(self):
         #creating the solution strategy
         print "Initializing Meshless solver solver"
         (self.SPHTimeIntegrator).Initialize(self.model_part)
-        
-        
+
+
            #######################################################################
     def MarkOutsideNodes(self):
         #creating the solution strategy
         print "Initializing Meshless solver"
         (self.SPHTimeIntegrator).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
-        
-      #######################################################################   
+
+      #######################################################################
     def EstimateDeltaTime(self,time_step):
 		print "Checking the time step"
-		
+
 		dt = (self.SPHTimeIntegrator).EstimateDeltaTime(time_step,self.model_part)
-                
+
 		return dt
-        
-     #######################################################################   
+
+     #######################################################################
     def Solve(self):
 		print "just before solve"
 		(self.SPHTimeIntegrator).Solve(self.model_part,self.box_corner1,self.box_corner2,(self.model_part).Nodes )
-		
+
 		print "SOLVED!!"
- 
- 
- #######################################################################   
+
+
+ #######################################################################
     def OutputToGID(self,gid_io,time):
 		print "Writing outut to GID"
-		
-		#writing mesh 
+
+		#writing mesh
 		gid_io.InitializeMesh( time );
 		gid_io.WriteNodeMesh((self.model_part).GetMesh());
 		gid_io.WriteMesh((self.model_part).GetMesh());
 		gid_io.FinalizeMesh();
-		gid_io.InitializeResults(time, (self.model_part).GetMesh());        
+		gid_io.InitializeResults(time, (self.model_part).GetMesh());
 		gid_io.WriteNodalResults(VELOCITY, (self.model_part).Nodes, time, 0);
 		gid_io.WriteNodalResults(PRESSURE_ACC, (self.model_part).Nodes, time, 0);
 		gid_io.WriteNodalResults(VISCOUS_ACC, (self.model_part).Nodes, time, 0);
@@ -140,4 +139,4 @@ class MeshlessSolverWCSPHnew:
 		gid_io.Flush()
 		gid_io.FinalizeResults()
 		print "Results Written to GID"
- 
+
