@@ -35,9 +35,8 @@
             "solver_type" : "ExternalSolversApplication.super_lu",
             "scaling"     : false
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Structure"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet","GENERIC_FSI","PointLoad2D_FSI"],
-        "rotation_dofs"                      : false
+		"use_computing_model_part" : false,
+        "rotation_dofs"            : false
     },
     "processes" : {
         "constraints_process_list" : [{

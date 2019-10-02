@@ -10,8 +10,8 @@
 //  Main authors:    Ignasi de Pouplana
 //
 
-#if !defined(KRATOS_LAGRANGIAN_ROTATION_PROCESS )
-#define  KRATOS_LAGRANGIAN_ROTATION_PROCESS
+#if !defined(KRATOS_LAGRANGIAN_ROTATION_PROCESS)
+#define KRATOS_LAGRANGIAN_ROTATION_PROCESS
 
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
@@ -29,27 +29,25 @@ class LagrangianRotationProcess : public Process
 {
 
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(LagrangianRotationProcess);
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    LagrangianRotationProcess(ModelPart& model_part,
-                                Parameters rParameters
-                                ) : Process(Flags()) , mr_model_part(model_part)
+    LagrangianRotationProcess(ModelPart &model_part,
+                              Parameters rParameters) : Process(Flags()), mr_model_part(model_part)
     {
         KRATOS_TRY
 
         //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
+        Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "angular_velocity": 0.0,
                 "rotation_axis_initial_point": [0.0,0.0,0.0],
                 "rotation_axis_final_point": [0.0,0.0,1.0],
                 "initial_time": 0.0
-            }  )" );
+            }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
@@ -71,7 +69,7 @@ public:
     /// Destructor
     ~LagrangianRotationProcess() override {}
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Execute method is used to execute the ApplyComponentTableProcess algorithms.
     void Execute() override
@@ -85,93 +83,94 @@ public:
         KRATOS_TRY;
 
         // Initializing auxiliary Rodrigues matrices
-        array_1d<double,3> rotation_axis;
+        array_1d<double, 3> rotation_axis;
         noalias(rotation_axis) = maxis_final_point - maxis_initial_point;
         const double axis_norm = norm_2(rotation_axis);
-        if (axis_norm > 1.0e-15){
-            rotation_axis[0] *= 1.0/axis_norm;
-            rotation_axis[1] *= 1.0/axis_norm;
-            rotation_axis[2] *= 1.0/axis_norm;
+        if (axis_norm > 1.0e-15)
+        {
+            rotation_axis[0] *= 1.0 / axis_norm;
+            rotation_axis[1] *= 1.0 / axis_norm;
+            rotation_axis[2] *= 1.0 / axis_norm;
         }
 
-        midentity_matrix = ZeroMatrix(3,3);
-        midentity_matrix(0,0) = 1.0;
-        midentity_matrix(1,1) = 1.0;
-        midentity_matrix(2,2) = 1.0;
+        midentity_matrix = ZeroMatrix(3, 3);
+        midentity_matrix(0, 0) = 1.0;
+        midentity_matrix(1, 1) = 1.0;
+        midentity_matrix(2, 2) = 1.0;
 
-        for (int i = 0; i < 3; ++i) {
-            for (int j = 0; j < 3; ++j) {
-                maxis_matrix(i,j) = rotation_axis[i] * rotation_axis[j];
+        for (int i = 0; i < 3; ++i)
+        {
+            for (int j = 0; j < 3; ++j)
+            {
+                maxis_matrix(i, j) = rotation_axis[i] * rotation_axis[j];
             }
         }
 
         mantisym_axis_matrix = ZeroMatrix(3, 3);
-        mantisym_axis_matrix(0, 1) = - rotation_axis[2];
-        mantisym_axis_matrix(0, 2) =   rotation_axis[1];
-        mantisym_axis_matrix(1, 0) =   rotation_axis[2];
-        mantisym_axis_matrix(1, 2) = - rotation_axis[0];
-        mantisym_axis_matrix(2, 0) = - rotation_axis[1];
-        mantisym_axis_matrix(2, 1) =   rotation_axis[0];
+        mantisym_axis_matrix(0, 1) = -rotation_axis[2];
+        mantisym_axis_matrix(0, 2) = rotation_axis[1];
+        mantisym_axis_matrix(1, 0) = rotation_axis[2];
+        mantisym_axis_matrix(1, 2) = -rotation_axis[0];
+        mantisym_axis_matrix(2, 0) = -rotation_axis[1];
+        mantisym_axis_matrix(2, 1) = rotation_axis[0];
 
         KRATOS_CATCH("");
     }
 
-// /// this function will be executed at every time step BEFORE performing the solve phase
-//     void ExecuteInitializeSolutionStep() override
-//     {
-//         KRATOS_TRY;
+    // /// this function will be executed at every time step BEFORE performing the solve phase
+    //     void ExecuteInitializeSolutionStep() override
+    //     {
+    //         KRATOS_TRY;
 
-//         // Fixing DOFs and perform rotation if necessary
-//         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
+    //         // Fixing DOFs and perform rotation if necessary
+    //         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
-//         if(nnodes != 0)
-//         {
-//             const double current_time = mr_model_part.GetProcessInfo()[TIME];
+    //         if(nnodes != 0)
+    //         {
+    //             const double current_time = mr_model_part.GetProcessInfo()[TIME];
 
-//             //if(current_time >= minitial_time)
-//             //{
-//                 const double delta_time = current_time - minitial_time;
-//                 double sin_theta = std::sin(delta_time * mangular_velocity);
-//                 double cos_theta = std::cos(delta_time * mangular_velocity);
-//                 noalias(mrotation_dt_matrix) = - mangular_velocity * sin_theta * midentity_matrix
-//                                             + mangular_velocity * cos_theta * mantisym_axis_matrix
-//                                             + mangular_velocity * sin_theta * maxis_matrix;
-//                 if(current_time < minitial_time)
-//                 {
-//                     sin_theta = std::sin(delta_time * mangular_velocity*current_time/minitial_time);
-//                     cos_theta = std::cos(delta_time * mangular_velocity*current_time/minitial_time);   
+    //             //if(current_time >= minitial_time)
+    //             //{
+    //                 const double delta_time = current_time - minitial_time;
+    //                 double sin_theta = std::sin(delta_time * mangular_velocity);
+    //                 double cos_theta = std::cos(delta_time * mangular_velocity);
+    //                 noalias(mrotation_dt_matrix) = - mangular_velocity * sin_theta * midentity_matrix
+    //                                             + mangular_velocity * cos_theta * mantisym_axis_matrix
+    //                                             + mangular_velocity * sin_theta * maxis_matrix;
+    //                 if(current_time < minitial_time)
+    //                 {
+    //                     sin_theta = std::sin(delta_time * mangular_velocity*current_time/minitial_time);
+    //                     cos_theta = std::cos(delta_time * mangular_velocity*current_time/minitial_time);
 
-//                     noalias(mrotation_dt_matrix) = - mangular_velocity *current_time/minitial_time * sin_theta * midentity_matrix
-//                                 + mangular_velocity *current_time/minitial_time * cos_theta * mantisym_axis_matrix
-//                                 + mangular_velocity *current_time/minitial_time * sin_theta * maxis_matrix;
-//                 }
+    //                     noalias(mrotation_dt_matrix) = - mangular_velocity *current_time/minitial_time * sin_theta * midentity_matrix
+    //                                 + mangular_velocity *current_time/minitial_time * cos_theta * mantisym_axis_matrix
+    //                                 + mangular_velocity *current_time/minitial_time * sin_theta * maxis_matrix;
+    //                 }
 
+    //                 ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+    //                 array_1d<double, 3> point_initial_position;
 
-//                 ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
-//                 array_1d<double, 3> point_initial_position;
+    //                 #pragma omp parallel for private(point_initial_position)
+    //                 for(int i = 0; i<nnodes; i++)
+    //                 {
+    //                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-//                 #pragma omp parallel for private(point_initial_position)
-//                 for(int i = 0; i<nnodes; i++)
-//                 {
-//                     ModelPart::NodesContainerType::iterator it = it_begin + i;
+    //                     noalias(point_initial_position) = it->GetInitialPosition().Coordinates();
 
-//                     noalias(point_initial_position) = it->GetInitialPosition().Coordinates();
+    //                     it->Fix(VELOCITY_X);
+    //                     it->Fix(VELOCITY_Y);
+    //                     it->Fix(VELOCITY_Z);
 
-//                     it->Fix(VELOCITY_X);
-//                     it->Fix(VELOCITY_Y);
-//                     it->Fix(VELOCITY_Z);
+    //                     array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
+    //                     noalias(velocity) = prod(mrotation_dt_matrix, point_initial_position - maxis_initial_point);
+    //                 }
 
-//                     array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
-//                     noalias(velocity) = prod(mrotation_dt_matrix, point_initial_position - maxis_initial_point);
-//                 }
+    //         }
 
-//         }
+    //         KRATOS_CATCH("");
+    //     }
 
-//         KRATOS_CATCH("");
-//     }
-
-
-/// this function will be executed at every time step BEFORE performing the solve phase
+    /// this function will be executed at every time step BEFORE performing the solve phase
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
@@ -179,32 +178,32 @@ public:
         // Fixing DOFs and perform rotation if necessary
         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
-        if(nnodes != 0)
+        if (nnodes != 0)
         {
             const double current_time = mr_model_part.GetProcessInfo()[TIME];
 
             // if(current_time >= minitial_time)
             // {
-                this->CalculateRodriguesMatrices(current_time);
+            this->CalculateRodriguesMatrices(current_time);
 
-                ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
-                array_1d<double, 3> point_initial_position;
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+            array_1d<double, 3> point_initial_position;
 
-                #pragma omp parallel for private(point_initial_position)
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+#pragma omp parallel for private(point_initial_position)
+            for (int i = 0; i < nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                    // noalias(point_initial_position) = it->GetInitialPosition().Coordinates();
-		    noalias(point_initial_position) = it->Coordinates();
+                // noalias(point_initial_position) = it->GetInitialPosition().Coordinates();
+                noalias(point_initial_position) = it->Coordinates();
 
-                    it->Fix(VELOCITY_X);
-                    it->Fix(VELOCITY_Y);
-                    it->Fix(VELOCITY_Z);
+                it->Fix(VELOCITY_X);
+                it->Fix(VELOCITY_Y);
+                it->Fix(VELOCITY_Z);
 
-                    array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
-                    noalias(velocity) = prod(mrotation_dt_matrix, point_initial_position - maxis_initial_point);
-                }
+                array_1d<double, 3> &velocity = it->FastGetSolutionStepValue(VELOCITY);
+                noalias(velocity) = prod(mrotation_dt_matrix, point_initial_position - maxis_initial_point);
+            }
             // }
             // else
             // {
@@ -228,7 +227,6 @@ public:
         KRATOS_CATCH("");
     }
 
-
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -236,23 +234,22 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "LagrangianRotationProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
     /// Member Variables
 
-    ModelPart& mr_model_part;
+    ModelPart &mr_model_part;
 
     double mangular_velocity;
     double minitial_time;
@@ -264,33 +261,28 @@ protected:
     BoundedMatrix<double, 3, 3> mrotation_dt_matrix;
     // BoundedMatrix<double, 3, 3> mrotation_matrix;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-
     void CalculateRodriguesMatrices(const double current_time)
     {
-     const double delta_time =  mr_model_part.GetProcessInfo()[DELTA_TIME];
-	 double current_angular_velocity=mangular_velocity*current_time/minitial_time;
+        const double delta_time = mr_model_part.GetProcessInfo()[DELTA_TIME];
+        double current_angular_velocity = mangular_velocity * current_time / minitial_time;
 
-	 if(current_time >= minitial_time){
-	   current_angular_velocity=mangular_velocity;
-	 }
+        if (current_time >= minitial_time)
+        {
+            current_angular_velocity = mangular_velocity;
+        }
 
-	 double sin_theta = std::sin(delta_time * current_angular_velocity);
-     double cos_theta = std::cos(delta_time * current_angular_velocity);
+        double sin_theta = std::sin(delta_time * current_angular_velocity);
+        double cos_theta = std::cos(delta_time * current_angular_velocity);
 
-
-     // Rotation matrix derivative (derivative of R with respect to time)
-     noalias(mrotation_dt_matrix) = - current_angular_velocity * sin_theta * midentity_matrix
-                                   + current_angular_velocity * cos_theta * mantisym_axis_matrix
-                                    + current_angular_velocity * sin_theta * maxis_matrix;
-
-
+        // Rotation matrix derivative (derivative of R with respect to time)
+        noalias(mrotation_dt_matrix) = -current_angular_velocity * sin_theta * midentity_matrix + current_angular_velocity * cos_theta * mantisym_axis_matrix + current_angular_velocity * sin_theta * maxis_matrix;
     }
 
     /// Assignment operator.
-    LagrangianRotationProcess& operator=(LagrangianRotationProcess const& rOther);
+    LagrangianRotationProcess &operator=(LagrangianRotationProcess const &rOther);
 
     /// Copy constructor.
     //LagrangianRotationProcess(LagrangianRotationProcess const& rOther);
@@ -298,12 +290,12 @@ private:
 }; // Class LagrangianRotationProcess
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  LagrangianRotationProcess& rThis);
+inline std::istream &operator>>(std::istream &rIStream,
+                                LagrangianRotationProcess &rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const LagrangianRotationProcess& rThis)
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const LagrangianRotationProcess &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

@@ -151,7 +151,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 self.communicator.requestValueOf(con_id)
                 self.communicator.requestGradientOf(con_id)
 
-            self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.opt_iteration, self.communicator)
+            self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.opt_iteration, self.communicator)
 
     # --------------------------------------------------------------------------
     def __PostProcessGradientsObtainedFromAnalysis(self):

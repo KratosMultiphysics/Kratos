@@ -116,8 +116,6 @@ mASGS3D_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Elemen
     mProjDirichletCond(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
     mProjDirichletCond3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
 
-    mFluid2DSplit(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
-
     mNoNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
     mNoNewtonianASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
     mBinghamNonNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
@@ -236,8 +234,6 @@ void KratosIncompressibleFluidApplication::Register()
 
     //KRATOS_REGISTER_CONDITION("ABC2D", mABC2D);
 
-
-    KRATOS_REGISTER_ELEMENT("Fluid2DSplit", mFluid2DSplit);
 
     KRATOS_REGISTER_ELEMENT("NoNewtonianASGS2D", mNoNewtonianASGS2D);
     KRATOS_REGISTER_ELEMENT("NoNewtonianASGS3D", mNoNewtonianASGS3D);
