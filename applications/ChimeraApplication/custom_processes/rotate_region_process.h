@@ -122,11 +122,11 @@ public:
     CalculateCurrentRotationState();
 
     const int num_nodes = mrModelPart.NumberOfNodes();
-    const NodeIteratorType it_slave_node_begin = mrModelPart.NodesBegin();
+    const NodeIteratorType it_node_begin = mrModelPart.NodesBegin();
 
 #pragma omp parallel for schedule(guided, 512)
     for (int i_node = 0; i_node < num_nodes; ++i_node) {
-      NodeIteratorType it_node = it_slave_node_begin;
+      NodeIteratorType it_node = it_node_begin;
       std::advance(it_node, i_node);
 
       /// Calculating the displacement of the current node
@@ -438,11 +438,11 @@ private:
     double torque = 0.0;
 
     const int num_nodes = mrModelPart.NumberOfNodes();
-    const NodeIteratorType it_slave_node_begin = mrModelPart.NodesBegin();
+    const NodeIteratorType it_node_begin = mrModelPart.NodesBegin();
 
 #pragma omp parallel for schedule(guided, 512) reduction(+ : torque)
     for (int i_node = 0; i_node < num_nodes; ++i_node) {
-      NodeIteratorType it_node = it_slave_node_begin;
+      NodeIteratorType it_node = it_node_begin;
       std::advance(it_node, i_node);
 
       array_1d<double, 3> torque_vector;
