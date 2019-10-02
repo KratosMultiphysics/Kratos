@@ -42,6 +42,47 @@ def GetEigenVectorMatrix(num_eigenvalues, node_id):
 
     return eigenvec_matrix
 
+def ExecuteTestPostprocessEigenvaluesProcess(eigen_post_parameters, test_model):
+    model_part = test_model.CreateModelPart("Structure")
+
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
+
+    model_part.ProcessInfo[KratosMultiphysics.STEP] = 15
+
+    CreateNodes(model_part)
+
+    # adding dofs is needed for the process internally
+    KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
+    KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
+    KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
+    KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,model_part)
+    KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,model_part)
+    KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,model_part)
+
+
+    # set EigenValues and -Vectors
+    num_eigenvalues = 4
+    eigenval_vector = GetEigenValueVector(num_eigenvalues)
+    model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR] = eigenval_vector
+
+    for node in model_part.Nodes:
+        node.SetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX,
+                        GetEigenVectorMatrix(num_eigenvalues, node.Id))
+
+    # Use the process
+    post_eigen_process = postprocess_eigenvalues_process.Factory(eigen_post_parameters, test_model)
+
+    post_eigen_process.ExecuteInitialize()
+    post_eigen_process.ExecuteBeforeSolutionLoop()
+    post_eigen_process.ExecuteInitializeSolutionStep()
+    post_eigen_process.ExecuteFinalizeSolutionStep()
+    post_eigen_process.ExecuteBeforeOutputStep()
+    post_eigen_process.ExecuteAfterOutputStep()
+    post_eigen_process.ExecuteFinalize()
+
 
 class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
     def tearDown(self):
@@ -67,7 +108,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         """ % (GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref"), "EigenResults/Structure_EigenResults_15_0.post.res"))
 
         test_model = KratosMultiphysics.Model()
-        self.__ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, test_model)
+        ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, test_model)
 
         # check the results
         CompareTwoFilesCheckProcess(settings_check_process).Execute()
@@ -83,7 +124,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         }""" % num_animation_steps)
 
         test_model = KratosMultiphysics.Model()
-        self.__ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, test_model)
+        ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, test_model)
 
         # check the results
         for i in range(num_animation_steps):
@@ -96,47 +137,6 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
             }
             """ % (GetFilePath("eigen_postprocess_ref_files/Structure_EigenResults_15_{}.vtk.ref".format(i)), "EigenResults/Structure_EigenResults_15_{}.vtk".format(i)))
             CompareTwoFilesCheckProcess(settings_check_process).Execute()
-
-    def __ExecuteTestPostprocessEigenvaluesProcess(self, eigen_post_parameters, test_model):
-        model_part = test_model.CreateModelPart("Structure")
-
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
-
-        model_part.ProcessInfo[KratosMultiphysics.STEP] = 15
-
-        CreateNodes(model_part)
-
-        # adding dofs is needed for the process internally
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,model_part)
-
-
-        # set EigenValues and -Vectors
-        num_eigenvalues = 4
-        eigenval_vector = GetEigenValueVector(num_eigenvalues)
-        model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR] = eigenval_vector
-
-        for node in model_part.Nodes:
-            node.SetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX,
-                          GetEigenVectorMatrix(num_eigenvalues, node.Id))
-
-        # Use the process
-        post_eigen_process = postprocess_eigenvalues_process.Factory(eigen_post_parameters, test_model)
-
-        post_eigen_process.ExecuteInitialize()
-        post_eigen_process.ExecuteBeforeSolutionLoop()
-        post_eigen_process.ExecuteInitializeSolutionStep()
-        post_eigen_process.ExecuteFinalizeSolutionStep()
-        post_eigen_process.ExecuteBeforeOutputStep()
-        post_eigen_process.ExecuteAfterOutputStep()
-        post_eigen_process.ExecuteFinalize()
 
 
 if __name__ == '__main__':
