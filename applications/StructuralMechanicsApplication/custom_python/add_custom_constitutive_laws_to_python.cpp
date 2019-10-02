@@ -21,6 +21,7 @@
 // Elastic laws
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/hyper_elastic_isotropic_ogden_1d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_henky_1d.h"
 #include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
@@ -104,6 +105,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< HyperElasticIsotropicOgden1D, typename HyperElasticIsotropicOgden1D::Pointer, ConstitutiveLaw >
     (m, "HyperElasticIsotropicOgden1D").def(py::init<>() )
+    ;
+
+    py::class_< HyperElasticIsotropicHenky1D, typename HyperElasticIsotropicHenky1D::Pointer, ConstitutiveLaw >
+    (m, "HyperElasticIsotropicHenky1D").def(py::init<>() )
     ;
 
     py::class_< BeamConstitutiveLaw, typename BeamConstitutiveLaw::Pointer, ConstitutiveLaw >

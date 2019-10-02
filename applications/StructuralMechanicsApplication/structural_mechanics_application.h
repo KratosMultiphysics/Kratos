@@ -86,6 +86,7 @@
 #include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/hyper_elastic_isotropic_ogden_1d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_henky_1d.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
@@ -462,6 +463,7 @@ private:
     const TrussConstitutiveLaw mTrussConstitutiveLaw;
     const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
     const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
+    const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
     const BeamConstitutiveLaw mBeamConstitutiveLaw;
     const ElasticIsotropic3D mElasticIsotropic3D;
     const AxisymElasticIsotropic mAxisymElasticIsotropic;

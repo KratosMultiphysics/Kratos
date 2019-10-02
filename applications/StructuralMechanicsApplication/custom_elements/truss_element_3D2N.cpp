@@ -310,6 +310,11 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
             rOutput[0] = GetProperties()[TRUSS_PRESTRESS_PK2];
         }
     }
+    if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
+        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        rOutput[0] = l/L0;
+    }
     KRATOS_CATCH("")
 }
 
@@ -344,7 +349,24 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
 
         rOutput[0] = temp_internal_stresses;
     }
+    if (rVariable == CAUCHY_STRESS_VECTOR) {
 
+        array_1d<double, 3 > truss_stresses;
+        array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
+        ProcessInfo temp_process_information;
+
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
+        Vector temp_strain = ZeroVector(1);
+        temp_strain[0] = CalculateGreenLagrangeStrain();
+        Values.SetStrainVector(temp_strain);
+        mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
+
+
+        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+
+        rOutput[0] = temp_internal_stresses*l/L0;
+    }
 
     KRATOS_CATCH("")
 }
