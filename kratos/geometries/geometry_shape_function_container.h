@@ -329,7 +329,7 @@ public:
         /* Shape function values are stored within a Matrix, however, only one row
         should be provided here. Thus, currently it is not possible to provide the 
         needed source to this object.*/
-        KRATOS_ERROR_IF(DerivativeOrderIndex == 0)
+        KRATOS_DEBUG_ERROR_IF(DerivativeOrderIndex == 0)
             << "Shape functions cannot be accessed through ShapeFunctionDerivatives()" << std::endl;
 
         if (DerivativeOrderIndex == 1)
