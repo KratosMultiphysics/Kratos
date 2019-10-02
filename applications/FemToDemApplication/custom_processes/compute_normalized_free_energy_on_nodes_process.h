@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //
@@ -60,7 +60,7 @@ protected:
         int NElems;
         double NormalizedFreeEnergy;
 
-		NodeNormalizedFreeEnergy()
+        NodeNormalizedFreeEnergy()
         {
             NElems = 0;
             NormalizedFreeEnergy = 0.0;
@@ -78,7 +78,7 @@ public:
      * @param rModelPart The model part to be used
      * @param ThisParameters The input parameters
      */
-	ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart& rModelPart, Parameters ThisParameters);
+    ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart& rModelPart, Parameters ThisParameters);
 
     // Destructor
     ~ComputeNormalizedFreeEnergyOnNodesProcess() override = default;
@@ -112,14 +112,14 @@ public:
      * length of the element in 2D
      * @param rGeometry The geometry of the element
      */
-	double CalculateCharacteristicLength2D(const Geometry<Node<3>>& rGeometry);
+    double CalculateCharacteristicLength2D(const Geometry<Node<3>>& rGeometry);
 
     /**
      * @brief This method computes characteristic 
      * length of the element in 3D
      * @param rGeometry The geometry of the element
      */
-	double CalculateCharacteristicLength3D(Geometry<Node<3>>& rGeometry);
+    double CalculateCharacteristicLength3D(Geometry<Node<3>>& rGeometry);
 
     /**
      * @brief This method computes the tensile

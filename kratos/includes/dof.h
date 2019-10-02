@@ -101,7 +101,8 @@ public:
     ///@{
 
     /// Pointer definition of Dof
-    KRATOS_CLASS_POINTER_DEFINITION(Dof);
+    //KRATOS_CLASS_POINTER_DEFINITION(Dof);
+    using Pointer=Dof*;
 
     typedef std::size_t IndexType;
 
@@ -477,7 +478,11 @@ private:
     int mIndex : 6;
 
     /** Equation identificator of the degree of freedom */
+#ifdef ENV32BIT // Required to avoid overflow on 32 bit systems
+    EquationIdType mEquationId : 32;
+#else
     EquationIdType mEquationId : 48;
+#endif
 
     /** A pointer to nodal data stored in node which is corresponded to this dof */
     NodalData* mpNodalData;

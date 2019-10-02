@@ -80,7 +80,7 @@
                     "constrained"                   : false,
                     "mesh_smoothing"                : false,
                     "variables_smoothing"           : false,
-                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
+                    "elemental_variables_to_smooth" : [],
                     "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
@@ -130,7 +130,7 @@
                         "velocity"           : [0.0,0.0,0.0]
                     }
                 },
-                "elemental_variables_to_transfer" : ["CAUCHY_STRESS_VECTOR","DEFORMATION_GRADIENT"]
+                "elemental_variables_to_transfer" : []
             },{
                 "model_part_name"                 : "Body2",
                 "python_module"                   : "fluid_meshing_domain",
@@ -146,7 +146,7 @@
                     "constrained"                   : false,
                     "mesh_smoothing"                : false,
                     "variables_smoothing"           : false,
-                    "elemental_variables_to_smooth" : ["DETERMINANT_F"],
+                    "elemental_variables_to_smooth" : [],
                     "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
@@ -196,7 +196,7 @@
                         "velocity"           : [0.0,0.0,0.0]
                     }
                 },
-                "elemental_variables_to_transfer" : ["CAUCHY_STRESS_VECTOR","DEFORMATION_GRADIENT"]
+                "elemental_variables_to_transfer" : []
             }]
         }
     }],

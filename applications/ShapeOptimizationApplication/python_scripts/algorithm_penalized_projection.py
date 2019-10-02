@@ -137,7 +137,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.communicator.requestValueOf(self.constraints[0]["identifier"].GetString())
         self.communicator.requestGradientOf(self.constraints[0]["identifier"].GetString())
 
-        self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.optimization_iteration, self.communicator)
+        self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
 
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
         conGradientDict = self.communicator.getStandardizedGradient(self.constraints[0]["identifier"].GetString())
