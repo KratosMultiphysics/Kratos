@@ -193,6 +193,7 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     const ProcessInfo& rCurrentProcessInfo)
 {
     const double delta_t = rCurrentProcessInfo[DELTA_TIME];
+    rVariables.epsilon = rCurrentProcessInfo[DRY_HEIGHT];
     rVariables.dt_inv = 1.0 / delta_t;
     rVariables.lumping_factor = 1.0 / static_cast<double>(TNumNodes);
     rVariables.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];
@@ -291,7 +292,7 @@ void SWE<TNumNodes, TFramework>::CalculateElementValues(
 
     rVariables.velocity *= rVariables.lumping_factor;
     rVariables.height *= rVariables.lumping_factor * rVariables.height_units;
-    rVariables.height = std::max(rVariables.height, rVariables.Epsilon);
+    rVariables.height = std::max(rVariables.height, rVariables.epsilon);
     rVariables.surface_grad *= rVariables.height_units;
     rVariables.projected_momentum *= rVariables.lumping_factor;
 
@@ -333,7 +334,7 @@ void SWE<TNumNodes, TFramework>::ComputeConvectionStabilizationParameters(
     // Convective stabilization
     if (TFramework == Eulerian)
     {
-        const double vel_modulus = norm_2(rVariables.velocity) + rVariables.Epsilon;
+        const double vel_modulus = norm_2(rVariables.velocity) + rVariables.epsilon;
         rTau = CTau * elem_size / vel_modulus;
     }
     else
@@ -442,7 +443,7 @@ void SWE<TNumNodes, TFramework>::AddFrictionTerms(
     ElementVariables& rVariables)
 {
     const double abs_momentum = norm_2(rVariables.projected_momentum);
-    const double height73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.Epsilon;
+    const double height73 = std::pow(rVariables.height, 2.333333333333333) + rVariables.epsilon;
     LocalMatrixType vector_mass_matrix = prod(trans(rVariables.N_q), rVariables.N_q);
     rLeftHandSideMatrix += rVariables.gravity * rVariables.manning2 * abs_momentum / height73 * vector_mass_matrix;
 }

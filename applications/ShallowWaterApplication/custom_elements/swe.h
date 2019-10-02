@@ -195,9 +195,9 @@ protected:
     {
         // Constants
         static constexpr size_t LocalSize = TNumNodes * 3;
-        const double Epsilon = 1e-4;
 
         // Element values
+        double epsilon;
         double dt_inv;
         double lumping_factor;
         double dyn_tau;
@@ -256,27 +256,27 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables);
-    
+
     void AddConvectiveTerms(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables);
-    
+
     void AddWaveTerms(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables);
-    
+
     void AddFrictionTerms(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables);
-    
+
     void AddStabilizationTerms(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables);
-    
+
     void AddSourceTerms(
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables);
