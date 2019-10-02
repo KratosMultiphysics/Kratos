@@ -170,6 +170,63 @@ namespace Kratos
         }
 
 
+        Vector Volumes() 
+        {
+            // Getting the elements from the model
+            const int nelements = static_cast<int>(mpModelPart.Elements().size());
+            float VolumeofCurrentElement{};
+            // Getting the array of the conditions
+            const int nconditions = static_cast<int>(mpModelPart.Conditions().size());
+            auto& CurrentProcessInfo = mpModelPart.GetProcessInfo();
+            auto el_begin = mpModelPart.ElementsBegin();
+            auto cond_begin = mpModelPart.ConditionsBegin();
+
+
+            Vector VectorVolumes(nelements + nconditions);   // Vector of volumes.
+
+            for (int k = 0; k < nelements; k++)
+            {
+                auto it_el = el_begin + k;
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if ((it_el)->IsDefined(ACTIVE))
+                    element_is_active = (it_el)->Is(ACTIVE);              
+                
+                if (element_is_active)
+                {   
+                    const auto& geom = it_el->GetGeometry();
+                    VolumeofCurrentElement = geom.Area();
+                    VectorVolumes(k) = VolumeofCurrentElement;
+                    mpScheme->CleanMemory(*(it_el.base())); 
+               
+                }
+                
+            }
+            for (int k = 0; k < nconditions;  k++)
+            {
+                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+                //detect if the condition is active or not. If the user did not make any choice the condition
+                //is active by default
+                bool condition_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    condition_is_active = (it)->Is(ACTIVE);
+
+                if (condition_is_active)
+                {
+                    const auto& geom = it->GetGeometry();
+                    VolumeofCurrentElement = geom.Area();
+                    VectorVolumes(k+nelements) = VolumeofCurrentElement;
+                    mpScheme->CleanMemory(*(it.base())); 
+
+                }
+
+            }
+        return VectorVolumes;       
+        }
+
+
+
         protected:
         
             std::vector< std::string > mNodalVariablesNames;
