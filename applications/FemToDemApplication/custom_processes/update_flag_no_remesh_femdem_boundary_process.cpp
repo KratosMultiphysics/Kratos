@@ -14,6 +14,7 @@
 #include "custom_processes/update_flag_no_remesh_femdem_boundary_process.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include "pfem_fluid_dynamics_application_variables"
 
 namespace Kratos {
 
