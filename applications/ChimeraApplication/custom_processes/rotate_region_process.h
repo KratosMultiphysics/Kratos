@@ -126,7 +126,7 @@ public:
 
 #pragma omp parallel for schedule(guided, 512)
     for (int i_node = 0; i_node < num_nodes; ++i_node) {
-      NodeIteratorType it_node = it_node_begin;
+      auto it_node = it_node_begin;
       std::advance(it_node, i_node);
 
       /// Calculating the displacement of the current node
@@ -391,6 +391,11 @@ private:
       const double dt = r_process_info[DELTA_TIME];
       mTheta += mAngularVelocityRadians * dt;
     }
+    auto& r_model = mrModelPart.GetModel();
+    auto& r_torque_model_part = mParameters.Has("torque_model_part_name") ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
+
+    r_torque_model_part.SetValue(ROTATIONAL_ANGLE, mTheta);
+    r_torque_model_part.SetValue(ROTATIONAL_VELOCITY, mAngularVelocityRadians);
   }
 
   /*
@@ -436,9 +441,10 @@ private:
    */
   double CalculateTorque() const {
     double torque = 0.0;
-
-    const int num_nodes = mrModelPart.NumberOfNodes();
-    const NodeIteratorType it_node_begin = mrModelPart.NodesBegin();
+    auto& r_model = mrModelPart.GetModel();
+    auto& r_torque_model_part = mParameters.Has("torque_model_part_name") ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
+    const int num_nodes = r_torque_model_part.NumberOfNodes();
+    const NodeIteratorType it_node_begin = r_torque_model_part.NodesBegin();
 
 #pragma omp parallel for schedule(guided, 512) reduction(+ : torque)
     for (int i_node = 0; i_node < num_nodes; ++i_node) {
@@ -446,7 +452,7 @@ private:
       std::advance(it_node, i_node);
 
       array_1d<double, 3> torque_vector;
-      array_1d<double, 3> r_vector =
+      const array_1d<double, 3> r_vector =
           it_node->Coordinates() - mCenterOfRotation;
       auto reaction = it_node->FastGetSolutionStepValue(REACTION, 0);
       const double rho =  it_node->FastGetSolutionStepValue(DENSITY);
