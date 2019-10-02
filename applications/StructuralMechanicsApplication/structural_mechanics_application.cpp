@@ -153,6 +153,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mTotalLagrangianAdjoint2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
       mTotalLagrangianAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mTotalLagrangianAdjoint3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+      mAdjointFiniteDifferencingSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mAdjointFiniteDifferencingSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
+      mAdjointFiniteDifferencingSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+
       /* CONDITIONS */
       // Adding point load conditions
       mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
@@ -571,6 +575,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement2D6N", mTotalLagrangianAdjoint2D6N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement3D4N", mTotalLagrangianAdjoint3D4N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianAdjointElement3D8N", mTotalLagrangianAdjoint3D8N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D4N", mAdjointFiniteDifferencingSmallDisplacementElement3D4N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D6N", mAdjointFiniteDifferencingSmallDisplacementElement3D6N)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D8N", mAdjointFiniteDifferencingSmallDisplacementElement3D8N)
 
     // Register the conditions
     // Point loads

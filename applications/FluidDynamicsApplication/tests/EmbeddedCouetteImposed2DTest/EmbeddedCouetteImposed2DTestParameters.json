@@ -40,6 +40,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "couette_imposed_2D"
         },
+        "material_import_settings": {
+            "materials_filename": "EmbeddedCouetteImposedTestMaterials.json"
+        },
         "distance_modification_settings": {
             "check_at_each_time_step": false,
             "avoid_almost_empty_elements": true,
@@ -74,7 +77,7 @@
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ApplyOutletProcess",
             "Parameters"    : {
-                "model_part_name" : "Outlet2D",
+                "model_part_name" : "MainModelPart.Outlet2D",
                 "value"           : 0
             }
         },{
@@ -82,14 +85,14 @@
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ApplyNoSlipProcess",
             "Parameters"    : {
-                "model_part_name" : "Bottom2D"
+                "model_part_name" : "MainModelPart.Bottom2D"
             }
         },{
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "Outlet2D",
+                "model_part_name" : "MainModelPart.Outlet2D",
                 "variable_name"   : "VELOCITY",
                 "value"           : [null, 0.0, null],
                 "constrained"     : [false,true,true]
@@ -100,7 +103,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "ApplyConstantVectorValueProcess",
             "Parameters"    : {
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 0.0,
                 "direction"       : [0.0,-1.0,0.0]
