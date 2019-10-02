@@ -112,9 +112,17 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def(init<ModelPart &>())
         .def("Execute", &RegeneratePfemPressureConditionsProcess<3>::Execute);
 
+    class_<RegeneratePfemPressureConditionsProcess<2>, RegeneratePfemPressureConditionsProcess<2>::Pointer, Process>(m, "RegeneratePfemPressureConditionsProcess2D")
+        .def(init<ModelPart &>())
+        .def("Execute", &RegeneratePfemPressureConditionsProcess<2>::Execute);
+
     class_<UpdatePressureValuePfemConditionsProcess<3>, UpdatePressureValuePfemConditionsProcess<3>::Pointer, Process>(m, "UpdatePressureValuePfemConditionsProcess3D")
         .def(init<ModelPart &>())
         .def("Execute", &UpdatePressureValuePfemConditionsProcess<3>::Execute);
+
+    class_<UpdatePressureValuePfemConditionsProcess<2>, UpdatePressureValuePfemConditionsProcess<2>::Pointer, Process>(m, "UpdatePressureValuePfemConditionsProcess2D")
+        .def(init<ModelPart &>())
+        .def("Execute", &UpdatePressureValuePfemConditionsProcess<2>::Execute);
 
     class_<FixFreeVelocityOnNodesProcess, FixFreeVelocityOnNodesProcess::Pointer, Process>(m, "FixFreeVelocityOnNodesProcess")
         .def(init<ModelPart &, const int>())
