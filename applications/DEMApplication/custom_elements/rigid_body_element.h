@@ -57,7 +57,7 @@ namespace Kratos {
         virtual void SetInitialConditionsToNodes(const array_1d<double,3>& velocity);
 
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-        virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { KRATOS_WATCH(mpTranslationalIntegrationScheme);return *mpTranslationalIntegrationScheme; }
         virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
         virtual double GetMass();
@@ -97,15 +97,9 @@ namespace Kratos {
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const override
-        {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        }
+        virtual void save(Serializer& rSerializer) const override;
 
-        virtual void load(Serializer& rSerializer) override
-        {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        }
+        virtual void load(Serializer& rSerializer) override;
 
     }; // Class RigidBodyElement3D
 

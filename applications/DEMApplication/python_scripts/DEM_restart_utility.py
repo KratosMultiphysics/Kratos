@@ -33,7 +33,7 @@ class DEMRestartUtility(RestartUtility):
         settings.ValidateAndAssignDefaults(default_settings)
         self.file_names = []
         self.restart_utilities = dict()
-        self.model_parts = []
+        self.model_parts = dict()
         for name in settings["input_filenames"]:
             self.file_names.append(name.GetString())
             settings_copy = settings.Clone()
@@ -41,26 +41,29 @@ class DEMRestartUtility(RestartUtility):
             settings_copy.RemoveValue("input_filenames")
             model_part = model.GetModelPart(name.GetString())
             self.restart_utilities[name.GetString()] = RestartUtility(model_part, settings_copy)
-            self.model_parts.append(model_part)
+            self.model_parts[name.GetString()] = model_part
         self.restart_save_location = restart_save_location
-        super(DEMRestartUtility, self).__init__(self.model_parts[0], settings_copy)
+        super(DEMRestartUtility, self).__init__(list(self.model_parts.values())[0], settings_copy)
         # print('yyyy'*50,self.restart_save_location)
         # self.restart_load_location = restart_load_location
 
     def SaveRestart(self):
         for name in self.file_names:
             restart_utility = self.restart_utilities[name]
-            restart_utility.raw_path, restart_utility.raw_file_name = os.path.split(name)
-            #self.raw_path = os.path.join(os.getcwd(), self.raw_path)
-            restart_utility.raw_path = os.path.join(os.getcwd(), self.raw_path)
 
             if restart_utility.IsRestartOutputStep():
+                restart_utility.raw_path, restart_utility.raw_file_name = os.path.split(name)
+                #self.raw_path = os.path.join(os.getcwd(), self.raw_path)
+                restart_utility.raw_path = os.path.join(os.getcwd(), self.raw_path)
                 restart_utility.SaveRestart()
+        caca
 
     def LoadRestart(self,  restart_file_name=""):
         for name in self.file_names:
             restart_utility = self.restart_utilities[name]
             restart_utility.raw_path, restart_utility.raw_file_name = os.path.split(name)
             restart_utility.raw_path = os.path.join(os.getcwd(), self.raw_path)
+
             restart_utility.LoadRestart()
+
             #kratos_utilities.DeleteDirectoryIfExisting(self._RestartUtility__GetFolderPathLoad())
