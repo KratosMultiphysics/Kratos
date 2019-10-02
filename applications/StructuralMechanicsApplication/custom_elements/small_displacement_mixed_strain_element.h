@@ -198,11 +198,11 @@ public:
     ///@name Operations
     ///@{
 
-    // /**
-    //  * @brief Called to initialize the element.
-    //  * @warning Must be called before any calculation is done
-    //  */
-    // void Initialize() override;
+    /**
+     * @brief Called to initialize the element.
+     * @warning Must be called before any calculation is done
+     */
+    void Initialize() override;
 
     // /**
     //   * @brief This resets the constitutive law
@@ -411,10 +411,10 @@ protected:
         mConstitutiveLawVector = ThisConstitutiveLawVector;
     }
 
-    // /**
-    //  * @brief It initializes the material
-    //  */
-    // virtual void InitializeMaterial();
+    /**
+     * @brief It initializes the material
+     */
+    virtual void InitializeMaterial();
 
     // /**
     //  * @brief Gives the StressMeasure used
@@ -596,9 +596,7 @@ private:
      */
     void CalculateB(
         Matrix& rB,
-        const Matrix& rDN_DX,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const IndexType PointNumber) const;
+        const Matrix& rDN_DX) const;
 
     /**
      * Calculation of the deviatoric strain operator

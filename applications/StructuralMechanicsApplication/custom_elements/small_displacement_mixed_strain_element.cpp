@@ -143,11 +143,118 @@ void SmallDisplacementMixedStrainElement::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacementMixedStrainElement::Initialize()
+{
+    KRATOS_TRY
+
+    // Integration method initialization
+    if (GetProperties().Has(INTEGRATION_ORDER)) {
+        const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
+        switch (integration_order) {
+            case 1:
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+                break;
+            case 2:
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+                break;
+            case 3:
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+                break;
+            case 4:
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+                break;
+            case 5:
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+                break;
+            default:
+                KRATOS_WARNING("SmallDisplacementMixedStrainElement") << "Integration order " << integration_order << " is not available, using geometry default integration order." << std::endl;
+                mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+        }
+    } else {
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    }
+
+    const auto &r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    //Constitutive Law initialisation
+    if (mConstitutiveLawVector.size() != r_integration_points.size()) {
+        mConstitutiveLawVector.resize(r_integration_points.size());
+    }
+
+    // Initialize material
+    InitializeMaterial();
+
+    KRATOS_CATCH( "" )
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedStrainElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
+    const auto &r_geometry = GetGeometry();
+    const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType block_size = dim + 1;
+    const SizeType matrix_size = block_size * n_nodes;
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+
+    // Check LHS and RHS sizes
+    if (rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size) {
+        rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
+    }
+
+    if (rRightHandSideVector.size() != matrix_size) {
+        rRightHandSideVector.resize(matrix_size, false);
+    }
+
+    // Compute the geometry data
+    const auto r_integration_method = GetIntegrationMethod();
+    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(r_integration_method);
+    const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
+
+    Vector detJ_gauss;
+    Vector w_gauss_container;
+    Matrix N_gauss_container;
+    GeometryType::ShapeFunctionsGradientsType DN_DX_container;
+
+    // Calculate the shape function values
+    if (N_gauss_container.size1() != n_gauss || N_gauss_container.size2() != n_nodes) {
+        N_gauss_container.resize(n_gauss, n_nodes,false);
+    }
+    N_gauss_container = r_geometry.ShapeFunctionsValues(r_integration_method);
+
+    // Calculate the shape function gradients values
+    r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DX_container, detJ_gauss, r_integration_method);
+
+    // Calculate the Gauss point weights (already multiplied by det(J))
+    if (w_gauss_container.size() != n_gauss) {
+        w_gauss_container.resize(n_gauss, false);
+    }
+    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        w_gauss_container[i_gauss] = detJ_gauss[i_gauss] * r_integration_points[i_gauss].Weight();
+    }
+
+    // Calculate the LHS and RHS contributions
+    rLeftHandSideMatrix.clear();
+    rRightHandSideVector.clear();
+
+    Matrix B_mat(strain_size, n_nodes*dim);
+    Matrix dev_strain_op;
+    CalculateDeviatoricStrainOperator(dev_strain_op);
+
+    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        // Get Gauss pt. values
+        const auto &rN = row(N_gauss_container, i_gauss);
+        const double w_gauss = w_gauss_container[i_gauss];
+
+        // Calculate the strain matrix
+        CalculateB(B_mat, DN_DX_container[i_gauss]);
+
+    }
 
 }
 
@@ -158,7 +265,23 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     ProcessInfo& rCurrentProcessInfo)
 {
+    const auto &r_geometry = GetGeometry();
+    const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType block_size = dim + 1;
+    const SizeType matrix_size = block_size * r_geometry.PointsNumber();
 
+    // Check LHS size
+    if (rLeftHandSideMatrix.size1() != matrix_size) {
+        rLeftHandSideMatrix = ZeroMatrix(matrix_size, matrix_size);
+    } else if (rLeftHandSideMatrix.size2() != matrix_size) {
+        rLeftHandSideMatrix = ZeroMatrix(matrix_size, matrix_size);
+    }
+
+    // Get geometry data
+
+    // Compute the kinematics
+
+    // Loop the Gauss points
 }
 
 /***********************************************************************************/
@@ -168,7 +291,45 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
+    const auto &r_geometry = GetGeometry();
+    const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType block_size = dim + 1;
+    const SizeType matrix_size = block_size * r_geometry.PointsNumber();
 
+    // Check RHS size
+    if (rRightHandSideVector.size() != matrix_size) {
+        rRightHandSideVector = ZeroVector(matrix_size);
+    }
+
+    // Get geometry data
+
+    // Compute the kinematics
+
+    // Loop the Gauss points
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedStrainElement::InitializeMaterial()
+{
+    KRATOS_TRY
+
+    const auto &r_properties = GetProperties();
+    if (r_properties[CONSTITUTIVE_LAW] != nullptr) {
+        const auto &r_geometry = GetGeometry();
+        const auto &r_N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+        IndexType aux = 0;
+        for (auto &it_gauss_pt : mConstitutiveLawVector) {
+            it_gauss_pt = (r_properties[CONSTITUTIVE_LAW])->Clone();
+            (it_gauss_pt)->InitializeMaterial(r_properties, r_geometry, row(r_N_values, aux));
+            aux++;
+        }
+    } else {
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+    }
+
+    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
@@ -335,9 +496,7 @@ array_1d<double, 3> SmallDisplacementMixedStrainElement::GetBodyForce(
 
 void SmallDisplacementMixedStrainElement::CalculateB(
     Matrix& rB,
-    const Matrix& rDN_DX,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const IndexType PointNumber) const
+    const Matrix& rDN_DX) const
 {
     KRATOS_TRY;
 
