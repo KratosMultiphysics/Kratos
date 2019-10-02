@@ -323,7 +323,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR(length, 10.0, TOLERANCE);
         KRATOS_CHECK_NEAR(result[2], parameter[1], TOLERANCE);
 
-        auto derivatives = surface.GlobalDerivatives(parameter, 3);
+        std::vector<array_1d<double, 3>> derivatives;
+        surface.GlobalSpaceDerivatives(derivatives, parameter, 3);
         array_1d<double, 3> cross(0.0);
         array_1d<double, 3> colinear_vector(0.0);
         derivatives[0][2] = 0.0;
@@ -349,7 +350,8 @@ namespace Testing {
 
         parameter[0] = 0;
         parameter[1] = 1.0;
-        auto derivatives_2 = surface.GlobalDerivatives(parameter, 3);
+        std::vector<array_1d<double, 3>> derivatives_2;
+        surface.GlobalSpaceDerivatives(derivatives_2, parameter, 3);
         length = sqrt(derivatives_2[0][0] * derivatives_2[0][0]
             + derivatives_2[0][1] * derivatives_2[0][1]);
         KRATOS_CHECK_NEAR(length, 10.0, TOLERANCE);
@@ -435,7 +437,8 @@ namespace Testing {
         KRATOS_CHECK_NEAR(result[1], -0.025668761597520, TOLERANCE);
         KRATOS_CHECK_NEAR(result[2], 0.064837971359442, TOLERANCE);
 
-        auto derivatives = surface.GlobalDerivatives(parameter, 6);
+        std::vector<array_1d<double, 3>> derivatives;
+        surface.GlobalSpaceDerivatives(derivatives, parameter, 6);
 
         // Compare the position vectors and the gradients up to 6th order
         std::vector<double> positionVct = {0.027607103217140, -0.025668761597520, 0.064837971359442};
