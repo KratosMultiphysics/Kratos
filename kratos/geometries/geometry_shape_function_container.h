@@ -326,23 +326,21 @@ public:
         IndexType DerivativeOrderIndex,
         IntegrationMethod ThisMethod) const
     {
-        if (DerivativeOrderIndex > 1)
-        {
-            KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex].size() > (DerivativeOrderIndex - 2))
-                << "Not enough derivatives within geometry_shape_function_container." << std::endl;
+        /* Shape function values are stored within a Matrix, however, only one row
+        should be provided here. Thus, currently it is not possible to provide the 
+        needed source to this object.*/
+        KRATOS_ERROR_IF(DerivativeOrderIndex == 0)
+            << "Shape functions cannot be accessed through ShapeFunctionDerivatives()" << std::endl;
 
-            return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2];
-        }
         if (DerivativeOrderIndex == 1)
         {
             return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
         }
 
-        /* Shape function values are stored within a Matrix, however, only one row
-           should be provided here. Thus, currently it is not possible to provide the 
-           needed source to this object.*/
-        KRATOS_ERROR_IF(DerivativeOrderIndex == 0)
-            << "Shape functions cannot be accessed through ShapeFunctionDerivatives()" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex].size() > (DerivativeOrderIndex - 2))
+            << "Not enough derivatives within geometry_shape_function_container." << std::endl;
+
+        return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2];
     }
 
     /*
@@ -374,8 +372,8 @@ public:
             return mShapeFunctionsValues[ThisMethod](IntegrationPointIndex, ShapeFunctionIndex);
         if (DerivativeOrderIndex == 1)
             return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
-        if (DerivativeOrderIndex > 1)
-            return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](ShapeFunctionIndex, DerivativeOrderRowIndex);
+        
+        return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](ShapeFunctionIndex, DerivativeOrderRowIndex);
     }
 
     ///@}
