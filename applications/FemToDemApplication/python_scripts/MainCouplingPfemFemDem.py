@@ -78,6 +78,9 @@ class MainCouplingPfemFemDem_Solution:
         self.SolveSolutionStepFEMDEM()
         self.PFEM_Solution.main_model_part.RemoveNodes(KM.TO_ERASE)
 
+        # We update the NO_MESH flag in the FEMDEM skin
+        self.UpdateFEMDEMBoundary()
+
 
 #============================================================================================================================
     def SolveSolutionStepPFEM(self):
@@ -156,4 +159,10 @@ class MainCouplingPfemFemDem_Solution:
             skin_detection_process = KM.SkinDetectionProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
                                                                                self.FEMDEM_Solution.SkinDetectionProcessParameters)    
         skin_detection_process.Execute()
+
+#============================================================================================================================
+    def UpdateFEMDEMBoundary(self):
+        self.ComputeSkinFEMDEMBoundary()
+        # ... continue
+
 
