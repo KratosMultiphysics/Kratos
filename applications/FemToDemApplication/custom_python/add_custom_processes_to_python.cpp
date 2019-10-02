@@ -35,6 +35,7 @@
 #include "custom_processes/update_pressure_value_pfem_conditions_process.h"
 #include "custom_processes/fix_free_velocity_on_nodes_process.h"
 #include "custom_processes/remove_alone_DEM_elements_process.h"
+#include "custom_processes/update_flag_no_remesh_femdem_boundary_process.h"
 
 
 namespace Kratos
@@ -131,6 +132,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
     class_<RemoveAloneDEMElementsProcess, RemoveAloneDEMElementsProcess::Pointer, Process>(m, "RemoveAloneDEMElementsProcess")
         .def(init<ModelPart &, ModelPart &>())
         .def("Execute", &RemoveAloneDEMElementsProcess::Execute);
+
+    class_<UpdateFlagNoRemeshFemDemBoundaryProcess, UpdateFlagNoRemeshFemDemBoundaryProcess::Pointer, Process>(m, "UpdateFlagNoRemeshFemDemBoundaryProcess")
+        .def(init<ModelPart &>())
+        .def("Execute", &UpdateFlagNoRemeshFemDemBoundaryProcess::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos

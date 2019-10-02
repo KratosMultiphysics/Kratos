@@ -163,6 +163,7 @@ class MainCouplingPfemFemDem_Solution:
 #============================================================================================================================
     def UpdateFEMDEMBoundary(self):
         self.ComputeSkinFEMDEMBoundary()
-        # ... continue
+        update_process = UpdateFlagNoRemeshFemDemBoundaryProcess(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+        update_process.Execute()
 
 
