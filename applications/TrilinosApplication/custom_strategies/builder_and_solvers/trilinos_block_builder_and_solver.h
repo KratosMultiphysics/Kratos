@@ -589,7 +589,6 @@ public:
                 free_size++;
 
         // Calculating the total size and required offset
-        // int fixed_offset;
         int free_offset;
         int global_size;
 
