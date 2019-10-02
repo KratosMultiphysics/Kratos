@@ -27,10 +27,12 @@ UpdateFlagNoRemeshFemDemBoundaryProcess::UpdateFlagNoRemeshFemDemBoundaryProcess
 
 void UpdateFlagNoRemeshFemDemBoundaryProcess::Execute() 
 {
-    const auto it_node_begin = mrModelPart.NodesBegin();
+    auto& r_submodel = mrModelPart.GetSubModelPart("SkinDEMModelPart");
+    const auto it_node_begin = r_submodel.NodesBegin();
     #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
+    for (int i = 0; i < static_cast<int>(r_submodel.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
+        it_node->SetValue(NO_MESH, false);
     }
 }
 
