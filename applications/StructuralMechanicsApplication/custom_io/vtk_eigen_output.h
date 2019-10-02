@@ -92,7 +92,7 @@ private:
     // opens the output file with the given openmode
     void OpenOutputFile(
         const std::string& rFileName,
-        const std::ios::openmode OpenModeFlags,
+        const std::ios_base::openmode OpenModeFlags,
         std::ofstream& rOutputFile) const;
 
     // returns the name of the output file, depending on the current animation step
