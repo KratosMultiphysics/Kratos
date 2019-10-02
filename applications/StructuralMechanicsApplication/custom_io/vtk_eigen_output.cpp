@@ -117,7 +117,7 @@ void VtkEigenOutput::WriteScalarEigenVariable(
 
     for (const auto& r_node : rNodes) {
         const auto& r_result = r_node.FastGetSolutionStepValue(rVariable);
-        WriteScalarDataToFile((float)r_result, rFileStream);
+        VtkOutput::WriteScalarDataToFile((float)r_result, rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
@@ -139,7 +139,7 @@ void VtkEigenOutput::WriteVectorEigenVariable(
 
     for (const auto& r_node : rNodes) {
         const auto& r_result = r_node.FastGetSolutionStepValue(rVariable);
-        WriteVectorDataToFile(r_result, rFileStream);
+        VtkOutput::WriteVectorDataToFile(r_result, rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream <<"\n";
     }
 }
