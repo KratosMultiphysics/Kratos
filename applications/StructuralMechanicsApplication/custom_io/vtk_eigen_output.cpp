@@ -31,15 +31,15 @@ void VtkEigenOutput::PrintEigenOutput(
     std::ofstream output_file;
     const std::string output_file_name = GetEigenOutputFileName(AnimationStep);
 
-    auto ios_flags = std::ios_base::out; // basic flag always needed
+    auto ios_flags = std::ios::out; // basic flag always needed
 
-    if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) { ios_flags |= std::ios_base::binary; }
+    if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) { ios_flags = ios_flags | std::ios::binary; }
 
     if (AnimationStep > mLastWrittenAnimationStepIndex) {
         // No file exists yet for this animationstep, creating a new one and writing the mesh
         mLastWrittenAnimationStepIndex = AnimationStep;
 
-        ios_flags |= std::ios_base::trunc;
+        ios_flags = ios_flags | std::ios::trunc;
         OpenOutputFile(output_file_name, ios_flags, output_file);
 
         Initialize(mrModelPart);
@@ -51,7 +51,7 @@ void VtkEigenOutput::PrintEigenOutput(
         output_file << "FIELD FieldData " << num_eigenvalues * (rRequestedDoubleResults.size() + rRequestedVectorResults.size()) << "\n";
     } else {
         // Appending results to existing file
-        ios_flags |= std::ios_base::app;
+        ios_flags = ios_flags | std::ios::app;
         OpenOutputFile(output_file_name, ios_flags, output_file);
     }
 
@@ -68,7 +68,7 @@ void VtkEigenOutput::PrintEigenOutput(
 
 void VtkEigenOutput::OpenOutputFile(
     const std::string& rFileName,
-    const std::ios_base::openmode OpenModeFlags,
+    const std::ios::openmode OpenModeFlags,
     std::ofstream& rOutputFile) const
 {
     rOutputFile.open(rFileName, OpenModeFlags);
