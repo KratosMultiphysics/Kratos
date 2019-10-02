@@ -16,6 +16,7 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 namespace Kratos
 {
