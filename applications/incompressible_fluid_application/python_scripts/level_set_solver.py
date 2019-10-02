@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
-CheckForPreviousImport()
 
 
 def AddVariables(base_model_part):

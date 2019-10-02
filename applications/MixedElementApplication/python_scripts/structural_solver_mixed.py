@@ -5,8 +5,6 @@ from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.MixedElementApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-# from KratosMultiphysics.MKLSolversApplication import *
-CheckForPreviousImport()
 
 
 def AddVariables(model_part):
