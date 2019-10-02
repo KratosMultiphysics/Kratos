@@ -254,4 +254,4 @@ private:
 
 }; // Class TrussPlasticityConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined
+#endif // KRATOS_TRUSS_PLASTICITY_LAW_H_INCLUDED  defined

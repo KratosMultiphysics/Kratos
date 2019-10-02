@@ -195,6 +195,8 @@ namespace Kratos
 
         Vector CalculateProjectionLengths();
 
+        double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) const;
+
     private:
 
         friend class Serializer;

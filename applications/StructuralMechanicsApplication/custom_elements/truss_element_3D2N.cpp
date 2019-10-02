@@ -474,7 +474,8 @@ int TrussElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     KRATOS_CATCH("")
 }
-double TrussElement3D2N::CalculateGreenLagrangeStrain()
+
+double TrussElement3D2N::CalculateGreenLagrangeStrain() const
 {
 
     KRATOS_TRY
@@ -707,10 +708,7 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
 {
     KRATOS_TRY;
 
-    double E = 0.00;
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
-
+    double E = ReturnTangentModulus1D(rCurrentProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
 
     double prestress = 0.00;
@@ -807,9 +805,7 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
 {
     KRATOS_TRY;
 
-    double E = 0.00;
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
+    double E = ReturnTangentModulus1D(rCurrentProcessInfo);
 
     double A = GetProperties()[CROSS_AREA];
 
@@ -998,6 +994,21 @@ void TrussElement3D2N::CalculateLumpedMassVector(VectorType& rMassVector)
     KRATOS_CATCH("")
 }
 
+
+double TrussElement3D2N::ReturnTangentModulus1D(ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    double tangent_modulus(0.00);
+    Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
+    strain_vector[0] = CalculateGreenLagrangeStrain();
+
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    Values.SetStrainVector(strain_vector);
+
+    mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,tangent_modulus);
+    return tangent_modulus;
+    KRATOS_CATCH("");
+}
 
 
 } // namespace Kratos.
