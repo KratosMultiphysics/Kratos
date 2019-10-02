@@ -18,9 +18,6 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.TopologyOptimizationApplication as KratosTopology
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # Import the mechanical static solver base class
 import solid_mechanics_static_solver
 
@@ -29,17 +26,17 @@ def CreateSolver(main_model_part, custom_settings):
     return StaticMechanicalSIMPSolver(main_model_part, custom_settings)
 
 # ==============================================================================
-class StaticMechanicalSIMPSolver(solid_mechanics_static_solver.StaticMechanicalSolver): 
-        
+class StaticMechanicalSIMPSolver(solid_mechanics_static_solver.StaticMechanicalSolver):
+
     #### Specific internal functions ####
-        
+
     def _GetSolutionScheme(self, analysis_type, component_wise, compute_contact_forces):
 
         if(analysis_type == "Linear"):
             mechanical_scheme = KratosTopology.ResidualBasedIncrementalUpdateStaticSIMPScheme()
-            
+
         elif(analysis_type == "Non-Linear" ):
             raise TypeError("Non-Linear analysis_type not yet supported!")
-                                
+
         return mechanical_scheme
-# ==============================================================================        
+# ==============================================================================

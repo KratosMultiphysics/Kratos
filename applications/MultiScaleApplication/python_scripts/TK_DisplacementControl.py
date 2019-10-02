@@ -8,7 +8,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.MultiScaleApplication import *
-CheckForPreviousImport()
 
 # ======================================================================================
 #
@@ -19,7 +18,7 @@ CheckForPreviousImport()
 
 def Variables():
 	return([
-			DISPLACEMENT, 
+			DISPLACEMENT,
 			ROTATION,
 			DISPLACEMENT_LAGRANGE,
 			ROTATION_LAGRANGE,
@@ -41,11 +40,11 @@ def Variables():
 
 def Dofs():
 	return ([
-			# DISPLACEMENT_LAGRANGE_X, 
-			# DISPLACEMENT_LAGRANGE_Y, 
+			# DISPLACEMENT_LAGRANGE_X,
+			# DISPLACEMENT_LAGRANGE_Y,
 			# DISPLACEMENT_LAGRANGE_Z,
-			# ROTATION_LAGRANGE_X, 
-			# ROTATION_LAGRANGE_Y, 
+			# ROTATION_LAGRANGE_X,
+			# ROTATION_LAGRANGE_Y,
 			# ROTATION_LAGRANGE_Z,
 			])
 
@@ -77,7 +76,7 @@ def DofsWithReactions():
 # ======================================================================================
 #
 # The SolutionStage object.
-# This class solves a stage of the analysis history using one or more time steps, 
+# This class solves a stage of the analysis history using one or more time steps,
 # and it takes care of saving the results if required.
 #
 # ======================================================================================
@@ -85,9 +84,9 @@ def DofsWithReactions():
 class SolutionStage:
 
 	# ==================================================================================
-	
+
 	def __init__(
-				self, 
+				self,
 				ModelPart,
 				TimeLine = TK_TimeLines.FixedTimeLine(
 					Duration = 1.0,
@@ -106,33 +105,33 @@ class SolutionStage:
 				TargetDisplacement = 0.0,
 				Parallel = True,
 				CustomOp = None):
-		
+
 		# Parallelism
 		self.Parallel = Parallel
-		
+
 		# Model Part
 		self.ModelPart = ModelPart
-		
+
 		# Time line
 		self.TimeLine = TimeLine
-		
+
 		# Time Scheme
 		self.TimeScheme = StaticGeneralScheme()
 		self.TimeScheme.Check(self.ModelPart)
-		
+
 		# Linear Solver
 		self.LinearSolver = LinearSolver
-		
+
 		# Convergence Criteria
 		self.Convergence = Convergence
 		self.Convergence.Check(self.ModelPart)
-		
+
 		# Builder and Solver
 		if(self.Parallel):
 			self.BuilderAndSolver = StaticGeneralBuilderAndSolver(self.LinearSolver)
 		else:
 			self.BuilderAndSolver = StaticGeneralBuilderAndSolverSequential(self.LinearSolver)
-		
+
 		# Misc. Solver parameters
 		self.MaxIterations = MaxIterations
 		self.CalculateReactions = CalculateReactions
@@ -141,10 +140,10 @@ class SolutionStage:
 		self.ControlNodeID = ControlNodeID
 		self.ControlDofID = ControlDofID
 		self.TargetDisplacement = TargetDisplacement
-		
+
 		# Results IO
 		self.ResultsIO = ResultsIO
-		
+
 		# Create and initialize the solver
 		self.Solver = DisplacementControlStrategy(
 			self.ModelPart,
@@ -159,55 +158,55 @@ class SolutionStage:
 			self.ControlDofID,
 			self.TargetDisplacement,
 			)
-		
+
 		self.Solver.Check();
 		self.Solver.SetEchoLevel(1);
-		
+
 		self.IsConverged = False
-		
+
 		self.CustomOp = CustomOp
-		
+
 		# @todo: put it in the c-tor
-		self.AdaptiveIncrementation = True 
+		self.AdaptiveIncrementation = True
 		self.DesiredIterations = DesiredIterations
 		if(self.DesiredIterations >= self.MaxIterations):
 			self.DesiredIterations = self.MaxIterations/2;
-		
+
 		# for smooth adaptive time-stepping
 		self.smooth_table = [1.0, 1.0, 1.0, 1.0]
-	
+
 	# ==================================================================================
-	
+
 	def SetInitialTime(self, InitialTime):
 		self.TimeLine.SetInitialTime(InitialTime)
-	
+
 	# ==================================================================================
-	
+
 	def GetEndTime(self):
 		return self.TimeLine.EndTime
-	
+
 	# ==================================================================================
-	
+
 	def SetTimeBoundsOnProcessInfo(self, initial_time, end_time):
 		self.ModelPart.ProcessInfo[START_TIME] = initial_time
 		self.ModelPart.ProcessInfo[END_TIME]   = end_time
-	
+
 	# ==================================================================================
-	
+
 	def Initialize(self):
 		if(self.CustomOp is not None):
 			for cop in self.CustomOp:
 				cop.Initialize(self.ModelPart)
-	
+
 	# ==================================================================================
-	
+
 	def Finalize(self):
 		if(self.CustomOp is not None):
 			for cop in self.CustomOp:
 				cop.Finalize(self.ModelPart)
-	
+
 	# ==================================================================================
-	
+
 	def __incr_max_mult(self,ctime):
 		x = ctime*35.0
 		AA = 0.8;
@@ -222,14 +221,14 @@ class SolutionStage:
 			FF=-1.0
 		y = 1.0-FF;
 		return y
-	
+
 	def Solve(self):
-		
+
 		# stage initializations
 		self.IsConverged = True
 		timer_start = time.time()
 		self.PrintHeader()
-		
+
 		# time incrementation parameters
 		tstart = self.TimeLine.InitialTime
 		tend = tstart + self.TimeLine.Duration
@@ -240,19 +239,19 @@ class SolutionStage:
 		increment_mult = 1.0
 		increment_min = self.TimeLine.MinIncrement
 		increment_max = self.TimeLine.MaxIncrement
-		
+
 		self.ModelPart.ProcessInfo[TIME] = current_time
-		
+
 		# call custom operations on stage initialization
 		# NOTE: before calling it, set LAMBDA to 1.
-		# the arc length requires a starting value of LAMBDA equal to 1 
+		# the arc length requires a starting value of LAMBDA equal to 1
 		# to calculate the reference load vector.
 		self.ModelPart.ProcessInfo[LAMBDA] = 1.0 # to calculate reference load vector
 		self.ModelPart.ProcessInfo[LAMBDA_OUTPUT] = 1.0
 		if(self.CustomOp is not None):
 			for cop in self.CustomOp:
 				cop.OnBeforeSolutionStage(self.ModelPart) # here BC are set on nodes with LAMBDA=1
-		
+
 		# PREPARE FIRST SOVE==============================================================
 		# set some data to the process info
 		self.ModelPart.CloneTimeStep(current_time)
@@ -261,18 +260,18 @@ class SolutionStage:
 		self.ModelPart.ProcessInfo[DELTA_TIME] = delta_time
 		self.Solver.PrepareFirstSolve()
 		# PREPARE FIRST SOVE==============================================================
-		
-		# nodal values should be set to 0. arc length strategy 
+
+		# nodal values should be set to 0. arc length strategy
 		# will use the reference load vector and an internal LAMBDA
-		self.ModelPart.ProcessInfo[LAMBDA] = 0.0 
-		
+		self.ModelPart.ProcessInfo[LAMBDA] = 0.0
+
 		# begin time incrementation loop
 		# increment_max_0 = increment_max
 		while True:
-			
+
 			# increment_max = self.__incr_max_mult(current_time)*increment_max_0
 			# print('USING VARIABLE MAX INCREMENT: ',increment_max)
-			
+
 			# define the new time step size
 			old_time = current_time
 			new_time = current_time + delta_time * increment_mult
@@ -281,33 +280,33 @@ class SolutionStage:
 			current_delta_time = new_time - current_time
 			current_time = new_time
 			increment_id += 1
-			
+
 			# set some data to the process info
 			self.ModelPart.CloneTimeStep(current_time)
 			self.ModelPart.ProcessInfo[TIME_STEPS] = increment_id
 			self.ModelPart.ProcessInfo[TIME] = current_time
 			self.ModelPart.ProcessInfo[DELTA_TIME] = current_delta_time
-			
+
 			# save current LAMBDA, and then set it to 0 before calling OnBeforeSolutionStep on custom operations
 			# lambda_saved = self.ModelPart.ProcessInfo[LAMBDA]
 			self.ModelPart.ProcessInfo[LAMBDA] = 0.0
-			
+
 			# custom operations
 			for cop in self.CustomOp:
 				cop.OnBeforeSolutionStep(self.ModelPart)
-			
+
 			# reset the correct LAMBDA
 			# self.ModelPart.ProcessInfo[LAMBDA] = lambda_saved
-			
+
 			# solve current step
 			self.Solver.Solve()
-			
+
 			if(self.Solver.IsConverged()):
-				
+
 				# custom operations
 				for cop in self.CustomOp:
 					cop.OnSolutionStepCompleted(self.ModelPart)
-				
+
 				# finalize the current step
 				# write results
 				if(self.ResultsIO != None):
@@ -315,19 +314,19 @@ class SolutionStage:
 				# custom operations
 				# for cop in self.CustomOp:
 					# cop.OnSolutionStepCompleted(self.ModelPart)
-				
+
 				# exit the incrementation loop if the end time has been reached
 				self.IsConverged = True
 				if(abs(current_time - tend) < time_tolerance):
 					break
-				
+
 				# adapt the next time increment size
 				if(self.AdaptiveIncrementation):
 					target_iter = float(self.DesiredIterations)
 					needed_iter = float(self.ModelPart.ProcessInfo[NL_ITERATION_NUMBER])
 					# factor = pow(0.5,0.25*(needed_iter-target_iter))
 					factor = target_iter/needed_iter
-					
+
 					# smooth-it
 					# accum = 0.0
 					# for ismooth in range(1,len(self.smooth_table)):
@@ -337,7 +336,7 @@ class SolutionStage:
 					factor = 0.1*self.smooth_table[1] + 0.2*self.smooth_table[2] + 0.3*self.smooth_table[3] + 0.4*factor
 					self.smooth_table.pop(0)
 					self.smooth_table.append(factor)
-					
+
 					increment_mult_old = increment_mult
 					increment_mult *= factor
 					new_delta_time = delta_time * increment_mult
@@ -347,28 +346,28 @@ class SolutionStage:
 						factor = increment_max/(delta_time*increment_mult_old)
 						increment_mult = increment_mult_old*factor
 					self.Solver.SetLoadFactors(factor, increment_mult)
-				
+
 			else:
-				
+
 				self.IsConverged = False
-				
+
 				# adapt the next time increment size
 				if(self.AdaptiveIncrementation):
-					
+
 					target_iter = float(self.DesiredIterations)
 					needed_iter = float(self.ModelPart.ProcessInfo[NL_ITERATION_NUMBER])
 					# factor = pow(0.5,0.25*(needed_iter-target_iter))
 					factor = target_iter/needed_iter
-					
+
 					self.smooth_table.pop(0)
 					self.smooth_table.append(factor)
-					
+
 					increment_mult *= factor
 					new_delta_time = delta_time * increment_mult
 					self.Solver.SetLoadFactors(factor, increment_mult)
-					
+
 					if(new_delta_time < increment_min):
-						
+
 						# exit the time incrementation loop
 						print("")
 						print("TIME", current_time, " - ERROR: ")
@@ -378,9 +377,9 @@ class SolutionStage:
 						print(" The solution cannot continue")
 						print("")
 						break;
-						
+
 					else:
-						
+
 						print("")
 						print("TIME", current_time, " - WARNING: ")
 						print(" The iteration process did not converge.")
@@ -389,24 +388,24 @@ class SolutionStage:
 						print(" The solution cannot continue")
 						print("")
 						current_time = old_time
-					
+
 				else:
-					
+
 					# exit the time incrementation loop
 					self.PrintNonConvergence()
 					break
-		
+
 		# stage finalizations
 		timer_end = time.time()
 		self.PrintFooter(timer_end - timer_start)
-		
+
 		# call custom operations on stage finalization
 		if(self.CustomOp is not None):
 			for cop in self.CustomOp:
 				cop.OnSolutionStageCompleted(self.ModelPart)
-	
+
 	# ==================================================================================
-	
+
 	def PrintHeader(self):
 		print ("")
 		print ("")
@@ -420,9 +419,9 @@ class SolutionStage:
 		print (datetime.datetime.now().strftime(" %Y-%m-%d %H:%M:%S"))
 		print ("========================================================================")
 		print ("")
-	
+
 	# ==================================================================================
-	
+
 	def PrintFooter(self, elapsedTime):
 		print ("========================================================================")
 		print (" Solution terminated at:")
@@ -431,9 +430,9 @@ class SolutionStage:
 		print (" Elapsed: ", elapsedTime, " seconds")
 		print ("========================================================================")
 		print ("")
-		
+
 	# ==================================================================================
-	
+
 	def PrintNonConvergence(self):
 		print ("")
 		print ("========================================================================")

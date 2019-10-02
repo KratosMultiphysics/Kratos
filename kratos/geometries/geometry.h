@@ -2638,6 +2638,21 @@ public:
         return rResult;
     }
 
+    /*
+    * @brief access to the shape function derivatives.
+    * @param DerivativeOrderIndex defines the wanted order of the derivative
+    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @return the shape function or derivative value related to the input parameters
+    *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    */
+    const Matrix& ShapeFunctionDerivatives(
+        IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        return mpGeometryData->ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+    }
+
     /** This method gives second order derivatives of all shape
      * functions evaluated in given point.
      *
