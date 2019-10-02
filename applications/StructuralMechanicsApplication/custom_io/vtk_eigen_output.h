@@ -26,7 +26,7 @@ namespace Kratos
 /** \brief VtkEigenOutput
 * A simple class to write Eigenresults in Vtk format
 */
-class KRATOS_API(KRATOS_CORE) VtkEigenOutput : public VtkOutput
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VtkEigenOutput : public VtkOutput
 {
 public:
 
