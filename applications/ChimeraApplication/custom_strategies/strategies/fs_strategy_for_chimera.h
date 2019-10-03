@@ -753,7 +753,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-        double mAreaTolerence=1E-10;
+        const double mAreaTolerence=1E-10;
 
     ///@}
     ///@name Private Operators
