@@ -680,13 +680,14 @@ protected:
 
         double Ratio = NormDv / NormV;
 
-        if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Fractional velocity relative error: " << Ratio << std::endl;
+        if (rModelPart.GetCommunicator().MyPID() == 0 && BaseType::GetEchoLevel() > 0)
+        {
+            std::cout << "CONVERGENCE CHECK:" << std::endl;
+            std::cout << " VELOC.: ratio = " << Ratio <<"; exp.ratio = " << mVelocityTolerance << " abs = " << NormDv << std::endl;
+        }
 
         if (Ratio < mVelocityTolerance)
-        {
             return true;
-        }
         else
             return false;
     }
