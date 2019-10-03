@@ -141,7 +141,7 @@ void SWE<TNumNodes, TFramework>::CalculateLocalSystem(
 
     for (size_t i_gauss = 0; i_gauss < TNumNodes; ++i_gauss)
     {
-        noalias(N) = row(NContainer, i_gauss);
+        N = row(NContainer, i_gauss);
 
         this->BuildAuxiliaryMatrices(N, DN_DX, variables);
 
@@ -154,7 +154,7 @@ void SWE<TNumNodes, TFramework>::CalculateLocalSystem(
     }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, variables.unknown);
+    rRightHandSideVector -= prod(rLeftHandSideMatrix, variables.unknown);
 
     rRightHandSideVector *= Area * variables.lumping_factor;
     rLeftHandSideMatrix  *= Area * variables.lumping_factor;
@@ -227,7 +227,7 @@ void SWE<TNumNodes, TFramework>::CalculateGeometry(BoundedMatrix<double, TNumNod
     GeometryType::ShapeFunctionsGradientsType DN_DXContainer( NumGPoints );
     rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, GeometryData::GI_GAUSS_1);
 
-    noalias( rDN_DX ) = DN_DXContainer[0];
+    rDN_DX = DN_DXContainer[0];
 }
 
 
