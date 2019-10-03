@@ -131,11 +131,11 @@ class TestAdjointMaxStressResponseFunction(StructuralResponseFunctionTestFactory
         self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Y), -19.9044491754745, 10)
         self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(ADJOINT_DISPLACEMENT_Z), -8.37326311561973, 10)
 
-        self.assertRelativeAlmostEqual(self.value, 1610060.3904999627)
+        self.assertIsClose(self.value, 1610060.3904999627)
 
-        self.assertRelativeAlmostEqual(self.gradient[5][0], 1787255.3702425747)
-        self.assertRelativeAlmostEqual(self.gradient[5][1], -247.0446103799622, rel_tol=1e-5)
-        self.assertRelativeAlmostEqual(self.gradient[5][2], -562640.0306970887)
+        self.assertIsClose(self.gradient[5][0], 1787255.3702425747)
+        self.assertIsClose(self.gradient[5][1], -247.0446103799622, rel_tol=1e-5)
+        self.assertIsClose(self.gradient[5][2], -562640.0306970887)
 
 class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
