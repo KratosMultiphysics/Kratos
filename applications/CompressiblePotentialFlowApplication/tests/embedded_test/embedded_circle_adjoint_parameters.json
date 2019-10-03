@@ -1,0 +1,112 @@
+{
+    "problem_data"         : {
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1
+    },
+    "solver_settings"      : {
+        "model_part_name"        : "MainModelPart",
+        "domain_size"            : 2,
+        "solver_type"            : "adjoint_potential_flow",
+        "model_import_settings"  : {
+            "input_type"     : "mdpa",
+            "input_filename" : "embedded_background_test"
+        },
+        "formulation": {
+            "element_type":"embedded_incompressible"
+            },
+        "response_function_settings" : {
+                "response_type"     : "adjoint_lift_jump_coordinates",
+                "use_kratos"        : true,
+                "gradient_mode"     : "semi_analytic",
+                "step_size"         : 1e-6
+        },
+        "sensitivity_settings" : {
+                "sensitivity_model_part_name" : "Parts_Parts_Auto1",
+                "nodal_solution_step_sensitivity_variables"  : ["NORMAL_SENSITIVITY"],
+                "nodal_solution_step_sensitivity_calculation_is_thread_safe" : false,
+                "build_mode": "static"
+        },
+        "maximum_iterations"     : 10,
+        "echo_level"             : 0,
+        "volume_model_part_name" : "Parts_Parts_Auto1",
+        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1"],
+        "linear_solver_settings": {
+            "solver_type": "amgcl",
+            "max_iteration": 400,
+            "gmres_krylov_space_dimension": 100,
+            "smoother_type":"ilu0",
+            "coarsening_type":"ruge_stuben",
+            "coarse_enough" : 5000,
+            "krylov_type": "lgmres",
+            "tolerance": 1e-9,
+            "verbosity": 0,
+            "scaling": false
+        },
+        "auxiliary_variables_list" : ["GEOMETRY_DISTANCE","DISTANCE"]
+
+    },
+    "processes"            : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [
+            {
+            "python_module" : "level_set_remeshing_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "Parameters"    : {
+                    "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
+                    "skin_model_part_name": "circle_05_test",
+                    "remeshing_flag": false,
+                    "distance_modification_parameters":{
+                        "distance_threshold"                          : 0.001,
+                        "check_at_each_time_step"                     : true,
+                        "avoid_almost_empty_elements"                 : true,
+                        "deactivate_full_negative_elements"           : true,
+                        "full_negative_elements_fixed_variables_list" : []
+                    }
+                }
+            },{
+                "python_module" : "define_embedded_wake_process_2d",
+                "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "Parameters"    : {
+                    "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
+                    "epsilon"         : 1e-9
+                }
+            },{
+            "python_module" : "apply_far_field_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "Parameters"    : {
+                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "angle_of_attack": 0.0,
+                "mach_infinity": 0.02941176471,
+                "inlet_potential": 1.0,
+                "initialize_flow_field": false
+            }
+            }],
+        "list_other_processes" :[{
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_temporal_input_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "read_only"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"]
+                }
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables" : ["NORMAL_SENSITIVITY"],
+                "input_file_name" : "normal_sensitivity_test_results.json",
+                "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+                "time_frequency"   : -2
+            }
+        }]
+    }
+}
