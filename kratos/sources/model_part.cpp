@@ -1623,6 +1623,8 @@ void ModelPart::PrintInfo(std::ostream& rOStream) const
 
 void ModelPart::PrintData(std::ostream& rOStream) const
 {
+    DataValueContainer::PrintData(rOStream);
+
     if (!IsSubModelPart()) {
         rOStream  << "    Buffer Size : " << mBufferSize << std::endl;
     }
