@@ -87,6 +87,8 @@ public:
 
     void UpdatePrimitiveVariables(ModelPart& rModelPart);
 
+    void UpdatePrimitiveVariables(ModelPart& rModelPart, double Epsilon);
+
     void ComputeAccelerations(ModelPart& rModelPart);
 
     void FlipScalarVariable(Variable<double>& rOriginVariable, Variable<double>& rDestinationVariable, ModelPart& rModelPart);
