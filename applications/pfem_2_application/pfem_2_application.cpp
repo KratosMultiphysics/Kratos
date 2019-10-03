@@ -1,16 +1,16 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.3 $
 //
-// 
+//
 
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -29,7 +29,7 @@
 namespace Kratos
 {
  	KratosPFEM2Application::KratosPFEM2Application():
-        KratosApplication("PFEM2Application"),        
+        KratosApplication("PFEM2Application"),
         mFractionalStepPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
         mFractionalStepPFEM23D ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
         mMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
@@ -49,7 +49,7 @@ namespace Kratos
         mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
 
  	{}
- 	
+
  	void KratosPFEM2Application::Register()
  	{
  		// calling base class register to register Kratos components
@@ -65,7 +65,7 @@ namespace Kratos
  		KRATOS_REGISTER_ELEMENT("MonolithicAutoSlipPFEM23D", mMonolithicAutoSlipPFEM23D);
  		//KRATOS_REGISTER_ELEMENT("VelocityEnrichedPFEM22D", mVelocityEnrichedPFEM22D);
  		//KRATOS_REGISTER_ELEMENT("VelocityEnrichedPFEM22DNoPressure", mVelocityEnrichedPFEM22DNoPressure);
- 		
+
  		KRATOS_REGISTER_CONDITION("FixedVelocity2D", mFixedVelocity2D);
  		KRATOS_REGISTER_CONDITION("FixedVelocity3D", mFixedVelocity3D);
  		KRATOS_REGISTER_CONDITION("FixedPressure2D", mFixedPressure2D);
@@ -74,7 +74,7 @@ namespace Kratos
 
 		KRATOS_REGISTER_ELEMENT("QFluid3D", mQFluid3D);
         KRATOS_REGISTER_ELEMENT("QFluid2D", mQFluid2D);
- 				
+
  		KRATOS_REGISTER_VARIABLE( PRESS_GRADIENT_JUMP )
  		KRATOS_REGISTER_VARIABLE(PRESS_DISCONTINUITY);
  		KRATOS_REGISTER_VARIABLE(INV_LAPLACIAN_ENRICH)
@@ -84,7 +84,6 @@ namespace Kratos
  		KRATOS_REGISTER_VARIABLE(FIRST_ITERATION_PRESSURE)
  		KRATOS_REGISTER_VARIABLE(MEAN_SIZE)
  		KRATOS_REGISTER_VARIABLE(MEAN_VELOCITY_DIFFERENCE)
- 		KRATOS_REGISTER_VARIABLE(VOLUMETRIC_STRAIN)
  		KRATOS_REGISTER_VARIABLE(ELASTIC_PRESSURE)
  		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ENRICH_PRESS_PROJ_NEGATIVE)
  		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ENRICH_PRESS_PROJ_POSITIVE)
@@ -94,14 +93,14 @@ namespace Kratos
  		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_VELOCITY)
  		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(WATER_VELOCITY)
  		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(WATER_MESH_VELOCITY)
- 		
- 		
- 		
+
+
+
  	    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PROJECTED_VELOCITY)
  	    KRATOS_REGISTER_VARIABLE(VOLUME_CORRECTION)
   	    KRATOS_REGISTER_VARIABLE(INLET_VELOCITY)
-		
- 		
+
+
 
  		KRATOS_REGISTER_VARIABLE(G_VALUE)
  		KRATOS_REGISTER_VARIABLE(VELOCITY_OVER_ELEM_SIZE)
@@ -129,9 +128,7 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE(SOLID_PRESSURE)
 		KRATOS_REGISTER_VARIABLE(SOLID_YP)
 		KRATOS_REGISTER_VARIABLE(WATER_DISTANCE)
- 
+
  	}
 
 }  // namespace Kratos.
-
-

@@ -16,11 +16,12 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 namespace Kratos
 {
 template<unsigned int Dim, unsigned int NumNodes>
-class ComputeEmbeddedLiftProcess: public Process
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputeEmbeddedLiftProcess: public Process
 {
 public:
     ///@name Type Definitions
