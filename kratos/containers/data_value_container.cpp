@@ -44,7 +44,11 @@ namespace Kratos
                         j->second = i->first->Clone(i->second);
                     }
                 }
-            if (!variable_already_exist) mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
+            if (!variable_already_exist)
+                { 
+                    mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
+                    mData.shrink_to_fit();
+                }
             }
         }
 
@@ -56,7 +60,11 @@ namespace Kratos
                         variable_already_exist = true;
                     }
                 }
-            if (!variable_already_exist) mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
+            if (!variable_already_exist) 
+                {
+                    mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
+                    mData.shrink_to_fit();
+                }
             }
         }
     }

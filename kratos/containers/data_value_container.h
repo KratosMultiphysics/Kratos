@@ -101,6 +101,7 @@ public:
     {
         for(const_iterator i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
             mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
+        mData.shrink_to_fit();
     }
 
     /// Destructor.
@@ -221,6 +222,7 @@ public:
 #endif 
         
         mData.push_back(ValueType(&rThisVariable,new TDataType(rThisVariable.Zero())));
+        mData.shrink_to_fit();
 
         return *static_cast<TDataType*>(mData.back().second);
     }
@@ -265,7 +267,10 @@ public:
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
             *static_cast<TDataType*>(i->second) = rValue;
         else
+        {
             mData.push_back(ValueType(&rThisVariable,new TDataType(rValue))); //TODO: this shall be insert not push_back
+            mData.shrink_to_fit();
+        }
     }
 
     template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
