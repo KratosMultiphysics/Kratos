@@ -4,7 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.MixedElementApplication import *
 from KratosMultiphysics.TrilinosApplication import *
-CheckForPreviousImport()
 
 
 def AddVariables(model_part):
