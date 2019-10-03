@@ -9,7 +9,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication
-import KratosMultiphysics.SolidMechanicsApplication
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
@@ -81,8 +80,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         return solver
 
     def AddNodalVariablesToModelPart(self):
-        """ Add PfemSolidMechanicsApplication Variables
-        """
         from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_variables
         pfem_variables.AddVariables(self.main_model_part)
 

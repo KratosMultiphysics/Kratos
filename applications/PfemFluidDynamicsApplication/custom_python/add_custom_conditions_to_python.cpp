@@ -33,23 +33,23 @@
 namespace Kratos
 {
 
-    namespace Python
-    {
-	namespace py = pybind11;
+namespace Python
+{
+namespace py = pybind11;
 
-	typedef Condition                            ConditionBaseType;
-	typedef Geometry<Node<3> >                        GeometryType;
-	typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
-	typedef GeometryType::PointsArrayType           NodesArrayType;
+typedef Condition ConditionBaseType;
+typedef Geometry<Node<3>> GeometryType;
+typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+typedef GeometryType::PointsArrayType NodesArrayType;
 
-	void  AddCustomConditionsToPython(pybind11::module& m)
-	{
-	    // py::class_< FaceForce3D, FaceForce3D::Pointer, bases< ConditionBaseType > >
-	    // ("FaceForce3D",
-	    //  init<int, GeometryType::Pointer, Properties::Pointer>() )
-	    // ;
-	}
+void AddCustomConditionsToPython(pybind11::module &m)
+{
+	// py::class_< FaceForce3D, FaceForce3D::Pointer, bases< ConditionBaseType > >
+	// ("FaceForce3D",
+	//  init<int, GeometryType::Pointer, Properties::Pointer>() )
+	// ;
+}
 
-    }  // namespace Python.
+} // namespace Python.
 
-}  // namespace Kratos.
+} // namespace Kratos.

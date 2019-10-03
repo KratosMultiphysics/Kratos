@@ -65,7 +65,10 @@
                 "model_part_name"             : "Structure",
                 "interval"                    : [0.0,"End"],
                 "contact_model_part"          : { "0" : ["Contact_Part"]},
-                "contact_type"                : "Frictionless"
+                "contact_type"                : "Frictionless",
+                "search_parameters"             : {
+                    "database_step_update"      : 10000
+                }
             }
         }
         ],
