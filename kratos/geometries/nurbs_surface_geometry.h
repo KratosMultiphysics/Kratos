@@ -473,7 +473,7 @@ public:
     ///@{
     std::string Info() const override
     {
-        return TWorkingSpaceDimension + " dimensional nurbs surface.";
+        return std::to_string(TWorkingSpaceDimension) + " dimensional nurbs surface.";
     }
 
     void PrintInfo(std::ostream& rOStream) const override
