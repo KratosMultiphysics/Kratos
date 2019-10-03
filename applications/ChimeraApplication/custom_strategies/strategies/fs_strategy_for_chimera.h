@@ -14,7 +14,7 @@
 // 					Navaneeth K Narayanan
 //					Rishith Ellath Meethal
 // ==============================================================================
-//
+// 
 
 #ifndef KRATOS_FS_STRATEGY_FOR_CHIMERA_H
 #define KRATOS_FS_STRATEGY_FOR_CHIMERA_H
@@ -165,11 +165,17 @@ protected:
    void SetActiveStateOnConstraint(const Flags& TheFlagToSet ,const bool ValToSet)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
-        auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
-        for(auto& constraint : r_constraints_container)
+#pragma omp parallel
         {
-            if (constraint.Is(TheFlagToSet))
-               constraint.Set(ACTIVE, ValToSet);
+            ModelPart::MasterSlaveConstraintIteratorType ConstraintsBegin;
+            ModelPart::MasterSlaveConstraintIteratorType ConstraintsEnd;
+            OpenMPUtils::PartitionedIterators(rModelPart.MasterSlaveConstraints(),ConstraintsBegin,ConstraintsEnd);
+
+            for ( ModelPart::MasterSlaveConstraintIteratorType itConstraint = ConstraintsBegin; itConstraint != ConstraintsEnd; ++itConstraint )
+            {
+                if (itConstraint->Is(TheFlagToSet))
+                    itConstraint->Set(ACTIVE, ValToSet);
+            }
         }
     }
 
@@ -186,7 +192,6 @@ protected:
         int Rank = rModelPart.GetCommunicator().MyPID();
 
 
-        //
         // auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
         // int count_vel_constraints = 0;
         // for(auto& constraint : r_constraints_container)
@@ -207,7 +212,7 @@ protected:
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
             double NormDv = BaseType::mpMomentumStrategy->Solve();
 
-            SetHoleVariablesToZero(rModelPart);
+            // SetHoleVariablesToZero(rModelPart);
             // Check convergence
             Converged = BaseType::CheckFractionalStepConvergence(NormDv);
 
@@ -257,8 +262,6 @@ protected:
 
         // KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0)<<"count_pre_constraints :: "<<count_pre_constraints<<std::endl;
 
-
-
         KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
             "Calculating Pressure."<< std::endl;
         //double NormDp = 0;
@@ -276,10 +279,8 @@ protected:
         }
 
         // 3. Compute end-of-step velocity
-        if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-            KRATOS_INFO("Updating Velocity.")<< std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<"Updating Velocity." << std::endl;
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
-
         CalculateEndOfStepVelocity();
 
         // Activate Constraints for PRESSURE and deactivate VELOCITY
@@ -291,7 +292,7 @@ protected:
              iExtraSteps != BaseType::mExtraIterationSteps.end(); ++iExtraSteps)
             (*iExtraSteps)->Execute();
 
-        SetHoleVariablesToZero(rModelPart);
+        // SetHoleVariablesToZero(rModelPart);
 
         const double stop_solve_time = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("FSStrategyForChimera", (BaseType::GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
@@ -749,7 +750,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-        const double mAreaTolerence=1E-10;
+    const double mAreaTolerence=1E-12;
 
     ///@}
     ///@name Private Operators
@@ -805,7 +806,7 @@ private:
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Velocity,BaseType::mVelocityTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,BaseType::mMaxVelocityIter);
-            KRATOS_INFO("Velcoity strategy successfully set ! ")<<std::endl;
+            KRATOS_INFO("FSStrategyForChimera ")<<"Velcoity strategy successfully set !"<<std::endl;
         }
         else
         {
@@ -819,7 +820,7 @@ private:
             rSolverConfig.FindTolerance(SolverSettingsType::Pressure,BaseType::mPressureTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,BaseType::mMaxPressureIter);
 
-            KRATOS_INFO("Pressure strategy successfully set ! ")<<std::endl;
+            KRATOS_INFO("FSStrategyForChimera ")<<"Pressure strategy successfully set !"<<std::endl;
         }
         else
         {
