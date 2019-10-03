@@ -203,9 +203,6 @@ protected:
 
         for(std::size_t it = 0; it < BaseType::mMaxVelocityIter; ++it)
         {
-            KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
-                "Momentum iteration "<< it << std::endl;
-
             // build momentum system and solve for fractional step velocity increment
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
             double NormDv = BaseType::mpMomentumStrategy->Solve();
