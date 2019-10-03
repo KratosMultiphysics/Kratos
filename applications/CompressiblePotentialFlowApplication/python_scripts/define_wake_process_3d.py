@@ -361,7 +361,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             elem.Id = counter
             counter +=1
 
-        from gid_output_process import GiDOutputProcess
+        from KratosMultiphysics.gid_output_process import GiDOutputProcess
         output_file = "representation_of_wake"
         gid_output =  GiDOutputProcess(self.wake_model_part,
                                 output_file,
