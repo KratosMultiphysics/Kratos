@@ -14,7 +14,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_KDEM::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
@@ -123,15 +123,27 @@ namespace Kratos {
         double kn_el = equiv_young * calculation_area / initial_dist;
 
         if (&element1_props == &element2_props) {
-            mTensionLimit = element1->GetFastProperties()->GetContactSigmaMin()*1e6;
+            mTensionLimit = GetContactSigmaMax(element1) * 1e6;
         } else {
-            mTensionLimit = 0.5*1e6*(element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin());
+            mTensionLimit = 0.5 * 1e6 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
         }
 
         const double Ntstr_el = mTensionLimit * calculation_area;
         double u1 = Ntstr_el / kn_el;
         if (u1 > 2*radius_sum) {u1 = 2*radius_sum;}   // avoid error in special cases with too high tensile
         return u1;
+    }
+
+    double DEM_KDEM::GetContactSigmaMax(SphericContinuumParticle* element) {
+
+        KRATOS_TRY
+
+        const double angle_of_internal_friction_in_radians = atan(element->GetFastProperties()->GetContactInternalFricc());
+        const double contact_tau_zero = element->GetFastProperties()->GetContactTauZero();
+
+        return (2.0 * contact_tau_zero * cos(angle_of_internal_friction_in_radians)) / (1.0 + sin(angle_of_internal_friction_in_radians));
+
+        KRATOS_CATCH("")
     }
 
     void DEM_KDEM::CalculateForces(const ProcessInfo& r_process_info,
@@ -233,7 +245,7 @@ namespace Kratos {
         else { //tension
             int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
             if (failure_type == 0) {
-                double mTensionLimit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
+                double mTensionLimit = 0.5 * 1e6 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2)); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
                 LocalElasticContactForce[2] = kn_el * indentation;
                 if (fabs(LocalElasticContactForce[2]) > limit_force) {

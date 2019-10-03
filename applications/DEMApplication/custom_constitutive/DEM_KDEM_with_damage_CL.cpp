@@ -16,7 +16,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_with_damage::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_KDEM_with_damage::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         KRATOS_INFO("DEM") << "Assigning DEM_KDEM_with_damage to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
@@ -128,7 +128,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double tension_limit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin());
+        const double tension_limit = 0.5 * 1e6 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
         const double damage_energy_coeff = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
         double k_unload = 0.0;
         double limit_force = 0.0;

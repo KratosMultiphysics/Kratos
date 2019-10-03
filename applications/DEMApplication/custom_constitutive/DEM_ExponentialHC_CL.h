@@ -26,7 +26,7 @@ namespace Kratos {
 
         void Initialize(SphericContinuumParticle* owner_sphere) override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_ExponentialHC() {}
 

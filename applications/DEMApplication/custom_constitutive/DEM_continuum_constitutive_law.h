@@ -35,7 +35,7 @@ namespace Kratos {
 
         virtual void Initialize(SphericContinuumParticle* owner_sphere);
 
-        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const;
+        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
 
         virtual void Check(Properties::Pointer pProp) const;
 

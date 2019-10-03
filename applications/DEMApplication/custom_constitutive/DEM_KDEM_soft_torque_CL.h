@@ -16,7 +16,7 @@ namespace Kratos {
         DEM_KDEM_soft_torque() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_KDEM_soft_torque() {
         }

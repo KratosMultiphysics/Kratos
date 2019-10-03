@@ -17,7 +17,7 @@ namespace Kratos {
         DEM_KDEM_Fissured_Rock_CL() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
         ~DEM_KDEM_Fissured_Rock_CL() {
         }
