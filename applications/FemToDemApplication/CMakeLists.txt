@@ -10,7 +10,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication)
 include_directories( ${CMAKE_SOURCE_DIR}/applications/DEMApplication)
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication)
 include_directories( ${CMAKE_SOURCE_DIR}/applications/PfemFluidDynamicsApplication)
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DelaunayApplication)
+include_directories( ${CMAKE_SOURCE_DIR}/applications/DelaunayMeshingApplication)
 
 # generate variables with the sources
 set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
