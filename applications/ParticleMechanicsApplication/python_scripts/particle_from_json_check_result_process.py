@@ -1,12 +1,9 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-import json
-import math
-from json_utilities import *
 
 # Importing the base class
-from from_json_check_result_process import FromJsonCheckResultProcess
+from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
 from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
 # Import KratosUnittest

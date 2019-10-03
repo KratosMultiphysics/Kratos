@@ -111,18 +111,6 @@ public:
         const Variable<array_1d<double, 3 > >& rVariable,
         array_1d<double, 3 > & rValue) override;
 
-    void CalculateMaterialResponse(const Vector& rStrainVector,
-                                    const Matrix& rDeformationGradient,
-                                    Vector& rStressVector,
-                                    Matrix& rAlgorithmicTangent,
-                                    const ProcessInfo& rCurrentProcessInfo,
-                                    const Properties& rMaterialProperties,
-                                    const GeometryType& rElementGeometry,
-                                    const Vector& rShapeFunctionsValues,
-                                    bool CalculateStresses = true,
-                                    int CalculateTangent = true,
-                                    bool SaveInternalVariables = true) override;
-
     /**
      * @brief This function calculates the yield function for the plastic model
      * @param rMaterialProperties Material Properties of the problem
@@ -136,19 +124,16 @@ public:
      * @param rMaterialProperties Material Properties of the problem
      * @param rCurrentStress Current stress value
      */
-    bool CheckIfIsPlasticRegime(const Properties& rMaterialProperties,
-        const double& rCurrentStress);
+    bool CheckIfIsPlasticRegime(Parameters& rValues);
 
     void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
 					    const GeometryType& rElementGeometry,
 					    const Vector& rShapeFunctionsValues,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                        const GeometryType& rElementGeometry,
-                        const Vector& rShapeFunctionsValues,
-                        const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
 
+    void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
     /**
      * @brief This function checks if the predicted stress state is in the elastic regime

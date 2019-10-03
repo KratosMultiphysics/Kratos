@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-from .structural_mechanics_solver import MechanicalSolver
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return ImplicitMechanicalSolver(model, custom_settings)
@@ -34,11 +34,12 @@ class ImplicitMechanicalSolver(MechanicalSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
-            "scheme_type"   : "bossak",
-            "damp_factor_m" :-0.3,
-            "newmark_beta" : 0.25,
-            "rayleigh_alpha": 0.0,
-            "rayleigh_beta" : 0.0
+            "time_integration_method" : "implicit",
+            "scheme_type"             : "bossak",
+            "damp_factor_m"           :-0.3,
+            "newmark_beta"            : 0.25,
+            "rayleigh_alpha"          : 0.0,
+            "rayleigh_beta"           : 0.0
         }""")
         this_defaults.AddMissingParameters(super(ImplicitMechanicalSolver, cls).GetDefaultSettings())
         return this_defaults

@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Import base class file
-from .structural_mechanics_solver import MechanicalSolver
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
 def CreateSolver(model, custom_settings):
     return ExplicitMechanicalSolver(model, custom_settings)
@@ -30,6 +30,7 @@ class ExplicitMechanicalSolver(MechanicalSolver):
     @classmethod
     def GetDefaultSettings(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
+            "time_integration_method"    : "explicit",
             "scheme_type"                : "central_differences",
             "time_step_prediction_level" : 0,
             "delta_time_refresh"         : 1000,

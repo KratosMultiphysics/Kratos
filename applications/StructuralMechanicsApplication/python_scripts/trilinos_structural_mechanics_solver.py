@@ -11,7 +11,10 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
-from .structural_mechanics_solver import MechanicalSolver
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
+
+# Other imports
+from KratosMultiphysics.StructuralMechanicsApplication import trilinos_convergence_criteria_factory as convergence_criteria_factory
 
 def CreateSolver(model, custom_settings):
     return TrilinosMechanicalSolver(model, custom_settings)
@@ -71,7 +74,6 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         return TrilinosApplication.CreateCommunicator()
 
     def _create_convergence_criterion(self):
-        import trilinos_convergence_criteria_factory as convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 

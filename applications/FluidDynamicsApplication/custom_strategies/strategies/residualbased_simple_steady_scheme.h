@@ -114,6 +114,8 @@ public:
 
     mRotationTool.RotateVelocities(rModelPart);
 
+    TSparseSpace::InplaceMult(rDx, mVelocityRelaxationFactor);
+
     mpDofUpdater->UpdateDofs(rDofSet,rDx);
 
     mRotationTool.RecoverVelocities(rModelPart);
@@ -140,8 +142,6 @@ public:
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
 
-    AddRelaxation(rCurrentElement->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-
     // apply slip condition
     mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
     mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
@@ -167,8 +167,6 @@ public:
 
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
-
-    AddRelaxation(rCurrentCondition->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     // apply slip condition
     mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
@@ -208,39 +206,16 @@ public:
     KRATOS_CATCH("");
   }
 
-  void InitializeNonLinIteration(ModelPart& rModelPart,
-                                         TSystemMatrixType& rA,
-                                         TSystemVectorType& rDx,
-                                         TSystemVectorType& rb) override
+  void FinalizeNonLinIteration(ModelPart& rModelPart,
+                                       TSystemMatrixType& rA,
+                                       TSystemVectorType& rDx,
+                                       TSystemVectorType& rb) override
   {
-    KRATOS_TRY;
-
-    for (typename ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin();
-         itNode != rModelPart.NodesEnd(); itNode++)
-      itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-
-    double output;
-    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-    const int number_of_elements = rModelPart.NumberOfElements();
-    #pragma omp parallel for private(output)
-    for (int i = 0; i < number_of_elements; i++) {
-      ModelPart::ElementsContainerType::iterator it_elem = rModelPart.ElementsBegin() + i;
-      it_elem->Calculate(NODAL_AREA, output, CurrentProcessInfo);
+    if (mpTurbulenceModel) // If not null
+    {
+      mpTurbulenceModel->Execute();
     }
 
-    rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
-
-    if (mpTurbulenceModel != 0) // If not null
-      mpTurbulenceModel->Execute();
-
-    KRATOS_CATCH("");
-  }
-
-  void FinalizeNonLinIteration(ModelPart &rModelPart,
-                                       TSystemMatrixType &rA,
-                                       TSystemVectorType &rDx,
-                                       TSystemVectorType &rb) override
-  {
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
     //if orthogonal subscales are computed
@@ -284,10 +259,10 @@ public:
     }
   }
 
-  void FinalizeSolutionStep(ModelPart &rModelPart,
-                            TSystemMatrixType &rA,
-                            TSystemVectorType &rDx,
-                            TSystemVectorType &rb) override
+  void FinalizeSolutionStep(ModelPart& rModelPart,
+                            TSystemMatrixType& rA,
+                            TSystemVectorType& rDx,
+                            TSystemVectorType& rb) override
   {
     LocalSystemVectorType RHS_Contribution;
     LocalSystemMatrixType LHS_Contribution;
@@ -333,78 +308,6 @@ protected:
 
   ///@name Protected Operators
   ///@{
-  void AddRelaxation(const GeometryType& rGeometry,
-                     LocalSystemMatrixType& LHS_Contribution,
-                     LocalSystemVectorType& RHS_Contribution,
-                     ProcessInfo& CurrentProcessInfo)
-  {
-    if (LHS_Contribution.size1() == 0)
-      return;
-
-    const unsigned int NumNodes = rGeometry.PointsNumber();
-    const unsigned int Dimension = rGeometry.WorkingSpaceDimension();
-
-    Matrix Mass;
-    this->CalculateLumpedMassMatrix(rGeometry,Mass);
-
-    unsigned int DofIndex = 0;
-    for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-    {
-      const array_1d<double, 3>& rVel = rGeometry[iNode].FastGetSolutionStepValue(VELOCITY,0);
-      const double Area = rGeometry[iNode].FastGetSolutionStepValue(NODAL_AREA,0);
-      double VelNorm = 0.0;
-      for (unsigned int d = 0; d < Dimension; ++d)
-        VelNorm += rVel[d] * rVel[d];
-      VelNorm = sqrt(VelNorm);
-      double LocalDt;
-      if (VelNorm != 0.0)
-        LocalDt = pow(Area, 1.0 / double(Dimension)) / VelNorm;
-      else
-        LocalDt = 1.0;
-
-      for (unsigned int i = 0; i < Dimension; i++)
-      {
-        Mass(DofIndex,DofIndex) *= 1.0 / (mVelocityRelaxationFactor * LocalDt);
-        DofIndex++;
-      }
-      DofIndex++; // pressure dof
-    }
-    noalias(LHS_Contribution) += Mass;
-
-    // pressure relaxation
-    for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-    {
-      unsigned int BlockIndex = iNode * (Dimension + 1);
-      LHS_Contribution(BlockIndex+Dimension,BlockIndex+Dimension) *= 1.0 / mPressureRelaxationFactor;
-    }
-  }
-
-  void CalculateLumpedMassMatrix(
-    const GeometryType& rGeometry,
-    LocalSystemMatrixType& rLumpedMass) const
-  {
-    const unsigned int dimension = rGeometry.WorkingSpaceDimension();
-    const unsigned int number_of_nodes = rGeometry.PointsNumber();
-
-    const unsigned int nodal_block_size = dimension + 1;
-    const unsigned int local_size = nodal_block_size * number_of_nodes;
-
-    if (rLumpedMass.size1() != local_size) {
-      rLumpedMass.resize(local_size,local_size,false);
-    }
-
-    noalias(rLumpedMass) = ZeroMatrix(local_size,local_size);
-
-    const double size_fraction = rGeometry.DomainSize() / number_of_nodes;
-
-    for (unsigned int i = 0; i < number_of_nodes; i++){
-      const unsigned int node_block = i*nodal_block_size;
-      const double lumped_mass = size_fraction * rGeometry[i].FastGetSolutionStepValue(DENSITY);
-      for (unsigned int d = 0; d < dimension; d++) {
-        rLumpedMass(node_block+d,node_block+d) = lumped_mass;
-      }
-    }
-  }
 
   ///@}
 

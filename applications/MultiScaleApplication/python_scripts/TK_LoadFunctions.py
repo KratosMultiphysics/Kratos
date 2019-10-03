@@ -2,8 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.MultiScaleApplication import *
-CheckForPreviousImport()
-
 
 class ProlongationType:
 	CONSTANT = 0
@@ -39,10 +37,10 @@ class RampLoadFunction:
 
 
 class PieceWiseLoadFunction:
-	
-	def __init__(self, 
-				 X=None, 
-				 Y=None, 
+
+	def __init__(self,
+				 X=None,
+				 Y=None,
 				 ProlongationLeft=ProlongationType.CONSTANT,
 				 ProlongationRight=ProlongationType.CONSTANT
 				 ):
@@ -51,7 +49,7 @@ class PieceWiseLoadFunction:
 		self.ProlongationLeft = ProlongationLeft
 		self.ProlongationRight = ProlongationRight
 		self.__check_input()
-	
+
 	def GetMultiplier(self,
 					  Info=None,
 					  ):
@@ -73,7 +71,7 @@ class PieceWiseLoadFunction:
 				return self.__get_linear_factor_right(currentTime)
 		else :
 			return self.__get_linear_factor(currentTime)
-	
+
 	def __check_input(self):
 		n = len(self.X)
 		if(n != len(self.Y)):
@@ -88,7 +86,7 @@ class PieceWiseLoadFunction:
 			if(minStep > istep):
 				minStep = istep
 		self.Tolerance = minStep*1.0E-6
-	
+
 	def __get_linear_factor(self, currentTime):
 		for i in range(1,len(self.X)):
 			if(currentTime <= self.X[i] + self.Tolerance):
@@ -104,7 +102,7 @@ class PieceWiseLoadFunction:
 				timeRatio = relativeTime / deltaTime
 				return y0 + timeRatio * deltaFactor
 		return 0.0;
-	
+
 	def __get_linear_factor_left(self, currentTime):
 		x0 = self.X[0]
 		x1 = self.X[1]
@@ -117,7 +115,7 @@ class PieceWiseLoadFunction:
 		relativeTime = currentTime - x0
 		timeRatio = relativeTime / deltaTime
 		return y0 + timeRatio * deltaFactor
-	
+
 	def __get_linear_factor_right(self, currentTime):
 		i = len(self.X)
 		x0 = self.X[i-1]
