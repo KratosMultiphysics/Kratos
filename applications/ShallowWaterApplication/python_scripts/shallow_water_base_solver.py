@@ -74,7 +74,7 @@ class ShallowWaterBaseSolver(PythonSolver):
     def PrepareModelPart(self):
         # Defining the variables
         gravity = self.settings["gravity"].GetDouble()
-        dry_height = self.settings["dry_height_treshold"].GetDouble()
+        dry_height = self.settings["dry_height_threshold"].GetDouble()
         time_scale = self.settings["time_scale"].GetString()
         water_height_scale = self.settings["water_height_scale"].GetString()
 
@@ -223,7 +223,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             "echo_level"               : 0,
             "buffer_size"              : 2,
             "dynamic_tau"              : 0.005,
-            "dry_height_treshold"      : 1e-3,
+            "dry_height_threshold"      : 1e-3,
             "relative_tolerance"       : 1e-6,
             "absolute_tolerance"       : 1e-9,
             "maximum_iterations"       : 20,
