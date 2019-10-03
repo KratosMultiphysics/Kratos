@@ -58,6 +58,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "clear_inactive_for_post"       : true,
+            "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
                 "type_search"                         : "in_radius_with_obb",
                 "simple_search"                       : false,

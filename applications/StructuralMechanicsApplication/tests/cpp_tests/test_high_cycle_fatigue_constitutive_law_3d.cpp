@@ -110,9 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosStru
     TestStress = cl_parameters.GetStressVector();
 
     //Check the results
-    for (int comp = 0; comp < 6; comp++) {
-        KRATOS_CHECK_NEAR(expected_value[comp], TestStress[comp], 0.0001e+08);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(expected_value, TestStress, 0.0001e+08);
 }
 
 } // namespace Testing
