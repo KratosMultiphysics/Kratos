@@ -11,7 +11,7 @@ import sys
 from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_analysis import ContactStructuralMechanicsAnalysis as BaseClass
 
 # Import solver wrapper
-from KratosMultiphysics.ContactStructuralMechanicsApplication import python_solvers_wrapper_adaptative_remeshing_contact_structural
+from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_adaptative_remeshing_structural
 
 # Import auxiliar methods
 from KratosMultiphysics.ContactStructuralMechanicsApplication.auxiliar_methods_contact_adaptative_remeshing import AuxiliarMethodsContactAdaptiveRemeshing
@@ -119,7 +119,7 @@ class AdaptativeRemeshingContactStructuralMechanicsAnalysis(BaseClass):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
         ## Solver construction
-        return python_solvers_wrapper_adaptative_remeshing_contact_structural.CreateSolver(self.model, self.project_parameters)
+        return python_solvers_wrapper_adaptative_remeshing_structural.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
