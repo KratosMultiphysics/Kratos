@@ -176,6 +176,7 @@ protected:
     double SolveStep() override
     {
 
+        double start_solve_time = OpenMPUtils::GetCurrentTime();
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         // 1. Fractional step momentum iteration
@@ -210,6 +211,7 @@ protected:
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
             double NormDv = BaseType::mpMomentumStrategy->Solve();
 
+            SetHoleVariablesToZero(rModelPart);
             // Check convergence
             Converged = BaseType::CheckFractionalStepConvergence(NormDv);
 
@@ -295,6 +297,9 @@ protected:
 
         SetHoleVariablesToZero(rModelPart);
 
+        const double stop_solve_time = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("FSStrategyForChimera", (BaseType::GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Time for solving step : " << stop_solve_time - start_solve_time << std::endl;
+
         return NormDp;
     }
 
@@ -350,7 +355,7 @@ protected:
             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
             {
                 const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if(true) //if( NodalArea > 1E-8 )
+                if( NodalArea > mAreaTolerence )
                 {
                     itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
                     itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
@@ -449,12 +454,14 @@ protected:
                 for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
                 {
                     const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                    if ( ! itNode->IsFixed(VELOCITY_X) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Y) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                    if ( ! itNode->IsFixed(VELOCITY_Z) )
-                        itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
+                    if(NodalArea >mAreaTolerence){
+                        if ( ! itNode->IsFixed(VELOCITY_X) )
+                            itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                        if ( ! itNode->IsFixed(VELOCITY_Y) )
+                            itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                        if ( ! itNode->IsFixed(VELOCITY_Z) )
+                            itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
+                    }
                 }
             }
 
@@ -506,7 +513,7 @@ protected:
                         ++slave_i;
                     }
                 }
-            }            
+            }
         }
         else
         {
@@ -520,7 +527,7 @@ protected:
                 {
                     const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
 
-                    if(true) //if(NodalArea >1E-8)
+                    if(NodalArea >mAreaTolerence)
                     {
                         if ( ! itNode->IsFixed(VELOCITY_X) )
                             itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
@@ -643,7 +650,7 @@ protected:
 
         for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
         {
-            if (itNode->GetValue(NODAL_AREA) >1E-8)
+            if (itNode->GetValue(NODAL_AREA) > mAreaTolerence)
             {
                 itNode->FastGetSolutionStepValue(NODAL_AREA) = itNode->GetValue(NODAL_AREA);
                 itNode->FastGetSolutionStepValue(CONV_PROJ) = itNode->GetValue(CONV_PROJ);
@@ -746,7 +753,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+        double mAreaTolerence=1E-10;
 
     ///@}
     ///@name Private Operators
