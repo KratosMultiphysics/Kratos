@@ -40,6 +40,9 @@ class TestCase(TestCase):
         if first < (second - tolerance) or first > (second + tolerance):
             raise self.failureException(msg or '%r != %r within %r places' % (first, second, tolerance))
 
+    def assertRelativeAlmostEqual(self, a, b, rel_tol=1e-09, abs_tol=0.0, msg=None):
+        self.assertTrue(isclose(a, b, rel_tol, abs_tol), msg)
+
     assertEqualTolerance = failUnlessEqualWithTolerance
 
 @contextmanager
@@ -170,7 +173,8 @@ KratosSuites = {
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     '''Same implementation as math.isclose
-    self-implemented bcs msth.isclose was only introduced in python3.5
+    self-implemented bcs math.isclose was only introduced in python3.5
+    see https://www.python.org/dev/peps/pep-0485/
     '''
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
