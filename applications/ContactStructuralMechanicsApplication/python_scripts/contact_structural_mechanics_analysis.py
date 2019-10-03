@@ -8,6 +8,7 @@ import sys
 
 # Import the base structural analysis
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
+from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural
 
 class ContactStructuralMechanicsAnalysis(BaseClass):
     """
@@ -46,8 +47,7 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        from KratosMultiphysics.ContactStructuralMechanicsApplication import python_solvers_wrapper_contact_structural
-        return python_solvers_wrapper_contact_structural.CreateSolver(self.model, self.project_parameters)
+        return python_solvers_wrapper_structural.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
         return "::[KCSM Simulation]:: "
