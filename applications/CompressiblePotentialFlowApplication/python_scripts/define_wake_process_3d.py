@@ -26,7 +26,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "body_model_part_name": "",
             "wake_stl_file_name" : "",
             "wake_normal": [0.0,0.0,1.0],
-            "output_wake": true,
+            "output_wake": false,
             "epsilon": 1e-9
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
