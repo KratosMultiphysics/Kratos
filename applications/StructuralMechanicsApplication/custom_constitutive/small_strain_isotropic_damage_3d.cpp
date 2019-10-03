@@ -51,17 +51,6 @@ SmallStrainIsotropicDamage3D::~SmallStrainIsotropicDamage3D()
 //************************************************************************************
 //************************************************************************************
 
-bool SmallStrainIsotropicDamage3D::Has(const Variable<int>& rThisVariable)
-{
-    if(rThisVariable == NUMBER_OF_INTERNAL_VARIABLES){
-        return true;
-    }
-    return false;
-}
-
-//************************************************************************************
-//************************************************************************************
-
 bool SmallStrainIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
 {
     if(rThisVariable == STRAIN_ENERGY){
@@ -116,22 +105,6 @@ void SmallStrainIsotropicDamage3D::SetValue(
     if(rThisVariable == INTERNAL_VARIABLES){
         mStrainVariable = rValue[0];
     }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-int& SmallStrainIsotropicDamage3D::GetValue(
-    const Variable<int>& rThisVariable,
-    int& rValue
-    )
-{
-    if(rThisVariable == NUMBER_OF_INTERNAL_VARIABLES){
-        // StrainVariable: 1
-        rValue = 1;
-    }
-
-    return rValue;
 }
 
 //************************************************************************************

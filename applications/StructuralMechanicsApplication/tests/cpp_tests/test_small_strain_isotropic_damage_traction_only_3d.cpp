@@ -85,11 +85,6 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
     //
     KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN_ENERGY));  // = False, in order to use CalculateValue())
     KRATOS_CHECK_IS_FALSE(cl.Has(DAMAGE_VARIABLE));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK(cl.Has(NUMBER_OF_INTERNAL_VARIABLES));  // = True
-    int nr_variables;
-    cl.GetValue(NUMBER_OF_INTERNAL_VARIABLES, nr_variables);
-    KRATOS_CHECK_NEAR(nr_variables, 1, 1.e-5);  // = True
-
 
     //
     // Test: load - unload in traction

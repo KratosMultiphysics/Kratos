@@ -116,29 +116,11 @@ public:
     bool Has(const Variable<double>& rThisVariable) override;
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (int)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<int>& rThisVariable) override;
-
-    /**
      * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector>& rThisVariable) override;
-
-    /**
-     * @brief Returns the value of a specified variable (int)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    int& GetValue(
-        const Variable<int>& rThisVariable,
-        int& rValue
-        ) override;
 
      /**
      * @brief Returns the value of a specified variable (Vector)
