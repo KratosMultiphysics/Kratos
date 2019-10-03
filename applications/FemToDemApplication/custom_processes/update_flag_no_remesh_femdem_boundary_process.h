@@ -15,7 +15,6 @@
 #define KRATOS_UPDATE_FLAG_NO_REMESH_FEMDEM_BOUNDARY_PROCESS
 
 
-#include "includes/model_part.h"
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
 
