@@ -33,8 +33,10 @@ class ControlModuleFemDemUtility(object):
             "target_stress_table_id" : 1,
             "initial_velocity" : 0.0,
             "limit_velocity" : -0.1,
-            "velocity_factor" : 0.5,
+            "velocity_factor" : 1.0,
             "young_modulus" : 7.0e9,
+            "stress_increment_tolerance": 100.0,
+            "update_stiffness": true,
             "start_time" : 0.0
         }  """ )
 
@@ -58,8 +60,10 @@ class ControlModuleFemDemUtility(object):
             "target_stress_table_id" : 2,
             "initial_velocity" : 0.0,
             "limit_velocity" : 0.1,
-            "velocity_factor" : 0.5,
+            "velocity_factor" : 1.0,
             "young_modulus" : 7.0e9,
+            "stress_increment_tolerance": 100.0,
+            "update_stiffness": true,
             "start_time" : 0.0
         }  """ )
 
