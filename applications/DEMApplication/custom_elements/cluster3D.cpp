@@ -60,6 +60,9 @@ namespace Kratos {
         RigidBodyElement3D::Initialize(r_process_info);
 
         const double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
+	if(!GetProperties().Has(CLUSTER_INFORMATION)) {
+	  KRATOS_ERROR<<"Something went wrong. Properties do not contain CLUSTER_INFORMATION.";
+	}
         const ClusterInformation& cl_info = GetProperties()[CLUSTER_INFORMATION];
         //std::string& name = cl_info.mName;
         const double reference_size = cl_info.mSize;
