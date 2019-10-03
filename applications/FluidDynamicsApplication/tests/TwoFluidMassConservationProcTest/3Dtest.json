@@ -14,6 +14,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "TwoFluidMassConservationProcTest/3Dtest"
         },
+        "material_import_settings"       	: {
+            "materials_filename" : "TwoFluidMassConservationProcTest/TwoFluidMassConservation3DTestMaterials"
+        },
     	"maximum_iterations"			: 5,
     	"echo_level"					: 0,
     	"time_order"					: 2,
