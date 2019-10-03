@@ -212,31 +212,10 @@ void SmallDisplacementMixedStrainElement::CalculateLocalSystem(
     }
 
     // Compute the geometry data
-    const auto r_integration_method = GetIntegrationMethod();
-    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(r_integration_method);
-    const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
-
-    Vector detJ_gauss;
     Vector w_gauss_container;
     Matrix N_gauss_container;
     GeometryType::ShapeFunctionsGradientsType DN_DX_container;
-
-    // Calculate the shape function values
-    if (N_gauss_container.size1() != n_gauss || N_gauss_container.size2() != n_nodes) {
-        N_gauss_container.resize(n_gauss, n_nodes,false);
-    }
-    N_gauss_container = r_geometry.ShapeFunctionsValues(r_integration_method);
-
-    // Calculate the shape function gradients values
-    r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DX_container, detJ_gauss, r_integration_method);
-
-    // Calculate the Gauss point weights (already multiplied by det(J))
-    if (w_gauss_container.size() != n_gauss) {
-        w_gauss_container.resize(n_gauss, false);
-    }
-    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-        w_gauss_container[i_gauss] = detJ_gauss[i_gauss] * r_integration_points[i_gauss].Weight();
-    }
+    CalculateGeometryData(r_geometry, w_gauss_container, N_gauss_container, DN_DX_container);
 
     // Calculate the LHS and RHS contributions
     rLeftHandSideMatrix.clear();
@@ -246,6 +225,7 @@ void SmallDisplacementMixedStrainElement::CalculateLocalSystem(
     Matrix dev_strain_op;
     CalculateDeviatoricStrainOperator(dev_strain_op);
 
+    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         // Get Gauss pt. values
         const auto &rN = row(N_gauss_container, i_gauss);
@@ -293,19 +273,115 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
 {
     const auto &r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType block_size = dim + 1;
-    const SizeType matrix_size = block_size * r_geometry.PointsNumber();
+    const SizeType matrix_size = block_size * n_nodes;
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
     // Check RHS size
     if (rRightHandSideVector.size() != matrix_size) {
-        rRightHandSideVector = ZeroVector(matrix_size);
+        rRightHandSideVector.resize(matrix_size, false);
     }
 
-    // Get geometry data
+    // Compute the geometry data
+    Vector w_gauss_container;
+    Matrix N_gauss_container;
+    GeometryType::ShapeFunctionsGradientsType DN_DX_container;
+    CalculateGeometryData(r_geometry, w_gauss_container, N_gauss_container, DN_DX_container);
 
-    // Compute the kinematics
+    // Calculate the RHS contributions
+    rRightHandSideVector.clear();
 
-    // Loop the Gauss points
+    Matrix B_mat(strain_size, n_nodes*dim);
+    Matrix dev_strain_op;
+    CalculateDeviatoricStrainOperator(dev_strain_op);
+
+    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        // Get Gauss pt. values
+        const auto &rN = row(N_gauss_container, i_gauss);
+        const double w_gauss = w_gauss_container[i_gauss];
+
+        // Add the deviatoric strain contribution
+        // TODO: MOVE TO A FUNCTION
+        Vector tot_strain = ZeroVector(strain_size);
+        CalculateB(B_mat, DN_DX_container[i_gauss]);
+        for (unsigned int i = 0; i < strain_size; ++i) {
+            for (unsigned int j = 0; j < strain_size ; ++j) {
+                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                    const auto &r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+                    for (unsigned int d = 0; d < dim; ++d) {
+                        const unsigned int aux = i_node * dim + d;
+                        tot_strain[i] += dev_strain_op(i,j) * B_mat(j,aux) * r_disp[d];
+                    }
+                }
+            }
+        }
+
+        // Interpolate and add the nodal volumetric strain
+        double vol_strain = 0.0;
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            vol_strain += rN[i_node] * r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        }
+        for (unsigned int d = 0; d < dim; ++d) {
+            tot_strain[d] += vol_strain;
+        }
+        KRATOS_WATCH(tot_strain)
+
+        // Get the stress from the constitutive law
+        // TODO: MOVE TO A FUNCTION
+        Vector tot_stress(strain_size);
+        ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        auto &r_cons_law_options = cons_law_values.GetOptions();
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        cons_law_values.SetShapeFunctionsValues(rN);
+        cons_law_values.SetStrainVector(tot_strain);
+        cons_law_values.SetStressVector(tot_stress);
+        mConstitutiveLawVector[i_gauss]->CalculateMaterialResponseCauchy(cons_law_values);
+
+        // Add momentum body force contribution
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                const double aux = rN[i] * rN[j];
+                for (unsigned int d = 0; d < dim; ++d) {
+                    rRightHandSideVector[i * block_size + d] += aux * body_force[d];
+                }
+            }
+        }
+
+        // Add momentum stress contribution
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int d = 0; d < dim; ++d) {
+                for (unsigned int j = 0; j < strain_size; ++j) {
+                    for (unsigned int k = 0; k < strain_size; ++k) {
+                        rRightHandSideVector(i * block_size + d) -= B_mat(j, i * dim + d) * dev_strain_op(k,j) * cons_law_values.GetStressVector()[k];
+                    }
+                }
+            }
+        }
+
+        // Add mass conservation divergence contribution
+        // TODO: These can be included in the body force contribution loop
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                const auto &r_disp = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT);
+                for (unsigned int d = 0; d < dim; ++d) {
+                    rRightHandSideVector(i * block_size + dim) -= rN[i] * DN_DX_container[i_gauss](j,d) * r_disp[d];
+                }
+            }
+        }
+
+        // Add mass conservation volumetric strain contribution
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                const double &r_vol_strain = r_geometry[j].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+                rRightHandSideVector(i * block_size + dim) -= rN[i] * rN[j] * r_vol_strain;
+            }
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -485,9 +561,65 @@ void SmallDisplacementMixedStrainElement::CalculateConstitutiveVariables(
 /***********************************************************************************/
 
 array_1d<double, 3> SmallDisplacementMixedStrainElement::GetBodyForce(
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
     const IndexType PointNumber) const
 {
+    array_1d<double, 3> body_force;
+    for (IndexType i = 0; i < 3; ++i) {
+        body_force[i] = 0.0;
+    }
+
+    const auto &r_properties = GetProperties();
+    const double density = r_properties.Has(DENSITY) ? r_properties[DENSITY] : 0.0;
+
+    if (r_properties.Has(VOLUME_ACCELERATION)) {
+        noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
+    }
+
+    const auto &r_geometry = GetGeometry();
+    if(r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) {
+        Vector N;
+        N = r_geometry.ShapeFunctionsValues(N, rIntegrationPoints[PointNumber].Coordinates());
+        for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
+            noalias(body_force) += N[i_node] * density * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        }
+    }
+
+    return body_force;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedStrainElement::CalculateGeometryData(
+    const GeometryType &rGeometry,
+    Vector &rWeightsContainer,
+    Matrix &rShapeFunctionsContainer,
+    GeometryType::ShapeFunctionsGradientsType &rDNDXContainer) const
+{
+    // Compute the geometry data
+    const SizeType n_nodes = rGeometry.PointsNumber();
+    const auto r_integration_method = GetIntegrationMethod();
+    const SizeType n_gauss = rGeometry.IntegrationPointsNumber(r_integration_method);
+    const auto& r_integration_points = rGeometry.IntegrationPoints(r_integration_method);
+
+    // Calculate the shape function values
+    if (rShapeFunctionsContainer.size1() != n_gauss || rShapeFunctionsContainer.size2() != n_nodes) {
+        rShapeFunctionsContainer.resize(n_gauss, n_nodes,false);
+    }
+    rShapeFunctionsContainer = rGeometry.ShapeFunctionsValues(r_integration_method);
+
+    // Calculate the shape function gradients values
+    Vector detJ_container;
+    rGeometry.ShapeFunctionsIntegrationPointsGradients(rDNDXContainer, detJ_container, r_integration_method);
+
+    // Calculate the Gauss point weights (already multiplied by det(J))
+    if (rWeightsContainer.size() != n_gauss) {
+        rWeightsContainer.resize(n_gauss, false);
+    }
+    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        rWeightsContainer[i_gauss] = detJ_container[i_gauss] * r_integration_points[i_gauss].Weight();
+    }
 
 }
 
@@ -507,22 +639,22 @@ void SmallDisplacementMixedStrainElement::CalculateB(
 
     if(dimension == 2) {
         for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-            rB( 0, i*2     ) = rDN_DX( i, 0 );
-            rB( 1, i*2 + 1 ) = rDN_DX( i, 1 );
-            rB( 2, i*2     ) = rDN_DX( i, 1 );
-            rB( 2, i*2 + 1 ) = rDN_DX( i, 0 );
+            rB(0, i*2    ) = rDN_DX(i, 0);
+            rB(1, i*2 + 1) = rDN_DX(i, 1);
+            rB(2, i*2    ) = rDN_DX(i, 1);
+            rB(2, i*2 + 1) = rDN_DX(i, 0);
         }
     } else if(dimension == 3) {
         for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-            rB( 0, i*3     ) = rDN_DX( i, 0 );
-            rB( 1, i*3 + 1 ) = rDN_DX( i, 1 );
-            rB( 2, i*3 + 2 ) = rDN_DX( i, 2 );
-            rB( 3, i*3     ) = rDN_DX( i, 1 );
-            rB( 3, i*3 + 1 ) = rDN_DX( i, 0 );
-            rB( 4, i*3 + 1 ) = rDN_DX( i, 2 );
-            rB( 4, i*3 + 2 ) = rDN_DX( i, 1 );
-            rB( 5, i*3     ) = rDN_DX( i, 2 );
-            rB( 5, i*3 + 2 ) = rDN_DX( i, 0 );
+            rB(0, i*3    ) = rDN_DX(i, 0);
+            rB(1, i*3 + 1) = rDN_DX(i, 1);
+            rB(2, i*3 + 2) = rDN_DX(i, 2);
+            rB(3, i*3    ) = rDN_DX(i, 1);
+            rB(3, i*3 + 1) = rDN_DX(i, 0);
+            rB(4, i*3 + 1) = rDN_DX(i, 2);
+            rB(4, i*3 + 2) = rDN_DX(i, 1);
+            rB(5, i*3    ) = rDN_DX(i, 2);
+            rB(5, i*3 + 2) = rDN_DX(i, 0);
         }
     }
 

@@ -483,7 +483,7 @@ protected:
      * @return The vector of body forces
      */
     virtual array_1d<double, 3> GetBodyForce(
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
         const IndexType PointNumber) const;
 
     // /**
@@ -586,6 +586,21 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Calculate the geometry date
+     * For a given geometry, this method calculates the Gauss point
+     * Jacobian determinants, weights, shape functions and gradients
+     * @param rGeometry Geometry of interest
+     * @param rWeightsContainer Weights container
+     * @param rShapeFunctionsContainer Shape functions container
+     * @param rDNDXContainer Gracients container
+     */
+    void CalculateGeometryData(
+        const GeometryType &rGeometry,
+        Vector &rWeightsContainer,
+        Matrix &rShapeFunctionsContainer,
+        GeometryType::ShapeFunctionsGradientsType &rDNDXContainer) const;
 
     /**
      * Calculation of the Deformation Matrix B
