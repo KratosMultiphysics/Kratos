@@ -26,6 +26,7 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
         # settings for inlet with interface between fluids and separate velocities
         default_settings = KratosMultiphysics.Parameters("""
+        {
                 "model_part_name":"",
                 "center_of_rotation":[0.0,0.0,0.0],
                 "calculate_torque":false,
@@ -36,6 +37,7 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
                 "axis_of_rotation":[0.0,0.0,0.0],
                 "is_ale" : false,
                 "interval": [0.0, 1e30]
+        }
         """)
 
         # Assign this here since it will change the "interval" prior to validation
@@ -47,24 +49,25 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
         if (settings["model_part_name"].GetString() == ""):
             raise Exception("ApplyRotateRegionProcess: A value (string) for the entry 'model_part_name' must be given in the parameters of the process.")
         # Get the modelpart to rotate
-        self.model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
+        self.model_part = Model[settings["model_part_name"].GetString()]
 
         if ( settings["axis_of_rotation"].IsVector() ):
             axis_of_rotation = settings["axis_of_rotation"].GetVector()
             if ( axis_of_rotation[0] == 0.0 and axis_of_rotation[1] == 0.0 and axis_of_rotation[2] == 0.0):
                 raise Exception("The values (vector) of the entry 'axis_of_rotation' are all zero. This is not admissible.")
 
-        if (settings["calculate_torque"].GetBool() and settings["angular_velocity_radians"].GetDouble()==0.0):
+        if (settings["calculate_torque"].GetBool() and settings["angular_velocity_radians"].GetDouble()!=0.0):
             raise Exception("'calculate_torque' is set to true and 'angular_velocity_radians' is not zero. This is not admissible.")
 
-        if(settings["calculate_torque"].GetBool() and settings["moment_of_inertia"].GetDouble() == 0.0)
+        if(settings["calculate_torque"].GetBool() and settings["moment_of_inertia"].GetDouble() == 0.0):
             warnings.warn(" 'moment_of_inertia' is zero !!")
-        if(settings["calculate_torque"].GetBool() and settings["rotational_damping"].GetDouble() == 0.0)
+        if(settings["calculate_torque"].GetBool() and settings["rotational_damping"].GetDouble() == 0.0):
             warnings.warn(" 'rotational_damping' is zero !!")
 
         # If no torque_model_part_name is specified remove it to avoid later problems
         if (settings["torque_model_part_name"].GetString() == ""):
             settings.RemoveValue("torque_model_part_name")
+        settings.RemoveValue("interval")
 
         # Making the actual process
         self.rotate_region_process = KratosChimera.RotateRegionProcess(self.model_part, settings)
