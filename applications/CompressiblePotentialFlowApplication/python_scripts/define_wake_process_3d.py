@@ -1,7 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
-
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def DotProduct(A,B):
     result = 0
@@ -361,7 +361,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             elem.Id = counter
             counter +=1
 
-        from KratosMultiphysics.gid_output_process import GiDOutputProcess
         output_file = "representation_of_wake"
         gid_output =  GiDOutputProcess(self.wake_model_part,
                                 output_file,
