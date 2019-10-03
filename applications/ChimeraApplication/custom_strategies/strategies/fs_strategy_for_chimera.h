@@ -187,16 +187,15 @@ protected:
 
 
         //
-        auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
-        int count_vel_constraints = 0;
-        for(auto& constraint : r_constraints_container)
-        {
-            //std::cout<<"#### "<<constraint.Is(FS_CHIMERA_VEL_CONSTRAINT)<<" , ";
-            if(constraint.Is(FS_CHIMERA_VEL_CONSTRAINT))
-                if(constraint.Is(ACTIVE))
-                    count_vel_constraints++;
-        }
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0)<<"count_vel_constraints :: "<<count_vel_constraints<<std::endl;
+        // auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
+        // int count_vel_constraints = 0;
+        // for(auto& constraint : r_constraints_container)
+        // {
+        //     if(constraint.Is(FS_CHIMERA_VEL_CONSTRAINT))
+        //         if(constraint.Is(ACTIVE))
+        //             count_vel_constraints++;
+        // }
+        // KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0)<<"count_vel_constraints :: "<<count_vel_constraints<<std::endl;
 
         // Activate Constraints for VELOCITY and deactivate PRESSURE
         SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, true);
@@ -251,15 +250,15 @@ protected:
         }
 
 
-        int count_pre_constraints = 0;
-        for(auto& constraint : r_constraints_container)
-        {
-            if(constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
-                if(constraint.Is(ACTIVE))
-                    count_pre_constraints++;
-        }
+        // int count_pre_constraints = 0;
+        // for(auto& constraint : r_constraints_container)
+        // {
+        //     if(constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
+        //         if(constraint.Is(ACTIVE))
+        //             count_pre_constraints++;
+        // }
 
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0)<<"count_pre_constraints :: "<<count_pre_constraints<<std::endl;
+        // KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0)<<"count_pre_constraints :: "<<count_pre_constraints<<std::endl;
 
 
 
