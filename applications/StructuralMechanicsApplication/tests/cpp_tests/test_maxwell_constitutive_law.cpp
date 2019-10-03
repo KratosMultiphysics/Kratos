@@ -93,9 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosStructuralMechanicsFastS
     test_maxwell_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    for (int comp = 0; comp < 3; comp++) {
-        KRATOS_CHECK_NEAR(test_maxwell_stress[comp], maxwell_res[comp], 0.0001e6);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(test_maxwell_stress, maxwell_res, 0.0001e6);
 }
 } // namespace Testing
 } // namespace Kratos

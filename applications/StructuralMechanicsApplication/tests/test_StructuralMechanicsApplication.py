@@ -214,6 +214,7 @@ from restart_tests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D
 from structural_response_function_test_factory import TestAdjointStrainEnergyResponseFunction as TTestAdjointStrainEnergyResponseFunction
 from structural_response_function_test_factory import TestAdjointDisplacementResponseFunction as TTestAdjointDisplacementResponseFunction
 from structural_response_function_test_factory import TestAdjointStressResponseFunction as TTestAdjointStressResponseFunction
+from structural_response_function_test_factory import TestAdjointMaxStressResponseFunction as TTestAdjointMaxStressResponseFunction
 from structural_response_function_test_factory import TestMassResponseFunction as TTestMassResponseFunction
 from structural_response_function_test_factory import TestStrainEnergyResponseFunction as TTestStrainEnergyResponseFunction
 from structural_response_function_test_factory import TestEigenfrequencyResponseFunction as TTestEigenfrequencyResponseFunction
@@ -400,6 +401,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
+    nightSuite.addTest(TTestAdjointMaxStressResponseFunction('test_execution'))
 
     # Dynamic basic tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
