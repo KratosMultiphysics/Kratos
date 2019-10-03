@@ -2,21 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
-#if !defined(KRATOS_GAUSS_SEIDEL_LINEAR_STRATEGY )
-#define  KRATOS_GAUSS_SEIDEL_LINEAR_STRATEGY
-
+#if !defined(KRATOS_GAUSS_SEIDEL_LINEAR_STRATEGY)
+#define KRATOS_GAUSS_SEIDEL_LINEAR_STRATEGY
 
 /* System includes */
-
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
@@ -36,23 +34,18 @@ namespace Kratos
 /**@name Kratos Globals */
 /*@{ */
 
-
 /*@} */
 /**@name Type Definitions */
 /*@{ */
 
 /*@} */
 
-
 /**@name  Enum's */
 /*@{ */
-
 
 /*@} */
 /**@name  Functions */
 /*@{ */
-
-
 
 /*@} */
 /**@name Kratos Classes */
@@ -81,10 +74,10 @@ namespace Kratos
 
 
  */
-template<class TSparseSpace,
-         class TDenseSpace, //= DenseSpace<double>,
-         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-         >
+template <class TSparseSpace,
+          class TDenseSpace,  //= DenseSpace<double>,
+          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+          >
 class GaussSeidelLinearStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
@@ -117,7 +110,6 @@ public:
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-
     /*@} */
     /**@name Life Cycle
      */
@@ -126,22 +118,20 @@ public:
     /** Constructor.
      */
 
-
     //constructor specifying the builder and solver
 
     GaussSeidelLinearStrategy(
-        ModelPart& model_part,
+        ModelPart &model_part,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         bool ReformDofSetAtEachStep = true,
-        bool CalculateNormDxFlag = false
-    )
+        bool CalculateNormDxFlag = false)
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
     {
         KRATOS_TRY
 
-	/* std::cout<<" GaussSeidelLinearStrategy"<<std::endl; */
+        /* std::cout<<" GaussSeidelLinearStrategy"<<std::endl; */
 
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
         mCalculateNormDxFlag = CalculateNormDxFlag;
@@ -160,7 +150,7 @@ public:
 
         //tells to the Builder And Solver if the system matrix and vectors need to
         //be reshaped at each step or not
-	mReformDofSetAtEachStep=true;
+        mReformDofSetAtEachStep = true;
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
         //set EchoLevel to the default value (only time is displayed)
@@ -176,10 +166,10 @@ public:
      */
     virtual ~GaussSeidelLinearStrategy()
     {
-      // in trilinos third party library, the linear solver's
-      // preconditioner should be freed before the system matrix.
-      // we control the deallocation order with Clear().
-      this->Clear();
+        // in trilinos third party library, the linear solver's
+        // preconditioner should be freed before the system matrix.
+        // we control the deallocation order with Clear().
+        this->Clear();
     }
 
     /** Destructor.
@@ -209,11 +199,10 @@ public:
         return mpBuilderAndSolver;
     };
 
-
     void SetReformDofSetAtEachStepFlag(bool flag)
     {
         mReformDofSetAtEachStep = flag;
-	mReformDofSetAtEachStep=true;
+        mReformDofSetAtEachStep = true;
         GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
     }
 
@@ -234,7 +223,6 @@ public:
         BaseType::SetEchoLevel(Level);
         GetBuilderAndSolver()->SetEchoLevel(Level);
     }
-
 
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
@@ -258,7 +246,6 @@ public:
     /*     //if (mSolutionStepIsInitialized == false) */
     /*     //	InitializeSolutionStep(); */
 
-
     /*     TSystemMatrixType& mA = *mpA; */
     /*     TSystemVectorType& mDx = *mpDx; */
     /*     TSystemVectorType& mb = *mpb; */
@@ -277,7 +264,6 @@ public:
      */
     //**********************************************************************
 
-
     double Solve() override
     {
         KRATOS_TRY
@@ -286,9 +272,9 @@ public:
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemMatrixType &mA = *mpA;
+        TSystemVectorType &mDx = *mpDx;
+        TSystemVectorType &mb = *mpb;
 
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
@@ -318,20 +304,20 @@ public:
         if (this->GetEchoLevel() == 4) //print to matrix market file
         {
             std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
-            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), mA, false);
-            
+            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
+            TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mA, false);
+
             std::stringstream matrix_market_vectname;
             matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
-            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), mb);
+            TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mb);
         }
 
         //update results
-        DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
+        DofsArrayType &rDofSet = pBuilderAndSolver->GetDofSet();
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         //move the mesh if needed
-	/* BaseType::MoveMesh();  */
+        /* BaseType::MoveMesh();  */
 
         //calculate if needed the norm of Dx
         double normDx = 0.00;
@@ -353,12 +339,11 @@ public:
         return normDx;
 
         KRATOS_CATCH("")
-
     }
 
-    TSystemMatrixType& GetSystemMatrix()
+    TSystemMatrixType &GetSystemMatrix()
     {
-        TSystemMatrixType& mA = *mpA;
+        TSystemMatrixType &mA = *mpA;
 
         return mA;
     }
@@ -370,7 +355,6 @@ public:
             return TSparseSpace::TwoNorm(*mpb);
         else
             return 0.0;
-
     }
 
     //*********************************************************************************
@@ -383,16 +367,15 @@ public:
      */
     void CalculateOutputData() override
     {
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemMatrixType &mA = *mpA;
+        TSystemVectorType &mDx = *mpDx;
+        TSystemVectorType &mb = *mpb;
 
-        DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
+        DofsArrayType &rDofSet = GetBuilderAndSolver()->GetDofSet();
         GetScheme()->CalculateOutputData(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
     }
 
     //*********************************************************************************
-
 
     /*@} */
     /**@name Operators
@@ -403,21 +386,17 @@ public:
     /**@name Operations */
     /*@{ */
 
-
     /*@} */
     /**@name Access */
     /*@{ */
-
 
     /*@} */
     /**@name Inquiry */
     /*@{ */
 
-
     /*@} */
     /**@name Friends */
     /*@{ */
-
 
     /*@} */
 
@@ -425,45 +404,35 @@ protected:
     /**@name Protected static Member Variables */
     /*@{ */
 
-
     /*@} */
     /**@name Protected member Variables */
     /*@{ */
-
 
     /*@} */
     /**@name Protected Operators*/
     /*@{ */
 
-
     /*@} */
     /**@name Protected Operations*/
     /*@{ */
-
-
 
     /*@} */
     /**@name Protected  Access */
     /*@{ */
 
-
     /*@} */
     /**@name Protected Inquiry */
     /*@{ */
 
-
     /*@} */
     /**@name Protected LifeCycle */
     /*@{ */
-
-
 
     /*@} */
 
 private:
     /**@name Static Member Variables */
     /*@{ */
-
 
     /*@} */
     /**@name Member Variables */
@@ -501,7 +470,6 @@ private:
 
     unsigned int mMaxIterationNumber;
 
-
     /*@} */
     /**@name Private Operators*/
     /*@{ */
@@ -526,17 +494,15 @@ private:
         if (pScheme->ElementsAreInitialized() == false)
             pScheme->InitializeElements(BaseType::GetModelPart());
 
-        //Initialize The Conditions - OPERATIONS TO BE DONE ONCE                                                          
+        //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
         if (pScheme->ConditionsAreInitialized() == false)
-	  pScheme->InitializeConditions(BaseType::GetModelPart());
+            pScheme->InitializeConditions(BaseType::GetModelPart());
 
         if (BaseType::GetEchoLevel() > 2)
             std::cout << "exiting the  Initialize of the GaussSeidelLinearStrategy" << std::endl;
 
-
         KRATOS_CATCH("")
     }
-
 
     //**********************************************************************
     //**********************************************************************
@@ -549,47 +515,45 @@ private:
         typename TSchemeType::Pointer pScheme = GetScheme();
         //int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-    	/* ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo(); */
+        /* ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo(); */
 
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if (mInitializeWasPerformed == false)
-    	  {
+        {
             Initialize();
             mInitializeWasPerformed = true;
-    	  }
+        }
 
-	/* std::cout << "Gauss-Seidel VP Strategy,  CurrentTime: " << pCurrentProcessInfo[TIME] << std::endl; */
+        /* std::cout << "Gauss-Seidel VP Strategy,  CurrentTime: " << pCurrentProcessInfo[TIME] << std::endl; */
 
         //loop to reform the dofset
         // boost::timer system_construction_time;
 
-    	//setting up the list of the DOFs to be solved
-    	pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
+        //setting up the list of the DOFs to be solved
+        pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
 
-    	//shaping correctly the system
-    	pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
+        //shaping correctly the system
+        pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
 
-    	//setting up the Vectors involved to the correct size
-    	pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
+        //setting up the Vectors involved to the correct size
+        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
         //if (BaseType::GetEchoLevel() > 1 && rank == 0)
-    	//  std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
+        //  std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
 
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
-
-       //initial operations ... things that are constant over the Solution Step
-    	pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+        TSystemMatrixType &mA = *mpA;
+        TSystemVectorType &mDx = *mpDx;
+        TSystemVectorType &mb = *mpb;
 
         //initial operations ... things that are constant over the Solution Step
-    	/* boost::timer scheme_initialize_solution_step; */
-    	/* pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb); */
+        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+        //initial operations ... things that are constant over the Solution Step
+        /* boost::timer scheme_initialize_solution_step; */
+        /* pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb); */
 
         KRATOS_CATCH("")
     }
-
 
     //**********************************************************************
     //**********************************************************************
@@ -649,16 +613,13 @@ private:
     /**@name Private Operations*/
     /*@{ */
 
-
     /*@} */
     /**@name Private  Access */
     /*@{ */
 
-
     /*@} */
     /**@name Private Inquiry */
     /*@{ */
-
 
     /*@} */
     /**@name Un accessible methods */
@@ -666,8 +627,7 @@ private:
 
     /** Copy constructor.
      */
-    GaussSeidelLinearStrategy(const GaussSeidelLinearStrategy& Other);
-
+    GaussSeidelLinearStrategy(const GaussSeidelLinearStrategy &Other);
 
     /*@} */
 
@@ -678,10 +638,8 @@ private:
 /**@name Type Definitions */
 /*@{ */
 
-
 /*@} */
 
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_GAUSS_SEIDEL_LINEAR_STRATEGY  defined */
-

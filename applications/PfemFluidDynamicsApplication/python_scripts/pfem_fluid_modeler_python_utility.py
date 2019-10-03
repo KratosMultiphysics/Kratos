@@ -285,14 +285,6 @@ class ModelerUtility:
             self.RefiningParameters.SetErrorVariable(globals()[parameters["ErrorVariable"]])
             self.RefiningParameters.SetReferenceError(parameters["CriticalError"])
 
-
-            # set transfer parameters
-            self.TransferParameters = TransferParameters()
-            cauchy_stress = "CAUCHY_STRESS_VECTOR"
-            deformation_gradient = "DEFORMATION_GRADIENT"
-            self.TransferParameters.SetVariable(globals()[cauchy_stress])
-            self.TransferParameters.SetVariable(globals()[deformation_gradient])
-
             # set meshing parameters to mesh modeler
             self.MeshingParameters = MeshingParameters()
             

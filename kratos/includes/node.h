@@ -1123,7 +1123,7 @@ private:
 
 
     void SortDofs(){
-        std::sort(mDofs.begin(), mDofs.end(), [](Kratos::unique_ptr<DofType>& First, Kratos::unique_ptr<DofType>& Second)->bool{
+        std::sort(mDofs.begin(), mDofs.end(), [](Kratos::unique_ptr<DofType> const& First, Kratos::unique_ptr<DofType> const& Second)->bool{
             return First->GetVariable().Key() < Second->GetVariable().Key();
         });
     }

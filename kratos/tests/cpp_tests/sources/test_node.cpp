@@ -85,7 +85,7 @@ namespace Kratos {
         Model current_model;
         ModelPart& model_part = current_model.CreateModelPart("test");
         model_part.AddNodalSolutionStepVariable(VELOCITY);
-
+      
         auto p_node = model_part.CreateNewNode(1, 1., 0, 0);
         p_node->AddDof(VELOCITY_X);
         p_node->AddDof(VELOCITY_Y);
@@ -113,20 +113,34 @@ namespace Kratos {
     KRATOS_TEST_CASE_IN_SUITE(NodeSerialization, KratosCoreFastSuite) 
     {
         Model current_model;
+      
+        ModelPart& r_model_part = current_model.CreateModelPart("test");
+        r_model_part.AddNodalSolutionStepVariable(DISTANCE);
+        r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(REACTION);
 
-        ModelPart& model_part = current_model.CreateModelPart("test");
-        model_part.AddNodalSolutionStepVariable(DISTANCE);
-        model_part.AddNodalSolutionStepVariable(VELOCITY);
-
-        auto p_node_to_be_saved = model_part.CreateNewNode(1, 1., 0, 0);
+        auto p_node_to_be_saved = r_model_part.CreateNewNode(1, 1., 0, 0);
         auto p_node_to_be_loaded = Node<3>::Pointer(nullptr);
 
         p_node_to_be_saved->Fix(DISTANCE);
+        p_node_to_be_saved->AddDof(DISPLACEMENT_X, REACTION_X);
 
         StreamSerializer serializer;
 
         serializer.save("NodalData", p_node_to_be_saved);
         serializer.load("NodalData", p_node_to_be_loaded);
+
+        StreamSerializer serializer;
+
+        KRATOS_CHECK_EQUAL(p_node_to_be_saved->Id(), p_node_to_be_loaded->Id());
+        KRATOS_CHECK(p_node_to_be_loaded->IsFixed(DISTANCE));
+        Dof<double>& dof = p_node_to_be_loaded->AddDof(DISTANCE);
+        dof.GetSolutionStepValue() = 2.345;
+        KRATOS_CHECK_EQUAL(p_node_to_be_loaded->GetSolutionStepValue(DISTANCE), 2.345);
+        KRATOS_CHECK(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).IsFree());
+        KRATOS_CHECK(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).HasReaction());
+        KRATOS_CHECK_EQUAL(p_node_to_be_loaded->GetDof(DISPLACEMENT_X).GetReaction(), REACTION_X);
 
         KRATOS_CHECK_EQUAL(p_node_to_be_saved->Id(), p_node_to_be_loaded->Id());
         KRATOS_CHECK(p_node_to_be_loaded->IsFixed(DISTANCE));
