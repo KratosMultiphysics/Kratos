@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //
@@ -123,24 +123,24 @@ public:
     ///@name Life Cycle
     ///@{
 
-	/// Default constructors
-	GenericLargeDisplacementFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry);
-	GenericLargeDisplacementFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    /// Default constructors
+    GenericLargeDisplacementFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    GenericLargeDisplacementFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-	///Copy constructor
-	GenericLargeDisplacementFemDemElement(GenericLargeDisplacementFemDemElement const &rOther);
+    ///Copy constructor
+    GenericLargeDisplacementFemDemElement(GenericLargeDisplacementFemDemElement const &rOther);
 
-	/// Destructor.
-	virtual ~GenericLargeDisplacementFemDemElement();
+    /// Destructor.
+    virtual ~GenericLargeDisplacementFemDemElement();
 
-	/// Assignment operator.
-	GenericLargeDisplacementFemDemElement &operator=(GenericLargeDisplacementFemDemElement const &rOther);
-	Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const override;
-	Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
+    /// Assignment operator.
+    GenericLargeDisplacementFemDemElement &operator=(GenericLargeDisplacementFemDemElement const &rOther);
+    Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-	GenericLargeDisplacementFemDemElement()
-	{
-	}
+    GenericLargeDisplacementFemDemElement()
+    {
+    }
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
