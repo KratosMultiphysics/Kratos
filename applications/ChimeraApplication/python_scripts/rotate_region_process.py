@@ -81,7 +81,7 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if self.interval.IsInInterval(current_time):
-            rotate_region_process.ExecuteInitializeSolutionStep()
+            self.rotate_region_process.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -92,4 +92,4 @@ class ApplyRotateRegionProcess(KratosMultiphysics.Process):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if self.interval.IsInInterval(current_time):
-            rotate_region_process.ExecuteFinalizeSolutionStep()
+            self.rotate_region_process.ExecuteFinalizeSolutionStep()
