@@ -40,6 +40,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "couette_3D"
         },
+        "material_import_settings": {
+            "materials_filename": "EmbeddedCouetteTestMaterials.json"
+        },
         "distance_modification_settings": {
             "check_at_each_time_step": false,
             "avoid_almost_empty_elements": true,
@@ -79,8 +82,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet",
+                "model_part_name" : "MainModelPart.Outlet",
                 "variable_name"   : "VELOCITY",
                 "value"           : [null, 0.0, 0.0],
                 "constrained"     : [false,true,true]
@@ -90,8 +92,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Outlet",
+                "model_part_name" : "MainModelPart.Outlet",
                 "variable_name"   : "PRESSURE",
                 "value"           : 0.0,
                 "constrained"     : true
@@ -101,8 +102,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Sides",
+                "model_part_name" : "MainModelPart.Sides",
                 "variable_name"   : "VELOCITY",
                 "value"           : [null, 0.0, 0.0],
                 "constrained"     : [false,true,false]
@@ -112,8 +112,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Top",
+                "model_part_name" : "MainModelPart.Top",
                 "variable_name"   : "VELOCITY",
                 "value"           : [null, 0.0, 0.0],
                 "constrained"     : [false,true,true]
@@ -124,8 +123,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "ApplyConstantVectorValueProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 0.0,
                 "direction"       : [0.0,0.0,-1.0]

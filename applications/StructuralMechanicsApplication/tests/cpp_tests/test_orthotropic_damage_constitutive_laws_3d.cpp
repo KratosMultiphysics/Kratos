@@ -155,14 +155,12 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageLinea
     TestSJ = cl_parameters.GetStressVector();
 
     //Check the results
-    for (int comp = 0; comp < 6; comp++) {
-        KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 0.0001e+06);
-        KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 0.0001e+06);
-        KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 0.001e+06);
-        KRATOS_CHECK_NEAR(Tres[comp], TestT[comp], 0.0001e+06);
-        KRATOS_CHECK_NEAR(Rres[comp], TestR[comp], 0.001e+06);
-        KRATOS_CHECK_NEAR(SJres[comp], TestSJ[comp], 0.0001e+06);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(MCres, TestMC, 0.0001e+06);
+    KRATOS_CHECK_VECTOR_NEAR(VMres, TestVM, 0.0001e+06);
+    KRATOS_CHECK_VECTOR_NEAR(DPres, TestDP, 0.001e+06);
+    KRATOS_CHECK_VECTOR_NEAR(Tres, TestT, 0.0001e+06);
+    KRATOS_CHECK_VECTOR_NEAR(Rres, TestR, 0.001e+06);
+    KRATOS_CHECK_VECTOR_NEAR(SJres, TestSJ, 0.0001e+06);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageExponential, KratosStructuralMechanicsFastSuite)
@@ -265,14 +263,12 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainOrthotropicDamageIntegrateStressDamageExpon
     TestSJ = cl_parameters.GetStressVector();
     
     //Check the results
-    for (int comp = 0; comp < 6; comp++) {
-        KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 0.00001e+06);
-        KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 0.00001e+06);
-        KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 0.00001e+06);
-        KRATOS_CHECK_NEAR(Tres[comp], TestT[comp], 0.00001e+06);
-        KRATOS_CHECK_NEAR(Rres[comp], TestR[comp], 0.00001e+06);
-        KRATOS_CHECK_NEAR(SJres[comp], TestSJ[comp], 0.00001e+06);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(MCres, TestMC, 0.00001e+06);
+    KRATOS_CHECK_VECTOR_NEAR(VMres, TestVM, 0.00001e+06);
+    KRATOS_CHECK_VECTOR_NEAR(DPres, TestDP, 0.00001e+06);
+    KRATOS_CHECK_VECTOR_NEAR(Tres, TestT, 0.00001e+06);
+    KRATOS_CHECK_VECTOR_NEAR(Rres, TestR, 0.00001e+06);
+    KRATOS_CHECK_VECTOR_NEAR(SJres, TestSJ, 0.00001e+06);
 }
 } // namespace Testing
 } // namespace Kratos

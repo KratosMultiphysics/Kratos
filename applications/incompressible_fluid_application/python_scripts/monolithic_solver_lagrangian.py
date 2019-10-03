@@ -5,10 +5,6 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEMApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-# from KratosStructuralApplication import *
-
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
