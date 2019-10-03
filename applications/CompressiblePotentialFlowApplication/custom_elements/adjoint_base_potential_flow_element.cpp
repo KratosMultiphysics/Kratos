@@ -13,6 +13,8 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_element.h"
+#include "embedded_incompressible_potential_flow_element.h"
+#include "embedded_compressible_potential_flow_element.h"
 #include "adjoint_base_potential_flow_element.h"
 #include "custom_utilities/potential_flow_utilities.h"
 
@@ -125,6 +127,18 @@ namespace Kratos
 
     template <class TPrimalElement>
     void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        KRATOS_ERROR << "Calling CalculateSensitivityMatrix from adjoint potential flow base element." << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    template <class TPrimalElement>
+    void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
@@ -345,5 +359,7 @@ namespace Kratos
 
     template class AdjointBasePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>>;
 } // namespace Kratos.
 

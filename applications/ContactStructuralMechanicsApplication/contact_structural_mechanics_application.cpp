@@ -136,6 +136,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( DISTANCE_THRESHOLD )                                    // The distance threshold considered
     KRATOS_REGISTER_VARIABLE( ZERO_TOLERANCE_FACTOR )                                 // The epsilon factor considered
     KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                                   // The factor employed to serach an active/inactive node
+    KRATOS_REGISTER_VARIABLE( SLIP_THRESHOLD )                                        // The threshold employed to search an slip/stick node
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )               // Auxiliar coordinates used to map
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )                  // Delta coordinates used to map
 
@@ -152,7 +153,6 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( ACTIVE_SET_COMPUTED )                                   // To know if the active set has been computed
     KRATOS_REGISTER_VARIABLE( ACTIVE_SET_CONVERGED )                                  // To know if the active set has converged
     KRATOS_REGISTER_VARIABLE( SLIP_SET_CONVERGED )                                    // To know if the slip set has converged
-    KRATOS_REGISTER_VARIABLE( SLIP_CONVERGENCE_COEFFICIENT )                          // Coefficient to improve the slip computation convergence
     KRATOS_REGISTER_VARIABLE( SLIP_AUGMENTATION_COEFFICIENT )                         // Coefficient to improve the slip computation convergence (augmented part related)
     KRATOS_REGISTER_VARIABLE( DYNAMIC_FACTOR )                                        // The factor considered for dynamic problems (in order to take intro account the gap evolution)
     KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE )                  // The lagrange multiplier for normal contact pressure

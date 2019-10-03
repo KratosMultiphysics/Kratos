@@ -37,11 +37,6 @@
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
 
-// FluidDynamicsApplication schemes
-#include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
-#include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
-#include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
-
 // Response function
 #include "response_functions/adjoint_response_function.h"
 
@@ -135,29 +130,6 @@ void  AddSchemes(pybind11::module& m)
         .def(py::init <const std::size_t>())
         .def(py::init <const std::size_t, Parameters>())
         ;
-
-    typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TurbulentBossakBaseType;
-
-    py::class_ < TurbulentBossakBaseType, typename TurbulentBossakBaseType::Pointer,TrilinosBaseSchemeType >
-        (m,"TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent")
-        .def(py::init<double, double, unsigned int, Process::Pointer >())
-        .def(py::init<double,double,unsigned int >())
-        .def(py::init<double,unsigned int, const Variable<int>&>())
-        ;
-
-    py::class_ <
-        ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
-        typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >(m,"TrilinosResidualBasedPredictorCorrectorBDFScheme")
-        .def(py::init<unsigned int, Kratos::Flags& >() );
-
-    typedef GearScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> GearSchemeBaseType;
-
-    py::class_ < GearSchemeBaseType, typename GearSchemeBaseType::Pointer, TrilinosBaseSchemeType >( m,"TrilinosGearScheme")
-            .def(py::init<Process::Pointer >() )
-            .def(py::init<>()) // constructor without a turbulence model
-            .def(py::init<const Variable<int>&>()) // constructor for periodic conditions
-    ;
 
     typedef ResidualBasedAdjointStaticScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedAdjointStaticSchemeType;
     py::class_<TrilinosResidualBasedAdjointStaticSchemeType, typename TrilinosResidualBasedAdjointStaticSchemeType::Pointer, TrilinosBaseSchemeType>
