@@ -420,7 +420,7 @@ private:
                 }
                 else
                 {
-                    mReferenceOtherDoFNorm += AuxValue*AuxValue;
+                    DeltaOtherDoFNorm += AuxValue*AuxValue;
                 }
             }
         }
