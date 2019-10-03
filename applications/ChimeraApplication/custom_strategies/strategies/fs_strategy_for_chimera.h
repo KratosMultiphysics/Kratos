@@ -530,8 +530,6 @@ protected:
                 }
             }
 
-            //KRATOS_INFO("Interpolating end step velocity to slave nodes from their Masters")<<std::endl;
-
             const auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
             for(const auto& constraint : r_constraints_container)
             {
