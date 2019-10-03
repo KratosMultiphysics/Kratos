@@ -195,14 +195,11 @@ protected:
                 if(constraint.Is(ACTIVE))
                     count_vel_constraints++;
         }
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel())<<"count_vel_constraints :: "<<count_vel_constraints<<std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0)<<"count_vel_constraints :: "<<count_vel_constraints<<std::endl;
 
         // Activate Constraints for VELOCITY and deactivate PRESSURE
         SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, true);
         SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, false);
-
-
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel())<<" before Momentum iteration "<<std::endl;
 
         for(std::size_t it = 0; it < BaseType::mMaxVelocityIter; ++it)
         {
@@ -228,7 +225,7 @@ protected:
         SetActiveStateOnConstraint(FS_CHIMERA_VEL_CONSTRAINT, false);
         SetActiveStateOnConstraint(FS_CHIMERA_PRE_CONSTRAINT, true);
 
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0 && Rank == 0)<<
+        KRATOS_INFO_IF("FSStrategyForChimera ", (BaseType::GetEchoLevel() > 0 && Rank == 0) && !Converged)<<
             "Fractional velocity iterations did not converge "<< std::endl;
 
         // Compute projections (for stabilization)
@@ -260,7 +257,7 @@ protected:
                     count_pre_constraints++;
         }
 
-        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel())<<"count_pre_constraints :: "<<count_pre_constraints<<std::endl;
+        KRATOS_INFO_IF("FSStrategyForChimera ", BaseType::GetEchoLevel() > 0)<<"count_pre_constraints :: "<<count_pre_constraints<<std::endl;
 
 
 
@@ -295,6 +292,8 @@ protected:
         for (std::vector<Process::Pointer>::iterator iExtraSteps = BaseType::mExtraIterationSteps.begin();
              iExtraSteps != BaseType::mExtraIterationSteps.end(); ++iExtraSteps)
             (*iExtraSteps)->Execute();
+
+        SetHoleVariablesToZero(rModelPart);
 
         return NormDp;
     }
@@ -458,6 +457,56 @@ protected:
                         itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
                 }
             }
+
+            const auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
+            for(const auto& constraint : r_constraints_container)
+            {
+                if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
+                {
+                    const auto& slave_dofs = constraint.GetSlaveDofsVector();
+                    for(const auto& slave_dof : slave_dofs)
+                    {
+                        const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                        auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_X)=0;
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Y)=0;
+                        r_slave_node.FastGetSolutionStepValue(VELOCITY_Z)=0;
+                    }
+                }
+            }
+
+            for(const auto& constraint : r_constraints_container)
+            {
+                if (constraint.Is(FS_CHIMERA_PRE_CONSTRAINT))
+                {
+                    const auto& master_dofs = constraint.GetMasterDofsVector();
+                    const auto& slave_dofs = constraint.GetSlaveDofsVector();
+                    ModelPart::MatrixType r_relation_matrix;
+                    ModelPart::VectorType r_constant_vector;
+                    constraint.CalculateLocalSystem(r_relation_matrix,r_constant_vector,rModelPart.GetProcessInfo());
+
+                    IndexType slave_i = 0;
+                    for(const auto& slave_dof : slave_dofs)
+                    {
+                        const auto slave_node_id = slave_dof->Id(); // DOF ID is same as node ID
+                        auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
+                        IndexType master_j = 0;
+                        for(const auto& master_dof : master_dofs)
+                        {
+                            const auto master_node_id = master_dof->Id();
+                            const double weight = r_relation_matrix(slave_i, master_j);
+                            auto& r_master_node = rModelPart.Nodes()[master_node_id];
+
+                            r_slave_node.FastGetSolutionStepValue(VELOCITY_X) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_X))*weight;
+                            r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Y))*weight;
+                            r_slave_node.FastGetSolutionStepValue(VELOCITY_Z) +=(r_master_node.FastGetSolutionStepValue(VELOCITY_Z))*weight;
+
+                            ++master_j;
+                        }
+                        ++slave_i;
+                    }
+                }
+            }            
         }
         else
         {
@@ -480,8 +529,6 @@ protected:
                     }
                 }
             }
-
-            //KRATOS_INFO("Interpolating end step velocity to slave nodes from their Masters")<<std::endl;
 
             const auto& r_constraints_container = rModelPart.MasterSlaveConstraints();
             for(const auto& constraint : r_constraints_container)
@@ -710,6 +757,21 @@ private:
     ///@name Private Operations
     ///@{
 
+
+    void SetHoleVariablesToZero(ModelPart& rModelPart)
+    {
+        const array_1d<double,3> Zero(3,0.0);
+        for ( auto itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem )
+        {
+            if(!(*itElem)->Is(ACTIVE))
+            {
+                for(auto& node : (*itElem)->GetGeometry()){
+                    node.FastGetSolutionStepValue(VELOCITY)  = Zero;
+                    node.FastGetSolutionStepValue(PRESSURE)  = 0.0;
+                }
+            }
+        }
+    }
 
     void InitializeStrategy(SolverSettingsType& rSolverConfig,
             bool PredictorCorrector)
