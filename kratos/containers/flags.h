@@ -326,9 +326,9 @@ public:
     ///@{
 
 
-    friend bool operator==(const Flags& Left, const Flags& Right );
+    friend bool KRATOS_API(KRATOS_CORE) operator==(const Flags& Left, const Flags& Right );
 
-    friend bool operator!=(const Flags& Left, const Flags& Right );
+    friend bool KRATOS_API(KRATOS_CORE) operator!=(const Flags& Left, const Flags& Right );
 
     friend Flags KRATOS_API(KRATOS_CORE) operator|(const Flags& Left, const Flags& Right );
 
