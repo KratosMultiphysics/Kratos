@@ -40,6 +40,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_flag_no_remesh_femdem_boundary_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_total_lagrangian_femdem_element.cpp
 )
 
 # define library Kratos which defines the basic python interface
