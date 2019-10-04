@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo
 //
 
 // System includes
@@ -28,33 +29,8 @@ void BaseSolidElement::Initialize()
 {
     KRATOS_TRY
 
-    if( GetProperties().Has(INTEGRATION_ORDER) ) {
-        const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
-        switch ( integration_order )
-        {
-        case 1:
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-            break;
-        case 2:
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-            break;
-        case 3:
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
-            break;
-        case 4:
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
-            break;
-        case 5:
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
-            break;
-        default:
-            KRATOS_WARNING("BaseSolidElement") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
-            mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-        }
-    } else {
-        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    }
 
+    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     //Constitutive Law initialisation
@@ -566,7 +542,7 @@ void BaseSolidElement::CalculateMassMatrix(
         for (IndexType i = 0; i < mat_size; ++i)
             rMassMatrix(i, i) = temp_vector[i];
     } else { // CONSISTENT MASS
-        const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+        const double density = r_prop[DENSITY];
         const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
         Matrix J0(dimension, dimension);
@@ -609,12 +585,7 @@ void BaseSolidElement::CalculateDampingMatrix(
     )
 {
     const unsigned int mat_size = GetGeometry().PointsNumber() * GetGeometry().WorkingSpaceDimension();
-
-    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
-        *this,
-        rDampingMatrix,
-        rCurrentProcessInfo,
-        mat_size);
+    this->CalculateRayleighDampingMatrix(*this, rDampingMatrix, rCurrentProcessInfo, mat_size);
 }
 
 /***********************************************************************************/
@@ -1508,7 +1479,7 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
     KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
     // Getting density
-    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+    const double density = r_prop[DENSITY];
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
     const IntegrationMethod integration_method =
@@ -1799,7 +1770,7 @@ void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
     if (rMassVector.size() != mat_size)
         rMassVector.resize( mat_size, false );
 
-    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
+    const double density = r_prop[DENSITY];
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
     // LUMPED MASS MATRIX
@@ -1877,8 +1848,78 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
     KRATOS_CATCH( "" )
 }
 
+void BaseSolidElement::CalculateRayleighDampingMatrix(
+    Element& rElement,
+    Element::MatrixType& rDampingMatrix,
+    ProcessInfo& rCurrentProcessInfo,
+    const std::size_t MatrixSize)
+{
+    KRATOS_TRY;
+    // Rayleigh Damping Matrix: alpha*M + beta*K
+
+    // 1.-Resizing if needed
+    if (rDampingMatrix.size1() != MatrixSize || rDampingMatrix.size2() != MatrixSize) {
+        rDampingMatrix.resize(MatrixSize, MatrixSize, false);
+    }
+    noalias(rDampingMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
+
+    // 2.-Calculate StiffnessMatrix (if needed):
+    const double beta = GetRayleighBeta(rElement.GetProperties(), rCurrentProcessInfo);
+    if (std::abs(beta) > 0.0) {
+        Element::MatrixType stiffness_matrix;
+        rElement.CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
+        noalias(rDampingMatrix) += beta  * stiffness_matrix;
+    }
+
+    // 3.-Calculate MassMatrix (if needed):
+    const double alpha = GetRayleighAlpha(rElement.GetProperties(), rCurrentProcessInfo);
+    if (std::abs(alpha) > 0.0) {
+        Element::MatrixType mass_matrix;
+        rElement.CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+        noalias(rDampingMatrix) += alpha * mass_matrix;
+    }
+
+    KRATOS_CATCH("CalculateRayleighDampingMatrix")
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double BaseSolidElement::GetRayleighAlpha(
+    const Properties& rProperties,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // giving the locally defined setting (through Properties) priority
+    // over the globally defined one (through ProcessInfo)
+    if (rProperties.Has(RAYLEIGH_ALPHA)) {
+        return rProperties[RAYLEIGH_ALPHA];
+    } else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA)) {
+        return rCurrentProcessInfo[RAYLEIGH_ALPHA];
+    }
+
+    return 0.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double BaseSolidElement::GetRayleighBeta(
+    const Properties& rProperties,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Giving the locally defined setting (through Properties) priority
+    // over the globally defined one (through ProcessInfo)
+    if (rProperties.Has(RAYLEIGH_BETA)) {
+        return rProperties[RAYLEIGH_BETA];
+    } else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA)) {
+        return rCurrentProcessInfo[RAYLEIGH_BETA];
+    }
+
+    return 0.0;
+}
 
 void BaseSolidElement::save( Serializer& rSerializer ) const
 {

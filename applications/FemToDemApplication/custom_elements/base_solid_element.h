@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo
 //
 
 #if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
@@ -664,6 +665,12 @@ public:
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
+    void CalculateRayleighDampingMatrix(
+        Element& rElement,
+        Element::MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo,
+        const std::size_t MatrixSize);
+
     ///@}
     ///@name Access
     ///@{
@@ -951,6 +958,8 @@ protected:
     */
     void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv) const;
 
+    double GetRayleighAlpha(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo);
+    double GetRayleighBeta(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo);
     ///@}
     ///@name Protected  Access
     ///@{
