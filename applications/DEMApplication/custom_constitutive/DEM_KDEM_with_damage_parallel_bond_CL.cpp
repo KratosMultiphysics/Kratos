@@ -31,6 +31,12 @@ namespace Kratos {
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(LOOSE_MATERIAL_YOUNG_MODULUS) = 0.0;
         }
+        if (!pProp->Has(FRACTURE_ENERGY)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable FRACTURE_ENERGY was not found in the Properties when using DEM_KDEM_with_damage_parallel_bond. A default value of 0.0 was assigned."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(FRACTURE_ENERGY) = 0.0;
+        }
     }
 
     void DEM_KDEM_with_damage_parallel_bond::SetDebugPrintingOptionValue(Properties::Pointer pProp) {
