@@ -33,6 +33,7 @@
 #include "custom_constitutive/fem_dem_elastic_law.hpp"
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
 #include "custom_elements/generic_large_displacement_femdem_element.hpp"
+#include "custom_elements/generic_total_lagrangian_femdem_element.h"
 
 #include "fem_to_dem_application_variables.h"
 
@@ -131,6 +132,8 @@ private:
 	const GenericLargeDisplacementFemDemElement<3,5> mLargeDisplacementTrescaFemDemElement3D;
 	const GenericLargeDisplacementFemDemElement<2,6> mLargeDisplacementMohrCoulombFemDemElement2D;
 	const GenericLargeDisplacementFemDemElement<3,6> mLargeDisplacementMohrCoulombFemDemElement3D;
+
+	const GenericTotalLagrangianFemDemElement mTotalLagrangianFemDemElement2D;
 
 	//elastic laws
    const ZarateLaw mZarateLaw;

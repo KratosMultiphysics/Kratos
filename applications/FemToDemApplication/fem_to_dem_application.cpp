@@ -50,7 +50,8 @@ mLargeDisplacementVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new 
 mLargeDisplacementTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
 mLargeDisplacementTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
 mLargeDisplacementMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mLargeDisplacementMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4))))
+mLargeDisplacementMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3))))
 {}
 
 void KratosFemToDemApplication::Register() 
@@ -176,6 +177,8 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_ELEMENT("LargeDisplacementTrescaFemDemElement3D", mLargeDisplacementTrescaFemDemElement3D)
     KRATOS_REGISTER_ELEMENT("LargeDisplacementMohrCoulombFemDemElement2D", mLargeDisplacementMohrCoulombFemDemElement2D)
     KRATOS_REGISTER_ELEMENT("LargeDisplacementMohrCoulombFemDemElement3D", mLargeDisplacementMohrCoulombFemDemElement3D)
+
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianFemDemElement2D", mTotalLagrangianFemDemElement2D)
     
     //Register Constitutive Laws
     Serializer::Register("ZarateLaw", mZarateLaw);
