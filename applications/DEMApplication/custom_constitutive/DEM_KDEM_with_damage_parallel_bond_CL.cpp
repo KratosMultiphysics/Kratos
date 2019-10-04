@@ -184,8 +184,7 @@ namespace Kratos {
 
         const double tension_limit = 0.5 * 1e6 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
         const double fracture_energy = 0.5 * (element1->GetProperties()[FRACTURE_ENERGY] + element2->GetProperties()[FRACTURE_ENERGY]);
-        const double damage_energy_coeff = 2.0 * calculation_area * calculation_area * calculation_area * fracture_energy * kn_el /
-                                           (tension_limit * tension_limit) - 1.0;
+        mDamageEnergyCoeff = 2.0 * calculation_area * calculation_area * calculation_area * fracture_energy * kn_el / (tension_limit * tension_limit) - 1.0;
 
         double k_unload = 0.0;
         double limit_force = 0.0;
@@ -204,8 +203,8 @@ namespace Kratos {
             }
         }
 
-        if (damage_energy_coeff) {
-            k_unload = kn_el / damage_energy_coeff;
+        if (mDamageEnergyCoeff) {
+            k_unload = kn_el / mDamageEnergyCoeff;
         }
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
@@ -236,7 +235,7 @@ namespace Kratos {
 
                 if (current_normal_force_module > limit_force) {
 
-                    if (!damage_energy_coeff) { // there is no damage energy left
+                    if (!mDamageEnergyCoeff) { // there is no damage energy left
                         failure_type = 4; // failure by traction
                     } else { // the material can sustain further damage, not failure yet
                         const double delta_at_undamaged_peak = initial_limit_force / kn_el;
@@ -312,10 +311,7 @@ namespace Kratos {
 
         const double mTauZero = 0.5 * 1e6 * (GetTauZero(element1) + GetTauZero(element2));
         const double mInternalFriction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
-        const double fracture_energy = 0.5 * (element1->GetProperties()[FRACTURE_ENERGY] + element2->GetProperties()[FRACTURE_ENERGY]);
 
-        const double damage_energy_coeff = 2.0 * calculation_area * calculation_area * calculation_area * fracture_energy * kt_el /
-                                           (mTauZero * mTauZero) - 1.0;
         double k_unload = 0.0;
         double tau_strength = 0.0;
         static bool first_time_entered = true;
@@ -337,8 +333,8 @@ namespace Kratos {
         OldBondedLocalElasticContactForce[0] = mBondedScalingFactor * OldLocalElasticContactForce[0];
         OldBondedLocalElasticContactForce[1] = mBondedScalingFactor * OldLocalElasticContactForce[1];
 
-        if (damage_energy_coeff) {
-            k_unload = kt_el / damage_energy_coeff;
+        if (mDamageEnergyCoeff) {
+            k_unload = kt_el / mDamageEnergyCoeff;
         }
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
@@ -383,7 +379,7 @@ namespace Kratos {
 
             if (contact_tau > tau_strength) { // damage
 
-                if (!damage_energy_coeff) { // there is no damage energy left
+                if (!mDamageEnergyCoeff) { // there is no damage energy left
                     failure_type = 2; // failure by shear
                 } else { // the material can sustain further damage, not failure yet
                     const double delta_at_undamaged_peak = updated_max_tau_strength * calculation_area / kt_el;

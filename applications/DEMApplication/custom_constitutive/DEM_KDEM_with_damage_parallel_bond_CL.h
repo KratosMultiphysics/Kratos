@@ -108,6 +108,7 @@ namespace Kratos {
         double mBondedScalingFactor = 0.0;
         double mUnbondedScalingFactor = 0.0;
         bool mDebugPrintingOption;
+        double mDamageEnergyCoeff;
 
     private:
 
