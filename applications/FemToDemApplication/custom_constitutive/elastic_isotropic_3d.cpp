@@ -16,8 +16,7 @@
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "includes/checks.h"
-
-#include "structural_mechanics_application_variables.h"
+#include "fem_to_dem_application_variables.h"
 
 namespace Kratos
 {

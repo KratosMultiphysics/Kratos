@@ -49,7 +49,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropic3D 
+class ElasticIsotropic3D 
     : public ConstitutiveLaw
 {
 public:

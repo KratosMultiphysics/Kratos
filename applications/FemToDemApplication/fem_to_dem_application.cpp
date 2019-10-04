@@ -147,6 +147,10 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_VARIABLE(ALMANSI_STRAIN_VECTOR)
     KRATOS_REGISTER_VARIABLE(ALMANSI_STRAIN_TENSOR)
     
+    KRATOS_REGISTER_VARIABLE(CONSTITUTIVE_MATRIX_KIRCHHOFF)
+    KRATOS_REGISTER_VARIABLE(CONSTITUTIVE_MATRIX_PK2)
+    KRATOS_REGISTER_VARIABLE(KIRCHHOFF_STRESS_VECTOR)
+
     //Register element
     KRATOS_REGISTER_ELEMENT("SmallStrainModifiedMohrCoulombFemDemElement2D", mSmallStrainModifiedMohrCoulombFemDemElement2D)
     KRATOS_REGISTER_ELEMENT("SmallStrainModifiedMohrCoulombFemDemElement3D", mSmallStrainModifiedMohrCoulombFemDemElement3D)
@@ -185,8 +189,6 @@ void KratosFemToDemApplication::Register()
     Serializer::Register("FemDemElasticLaw", mFemDemElasticLaw);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("FemDemElasticLaw", mFemDemElasticLaw)
-
-    
 
 }
 
