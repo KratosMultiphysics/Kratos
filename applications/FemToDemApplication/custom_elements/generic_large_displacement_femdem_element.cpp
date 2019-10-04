@@ -577,10 +577,13 @@ void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateGreenLagra
     Matrix strain_tensor;
     if (strain_tensor.size1() != TDim)
         strain_tensor.resize(TDim, TDim);
+    
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize);
 
     Matrix identity = identity_matrix<double>(TDim);
     noalias(strain_tensor) = 0.5 * (prod(trans(rF), rF) - identity);
-    rStrainVector = MathUtils<double>::StrainTensorToVector(strain_tensor, rStrainVector.size());
+    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(strain_tensor, rStrainVector.size());
 }
 
 /***********************************************************************************/
