@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  #makes KratosM
 import KratosMultiphysics as KM
 import KratosMultiphysics.FemToDemApplication as FEMDEM
 import KratosMultiphysics.PfemFluidDynamicsApplication as PFEM
-import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem    as MainCouplingFemDem
+import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem_for_PFEM_coupling as MainCouplingFemDem_for_PFEM_coupling
 import KratosMultiphysics.FemToDemApplication.MainPFEM_for_coupling as MainPFEM_for_coupling
 
 def Wait():
@@ -20,7 +20,7 @@ class MainCouplingPfemFemDem_Solution:
 
     def __init__(self, Model, PFEMparameters):
         # Initialize solutions of the FEMDEM and PFEM
-        self.FEMDEM_Solution = MainCouplingFemDem.MainCoupledFemDem_Solution(Model)
+        self.FEMDEM_Solution = MainCouplingFemDem_for_PFEM_coupling.MainCoupledFemDem_for_PFEM_coupling_Solution(Model)
         self.FEMDEM_Solution.Initialize()
 
         self.PFEM_Solution = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, 
