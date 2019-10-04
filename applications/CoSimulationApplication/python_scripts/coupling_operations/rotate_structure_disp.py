@@ -18,8 +18,8 @@ def Create(settings, solver_wrappers):
     return RotateStructDispOperation(settings, solver_wrappers)
 
 class RotateStructDispOperation(CoSimulationCouplingOperation):
-    """This operation Rotates the fluid forces from the deformed config
-        to the original config. The rotation angle is obtained from the 
+    """This operation Rotates the structural displacements from the
+        original config to the deformed config. The rotation angle is obtained from the
         modelpart itself. ChimeraApp's Rotate region process calculates
         and puts it on the modelpart under variable ChimeraApp.ROTATIONAL_ANGLE
 
@@ -28,15 +28,15 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
 
         IMPORTANT: Requires scipy and numpy. Works with compiled KratosMultiphysics
 
-        Since fluid forces are reactios and are not used internally in FluidDynamicaApp
-        we replace the actual REACTION with rotated ones
+        Since the structural displacements are important for the time advancement,
+        The displacements should be first mapped to MESH_DISPLACEMENT and then this
+        operation should be used to rotate MESH_DISPLACEMENT
     """
     def __init__(self, settings, solver_wrappers):
         super(RotateStructDispOperation, self).__init__(settings)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
-        self.modelpart = self.interface_data.GetModelPart()
 
     def Initialize(self):
         pass
@@ -57,13 +57,15 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
         pass
 
     def Execute(self):
-        # -1*angle  because we have to rotate the forces BACK on to un rotated config
-        angle_of_rotation = -1*self.modelpart.GetValue(ChimeraApp.ROTATIONAL_ANGLE)
-        axis_of_rotation = self.settings["axis_of_rotation"].GetString()
+        self.modelpart = self.interface_data.GetModelPart()
+        # 1*angle  because we have to rotate the MESH_DISPLACEMENTS from deformed to
+        # original configuration.
+        angle_of_rotation = 1*self.modelpart.GetValue(ChimeraApp.ROTATIONAL_ANGLE)
+        axis_of_rotation = self.settings["axis_of_rotation"].GetVector()
         for node in self.modelpart.Nodes:
-            data_vector = node.GetSolutionStepData(self.interface_data.variable)
+            data_vector = node.GetSolutionStepValue(self.interface_data.variable)
             rotated_data_vector = self.__RotateVector(data_vector,angle_of_rotation, axis_of_rotation)
-            node.SetSolutionStepData(self.interface_data.variable, 0, rotated_data_vector)
+            node.SetSolutionStepValue(self.interface_data.variable, 0, rotated_data_vector)
 
     def PrintInfo(self):
         pass
@@ -83,7 +85,7 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
 
     def __RotateVector(self,vector, angle, axis):
         """
-        Following the answer in : 
+        Following the answer in :
         https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
         """
         M = expm(cross(eye(3), axis/norm(axis)*angle))
