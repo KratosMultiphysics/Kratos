@@ -817,7 +817,6 @@ namespace Kratos {
                 #pragma omp parallel for
                 for (int i=0; i<(int)pTConditions.size(); i++) {
                     ConditionsArrayType::iterator it = pTConditions.ptr_begin() + i;
-                    auto pointer = dynamic_cast<RigidBodyElement3D*>(&*it);
                     (it)->Initialize(r_process_info);
                 }
 
