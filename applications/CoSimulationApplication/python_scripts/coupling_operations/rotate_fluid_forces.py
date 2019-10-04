@@ -36,7 +36,6 @@ class RotateFluidForcesOperation(CoSimulationCouplingOperation):
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
-        self.modelpart = self.interface_data.GetModelPart()
 
     def Initialize(self):
         pass
@@ -57,13 +56,14 @@ class RotateFluidForcesOperation(CoSimulationCouplingOperation):
         pass
 
     def Execute(self):
+        self.model_part = self.interface_data.GetModelPart()
         # -1*angle  because we have to rotate the forces BACK on to un rotated config
-        angle_of_rotation = -1*self.modelpart.GetValue(ChimeraApp.ROTATIONAL_ANGLE)
-        axis_of_rotation = self.settings["axis_of_rotation"].GetString()
-        for node in self.modelpart.Nodes:
-            data_vector = node.GetSolutionStepData(self.interface_data.variable)
+        angle_of_rotation = -1*self.model_part.GetValue(ChimeraApp.ROTATIONAL_ANGLE)
+        axis_of_rotation = self.settings["axis_of_rotation"].GetVector()
+        for node in self.model_part.Nodes:
+            data_vector = node.GetSolutionStepValue(self.interface_data.variable)
             rotated_data_vector = self.__RotateVector(data_vector,angle_of_rotation, axis_of_rotation)
-            node.SetSolutionStepData(self.interface_data.variable, 0, rotated_data_vector)
+            node.SetSolutionStepValue(self.interface_data.variable, 0, rotated_data_vector)
 
     def PrintInfo(self):
         pass
