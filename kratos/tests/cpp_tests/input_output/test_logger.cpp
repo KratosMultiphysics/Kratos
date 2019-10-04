@@ -155,7 +155,7 @@ namespace Kratos {
 
             KRATOS_WARNING("TestWarning") << "Test warning message";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestWarning: Test warning message" : "";
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test warning message" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -168,7 +168,7 @@ namespace Kratos {
             KRATOS_WARNING_IF("TestWarning", true) << "Test warning message";
             KRATOS_WARNING_IF("TestWarning", false) << "This should not appear";
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestWarning: Test warning message" : "";
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test warning message" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -182,7 +182,7 @@ namespace Kratos {
                 KRATOS_WARNING_ONCE("TestWarning") << "Test warning message - " << i;
             }
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestWarning: Test warning message - 0" : "";
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test warning message - 0" : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
@@ -196,7 +196,7 @@ namespace Kratos {
                 KRATOS_WARNING_FIRST_N("TestWarning", 4) << ".";
             }
 
-            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "TestWarning: .TestWarning: .TestWarning: .TestWarning: ." : "";
+            std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: .[WARNING] TestWarning: .[WARNING] TestWarning: .[WARNING] TestWarning: ." : "";
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 
