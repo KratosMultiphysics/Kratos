@@ -148,35 +148,10 @@ void SmallDisplacementMixedStrainElement::Initialize()
     KRATOS_TRY
 
     // Integration method initialization
-    if (GetProperties().Has(INTEGRATION_ORDER)) {
-        const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
-        switch (integration_order) {
-            case 1:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-                break;
-            case 2:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-                break;
-            case 3:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
-                break;
-            case 4:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
-                break;
-            case 5:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
-                break;
-            default:
-                KRATOS_WARNING("SmallDisplacementMixedStrainElement") << "Integration order " << integration_order << " is not available, using geometry default integration order." << std::endl;
-                mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-        }
-    } else {
-        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    }
-
+    mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
     const auto &r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    //Constitutive Law initialisation
+    // Constitutive Law Vector initialisation
     if (mConstitutiveLawVector.size() != r_integration_points.size()) {
         mConstitutiveLawVector.resize(r_integration_points.size());
     }
@@ -195,46 +170,9 @@ void SmallDisplacementMixedStrainElement::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-    const auto &r_geometry = GetGeometry();
-    const SizeType dim = r_geometry.WorkingSpaceDimension();
-    const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType block_size = dim + 1;
-    const SizeType matrix_size = block_size * n_nodes;
-    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-
-    // Check LHS and RHS sizes
-    if (rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size) {
-        rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
-    }
-
-    if (rRightHandSideVector.size() != matrix_size) {
-        rRightHandSideVector.resize(matrix_size, false);
-    }
-
-    // Compute the geometry data
-    Vector w_gauss_container;
-    Matrix N_gauss_container;
-    GeometryType::ShapeFunctionsGradientsType DN_DX_container;
-    CalculateGeometryData(r_geometry, w_gauss_container, N_gauss_container, DN_DX_container);
-
-    // Calculate the LHS and RHS contributions
-    rLeftHandSideMatrix.clear();
-    rRightHandSideVector.clear();
-
-    Matrix B_mat(strain_size, n_nodes*dim);
-    Matrix dev_strain_op;
-    CalculateDeviatoricStrainOperator(dev_strain_op);
-
-    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-        // Get Gauss pt. values
-        const auto &rN = row(N_gauss_container, i_gauss);
-        const double w_gauss = w_gauss_container[i_gauss];
-
-        // Calculate the strain matrix
-        CalculateB(B_mat, DN_DX_container[i_gauss]);
-
-    }
+    // TODO: IMPLEMENT IN A MORE EFFICIENT MANNER
+    CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 
 }
 
@@ -247,21 +185,136 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
 {
     const auto &r_geometry = GetGeometry();
     const SizeType dim = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType block_size = dim + 1;
-    const SizeType matrix_size = block_size * r_geometry.PointsNumber();
+    const SizeType matrix_size = block_size * n_nodes;
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
-    // Check LHS size
-    if (rLeftHandSideMatrix.size1() != matrix_size) {
-        rLeftHandSideMatrix = ZeroMatrix(matrix_size, matrix_size);
-    } else if (rLeftHandSideMatrix.size2() != matrix_size) {
-        rLeftHandSideMatrix = ZeroMatrix(matrix_size, matrix_size);
+    // Check RHS size
+    if (rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size) {
+        rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
     }
 
-    // Get geometry data
+    // Compute the geometry data
+    Vector w_gauss_container;
+    Matrix N_gauss_container;
+    GeometryType::ShapeFunctionsGradientsType DN_DX_container;
+    CalculateGeometryData(r_geometry, w_gauss_container, N_gauss_container, DN_DX_container);
 
-    // Compute the kinematics
+    // Calculate the RHS contributions
+    rLeftHandSideMatrix.clear();
 
-    // Loop the Gauss points
+    Matrix B_mat(strain_size, n_nodes*dim);
+    Matrix dev_strain_op;
+    CalculateDeviatoricStrainOperator(dev_strain_op);
+
+    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        // Get Gauss pt. values
+        const auto &rN = row(N_gauss_container, i_gauss);
+        const double w_gauss = w_gauss_container[i_gauss];
+
+        // Add the deviatoric strain contribution
+        // TODO: MOVE TO A FUNCTION
+        Vector tot_strain = ZeroVector(strain_size);
+        CalculateB(B_mat, DN_DX_container[i_gauss]);
+        for (unsigned int i = 0; i < strain_size; ++i) {
+            for (unsigned int j = 0; j < strain_size ; ++j) {
+                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                    const auto &r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+                    for (unsigned int d = 0; d < dim; ++d) {
+                        const unsigned int aux = i_node * dim + d;
+                        tot_strain[i] += dev_strain_op(i,j) * B_mat(j,aux) * r_disp[d];
+                    }
+                }
+            }
+        }
+
+        // Interpolate and add the nodal volumetric strain
+        double vol_strain = 0.0;
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+            vol_strain += rN[i_node] * r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+        }
+        for (unsigned int d = 0; d < dim; ++d) {
+            tot_strain[d] += vol_strain;
+        }
+
+        // Get the stress from the constitutive law
+        // TODO: MOVE TO A FUNCTION
+        Vector tot_stress(strain_size);
+        Matrix cons_matrix(strain_size, strain_size);
+        ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        auto &r_cons_law_options = cons_law_values.GetOptions();
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        cons_law_values.SetShapeFunctionsValues(rN);
+        cons_law_values.SetStrainVector(tot_strain);
+        cons_law_values.SetStressVector(tot_stress);
+        cons_law_values.SetConstitutiveMatrix(cons_matrix);
+        mConstitutiveLawVector[i_gauss]->CalculateMaterialResponseCauchy(cons_law_values);
+
+        // Add momentum deviatoric stress contribution
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                for (unsigned int d1 = 0; d1 < dim; ++d1) {
+                    const unsigned int aux_i = i * block_size + d1;
+                    for (unsigned int d2 = 0; d2 < dim; ++d2) {
+                        const unsigned int aux_j = j * block_size + d2;
+                        for (unsigned int l = 0; l < strain_size; ++l) {
+                            for (unsigned int k = 0; k < strain_size; ++k) {
+                                for (unsigned int m = 0; m < strain_size; ++m) {
+                                    for (unsigned int n = 0; n < strain_size; ++n) {
+                                        rLeftHandSideMatrix(aux_i, aux_j) += w_gauss * B_mat(l,i*dim+d1) * dev_strain_op(k,l) * cons_law_values.GetConstitutiveMatrix()(k,m) * dev_strain_op(m,n) * B_mat(n,j*dim+d2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add momentum volume stress contribution
+        double hyd_stress = 0.0;
+        for (unsigned int d = 0; d < dim; ++d) {
+            hyd_stress += cons_law_values.GetStressVector()[d];
+        }
+        hyd_stress /= 3.0;
+        const double bulk_modulus = hyd_stress * vol_strain / std::pow(vol_strain, 2);
+
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                const unsigned int aux_j = j * block_size + dim;
+                for (unsigned int d = 0; d < dim; ++d) {
+                    const unsigned int aux_i = i * block_size + d;
+                    for (unsigned int l = 0; l < strain_size; ++l) {
+                        rLeftHandSideMatrix(aux_i, aux_j) += w_gauss * B_mat(l,i*dim+d) * bulk_modulus * rN[j];
+                    }
+                }
+            }
+        }
+
+        // Add mass conservation divergence contribution
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            const unsigned int aux_i = i * block_size + dim;
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                for (unsigned int d = 0; d < dim; ++d) {
+                    const unsigned int aux_j = j * block_size + d;
+                    rLeftHandSideMatrix(aux_i, aux_j) += w_gauss * rN[i] * DN_DX_container[i_gauss](j,d);
+                }
+            }
+        }
+
+        // Add mass conservation volumetric strain contribution
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            const unsigned int aux_i = i * block_size + dim;
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                const unsigned int aux_j = j * block_size + dim;
+                rLeftHandSideMatrix(aux_i, aux_j) += w_gauss * rN[i] * rN[j];
+            }
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -326,7 +379,6 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
         for (unsigned int d = 0; d < dim; ++d) {
             tot_strain[d] += vol_strain;
         }
-        KRATOS_WATCH(tot_strain)
 
         // Get the stress from the constitutive law
         // TODO: MOVE TO A FUNCTION
@@ -347,17 +399,18 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
             for (unsigned int j = 0; j < n_nodes; ++j) {
                 const double aux = rN[i] * rN[j];
                 for (unsigned int d = 0; d < dim; ++d) {
-                    rRightHandSideVector[i * block_size + d] += aux * body_force[d];
+                    rRightHandSideVector[i * block_size + d] += w_gauss * aux * body_force[d];
                 }
             }
         }
 
         // Add momentum stress contribution
+        // Note that this includes both the deviatoric and volumetric stress contributions
         for (unsigned int i = 0; i < n_nodes; ++i) {
             for (unsigned int d = 0; d < dim; ++d) {
                 for (unsigned int j = 0; j < strain_size; ++j) {
                     for (unsigned int k = 0; k < strain_size; ++k) {
-                        rRightHandSideVector(i * block_size + d) -= B_mat(j, i * dim + d) * dev_strain_op(k,j) * cons_law_values.GetStressVector()[k];
+                        rRightHandSideVector(i * block_size + d) -= w_gauss * B_mat(j, i * dim + d) * dev_strain_op(k,j) * cons_law_values.GetStressVector()[k];
                     }
                 }
             }
@@ -369,7 +422,7 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
             for (unsigned int j = 0; j < n_nodes; ++j) {
                 const auto &r_disp = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT);
                 for (unsigned int d = 0; d < dim; ++d) {
-                    rRightHandSideVector(i * block_size + dim) -= rN[i] * DN_DX_container[i_gauss](j,d) * r_disp[d];
+                    rRightHandSideVector(i * block_size + dim) -= w_gauss * rN[i] * DN_DX_container[i_gauss](j,d) * r_disp[d];
                 }
             }
         }
@@ -378,7 +431,7 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
         for (unsigned int i = 0; i < n_nodes; ++i) {
             for (unsigned int j = 0; j < n_nodes; ++j) {
                 const double &r_vol_strain = r_geometry[j].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-                rRightHandSideVector(i * block_size + dim) -= rN[i] * rN[j] * r_vol_strain;
+                rRightHandSideVector(i * block_size + dim) -= w_gauss * rN[i] * rN[j] * r_vol_strain;
             }
         }
     }
@@ -474,7 +527,7 @@ void SmallDisplacementMixedStrainElement::CalculateAll(
 
     // Some declarations
     array_1d<double, 3> body_force;
-    double int_to_reference_weight;
+    double int_to_reference_weight = 0.0;
 
     // Computing in all integrations points
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {

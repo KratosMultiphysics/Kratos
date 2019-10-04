@@ -58,17 +58,19 @@ namespace Testing
         p_node_2->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
         aux_disp[1] = 0.1;
         p_node_3->FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+        p_node_1->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+        p_node_2->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.01;
+        p_node_3->FastGetSolutionStepValue(VOLUMETRIC_STRAIN) = 0.02;
+
 
         // Compute RHS and LHS
         Vector RHS = ZeroVector(9);
         Matrix LHS = ZeroMatrix(9,9);
 
         p_element->Initialize(); // Initialize the element to initialize the constitutive law
-        // p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
-        KRATOS_WATCH(RHS)
-        p_element->CalculateRightHandSide(RHS, r_model_part.GetProcessInfo());
+        p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
-        // KRATOS_WATCH(LHS)
+        KRATOS_WATCH(LHS)
         KRATOS_WATCH(RHS)
 
         // KRATOS_CHECK_LESS_EQUAL((0.0223607 - process_info[ERROR_OVERALL])/0.0223607, 1.0e-5);
