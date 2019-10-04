@@ -190,7 +190,11 @@ namespace Kratos {
 
         const double tension_limit = 0.5 * 1e6 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
         const double fracture_energy = 0.5 * (element1->GetProperties()[FRACTURE_ENERGY] + element2->GetProperties()[FRACTURE_ENERGY]);
-        mDamageEnergyCoeff = 2.0 * calculation_area * calculation_area * calculation_area * fracture_energy * kn_el / (tension_limit * tension_limit) - 1.0;
+        mDamageEnergyCoeff = 2.0 * fracture_energy * kn_el / (calculation_area * tension_limit * tension_limit) - 1.0;
+
+        if (mDamageEnergyCoeff < 0.0) {
+            mDamageEnergyCoeff = 0.0;
+        }
 
         double k_unload = 0.0;
         double limit_force = 0.0;
