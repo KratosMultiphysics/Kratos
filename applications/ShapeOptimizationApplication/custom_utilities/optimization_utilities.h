@@ -309,8 +309,6 @@ public:
             }
         }
 
-        KRATOS_WATCH(mCorrectionScaling)
-
     	return mCorrectionScaling * norm_search_direction / norm_correction_term;
     }
 
