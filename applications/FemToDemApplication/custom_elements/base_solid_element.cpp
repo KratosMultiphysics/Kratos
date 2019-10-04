@@ -21,7 +21,6 @@
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "fem_to_dem_application_variables.h"
-// #include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {

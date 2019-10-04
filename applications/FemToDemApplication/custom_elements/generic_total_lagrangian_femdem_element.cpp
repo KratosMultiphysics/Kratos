@@ -261,19 +261,12 @@ void GenericTotalLagrangianFemDemElement::CalculateKinematicVariables(
 
     Matrix J;
     J = this->GetGeometry().Jacobian(J, PointNumber, rIntegrationMethod);
-    if (IsAxissymmetric()) {
-        CalculateAxisymmetricF(J, rThisKinematicVariables.InvJ0,
-                               rThisKinematicVariables.N,
-                               rThisKinematicVariables.F);
-        CalculateAxisymmetricB(
-            rThisKinematicVariables.B, rThisKinematicVariables.F,
-            rThisKinematicVariables.DN_DX, rThisKinematicVariables.N);
-    } else {
-        GeometryUtils::DeformationGradient(J, rThisKinematicVariables.InvJ0,
-                                           rThisKinematicVariables.F);
-        CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.F,
-                   rThisKinematicVariables.DN_DX);
-    }
+
+    GeometryUtils::DeformationGradient(J, rThisKinematicVariables.InvJ0,
+                                        rThisKinematicVariables.F);
+    CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.F,
+                rThisKinematicVariables.DN_DX);
+    
 
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
@@ -347,57 +340,6 @@ void GenericTotalLagrangianFemDemElement::Calculate3DB(Matrix& rB, const Matrix&
     KRATOS_CATCH("")
 }
 
-void GenericTotalLagrangianFemDemElement::CalculateAxisymmetricB(Matrix& rB,
-                                             const Matrix& rF,
-                                             const Matrix& rDN_DX,
-                                             const Vector& rN)
-{
-    KRATOS_TRY
-
-    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
-    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
-    double radius = 0.0;
-    radius = StructuralMechanicsMathUtilities::CalculateRadius(rN, this->GetGeometry());
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
-        const SizeType index = dimension * i;
-
-        rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
-        rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
-        rB(1, index + 1) = rF(0, 1) * rDN_DX(i, 1);
-        rB(1, index + 1) = rF(1, 1) * rDN_DX(i, 1);
-        rB(2, index + 0) = rN[i] / radius;
-        rB(3, index + 0) = rF(0, 0) * rDN_DX(i, 1) + rF(0, 1) * rDN_DX(i, 0);
-        rB(3, index + 1) = rF(1, 0) * rDN_DX(i, 1) + rF(1, 1) * rDN_DX(i, 0);
-    }
-
-    KRATOS_CATCH("")
-}
-
-void GenericTotalLagrangianFemDemElement::CalculateAxisymmetricF(Matrix const& rJ,
-                                             Matrix const& rInvJ0,
-                                             Vector const& rN,
-                                             Matrix& rF)
-{
-    KRATOS_TRY;
-
-    GeometryUtils::DeformationGradient(rJ, rInvJ0, rF);
-    BoundedMatrix<double, 2, 2> F2x2 = rF;
-    rF.resize(3, 3, false);
-    for (unsigned i = 0; i < 2; ++i)
-    {
-        for (unsigned j = 0; j < 2; ++j)
-            rF(i, j) = F2x2(i, j);
-        rF(i, 2) = rF(2, i) = 0.0;
-    }
-    const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(
-        rN, this->GetGeometry(), Current);
-    const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(
-        rN, this->GetGeometry(), Initial);
-    rF(2, 2) = current_radius / initial_radius;
-
-    KRATOS_CATCH("");
-}
 
 void GenericTotalLagrangianFemDemElement::CalculateStress(Vector& rStrain,
                                       std::size_t IntegrationPoint,
@@ -500,14 +442,6 @@ std::size_t GenericTotalLagrangianFemDemElement::GetStrainSize() const
     return GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-
-bool GenericTotalLagrangianFemDemElement::IsAxissymmetric() const
-{
-    return (GetStrainSize() == 4);
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
