@@ -224,7 +224,7 @@ public:
      * this gets the voigt index for a set of components
      */
     int CalculateVoigtIndex(const SizeType VoigtSize, const int ComponentI, const int ComponentJ);
-
+    // void CalculateKinematicVariables(ElementDataType& rVariables, const double& rPointNumber);
 private:
 
     ///@name Static Member Variables

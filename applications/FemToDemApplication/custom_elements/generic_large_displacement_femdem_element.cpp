@@ -803,6 +803,30 @@ int GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateVoigtIndex(
 /***********************************************************************************/
 /***********************************************************************************/
 
+// template<unsigned int TDim, unsigned int TyieldSurf>
+// void GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateKinematicVariables(ElementDataType& rVariables, const double& rPointNumber)
+// {
+    // // Shape functions
+    // rVariables.N = row(GetGeometry().ShapeFunctionsValues(rIntegrationMethod), rPointNumber);
+
+    // rVariables.detJ0 = this->CalculateDerivativesOnReferenceConfiguration(rVariables.J0, rVariables.InvJ0, rVariables.DN_DX, rPointNumber, rIntegrationMethod);
+    // KRATOS_ERROR_IF(rVariables.detJ0 < 0.0) << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rVariables.detJ0 << std::endl;
+
+    // Matrix J;
+    // J = this->GetGeometry().Jacobian(J, rPointNumber, rIntegrationMethod);
+
+    //     GeometryUtils::DeformationGradient(J, rVariables.InvJ0,
+    //                                        rVariables.F);
+    //     CalculateB(rVariables.B, rVariables.F,
+    //                rVariables.DN_DX);
+
+
+    // rVariables.detF = MathUtils<double>::Det(rVariables.F);
+// }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class GenericLargeDisplacementFemDemElement<2,0>;
 template class GenericLargeDisplacementFemDemElement<2,1>;
 template class GenericLargeDisplacementFemDemElement<2,2>;
