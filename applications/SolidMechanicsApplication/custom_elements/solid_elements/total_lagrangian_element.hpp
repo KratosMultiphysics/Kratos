@@ -185,7 +185,7 @@ protected:
      * Calculate Element Jacobian
      */
     void CalculateKinetics(ElementDataType& rVariables,
-			   const double& rPointNumber) override;
+               const double& rPointNumber) override;
 
 
     /**
@@ -200,7 +200,7 @@ protected:
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
     void GetHistoricalVariables( ElementDataType& rVariables,
-				 const double& rPointNumber ) override;
+                 const double& rPointNumber ) override;
 
 
     /**
