@@ -50,6 +50,33 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
+    def Initialize(self):
+        """ Initializing the Analysis """
+        super(StructuralMechanicsAnalysis, self).Initialize()
+        self._GetSolver().SetEchoLevel(self.echo_level)
+        # To avoid many prints
+        if self.echo_level == 0:
+            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
+    def OutputSolutionStep(self):
+        """This function printed / writes output files after the solution of a step
+        """
+
+        # First we check if one of the output processes will print output in this step this is done to save computation in case none of them will print
+        is_output_step = False
+        for output_process in self._GetListOfOutputProcesses():
+            if output_process.IsOutputStep():
+                is_output_step = True
+                break
+
+        if is_output_step:
+            # Informing the output will be created
+            KratosMultiphysics.Logger.PrintWarning(self.__get_simulation_name_output(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+            KratosMultiphysics.Logger.PrintWarning(self.__get_simulation_name_output(), "TIME: ", self.time)
+
+        # Creating output
+        super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
+
 
     def Check(self):
         super(StructuralMechanicsAnalysis, self).Check()
