@@ -24,6 +24,7 @@
 #include "custom_processes/apply_far_field_process.h"
 #include "custom_processes/compute_embedded_lift_process.h"
 #include "custom_processes/define_embedded_wake_process.h"
+#include "custom_processes/define_embedded_wake_process_3d.h"
 #include "custom_processes/compute_nodal_potential_flow_velocity_process.h"
 
 namespace Kratos {
@@ -65,6 +66,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<DefineEmbeddedWakeProcess, DefineEmbeddedWakeProcess::Pointer, Process >
         (m, "DefineEmbeddedWakeProcess")
+        .def(py::init<ModelPart&, ModelPart&>())
+        ;
+
+    py::class_<DefineEmbeddedWake3DProcess, DefineEmbeddedWake3DProcess::Pointer, Process >
+        (m, "DefineEmbeddedWakeProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         ;
 
