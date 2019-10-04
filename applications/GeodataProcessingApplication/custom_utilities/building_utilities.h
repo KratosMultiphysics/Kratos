@@ -85,7 +85,7 @@ namespace Kratos
      * @brief Function to check if there are overlapping elements
      *
      */
-    void CheckOverlap();
+    void CheckOverlapElement();
 
     /**
      * @brief Function to split the buildings that are overlapping elements
@@ -98,6 +98,12 @@ namespace Kratos
      *
      */
     bool CheckNodeInMap(std::unordered_map<IndexType, IndexType> new_nodes_map, IndexType node_id);
+
+    /**
+     * @brief Function to fill the new_nodes_map
+     *
+     */
+    void FillNodesMap(std::unordered_map<IndexType, std::vector<ModelPart::IndexType>> new_nodes_map, IndexType node_id);
 
     /**
      * @brief Function to find the maximum node id
