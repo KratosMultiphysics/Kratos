@@ -48,7 +48,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
             model = KratosMultiphysics.Model()
-            self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model)
+            self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["response_settings"], model)
 
             # call response function
             self.response_function.Initialize()
