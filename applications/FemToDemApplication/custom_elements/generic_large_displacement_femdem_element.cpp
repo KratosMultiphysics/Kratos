@@ -659,11 +659,11 @@ double GenericLargeDisplacementFemDemElement<TDim,TyieldSurf>::CalculateDerivati
     IntegrationMethod ThisIntegrationMethod
     )
 {
-    GeometryType& r_geom = this->GetGeometry();
+    const GeometryType& r_geom = this->GetGeometry();
     GeometryUtils::JacobianOnInitialConfiguration(r_geom, r_geom.IntegrationPoints(ThisIntegrationMethod)[PointNumber], rJ0);
     double detJ0;
     MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
-    const Matrix& rDN_De = this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
+    const Matrix& rDN_De = r_geom.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
     GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
     return detJ0;
 }
