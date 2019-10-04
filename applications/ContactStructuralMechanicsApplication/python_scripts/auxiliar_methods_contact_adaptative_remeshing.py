@@ -134,26 +134,28 @@ class AuxiliarMethodsContactAdaptiveRemeshing(AuxiliarMethodsAdaptiveRemeshing):
                     KM.Logger.PrintInfo(self.analysis._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                     break
                 else:
-                    # Before remesh we set the flag INTERFACE to the conditions (we need edges to preserve submodelparts)
-                    KM.VariableUtils().SetFlag(KM.INTERFACE, True, computing_model_part.GetSubModelPart("Contact").Conditions)
+                    # Compue metric
+                    metric_process = solver.get_metric_process()
+                    metric_process.Execute()
 
                     # We remove the contact model part to avoid problems (it will  be recomputed later)
-                    contact_model_part = computing_model_part.GetSubModelPart("Contact")
-                    for model_part in contact_model_part.SubModelParts:
-                        contact_model_part.RemoveSubModelPart(model_part.Name)
+                    KM.VariableUtils().SetFlag(KM.TO_ERASE, True, computing_model_part.GetSubModelPart("ComputingContact").Conditions)
+                    computing_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KM.TO_ERASE)
+
+                    # We remove the contact submodelparts
+                    computing_model_part.RemoveSubModelPart("Contact")
                     computing_model_part.RemoveSubModelPart("ComputingContact")
 
-                    # Ensure properties
-                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(root_model_part)
-                    MA.MeshingUtilities.EnsureModelPartOwnsProperties(computing_model_part)
+                    # Ensure properties defined
+                    MA.MeshingUtilities.RecursiveEnsureModelPartOwnsProperties(computing_model_part.GetRootModelPart())
 
-                    metric_process = solver.get_metric_process()
+                    # We create the contact submodelparts
+                    computing_model_part.CreateSubModelPart("Contact")
+                    computing_model_part.CreateSubModelPart("ComputingContact")
+
+                    # Remeshing
                     remeshing_process = solver.get_remeshing_process()
-                    metric_process.Execute()
                     remeshing_process.Execute()
-
-                    # We remove the contact model part to avoid problems (it will  be recomputed later)
-                    computing_model_part.RemoveSubModelPart("Contact")
 
                     root_model_part.Set(KM.MODIFIED, True)
                     non_linear_iteration += 1
