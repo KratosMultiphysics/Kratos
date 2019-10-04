@@ -79,12 +79,8 @@ namespace Kratos {
     }
 
     void RigidBodyElement3D::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
-        KRATOS_WATCH("holaaa")
         mpTranslationalIntegrationScheme = translational_integration_scheme->CloneRaw();
         mpRotationalIntegrationScheme = rotational_integration_scheme->CloneRaw();
-
-        KRATOS_WATCH(GetTranslationalIntegrationScheme())
-        KRATOS_WATCH(mpRotationalIntegrationScheme)
     }
 
     void RigidBodyElement3D::CustomInitialize(ModelPart& rigid_body_element_sub_model_part) {
@@ -160,8 +156,6 @@ namespace Kratos {
             GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
             noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
         }
-        KRATOS_WATCH("XXXX")
-        KRATOS_WATCH(GetTranslationalIntegrationScheme())
     }
 
     void RigidBodyElement3D::SetOrientation(const Quaternion<double> Orientation) {
@@ -281,17 +275,11 @@ namespace Kratos {
     double RigidBodyElement3D::GetMass() { return GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS); }
 
     void RigidBodyElement3D::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag ) {
-        KRATOS_WATCH(GetTranslationalIntegrationScheme())
-        KRATOS_WATCH(delta_t)
         GetTranslationalIntegrationScheme().MoveRigidBodyElement(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
-
-        KRATOS_WATCH(rotation_option)
 
         if (rotation_option) {
             GetRotationalIntegrationScheme().RotateRigidBodyElement(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         }
-        KRATOS_WATCH(force_reduction_factor)
-        KRATOS_WATCH(StepFlag)
     }
 
     void RigidBodyElement3D::save(Serializer& rSerializer) const

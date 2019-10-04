@@ -361,7 +361,6 @@ class ExplicitStrategy(object):
         """
         time += self.dt
         self._UpdateTimeInModelParts(time)
-        print(time)
 
         return time
 
@@ -690,8 +689,7 @@ class ExplicitStrategy(object):
 
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
-        print('88'*500)
-        print(properties)
+
     def ImportModelPart(self): #TODO: for the moment, provided for compatibility
         pass
 

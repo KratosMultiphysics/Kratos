@@ -57,7 +57,7 @@ namespace Kratos {
         virtual void SetInitialConditionsToNodes(const array_1d<double,3>& velocity);
 
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-        virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { KRATOS_WATCH(mpTranslationalIntegrationScheme);return *mpTranslationalIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
         virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
         virtual double GetMass();

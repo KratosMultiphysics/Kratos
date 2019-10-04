@@ -68,7 +68,7 @@ void RigidFace3D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
 void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
-    KRATOS_WATCH(MatSize)
+
     if (rRightHandSideVector.size() != MatSize) {
         rRightHandSideVector.resize(MatSize, false);
     }
@@ -101,10 +101,7 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
 
         //AddForcesDueToTorque(rRightHandSideVector, r_shape_functions_values, weights_vector, force, p_particle);
     }
-    KRATOS_WATCH(number_of_nodes)
-
     std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
-    KRATOS_WATCH(rNeighbours.size())
 
     for (unsigned int i=0; i<rNeighbours.size(); i++) {
         if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
@@ -118,9 +115,6 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
             rRightHandSideVector[k * 3 + 2] += -force[2] * weights_vector[k];
         }
     }
-
-    KRATOS_WATCH(rNeighbours.size())
-
 }
 
 void RigidFace3D::AddForcesDueToTorque(VectorType& rRightHandSideVector, Vector& r_shape_functions_values, std::vector<double>& weights_vector, array_1d<double, 3>& force, SphericParticle* p_particle) {

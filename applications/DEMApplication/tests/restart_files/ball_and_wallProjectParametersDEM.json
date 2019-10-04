@@ -60,7 +60,7 @@
     "PostParticleMoment"             : false,
     "PostEulerAngles"                : false,
     "PostRollingResistanceMoment"    : false,
-    "do_print_results_option"        : true,
+    "do_print_results_option"        : false,
     "problem_name"                   : "ball_and_wall",
 
     "output_processes" : {

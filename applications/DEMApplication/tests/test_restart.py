@@ -70,7 +70,8 @@ if __name__ == '__main__':
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     test_list = [
         TestRestartOneBall,
-        TestRestartTwoBalls
+        TestRestartTwoBalls,
+        TestRestartBallAndWall
     ]
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(test_list))
     allSuite = suites['all']

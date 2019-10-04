@@ -44,7 +44,6 @@ class DEMRestartUtility(RestartUtility):
             self.model_parts[name.GetString()] = model_part
         self.restart_save_location = restart_save_location
         super(DEMRestartUtility, self).__init__(list(self.model_parts.values())[0], settings_copy)
-        # print('yyyy'*50,self.restart_save_location)
         # self.restart_load_location = restart_load_location
 
     def SaveRestart(self):
@@ -56,7 +55,6 @@ class DEMRestartUtility(RestartUtility):
                 #self.raw_path = os.path.join(os.getcwd(), self.raw_path)
                 restart_utility.raw_path = os.path.join(os.getcwd(), self.raw_path)
                 restart_utility.SaveRestart()
-        caca
 
     def LoadRestart(self,  restart_file_name=""):
         for name in self.file_names:
@@ -66,4 +64,4 @@ class DEMRestartUtility(RestartUtility):
 
             restart_utility.LoadRestart()
 
-            #kratos_utilities.DeleteDirectoryIfExisting(self._RestartUtility__GetFolderPathLoad())
+            kratos_utilities.DeleteDirectoryIfExisting(restart_utility._RestartUtility__GetFolderPathLoad())
