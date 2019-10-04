@@ -64,7 +64,11 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
         axis_of_rotation = self.settings["axis_of_rotation"].GetVector()
         for node in self.modelpart.Nodes:
             data_vector = node.GetSolutionStepValue(self.interface_data.variable)
-            rotated_data_vector = self.__RotateVector(data_vector,angle_of_rotation, axis_of_rotation)
+            rotated_data = self.__RotateVector(data_vector,angle_of_rotation, axis_of_rotation)
+            rotated_data_vector = KM.Vector(3)
+            rotated_data_vector[0] = rotated_data[0]
+            rotated_data_vector[1] = rotated_data[1]
+            rotated_data_vector[2] = rotated_data[2]
             node.SetSolutionStepValue(self.interface_data.variable, 0, rotated_data_vector)
 
     def PrintInfo(self):
