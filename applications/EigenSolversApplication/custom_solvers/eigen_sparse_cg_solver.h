@@ -68,7 +68,7 @@ public:
 
     void PrintInfo(std::ostream &rOStream) const
     {
-        rOStream << "EigenDirectSolver <" << Name() << "> finished.";
+        rOStream << "EigenDirectSolver <" << Name() << ">";
     }
 };
 
