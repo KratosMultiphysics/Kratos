@@ -89,23 +89,23 @@ private:
     ///@name Operations
     ///@{
 
-    // opens the output file with the given openmode
+    /// opens the output file with the given openmode
     void OpenOutputFile(
         const std::string& rFileName,
         const std::ios::openmode OpenModeFlags,
         std::ofstream& rOutputFile) const;
 
-    // returns the name of the output file, depending on the current animation step
+    /// returns the name of the output file, depending on the current animation step
     std::string GetEigenOutputFileName(const int AnimationStep) const;
 
-    // writes a scalar variable of the nodes to the stream
+    /// writes a scalar variable of the nodes to the stream
     void WriteScalarEigenVariable(
         const ModelPart::NodesContainerType& rNodes,
         const Variable<double>& rVariable,
         const std::string& rLabel,
         std::ofstream& rFileStream) const;
 
-    // writes a vector variable of the nodes to the stream
+    /// writes a vector variable of the nodes to the stream
     void WriteVectorEigenVariable(
         const ModelPart::NodesContainerType& rNodes,
         const Variable<array_1d<double, 3>>& rVariable,
