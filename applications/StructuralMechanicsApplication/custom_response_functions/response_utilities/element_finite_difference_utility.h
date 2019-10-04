@@ -118,7 +118,14 @@ public:
 
         }
         else
-            rOutput.clear();
+        {
+            const SizeType  write_points_number = rElement.GetGeometry().IntegrationPointsNumber(rElement.GetIntegrationMethod());
+            if (rOutput.size() != write_points_number)
+                rOutput.resize(write_points_number);
+            for(IndexType i = 0; i < write_points_number; ++i)
+                rOutput[i].clear();
+        }
+
 
         KRATOS_CATCH("")
     }
