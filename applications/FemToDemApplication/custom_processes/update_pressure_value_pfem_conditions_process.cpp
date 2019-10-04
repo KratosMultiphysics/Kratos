@@ -38,9 +38,7 @@ void UpdatePressureValuePfemConditionsProcess<TDim>::Execute()
         for (unsigned int i = 0; i < r_geometry.PointsNumber(); i++) {
             const auto &r_node = r_geometry[i];
             const double nodal_pressure = r_node.FastGetSolutionStepValue(PRESSURE);
-            if (nodal_pressure < 0.0) { // Only take into account compressive ones
-                average_pressure += nodal_pressure;
-            }
+            average_pressure += nodal_pressure;
         }
         average_pressure /= r_geometry.PointsNumber();
         it_cond->SetValue(POSITIVE_FACE_PRESSURE, average_pressure);
