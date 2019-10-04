@@ -36,6 +36,7 @@ void KratosRomApplication::Register()
 
   KRATOS_REGISTER_VARIABLE( AUX_ID )
   KRATOS_REGISTER_VARIABLE( ROM_BASIS )
+  KRATOS_REGISTER_VARIABLE( HROM_WEIGHT )  
 
 }
 }  // namespace Kratos.
