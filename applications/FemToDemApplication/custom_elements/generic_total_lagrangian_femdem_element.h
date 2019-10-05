@@ -424,6 +424,16 @@ private:
     ///@{
     ///@}
 
+    Vector mNonConvergedThresholds;     // Equivalent stress
+    Vector mThresholds;                 // Stress mThreshold on edge
+    Vector mDamages;                    // Converged Damage on each edge
+    Vector mNonConvergedDamages;        // Damages at edges of "i" iteration
+    double mThreshold = 0.0;            // Converged Threshold
+    double mDamage = 0.0;               // Converged Damage
+
+    // Vector to storage the neigh elements sharing a certain edge
+    std::vector<std::vector<Element*>> mEdgeNeighboursContainer;
+    
     ///@}
     ///@name Serialization
     ///@{

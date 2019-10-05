@@ -182,7 +182,7 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_ELEMENT("LargeDisplacementMohrCoulombFemDemElement2D", mLargeDisplacementMohrCoulombFemDemElement2D)
     KRATOS_REGISTER_ELEMENT("LargeDisplacementMohrCoulombFemDemElement3D", mLargeDisplacementMohrCoulombFemDemElement3D)
 
-    KRATOS_REGISTER_ELEMENT("TotalLagrangianFemDemElement2D", mTotalLagrangianFemDemElement2D)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianRankineFemDemElement2D", mTotalLagrangianRankineFemDemElement2D)
     
     //Register Constitutive Laws
     Serializer::Register("ZarateLaw", mZarateLaw);
