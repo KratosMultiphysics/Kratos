@@ -240,6 +240,8 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     const bool CalculateResidualVectorFlag
     )
 {
+    // if (this->Id() == 154)
+    //     KRATOS_WATCH("CalculateAll")
     KRATOS_TRY;
 
     const SizeType number_of_nodes   = this->GetGeometry().size();
@@ -316,16 +318,26 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
             Vector average_strain_edge(VoigtSize);
             noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
             noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
-
+            if (this->Id() == 154) {
+                KRATOS_WATCH(average_stress_edge)
+                KRATOS_WATCH(average_strain_edge)
+            }
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
-
+ 
                 damages_edges[edge] = mDamages[edge];
                 double threshold = mThresholds[edge];
                 
                 this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
                     average_stress_edge, edge, characteristic_length, Values, is_damaging);
+
+                if (this->Id() == 154) {
+                        KRATOS_WATCH("dentro...")
+                        KRATOS_WATCH(damages_edges[edge])
+                        KRATOS_WATCH(average_stress_edge)
+                        KRATOS_WATCH(average_strain_edge)
+                    }
 
             } // Loop over edges
         }
@@ -366,6 +378,8 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
     ProcessInfo& rCurrentProcessInfo 
     )
 {
+    // if (this->Id() == 154)
+    //     KRATOS_WATCH("FINALIZE")
     KRATOS_TRY;
 
     const SizeType number_of_nodes   = this->GetGeometry().size();
@@ -399,6 +413,10 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
     double int_to_reference_weight;
     const double characteristic_length = this->CalculateCharacteristicLength(this);
 
+    const GeometryType& r_geometry = GetGeometry();
+    const Properties& r_properties = GetProperties();
+    const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+
     // Computing in all integrations points
     for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
         // Contribution to external forces
@@ -409,6 +427,12 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
 
         // Compute material reponse
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
+
+        // Call the constitutive law to update material variables
+        mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
+
+        // TODO: Deprecated, remove this
+        mConstitutiveLawVector[point_number]->FinalizeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
@@ -431,7 +455,6 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
                 
                 this->IntegrateStressDamageMechanics(mThresholds[edge], mDamages[edge], average_strain_edge, 
                     average_stress_edge, edge, characteristic_length, Values, is_damaging);
-
             } // Loop over edges
         }
         // Calculate the elemental Damage...
@@ -843,12 +866,12 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateStressDamage
         rDamage = mDamages[Edge];
     } else {
         double damage_parameter; // A parameter
-        if (!this->GetProperties()[FRAGILE]) {
+        // if (!this->GetProperties()[FRAGILE]) {
             this->CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
             this->CalculateExponentialDamage(rDamage, damage_parameter, uniaxial_stress, initial_threshold);            
-        } else {
-            rDamage = 0.98;
-        }
+        // } else {
+        //     rDamage = 0.98;
+        // }
         rThreshold = uniaxial_stress;
         rIsDamaging = true;
     }
@@ -1008,7 +1031,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVaria
 {
     auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
-    rAverageVector += pCurrentElement->GetValue(ThisVariable);
+    rAverageVector += r_elem_neigb[edge].GetValue(ThisVariable);
     rAverageVector *= 0.5;
 }
 
