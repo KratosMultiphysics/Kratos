@@ -71,8 +71,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         if is_output_step:
             # Informing the output will be created
-            KratosMultiphysics.Logger.PrintWarning(self.__get_simulation_name_output(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-            KratosMultiphysics.Logger.PrintWarning(self.__get_simulation_name_output(), "TIME: ", self.time)
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
 
         # Creating output
         super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
