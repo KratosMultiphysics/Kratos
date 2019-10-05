@@ -79,8 +79,11 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
 
-    ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+
+    typedef Properties PropertiesType;
+
+    typedef Geometry<NodeType> GeometryType;
 
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -117,7 +120,6 @@ public:
     ///@name Operations
     ///@{
 
-    }
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
@@ -186,14 +188,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        buffer << "Total Lagrangian FEMDEM Solid Element #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        rOStream << "Total Lagrangian FEMDEM Solid Element #" << Id();
     }
 
     /// Print object's data.
@@ -326,7 +328,15 @@ private:
      * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
      */
     void ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
+     */
     void AuxComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this returns the elements that share an edge -> gets the mEdgeNeighboursContainer
+     */
     std::vector<Element*> GetEdgeNeighbourElements(const int edge) {return mEdgeNeighboursContainer[edge];}
 
     /**
@@ -334,7 +344,11 @@ private:
      */
     void SaveEdgeNeighboursContainer(const std::vector<std::vector<Element*>>& rtoSave) {mEdgeNeighboursContainer = rtoSave;}
 
-    void SetNodeIndexes(Matrix& rMatrix) // Defines the numbering of the edges with the corresponding nodes
+    /**
+     * this sets the numbering for several purposes
+     * at the edges 
+     */
+    void SetNodeIndexes(Matrix& rMatrix)
     {
         rMatrix.resize(6, 2);
         rMatrix(0, 0) = 0; rMatrix(0, 1) = 1; rMatrix(1, 0) = 0;
@@ -405,6 +419,26 @@ private:
      */
     void CalculateExponentialDamage(double& rDamage, const double DamageParameter, const double UniaxialStress, const double InitialThrehsold);
 
+    /**
+     * this computes stress predictor S = C:E
+     */
+    void CalculateStressVectorPredictor(Vector& rStressVector, const Matrix& rConstitutiveMAtrix, const Vector& rStrainVector);
+
+    /**
+     * this adds the internal forces
+     */
+    void CalculateAndAddInternalForcesVector(Vector& rRightHandSideVector, const Matrix& rB, const Vector& rStressVector, const double IntegrationWeight);
+
+    /**
+     * this adds geometric contribution to the LHS
+     */
+    void CalculateGeometricK(MatrixType& rLeftHandSideMatrix, const Matrix& rDN_DX, const Vector& rStressVector, const double IntegrationWeight);
+
+    /**
+     * this adds material contribution to the LHS when secant
+     */
+    void CalculateAndAddMaterialK(MatrixType& rLeftHandSideMatrix,const Matrix& B, const Matrix& D, const double IntegrationWeight, const double Damage);
+
 
     // ************** Methods to compute the tangent constitutive tensor via numerical derivation ************** 
     /**
@@ -432,10 +466,25 @@ private:
      */
     void AssignComponentsToTangentTensor(Matrix& rTangentTensor, const Vector& rDeltaStress, const double Perturbation, const int Component);
 
+    /**
+     * this perturbates F
+     */
+    void PerturbateDeformationGradient(Matrix& rPerturbedDeformationGradient, const Matrix& rDeformationGradientGP, const double Perturbation, const int ComponentI, const int ComponentJ);
+
+    /**
+     * this gets the voigt index for a set of components
+     */
+    int CalculateVoigtIndex(const SizeType VoigtSize, const int ComponentI, const int ComponentJ);
+
+    /**
+     * this computes the Green-Lagrange Strain vector from F
+     */
+    void CalculateGreenLagrangeStrainVector(Vector& rStrainVector, const Matrix& rF);
     ///@}
     ///@name Private  Access
     ///@{
     ///@}
+
 
     Vector mNonConvergedThresholds;     // Equivalent stress
     Vector mThresholds;                 // Stress mThreshold on edge

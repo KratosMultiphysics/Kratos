@@ -87,7 +87,7 @@ void CalculateGreenLagrangeStrainSensitivity(Matrix const& rF,
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::GenericTotalLagrangianFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
+GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : BaseSolidElement(NewId, pGeometry)
 {
     // DO NOT ADD DOFS HERE!!!
@@ -96,7 +96,7 @@ GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::GenericTotalLagrangianFem
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::GenericTotalLagrangianFemDemElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemDemElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
         : BaseSolidElement( NewId, pGeometry, pProperties )
 {
     //DO NOT ADD DOFS HERE!!!
@@ -105,7 +105,7 @@ GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::GenericTotalLagrangianFem
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-Element::Pointer GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
     return Kratos::make_intrusive<GenericTotalLagrangianFemDemElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
@@ -113,7 +113,7 @@ Element::Pointer GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::Create( 
 //************************************************************************************
 //************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
-Element::Pointer GenericTotalLagrangianFemDemElement::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+Element::Pointer GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
     return Kratos::make_intrusive<GenericTotalLagrangianFemDemElement>( NewId, pGeom, pProperties );
 }
@@ -121,21 +121,21 @@ Element::Pointer GenericTotalLagrangianFemDemElement::Create( IndexType NewId,  
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::~GenericTotalLagrangianFemDemElement()
+GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::~GenericTotalLagrangianFemDemElement()
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-Element::Pointer GenericTotalLagGenericTotalLagrangianFemDemElement<TyieldSurf>rangianFemDemElement::Clone (
+Element::Pointer GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes
     ) const
 {
     KRATOS_TRY
 
-    GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::Pointer p_new_elem = Kratos::make_intrusive<GenericTotalLagrangianFemDemElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Pointer p_new_elem = Kratos::make_intrusive<GenericTotalLagrangianFemDemElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -153,7 +153,7 @@ Element::Pointer GenericTotalLagGenericTotalLagrangianFemDemElement<TyieldSurf>r
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateAll(
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -247,7 +247,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateKinematicVariables(
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
     const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod
@@ -274,7 +274,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateKinematicVa
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX)
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX)
 {
     KRATOS_TRY;
 
@@ -286,7 +286,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateB(Matrix& r
     KRATOS_CATCH("");
 }
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
 {
     KRATOS_TRY
 
@@ -307,7 +307,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::Calculate2DB(Matrix&
     KRATOS_CATCH( "" )
 }
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
 {
     KRATOS_TRY
 
@@ -341,7 +341,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::Calculate3DB(Matrix&
 }
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateStress(Vector& rStrain,
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateStress(Vector& rStrain,
                                       std::size_t IntegrationPoint,
                                       Vector& rStress,
                                       ProcessInfo const& rCurrentProcessInfo)
@@ -355,7 +355,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateStress(Vect
     KRATOS_CATCH("");
 }
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateStress(Matrix const& rF,
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateStress(Matrix const& rF,
                                       std::size_t IntegrationPoint,
                                       Vector& rStress,
                                       ProcessInfo const& rCurrentProcessInfo)
@@ -371,7 +371,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateStress(Matr
     KRATOS_CATCH("");
 }
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateStrain(Matrix const& rF,
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateStrain(Matrix const& rF,
                                       std::size_t IntegrationPoint,
                                       Vector& rStrain,
                                       ProcessInfo const& rCurrentProcessInfo)
@@ -384,7 +384,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateStrain(Matr
     KRATOS_CATCH("");
 }
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateShapeSensitivity(ShapeParameter Deriv,
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateShapeSensitivity(ShapeParameter Deriv,
                                                 Matrix& rDN_DX0,
                                                 Matrix& rDN_DX0_Deriv,
                                                 Matrix& rF_Deriv,
@@ -415,7 +415,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateShapeSensit
     KRATOS_CATCH("");
 }
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateBSensitivity(Matrix const& rDN_DX,
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateBSensitivity(Matrix const& rDN_DX,
                                             Matrix const& rF,
                                             Matrix const& rDN_DX_Deriv,
                                             Matrix const& rF_Deriv,
@@ -437,7 +437,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateBSensitivit
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-std::size_t GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::GetStrainSize() const
+std::size_t GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GetStrainSize() const
 {
     return GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 }
@@ -446,7 +446,7 @@ std::size_t GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::GetStrainSize
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-int  GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::Check( const ProcessInfo& rCurrentProcessInfo )
+int  GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -460,7 +460,7 @@ int  GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::Check( const Process
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateSensitivityMatrix(
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateSensitivityMatrix(
     const Variable<array_1d<double, 3>>& rDesignVariable,
     Matrix& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -539,7 +539,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::CalculateSensitivity
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::save( Serializer& rSerializer ) const
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseSolidElement );
 }
@@ -547,7 +547,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::save( Serializer& rS
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::load( Serializer& rSerializer )
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseSolidElement );
 }
@@ -555,7 +555,7 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::load( Serializer& rS
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::IntegrateStressDamageMechanics(
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateStressDamageMechanics(
     double& rThreshold,
     double& rDamage,
     const Vector& rStrainVector,
@@ -597,8 +597,22 @@ void GenericTotalLagrangianFemDemElement<TDim, TyieldSurf>::IntegrateStressDamag
 
 
 
-
-
+/***********************************************************************************/
+/***********************************************************************************/
+// template class GenericTotalLagrangianFemDemElement<2,0>;
+template class GenericTotalLagrangianFemDemElement<2,1>;
+// template class GenericTotalLagrangianFemDemElement<2,2>;
+// template class GenericTotalLagrangianFemDemElement<2,3>;
+// template class GenericTotalLagrangianFemDemElement<2,4>;
+// template class GenericTotalLagrangianFemDemElement<2,5>;
+// template class GenericTotalLagrangianFemDemElement<2,6>;
+// template class GenericTotalLagrangianFemDemElement<3,0>;
+// template class GenericTotalLagrangianFemDemElement<3,1>;
+// template class GenericTotalLagrangianFemDemElement<3,2>;
+// template class GenericTotalLagrangianFemDemElement<3,3>;
+// template class GenericTotalLagrangianFemDemElement<3,4>;
+// template class GenericTotalLagrangianFemDemElement<3,5>;
+// template class GenericTotalLagrangianFemDemElement<3,6>;
 } // Namespace Kratos
 
 
