@@ -343,10 +343,10 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
                 this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, Values);
                 noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
             } else {
-                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, (1.0 - damage_element)*int_to_reference_weight );
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, (1.0 - damage_element)*int_to_reference_weight);
             }
             /* Geometric stiffness matrix */
-            this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight );
+            this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
         }
 
         if (CalculateResidualVectorFlag == true) { // Calculation of the matrix is required
@@ -355,6 +355,95 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     }
     KRATOS_CATCH( "" )
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
+    ProcessInfo& rCurrentProcessInfo 
+    )
+{
+    KRATOS_TRY;
+
+    const SizeType number_of_nodes   = this->GetGeometry().size();
+    const SizeType dimension         = this->GetGeometry().WorkingSpaceDimension();
+    const auto strain_size           = GetStrainSize();
+    const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
+
+    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+
+    // Resizing as needed the LHS
+    const SizeType mat_size = number_of_nodes * dimension;
+
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions = Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+
+    // If strain has to be computed inside of the constitutive law with PK2
+    Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
+
+    // Some declarations
+    array_1d<double, 3> body_force;
+    double int_to_reference_weight;
+    const double characteristic_length = this->CalculateCharacteristicLength(this);
+
+    // Computing in all integrations points
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+        // Contribution to external forces
+        noalias(body_force) = this->GetBodyForce(integration_points, point_number);
+
+        // Compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+        // Compute material reponse
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
+
+        // Calculating weights for integration on the reference configuration
+        int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
+
+        if (dimension == 2 && this->GetProperties().Has(THICKNESS))
+            int_to_reference_weight *= this->GetProperties()[THICKNESS];
+
+        bool is_damaging = false;
+        Vector damages_edges = ZeroVector(NumberOfEdges);
+        if (yield_surface != "Elastic") {
+            // Loop over edges of the element...
+            Vector average_stress_edge(VoigtSize);
+            Vector average_strain_edge(VoigtSize);
+            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
+            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
+
+            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+                
+                this->IntegrateStressDamageMechanics(mThresholds[edge], mDamages[edge], average_strain_edge, 
+                    average_stress_edge, edge, characteristic_length, Values, is_damaging);
+
+            } // Loop over edges
+        }
+        // Calculate the elemental Damage...
+        mDamage = this->CalculateElementalDamage(damages_edges);
+        
+        if (mDamage >= 0.98) {
+            this->Set(ACTIVE, false);
+            mDamage = 0.98;
+            // We set a "flag" to generate the DEM 
+            rCurrentProcessInfo[GENERATE_DEM] = true;
+        }
+    }
+    KRATOS_CATCH( "" )
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1033,24 +1122,6 @@ double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateElementalD
     Vector two_max_values;
     ConstitutiveLawUtilities<VoigtSize>::Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
     return 0.5*(two_max_values[0] + two_max_values[1]);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // this->UpdateDataBase();
-
-    if (mDamage >= 0.98) {
-        this->Set(ACTIVE, false);
-        mDamage = 0.98;
-        // We set a "flag" to generate the DEM 
-        rCurrentProcessInfo[GENERATE_DEM] = true;
-    }
 }
 
 /***********************************************************************************/
