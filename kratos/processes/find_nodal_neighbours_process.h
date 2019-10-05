@@ -29,7 +29,6 @@
 #include "processes/process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/find_global_nodal_elemental_neighbours_process.h"
-#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
