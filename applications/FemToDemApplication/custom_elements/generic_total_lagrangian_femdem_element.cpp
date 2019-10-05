@@ -433,7 +433,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
         }
         // Calculate the elemental Damage...
         mDamage = this->CalculateElementalDamage(damages_edges);
-        
+
         if (mDamage >= 0.98) {
             this->Set(ACTIVE, false);
             mDamage = 0.98;
@@ -1950,6 +1950,27 @@ int GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateVoigtIndex(
         }
     }
 }
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateGreenLagrangeStrainVector(
+    Vector& rStrainVector,
+    const Matrix& rF
+    )
+{
+    Matrix strain_tensor;
+    if (strain_tensor.size1() != TDim)
+        strain_tensor.resize(TDim, TDim);
+    
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize);
+
+    Matrix identity = identity_matrix<double>(TDim);
+    noalias(strain_tensor) = 0.5 * (prod(trans(rF), rF) - identity);
+    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(strain_tensor, rStrainVector.size());
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 // template class GenericTotalLagrangianFemDemElement<2,0>;
