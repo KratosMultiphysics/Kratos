@@ -140,6 +140,9 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.__TestTransferMatchingAddValues(data_transfer_op)
         self.__TestTransferMatchingAddValuesAdSwapSign(data_transfer_op)
 
+    def test_kratos_mapping_transfer_operator_matching_names(self):
+        stop
+
 
     def __TestTransferMatching(self, data_transfer_op):
         transfer_options_empty = KM.Parameters(""" [] """)

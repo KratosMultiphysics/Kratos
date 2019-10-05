@@ -7,6 +7,9 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 def Create(settings):
     return KratosMappingDataTransferOperator(settings)
 
@@ -53,6 +56,8 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
                 mapper_create_fct = KratosMapping.MapperFactory.CreateMPIMapper
             else:
                 mapper_create_fct = KratosMapping.MapperFactory.CreateMapper
+
+            # cs_tools.cs_print_info("KratosMappingDataTransferOperator", colors.bold(self._ClassName()))
 
             self.__mappers[name_tuple] = mapper_create_fct(model_part_origin, model_part_destinatinon, self.settings["mapper_settings"].Clone()) # Clone is necessary here bcs settings are influenced among mappers otherwise. TODO check in the MapperFactory how to solve this better
             self.__mappers[name_tuple].Map(variable_origin, variable_destination, mapper_flags)
