@@ -352,18 +352,76 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateKinematicVar
 
 /***********************************************************************************/
 /***********************************************************************************/
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX)
+// template<>
+// void GenericLargeDisplacementFemDemElement<2,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<3,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rF, rDN_DX);
+// }
+template<>
+void GenericLargeDisplacementFemDemElement<2,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
 {
-    KRATOS_TRY;
-
-    if (GetGeometry().WorkingSpaceDimension() == 2)
-        Calculate2DB(rB, rF, rDN_DX);
-    else
-        Calculate3DB(rB, rF, rDN_DX);
-
-    KRATOS_CATCH("");
+    this->Calculate2DB(rB, rF, rDN_DX);
 }
+// template<>
+// void GenericLargeDisplacementFemDemElement<3,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<2,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<3,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<2,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<3,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<2,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<3,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<2,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<3,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rF, rDN_DX);
+// }
+// template<>
+// void GenericLargeDisplacementFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rF, rDN_DX);
+// }
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
 {
@@ -372,8 +430,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Calculate2DB(Matrix& 
     const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
     const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
         const auto index = dimension * i;
         rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
         rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
@@ -393,8 +450,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Calculate3DB(Matrix& 
     const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
     const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
         const auto index = dimension * i;
         rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
         rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
@@ -672,6 +728,617 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateStressDamage
         rIsDamaging = true;
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// template<>
+// void GenericTotalLagrangianFemDemElement<3,0>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<3,1>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<3,2>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<3,3>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<3,4>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<3,5>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<3,6>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<2,0>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+template<>
+void GenericTotalLagrangianFemDemElement<2,1>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+// template<>
+// void GenericTotalLagrangianFemDemElement<2,2>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<2,3>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<2,4>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<2,5>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+// template<>
+// void GenericTotalLagrangianFemDemElement<2,6>::CalculateAverageVariableOnEdge(
+//     const Element* pCurrentElement,
+//     const Variable<Vector> ThisVariable,
+//     Vector& rAverageVector,
+//     const int edge
+//     )
+// {
+//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+// }
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge2D(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector, // must be assigned to the current element outside this method
+    const int edge
+    )
+{
+    auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+    KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+    rAverageVector += pCurrentElement->GetValue(ThisVariable);
+    rAverageVector *= 0.5;
+}
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge3D(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector, // must be assigned to the current element outside this method
+    const int edge
+    )
+{
+    std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
+    int counter = 0;
+
+    for (unsigned int elem = 0; elem < p_edge_neighbours.size(); elem++) {
+        rAverageVector += p_edge_neighbours[elem]->GetValue(ThisVariable);
+        counter++;
+    }
+    rAverageVector /= (counter + 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+// template<>
+// double GenericTotalLagrangianFemDemElement<3,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//     return this->CalculateElementalDamage3D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<3,1>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//     return this->CalculateElementalDamage3D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<3,2>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//     return this->CalculateElementalDamage3D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<3,3>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//     return this->CalculateElementalDamage3D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<3,4>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//     return this->CalculateElementalDamage3D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<3,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//     return this->CalculateElementalDamage3D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<3,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//     return this->CalculateElementalDamage3D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<2,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//    return this->CalculateElementalDamage2D(rEdgeDamages);
+// }
+template<>
+double GenericTotalLagrangianFemDemElement<2,1>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+// template<>
+// double GenericTotalLagrangianFemDemElement<2,2>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//    return this->CalculateElementalDamage2D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<2,3>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//    return this->CalculateElementalDamage2D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<2,4>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//    return this->CalculateElementalDamage2D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<2,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//    return this->CalculateElementalDamage2D(rEdgeDamages);
+// }
+// template<>
+// double GenericTotalLagrangianFemDemElement<2,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
+// {
+//    return this->CalculateElementalDamage2D(rEdgeDamages);
+// }
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage3D(const Vector& rEdgeDamages)
+{
+    // 7 modes of fracture of the tetrahedron
+    Vector damage_mode_fracture = ZeroVector(7);
+    const double one_third = 1.0 / 3.0;
+    damage_mode_fracture[0] = one_third * (rEdgeDamages[0] + rEdgeDamages[1] + rEdgeDamages[2]);
+    damage_mode_fracture[1] = one_third * (rEdgeDamages[0] + rEdgeDamages[3] + rEdgeDamages[4]);
+    damage_mode_fracture[2] = one_third * (rEdgeDamages[1] + rEdgeDamages[3] + rEdgeDamages[5]);
+    damage_mode_fracture[3] = 0.25 * (rEdgeDamages[1] + rEdgeDamages[2] + rEdgeDamages[3] + rEdgeDamages[4]);
+    damage_mode_fracture[4] = 0.25 * (rEdgeDamages[0] + rEdgeDamages[1] + rEdgeDamages[4] + rEdgeDamages[5]);
+    damage_mode_fracture[5] = one_third * (rEdgeDamages[2] + rEdgeDamages[4] + rEdgeDamages[5]);
+    damage_mode_fracture[6] = 0.25 * (rEdgeDamages[0] + rEdgeDamages[2] + rEdgeDamages[3] + rEdgeDamages[5]);
+    return ConstitutiveLawUtilities<VoigtSize>::GetMaxValue(damage_mode_fracture);
+}
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage2D(const Vector& rEdgeDamages)
+{
+    Vector two_max_values;
+    ConstitutiveLawUtilities<VoigtSize>::Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
+    return 0.5*(two_max_values[0] + two_max_values[1]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    // this->UpdateDataBase();
+
+    if (mDamage >= 0.98) {
+        this->Set(ACTIVE, false);
+        mDamage = 0.98;
+        // We set a "flag" to generate the DEM 
+        rCurrentProcessInfo[GENERATE_DEM] = true;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeInternalVariablesAfterMapping()
+{
+    // After the mapping, the thresholds of the edges (are equal to 0.0) are imposed equal to the IP threshold
+    const double element_threhsold = mThreshold;
+    if (norm_2(mThresholds) < tolerance) {
+        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+            mThresholds[edge] = element_threhsold;
+        }
+    }
+
+    // IDEM with the edge damages
+    const double damage_element = mDamage;
+    if (norm_2(mDamages) < tolerance) {
+        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+            mDamages[edge] = damage_element;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// template<>
+// void GenericSmallStrainFemDemElement<3,0>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+// {
+//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,1>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+// {
+//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,2>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+// {
+//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,3>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+// {
+//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+// {
+//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+// {
+//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+// {
+//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+// }
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// template<>
+// void GenericSmallStrainFemDemElement<2,0>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+template<> 
+void GenericSmallStrainFemDemElement<2,1>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+// template<> 
+// void GenericSmallStrainFemDemElement<2,2>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+// template<> 
+// void GenericSmallStrainFemDemElement<2,3>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+// template<> 
+// void GenericSmallStrainFemDemElement<2,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+// template<> 
+// void GenericSmallStrainFemDemElement<2,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+// template<> 
+// void GenericSmallStrainFemDemElement<2,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    std::vector<std::vector<Element*>> edge_neighbours_container;
+    auto& r_nodes_current_element = this->GetGeometry();
+
+    auto& pNode0 = r_nodes_current_element[0];
+    auto& pNode1 = r_nodes_current_element[1];
+    auto& pNode2 = r_nodes_current_element[2];
+    auto& pNode3 = r_nodes_current_element[3];
+
+    // Neighbour elements of each node of the current element
+    GlobalPointersVector<Element>& r_neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
+    GlobalPointersVector<Element>& r_neigh_node_1 = pNode1.GetValue(NEIGHBOUR_ELEMENTS);
+    GlobalPointersVector<Element>& r_neigh_node_2 = pNode2.GetValue(NEIGHBOUR_ELEMENTS);
+    GlobalPointersVector<Element>& r_neigh_node_3 = pNode3.GetValue(NEIGHBOUR_ELEMENTS);
+
+    // Nodal neighbours container
+    std::vector<GlobalPointersVector<Element>> nodal_neighbours;
+    nodal_neighbours.push_back(r_neigh_node_0);
+    nodal_neighbours.push_back(r_neigh_node_1);
+    nodal_neighbours.push_back(r_neigh_node_2);
+    nodal_neighbours.push_back(r_neigh_node_3);
+
+    // Aux indexes
+    Matrix nodes_indexes = ZeroMatrix(6, 2);
+    this->SetNodeIndexes(nodes_indexes);
+
+    // Loop over EDGES to assign the elements that share that edge -> Fill mEdgeNeighboursContainer
+    for (unsigned int edge = 0; edge < 6; edge++) {
+        const int node_index_1 = nodes_indexes(edge, 0);
+        const int node_index_2 = nodes_indexes(edge, 1);
+
+        // Neigh elements of local node 1 and 2  //
+        auto& r_neigh_of_node_1 = nodal_neighbours[node_index_1];
+        auto& r_neigh_of_node_2 = nodal_neighbours[node_index_2];
+
+        const int node_id_1 = r_nodes_current_element[node_index_1].Id();
+        const int node_id_2 = r_nodes_current_element[node_index_2].Id();
+
+        std::vector<Element*> edge_shared_elements_node_1;
+        // Loop over neigh elements of the node 1
+        for (unsigned int neigh_elem = 0; neigh_elem < r_neigh_of_node_1.size(); neigh_elem++) {
+            // Nodes of the neigh element
+            auto& r_nodes_neigh_elem = r_neigh_of_node_1[neigh_elem].GetGeometry();
+
+            // Loop over the nodes of the neigh element
+            for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
+                const int neigh_element_node_id = r_nodes_neigh_elem[neigh_elem_node].Id();
+
+                if (neigh_element_node_id == node_id_2 && this->Id() != r_neigh_of_node_1[neigh_elem].Id()) {
+                    edge_shared_elements_node_1.push_back(&r_neigh_of_node_1[neigh_elem]); // ( [] returns an Element object!!)
+                }
+            }
+        }
+
+        std::vector<Element *> edge_shared_elements_node_2;
+        // Loop over neigh elements of the node 2
+        for (unsigned int neigh_elem = 0; neigh_elem < r_neigh_of_node_2.size(); neigh_elem++) {
+            // Nodes of the neigh element
+            auto &r_nodes_neigh_elem = r_neigh_of_node_2[neigh_elem].GetGeometry();
+
+            // Loop over the nodes of the neigh element
+            for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
+                const int neigh_element_node_id = r_nodes_neigh_elem[neigh_elem_node].Id();
+
+                if (neigh_element_node_id == node_id_1 && this->Id() != r_neigh_of_node_2[neigh_elem].Id()) {
+                    edge_shared_elements_node_2.push_back(&r_neigh_of_node_2[neigh_elem]);
+                }
+            }
+        }
+        // Let's create the vector of neighbour elements for this edge
+        std::vector<Element *> edge_shared_elements = edge_shared_elements_node_1;
+        // Add the neigh elements from the node 2
+        for (unsigned int i = 0; i < edge_shared_elements_node_2.size(); i++) {
+            int aux = 0;
+
+            for (unsigned int j = 0; j < edge_shared_elements.size(); j++) {
+                if (edge_shared_elements_node_2[i]->Id() == edge_shared_elements[j]->Id())
+                    aux++;
+            }
+            if (aux == 0)
+                edge_shared_elements.push_back(edge_shared_elements_node_2[i]);
+        }
+        edge_neighbours_container.push_back(edge_shared_elements);
+    } // End loop edges
+
+    // Storages the information inside the element
+    this->SaveEdgeNeighboursContainer(edge_neighbours_container);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// template<>
+// void GenericSmallStrainFemDemElement<2,0>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,0>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+template<>
+void GenericSmallStrainFemDemElement<2,1>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressRankine(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+// template<>
+// void GenericSmallStrainFemDemElement<3,1>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressRankine(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<2,2>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressSimoJu(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,2>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressSimoJu(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<2,3>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressDruckerPrager(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,3>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressDruckerPrager(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<2,4>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressHuberVonMises(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,4>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressHuberVonMises(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<2,5>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,5>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<2,6>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,6>::CalculateEquivalentStress(
+//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
+//     const Vector& rStrainVector,
+//     double& rEquivalentStress,
+//     ConstitutiveLaw::Parameters& rValues
+//     )
+// {
+//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+// }
 
 
 

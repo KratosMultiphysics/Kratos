@@ -297,11 +297,7 @@ private:
      */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * this is called for non-linear analysis at the end of the iteration process
-     */
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
-    
+
     /**
      * @brief This method computes the deformation matrix B
      * @param rB The deformation matrix
