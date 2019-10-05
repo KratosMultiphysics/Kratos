@@ -78,7 +78,7 @@ namespace Kratos
                 if(color >= 0)
                 {
                     //recev the global neighbours as computed on color
-                    recv_map[color] = SendRecv(non_local_map[color], color, color );
+                    recv_map[color] = mrComm.SendRecv(non_local_map[color], color, color );
 
                     for(auto& item : recv_map[color])
                     {
@@ -104,7 +104,7 @@ namespace Kratos
                     }
 
                     //obtain the final list of neighbours for nodes owned on color
-                    auto final_gp_map = SendRecv(recv_map[color], color, color );
+                    auto final_gp_map = mrComm.SendRecv(recv_map[color], color, color );
 
                     //update the local database
                     for(auto& item : final_gp_map)

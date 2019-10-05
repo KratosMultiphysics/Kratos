@@ -75,19 +75,12 @@ public:
     /// avg_nodes ------ expected number of neighbour Nodes
     /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
     FindNodalNeighboursProcess(ModelPart& model_part,
-        const DataCommunicator& rComm = ParallelEnvironment::GetDefaultDataCommunicator(),
-        bool compute_neighbour_nodes = true,
-        bool compute_neighbour_elements = true
+        const DataCommunicator& rComm = ParallelEnvironment::GetDefaultDataCommunicator()
     )
-        :   mr_model_part(model_part),
-            mcompute_neighbour_nodes(compute_neighbour_nodes),
-            mcompute_neighbour_elements(compute_neighbour_nodes)
+        :   mr_model_part(model_part)
     {
-        if( mcompute_neighbour_nodes )
-            mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(rComm, model_part);
-
-        if( mcompute_neighbour_elements )
-            mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(rComm, model_part);
+        mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(rComm, model_part);
+        mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(rComm, model_part);
     }
 
     /// Destructor.
