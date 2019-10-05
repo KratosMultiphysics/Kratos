@@ -242,9 +242,10 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
 {
     KRATOS_TRY;
 
-    const SizeType number_of_nodes = this->GetGeometry().size();
-    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
-    const auto strain_size = GetStrainSize();
+    const SizeType number_of_nodes   = this->GetGeometry().size();
+    const SizeType dimension         = this->GetGeometry().WorkingSpaceDimension();
+    const auto strain_size           = GetStrainSize();
+    const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -252,19 +253,19 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
 
-    if ( CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
-        if ( rLeftHandSideMatrix.size1() != mat_size )
-            rLeftHandSideMatrix.resize( mat_size, mat_size, false );
+    if (CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
+        if (rLeftHandSideMatrix.size1() != mat_size )
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
     }
 
     // Resizing as needed the RHS
-    if ( CalculateResidualVectorFlag == true ) { // Calculation of the matrix is required
-        if ( rRightHandSideVector.size() != mat_size )
-            rRightHandSideVector.resize( mat_size, false );
+    if (CalculateResidualVectorFlag == true) { // Calculation of the matrix is required
+        if (rRightHandSideVector.size() != mat_size )
+            rRightHandSideVector.resize(mat_size, false);
 
-        rRightHandSideVector = ZeroVector( mat_size ); //resetting RHS
+        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
     }
 
     // Reading integration points
@@ -273,7 +274,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
     // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=Values.GetOptions();
+    Flags& ConstitutiveLawOptions = Values.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     if ( CalculateStiffnessMatrixFlag ) {
@@ -288,9 +289,10 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     // Some declarations
     array_1d<double, 3> body_force;
     double int_to_reference_weight;
+    const double characteristic_length = this->CalculateCharacteristicLength(this);
 
     // Computing in all integrations points
-    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
         // Contribution to external forces
         noalias(body_force) = this->GetBodyForce(integration_points, point_number);
 
@@ -303,23 +305,54 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
 
-        if ( dimension == 2 && this->GetProperties().Has( THICKNESS ))
+        if (dimension == 2 && this->GetProperties().Has(THICKNESS))
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
-        if ( CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
+        bool is_damaging = false;
+        Vector damages_edges = ZeroVector(NumberOfEdges);
+        if (yield_surface != "Elastic") {
+            // Loop over edges of the element...
+            Vector average_stress_edge(VoigtSize);
+            Vector average_strain_edge(VoigtSize);
+            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
+            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
+
+            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+
+                damages_edges[edge] = mDamages[edge];
+                double threshold = mThresholds[edge];
+                
+                this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
+                    average_stress_edge, edge, characteristic_length, Values, is_damaging);
+
+            } // Loop over edges
+        }
+        // Calculate the elemental Damage...
+        const double damage_element = this->CalculateElementalDamage(damages_edges);
+        const Vector& r_strain_vector = this_constitutive_variables.StrainVector;
+        const Vector& r_stress_vector = this_constitutive_variables.StressVector;
+        const Vector& r_integrated_stress_vector = (1.0 - damage_element)*r_stress_vector;
+
+        if (CalculateStiffnessMatrixFlag == true) { // Calculation of the matrix is required
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
-            this->CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight );
-
+            if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
+                Matrix tangent_tensor;
+                this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, Values);
+                noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
+            } else {
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, (1.0 - damage_element)*int_to_reference_weight );
+            }
             /* Geometric stiffness matrix */
-            this->CalculateAndAddKg( rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight );
+            this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight );
         }
 
-        if ( CalculateResidualVectorFlag == true ) { // Calculation of the matrix is required
-            this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
+        if (CalculateResidualVectorFlag == true) { // Calculation of the matrix is required
+            this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, r_integrated_stress_vector, int_to_reference_weight);
         }
     }
-
     KRATOS_CATCH( "" )
 }
 
