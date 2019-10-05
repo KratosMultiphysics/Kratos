@@ -331,7 +331,8 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         }
         // Calculate the elemental Damage...
         const double damage_element = this->CalculateElementalDamage(damages_edges);
-        const Vector& r_strain_vector = this_constitutive_variables.StrainVector;
+        Vector r_strain_vector;
+        this->CalculateGreenLagrangeStrainVector(r_strain_vector, this_kinematic_variables.F);
         const Vector& r_stress_vector = this_constitutive_variables.StressVector;
         const Vector& r_integrated_stress_vector = (1.0 - damage_element)*r_stress_vector;
 
@@ -347,10 +348,12 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
             }
             /* Geometric stiffness matrix */
             this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
+            // KRATOS_WATCH(rLeftHandSideMatrix)
         }
 
         if (CalculateResidualVectorFlag == true) { // Calculation of the matrix is required
             this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, r_integrated_stress_vector, int_to_reference_weight);
+            // KRATOS_WATCH(rRightHandSideVector)
         }
     }
     KRATOS_CATCH( "" )
@@ -1969,6 +1972,45 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateGreenLagrang
     Matrix identity = identity_matrix<double>(TDim);
     noalias(strain_tensor) = 0.5 * (prod(trans(rF), rF) - identity);
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(strain_tensor, rStrainVector.size());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GetValueOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rVariable == DAMAGE_ELEMENT || 
+    rVariable == IS_DAMAGED || 
+    rVariable == STRESS_THRESHOLD || 
+    rVariable == EQUIVALENT_STRESS_VM) {
+        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rVariable == DAMAGE_ELEMENT) {
+        rOutput.resize(1);
+        for (unsigned int point_number = 0; point_number < 1; point_number++) {
+            rOutput[point_number] = mDamage;
+        }
+    } else if (rVariable == STRESS_THRESHOLD) {
+        rOutput.resize(1);
+        for (unsigned int point_number = 0; point_number < 1; point_number++) {
+            rOutput[point_number] = mThreshold;
+        }
+    }
 }
 
 /***********************************************************************************/

@@ -497,6 +497,16 @@ private:
      * this computes the Green-Lagrange Strain vector from F
      */
     void CalculateGreenLagrangeStrainVector(Vector& rStrainVector, const Matrix& rF);
+
+    void GetValueOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rValues,
+        const ProcessInfo &rCurrentProcessInfo);
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo);
     ///@}
     ///@name Private  Access
     ///@{
