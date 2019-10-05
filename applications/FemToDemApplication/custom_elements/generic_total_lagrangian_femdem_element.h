@@ -24,6 +24,7 @@
 #include "includes/define.h"
 #include "custom_elements/base_solid_element.h"
 #include "includes/variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -460,7 +461,7 @@ private:
     /**
      * this computes the Tangent tensor via numerical derivation (perturbations)
      */
-    void CalculateTangentTensor(Matrix& rTangentTensor,const Vector& rStrainVectorGP,const Vector& rStressVectorGP,const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+    void CalculateTangentTensor(Matrix& rTangentTensor, const Vector& rStrainVectorGP, const Vector& rStressVectorGP, const Matrix& rDeformationGradientGP, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
     /**
      * this computes the perturbation to the strain

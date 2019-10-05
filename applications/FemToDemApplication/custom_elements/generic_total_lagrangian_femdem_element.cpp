@@ -1605,10 +1605,10 @@ double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateCharacteri
         sum_of_lengths += std::sqrt(std::pow(coordinates_1[0] - coordinates_2[0], 2) + 
             std::pow(coordinates_1[1] - coordinates_2[1], 2) + std::pow(coordinates_1[2] - coordinates_2[2], 2));
     }
-    return sum_of_lengths / number_of_edges;
+    return sum_of_lengths / NumberOfEdges;
 }
 
-***********************************************************************************/
+/***********************************************************************************/
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
