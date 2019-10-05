@@ -53,7 +53,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  * @author Alejandro Cornejo
  */
-template<unsigned int TyieldSurf>
+template<unsigned int TDim, unsigned int TyieldSurf>
 class GenericTotalLagrangianFemDemElement
     : public BaseSolidElement
 {
@@ -79,18 +79,18 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
 
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    /// The zero tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
     /// We define the dimension
     static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
 
     /// We define the number of edges
     static constexpr SizeType NumberOfEdges = (TDim == 3) ? 6 : 3;
 
-    ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-
-    /// The zero tolerance
-    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
-    
     /// Counted pointer of GenericTotalLagrangianFemDemElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GenericTotalLagrangianFemDemElement);
 
@@ -117,6 +117,7 @@ public:
     ///@name Operations
     ///@{
 
+    }
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
@@ -392,7 +393,7 @@ private:
     /**
      * this computes the CharacteristicLength of the element
      */
-    double CalculateCharacteristicLength(GenericSmallStrainFemDemElement *pCurrentElement);
+    double CalculateCharacteristicLength(GenericTotalLagrangianFemDemElement *pCurrentElement);
 
     /**
      * this computes VolumeForce of the element

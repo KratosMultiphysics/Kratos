@@ -133,7 +133,7 @@ private:
     const GenericLargeDisplacementFemDemElement<2,6> mLargeDisplacementMohrCoulombFemDemElement2D;
     const GenericLargeDisplacementFemDemElement<3,6> mLargeDisplacementMohrCoulombFemDemElement3D;
 
-    const GenericTotalLagrangianFemDemElement<1> mTotalLagrangianRankineFemDemElement2D;
+    const GenericTotalLagrangianFemDemElement<2,1> mTotalLagrangianRankineFemDemElement2D;
 
     //elastic laws
    const ZarateLaw mZarateLaw;
