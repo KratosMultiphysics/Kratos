@@ -79,6 +79,18 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
 
+    /// We define the dimension
+    static constexpr SizeType VoigtSize = (TDim == 3) ? 6 : 3;
+
+    /// We define the number of edges
+    static constexpr SizeType NumberOfEdges = (TDim == 3) ? 6 : 3;
+
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    /// The zero tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    
     /// Counted pointer of GenericTotalLagrangianFemDemElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GenericTotalLagrangianFemDemElement);
 
@@ -433,7 +445,7 @@ private:
 
     // Vector to storage the neigh elements sharing a certain edge
     std::vector<std::vector<Element*>> mEdgeNeighboursContainer;
-    
+
     ///@}
     ///@name Serialization
     ///@{
