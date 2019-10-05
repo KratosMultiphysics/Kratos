@@ -283,6 +283,26 @@ private:
     ///@{
 
     /**
+     * this is called in the beginning of each solution step
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * this is called at the end of each solution step
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * this is called for non-linear analysis at the beginning of the iteration process
+     */
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * this is called for non-linear analysis at the end of the iteration process
+     */
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+    
+    /**
      * @brief This method computes the deformation matrix B
      * @param rB The deformation matrix
      * @param rF The deformation gradient
@@ -485,11 +505,9 @@ private:
     ///@{
     ///@}
 
-
-    Vector mNonConvergedThresholds;     // Equivalent stress
     Vector mThresholds;                 // Stress mThreshold on edge
     Vector mDamages;                    // Converged Damage on each edge
-    Vector mNonConvergedDamages;        // Damages at edges of "i" iteration
+
     double mThreshold = 0.0;            // Converged Threshold
     double mDamage = 0.0;               // Converged Damage
 

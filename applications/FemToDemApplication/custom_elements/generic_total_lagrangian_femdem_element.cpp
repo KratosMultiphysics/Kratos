@@ -91,15 +91,29 @@ GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemD
     : BaseSolidElement(NewId, pGeometry)
 {
     // DO NOT ADD DOFS HERE!!!
+    if (mThresholds.size() != NumberOfEdges)
+        mThresholds.resize(NumberOfEdges);
+    noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+
+    if (mDamages.size() != NumberOfEdges)
+        mDamages.resize(NumberOfEdges);
+    noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemDemElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-        : BaseSolidElement( NewId, pGeometry, pProperties )
+GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GenericTotalLagrangianFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+        : BaseSolidElement(NewId, pGeometry, pProperties)
 {
     //DO NOT ADD DOFS HERE!!!
+    if (mThresholds.size() != NumberOfEdges)
+        mThresholds.resize(NumberOfEdges);
+    noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+
+    if (mDamages.size() != NumberOfEdges)
+        mDamages.resize(NumberOfEdges);
+    noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 }
 
 /***********************************************************************************/
@@ -148,6 +162,71 @@ Element::Pointer GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Clone(
     return p_new_elem;
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeSolutionStep(
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (this->GetValue(RECOMPUTE_NEIGHBOURS)) {
+        this->ComputeEdgeNeighbours(rCurrentProcessInfo);
+        this->SetValue(RECOMPUTE_NEIGHBOURS, false);
+    }
+
+    this->InitializeInternalVariablesAfterMapping();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIteration(
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    Values.SetStrainVector(this_constitutive_variables.StrainVector);
+    Values.SetStressVector(this_constitutive_variables.StressVector);
+    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+
+    // Reading integration points
+    const GeometryType& r_geometry = GetGeometry();
+    const Properties& r_properties = GetProperties();
+    const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+
+    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        // Compute element kinematics B, F, DN_DX ...
+        CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
+
+        // Compute material reponse
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
+    }
+    this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
+    this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
