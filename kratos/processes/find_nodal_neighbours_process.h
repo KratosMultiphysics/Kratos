@@ -76,8 +76,19 @@ public:
         auto& r_comm = model_part.GetCommunicator().GetDataCommunicator();
         mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(r_comm, model_part);
         mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(r_comm, model_part);
+
+        KRATOS_WARNING("FindNodalNeighboursProcess") << 
+            R"(please call separetely FindGlobalNodalNeighboursProcess 
+            and FindGlobalNodalElementalNeighboursProcess. 
+            The two calculations are are currently independent,
+             hence memory savings can be achieved)" << std::endl;
     }
 
+    FindNodalNeighboursProcess(ModelPart& model_part, unsigned int avg_elems, unsigned int avg_nodes)
+        : FindNodalNeighboursProcess(model_part)
+    {
+        KRATOS_WARNING("FindNodalNeighboursProcess") << "parameters avg_elems and avg_nodes are currently ignored" << std::endl;
+    }
     /// Destructor.
     ~FindNodalNeighboursProcess() override
     {
