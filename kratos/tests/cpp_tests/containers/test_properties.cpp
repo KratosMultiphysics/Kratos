@@ -49,8 +49,9 @@ KRATOS_TEST_CASE_IN_SUITE(SubpropertiesInterface, KratosCoreFastSuite) {
     p11->SetValue(YOUNG_MODULUS,11.0);
     KRATOS_CHECK_EQUAL(p1->GetSubProperties(11).GetValue(YOUNG_MODULUS), 11.0);
     KRATOS_CHECK_EQUAL(r_model_part.GetSubProperties("1.11").GetValue(YOUNG_MODULUS), 11.0);  //SUGGESTION TODO: this should be called GetProperties
-    //r_model_part.GetSubProperties("1.11.111").SetValue(YOUNG_MODULUS,111.0); //ERROR TODO: this should work but is failing
-    //KRATOS_CHECK_EQUAL(p111->GetValue(YOUNG_MODULUS), 11.0); //ERROR TODO: this should work but is failing
+    
+    r_model_part.GetSubProperties("1.11.111").SetValue(YOUNG_MODULUS,111.0); //ERROR TODO: this should work but is failing
+    KRATOS_CHECK_EQUAL(p111->GetValue(YOUNG_MODULUS), 111.0); //ERROR TODO: this should work but is failing
 
     //1.12.1 is different from 1, even though it has the same index
     //r_model_part.GetSubProperties("1.12.1").SetValue(YOUNG_MODULUS,12345.0);  //ERROR TODO: this should work but is failing
@@ -61,6 +62,14 @@ KRATOS_TEST_CASE_IN_SUITE(SubpropertiesInterface, KratosCoreFastSuite) {
 
     KRATOS_CHECK_EQUAL(p1->GetValue(YOUNG_MODULUS), 1.0);
 
+    unsigned int found = 0;
+    for(const auto& prop_it : p1->GetSubProperties())
+        if(prop_it.Id() == 11 || prop_it.Id() == 12)
+            found++;
+        else
+            KRATOS_ERROR << "the property with Id " << prop_it.Id() << " should not exist in theh first layer";
+    KRATOS_CHECK_EQUAL(found,2);
+        
 }
 
 
