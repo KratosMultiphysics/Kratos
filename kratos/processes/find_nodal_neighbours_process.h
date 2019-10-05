@@ -70,17 +70,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    /// avg_elems ------ expected number of neighbour elements per node.,
-    /// avg_nodes ------ expected number of neighbour Nodes
-    /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
-    FindNodalNeighboursProcess(ModelPart& model_part,
-        const DataCommunicator& rComm = ParallelEnvironment::GetDefaultDataCommunicator()
-    )
+    FindNodalNeighboursProcess(ModelPart& model_part)
         :   mr_model_part(model_part)
     {
-        mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(rComm, model_part);
-        mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(rComm, model_part);
+        auto& r_comm = model_part.GetCommunicator().GetDataCommunicator();
+        mpNodeNeighboursCalculator = Kratos::make_unique<FindGlobalNodalNeighboursProcess>(r_comm, model_part);
+        mpElemNeighboursCalculator = Kratos::make_unique<FindGlobalNodalElementalNeighboursProcess>(r_comm, model_part);
     }
 
     /// Destructor.
