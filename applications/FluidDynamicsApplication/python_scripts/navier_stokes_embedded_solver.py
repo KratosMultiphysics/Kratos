@@ -388,9 +388,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
             number_of_avg_elems = 10
             number_of_avg_nodes = 10
-            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart(),
-                                                                                               number_of_avg_elems,
-                                                                                               number_of_avg_nodes)
+            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart())
 
         # If required, intialize the FM-ALE utility
         if self.__fm_ale_is_active:

@@ -158,7 +158,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<FindNodalNeighboursProcess, FindNodalNeighboursProcess::Pointer, Process>(m,"FindNodalNeighboursProcess")
             .def(py::init<ModelPart& >())
-            .def(py::init<ModelPart&, const DataCommunicator&, bool, bool>())
+            .def(py::init<ModelPart&, const DataCommunicator&>())
     .def("ClearNeighbours",&FindNodalNeighboursProcess::ClearNeighbours)
     ;
 
