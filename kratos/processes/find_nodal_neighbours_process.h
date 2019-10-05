@@ -105,20 +105,14 @@ public:
 
     void Execute() override
     {
-        if( mcompute_neighbour_nodes )
-            mpNodeNeighboursCalculator->Execute();
-
-        if( mcompute_neighbour_elements )
-            mpElemNeighboursCalculator->Execute();
+        mpNodeNeighboursCalculator->Execute();
+        mpElemNeighboursCalculator->Execute();
     }
 
     void ClearNeighbours()
     {
-        if( mcompute_neighbour_nodes )
-            mpNodeNeighboursCalculator->ClearNeighbours();
-
-        if( mcompute_neighbour_elements )
-            mpElemNeighboursCalculator->ClearNeighbours();
+        mpNodeNeighboursCalculator->ClearNeighbours();
+        mpElemNeighboursCalculator->ClearNeighbours();
     }
 
     ///@}
@@ -206,8 +200,6 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mr_model_part;
-    bool mcompute_neighbour_nodes = true;
-    bool mcompute_neighbour_elements = true;
 
     std::unique_ptr<FindGlobalNodalElementalNeighboursProcess> mpElemNeighboursCalculator = nullptr;
     std::unique_ptr<FindGlobalNodalNeighboursProcess> mpNodeNeighboursCalculator = nullptr;
