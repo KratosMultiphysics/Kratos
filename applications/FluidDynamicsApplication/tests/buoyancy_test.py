@@ -1,5 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
+
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
@@ -7,16 +8,17 @@ have_convection_diffusion = KratosUtilities.CheckIfApplicationsAvailable("Convec
 if have_convection_diffusion:
     import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 
+import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic as navier_stokes_solver
+
 @UnitTest.skipUnless(have_convection_diffusion,"Missing required application: ConvectionDiffusionApplication")
 class BuoyancyTest(UnitTest.TestCase):
 
     def setUp(self):
         self.domain_size = 2
-        self.input_file = "cavity10"
         self.reference_file = "reference10"
+        self.input_file = "cavity10"
 
         self.convection_diffusion_solver = "eulerian"
-        self.dt = 0.5
         self.nsteps = 3
         self.thermal_expansion_coefficient = None # If set, it will be used instead of 1./AmbientTemperature
 
@@ -43,7 +45,6 @@ class BuoyancyTest(UnitTest.TestCase):
     def testBFECC(self):
         self.convection_diffusion_solver = "bfecc"
         self.reference_file = "reference10_bfecc"
-        self.dt = 0.5
         self.check_tolerance = 1e-1 # The bfecc solver shows some variation between runs, we cannot be too strict here
         self.testBuoyancy()
 
@@ -52,7 +53,6 @@ class BuoyancyTest(UnitTest.TestCase):
         self.reference_file = "reference80_eulerian"
 
         self.convection_diffusion_solver = "eulerian"
-        self.dt = 0.5
         self.nsteps = 200
 
         self.testBuoyancy()
@@ -71,8 +71,11 @@ class BuoyancyTest(UnitTest.TestCase):
 
     def setUpModel(self):
         self.model = Model()
-        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
+        with open("solver_settings.json","r") as settings_file:
+            settings = Parameters(settings_file.read())
+
+        settings["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file)
         thermal_settings = ConvectionDiffusionSettings()
         thermal_settings.SetUnknownVariable(TEMPERATURE)
         thermal_settings.SetDensityVariable(DENSITY)
@@ -85,13 +88,13 @@ class BuoyancyTest(UnitTest.TestCase):
         if self.convection_diffusion_solver == 'bfecc':
             thermal_settings.SetProjectionVariable(ConvDiff.PROJECTED_SCALAR1)
 
+        self.fluid_solver = navier_stokes_solver.CreateSolver(self.model,settings["solver_settings"])
+
+        print(self.model)
+        self.fluid_model_part = self.model.GetModelPart(settings["solver_settings"]["model_part_name"].GetString())
         self.fluid_model_part.ProcessInfo.SetValue(CONVECTION_DIFFUSION_SETTINGS,thermal_settings)
 
     def setUpSolvers(self):
-        oss_switch = 0
-
-        import vms_monolithic_solver
-        vms_monolithic_solver.AddVariables(self.fluid_model_part)
 
         if self.convection_diffusion_solver == 'bfecc':
             import KratosMultiphysics.ConvectionDiffusionApplication.bfecc_convection_diffusion_solver as thermal_solver
@@ -100,55 +103,18 @@ class BuoyancyTest(UnitTest.TestCase):
         else:
             raise Exception("Unsupported convection-diffusion solver option: {0}".format(self.convection_diffusion_solver))
 
+        self.fluid_solver.AddVariables()
         thermal_solver.AddVariables(self.fluid_model_part)
 
-        model_part_io = ModelPartIO(self.input_file)
-        model_part_io.ReadModelPart(self.fluid_model_part)
+        self.fluid_solver.ImportModelPart()
+        self.fluid_solver.PrepareModelPart()
 
         self.fluid_model_part.SetBufferSize(2)
-        vms_monolithic_solver.AddDofs(self.fluid_model_part)
+
+        self.fluid_solver.AddDofs()
         thermal_solver.AddDofs(self.fluid_model_part)
 
-        # Building custom fluid solver
-        self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
-        rel_vel_tol = 1e-5
-        abs_vel_tol = 1e-7
-        rel_pres_tol = 1e-5
-        abs_pres_tol = 1e-7
-        self.fluid_solver.conv_criteria = VelPrCriteria(rel_vel_tol,abs_vel_tol,rel_pres_tol,abs_pres_tol)
-        self.fluid_solver.conv_criteria.SetEchoLevel(0)
-
-        alpha = -0.3
-        move_mesh = 0
-        self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(alpha,move_mesh,self.domain_size)
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
-                "solver_type" : "amgcl"
-            }'''))
-        builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
-        self.fluid_solver.max_iter = 50
-        self.fluid_solver.compute_reactions = False
-        self.fluid_solver.ReformDofSetAtEachStep = False
-        self.fluid_solver.MoveMeshFlag = False
-
-        self.fluid_solver.solver = ResidualBasedNewtonRaphsonStrategy(\
-                self.fluid_model_part,
-                self.fluid_solver.time_scheme,
-                self.fluid_solver.linear_solver,
-                self.fluid_solver.conv_criteria,
-                builder_and_solver,
-                self.fluid_solver.max_iter,
-                self.fluid_solver.compute_reactions,
-                self.fluid_solver.ReformDofSetAtEachStep,
-                self.fluid_solver.MoveMeshFlag)
-
-        self.fluid_solver.solver.SetEchoLevel(0)
-        self.fluid_solver.solver.Check()
-
-        self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,oss_switch)
-
-        self.fluid_solver.divergence_clearance_steps = 0
-        self.fluid_solver.use_slip_conditions = 0
+        self.fluid_solver.Initialize()
 
         if self.convection_diffusion_solver == 'eulerian':
             # Duplicate model part
@@ -227,10 +193,14 @@ class BuoyancyTest(UnitTest.TestCase):
         time = 0.0
 
         for step in range(self.nsteps):
-            time = time+self.dt
-            self.fluid_model_part.CloneTimeStep(time)
+            time = self.fluid_solver.AdvanceInTime(time)
             self.buoyancy_process.ExecuteInitializeSolutionStep()
-            self.fluid_solver.Solve()
+
+            self.fluid_solver.InitializeSolutionStep()
+            self.fluid_solver.Predict()
+            self.fluid_solver.SolveSolutionStep()
+            self.fluid_solver.FinalizeSolutionStep()
+
             self.thermal_solver.Solve()
 
     def checkResults(self):

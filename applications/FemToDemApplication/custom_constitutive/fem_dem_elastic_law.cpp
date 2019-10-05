@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 
@@ -71,13 +71,13 @@ double& FemDemElasticLaw::GetValue(const Variable<double>& rThisVariable,
 Vector& FemDemElasticLaw::GetValue(const Variable<Vector>& rThisVariable,
                                    Vector& rValue) 
 {
-	return rValue;
+    return rValue;
 }
 
 Matrix& FemDemElasticLaw::GetValue(const Variable<Matrix>& rThisVariable,
                                    Matrix& rValue)
 {
-	return rValue;
+    return rValue;
 }
 
 void FemDemElasticLaw::SetValue(const Variable<double>& rThisVariable,

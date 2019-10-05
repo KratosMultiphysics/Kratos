@@ -97,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosStru
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
     // Create the CL's
-    FatigueLawType HCF_CL = FatigueLawType(8.8914e-01, 7.6380e+08, 6.9760e+08, 0.0, 0.0, 7.6380e+08, -2.2914e+08, 984, 5.3239E-07, false);
+    FatigueLawType HCF_CL = FatigueLawType(8.8914e-01, 7.6380e+08, 6.9760e+08, 7.6380e+08, -2.2914e+08, 984, 5.3239E-07);
 
     std::vector<double> expected_value;
     expected_value = {1.07636e+09,4.61299e+08,4.61299e+08,0,0,0};
@@ -110,9 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHighCycleFatigueExponential, KratosStru
     TestStress = cl_parameters.GetStressVector();
 
     //Check the results
-    for (int comp = 0; comp < 6; comp++) {
-        KRATOS_CHECK_NEAR(expected_value[comp], TestStress[comp], 0.0001e+08);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(expected_value, TestStress, 0.0001e+08);
 }
 
 } // namespace Testing

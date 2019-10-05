@@ -4,6 +4,9 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# Importing post-process
+from KratosMultiphysics.vtk_output_process import VtkOutputProcess
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 class TestPatchTestSmallStrain(KratosUnittest.TestCase):
     def setUp(self):
@@ -550,32 +553,49 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         max_delta_time = StructuralMechanicsApplication.CalculateDeltaTime(mp, empty_param)
         self.assertAlmostEqual(max_delta_time,4.1494033578614815e-07)
 
-    def __post_process(self, main_model_part):
-        from gid_output_process import GiDOutputProcess
-        self.gid_output = GiDOutputProcess(main_model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISPLACEMENT"],
-                                                "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR"]
+    def __post_process(self, main_model_part, post_type = "gid"):
+        if post_type == "gid":
+            self.gid_output = GiDOutputProcess(main_model_part,
+                                        "gid_output",
+                                        KratosMultiphysics.Parameters("""
+                                            {
+                                                "result_file_configuration" : {
+                                                    "gidpost_flags": {
+                                                        "GiDPostMode": "GiD_PostBinary",
+                                                        "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                        "WriteConditionsFlag": "WriteConditions",
+                                                        "MultiFileFlag": "SingleFile"
+                                                    },
+                                                    "nodal_results"       : ["DISPLACEMENT"],
+                                                    "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
+                                                }
                                             }
-                                        }
-                                        """)
-                                    )
+                                            """)
+                                        )
 
-        self.gid_output.ExecuteInitialize()
-        self.gid_output.ExecuteBeforeSolutionLoop()
-        self.gid_output.ExecuteInitializeSolutionStep()
-        self.gid_output.PrintOutput()
-        self.gid_output.ExecuteFinalizeSolutionStep()
-        self.gid_output.ExecuteFinalize()
+            self.gid_output.ExecuteInitialize()
+            self.gid_output.ExecuteBeforeSolutionLoop()
+            self.gid_output.ExecuteInitializeSolutionStep()
+            self.gid_output.PrintOutput()
+            self.gid_output.ExecuteFinalizeSolutionStep()
+            self.gid_output.ExecuteFinalize()
+        elif post_type == "vtk":
+            self.vtk_output_process = VtkOutputProcess(main_model_part.GetModel(),
+                                        KratosMultiphysics.Parameters("""{
+                                                "model_part_name"                    : "solid_part",
+                                                "extrapolate_gauss_points"           : false,
+                                                "nodal_solution_step_data_variables" : ["DISPLACEMENT"],
+                                                "gauss_point_variables": ["VON_MISES_STRESS"]
+                                            }
+                                            """)
+                                        )
+
+            self.vtk_output_process.ExecuteInitialize()
+            self.vtk_output_process.ExecuteBeforeSolutionLoop()
+            self.vtk_output_process.ExecuteInitializeSolutionStep()
+            self.vtk_output_process.PrintOutput()
+            self.vtk_output_process.ExecuteFinalizeSolutionStep()
+            self.vtk_output_process.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)

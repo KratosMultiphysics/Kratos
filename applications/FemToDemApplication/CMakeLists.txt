@@ -21,20 +21,27 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/zarate_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fem_dem_elastic_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/femdem2d_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/femdem3d_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/romfemdem3d_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/femdem3d_large_displacement_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/femdem3d_hexahedron_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_small_strain_femdem_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/generic_large_displacement_femdem_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/extend_pressure_condition_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_pressure_value_pfem_conditions_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_pressure_id_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/expand_wet_nodes_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/regenerate_pfem_pressure_conditions_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/generate_dem_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_dem_kinematics_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/transfer_nodal_forces_to_fem.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_normalized_free_energy_on_nodes_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_sand_production.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/fix_free_velocity_on_nodes_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/remove_alone_DEM_elements_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
 )
 
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosFemToDemApplication MODULE ${KRATOS_FEM_TO_DEM_APPLICATION_SOURCES})
 
-target_link_libraries(KratosFemToDemApplication PRIVATE KratosSolidMechanicsCore KratosMeshingCore KratosCore )
+target_link_libraries(KratosFemToDemApplication PRIVATE KratosSolidMechanicsCore KratosDEMCore KratosMeshingCore KratosCore )
 set_target_properties(KratosFemToDemApplication PROPERTIES PREFIX "")
 install(TARGETS KratosFemToDemApplication DESTINATION libs )
 

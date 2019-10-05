@@ -236,6 +236,7 @@ void ComputeTriaxialSandProduction(ModelPart& dem_model_part, ModelPart& outer_w
         ModelPart::ElementsContainerType::iterator it = pElements.ptr_begin() + k;
         Element* raw_p_element = &(*it);
         SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(raw_p_element);
+        if (p_sphere->Is(ISOLATED)) continue;
         const double particle_radius = p_sphere->GetRadius();
         const double particle_density = p_sphere->GetDensity();
         current_total_mass_in_grams += (4.0/3.0) * Globals::Pi * particle_density * particle_radius * particle_radius * particle_radius * 1000.0;

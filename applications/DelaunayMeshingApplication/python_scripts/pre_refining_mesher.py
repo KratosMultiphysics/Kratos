@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 
 # Import the mesher (the base class for the mesher derivation)
-import mesher
+from KratosMultiphysics.DelaunayMeshingApplication import mesher
 
 def CreateMesher(main_model_part, meshing_parameters):
     return PreRefiningMesher(main_model_part, meshing_parameters)

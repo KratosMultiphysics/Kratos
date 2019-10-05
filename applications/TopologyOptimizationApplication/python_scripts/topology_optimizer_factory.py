@@ -14,14 +14,11 @@
 # ------------------------------------------------------------------------------
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
+from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.TopologyOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 # For GID output
 from gid_output import GiDOutput
@@ -62,9 +59,9 @@ class SIMPMethod:
         # Set analyzer
         self.analyzer = analyzer
 
-        # Set response functions 
+        # Set response functions
         self.objectives = config.objectives
-        self.constraints = config.constraints     
+        self.constraints = config.constraints
 
         print("\n::[Initializing Topology Optimization Application]::")
         print("  The following objectives are defined:")
@@ -76,7 +73,7 @@ class SIMPMethod:
             print("   ",func_id,":",config.constraints[func_id])
 
         # Create controller object
-        self.controller = Controller( config );  
+        self.controller = Controller( config );
 
         # Model parameters
         self.opt_model_part = opt_model_part
@@ -97,7 +94,7 @@ class SIMPMethod:
 
         # Add toolbox for topology filtering utilities
         self.filter_utils = TopologyFilteringUtilities( opt_model_part,
-                                                        self.config.filter_radius, 
+                                                        self.config.filter_radius,
                                                         self.config.max_elements_in_filter_radius )
 
         # Add toolbox for topology updating utilities
@@ -148,7 +145,7 @@ class SIMPMethod:
             break
         for C_id in self.constraints:
             only_C_id = C_id
-            break            
+            break
 
         # Initialize variables for comparison purposes in Topology Optimization Tool
         pmax                          = self.config.penalty   # Maximum penalty value used for continuation strategy
@@ -187,10 +184,10 @@ class SIMPMethod:
 
             # Start measuring time needed for current optimization step
             start_time = time.time()
-            
+
             # Initialize response container
-            response = self.controller.create_response_container()  
-            
+            response = self.controller.create_response_container()
+
             # Set controller to evaluate objective & constraint
             self.controller.initialize_controls()
             self.controller.get_controls()[only_F_id]["calc_func"] = 1
@@ -204,19 +201,19 @@ class SIMPMethod:
 
             # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
             self.analyzer(self.controller.get_controls(), response, opt_itr)
-                       
+
             # Filter sensitivities
             print("\n::[Filter Sensitivities]::")
             self.filter_utils.ApplyFilter(self.config.filter_type , self.config.filter_kernel )
-           
+
             # Update design variables ( densities )  --> new X by:
             print("\n::[Update Densities]::")
-            self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config.optimization_algorithm, 
-                                                                   self.config.initial_volume_fraction, 
-                                                                   self.config.grey_scale_filter, 
+            self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config.optimization_algorithm,
+                                                                   self.config.initial_volume_fraction,
+                                                                   self.config.grey_scale_filter,
                                                                    opt_itr,
                                                                    self.config.q_max )
-       
+
             # Print of results
             print("\n::[RESULTS]::")
             Obj_Function = response[only_F_id]["func"]
@@ -288,7 +285,7 @@ class SIMPMethod:
             end_time = time.time()
             print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
             print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
-        
+
 # ==============================================================================
 class Controller:
 
@@ -300,19 +297,19 @@ class Controller:
         for func_id in config.objectives:
             self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
         for func_id in config.constraints:
-            self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}     
+            self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
 
         # Initialize response container to provide storage for any response
-        self.response_container = {}       
+        self.response_container = {}
         for func_id in config.objectives:
             self.response_container[func_id] = {"func": None, "grad": None}
         for func_id in config.constraints:
-            self.response_container[func_id] = {"func": None, "grad": None}            
+            self.response_container[func_id] = {"func": None, "grad": None}
 
     # --------------------------------------------------------------------------
     def initialize_controls( self ):
 
-        # Sets 
+        # Sets
         for func_id in self.controls:
             self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
 
@@ -324,11 +321,11 @@ class Controller:
     # --------------------------------------------------------------------------
     def create_response_container( self ):
 
-        # Create and initialize container to store any response defined 
+        # Create and initialize container to store any response defined
         for func_id in self.response_container:
             self.response_container[func_id] = {"func": None, "grad": None}
 
         # Return container
-        return self.response_container      
-        
+        return self.response_container
+
 # ==============================================================================

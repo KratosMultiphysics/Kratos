@@ -50,9 +50,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/** 
+ * @ingroup ShallowWaterApplication
+ * @class NegativeHeightWettingModel
+ * @brief A simple wetting model. Barros, Rosman, Telles, Azevedo "A simple wetting and drying method for shallow water flow with application in the Vitoria Bay estuary, Brazil"
+ */
 class KRATOS_API(SHALLOW_WATER_APPLICATION) RoughPorousLayerWettingModel : public Process
 {
 public:

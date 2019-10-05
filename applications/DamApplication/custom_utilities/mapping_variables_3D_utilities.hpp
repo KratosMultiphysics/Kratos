@@ -222,20 +222,26 @@ protected:
                 IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates); //Checks whether the global coordinates fall inside the original old element
                 if(IsInside) break;
             }
+
             if(IsInside==false)
             {
-                for(int i = 0; i < 11; i++)
+                for(int i = 0; i < 12; i++)
                 {
-                    for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+                    for(int j = 1; j<10; j++)
                     {
-                        pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
-                        double tol = pow (10.0, -(12-i));
-                        IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,tol);
+                        for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+                        {
+                            pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
+                            double tol = j * pow(10.0, (i-12));
+                            IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,tol);
+                            if(IsInside) break;
+                        }
                         if(IsInside) break;
                     }
                     if(IsInside) break;
                 }
             }
+
             if(IsInside == false)
             {
                 std::cout << "None of the old elements contains node " << itNodeNew->Id() << std::endl;
@@ -251,20 +257,34 @@ protected:
             // Interpolation of nodal variables
             if (add_temperature)
             {
+                double max_temperature = -10e12;
+                double min_temperature = 10e12;
+
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(TEMPERATURE);
+                    if (NodalVariableVector[j] > max_temperature) max_temperature = NodalVariableVector[j];
+                    if (NodalVariableVector[j] < min_temperature) min_temperature = NodalVariableVector[j];
                 }
                 itNodeNew->FastGetSolutionStepValue(TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                if (itNodeNew->FastGetSolutionStepValue(TEMPERATURE) > max_temperature) itNodeNew->FastGetSolutionStepValue(TEMPERATURE) = max_temperature;
+                if (itNodeNew->FastGetSolutionStepValue(TEMPERATURE) < min_temperature) itNodeNew->FastGetSolutionStepValue(TEMPERATURE) = min_temperature;
             }
 
             if (add_reference_temperature)
             {
+                double max_reference_temperature = -10e12;
+                double min_reference_temperature = 10e12;
+
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
+                    if (NodalVariableVector[j] > max_reference_temperature) max_reference_temperature = NodalVariableVector[j];
+                    if (NodalVariableVector[j] < min_reference_temperature) min_reference_temperature = NodalVariableVector[j];
                 }
                 itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                if (itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) > max_reference_temperature) itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = max_reference_temperature;
+                if (itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) < min_reference_temperature) itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = min_reference_temperature;
             }
         }
     }
@@ -397,27 +417,33 @@ protected:
                 IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates); //Checks whether the global coordinates fall inside the original old element
                 if(IsInside) break;
             }
+
             if(IsInside==false)
             {
-                for(int i = 0; i < 11; i++)
+                for(int i = 0; i < 12; i++)
                 {
-                    for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+                    for(int j = 1; j<10; j++)
                     {
-                        pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
-                        double tol = pow (10.0, -(12-i));
-                        IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,tol);
+                        for(unsigned int m = 0; m < (ElementOldCellMatrix[Row][Column][Section]).size(); m++)
+                        {
+                            pElementOld = ElementOldCellMatrix[Row][Column][Section][m];
+                            double tol = j * pow(10.0, (i-12));
+                            IsInside = pElementOld->GetGeometry().IsInside(GlobalCoordinates,LocalCoordinates,tol);
+                            if(IsInside) break;
+                        }
                         if(IsInside) break;
                     }
                     if(IsInside) break;
                 }
             }
+
             if(IsInside == false)
             {
                 std::cout << "None of the old elements contains node " << itNodeNew->Id() << std::endl;
                 if (add_stress)
                 {
-                    Matrix InitialNodalStress = ZeroMatrix(3,3);
-                    itNodeNew->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = InitialNodalStress;
+                    itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = ZeroMatrix(3,3);
+                    itNodeNew->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = ZeroMatrix(3,3);
                 }
                 continue;
             }
@@ -431,36 +457,65 @@ protected:
             // Interpolation of nodal variables
             if (add_displacement)
             {
+                double max_displacement_x = -10e12;
+                double min_displacement_x = 10e12;
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_X);
+                    if (NodalVariableVector[j] > max_displacement_x) max_displacement_x = NodalVariableVector[j];
+                    if (NodalVariableVector[j] < min_displacement_x) min_displacement_x = NodalVariableVector[j];
                 }
                 itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_X) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                if (itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_X) > max_displacement_x) itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_X) = max_displacement_x;
+                if (itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_X) < min_displacement_x) itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_X) = min_displacement_x;
+
+                double max_displacement_y = -10e12;
+                double min_displacement_y = 10e12;
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_Y);
+                    if (NodalVariableVector[j] > max_displacement_y) max_displacement_y = NodalVariableVector[j];
+                    if (NodalVariableVector[j] < min_displacement_y) min_displacement_y = NodalVariableVector[j];
                 }
                 itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Y) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                if (itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Y) > max_displacement_y) itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Y) = max_displacement_y;
+                if (itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Y) < min_displacement_y) itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Y) = min_displacement_y;
+
+                double max_displacement_z = -10e12;
+                double min_displacement_z = 10e12;
                 for(int j = 0; j < PointsNumber; j++)
                 {
                     NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_Z);
+                    if (NodalVariableVector[j] > max_displacement_z) max_displacement_z = NodalVariableVector[j];
+                    if (NodalVariableVector[j] < min_displacement_z) min_displacement_z = NodalVariableVector[j];
                 }
                 itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Z) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                if (itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Z) > max_displacement_z) itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Z) = max_displacement_z;
+                if (itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Z) < min_displacement_z) itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Z) = min_displacement_z;
             }
 
             if (add_stress)
             {
                 Matrix NodalStress = ZeroMatrix(3,3);
 
+                Matrix MaxNodalStress = ZeroMatrix(3,3);
+                Matrix MinNodalStress = ZeroMatrix(3,3);
+
                 for(int k = 0; k < 3; k++)
                 {
                     for(int l = 0; l < 3; l++)
                     {
+                        MaxNodalStress(k,l) = -10e12;
+                        MinNodalStress(k,l) = 10e12;
                         for(int j = 0; j < PointsNumber; j++)
                         {
                             NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(k,l);
+                            if (NodalVariableVector[j] > MaxNodalStress(k,l)) MaxNodalStress(k,l) = NodalVariableVector[j];
+                            if (NodalVariableVector[j] < MinNodalStress(k,l)) MinNodalStress(k,l) = NodalVariableVector[j];
                         }
                         NodalStress(k,l) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                        if (NodalStress(k,l) > MaxNodalStress(k,l)) NodalStress(k,l) = MaxNodalStress(k,l);
+                        if (NodalStress(k,l) < MinNodalStress(k,l)) NodalStress(k,l) = MinNodalStress(k,l);
                     }
                 }
 

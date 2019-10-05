@@ -159,6 +159,12 @@ public:
     /// Index pair
     typedef std::pair<IndexType,IndexType> IndexPairType;
 
+    /// Index and string vector pair
+    typedef std::pair<IndexType, std::vector<std::string>> IndexStringVectorPairType;
+
+    /// Definition of the zero tolerance
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name  Enum's
     ///@{
@@ -219,13 +225,13 @@ public:
      * @brief This method sets if the regions must be removed
      * @param[in] RemoveRegions Sets if the regions must be removed
      */
-    void SetRemoveRegions(const SizeType RemoveRegions);
+    void SetRemoveRegions(const bool RemoveRegions);
 
     /**
      * @brief This method gets if the regions must be removed
      * @return mRemoveRegions Gets if the regions must be removed
      */
-    SizeType GetRemoveRegions();
+    bool GetRemoveRegions();
 
     /**
      * @brief It prints info about the current mesh
@@ -418,6 +424,12 @@ public:
     void SetSolSizeTensor(const SizeType NumNodes);
 
     /**
+     * @brief This sets the size of the displacement for lagrangian movement
+     * @param[in] NumNodes Number of nodes
+     */
+    void SetDispSizeVector(const SizeType NumNodes);
+
+    /**
      * @brief This checks the mesh data and prints if it is OK
      */
     void CheckMeshData();
@@ -437,25 +449,31 @@ public:
     /**
      * @brief This sets the output mesh
      * @param[in] rOutputName The output name
-     * @param[in] PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param[in] Step The step to postprocess
      */
-    void OutputMesh(
-        const std::string& rOutputName,
-        const bool PostOutput = false,
-        const int Step = -1
-        );
+    void OutputMesh(const std::string& rOutputName);
 
     /**
      * @brief This sets the output sol
      * @param[in] rOutputName The output name
-     * @param[in] PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param[in] Step The step to postprocess
      */
-    void OutputSol(
+    void OutputSol(const std::string& rOutputName);
+
+    /**
+     * @brief This sets the output displacement
+     * @param[in] rOutputName The output name
+     */
+    void OutputDisplacement(const std::string& rOutputName);
+
+    /**
+     * @brief This method generates the maps of reference for conditions and elements from an existing json
+     * @param[in] rOutputName The name of the files
+     * @param[in] rRefCondition The conditions of reference
+     * @param[in] rRefElement The elements of reference
+     */
+    void OutputReferenceEntitities(
         const std::string& rOutputName,
-        const bool PostOutput = false,
-        const int Step = -1
+        const std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+        const std::unordered_map<IndexType,Element::Pointer>& rRefElement
         );
 
     /**
@@ -544,6 +562,16 @@ public:
         );
 
     /**
+     * @brief This function is used to set the displacement vector (x, y, z)
+     * @param[in] rMetric This array contains the components of the displacement vector
+     * @param[in] NodeId The id of the node
+     */
+    void SetDisplacementVector(
+        const array_1d<double, 3>& rDisplacement,
+        const IndexType NodeId
+        );
+
+    /**
      * @brief This function is used to retrieve the metric scalar
      * @param[in,out] rMetric The inverse of the size node
      */
@@ -562,6 +590,12 @@ public:
     void GetMetricTensor(TensorArrayType& rMetric);
 
     /**
+     * @brief This function is used to retrieve the displacement vector (x, y, z)
+     * @param[in,out] rDisplacement This array contains the components of the displacement vector
+     */
+    void GetDisplacementVector(array_1d<double, 3>& rDisplacement);
+
+    /**
      * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
      * @param[in,out] rModelPart The model part of interest to study
      */
@@ -574,13 +608,31 @@ public:
      * @param[in,out] rColorMapCondition Auxiliar color map for conditions
      * @param[in,out] rColorMapElement Auxiliar color map for elements
      * @param[in] Framework The framework considered
+     * @param[in] CollapsePrismElements If the prisms elements are going to be collapsed
      */
     void GenerateMeshDataFromModelPart(
         ModelPart& rModelPart,
         std::unordered_map<IndexType,std::vector<std::string>>& rColors,
         ColorsMapType& rColorMapCondition,
         ColorsMapType& rColorMapElement,
-        const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN
+        const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN,
+        const bool CollapsePrismElements = false
+        );
+
+    /**
+     * @brief This method generates the maps of reference for conditions and elements
+     * @param[in] rModelPart The model part of interest to study
+     * @param[in] rColorMapCondition Auxiliar color map for conditions
+     * @param[in] rColorMapElement Auxiliar color map for elements
+     * @param[in,out] rRefCondition The conditions of reference
+     * @param[in,out] rRefElement The elements of reference
+     */
+    void GenerateReferenceMaps(
+        ModelPart& rModelPart,
+        const ColorsMapType& rColorMapCondition,
+        const ColorsMapType& rColorMapElement,
+        std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+        std::unordered_map<IndexType,Element::Pointer>& rRefElement
         );
 
     /**
@@ -588,6 +640,12 @@ public:
      * @param[in,out] rModelPart The model part of interest to study
      */
     void GenerateSolDataFromModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief This method generates displacement data from an existing model part
+     * @param[in,out] rModelPart The model part of interest to study
+     */
+    void GenerateDisplacementDataFromModelPart(ModelPart& rModelPart);
 
     /**
      * @brief This method writes mesh data to an existing model part
@@ -612,6 +670,20 @@ public:
      * @param[in,out] rModelPart The model part of interest to study
      */
     void WriteSolDataToModelPart(ModelPart& rModelPart);
+
+    /**
+     * @brief This method writes the maps of reference for conditions and elements from an existing json
+     * @param[in] rModelPart The model part of interest to study
+     * @param[in] rFilename The name of the files
+     * @param[in,out] rRefCondition The conditions of reference
+     * @param[in,out] rRefElement The elements of reference
+     */
+    void WriteReferenceEntitities(
+        ModelPart& rModelPart,
+        const std::string& rFilename,
+        std::unordered_map<IndexType,Condition::Pointer>& rRefCondition,
+        std::unordered_map<IndexType,Element::Pointer>& rRefElement
+        );
 
     /**
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
@@ -695,8 +767,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    SizeType mEchoLevel = 0; /// The echo level of the utilities
-    bool mRemoveRegions = false; /// Cuttig-out specified regions during surface remeshing
+    SizeType mEchoLevel = 0;                                               /// The echo level of the utilities
+    bool mRemoveRegions = false;                                           /// Cuttig-out specified regions during surface remeshing
     DiscretizationOption mDiscretization = DiscretizationOption::STANDARD; /// Discretization The discretization type
 
     ///@}
@@ -706,6 +778,25 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Sets a flag according to a given status over all submodelparts
+     * @param rFlag flag to be set
+     * @param FlagValue flag value to be set
+     */
+    void ResursivelyAssignFlagEntities(
+        ModelPart& rModelPart,
+        const Flags& rFlag,
+        const bool FlagValue
+        )
+    {
+        // We call it recursively
+        for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+            VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Conditions());
+            VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Elements());
+            ResursivelyAssignFlagEntities(r_sub_model_part, rFlag, FlagValue);
+        }
+    }
 
     ///@}
     ///@name Private  Access

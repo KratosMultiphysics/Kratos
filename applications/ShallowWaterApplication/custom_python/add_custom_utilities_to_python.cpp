@@ -57,8 +57,17 @@ namespace Python
         .def("ComputeHeightFromFreeSurface", &ShallowWaterUtilities::ComputeHeightFromFreeSurface)
         .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
         .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
+        .def("UpdatePrimitiveVariables", py::overload_cast<ModelPart&>(&ShallowWaterUtilities::UpdatePrimitiveVariables))
+        .def("UpdatePrimitiveVariables", py::overload_cast<ModelPart&,double>(&ShallowWaterUtilities::UpdatePrimitiveVariables))
+        .def("ComputeAccelerations", &ShallowWaterUtilities::ComputeAccelerations)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
+        .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
+        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::NodesContainerType>)
+        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ElementsContainerType>)
+        .def("DeactivateDryEntities", &ShallowWaterUtilities::DeactivateDryEntities<ModelPart::ConditionsContainerType>)
+        .def("ComputeVisualizationWaterHeight", &ShallowWaterUtilities::ComputeVisualizationWaterHeight)
+        .def("ComputeVisualizationWaterSurface", &ShallowWaterUtilities::ComputeVisualizationWaterSurface)
         ;
 
     py::class_< EstimateDtShallow > (m, "EstimateDtShallow")
