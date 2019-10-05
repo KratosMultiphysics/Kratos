@@ -53,7 +53,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  * @author Alejandro Cornejo
  */
-
+template<unsigned int TyieldSurf>
 class GenericTotalLagrangianFemDemElement
     : public BaseSolidElement
 {
@@ -309,6 +309,116 @@ private:
 
     std::size_t GetStrainSize() const;
 
+    /**
+     * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
+     */
+    void ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+    void AuxComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+    std::vector<Element*> GetEdgeNeighbourElements(const int edge) {return mEdgeNeighboursContainer[edge];}
+
+    /**
+     * this storages the mEdgeNeighboursContainer
+     */
+    void SaveEdgeNeighboursContainer(const std::vector<std::vector<Element*>>& rtoSave) {mEdgeNeighboursContainer = rtoSave;}
+
+    void SetNodeIndexes(Matrix& rMatrix) // Defines the numbering of the edges with the corresponding nodes
+    {
+        rMatrix.resize(6, 2);
+        rMatrix(0, 0) = 0; rMatrix(0, 1) = 1; rMatrix(1, 0) = 0;
+        rMatrix(1, 1) = 2; rMatrix(2, 0) = 0; rMatrix(2, 1) = 3;
+        rMatrix(3, 0) = 1; rMatrix(3, 1) = 2; rMatrix(4, 0) = 1;
+        rMatrix(4, 1) = 3; rMatrix(5, 0) = 2; rMatrix(5, 1) = 3;
+    }
+
+    /**
+     * this imposes the damage/threshold to be equal
+     * at the edges 
+     */
+    void InitializeInternalVariablesAfterMapping();
+
+    /**
+     * this saves the converged values with the later non-conv values
+     */
+    void UpdateDataBase();
+
+    /**
+     * this computes the damage of the FE
+     */
+    double CalculateElementalDamage(const Vector& rEdgeDamages);
+    double CalculateElementalDamage3D(const Vector& rEdgeDamages);
+    double CalculateElementalDamage2D(const Vector& rEdgeDamages);
+
+    /**
+     * this computes the average vector on the edge for a certain variable
+     */
+    void CalculateAverageVariableOnEdge(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge2D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge3D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+
+    /**
+     * this integrates the constitutive law
+     */
+    void IntegrateStressDamageMechanics(double& rThreshold,double& rDamage, const Vector& rStrainVector,
+        const Vector& rStressVector, const int Edge, const double CharacteristicLength,
+        ConstitutiveLaw::Parameters& rValues, bool& rIsDamaging);
+
+    /**
+     * this evaluates the constitutive law
+     */
+    void CalculateEquivalentStress(const array_1d<double, VoigtSize>& rPredictiveStressVector, const Vector& rStrainVector, double& rEquivalentStress, ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * this gets the initial threshold of the yield surface
+     */
+    void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold);
+
+    /**
+     * this computes the damage parameter "A"
+     */
+    void CalculateDamageParameter(ConstitutiveLaw::Parameters& rValues, double& rAParameter, const double CharacteristicLength);
+
+    /**
+     * this computes the CharacteristicLength of the element
+     */
+    double CalculateCharacteristicLength(GenericSmallStrainFemDemElement *pCurrentElement);
+
+    /**
+     * this computes VolumeForce of the element
+     */
+    Vector& CalculateVolumeForce(Vector& rVolumeForce, const Vector& rN);
+
+    /**
+     * this computes the damage according to a exp softening
+     */
+    void CalculateExponentialDamage(double& rDamage, const double DamageParameter, const double UniaxialStress, const double InitialThrehsold);
+
+
+    // ************** Methods to compute the tangent constitutive tensor via numerical derivation ************** 
+    /**
+     * this computes the Tangent tensor via numerical derivation (perturbations)
+     */
+    void CalculateTangentTensor(Matrix& rTangentTensor,const Vector& rStrainVectorGP,const Vector& rStressVectorGP,const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * this computes the perturbation to the strain
+     */
+    void CalculatePerturbation(const Vector& rStrainVectorGP, double& rPerturbation, const int Component);
+
+    /**
+     * this perturbates the strain vector
+     */
+    void PerturbateStrainVector(Vector& rPerturbedStrainVector, const Vector& rStrainVectorGP, const double Perturbation, const int Component);
+
+    /**
+     * this integrated the perturbed strain
+     */
+    void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * this assings the components to the tangent tensor
+     */
+    void AssignComponentsToTangentTensor(Matrix& rTangentTensor, const Vector& rDeltaStress, const double Perturbation, const int Component);
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -324,17 +434,6 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    //GenericTotalLagrangianFemDemElement& operator=(const GenericTotalLagrangianFemDemElement& rOther);
-    /// Copy constructor.
-    //GenericTotalLagrangianFemDemElement(const GenericTotalLagrangianFemDemElement& rOther);
-    ///@}
 
 }; // Class GenericTotalLagrangianFemDemElement
 
