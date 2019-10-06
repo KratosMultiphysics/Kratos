@@ -322,10 +322,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
             Vector average_strain_edge(VoigtSize);
             noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
             noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
-            // if (this->Id() == 154) {
-            //     KRATOS_WATCH(average_stress_edge)
-            //     KRATOS_WATCH(average_strain_edge)
-            // }
+
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
@@ -341,14 +338,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
 
         // Calculate the elemental Damage...
         double damage_element;
-        // if (CalculateResidualVectorFlag)
+        if (CalculateResidualVectorFlag)
             damage_element = this->CalculateElementalDamage(damages_edges);
-        // else
-        //     damage_element = this->CalculateElementalDamage(mDamages);
+        else
+            damage_element = this->CalculateElementalDamage(mDamages);
 
-        // if (this->Id()==145) {
-        //     KRATOS_WATCH(damages_edges)
-        // }
         Vector r_strain_vector;
         this->CalculateGreenLagrangeStrainVector(r_strain_vector, this_kinematic_variables.F);
         const Vector& r_stress_vector = this_constitutive_variables.StressVector;
@@ -356,19 +350,17 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         
 
         if (CalculateStiffnessMatrixFlag == true) { // Calculation of the matrix is required
-            // if (this->Id() == 154) KRATOS_WATCH("DENTRO DE K!!!")
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
-            // if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
-            //     Matrix tangent_tensor;
-            //     this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, Values);
-            //     noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
-            // } else {
+            if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
+                Matrix tangent_tensor;
+                this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, Values);
+                noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
+            } else {
                 this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0 - damage_element)*this_constitutive_variables.D, int_to_reference_weight);
-            // }
+            }
             /* Geometric stiffness matrix */
             this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
-            // KRATOS_WATCH(rLeftHandSideMatrix)
         }
 
         if (CalculateResidualVectorFlag == true) { // Calculation of the matrix is required
@@ -385,8 +377,6 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
     ProcessInfo& rCurrentProcessInfo 
     )
 {
-    if (this->Id() == 154)
-        KRATOS_WATCH("FINALIZE")
     KRATOS_TRY;
 
     const SizeType number_of_nodes   = this->GetGeometry().size();
@@ -464,9 +454,6 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
             } // Loop over edges
         }
 
-        // if (this->Id()145) {
-        //     KRATOS_WATCH()
-        // }
         // Calculate the elemental Damage...
         mDamage = this->CalculateElementalDamage(mDamages);
 
