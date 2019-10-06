@@ -255,7 +255,7 @@ private:
       mTheta[1] = mTheta[0];
       // update omega database
       mOmega[2] = mOmega[1];
-      mOmega[1] = mOmega[0];
+      mOmega[1] = mOmega[0]; 
     }
 
     /*
