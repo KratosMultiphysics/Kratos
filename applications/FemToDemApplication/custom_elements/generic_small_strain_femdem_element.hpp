@@ -229,6 +229,11 @@ public:
     {
     }
 
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
      * this is called at the end of each solution step
      */
@@ -314,6 +319,25 @@ protected:
         int Step = 0
         ) override;
 
+    bool UseElementProvidedStrain() const;
+
+    /**
+     * @brief Calculation of the RHS
+     * @param rRightHandSideVector The local component of the RHS due to external forces
+     * @param rThisKinematicVariables The kinematic variables like shape functions
+     * @param rCurrentProcessInfo rCurrentProcessInfo the current process info instance
+     * @param rBodyForce The component of external forces due to self weight
+     * @param rStressVector The vector containing the stress components
+     * @param IntegrationWeight The integration weight of the corresponding Gauss point
+     */
+    void CalculateAndAddResidualVector(
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& rCurrentProcessInfo,
+        const array_1d<double, 3>& rBodyForce,
+        const Vector& rStressVector,
+        const double IntegrationWeight
+        ) const;
     ///@name Static Member Variables
     ///@{
 

@@ -414,6 +414,23 @@ protected:
      * this computes the Green-Lagrange Strain vector from F
      */
     void CalculateGreenLagrangeStrainVector(Vector& rStrainVector, const Matrix& rF);
+
+    std::size_t GetStrainSize() const;
+
+    void GetValueOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rValues,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
     ///@}
     ///@name Protected Operations
     ///@{
@@ -500,22 +517,6 @@ private:
                                Matrix const& rF_Deriv,
                                Matrix& rB_Deriv);
 
-    std::size_t GetStrainSize() const;
-
-    void GetValueOnIntegrationPoints(
-        const Variable<double> &rVariable,
-        std::vector<double> &rValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-        const Variable<double> &rVariable,
-        std::vector<double> &rOutput,
-        const ProcessInfo &rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-        const Variable<Vector>& rVariable,
-        std::vector<Vector>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
     ///@}
     ///@name Private  Access
     ///@{
