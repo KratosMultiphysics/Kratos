@@ -254,6 +254,41 @@ protected:
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
 
+    // ************** Methods to compute the tangent constitutive tensor via numerical derivation ************** 
+    /**
+     * this computes the Tangent tensor via numerical derivation (perturbations)
+     */
+    void CalculateTangentTensor(Matrix& rTangentTensor, const Vector& rStrainVectorGP, const Vector& rStressVectorGP, const Matrix& rDeformationGradientGP, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * this computes the perturbation to the strain
+     */
+    void CalculatePerturbation(const Vector& rStrainVectorGP, double& rPerturbation, const int Component);
+
+    /**
+     * this perturbates the strain vector
+     */
+    void PerturbateStrainVector(Vector& rPerturbedStrainVector, const Vector& rStrainVectorGP, const double Perturbation, const int Component);
+
+    /**
+     * this integrated the perturbed strain
+     */
+    void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * this assings the components to the tangent tensor
+     */
+    void AssignComponentsToTangentTensor(Matrix& rTangentTensor, const Vector& rDeltaStress, const double Perturbation, const int Component);
+
+    /**
+     * this perturbates F
+     */
+    void PerturbateDeformationGradient(Matrix& rPerturbedDeformationGradient, const Matrix& rDeformationGradientGP, const double Perturbation, const int ComponentI, const int ComponentJ);
+
+    /**
+     * this gets the voigt index for a set of components
+     */
+    int CalculateVoigtIndex(const SizeType VoigtSize, const int ComponentI, const int ComponentJ);
     ///@}
     ///@name Protected Operations
     ///@{
@@ -456,43 +491,6 @@ private:
      * this adds material contribution to the LHS when secant
      */
     void CalculateAndAddMaterialK(MatrixType& rLeftHandSideMatrix,const Matrix& B, const Matrix& D, const double IntegrationWeight, const double Damage);
-
-
-    // ************** Methods to compute the tangent constitutive tensor via numerical derivation ************** 
-    /**
-     * this computes the Tangent tensor via numerical derivation (perturbations)
-     */
-    void CalculateTangentTensor(Matrix& rTangentTensor, const Vector& rStrainVectorGP, const Vector& rStressVectorGP, const Matrix& rDeformationGradientGP, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
-
-    /**
-     * this computes the perturbation to the strain
-     */
-    void CalculatePerturbation(const Vector& rStrainVectorGP, double& rPerturbation, const int Component);
-
-    /**
-     * this perturbates the strain vector
-     */
-    void PerturbateStrainVector(Vector& rPerturbedStrainVector, const Vector& rStrainVectorGP, const double Perturbation, const int Component);
-
-    /**
-     * this integrated the perturbed strain
-     */
-    void IntegratePerturbedStrain(Vector& rPerturbedStressVector, const Vector& rPerturbedStrainVector, const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
-
-    /**
-     * this assings the components to the tangent tensor
-     */
-    void AssignComponentsToTangentTensor(Matrix& rTangentTensor, const Vector& rDeltaStress, const double Perturbation, const int Component);
-
-    /**
-     * this perturbates F
-     */
-    void PerturbateDeformationGradient(Matrix& rPerturbedDeformationGradient, const Matrix& rDeformationGradientGP, const double Perturbation, const int ComponentI, const int ComponentJ);
-
-    /**
-     * this gets the voigt index for a set of components
-     */
-    int CalculateVoigtIndex(const SizeType VoigtSize, const int ComponentI, const int ComponentJ);
 
     /**
      * this computes the Green-Lagrange Strain vector from F

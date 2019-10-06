@@ -44,7 +44,7 @@ GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemEleme
 template<unsigned int TDim, unsigned int TyieldSurf>
 Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive<GenericSmallStrainFemDemElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<GenericSmallStrainFemDemElement>( NewId, this->GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 //************************************************************************************
@@ -65,7 +65,7 @@ GenericSmallStrainFemDemElement<TDim,TyieldSurf>::~GenericSmallStrainFemDemEleme
 /***********************************************************************************/
 /***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
-Element::Pointer GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Clone(
+Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes
     ) const
@@ -82,32 +82,45 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
     )
 {
     KRATOS_TRY
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-    //create and initialize element variables:
-    ElementDataType variables;
-    this->InitializeElementData(variables,rCurrentProcessInfo);
+    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    ConstitutiveVariables this_constitutive_variables(strain_size);
 
-    //create constitutive law parameters:
-    ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(r_geometry,this->GetProperties(),rCurrentProcessInfo);
 
-    //set constitutive law flags:
-    Flags &ConstitutiveLawOptions = values.GetOptions();
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    Values.SetStrainVector(this_constitutive_variables.StrainVector);
+    Values.SetStressVector(this_constitutive_variables.StressVector);
+    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-    //reading integration points
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    // Reading integration points
+    const GeometryType& r_geometry = r_geometry;
+    const Properties& r_properties = this->GetProperties();
+    const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
 
-    for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++) {
-        //compute element kinematic variables B, F, DN_DX ...
-        this->CalculateKinematics(variables,point_number);
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
 
-        //calculate material response
-        this->CalculateMaterialResponse(variables, values, point_number);
+    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        // Compute element kinematics B, F, DN_DX ...
+        CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
+
+        // Compute material reponse
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
     }
-    this->SetValue(STRESS_VECTOR, values.GetStressVector());
-    this->SetValue(STRAIN_VECTOR, values.GetStrainVector());
+    this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
+    this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
+
 
     KRATOS_CATCH("")
 }
@@ -152,10 +165,207 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateKinematicVariables(
+    KinematicVariables& rThisKinematicVariables,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationMethod& rIntegrationMethod
+    )
+{
+    const auto& r_geometry = this->GetGeometry();
+
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
+    // Shape functions
+    rThisKinematicVariables.N = r_geometry.ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
+
+    rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, rIntegrationMethod);
+
+    KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0) << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
+
+    // Compute B
+    this->CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.DN_DX);
+
+    // Compute equivalent F
+    this->GetValuesVector(rThisKinematicVariables.Displacements);
+    Vector strain_vector = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
+    // ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
+    // rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+/ template<>
+// void GenericSmallStrainFemDemElement<2,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rDN_DX);
+// }
+template<>
+void GenericSmallStrainFemDemElement<2,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+// template<>
+// void GenericSmallStrainFemDemElement<3,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<2,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<2,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<2,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<2,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate2DB(rB, rDN_DX);
+// }
+// template<>
+// void GenericSmallStrainFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// {
+//     this->Calculate3DB(rB, rDN_DX);
+// }
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Calculate2DB(
+    Matrix& rB, 
+    const Matrix& rDN_DX
+    )
+{
+    KRATOS_TRY
+
+    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+
+    for (SizeType i = 0; i < number_of_nodes; ++i ) {
+        rB(0, i*2    ) = rDN_DX(i, 0);
+        rB(1, i*2 + 1) = rDN_DX(i, 1);
+        rB(2, i*2    ) = rDN_DX(i, 1);
+        rB(2, i*2 + 1) = rDN_DX(i, 0);
+    }
+
+    KRATOS_CATCH( "" )
+}
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Calculate3DB(
+    Matrix& rB, 
+    const Matrix& rDN_DX
+    )
+{
+    KRATOS_TRY
+
+    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+
+    for ( SizeType i = 0; i < number_of_nodes; ++i ) {
+        rB(0, i*3    ) = rDN_DX(i, 0);
+        rB(1, i*3 + 1) = rDN_DX(i, 1);
+        rB(2, i*3 + 2) = rDN_DX(i, 2);
+        rB(3, i*3    ) = rDN_DX(i, 1);
+        rB(3, i*3 + 1) = rDN_DX(i, 0);
+        rB(4, i*3 + 1) = rDN_DX(i, 2);
+        rB(4, i*3 + 2) = rDN_DX(i, 1);
+        rB(5, i*3    ) = rDN_DX(i, 2);
+        rB(5, i*3 + 2) = rDN_DX(i, 0);
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// template<unsigned int TDim, unsigned int TyieldSurf>
+// void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::ComputeEquivalentF(
+//     Matrix& rF,
+//     const Vector& rStrainTensor
+//     )
+// {
+//     const SizeType dim = GetGeometry().WorkingSpaceDimension();
+
+//     if(dim == 2) {
+//         rF(0,0) = 1.0+rStrainTensor(0);
+//         rF(0,1) = 0.5*rStrainTensor(2);
+//         rF(1,0) = 0.5*rStrainTensor(2);
+//         rF(1,1) = 1.0+rStrainTensor(1);
+//     } else {
+//         rF(0,0) = 1.0+rStrainTensor(0);
+//         rF(0,1) = 0.5*rStrainTensor(3);
+//         rF(0,2) = 0.5*rStrainTensor(5);
+//         rF(1,0) = 0.5*rStrainTensor(3);
+//         rF(1,1) = 1.0+rStrainTensor(1);
+//         rF(1,2) = 0.5*rStrainTensor(4);
+//         rF(2,0) = 0.5*rStrainTensor(5);
+//         rF(2,1) = 0.5*rStrainTensor(4);
+//         rF(2,2) = 1.0+rStrainTensor(2);
+//     }
+// }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateConstitutiveVariables(
+    KinematicVariables& rThisKinematicVariables,
+    ConstitutiveVariables& rThisConstitutiveVariables,
+    ConstitutiveLaw::Parameters& rValues,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    )
+{
+    // Set the constitutive variables
+    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
+
+    // Actually do the computations in the ConstitutiveLaw
+    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 // template class GenericSmallStrainFemDemElement<2,0>;
 template class GenericSmallStrainFemDemElement<2,1>;
 // template class GenericSmallStrainFemDemElement<2,2>;

@@ -56,8 +56,68 @@ class GenericSmallStrainFemDemElement
     : public GenericTotalLagrangianFemDemElement<TDim,TyieldSurf> // Derived Element from SolidMechanics
 {
 public:
+    struct KinematicVariables
+    {
+        Vector  N;
+        Matrix  B;
+        double  detF;
+        Matrix  F;
+        double  detJ0;
+        Matrix  J0;
+        Matrix  InvJ0;
+        Matrix  DN_DX;
+        Vector Displacements;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         * @param Dimension The problem dimension: 2D or 3D
+         * @param NumberOfNodes The number of nodes in the element
+         */
+        KinematicVariables(
+            const SizeType StrainSize,
+            const SizeType Dimension,
+            const SizeType NumberOfNodes
+            )
+        {
+            detF = 1.0;
+            detJ0 = 1.0;
+            N = ZeroVector(NumberOfNodes);
+            B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            F = IdentityMatrix(Dimension);
+            DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
+            J0 = ZeroMatrix(Dimension, Dimension);
+            InvJ0 = ZeroMatrix(Dimension, Dimension);
+            Displacements = ZeroVector(Dimension * NumberOfNodes);
+        }
+    };
+
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct ConstitutiveVariables
+    {
+        Vector StrainVector;
+        Vector StressVector;
+        Matrix D;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const SizeType StrainSize)
+        {
+            StrainVector = ZeroVector(StrainSize);
+            StressVector = ZeroVector(StrainSize);
+            D = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
+
     ///@name Type Definitions
     ///@{
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
 
     ///definition of element type
     typedef Element ElementType;
@@ -151,6 +211,7 @@ public:
      */
     void CalculateTangentTensor(Matrix& rTangentTensor,const Vector& rStrainVectorGP,const Vector& rStressVectorGP,const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
+    void ComputeEquivalentF(Matrix& rF,const Vector& rStrainTensor);
 protected:
 
     /**
@@ -179,7 +240,7 @@ protected:
         KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
-        ) override;
+        );
 
     /**
      * @brief This method computes the deformation matrix B
@@ -190,6 +251,16 @@ protected:
     void CalculateB(Matrix& rB, const Matrix& rDN_DX);
     void Calculate2DB(Matrix& rB, const Matrix& rDN_DX);
     void Calculate3DB(Matrix& rB, const Matrix& rDN_DX);
+
+    // void ComputeEquivalentF(Matrix& rF, const Vector& rStrainTensor);
+
+    void CalculateConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure);
     ///@name Static Member Variables
     ///@{
 
