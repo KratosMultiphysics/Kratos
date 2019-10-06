@@ -123,7 +123,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -198,7 +198,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     if (CalculateStiffnessMatrixFlag) {
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -311,7 +311,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions = Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
@@ -735,7 +735,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -755,8 +755,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
                 this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
             }
 
-            if ( rOutput[point_number].size() != strain_size )
-                rOutput[point_number].resize( strain_size, false );
+            if (rOutput[point_number].size() != strain_size )
+                rOutput[point_number].resize( strain_size, false);
 
             rOutput[point_number] = this_constitutive_variables.StressVector;
         }
@@ -774,7 +774,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
 
         // Set constitutive law flags:
         Flags &ConstitutiveLawOptions = Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -813,7 +813,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions = Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
