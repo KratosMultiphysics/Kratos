@@ -243,11 +243,10 @@ private:
      * @brief Advances the rotation system in time
      * @param NewTime Time where the system is to be set
      */
-    void CloneTimeStep(const double NewTime) {
-      double old_time = mTime;
+    void CloneTimeStep(const double NewTime, const double Dt) {
       mTime = NewTime;
       // compute BDF coefficients
-      mDt = mTime - old_time;
+      mDt = Dt;
       mBdf2Coeff[0] = 1.5 / mDt;
       mBdf2Coeff[1] = -2.0 / mDt;
       mBdf2Coeff[2] = 0.5 / mDt;
@@ -378,7 +377,8 @@ private:
     const auto &r_process_info = mrModelPart.GetProcessInfo();
     if (mToCalculateTorque) {
       const double time = r_process_info[TIME];
-      mpRotationSystem->CloneTimeStep(time);
+      const double delta_t = r_process_info[DELTA_TIME];
+      mpRotationSystem->CloneTimeStep(time, delta_t);
       const double torque = CalculateTorque();
       mpRotationSystem->ApplyTorque(torque);
       mpRotationSystem->CalculateCurrentRotationState();
