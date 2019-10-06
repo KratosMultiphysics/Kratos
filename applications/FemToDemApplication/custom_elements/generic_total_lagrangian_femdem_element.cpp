@@ -2074,20 +2074,20 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
 }
 /***********************************************************************************/
 /***********************************************************************************/
-// template class GenericTotalLagrangianFemDemElement<2,0>;
+template class GenericTotalLagrangianFemDemElement<2,0>;
 template class GenericTotalLagrangianFemDemElement<2,1>;
-// template class GenericTotalLagrangianFemDemElement<2,2>;
-// template class GenericTotalLagrangianFemDemElement<2,3>;
-// template class GenericTotalLagrangianFemDemElement<2,4>;
-// template class GenericTotalLagrangianFemDemElement<2,5>;
-// template class GenericTotalLagrangianFemDemElement<2,6>;
-// template class GenericTotalLagrangianFemDemElement<3,0>;
-// template class GenericTotalLagrangianFemDemElement<3,1>;
-// template class GenericTotalLagrangianFemDemElement<3,2>;
-// template class GenericTotalLagrangianFemDemElement<3,3>;
-// template class GenericTotalLagrangianFemDemElement<3,4>;
-// template class GenericTotalLagrangianFemDemElement<3,5>;
-// template class GenericTotalLagrangianFemDemElement<3,6>;
+template class GenericTotalLagrangianFemDemElement<2,2>;
+template class GenericTotalLagrangianFemDemElement<2,3>;
+template class GenericTotalLagrangianFemDemElement<2,4>;
+template class GenericTotalLagrangianFemDemElement<2,5>;
+template class GenericTotalLagrangianFemDemElement<2,6>;
+template class GenericTotalLagrangianFemDemElement<3,0>;
+template class GenericTotalLagrangianFemDemElement<3,1>;
+template class GenericTotalLagrangianFemDemElement<3,2>;
+template class GenericTotalLagrangianFemDemElement<3,3>;
+template class GenericTotalLagrangianFemDemElement<3,4>;
+template class GenericTotalLagrangianFemDemElement<3,5>;
+template class GenericTotalLagrangianFemDemElement<3,6>;
 } // Namespace Kratos
 
 

@@ -837,18 +837,18 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
 
 /***********************************************************************************/
 /***********************************************************************************/
-// template class GenericSmallStrainFemDemElement<2,0>;
+template class GenericSmallStrainFemDemElement<2,0>;
 template class GenericSmallStrainFemDemElement<2,1>;
-// template class GenericSmallStrainFemDemElement<2,2>;
-// template class GenericSmallStrainFemDemElement<2,3>;
-// template class GenericSmallStrainFemDemElement<2,4>;
-// template class GenericSmallStrainFemDemElement<2,5>;
-// template class GenericSmallStrainFemDemElement<2,6>;
-// template class GenericSmallStrainFemDemElement<3,0>;
-// template class GenericSmallStrainFemDemElement<3,1>;
-// template class GenericSmallStrainFemDemElement<3,2>;
-// template class GenericSmallStrainFemDemElement<3,3>;
-// template class GenericSmallStrainFemDemElement<3,4>;
-// template class GenericSmallStrainFemDemElement<3,5>;
-// template class GenericSmallStrainFemDemElement<3,6>;
+template class GenericSmallStrainFemDemElement<2,2>;
+template class GenericSmallStrainFemDemElement<2,3>;
+template class GenericSmallStrainFemDemElement<2,4>;
+template class GenericSmallStrainFemDemElement<2,5>;
+template class GenericSmallStrainFemDemElement<2,6>;
+template class GenericSmallStrainFemDemElement<3,0>;
+template class GenericSmallStrainFemDemElement<3,1>;
+template class GenericSmallStrainFemDemElement<3,2>;
+template class GenericSmallStrainFemDemElement<3,3>;
+template class GenericSmallStrainFemDemElement<3,4>;
+template class GenericSmallStrainFemDemElement<3,5>;
+template class GenericSmallStrainFemDemElement<3,6>;
 } // namespace Kratos
