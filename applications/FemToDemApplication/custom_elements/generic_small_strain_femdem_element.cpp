@@ -366,6 +366,64 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateConstitutiveVari
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::SetConstitutiveVariables(
+    KinematicVariables& rThisKinematicVariables,
+    ConstitutiveVariables& rThisConstitutiveVariables,
+    ConstitutiveLaw::Parameters& rValues,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+    )
+{
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType mat_size = number_of_nodes * dimension;
+
+    // Displacements vector
+    Vector displacements(mat_size);
+    GetValuesVector(displacements);
+
+    // Compute strain
+    noalias(rThisConstitutiveVariables.StrainVector) = prod(rThisKinematicVariables.B, displacements);
+
+    // Here we essentially set the input parameters
+    rValues.SetShapeFunctionsValues(rThisKinematicVariables.N); // shape functions
+    rValues.SetDeterminantF(rThisKinematicVariables.detF); //assuming the determinant is computed somewhere else
+    rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
+
+    // Here we set the space on which the results shall be written
+    rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); //assuming the determinant is computed somewhere else
+    rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValuesVector(
+    Vector& rValues,
+    int Step
+    )
+{
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType mat_size = number_of_nodes * dimension;
+    if (rValues.size() != mat_size)
+        rValues.resize(mat_size, false);
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        const array_1d<double, 3 >& displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const SizeType index = i * dimension;
+        for(unsigned int k = 0; k < dimension; ++k) {
+            rValues[index + k] = displacement[k];
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 // template class GenericSmallStrainFemDemElement<2,0>;
 template class GenericSmallStrainFemDemElement<2,1>;
 // template class GenericSmallStrainFemDemElement<2,2>;

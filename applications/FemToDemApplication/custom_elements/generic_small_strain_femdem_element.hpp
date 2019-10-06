@@ -261,6 +261,24 @@ protected:
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure);
+
+    void SetConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints);
+
+    /**
+     * @brief Sets on rValues the nodal displacements
+     * @param rValues The values of displacements
+     * @param Step The step to be computed
+     */
+    void GetValuesVector(
+        Vector& rValues,
+        int Step = 0
+        ) override;
+        
     ///@name Static Member Variables
     ///@{
 

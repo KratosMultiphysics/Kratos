@@ -500,18 +500,17 @@ private:
     void GetValueOnIntegrationPoints(
         const Variable<double> &rVariable,
         std::vector<double> &rValues,
-        const ProcessInfo &rCurrentProcessInfo);
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
         const Variable<double> &rVariable,
         std::vector<double> &rOutput,
-        const ProcessInfo &rCurrentProcessInfo);
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-        );
+        const ProcessInfo& rCurrentProcessInfo) override;
     ///@}
     ///@name Private  Access
     ///@{
