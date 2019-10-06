@@ -491,76 +491,76 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateKinematicVar
 
 /***********************************************************************************/
 /***********************************************************************************/
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rF, rDN_DX);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<2,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rF, rDN_DX);
+}
 template<>
 void GenericTotalLagrangianFemDemElement<2,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
 {
     this->Calculate2DB(rB, rF, rDN_DX);
 }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rF, rDN_DX);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rF, rDN_DX);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<3,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rF, rDN_DX);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rF, rDN_DX);
+}
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
 {
@@ -867,86 +867,86 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateStressDamage
 /***********************************************************************************/
 /***********************************************************************************/
 
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,0>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,1>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,2>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,3>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,4>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,5>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,6>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,0>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<3,0>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,1>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,2>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,3>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,4>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,5>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,6>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,0>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
 template<>
 void GenericTotalLagrangianFemDemElement<2,1>::CalculateAverageVariableOnEdge(
     const Element* pCurrentElement,
@@ -957,56 +957,56 @@ void GenericTotalLagrangianFemDemElement<2,1>::CalculateAverageVariableOnEdge(
 {
     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
 }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,2>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,3>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,4>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,5>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,6>::CalculateAverageVariableOnEdge(
-//     const Element* pCurrentElement,
-//     const Variable<Vector> ThisVariable,
-//     Vector& rAverageVector,
-//     const int edge
-//     )
-// {
-//     this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<2,2>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,3>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,4>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,5>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,6>::CalculateAverageVariableOnEdge(
+    const Element* pCurrentElement,
+    const Variable<Vector> ThisVariable,
+    Vector& rAverageVector,
+    const int edge
+    )
+{
+    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
+}
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge2D(
@@ -1042,76 +1042,76 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVaria
 
 /***********************************************************************************/
 /***********************************************************************************/
-// template<>
-// double GenericTotalLagrangianFemDemElement<3,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//     return this->CalculateElementalDamage3D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<3,1>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//     return this->CalculateElementalDamage3D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<3,2>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//     return this->CalculateElementalDamage3D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<3,3>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//     return this->CalculateElementalDamage3D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<3,4>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//     return this->CalculateElementalDamage3D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<3,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//     return this->CalculateElementalDamage3D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<3,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//     return this->CalculateElementalDamage3D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<2,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//    return this->CalculateElementalDamage2D(rEdgeDamages);
-// }
+template<>
+double GenericTotalLagrangianFemDemElement<3,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<3,1>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<3,2>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<3,3>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<3,4>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<3,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<3,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+    return this->CalculateElementalDamage3D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<2,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
 template<>
 double GenericTotalLagrangianFemDemElement<2,1>::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
    return this->CalculateElementalDamage2D(rEdgeDamages);
 }
-// template<>
-// double GenericTotalLagrangianFemDemElement<2,2>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//    return this->CalculateElementalDamage2D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<2,3>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//    return this->CalculateElementalDamage2D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<2,4>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//    return this->CalculateElementalDamage2D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<2,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//    return this->CalculateElementalDamage2D(rEdgeDamages);
-// }
-// template<>
-// double GenericTotalLagrangianFemDemElement<2,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
-// {
-//    return this->CalculateElementalDamage2D(rEdgeDamages);
-// }
+template<>
+double GenericTotalLagrangianFemDemElement<2,2>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<2,3>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<2,4>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<2,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
+template<>
+double GenericTotalLagrangianFemDemElement<2,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+   return this->CalculateElementalDamage2D(rEdgeDamages);
+}
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage3D(const Vector& rEdgeDamages)
@@ -1163,60 +1163,60 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeInternalVar
 /***********************************************************************************/
 /***********************************************************************************/
 
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,0>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-// {
-//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,1>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-// {
-//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,2>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-// {
-//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,3>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-// {
-//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-// {
-//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-// {
-//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-// {
-//     this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<3,0>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+{
+    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,1>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+{
+    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,2>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+{
+    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,3>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+{
+    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+{
+    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+{
+    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
+{
+    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
+}
 
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,0>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+template<>
+void GenericTotalLagrangianFemDemElement<2,0>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
 template<> 
 void GenericTotalLagrangianFemDemElement<2,1>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-// template<> 
-// void GenericTotalLagrangianFemDemElement<2,2>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-// template<> 
-// void GenericTotalLagrangianFemDemElement<2,3>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-// template<> 
-// void GenericTotalLagrangianFemDemElement<2,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-// template<> 
-// void GenericTotalLagrangianFemDemElement<2,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-// template<> 
-// void GenericTotalLagrangianFemDemElement<2,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+template<> 
+void GenericTotalLagrangianFemDemElement<2,2>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+template<> 
+void GenericTotalLagrangianFemDemElement<2,3>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+template<> 
+void GenericTotalLagrangianFemDemElement<2,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+template<> 
+void GenericTotalLagrangianFemDemElement<2,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
+template<> 
+void GenericTotalLagrangianFemDemElement<2,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1316,26 +1316,26 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbo
 /***********************************************************************************/
 /***********************************************************************************/
 
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,0>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,0>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<2,0>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,0>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
 template<>
 void GenericTotalLagrangianFemDemElement<2,1>::CalculateEquivalentStress(
     const array_1d<double,VoigtSize>& rPredictiveStressVector,
@@ -1346,136 +1346,136 @@ void GenericTotalLagrangianFemDemElement<2,1>::CalculateEquivalentStress(
 {
     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressRankine(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
 }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,1>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressRankine(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,2>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressSimoJu(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,2>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressSimoJu(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,3>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressDruckerPrager(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,3>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressDruckerPrager(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,4>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressHuberVonMises(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,4>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressHuberVonMises(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,5>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,5>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,6>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,6>::CalculateEquivalentStress(
-//     const array_1d<double,VoigtSize>& rPredictiveStressVector,
-//     const Vector& rStrainVector,
-//     double& rEquivalentStress,
-//     ConstitutiveLaw::Parameters& rValues
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<3,1>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressRankine(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,2>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressSimoJu(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,2>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressSimoJu(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,3>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressDruckerPrager(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,3>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressDruckerPrager(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,4>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressHuberVonMises(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,4>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressHuberVonMises(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,5>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,5>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,6>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,6>::CalculateEquivalentStress(
+    const array_1d<double,VoigtSize>& rPredictiveStressVector,
+    const Vector& rStrainVector,
+    double& rEquivalentStress,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,0>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdModifiedMohrCoulomb(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,0>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdModifiedMohrCoulomb(rValues, rThreshold);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<2,0>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdModifiedMohrCoulomb(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,0>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdModifiedMohrCoulomb(rValues, rThreshold);
+}
 template<>
 void GenericTotalLagrangianFemDemElement<2,1>::GetInitialUniaxialThreshold(
     ConstitutiveLaw::Parameters& rValues,
@@ -1484,116 +1484,116 @@ void GenericTotalLagrangianFemDemElement<2,1>::GetInitialUniaxialThreshold(
 {
     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdRankine(rValues, rThreshold);
 }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,1>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdRankine(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,2>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdSimoJu(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,2>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdSimoJu(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,3>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdDruckerPrager(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,3>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdDruckerPrager(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,4>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,4>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,5>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdTresca(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,5>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdTresca(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,6>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdMohrCoulomb(rValues, rThreshold);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,6>::GetInitialUniaxialThreshold(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rThreshold
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdMohrCoulomb(rValues, rThreshold);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<3,1>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdRankine(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,2>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdSimoJu(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,2>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdSimoJu(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,3>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdDruckerPrager(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,3>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdDruckerPrager(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,4>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,4>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,5>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdTresca(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,5>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdTresca(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,6>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdMohrCoulomb(rValues, rThreshold);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,6>::GetInitialUniaxialThreshold(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rThreshold
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdMohrCoulomb(rValues, rThreshold);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,0>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterModifiedMohrCoulomb(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,0>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterModifiedMohrCoulomb(rValues, rAParameter, CharacteristicLength);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<2,0>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterModifiedMohrCoulomb(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,0>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterModifiedMohrCoulomb(rValues, rAParameter, CharacteristicLength);
+}
 template<>
 void GenericTotalLagrangianFemDemElement<2,1>::CalculateDamageParameter(
     ConstitutiveLaw::Parameters& rValues,
@@ -1603,105 +1603,105 @@ void GenericTotalLagrangianFemDemElement<2,1>::CalculateDamageParameter(
 {
     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterRankine(rValues, rAParameter, CharacteristicLength);
 }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,1>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterRankine(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,2>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterSimoJu(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,2>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterSimoJu(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,3>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterDruckerPrager(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,3>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterDruckerPrager(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,4>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,4>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,5>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterTresca(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,5>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterTresca(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<2,6>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterMohrCoulomb(rValues, rAParameter, CharacteristicLength);
-// }
-// template<>
-// void GenericTotalLagrangianFemDemElement<3,6>::CalculateDamageParameter(
-//     ConstitutiveLaw::Parameters& rValues,
-//     double& rAParameter,
-//     const double CharacteristicLength
-//     )
-// {
-//     ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterMohrCoulomb(rValues, rAParameter, CharacteristicLength);
-// }
+template<>
+void GenericTotalLagrangianFemDemElement<3,1>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterRankine(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,2>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterSimoJu(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,2>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterSimoJu(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,3>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterDruckerPrager(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,3>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterDruckerPrager(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,4>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,4>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,5>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterTresca(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,5>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterTresca(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<2,6>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterMohrCoulomb(rValues, rAParameter, CharacteristicLength);
+}
+template<>
+void GenericTotalLagrangianFemDemElement<3,6>::CalculateDamageParameter(
+    ConstitutiveLaw::Parameters& rValues,
+    double& rAParameter,
+    const double CharacteristicLength
+    )
+{
+    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterMohrCoulomb(rValues, rAParameter, CharacteristicLength);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/

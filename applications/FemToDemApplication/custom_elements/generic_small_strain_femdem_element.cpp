@@ -436,76 +436,76 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateKinematicVariabl
 /***********************************************************************************/
 /***********************************************************************************/
 
-// template<>
-// void GenericSmallStrainFemDemElement<2,0>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<3,0>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rDN_DX);
-// }
+template<>
+void GenericSmallStrainFemDemElement<2,0>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,0>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
 template<>
 void GenericSmallStrainFemDemElement<2,1>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 {
     this->Calculate2DB(rB, rDN_DX);
 }
-// template<>
-// void GenericSmallStrainFemDemElement<3,1>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<2,2>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<3,2>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<2,3>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<3,3>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<2,4>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<3,4>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<2,5>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<3,5>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate2DB(rB, rDN_DX);
-// }
-// template<>
-// void GenericSmallStrainFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
-// {
-//     this->Calculate3DB(rB, rDN_DX);
-// }
+template<>
+void GenericSmallStrainFemDemElement<3,1>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,2>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,2>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,3>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,3>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,4>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,4>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,5>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,5>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Calculate2DB(
