@@ -215,6 +215,11 @@ protected:
     ///@name Protected static Member Variables
     ///@{
     ///@}
+    Vector mThresholds;                 // Stress mThreshold on edge
+    Vector mDamages;                    // Converged Damage on each edge
+
+    double mThreshold = 0.0;            // Converged Threshold
+    double mDamage = 0.0;               // Converged Damage
     ///@name Protected member Variables
     ///@{
 
@@ -515,12 +520,6 @@ private:
     ///@name Private  Access
     ///@{
     ///@}
-
-    Vector mThresholds;                 // Stress mThreshold on edge
-    Vector mDamages;                    // Converged Damage on each edge
-
-    double mThreshold = 0.0;            // Converged Threshold
-    double mDamage = 0.0;               // Converged Damage
 
     // Vector to storage the neigh elements sharing a certain edge
     std::vector<std::vector<Element*>> mEdgeNeighboursContainer;

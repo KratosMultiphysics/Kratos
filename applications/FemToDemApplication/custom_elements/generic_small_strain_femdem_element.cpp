@@ -28,6 +28,14 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry)
 {
+    // DO NOT ADD DOFS HERE!!!
+    if (this->mThresholds.size() != NumberOfEdges)
+        this->mThresholds.resize(NumberOfEdges);
+    noalias(this->mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+
+    if (this->mDamages.size() != NumberOfEdges)
+        this->mDamages.resize(NumberOfEdges);
+    noalias(this->mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 }
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
@@ -35,6 +43,14 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry, pProperties)
 {
+    // DO NOT ADD DOFS HERE!!!
+    if (this->mThresholds.size() != NumberOfEdges)
+        this->mThresholds.resize(NumberOfEdges);
+    noalias(this->mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+
+    if (this->mDamages.size() != NumberOfEdges)
+        this->mDamages.resize(NumberOfEdges);
+    noalias(this->mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 }
 
 /***********************************************************************************/
@@ -68,7 +84,21 @@ Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Clone(
     NodesArrayType const& rThisNodes
     ) const
 {
-    BaseType::Clone(NewId, rThisNodes);
+    KRATOS_TRY
+
+    GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Pointer p_new_elem = Kratos::make_intrusive<GenericSmallStrainFemDemElement>(NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+
+    // Currently selected integration methods
+    p_new_elem->SetIntegrationMethod(BaseType::mThisIntegrationMethod);
+
+    // The vector containing the constitutive laws
+    p_new_elem->SetConstitutiveLawVector(BaseType::mConstitutiveLawVector);
+
+    return p_new_elem;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -122,6 +152,19 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
     KRATOS_CATCH("")
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
+    )
+{
+    // todo
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
