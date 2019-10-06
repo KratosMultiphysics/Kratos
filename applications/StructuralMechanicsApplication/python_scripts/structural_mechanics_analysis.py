@@ -53,26 +53,38 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def Initialize(self):
         """ Initializing the Analysis """
         super(StructuralMechanicsAnalysis, self).Initialize()
-        self._GetSolver().SetEchoLevel(self.echo_level)
-        # To avoid many prints
-        if self.echo_level == 0:
-            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
+        # Detect is a contact problem
+        solver_settings = self.project_parameters["solver_settings"]
+        if solver_settings.Has("contact_settings") or solver_settings.Has("mpc_contact_settings"):
+            self.contact_problem = True
+        else:
+            self.contact_problem = False
+
+        # In case of contact problem
+        if self.contact_problem:
+            self._GetSolver().SetEchoLevel(self.echo_level)
+            # To avoid many prints
+            if self.echo_level == 0:
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
 
-        # First we check if one of the output processes will print output in this step this is done to save computation in case none of them will print
-        is_output_step = False
-        for output_process in self._GetListOfOutputProcesses():
-            if output_process.IsOutputStep():
-                is_output_step = True
-                break
+        # In case of contact problem
+        if self.contact_problem:
+            # First we check if one of the output processes will print output in this step this is done to save computation in case none of them will print
+            is_output_step = False
+            for output_process in self._GetListOfOutputProcesses():
+                if output_process.IsOutputStep():
+                    is_output_step = True
+                    break
 
-        if is_output_step:
-            # Informing the output will be created
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
+            if is_output_step:
+                # Informing the output will be created
+                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
 
         # Creating output
         super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
