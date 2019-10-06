@@ -507,6 +507,12 @@ private:
         const Variable<double> &rVariable,
         std::vector<double> &rOutput,
         const ProcessInfo &rCurrentProcessInfo);
+
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        );
     ///@}
     ///@name Private  Access
     ///@{

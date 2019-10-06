@@ -240,8 +240,12 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     const bool CalculateResidualVectorFlag
     )
 {
-    // if (this->Id() == 154)
+    // if (this->Id() == 154) {
     //     KRATOS_WATCH("CalculateAll")
+    //     KRATOS_WATCH(CalculateStiffnessMatrixFlag)
+    //     KRATOS_WATCH(CalculateResidualVectorFlag)
+    // }
+
     KRATOS_TRY;
 
     const SizeType number_of_nodes   = this->GetGeometry().size();
@@ -318,10 +322,10 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
             Vector average_strain_edge(VoigtSize);
             noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
             noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
-            if (this->Id() == 154) {
-                KRATOS_WATCH(average_stress_edge)
-                KRATOS_WATCH(average_strain_edge)
-            }
+            // if (this->Id() == 154) {
+            //     KRATOS_WATCH(average_stress_edge)
+            //     KRATOS_WATCH(average_strain_edge)
+            // }
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
@@ -332,32 +336,36 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
                 this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
                     average_stress_edge, edge, characteristic_length, Values, is_damaging);
 
-                if (this->Id() == 154) {
-                        KRATOS_WATCH("dentro...")
-                        KRATOS_WATCH(damages_edges[edge])
-                        KRATOS_WATCH(average_stress_edge)
-                        KRATOS_WATCH(average_strain_edge)
-                    }
-
             } // Loop over edges
         }
+
         // Calculate the elemental Damage...
-        const double damage_element = this->CalculateElementalDamage(damages_edges);
+        double damage_element;
+        // if (CalculateResidualVectorFlag)
+            damage_element = this->CalculateElementalDamage(damages_edges);
+        // else
+        //     damage_element = this->CalculateElementalDamage(mDamages);
+
+        // if (this->Id()==145) {
+        //     KRATOS_WATCH(damages_edges)
+        // }
         Vector r_strain_vector;
         this->CalculateGreenLagrangeStrainVector(r_strain_vector, this_kinematic_variables.F);
         const Vector& r_stress_vector = this_constitutive_variables.StressVector;
         const Vector& r_integrated_stress_vector = (1.0 - damage_element)*r_stress_vector;
+        
 
         if (CalculateStiffnessMatrixFlag == true) { // Calculation of the matrix is required
+            // if (this->Id() == 154) KRATOS_WATCH("DENTRO DE K!!!")
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
-            if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
-                Matrix tangent_tensor;
-                this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, Values);
-                noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
-            } else {
-                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, (1.0 - damage_element)*int_to_reference_weight);
-            }
+            // if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
+            //     Matrix tangent_tensor;
+            //     this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, Values);
+            //     noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
+            // } else {
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0 - damage_element)*this_constitutive_variables.D, int_to_reference_weight);
+            // }
             /* Geometric stiffness matrix */
             this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
             // KRATOS_WATCH(rLeftHandSideMatrix)
@@ -365,7 +373,6 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
 
         if (CalculateResidualVectorFlag == true) { // Calculation of the matrix is required
             this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, r_integrated_stress_vector, int_to_reference_weight);
-            // KRATOS_WATCH(rRightHandSideVector)
         }
     }
     KRATOS_CATCH( "" )
@@ -378,8 +385,8 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
     ProcessInfo& rCurrentProcessInfo 
     )
 {
-    // if (this->Id() == 154)
-    //     KRATOS_WATCH("FINALIZE")
+    if (this->Id() == 154)
+        KRATOS_WATCH("FINALIZE")
     KRATOS_TRY;
 
     const SizeType number_of_nodes   = this->GetGeometry().size();
@@ -441,7 +448,6 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
             int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
         bool is_damaging = false;
-        Vector damages_edges = ZeroVector(NumberOfEdges);
         if (yield_surface != "Elastic") {
             // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
@@ -457,8 +463,12 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
                     average_stress_edge, edge, characteristic_length, Values, is_damaging);
             } // Loop over edges
         }
+
+        // if (this->Id()145) {
+        //     KRATOS_WATCH()
+        // }
         // Calculate the elemental Damage...
-        mDamage = this->CalculateElementalDamage(damages_edges);
+        mDamage = this->CalculateElementalDamage(mDamages);
 
         if (mDamage >= 0.98) {
             this->Set(ACTIVE, false);
@@ -2036,6 +2046,55 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
     }
 }
 
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+
+    if (rVariable == STRESS_VECTOR_INTEGRATED) {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+        const SizeType number_of_integration_points = integration_points.size();
+        if ( rOutput.size() != number_of_integration_points )
+            rOutput.resize( number_of_integration_points );
+        // Create and initialize element variables:
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+        // Reading integration points
+        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+            //call the constitutive law to update material variables
+            // Compute material reponse
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+
+            if ( rOutput[point_number].size() != strain_size )
+                rOutput[point_number].resize(strain_size, false);
+            rOutput[point_number] = (1.0-mDamage)*this_constitutive_variables.StressVector;
+        }
+    }
+
+}
 /***********************************************************************************/
 /***********************************************************************************/
 // template class GenericTotalLagrangianFemDemElement<2,0>;
