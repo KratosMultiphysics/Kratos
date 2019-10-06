@@ -7,15 +7,14 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velazquez
-//
+//  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo
 
 #if !defined(KRATOS_GENERIC_SMALL_STRAIN_FEMDEM_ELEMENT_H_INCLUDED)
 #define KRATOS_GENERIC_SMALL_STRAIN_FEMDEM_ELEMENT_H_INCLUDED
 
-
 // System includes
-
 
 // External include
 
@@ -338,6 +337,7 @@ protected:
         const Vector& rStressVector,
         const double IntegrationWeight
         ) const;
+        
     ///@name Static Member Variables
     ///@{
 
