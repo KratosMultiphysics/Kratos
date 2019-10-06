@@ -189,12 +189,12 @@ void KratosFemToDemApplication::Register()
     Serializer::Register("FemDemElasticLaw", mFemDemElasticLaw);
     Serializer::Register("ElasticIsotropic3D", mElasticIsotropic3D);
     Serializer::Register("LinearPlaneStress", mLinearPlaneStress);
-    Serializer::Register("LinearPlaneStrain", mLinearPlaneStress);
+    Serializer::Register("LinearPlaneStrain", mLinearPlaneStrain);
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("FemDemElasticLaw", mFemDemElasticLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticIsotropic3D", mElasticIsotropic3D)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStress", mLinearPlaneStress)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStrain", mLinearPlaneStress)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStrain", mLinearPlaneStrain)
 
 }
 

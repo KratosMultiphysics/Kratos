@@ -35,7 +35,6 @@
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
-#include "custom_elements/generic_large_displacement_femdem_element.hpp"
 #include "custom_elements/generic_total_lagrangian_femdem_element.h"
 
 #include "fem_to_dem_application_variables.h"
