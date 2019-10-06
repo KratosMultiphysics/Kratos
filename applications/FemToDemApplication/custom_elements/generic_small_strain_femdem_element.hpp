@@ -187,8 +187,43 @@ public:
 
     /// Assignment operator.
     GenericSmallStrainFemDemElement &operator=(GenericSmallStrainFemDemElement const &rOther);
-    Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const override;
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
 
     GenericSmallStrainFemDemElement()
     {
@@ -278,7 +313,7 @@ protected:
         Vector& rValues,
         int Step = 0
         ) override;
-        
+
     ///@name Static Member Variables
     ///@{
 

@@ -31,6 +31,9 @@
 //#include "custom_elements/zaratipito_element.hpp"
 #include "custom_constitutive/zarate_law.hpp"
 #include "custom_constitutive/fem_dem_elastic_law.hpp"
+#include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/linear_plane_strain.h"
 #include "custom_elements/generic_small_strain_femdem_element.hpp"
 #include "custom_elements/generic_large_displacement_femdem_element.hpp"
 #include "custom_elements/generic_total_lagrangian_femdem_element.h"
@@ -103,41 +106,44 @@ protected:
 private:
     
     // Elements
-    const GenericSmallStrainFemDemElement<2,0> mSmallStrainModifiedMohrCoulombFemDemElement2D;
-    const GenericSmallStrainFemDemElement<3,0> mSmallStrainModifiedMohrCoulombFemDemElement3D;
+    // const GenericSmallStrainFemDemElement<2,0> mSmallStrainModifiedMohrCoulombFemDemElement2D;
+    // const GenericSmallStrainFemDemElement<3,0> mSmallStrainModifiedMohrCoulombFemDemElement3D;
     const GenericSmallStrainFemDemElement<2,1> mSmallStrainRankineFemDemElement2D;
-    const GenericSmallStrainFemDemElement<3,1> mSmallStrainRankineFemDemElement3D;
-    const GenericSmallStrainFemDemElement<2,2> mSmallStrainSimoJuFemDemElement2D;
-    const GenericSmallStrainFemDemElement<3,2> mSmallStrainSimoJuFemDemElement3D;
-    const GenericSmallStrainFemDemElement<2,3> mSmallStrainDruckerPragerFemDemElement2D;
-    const GenericSmallStrainFemDemElement<3,3> mSmallStrainDruckerPragerFemDemElement3D;
-    const GenericSmallStrainFemDemElement<2,4> mSmallStrainVonMisesFemDemElement2D;
-    const GenericSmallStrainFemDemElement<3,4> mSmallStrainVonMisesFemDemElement3D;
-    const GenericSmallStrainFemDemElement<2,5> mSmallStrainTrescaFemDemElement2D;
-    const GenericSmallStrainFemDemElement<3,5> mSmallStrainTrescaFemDemElement3D;
-    const GenericSmallStrainFemDemElement<2,6> mSmallStrainMohrCoulombFemDemElement2D;
-    const GenericSmallStrainFemDemElement<3,6> mSmallStrainMohrCoulombFemDemElement3D;
+    // const GenericSmallStrainFemDemElement<3,1> mSmallStrainRankineFemDemElement3D;
+    // const GenericSmallStrainFemDemElement<2,2> mSmallStrainSimoJuFemDemElement2D;
+    // const GenericSmallStrainFemDemElement<3,2> mSmallStrainSimoJuFemDemElement3D;
+    // const GenericSmallStrainFemDemElement<2,3> mSmallStrainDruckerPragerFemDemElement2D;
+    // const GenericSmallStrainFemDemElement<3,3> mSmallStrainDruckerPragerFemDemElement3D;
+    // const GenericSmallStrainFemDemElement<2,4> mSmallStrainVonMisesFemDemElement2D;
+    // const GenericSmallStrainFemDemElement<3,4> mSmallStrainVonMisesFemDemElement3D;
+    // const GenericSmallStrainFemDemElement<2,5> mSmallStrainTrescaFemDemElement2D;
+    // const GenericSmallStrainFemDemElement<3,5> mSmallStrainTrescaFemDemElement3D;
+    // const GenericSmallStrainFemDemElement<2,6> mSmallStrainMohrCoulombFemDemElement2D;
+    // const GenericSmallStrainFemDemElement<3,6> mSmallStrainMohrCoulombFemDemElement3D;
 
-    const GenericLargeDisplacementFemDemElement<2,0> mLargeDisplacementModifiedMohrCoulombFemDemElement2D;
-    const GenericLargeDisplacementFemDemElement<3,0> mLargeDisplacementModifiedMohrCoulombFemDemElement3D;
-    const GenericLargeDisplacementFemDemElement<2,1> mLargeDisplacementRankineFemDemElement2D;
-    const GenericLargeDisplacementFemDemElement<3,1> mLargeDisplacementRankineFemDemElement3D;
-    const GenericLargeDisplacementFemDemElement<2,2> mLargeDisplacementSimoJuFemDemElement2D;
-    const GenericLargeDisplacementFemDemElement<3,2> mLargeDisplacementSimoJuFemDemElement3D;
-    const GenericLargeDisplacementFemDemElement<2,3> mLargeDisplacementDruckerPragerFemDemElement2D;
-    const GenericLargeDisplacementFemDemElement<3,3> mLargeDisplacementDruckerPragerFemDemElement3D;
-    const GenericLargeDisplacementFemDemElement<2,4> mLargeDisplacementVonMisesFemDemElement2D;
-    const GenericLargeDisplacementFemDemElement<3,4> mLargeDisplacementVonMisesFemDemElement3D;
-    const GenericLargeDisplacementFemDemElement<2,5> mLargeDisplacementTrescaFemDemElement2D;
-    const GenericLargeDisplacementFemDemElement<3,5> mLargeDisplacementTrescaFemDemElement3D;
-    const GenericLargeDisplacementFemDemElement<2,6> mLargeDisplacementMohrCoulombFemDemElement2D;
-    const GenericLargeDisplacementFemDemElement<3,6> mLargeDisplacementMohrCoulombFemDemElement3D;
+    // const GenericLargeDisplacementFemDemElement<2,0> mLargeDisplacementModifiedMohrCoulombFemDemElement2D;
+    // const GenericLargeDisplacementFemDemElement<3,0> mLargeDisplacementModifiedMohrCoulombFemDemElement3D;
+    // const GenericLargeDisplacementFemDemElement<2,1> mLargeDisplacementRankineFemDemElement2D;
+    // const GenericLargeDisplacementFemDemElement<3,1> mLargeDisplacementRankineFemDemElement3D;
+    // const GenericLargeDisplacementFemDemElement<2,2> mLargeDisplacementSimoJuFemDemElement2D;
+    // const GenericLargeDisplacementFemDemElement<3,2> mLargeDisplacementSimoJuFemDemElement3D;
+    // const GenericLargeDisplacementFemDemElement<2,3> mLargeDisplacementDruckerPragerFemDemElement2D;
+    // const GenericLargeDisplacementFemDemElement<3,3> mLargeDisplacementDruckerPragerFemDemElement3D;
+    // const GenericLargeDisplacementFemDemElement<2,4> mLargeDisplacementVonMisesFemDemElement2D;
+    // const GenericLargeDisplacementFemDemElement<3,4> mLargeDisplacementVonMisesFemDemElement3D;
+    // const GenericLargeDisplacementFemDemElement<2,5> mLargeDisplacementTrescaFemDemElement2D;
+    // const GenericLargeDisplacementFemDemElement<3,5> mLargeDisplacementTrescaFemDemElement3D;
+    // const GenericLargeDisplacementFemDemElement<2,6> mLargeDisplacementMohrCoulombFemDemElement2D;
+    // const GenericLargeDisplacementFemDemElement<3,6> mLargeDisplacementMohrCoulombFemDemElement3D;
 
     const GenericTotalLagrangianFemDemElement<2,1> mTotalLagrangianRankineFemDemElement2D;
 
     //elastic laws
    const ZarateLaw mZarateLaw;
    const FemDemElasticLaw mFemDemElasticLaw;
+   const LinearPlaneStrain mLinearPlaneStrain;
+   const LinearPlaneStress mLinearPlaneStress;
+   const ElasticIsotropic3D mElasticIsotropic3D;
     
 
     /// Assignment operator.

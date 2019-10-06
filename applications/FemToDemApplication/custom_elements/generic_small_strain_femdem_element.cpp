@@ -28,7 +28,6 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry)
 {
-    BaseType::(NewId, pGeometry);
 }
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
@@ -36,7 +35,6 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry, pProperties)
 {
-    BaseType::(NewId, pGeometry, pProperties);
 }
 
 /***********************************************************************************/
@@ -85,7 +83,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
-    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -95,7 +93,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -104,16 +102,15 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
     Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
     // Reading integration points
-    const GeometryType& r_geometry = r_geometry;
     const Properties& r_properties = this->GetProperties();
-    const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+    const auto& N_values = r_geometry.ShapeFunctionsValues(this->mThisIntegrationMethod);
 
     // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->mThisIntegrationMethod);
 
-    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+    for ( IndexType point_number = 0; point_number < this->mConstitutiveLawVector.size(); ++point_number ) {
         // Compute element kinematics B, F, DN_DX ...
-        CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
+        CalculateKinematicVariables(this_kinematic_variables, point_number, this->mThisIntegrationMethod);
 
         // Compute material reponse
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
@@ -198,73 +195,73 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateKinematicVariabl
 /***********************************************************************************/
 /***********************************************************************************/
 
-/ template<>
-// void GenericSmallStrainFemDemElement<2,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// template<>
+// void GenericSmallStrainFemDemElement<2,0>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate2DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<3,0>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<3,0>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate3DB(rB, rDN_DX);
 // }
 template<>
-void GenericSmallStrainFemDemElement<2,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+void GenericSmallStrainFemDemElement<2,1>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 {
     this->Calculate2DB(rB, rDN_DX);
 }
 // template<>
-// void GenericSmallStrainFemDemElement<3,1>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<3,1>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate3DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<2,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<2,2>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate2DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<3,2>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<3,2>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate3DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<2,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<2,3>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate2DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<3,3>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<3,3>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate3DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<2,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<2,4>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate2DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<3,4>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<3,4>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate3DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<2,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<2,5>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate2DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<3,5>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<3,5>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate3DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate2DB(rB, rDN_DX);
 // }
 // template<>
-// void GenericSmallStrainFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX)
+// void GenericSmallStrainFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
 // {
 //     this->Calculate3DB(rB, rDN_DX);
 // }
@@ -361,7 +358,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateConstitutiveVari
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
     // Actually do the computations in the ConstitutiveLaw
-    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
+    this->mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
 }
 
 /***********************************************************************************/
