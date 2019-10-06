@@ -704,13 +704,24 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
 
-    if (rVariable == STRESS_VECTOR_INTEGRATED) {
-        const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
-        const SizeType number_of_integration_points = integration_points.size();
-        if ( rOutput.size() != number_of_integration_points )
-            rOutput.resize( number_of_integration_points );
+    const SizeType number_of_integration_points = integration_points.size();
+    if ( rOutput.size() != number_of_integration_points )
+        rOutput.resize( number_of_integration_points );
+
+
+    if ( rVariable == INSITU_STRESS ) {
+        const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
+        Vector strain_vector( strain_size );
+
+        for ( IndexType point_number = 0; point_number < this->mConstitutiveLawVector.size(); ++point_number ) {
+            if ( rOutput[point_number].size() != strain_vector.size() )
+                rOutput[point_number].resize( strain_vector.size(), false );
+
+            rOutput[point_number] = this->mConstitutiveLawVector[point_number]->GetValue( INSITU_STRESS, rOutput[point_number] );
+        }
+    } else if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR ) {
         // Create and initialize element variables:
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
@@ -731,6 +742,84 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
         // Reading integration points
+        for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+            // Compute element kinematics B, F, DN_DX ...
+            this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+            //call the constitutive law to update material variables
+            if( rVariable == CAUCHY_STRESS_VECTOR) {
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+            } else {
+                // Compute material reponse
+                this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
+            }
+
+            if ( rOutput[point_number].size() != strain_size )
+                rOutput[point_number].resize( strain_size, false );
+
+            rOutput[point_number] = this_constitutive_variables.StressVector;
+        }
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR) {
+        // Create and initialize element variables:
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+        const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags &ConstitutiveLawOptions = Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+        const ConstitutiveLaw::StressMeasure this_stress_measure = rVariable == GREEN_LAGRANGE_STRAIN_VECTOR ? ConstitutiveLaw::StressMeasure_PK2 : ConstitutiveLaw::StressMeasure_Kirchhoff;
+
+        //reading integration points
+        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+            // Compute element kinematics B, F, DN_DX ...
+            this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+            // Compute material reponse
+            this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure);
+
+            if ( rOutput[point_number].size() != strain_size)
+                rOutput[point_number].resize( strain_size, false );
+
+            rOutput[point_number] = this_constitutive_variables.StrainVector;
+        }
+    } else if (rVariable == STRESS_VECTOR_INTEGRATED) {
+        const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod() );
+        const SizeType number_of_integration_points = integration_points.size();
+        if ( rOutput.size() != number_of_integration_points )
+            rOutput.resize( number_of_integration_points );
+        // Create and initialize element variables:
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+        const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions = Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, this->UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+        // Reading integration points
         for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
@@ -741,7 +830,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
 
             if ( rOutput[point_number].size() != strain_size )
                 rOutput[point_number].resize(strain_size, false);
-            rOutput[point_number] = (1.0-this->mDamage)*this_constitutive_variables.StressVector;
+            rOutput[point_number] = (1.0 - this->mDamage)*this_constitutive_variables.StressVector;
         }
     }
 }
