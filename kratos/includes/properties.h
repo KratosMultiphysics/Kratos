@@ -405,7 +405,7 @@ public:
                     if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
                         return false;
                     } else {
-                        p_property_interest = pGetSubProperties(indexes[i_index]);
+                        p_property_interest = p_property_interest->pGetSubProperties(indexes[i_index]);
                     }
                 }
                 return true;
@@ -436,7 +436,7 @@ public:
                     if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
                         KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
                     } else {
-                        p_property_interest = pGetSubProperties(indexes[i_index]);
+                        p_property_interest = p_property_interest->pGetSubProperties(indexes[i_index]);
                     }
                 }
                 return p_property_interest;
@@ -466,7 +466,7 @@ public:
                     if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
                         KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
                     } else {
-                        p_property_interest = pGetSubProperties(indexes[i_index]);
+                        p_property_interest = p_property_interest->pGetSubProperties(indexes[i_index]);
                     }
                 }
                 return p_property_interest;
@@ -496,7 +496,7 @@ public:
                     if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
                         KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
                     } else {
-                        p_property_interest = pGetSubProperties(indexes[i_index]);
+                        p_property_interest = p_property_interest->pGetSubProperties(indexes[i_index]);
                     }
                 }
                 return *p_property_interest;
@@ -526,7 +526,7 @@ public:
                     if ( !p_property_interest->HasSubProperties(indexes[i_index])) {
                         KRATOS_ERROR << "Index is wrong, does not correspond with any sub Properties Id: " << rAddress << std::endl;
                     } else {
-                        p_property_interest = pGetSubProperties(indexes[i_index]);
+                        p_property_interest = p_property_interest->pGetSubProperties(indexes[i_index]);
                     }
                 }
                 return *p_property_interest;

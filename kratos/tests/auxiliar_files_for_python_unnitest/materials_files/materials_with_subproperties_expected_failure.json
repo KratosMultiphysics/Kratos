@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "Inlets",
+        "model_part_name" : "Main.Inlets",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
@@ -85,7 +85,7 @@
             }
         }]
     },{
-        "model_part_name" : "Outlet",
+        "model_part_name" : "Main.Outlet",
         "properties_id"   : 2,
         "Material"        : {
             "constitutive_law" : {

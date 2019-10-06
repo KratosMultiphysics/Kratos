@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_RV_SWE_H_INCLUDED
-#define KRATOS_RV_SWE_H_INCLUDED
+#ifndef KRATOS_SWE_H_INCLUDED
+#define KRATOS_SWE_H_INCLUDED
 
 // System includes
 
@@ -51,30 +51,38 @@ namespace Kratos
 
 /// Implementation of a linear element for shallow water problems
 template< size_t TNumNodes, ElementFramework TFramework >
-class RV_SWE : public Element
+class SWE : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of RV_SWE
-    KRATOS_CLASS_POINTER_DEFINITION( RV_SWE );
+    /// Pointer definition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SWE);
+
+    typedef std::size_t IndexType;
+
+    typedef Node<3> NodeType;
+
+    typedef array_1d<double, 3 * TNumNodes> LocalVectorType;
+
+    typedef BoundedMatrix<double, 3*TNumNodes, 3*TNumNodes> LocalMatrixType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    RV_SWE() : Element(){}
+    SWE() : Element(){}
 
     /// Constructor using a Geometry instance
-    RV_SWE(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){}
+    SWE(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){}
 
     /// Constructor using geometry and properties
-    RV_SWE(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Element(NewId, pGeometry, pProperties){}
+    SWE(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Element(NewId, pGeometry, pProperties){}
 
     /// Destructor.
-    virtual ~ RV_SWE(){}
+    virtual ~ SWE(){}
 
     ///@}
     ///@name Operators
@@ -87,12 +95,12 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive< RV_SWE <TNumNodes, TFramework> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< SWE <TNumNodes, TFramework> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive< RV_SWE <TNumNodes, TFramework> >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< SWE <TNumNodes, TFramework> >(NewId, pGeom, pProperties);
     }
 
     /**
@@ -185,9 +193,11 @@ protected:
 
     struct ElementVariables
     {
-        static constexpr size_t LocalSize = TNumNodes*3;
-        const double epsilon = 1e-4;
+        // Constants
+        static constexpr size_t LocalSize = TNumNodes * 3;
 
+        // Element values
+        double epsilon;
         double dt_inv;
         double lumping_factor;
         double dyn_tau;
@@ -196,99 +206,82 @@ protected:
         double porosity;
         double height_units;
 
+        // Element variables
+        array_1d<double, 2> projected_momentum; // It is used to compute friction terms
+        BoundedMatrix<double, 2, 2> momentum_grad;
+        double momentum_div; // It is used to compute shock capturing
         double height;
-        array_1d<double, 2> velocity;
-        array_1d<double, 2> projected_velocity;
-        array_1d<double, 2> height_grad;
-        BoundedMatrix<double, 2, 2> velocity_grad;
-        double velocity_div;
-        int sign;
+        array_1d<double, 2> surface_grad; // Is used to compute shock capturing
+        array_1d<double, 2> velocity; // It is used to compute the convective stabilization
+        double wave_vel_2;
 
-        array_1d<double, LocalSize> depth;
-        array_1d<double, LocalSize> rain;
-        array_1d<double, LocalSize> unknown;
-        array_1d<double, LocalSize> prev_unk;
-        array_1d<double, LocalSize> proj_unk;
+        // Unknowns and nodal values
+        LocalVectorType rain;
+        LocalVectorType unknown;
+        LocalVectorType prev_unk;
+        LocalVectorType proj_unk;
 
-        BoundedMatrix<double, LocalSize, LocalSize> MassMatrixScalar;
-        BoundedMatrix<double, LocalSize, LocalSize> MassMatrixVector;
-        BoundedMatrix<double, LocalSize, LocalSize> ScalarGrad;
-        BoundedMatrix<double, LocalSize, LocalSize> VectorDiv;
-        BoundedMatrix<double, LocalSize, LocalSize> ScalarDiff;
-        BoundedMatrix<double, LocalSize, LocalSize> VectorDiff;
-        BoundedMatrix<double, LocalSize, LocalSize> Convection;
-        BoundedMatrix<double, LocalSize, LocalSize> ScalarConvectionStabilization;
-        BoundedMatrix<double, LocalSize, LocalSize> VectorConvectionStabilization;
-        BoundedMatrix<double, LocalSize, LocalSize> FrictionStabilization;
+        // Shape functions and derivatives
+        BoundedMatrix<double, 2, LocalSize> N_q;
+        array_1d<double, LocalSize> N_h;
+        array_1d<double, LocalSize> DN_DX_q;
+        BoundedMatrix<double, 2, LocalSize> DN_DX_h;
+        BoundedMatrix<double, 2, LocalSize> Grad_q1;
+        BoundedMatrix<double, 2, LocalSize> Grad_q2;
     };
 
-    void CheckVariableKey();
+    void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-    void CheckVariableInNodalData(Node<3>& rNode);
+    void CalculateGeometry(BoundedMatrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
 
-    virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void GetNodalValues(ElementVariables& rVariables);
 
-    virtual void CalculateGeometry(BoundedMatrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
+    void CalculateElementValues(const BoundedMatrix<double, TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
 
-    virtual void GetNodalValues(ElementVariables& rVariables);
-
-    virtual void CalculateElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
-
-    virtual void ComputeStabilizationParameters(
+    void ComputeStabilizationParameters(
         const ElementVariables& rVariables,
         double& rTauU,
-        double& rTauH,
-        double& rKappaU,
-        double& rKappaH);
+        double& rTauF);
 
-    virtual void BuildMassMatrices(
-        array_1d<double,TNumNodes>& rN,
+    void ComputeConvectionStabilizationParameters(
+        const ElementVariables& rVariables,
+        double& rTau);
+
+    void BuildAuxiliaryMatrices(
+        const array_1d<double, TNumNodes>& rN,
+        const BoundedMatrix<double, TNumNodes, 2>& rDN_DX,
         ElementVariables& rVariables);
 
-    virtual void BuildGradientMatrices(
-        array_1d<double,TNumNodes>& rN,
-        BoundedMatrix<double, TNumNodes, 2>& rDN_DX,
-        ElementVariables& rVariables);
-
-    virtual void BuildDiffusivityMatrices(
-        BoundedMatrix<double, TNumNodes, 2>& rDN_DX,
-        ElementVariables& rVariables);
-
-    virtual void BuildConvectionMatrices(
-        array_1d<double, TNumNodes>& rN,
-        BoundedMatrix<double, TNumNodes, 2>& rDN_DX,
-        ElementVariables& rVariables);
-
-    virtual void AddInertiaTerms(
+    void AddInertiaTerms(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables);
-    
-    virtual void AddConvectiveTerms(
+
+    void AddConvectiveTerms(
         MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ElementVariables& rVariables);
-    
-    virtual void AddWaveTerms(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ElementVariables& rVariables);
-    
-    virtual void AddFrictionTerms(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ElementVariables& rVariables);
-    
-    virtual void AddStabilizationTerms(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ElementVariables& rVariables);
-    
-    virtual void AddSourceTerms(
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables);
 
-    virtual void CalculateLumpedMassMatrix(BoundedMatrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix);
+    void AddWaveTerms(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ElementVariables& rVariables);
+
+    void AddFrictionTerms(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ElementVariables& rVariables);
+
+    void AddStabilizationTerms(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ElementVariables& rVariables);
+
+    void AddSourceTerms(
+        VectorType& rRightHandSideVector,
+        ElementVariables& rVariables);
+
+    void CalculateLumpedMassMatrix(LocalMatrixType& rMassMatrix);
 
     ///@}
     ///@name Protected  Access
@@ -349,7 +342,7 @@ private:
 
     ///@}
 
-}; // Class RV_SWE
+}; // Class SWE
 
 ///@}
 ///@name Type Definitions
@@ -367,4 +360,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RV_SWE_H_INCLUDED  defined
+#endif // KRATOS_SWE_H_INCLUDED  defined
