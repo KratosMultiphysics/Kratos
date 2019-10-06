@@ -240,12 +240,6 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     const bool CalculateResidualVectorFlag
     )
 {
-    // if (this->Id() == 154) {
-    //     KRATOS_WATCH("CalculateAll")
-    //     KRATOS_WATCH(CalculateStiffnessMatrixFlag)
-    //     KRATOS_WATCH(CalculateResidualVectorFlag)
-    // }
-
     KRATOS_TRY;
 
     const SizeType number_of_nodes   = this->GetGeometry().size();
@@ -863,12 +857,8 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateStressDamage
         rDamage = mDamages[Edge];
     } else {
         double damage_parameter; // A parameter
-        // if (!this->GetProperties()[FRAGILE]) {
-            this->CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
-            this->CalculateExponentialDamage(rDamage, damage_parameter, uniaxial_stress, initial_threshold);            
-        // } else {
-        //     rDamage = 0.98;
-        // }
+        this->CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
+        this->CalculateExponentialDamage(rDamage, damage_parameter, uniaxial_stress, initial_threshold);            
         rThreshold = uniaxial_stress;
         rIsDamaging = true;
     }

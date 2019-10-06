@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo
 //
 
 
@@ -154,7 +155,7 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone (
+    Element::Pointer Clone(
         IndexType NewId,
         NodesArrayType const& rThisNodes
         ) const override;
