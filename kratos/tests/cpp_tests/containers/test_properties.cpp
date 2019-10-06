@@ -41,6 +41,8 @@ KRATOS_TEST_CASE_IN_SUITE(SubpropertiesInterface, KratosCoreFastSuite) {
 
     KRATOS_CHECK(p1->HasSubProperties(11));
     KRATOS_CHECK(p11->HasSubProperties(111));
+    KRATOS_CHECK(r_model_part.HasSubProperties("1.11"));
+    KRATOS_CHECK(r_model_part.HasSubProperties("1.11.111"));
 
     // Add a new one
     // Note that i am creating a new property "1", belonging to 1.12 IT IS DIFFERENT FROM p1
