@@ -294,6 +294,126 @@ protected:
      * this gets the voigt index for a set of components
      */
     int CalculateVoigtIndex(const SizeType VoigtSize, const int ComponentI, const int ComponentJ);
+
+    /**
+     * this computes the damage of the FE
+     */
+    double CalculateElementalDamage(const Vector& rEdgeDamages);
+    double CalculateElementalDamage3D(const Vector& rEdgeDamages);
+    double CalculateElementalDamage2D(const Vector& rEdgeDamages);
+
+    /**
+     * this integrates the constitutive law
+     */
+    void IntegrateStressDamageMechanics(double& rThreshold,double& rDamage, const Vector& rStrainVector,
+        const Vector& rStressVector, const int Edge, const double CharacteristicLength,
+        ConstitutiveLaw::Parameters& rValues, bool& rIsDamaging);
+
+    /**
+     * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
+     */
+    void ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
+     */
+    void AuxComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this returns the elements that share an edge -> gets the mEdgeNeighboursContainer
+     */
+    std::vector<Element*> GetEdgeNeighbourElements(const int edge) {return mEdgeNeighboursContainer[edge];}
+
+    /**
+     * this storages the mEdgeNeighboursContainer
+     */
+    void SaveEdgeNeighboursContainer(const std::vector<std::vector<Element*>>& rtoSave) {mEdgeNeighboursContainer = rtoSave;}
+
+    /**
+     * this sets the numbering for several purposes
+     * at the edges 
+     */
+    void SetNodeIndexes(Matrix& rMatrix)
+    {
+        rMatrix.resize(6, 2);
+        rMatrix(0, 0) = 0; rMatrix(0, 1) = 1; rMatrix(1, 0) = 0;
+        rMatrix(1, 1) = 2; rMatrix(2, 0) = 0; rMatrix(2, 1) = 3;
+        rMatrix(3, 0) = 1; rMatrix(3, 1) = 2; rMatrix(4, 0) = 1;
+        rMatrix(4, 1) = 3; rMatrix(5, 0) = 2; rMatrix(5, 1) = 3;
+    }
+
+    /**
+     * this imposes the damage/threshold to be equal
+     * at the edges 
+     */
+    void InitializeInternalVariablesAfterMapping();
+
+    /**
+     * this saves the converged values with the later non-conv values
+     */
+    void UpdateDataBase();
+
+    /**
+     * this computes the average vector on the edge for a certain variable
+     */
+    void CalculateAverageVariableOnEdge(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge2D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+    void CalculateAverageVariableOnEdge3D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
+
+    /**
+     * this evaluates the constitutive law
+     */
+    void CalculateEquivalentStress(const array_1d<double, VoigtSize>& rPredictiveStressVector, const Vector& rStrainVector, double& rEquivalentStress, ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * this gets the initial threshold of the yield surface
+     */
+    void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold);
+
+    /**
+     * this computes the damage parameter "A"
+     */
+    void CalculateDamageParameter(ConstitutiveLaw::Parameters& rValues, double& rAParameter, const double CharacteristicLength);
+
+    /**
+     * this computes the CharacteristicLength of the element
+     */
+    double CalculateCharacteristicLength(GenericTotalLagrangianFemDemElement *pCurrentElement);
+
+    /**
+     * this computes VolumeForce of the element
+     */
+    Vector& CalculateVolumeForce(Vector& rVolumeForce, const Vector& rN);
+
+    /**
+     * this computes the damage according to a exp softening
+     */
+    void CalculateExponentialDamage(double& rDamage, const double DamageParameter, const double UniaxialStress, const double InitialThrehsold);
+
+    /**
+     * this computes stress predictor S = C:E
+     */
+    void CalculateStressVectorPredictor(Vector& rStressVector, const Matrix& rConstitutiveMAtrix, const Vector& rStrainVector);
+
+    /**
+     * this adds the internal forces
+     */
+    void CalculateAndAddInternalForcesVector(Vector& rRightHandSideVector, const Matrix& rB, const Vector& rStressVector, const double IntegrationWeight);
+
+    /**
+     * this adds geometric contribution to the LHS
+     */
+    void CalculateGeometricK(MatrixType& rLeftHandSideMatrix, const Matrix& rDN_DX, const Vector& rStressVector, const double IntegrationWeight);
+
+    /**
+     * this adds material contribution to the LHS when secant
+     */
+    void CalculateAndAddMaterialK(MatrixType& rLeftHandSideMatrix,const Matrix& B, const Matrix& D, const double IntegrationWeight, const double Damage);
+
+    /**
+     * this computes the Green-Lagrange Strain vector from F
+     */
+    void CalculateGreenLagrangeStrainVector(Vector& rStrainVector, const Matrix& rF);
     ///@}
     ///@name Protected Operations
     ///@{
@@ -381,126 +501,6 @@ private:
                                Matrix& rB_Deriv);
 
     std::size_t GetStrainSize() const;
-
-    /**
-     * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
-     */
-    void ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * this computes the elements that share an edge -> fills the mEdgeNeighboursContainer
-     */
-    void AuxComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * this returns the elements that share an edge -> gets the mEdgeNeighboursContainer
-     */
-    std::vector<Element*> GetEdgeNeighbourElements(const int edge) {return mEdgeNeighboursContainer[edge];}
-
-    /**
-     * this storages the mEdgeNeighboursContainer
-     */
-    void SaveEdgeNeighboursContainer(const std::vector<std::vector<Element*>>& rtoSave) {mEdgeNeighboursContainer = rtoSave;}
-
-    /**
-     * this sets the numbering for several purposes
-     * at the edges 
-     */
-    void SetNodeIndexes(Matrix& rMatrix)
-    {
-        rMatrix.resize(6, 2);
-        rMatrix(0, 0) = 0; rMatrix(0, 1) = 1; rMatrix(1, 0) = 0;
-        rMatrix(1, 1) = 2; rMatrix(2, 0) = 0; rMatrix(2, 1) = 3;
-        rMatrix(3, 0) = 1; rMatrix(3, 1) = 2; rMatrix(4, 0) = 1;
-        rMatrix(4, 1) = 3; rMatrix(5, 0) = 2; rMatrix(5, 1) = 3;
-    }
-
-    /**
-     * this imposes the damage/threshold to be equal
-     * at the edges 
-     */
-    void InitializeInternalVariablesAfterMapping();
-
-    /**
-     * this saves the converged values with the later non-conv values
-     */
-    void UpdateDataBase();
-
-    /**
-     * this computes the damage of the FE
-     */
-    double CalculateElementalDamage(const Vector& rEdgeDamages);
-    double CalculateElementalDamage3D(const Vector& rEdgeDamages);
-    double CalculateElementalDamage2D(const Vector& rEdgeDamages);
-
-    /**
-     * this computes the average vector on the edge for a certain variable
-     */
-    void CalculateAverageVariableOnEdge(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
-    void CalculateAverageVariableOnEdge2D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
-    void CalculateAverageVariableOnEdge3D(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
-
-    /**
-     * this integrates the constitutive law
-     */
-    void IntegrateStressDamageMechanics(double& rThreshold,double& rDamage, const Vector& rStrainVector,
-        const Vector& rStressVector, const int Edge, const double CharacteristicLength,
-        ConstitutiveLaw::Parameters& rValues, bool& rIsDamaging);
-
-    /**
-     * this evaluates the constitutive law
-     */
-    void CalculateEquivalentStress(const array_1d<double, VoigtSize>& rPredictiveStressVector, const Vector& rStrainVector, double& rEquivalentStress, ConstitutiveLaw::Parameters& rValues);
-
-    /**
-     * this gets the initial threshold of the yield surface
-     */
-    void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold);
-
-    /**
-     * this computes the damage parameter "A"
-     */
-    void CalculateDamageParameter(ConstitutiveLaw::Parameters& rValues, double& rAParameter, const double CharacteristicLength);
-
-    /**
-     * this computes the CharacteristicLength of the element
-     */
-    double CalculateCharacteristicLength(GenericTotalLagrangianFemDemElement *pCurrentElement);
-
-    /**
-     * this computes VolumeForce of the element
-     */
-    Vector& CalculateVolumeForce(Vector& rVolumeForce, const Vector& rN);
-
-    /**
-     * this computes the damage according to a exp softening
-     */
-    void CalculateExponentialDamage(double& rDamage, const double DamageParameter, const double UniaxialStress, const double InitialThrehsold);
-
-    /**
-     * this computes stress predictor S = C:E
-     */
-    void CalculateStressVectorPredictor(Vector& rStressVector, const Matrix& rConstitutiveMAtrix, const Vector& rStrainVector);
-
-    /**
-     * this adds the internal forces
-     */
-    void CalculateAndAddInternalForcesVector(Vector& rRightHandSideVector, const Matrix& rB, const Vector& rStressVector, const double IntegrationWeight);
-
-    /**
-     * this adds geometric contribution to the LHS
-     */
-    void CalculateGeometricK(MatrixType& rLeftHandSideMatrix, const Matrix& rDN_DX, const Vector& rStressVector, const double IntegrationWeight);
-
-    /**
-     * this adds material contribution to the LHS when secant
-     */
-    void CalculateAndAddMaterialK(MatrixType& rLeftHandSideMatrix,const Matrix& B, const Matrix& D, const double IntegrationWeight, const double Damage);
-
-    /**
-     * this computes the Green-Lagrange Strain vector from F
-     */
-    void CalculateGreenLagrangeStrainVector(Vector& rStrainVector, const Matrix& rF);
 
     void GetValueOnIntegrationPoints(
         const Variable<double> &rVariable,
