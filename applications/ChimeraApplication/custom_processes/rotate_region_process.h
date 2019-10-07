@@ -118,6 +118,11 @@ public:
     KRATOS_TRY;
     const auto &r_process_info = mrModelPart.GetProcessInfo();
     const int domain_size = r_process_info[DOMAIN_SIZE];
+    const double time = r_process_info[TIME];
+    if(mTime == time)
+      return;
+
+    mTime = time;
     // Does the time integration and calculates the new theta and omega
     CalculateCurrentRotationState();
 
@@ -244,9 +249,6 @@ private:
      * @param NewTime Time where the system is to be set
      */
     bool CloneTimeStep(const double NewTime, const double Dt) {
-      if(mTime == NewTime)
-        return false;
-
       mTime = NewTime;
       // compute BDF coefficients
       mDt = Dt;
@@ -259,7 +261,6 @@ private:
       // update omega database
       mOmega[2] = mOmega[1];
       mOmega[1] = mOmega[0];
-      return true;
     }
 
     /*
@@ -369,6 +370,7 @@ private:
   double mRotationalDamping;
   double mTorque;
   RotationSystem::Pointer mpRotationSystem;
+  double mTime;
 
   ///@}
 
@@ -382,13 +384,11 @@ private:
     if (mToCalculateTorque) {
       const double time = r_process_info[TIME];
       const double delta_t = r_process_info[DELTA_TIME];
-      const bool is_cloned = mpRotationSystem->CloneTimeStep(time, delta_t);
-      if(is_cloned){
-        const double torque = CalculateTorque();
-        KRATOS_INFO("RotateRegionProcess")<<"Current torque             :: "<<torque<<std::endl;
-        mpRotationSystem->ApplyTorque(torque);
-        mpRotationSystem->CalculateCurrentRotationState();
-      }
+      mpRotationSystem->CloneTimeStep(time, delta_t);
+      const double torque = CalculateTorque();
+      KRATOS_INFO("RotateRegionProcess")<<"Current torque             :: "<<torque<<std::endl;
+      mpRotationSystem->ApplyTorque(torque);
+      mpRotationSystem->CalculateCurrentRotationState();
       mTheta = mpRotationSystem->GetCurrentTheta();
       mAngularVelocityRadians = mpRotationSystem->GetCurrentOmega();
     } else {
