@@ -25,7 +25,7 @@ def ConstructSolver(settings):
         else:
             raise Exception("EigenSolversApplication not available")
 
-    linear_solver = CreateDirectLinearSolver(settings)
+    linear_solver = linear_solver_factory.CreateDirectLinearSolver(settings)
 
     if solver_type == "power_iteration_eigenvalue_solver":
         eigen_solver = KM.PowerIterationEigenvalueSolver( settings, linear_solver)
@@ -42,28 +42,3 @@ def ConstructSolver(settings):
         raise Exception("Solver type not found. Asking for :" + solver_type)
 
     return eigen_solver
-
-def CreateDirectLinearSolver(settings):
-    if not settings.Has("linear_solver_settings"):
-        settings.AddEmptyValue("linear_solver_settings")
-    linear_solver_configuration = settings["linear_solver_settings"]
-    if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-        return linear_solver_factory.ConstructSolver(linear_solver_configuration)
-    else:
-        # Using a default linear solver (selecting the fastest one available)
-        linear_solvers_by_speed = [
-            "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
-            "sparse_lu",  # EigenSolversApplication
-            "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
-            "super_lu",   # ExternalSolversApplication
-            "skyline_lu_factorization" # in Core, always available, but slow
-        ]
-
-        for solver_name in linear_solvers_by_speed:
-            if KM.LinearSolverFactory().Has(solver_name):
-                linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
-                KM.Logger.PrintInfo('::[MechanicalSolver]:: ',\
-                    'Using "' + solver_name + '" as default linear solver')
-                return KM.LinearSolverFactory().Create(linear_solver_configuration)
-
-    raise Exception("Linear-Solver could not be constructed!")
