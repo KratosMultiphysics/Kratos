@@ -512,7 +512,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdivi
             for (unsigned int j = 0; j < NumNodes; ++j)
             {
                 rLeftHandSideMatrix(i, j) = lhs_positive(i, j);
-                rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_negative(i, j);
+                rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = 0.0;//lhs_negative(i, j);
             }
         }
         else

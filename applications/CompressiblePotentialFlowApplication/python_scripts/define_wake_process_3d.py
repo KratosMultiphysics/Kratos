@@ -604,3 +604,105 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, 0)
+
+    # def ExecuteFinalize(self):
+    #     import KratosMultiphysics.MeshingApplication as KratosMeshing
+
+    #     find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.fluid_model_part)
+    #     find_nodal_h.Execute()
+
+    #     metric_tensor_3d = KratosMultiphysics.Vector(6)
+    #     for node in self.fluid_model_part.Nodes:
+    #         nodal_h = node.GetValue(KratosMultiphysics.NODAL_H)
+    #         metric_tensor_3d[0] = 1.0/(nodal_h*nodal_h)
+    #         metric_tensor_3d[1] = 1.0/(nodal_h*nodal_h)
+    #         metric_tensor_3d[2] = 1.0/(nodal_h*nodal_h)
+    #         node.SetValue(KratosMeshing.METRIC_TENSOR_3D,metric_tensor_3d)
+
+    #     for element in self.wake_sub_model_part.Elements:
+    #         for node in element.GetNodes():
+    #             nodal_h = node.GetValue(KratosMultiphysics.NODAL_H)
+    #             nodal_h /= 2.0
+    #             metric_tensor_3d[0] = 1.0/(nodal_h*nodal_h)
+    #             metric_tensor_3d[1] = 1.0/(nodal_h*nodal_h)
+    #             metric_tensor_3d[2] = 1.0/(nodal_h*nodal_h)
+    #             node.SetValue(KratosMeshing.METRIC_TENSOR_3D,metric_tensor_3d)
+
+    #     # Finally we export to GiD
+    #     from KratosMultiphysics.gid_output_process import GiDOutputProcess
+    #     gid_output = GiDOutputProcess(self.fluid_model_part,
+    #     "gid_wake_metric_output",
+    #     KratosMultiphysics.Parameters("""
+    #         {
+    #             "result_file_configuration" : {
+    #                 "gidpost_flags": {
+    #                     "GiDPostMode": "GiD_PostBinary",
+    #                     "WriteDeformedMeshFlag": "WriteUndeformed",
+    #                     "WriteConditionsFlag": "WriteConditions",
+    #                     "MultiFileFlag": "SingleFile"
+    #                 },
+    #                 "nodal_results"       : [],
+    #                 "nodal_nonhistorical_results" : ["METRIC_TENSOR_2D","TRAILING_EDGE","WAKE","VELOCITY","NODAL_AREA"],
+    #                 "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
+    #                 "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","KUTTA"],
+    #                 "elemental_conditional_flags_results": []
+    #             }
+    #         }
+    #         """)
+    #     )
+
+    #     gid_output.ExecuteInitialize()
+    #     gid_output.ExecuteBeforeSolutionLoop()
+    #     gid_output.ExecuteInitializeSolutionStep()
+    #     gid_output.PrintOutput()
+    #     gid_output.ExecuteFinalizeSolutionStep()
+    #     gid_output.ExecuteFinalize()
+
+    #     self.mmg_parameters = KratosMultiphysics.Parameters( """
+    #         {
+    #             "discretization_type"              : "STANDARD",
+    #             "save_external_files"              : false,
+    #             "initialize_entities"              : false,
+    #             "echo_level"                       : 1,
+    #             "save_mdpa_file"                       : true
+    #         }  """ )
+
+
+
+    #     self.fluid_model_part.RemoveSubModelPart('wake_sub_model_part')
+    #     self.fluid_model_part.RemoveSubModelPart('trailing_edge_sub_model_part')
+    #     self.fluid_model_part.RemoveSubModelPart('fluid_computational_model_part')
+
+    #     MmgProcess = KratosMeshing.MmgProcess3D(self.fluid_model_part, self.mmg_parameters)
+    #     MmgProcess.Execute()
+
+
+    #     # Finally we export to GiD
+    #     from KratosMultiphysics.gid_output_process import GiDOutputProcess
+    #     gid_output = GiDOutputProcess(self.fluid_model_part,
+    #     "gid_wake_output",
+    #     KratosMultiphysics.Parameters("""
+    #         {
+    #             "result_file_configuration" : {
+    #                 "gidpost_flags": {
+    #                     "GiDPostMode": "GiD_PostBinary",
+    #                     "WriteDeformedMeshFlag": "WriteUndeformed",
+    #                     "WriteConditionsFlag": "WriteConditions",
+    #                     "MultiFileFlag": "SingleFile"
+    #                 },
+    #                 "nodal_results"       : [],
+    #                 "nodal_nonhistorical_results" : ["METRIC_TENSOR_2D","TRAILING_EDGE","WAKE","VELOCITY","NODAL_AREA"],
+    #                 "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
+    #                 "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","KUTTA"],
+    #                 "elemental_conditional_flags_results": []
+    #             }
+    #         }
+    #         """)
+    #     )
+
+    #     gid_output.ExecuteInitialize()
+    #     gid_output.ExecuteBeforeSolutionLoop()
+    #     gid_output.ExecuteInitializeSolutionStep()
+    #     gid_output.PrintOutput()
+    #     gid_output.ExecuteFinalizeSolutionStep()
+    #     gid_output.ExecuteFinalize()
