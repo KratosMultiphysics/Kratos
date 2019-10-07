@@ -1,6 +1,6 @@
 {
     "properties" : [{
-        "model_part_name" : "Parts_air",
+        "model_part_name" : "ThermalModelPart.Parts_air",
         "properties_id"   : 1,
         "Material"        : {
             "Variables" : {

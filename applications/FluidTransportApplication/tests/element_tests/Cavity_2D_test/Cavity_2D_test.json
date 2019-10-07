@@ -169,7 +169,7 @@
             "Parameters"    : {
                 "check_variables"     : ["TEMPERATURE"],
                 "input_file_name"     : "element_tests/Cavity_2D_test/Cavity_2D_test_results.json",
-                "model_part_name"      : "Parts_air",
+                "model_part_name"      : "FluidModelPart.Parts_air",
                 "time_frequency"       : 0.1
             }
         }]
@@ -181,7 +181,7 @@
         "Parameters"    : {
             "output_variables"     : ["TEMPERATURE"],
             "output_file_name"     : "element_tests/Cavity_2D_test/Cavity_2D_test_results.json",
-            "model_part_name"      : "Parts_air",
+            "model_part_name"      : "FluidModelPart.Parts_air",
             "time_frequency"       : 0.1
         }
     }]
