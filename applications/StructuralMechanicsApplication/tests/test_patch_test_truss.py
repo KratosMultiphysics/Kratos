@@ -479,8 +479,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         all_claws = ["st_venant","henky","neo_hookean","ogden1","ogden2"]
 
         for claw_i in all_claws:
-
-            dim = 3
             current_model = KratosMultiphysics.Model()
             mp = current_model.CreateModelPart("solid_part")
             self._add_variables(mp)
