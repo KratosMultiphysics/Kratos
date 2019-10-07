@@ -7,6 +7,7 @@ foreach ($python in $pythons){
     mkdir c:\wheel
     cd c:\kratos\kratos
     git clean -ffxd
+    $env:hash=$(git show -s --format=%h) #used in version number
     cd cmake_build
     cp c:\kratos\Kratos\scripts\wheels\windows\configure.bat .\configure.bat
 
@@ -25,6 +26,7 @@ foreach ($python in $pythons){
     cp scripts\wheels\windows\__init__.py c:\wheel\KratosMultiphysics\__init__.py
     cp scripts\wheels\windows\setup.py c:\wheel\setup.py
     cd c:\wheel
+
     & $pythonPath setup.py bdist_wheel
     cp c:\wheel\dist\* c:\out\
     cd c:\

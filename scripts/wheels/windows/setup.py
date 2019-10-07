@@ -11,7 +11,7 @@ class BinaryDistribution(setuptools.Distribution):
 
 setuptools.setup(
     name="KratosMultiphysics",
-    version="0.1",
+    version="7.0-" + os.environ['HASH'],
     author="Kratos Team",
     author_email="kratos@listas.cimne.upc.edu",
     description="KRATOS Multiphysics (\"Kratos\") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface.",

@@ -22,6 +22,7 @@ do
 	make install
 
 	cd /workspace/kratos/Kratos
+	export HASH=$(git show -s --format=%h) #used in version number
 	export LD_LIBRARY_PATH=$(pwd)/libs:$BASE_LD_LIBRARY_PATH
 	echo $LD_LIBRARY_PATH
 
@@ -35,6 +36,7 @@ do
 
 
 	cd /workspace/wheel
+
 	$PYTHON_LOCATION setup.py bdist_wheel
 	cd dist
 	ls
