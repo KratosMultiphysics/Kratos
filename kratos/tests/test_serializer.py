@@ -30,8 +30,8 @@ class TestSerializer(KratosUnittest.TestCase):
         # Before serializing the model, main model part is set to RESTARTED
         self.main_model_part_name = parameters["solver_settings"]["model_part_name"].GetString()
         self.pre_serialized_model.GetModelPart(self.main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
-        serialized_model = KratosMultiphysics.StreamSerializer()
-        serialized_model.Save("ModelSerialization",self.pre_serialized_model)
+        self.serialized_model = KratosMultiphysics.StreamSerializer()
+        self.serialized_model.Save("ModelSerialization",self.pre_serialized_model)
 
         with open(GetFilePath("auxiliar_files_for_python_unnitest/parameters_files/test_serializer.json"),'r') as parameter_file:
             self.project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -40,7 +40,7 @@ class TestSerializer(KratosUnittest.TestCase):
 
         # Deserialize and store the new model
         self.current_model = KratosMultiphysics.Model()
-        serialized_model.Load("ModelSerialization",self.current_model)
+        self.serialized_model.Load("ModelSerialization",self.current_model)
 
     def _check_results(self):
         pre_serialized_model_part = self.pre_serialized_model.GetModelPart(self.main_model_part_name)
@@ -68,6 +68,14 @@ class TestSerializer(KratosUnittest.TestCase):
         self.serialized_simulation = FluidDynamicsAnalysis(self.current_model, self.project_parameters)
         self.serialized_simulation.Run()
         self._check_results()
+
+    @KratosUnittest.skipUnless(dependencies_are_available,"FluidDynamicsApplication is not available")
+    def test_serializer_fluid_analysis(self):
+        # Reading the model from file and serializing
+        self._prepare_test()
+        # Loading the model from the serialized object again
+        second_model = KratosMultiphysics.Model()
+        self.serialized_model.Load("ModelSerialization", second_model)
 
 if __name__ == '__main__':
     KratosUnittest.main()
