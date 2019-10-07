@@ -95,7 +95,7 @@ void RegeneratePfemPressureConditionsProcess<2>::GenerateLineLoads2Nodes(
     )
 {
     auto& r_sub_model_part = mrModelPart.GetSubModelPart("PFEMPressureConditions");
-    auto it_cond = mrModelPart.ConditionsBegin();
+    const auto it_cond = mrModelPart.ConditionsBegin();
     ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
 
     // We check some things...
