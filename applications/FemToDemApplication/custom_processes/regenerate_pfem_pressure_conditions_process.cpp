@@ -303,7 +303,7 @@ void RegeneratePfemPressureConditionsProcess<3>::CreateNewConditions()
     for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
         // We count how many nodes are wet
         auto it_elem = it_elem_begin + i;
-        auto& r_geometry = (it_elem)->GetGeometry();
+       const  auto& r_geometry = (it_elem)->GetGeometry();
         int wet_nodes_counter = 0, non_wet_local_id_node = 10;
 
         for (IndexType local_id = 0; local_id < r_geometry.PointsNumber(); ++local_id) {
