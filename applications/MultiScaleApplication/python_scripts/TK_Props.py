@@ -1,13 +1,12 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.MultiScaleApplication import *
-CheckForPreviousImport()
 
 def Property(
 			Pro,
 			Values = []
 			):
-	
+
 	for iValue in Values:
 		try:
 			Pro.SetValue(iValue[0], iValue[1])
@@ -18,10 +17,10 @@ def ShellHomogeneousSection(
 							Thickness,
 							Material,
 							Pro,
-							Offset = 0.0, 
+							Offset = 0.0,
 							NumberOfIntegrationPoints = 5
 							):
-	
+
 	sec = ShellCrossSection()
 	sec.SetOffset(Offset)
 	sec.BeginStack()
@@ -31,12 +30,12 @@ def ShellHomogeneousSection(
 
 class Ply:
 	def __init__(
-				self, 
-				Thickness, 
-				Material, 
-				NumberOfIntegrationPoints = 5, 
+				self,
+				Thickness,
+				Material,
+				NumberOfIntegrationPoints = 5,
 				Orientation = 0.0):
-		
+
 		self.Thickness = Thickness
 		self.Material = Material
 		self.NumberOfIntegrationPoints = NumberOfIntegrationPoints
@@ -47,15 +46,15 @@ def ShellCompositeSection(
 						  Offset = 0.0,
 						  Layup = []
 						  ):
-	
+
 	sec = ShellCrossSection()
 	sec.SetOffset(Offset)
 	sec.BeginStack()
 	for iPly in Layup:
 		sec.AddPly(
-			iPly.Thickness, 
-			iPly.Orientation, 
-			iPly.NumberOfIntegrationPoints, 
+			iPly.Thickness,
+			iPly.Orientation,
+			iPly.NumberOfIntegrationPoints,
 			iPly.Material
 			)
 	sec.EndStack()
