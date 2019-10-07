@@ -25,7 +25,7 @@ def ConstructSolver(settings):
         else:
             raise Exception("EigenSolversApplication not available")
 
-    linear_solver = CreateLinearSolver(settings)
+    linear_solver = CreateDirectLinearSolver(settings)
 
     if solver_type == "power_iteration_eigenvalue_solver":
         eigen_solver = KM.PowerIterationEigenvalueSolver( settings, linear_solver)
@@ -43,7 +43,7 @@ def ConstructSolver(settings):
 
     return eigen_solver
 
-def CreateLinearSolver(settings):
+def CreateDirectLinearSolver(settings):
     if not settings.Has("linear_solver_settings"):
         settings.AddEmptyValue("linear_solver_settings")
     linear_solver_configuration = settings["linear_solver_settings"]
