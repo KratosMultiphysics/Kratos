@@ -6,10 +6,6 @@ Begin Properties 0
 End Properties
 
 Begin Properties 1
-    DENSITY 1.0
-    DYNAMIC_VISCOSITY 0.01
-    CONDUCTIVITY 1.0
-    SPECIFIC_HEAT 1012.0
 End Properties
 
 Begin Nodes

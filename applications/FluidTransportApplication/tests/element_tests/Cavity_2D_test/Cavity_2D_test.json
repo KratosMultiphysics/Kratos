@@ -39,6 +39,9 @@
                 "automatic_time_step" : false,
                 "time_step"           : 0.1
             },
+            "material_import_settings": {
+                "materials_filename": "element_tests/Cavity_2D_test/FluidMaterials.json"
+            },
             "formulation"                 : {
                 "element_type"             : "vms",
                 "use_orthogonal_subscales" : false,
@@ -75,7 +78,7 @@
                 "solver_type":   "ExternalSolversApplication.super_lu"
             },
             "material_import_settings": {
-                "materials_filename": "element_tests/Cavity_2D_test/BuoyancyMaterials.json"
+                "materials_filename": "element_tests/Cavity_2D_test/ThermalMaterials.json"
             },
             "problem_domain_sub_model_part_list" : ["Parts_air"],
             "processes_sub_model_part_list"      : ["TEMPERATURE_Temperature_Auto2","ImposedTemperature2D_Temperature_Auto1"],
