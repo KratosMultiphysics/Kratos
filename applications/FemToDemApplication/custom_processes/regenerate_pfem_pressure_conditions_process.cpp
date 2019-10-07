@@ -180,7 +180,7 @@ void RegeneratePfemPressureConditionsProcess<3>::GeneratePressureLoads4WetNodes(
     auto& r_sub_model_part = mrModelPart.GetSubModelPart("PFEMPressureConditions");
     auto it_cond = mrModelPart.ConditionsBegin();
     ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
-    const unsigned int id = (itElem)->Id();
+    const std::size_t id = (itElem)->Id();
 
     // We only create pressure loads when the surface is skin
     auto& r_elem_neigb = (itElem)->GetValue(NEIGHBOUR_ELEMENTS);
