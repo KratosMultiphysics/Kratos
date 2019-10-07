@@ -23,7 +23,7 @@
             "type" : "convergence_accelerators.iqni",
             "settings" :
             {
-                "min_significant" : 1e-10,
+                "min_significant" : 1e-12,
                 "model" : "ls",
                 "omega" : 0.05
             }
