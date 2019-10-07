@@ -162,6 +162,60 @@ void SmallDisplacementMixedStrainElement::Initialize()
     KRATOS_CATCH( "" )
 }
 
+void SmallDisplacementMixedStrainElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Set te constitutive law values
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    Vector strain(strain_size);
+    Vector stress(strain_size);
+    Matrix cons_matrix(strain_size, strain_size);
+    ConstitutiveLaw::Parameters cons_law_values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    auto &r_cons_law_options = cons_law_values.GetOptions();
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    cons_law_values.SetStrainVector(strain);
+    cons_law_values.SetStressVector(stress);
+    cons_law_values.SetConstitutiveMatrix(cons_matrix);
+
+    // Call the initialize material response
+    for (IndexType i_gauss = 0; i_gauss < mConstitutiveLawVector.size(); ++i_gauss) {
+        // Call the constitutive law to update material variables
+        mConstitutiveLawVector[i_gauss]->InitializeMaterialResponseCauchy(cons_law_values);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+void SmallDisplacementMixedStrainElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Set te constitutive law values
+    const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    Vector strain(strain_size);
+    Vector stress(strain_size);
+    Matrix cons_matrix(strain_size, strain_size);
+    ConstitutiveLaw::Parameters cons_law_values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    auto &r_cons_law_options = cons_law_values.GetOptions();
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    cons_law_values.SetStrainVector(strain);
+    cons_law_values.SetStressVector(stress);
+    cons_law_values.SetConstitutiveMatrix(cons_matrix);
+
+    // Call the initialize material response
+    for (IndexType i_gauss = 0; i_gauss < mConstitutiveLawVector.size(); ++i_gauss) {
+        // Call the constitutive law to update material variables
+        mConstitutiveLawVector[i_gauss]->FinalizeMaterialResponseCauchy(cons_law_values);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

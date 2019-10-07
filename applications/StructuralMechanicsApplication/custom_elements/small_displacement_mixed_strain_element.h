@@ -209,11 +209,11 @@ public:
     //   */
     // void ResetConstitutiveLaw() override;
 
-    // /**
-    //  * @brief Called at the beginning of each solution step
-    //  * @param rCurrentProcessInfo the current process info instance
-    //  */
-    // void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * @brief Called at the beginning of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     // /**
     //  * @brief This is called for non-linear analysis at the beginning of the iteration process
@@ -227,11 +227,11 @@ public:
     //  */
     // void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
-    // /**
-    //  * @brief Called at the end of eahc solution step
-    //  * @param rCurrentProcessInfo the current process info instance
-    //  */
-    // void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * @brief Called at the end of eahc solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief It creates a new element pointer
