@@ -71,7 +71,7 @@ class TestSerializer(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(dependencies_are_available,"FluidDynamicsApplication is not available")
     def test_serializer_fluid_analysis(self):
-        # Reading the model from file and serializing
+        # Reading the model from a file and serializing
         self._prepare_test()
         # Loading the model from the serialized object again
         second_model = KratosMultiphysics.Model()
