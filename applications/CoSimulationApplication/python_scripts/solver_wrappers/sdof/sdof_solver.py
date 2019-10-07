@@ -75,7 +75,7 @@ class SDoFSolver(object):
         self.excitation_function_root_point_displacement = parameters["boundary_conditions"]["excitation_function_root_point_displacement"]
         self.load_impulse = parameters["boundary_conditions"]["load_impulse"]
         self.omega_force = parameters["boundary_conditions"]["omega_force"]
-        self.omega_root_point_displacmenent = parameters["boundary_conditions"]["omega_root_point_displacement"]
+        self.omega_root_point_displacement = parameters["boundary_conditions"]["omega_root_point_displacement"]
         self.amplitude_root_point_displacement = parameters["boundary_conditions"]["amplitude_root_point_displacement"]
         self.amplitude_force = parameters["boundary_conditions"]["amplitude_force"]
 
@@ -118,6 +118,8 @@ class SDoFSolver(object):
         self.dx = initial_values
         self.dx_f = np.zeros(3)
         self.time = self.start_time
+
+        self.root_point_displacement = 0.0
 
         #x and dx contain: [displacement, velocity, acceleration]
         if self.write_output_file:
@@ -186,7 +188,7 @@ class SDoFSolver(object):
         return b_f
 
     def ApplyRootPointExcitation(self):
-        scope_vars = {'t' : self.time, 'omega': self.omega_root_point_displacmenent, 'A': self.amplitude_root_point_displacement}
+        scope_vars = {'t' : self.time, 'omega': self.omega_root_point_displacement, 'A': self.amplitude_root_point_displacement}
         return GenericCallFunction(self.excitation_function_root_point_displacement, scope_vars, check=False)
 
     def ApplyForceExcitation(self):
@@ -198,6 +200,7 @@ class SDoFSolver(object):
         #external load
         excitation_load = self.ApplyForceExcitation()
         self.load_vector[-1] += excitation_load
+        print("external load= ", self.load_vector[-1])
         b += self.load_vector
         #root point displacement
         d_f_excitation = self.ApplyRootPointExcitation()
@@ -207,8 +210,8 @@ class SDoFSolver(object):
         self.dx = np.linalg.solve(self.LHS, b)
 
     def CalculateReaction(self, buffer_idx=0):
-        reaction = self.damping * (self.x[1,buffer_idx] - self.x_f[1,buffer_idx]) \
-                 + self.stiffness * (self.x[0,buffer_idx] - self.x_f[0,buffer_idx])
+        reaction = self.damping * ( self.dx[1] - self.dx_f[1]) \
+                 + self.stiffness * (self.dx[0] - self.dx_f[0])
         return reaction
 
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
@@ -231,8 +234,10 @@ class SDoFSolver(object):
         elif identifier == "ACCELERATION":
             self.x[:,buffer_idx][2] = value
         elif identifier == "LOAD":
+            self.load_vector[-1] = 0.0
             self.load_vector[-1] = value
         elif identifier == "ROOT_POINT_DISPLACEMENT":
+            self.root_point_displacement = 0.0
             self.root_point_displacement = value
         else:
             raise Exception("Identifier is unknown!")
