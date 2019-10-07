@@ -181,8 +181,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 self.left_wing_tip = node
         self.max_number_of_elements = 0
         self.node_id = 0
-        # self.right_wing_tip.SetValue(CPFApp.WING_TIP, True)
-        # self.left_wing_tip.SetValue(CPFApp.WING_TIP, True)
+        self.right_wing_tip.SetValue(CPFApp.WING_TIP, True)
+        self.left_wing_tip.SetValue(CPFApp.WING_TIP, True)
 
     def __ComputeLowerSurfaceNormals(self):
         for cond in self.body_model_part.Conditions:
@@ -199,7 +199,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 for node in cond.GetNodes():
                     node.SetValue(KratosMultiphysics.NORMAL,surface_normal)
                     node.SetValue(CPFApp.LOWER_SURFACE, True)
-            elif projection < 0.0:
+            else:
                 for node in cond.GetNodes():
                     node.SetValue(CPFApp.UPPER_SURFACE, True)
 
@@ -313,7 +313,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
     def __MarkKuttaElements(self):
         # This function selects the kutta elements. Kutta elements
         # are touching the trailing edge from below.
-        self.kutta_file = open('kutta_ids','w')
+        #self.kutta_file = open('kutta_ids','w')
 
         # Loop over elements touching the trailing edge
         for elem in self.trailing_edge_elements_model_part.Elements:
@@ -500,7 +500,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         return number_of_nodes_with_positive_distance, number_of_nodes_with_negative_distance
 
     def __VisualizeWake(self):
-        self.kutta_file.flush()
+        #self.kutta_file.flush()
         # To visualize the wake
         number_of_nodes = self.fluid_model_part.NumberOfNodes()
         number_of_elements = self.fluid_model_part.NumberOfElements()
@@ -558,6 +558,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         counter_kutta = 0
         counter_structure = 0
         counter_normal = 0
+        counter_double = 0
         self.double_trailing_edge_element_id_list = []
         for elem in self.trailing_edge_elements_model_part.Elements:
             if(elem.GetValue(CPFApp.WAKE)):
@@ -569,6 +570,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 if count > 1:
                     #elem.Reset(KratosMultiphysics.STRUCTURE)
                     #print(elem.Id)
+                    counter_double += 1
                     elem.SetValue(CPFApp.WING_TIP, True)
                     self.double_trailing_edge_element_id_list.append(elem.Id)
                     # for elnode in elem.GetNodes():
@@ -684,6 +686,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
 
         #print('\nnumber_of_free_nodes = ', number_of_free_nodes)
+        print('\ncounter_double = ', counter_double)
         print('\ncounter_structure = ', counter_structure)
         print('counter_kutta = ', counter_kutta)
         print('counter_normal = ', counter_normal)
@@ -731,15 +734,15 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         #         if not is_in_wake_sub_model_part:
         #             print(elem.Id)
 
-        with open("wake_elements_id.dat", 'w') as wake_elements_file:
-            for elem in self.wake_sub_model_part.Elements:
-                wake_elements_file.write('{0:15d}\n'.format(elem.Id))
-        with open("kutta_elements_id.dat", 'w') as kutta_elements_file:
-            for elem in self.trailing_edge_elements_model_part.Elements:
-                if(elem.GetValue(CPFApp.KUTTA)):
-                    kutta_elements_file.write('{0:15d}\n'.format(elem.Id))
-            #print( elem.Id)
-            #break
+        # with open("wake_elements_id.dat", 'w') as wake_elements_file:
+        #     for elem in self.wake_sub_model_part.Elements:
+        #         wake_elements_file.write('{0:15d}\n'.format(elem.Id))
+        # with open("kutta_elements_id.dat", 'w') as kutta_elements_file:
+        #     for elem in self.trailing_edge_elements_model_part.Elements:
+        #         if(elem.GetValue(CPFApp.KUTTA)):
+        #             kutta_elements_file.write('{0:15d}\n'.format(elem.Id))
+        #     #print( elem.Id)
+        #     #break
 
 
         print('\ncounter_structure = ', counter_structure)
