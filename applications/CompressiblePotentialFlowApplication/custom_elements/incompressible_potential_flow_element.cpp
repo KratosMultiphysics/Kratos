@@ -700,9 +700,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemWake
     ComputeLHSGaussPointContribution(data.vol*free_stream_density, lhs_total, data);
 
     BoundedMatrix<double, Dim, Dim> condition_matrix = IdentityMatrix(Dim,Dim);
-    // condition_matrix(0,0) = 1.0;
-    // condition_matrix(1,1) = 0.0;
-    // condition_matrix(2,2) = 1.0;
+    condition_matrix(0,0) = 1.0;
+    condition_matrix(1,1) = 0.0;
+    condition_matrix(2,2) = 1.0;
 
     BoundedMatrix<double, Dim, Dim> condition_matrix2 = IdentityMatrix(Dim,Dim);
     // condition_matrix2(0,0) = 1.0;
