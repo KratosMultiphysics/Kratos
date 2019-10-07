@@ -16,6 +16,12 @@ from KratosMultiphysics import python_linear_solver_factory as linear_solver_fac
 from KratosMultiphysics import auxiliary_solver_utilities
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
+    import KratosMultiphysics.EigenSolversApplication as EiSA
+
+if kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
+    import KratosMultiphysics.ExternalSolversApplication as ExSA
+
 class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
 
@@ -386,33 +392,7 @@ class MechanicalSolver(PythonSolver):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        linear_solver_configuration = self.settings["linear_solver_settings"]
-        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
-        else:
-            # using a default linear solver (selecting the fastest one available)
-            if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-                from KratosMultiphysics import EigenSolversApplication
-            elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-                from KratosMultiphysics import ExternalSolversApplication
-
-            linear_solvers_by_speed = [
-                "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
-                "sparse_lu",  # EigenSolversApplication
-                "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
-                "super_lu",   # ExternalSolversApplication
-                "skyline_lu_factorization" # in Core, always available, but slow
-            ]
-
-            for solver_name in linear_solvers_by_speed:
-                if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
-                    linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
-                    KratosMultiphysics.Logger.PrintInfo('::[MechanicalSolver]:: ',\
-                        'Using "' + solver_name + '" as default linear solver')
-                    return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
-
-        raise Exception("Linear-Solver could not be constructed!")
-
+        return linear_solver_factory.CreateDirectLinearSolver(self.settings)
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
