@@ -29,8 +29,6 @@
 #include "includes/variables.h"
 
 //#include "custom_elements/zaratipito_element.hpp"
-#include "custom_constitutive/zarate_law.hpp"
-#include "custom_constitutive/fem_dem_elastic_law.hpp"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/linear_plane_strain.h"
@@ -136,8 +134,6 @@ private:
     const GenericTotalLagrangianFemDemElement<3,6> mTotalLagrangianMohrCoulombFemDemElement3D;
 
     //elastic laws
-   const ZarateLaw mZarateLaw;
-   const FemDemElasticLaw mFemDemElasticLaw;
    const LinearPlaneStrain mLinearPlaneStrain;
    const LinearPlaneStress mLinearPlaneStress;
    const ElasticIsotropic3D mElasticIsotropic3D;

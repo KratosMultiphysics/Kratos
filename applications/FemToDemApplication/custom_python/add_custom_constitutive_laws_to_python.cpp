@@ -33,8 +33,6 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 //constitutive laws
-#include "custom_constitutive/zarate_law.hpp"
-#include "custom_constitutive/fem_dem_elastic_law.hpp"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
@@ -45,14 +43,6 @@ namespace Python
 {
     void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     {
-        py::class_<ZarateLaw, typename ZarateLaw::Pointer, ConstitutiveLaw >
-            (m, "ZarateLaw").def(py::init<>() )
-            ;
-
-        py::class_<FemDemElasticLaw, typename FemDemElasticLaw::Pointer, ConstitutiveLaw >
-            (m, "FemDemElasticLaw").def(py::init<>() )
-            ;
-
         py::class_<LinearPlaneStress, typename LinearPlaneStress::Pointer, ConstitutiveLaw >
             (m, "LinearPlaneStress").def(py::init<>() )
             ;

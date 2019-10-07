@@ -182,13 +182,10 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMohrCoulombFemDemElement3D", mTotalLagrangianMohrCoulombFemDemElement3D)
     
     //Register Constitutive Laws
-    Serializer::Register("ZarateLaw", mZarateLaw);
-    Serializer::Register("FemDemElasticLaw", mFemDemElasticLaw);
     Serializer::Register("ElasticIsotropic3D", mElasticIsotropic3D);
     Serializer::Register("LinearPlaneStress", mLinearPlaneStress);
     Serializer::Register("LinearPlaneStrain", mLinearPlaneStrain);
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("FemDemElasticLaw", mFemDemElasticLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticIsotropic3D", mElasticIsotropic3D)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStress", mLinearPlaneStress)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStrain", mLinearPlaneStrain)
