@@ -8,7 +8,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.MultiScaleApplication import *
 import TK_LoadFunctions
-CheckForPreviousImport()
 
 def dummy_spatial_function(x,y,z):
 	return 1.0
@@ -18,7 +17,7 @@ def dummy_spatial_function(x,y,z):
 #  A class that manages the nodal variables for a group of nodes in a model
 #  using a user-defines (or a default) load function
 class PrescribedValueBC:
-	
+
 	def __init__(
 				 self,
 				 Model=None,
@@ -43,10 +42,10 @@ class PrescribedValueBC:
 		self.TimeEnd = TimeEnd
 		self.Initialized = False
 		self.InitialValues = [[0 for i in range(0,len(self.Nodes))] for i in range(0,len(self.Values))]
-	
+
 	def Initialize(self, Model):
 		pass
-	
+
 	def OnBeforeSolutionStage(self, Model):
 		info = self.Model.ProcessInfo
 		time = info[TIME]
@@ -70,10 +69,10 @@ class PrescribedValueBC:
 							id_2 += 1
 						id_1 += 1
 					self.Initialized = True
-		
+
 	def OnSolutionStageCompleted(self, Model):
 		pass
-	
+
 	def OnBeforeSolutionStep(self, Model):
 		info = self.Model.ProcessInfo
 		time = info[TIME]
@@ -106,10 +105,9 @@ class PrescribedValueBC:
 						inode.SetSolutionStepValue(var,0, val)
 						if(self.Fix):
 							inode.Free(var)
-	
+
 	def OnSolutionStepCompleted(self, Model):
 		self.OnBeforeSolutionStep(Model) # call it once again, just to make sure! it's useful with arc length strategy
-	
+
 	def Finalize(self, Model):
 		pass
-	
