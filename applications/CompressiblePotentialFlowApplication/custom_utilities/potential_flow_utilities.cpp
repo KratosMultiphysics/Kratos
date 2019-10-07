@@ -277,18 +277,18 @@ const bool CheckWakeCondition(const Element& rElement, const double& rTolerance,
     const auto lower_velocity = ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
 
     bool wake_condition_is_fulfilled = true;
-    // if(std::abs(upper_velocity[0] - lower_velocity[0]) > rTolerance){
-    //     wake_condition_is_fulfilled = false;
-    // }
-    // if(std::abs(upper_velocity[2] - lower_velocity[2]) > rTolerance){
-    //     wake_condition_is_fulfilled = false;
-    // }
-    for (unsigned int i = 0; i < upper_velocity.size(); i++){
-        if(std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance){
-            wake_condition_is_fulfilled = false;
-            break;
-        }
+    if(std::abs(upper_velocity[0] - lower_velocity[0]) > rTolerance){
+        wake_condition_is_fulfilled = false;
     }
+    if(std::abs(upper_velocity[2] - lower_velocity[2]) > rTolerance){
+        wake_condition_is_fulfilled = false;
+    }
+    // for (unsigned int i = 0; i < upper_velocity.size(); i++){
+    //     if(std::abs(upper_velocity[i] - lower_velocity[i]) > rTolerance){
+    //         wake_condition_is_fulfilled = false;
+    //         break;
+    //     }
+    // }
 
     KRATOS_WARNING_IF("CheckWakeCondition", !wake_condition_is_fulfilled && rEchoLevel > 0)
         << "WAKE CONDITION NOT FULFILLED IN ELEMENT WING TIP" << rElement.GetValue(WING_TIP)
