@@ -243,7 +243,10 @@ private:
      * @brief Advances the rotation system in time
      * @param NewTime Time where the system is to be set
      */
-    void CloneTimeStep(const double NewTime, const double Dt) {
+    bool CloneTimeStep(const double NewTime, const double Dt) {
+      if(mTime == NewTime)
+        return false;
+
       mTime = NewTime;
       // compute BDF coefficients
       mDt = Dt;
@@ -255,7 +258,8 @@ private:
       mTheta[1] = mTheta[0];
       // update omega database
       mOmega[2] = mOmega[1];
-      mOmega[1] = mOmega[0]; 
+      mOmega[1] = mOmega[0];
+      return true;
     }
 
     /*
@@ -378,21 +382,23 @@ private:
     if (mToCalculateTorque) {
       const double time = r_process_info[TIME];
       const double delta_t = r_process_info[DELTA_TIME];
-      mpRotationSystem->CloneTimeStep(time, delta_t);
-      const double torque = CalculateTorque();
-      mpRotationSystem->ApplyTorque(torque);
-      mpRotationSystem->CalculateCurrentRotationState();
+      const bool is_cloned = mpRotationSystem->CloneTimeStep(time, delta_t);
+      if(is_cloned){
+        const double torque = CalculateTorque();
+        KRATOS_INFO("RotateRegionProcess")<<"Current torque             :: "<<torque<<std::endl;
+        mpRotationSystem->ApplyTorque(torque);
+        mpRotationSystem->CalculateCurrentRotationState();
+      }
       mTheta = mpRotationSystem->GetCurrentTheta();
       mAngularVelocityRadians = mpRotationSystem->GetCurrentOmega();
-      KRATOS_INFO("RotateRegionProcess")<<"Current torque             :: "<<torque<<std::endl;
-      KRATOS_INFO("RotateRegionProcess")<<"Current angular velocity   :: "<<mAngularVelocityRadians<<std::endl;
-      KRATOS_INFO("RotateRegionProcess")<<"Current angle of rotation  :: "<<mTheta<<std::endl;
     } else {
       const double dt = r_process_info[DELTA_TIME];
       mTheta += mAngularVelocityRadians * dt;
     }
     auto& r_model = mrModelPart.GetModel();
     auto& r_torque_model_part = mParameters.Has("torque_model_part_name") ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
+    KRATOS_INFO("RotateRegionProcess")<<"Current angular velocity   :: "<<mAngularVelocityRadians<<std::endl;
+    KRATOS_INFO("RotateRegionProcess")<<"Current angle of rotation  :: "<<mTheta<<std::endl;
 
     r_torque_model_part.SetValue(ROTATIONAL_ANGLE, mTheta);
     r_torque_model_part.SetValue(ROTATIONAL_VELOCITY, mAngularVelocityRadians);
