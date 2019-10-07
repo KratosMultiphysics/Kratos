@@ -101,6 +101,20 @@ public:
     if (mEchoLevel > 1)
       std::cout << "  COMPUTE AVERAGE PFEM MESH PARAMETERS PROCESS ]; " << std::endl;
 
+    const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+
+    bool refiningBox = mrRemesh.UseRefiningBox;
+    if (!(refiningBox == true && rCurrentProcessInfo[TIME] > mrRemesh.RefiningBoxInitialTime && rCurrentProcessInfo[TIME] < mrRemesh.RefiningBoxFinalTime))
+    {
+      refiningBox = false;
+    }
+    array_1d<double, 3> &minExternalPointRefiningBox = mrRemesh.RefiningBoxMinExternalPoint;
+    array_1d<double, 3> &minInternalPointRefiningBox = mrRemesh.RefiningBoxMinInternalPoint;
+    array_1d<double, 3> &maxExternalPointRefiningBox = mrRemesh.RefiningBoxMaxExternalPoint;
+    array_1d<double, 3> &maxInternalPointRefiningBox = mrRemesh.RefiningBoxMaxInternalPoint;
+    array_1d<double, 3> &RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
+    array_1d<double, 3> &RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
+
     double fluidNodes = 0;
     double meanNodalSize = 0;
 
@@ -108,20 +122,79 @@ public:
     // unsigned int count=0;
     for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
     {
-
-      if (i_node->Is(FLUID))
+      if (refiningBox == false)
       {
-        fluidNodes += 1.0;
-        meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+        if (i_node->Is(FLUID))
+        {
+          fluidNodes += 1.0;
+          meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+        }
+      }
+      else
+      {
+        if (i_node->X() < RefiningBoxMinimumPoint[0] || i_node->Y() < RefiningBoxMinimumPoint[1] || i_node->Z() < RefiningBoxMinimumPoint[2] ||
+            i_node->X() > RefiningBoxMaximumPoint[0] || i_node->Y() > RefiningBoxMaximumPoint[1] || i_node->Z() > RefiningBoxMaximumPoint[2])
+        {
+          //CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREA
+          if (i_node->Is(FLUID))
+          {
+            fluidNodes += 1.0;
+            meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+          }
+        }
       }
     }
 
     meanNodalSize *= 1.0 / fluidNodes;
 
-    std::cout << "COMPUTE AVERAGE PFEM MESH PARAMETERS PROCESS: the mean_nodal_h is  " << meanNodalSize << std::endl;
-
     mrRemesh.Refine->CriticalRadius = meanNodalSize;
     mrRemesh.Refine->InitialRadius = meanNodalSize;
+
+    double smallSize = meanNodalSize;
+
+    if (meanNodalSize < mrRemesh.RefiningBoxMeshSize)
+    {
+      smallSize = mrRemesh.RefiningBoxMeshSize;
+
+      RefiningBoxMinimumPoint[0] += 0.01 * smallSize; //the finest nodes at the frontier should not be erased
+      RefiningBoxMinimumPoint[1] += 0.01 * smallSize;
+      RefiningBoxMinimumPoint[2] += 0.01 * smallSize;
+
+      RefiningBoxMaximumPoint[0] += -0.01 * smallSize;
+      RefiningBoxMaximumPoint[1] += -0.01 * smallSize;
+      RefiningBoxMaximumPoint[2] += -0.01 * smallSize;
+    }
+    else // the mesh is finer in the RefininBox
+    {
+      RefiningBoxMinimumPoint[0] += -0.01 * smallSize; //the finest nodes at the frontier should not be erased
+      RefiningBoxMinimumPoint[1] += -0.01 * smallSize;
+      RefiningBoxMinimumPoint[2] += -0.01 * smallSize;
+
+      RefiningBoxMaximumPoint[0] += 0.01 * smallSize;
+      RefiningBoxMaximumPoint[1] += 0.01 * smallSize;
+      RefiningBoxMaximumPoint[2] += 0.01 * smallSize;
+    }
+
+    minExternalPointRefiningBox[0] = RefiningBoxMinimumPoint[0] - mrRemesh.Refine->CriticalRadius;
+    minExternalPointRefiningBox[1] = RefiningBoxMinimumPoint[1] - mrRemesh.Refine->CriticalRadius;
+    minExternalPointRefiningBox[2] = RefiningBoxMinimumPoint[2] - mrRemesh.Refine->CriticalRadius;
+    minInternalPointRefiningBox[0] = RefiningBoxMinimumPoint[0] + mrRemesh.RefiningBoxMeshSize;
+    minInternalPointRefiningBox[1] = RefiningBoxMinimumPoint[1] + mrRemesh.RefiningBoxMeshSize;
+    minInternalPointRefiningBox[2] = RefiningBoxMinimumPoint[2] + mrRemesh.RefiningBoxMeshSize;
+
+    maxExternalPointRefiningBox[0] = RefiningBoxMaximumPoint[0] + mrRemesh.Refine->CriticalRadius;
+    maxExternalPointRefiningBox[1] = RefiningBoxMaximumPoint[1] + mrRemesh.Refine->CriticalRadius;
+    maxExternalPointRefiningBox[2] = RefiningBoxMaximumPoint[2] + mrRemesh.Refine->CriticalRadius;
+    maxInternalPointRefiningBox[0] = RefiningBoxMaximumPoint[0] - mrRemesh.RefiningBoxMeshSize;
+    maxInternalPointRefiningBox[1] = RefiningBoxMaximumPoint[1] - mrRemesh.RefiningBoxMeshSize;
+    maxInternalPointRefiningBox[2] = RefiningBoxMaximumPoint[2] - mrRemesh.RefiningBoxMeshSize;
+
+    // std::cout<<" RefiningBoxMinimumPoint "<<mrRemesh.RefiningBoxMinimumPoint <<std::endl;
+    // std::cout<<" minExternalPointRefiningBox "<<mrRemesh.RefiningBoxMinExternalPoint <<std::endl;
+    // std::cout<<" minInternalPointRefiningBox "<<mrRemesh.RefiningBoxMinInternalPoint <<std::endl;
+    // std::cout<<"     RefiningBoxMaximumPoint "<<mrRemesh.RefiningBoxMaximumPoint <<std::endl;
+    // std::cout<<"     maxExternalPointRefiningBox "<<mrRemesh.RefiningBoxMaxExternalPoint <<std::endl;
+    // std::cout<<"     maxInternalPointRefiningBox "<<mrRemesh.RefiningBoxMaxInternalPoint <<std::endl;
 
     KRATOS_CATCH(" ")
   }

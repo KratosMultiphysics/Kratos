@@ -259,6 +259,19 @@ private:
 		unsigned int inletNodes = 0;
 		bool toEraseNodeFound = false;
 
+		double numNodes = 0;
+		double sumRefiningSize = 0;
+		double meanMeshSize=mrRemesh.Refine->CriticalRadius;
+		const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+		double currentTime = rCurrentProcessInfo[TIME];
+		double initialTime = mrRemesh.RefiningBoxInitialTime;
+		double finalTime = mrRemesh.RefiningBoxFinalTime;
+		bool refiningBox = mrRemesh.UseRefiningBox;
+		if (!(refiningBox == true && currentTime > initialTime && currentTime < finalTime))
+		{
+			refiningBox = false;
+		}
+
 		for (unsigned int pn = 0; pn < nds; pn++)
 		{
 			if (Element[pn].Is(RIGID))
@@ -277,9 +290,31 @@ private:
 			{
 				inletNodes++;
 			}
+
+			if (refiningBox == true)
+			{
+
+				array_1d<double, 3> RefiningBoxLowerPoint = mrRemesh.RefiningBoxMinimumPoint;
+				array_1d<double, 3> RefiningBoxUpperPoint = mrRemesh.RefiningBoxMaximumPoint;
+				if (Element[pn].X() > RefiningBoxLowerPoint[0] && Element[pn].Y() > RefiningBoxLowerPoint[1] && Element[pn].Z() > RefiningBoxLowerPoint[2] &&
+					Element[pn].X() < RefiningBoxUpperPoint[0] && Element[pn].Y() < RefiningBoxUpperPoint[1] && Element[pn].Z() < RefiningBoxUpperPoint[2])
+				{
+					// meanMeshSize = mrRemesh.RefiningBoxMeshSize;
+					sumRefiningSize += mrRemesh.RefiningBoxMeshSize;
+					numNodes += 1.0;
+				}
+				else
+				{
+					sumRefiningSize += mrRemesh.Refine->CriticalRadius;
+				}
+			}
+		}
+		if (numNodes > 0.01)
+		{
+			meanMeshSize = sumRefiningSize / double(nds);
 		}
 
-		double limitEdgeLength = 1.4 * mrRemesh.Refine->CriticalRadius;
+		double limitEdgeLength = 1.4 * meanMeshSize;
 		double safetyCoefficient2D = 1.5;
 		double penalization = 1.0;
 		if (rigidNodes > 1)
@@ -471,6 +506,20 @@ private:
 		unsigned int inletNodes = 0;
 		bool toEraseNodeFound = false;
 
+		double numNodes = 0;
+		double sumRefiningSize = 0;
+		double meanMeshSize=mrRemesh.Refine->CriticalRadius;
+		const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+		double currentTime = rCurrentProcessInfo[TIME];
+		double initialTime = mrRemesh.RefiningBoxInitialTime;
+		double finalTime = mrRemesh.RefiningBoxFinalTime;
+		bool refiningBox = mrRemesh.UseRefiningBox;
+		if (!(refiningBox == true && currentTime > initialTime && currentTime < finalTime))
+		{
+			refiningBox = false;
+		}
+
+
 		for (unsigned int pn = 0; pn < nds; pn++)
 		{
 			if (Element[pn].Is(RIGID))
@@ -489,9 +538,33 @@ private:
 			{
 				inletNodes++;
 			}
+
+			if (refiningBox == true)
+			{
+
+				array_1d<double, 3> RefiningBoxLowerPoint = mrRemesh.RefiningBoxMinimumPoint;
+				array_1d<double, 3> RefiningBoxUpperPoint = mrRemesh.RefiningBoxMaximumPoint;
+				if (Element[pn].X() > RefiningBoxLowerPoint[0] && Element[pn].Y() > RefiningBoxLowerPoint[1] && Element[pn].Z() > RefiningBoxLowerPoint[2] &&
+					Element[pn].X() < RefiningBoxUpperPoint[0] && Element[pn].Y() < RefiningBoxUpperPoint[1] && Element[pn].Z() < RefiningBoxUpperPoint[2])
+				{
+					// meanMeshSize = mrRemesh.RefiningBoxMeshSize;
+					sumRefiningSize += mrRemesh.RefiningBoxMeshSize;
+					numNodes += 1.0;
+				}
+				else
+				{
+					sumRefiningSize += mrRemesh.Refine->CriticalRadius;
+				}
+			}
+
+
+		}
+		if (numNodes > 0.01)
+		{
+			meanMeshSize = sumRefiningSize / double(nds);
 		}
 
-		double limitEdgeLength = 1.25 * mrRemesh.Refine->CriticalRadius;
+		double limitEdgeLength = 1.25 * meanMeshSize;
 		double safetyCoefficient3D = 1.6;
 		double penalization = 1.0;
 		if (rigidNodes > 2)

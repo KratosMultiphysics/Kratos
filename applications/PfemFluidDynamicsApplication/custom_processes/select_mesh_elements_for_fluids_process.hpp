@@ -125,12 +125,22 @@ public:
 
         int number_of_slivers = 0;
 
-        if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::SELECT_TESSELLATION_ELEMENTS)) {
-            for (int el = 0; el < OutNumberOfElements; el++) {
+        bool refiningBox = mrRemesh.UseRefiningBox;
+        if (!(mrRemesh.UseRefiningBox == true && currentTime > mrRemesh.RefiningBoxInitialTime && currentTime < mrRemesh.RefiningBoxFinalTime))
+        {
+            refiningBox = false;
+        }
+
+        if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::SELECT_TESSELLATION_ELEMENTS))
+        {
+            for (int el = 0; el < OutNumberOfElements; el++)
+            {
                 mrRemesh.PreservedElements[el] = 1;
                 mrRemesh.Info->NumberOfElements += 1;
             }
-        } else {
+        }
+        else
+        {
             if (mEchoLevel > 1)
                 std::cout << " Start Element Selection " << OutNumberOfElements << std::endl;
 
@@ -144,7 +154,8 @@ public:
             int number = 0;
 
             //#pragma omp parallel for reduction(+:number) private(el)
-            for (el = 0; el < OutNumberOfElements; el++) {
+            for (el = 0; el < OutNumberOfElements; el++)
+            {
                 Geometry<Node<3>> vertices;
 
                 unsigned int numfreesurf = 0;
@@ -160,9 +171,13 @@ public:
                 unsigned int checkedNodes = 0;
                 box_side_element = false;
                 unsigned int countIsolatedWallNodes = 0;
-                for (unsigned int pn = 0; pn < nds; pn++) {
+                double MeanMeshSize = mrRemesh.Refine->CriticalRadius;
+                bool increaseAlfa = false;
+                for (unsigned int pn = 0; pn < nds; pn++)
+                {
                     //set vertices
-                    if (mrRemesh.NodalPreIds[OutElementList[el * nds + pn]] < 0) {
+                    if (mrRemesh.NodalPreIds[OutElementList[el * nds + pn]] < 0)
+                    {
                         if (mrRemesh.Options.IsNot(MesherUtilities::CONTACT_SEARCH))
                             std::cout << " ERROR: something is wrong: nodal id < 0 " << std::endl;
                         box_side_element = true;
@@ -172,67 +187,135 @@ public:
                     if (OutElementList[el * nds + pn] <= 0)
                         std::cout << " ERROR: something is wrong: nodal id < 0 " << el << std::endl;
 
-                    if ((unsigned int)OutElementList[el * nds + pn] > mrRemesh.NodalPreIds.size()) {
+                    if ((unsigned int)OutElementList[el * nds + pn] > mrRemesh.NodalPreIds.size())
+                    {
                         wrong_added_node = true;
                         std::cout << " ERROR: something is wrong: node out of bounds " << std::endl;
                         break;
                     }
                     vertices.push_back(rNodes(OutElementList[el * nds + pn]));
                     // check flags on nodes
-                    if (vertices.back().Is(ISOLATED)) {
+                    if (vertices.back().Is(ISOLATED))
+                    {
                         numisolated++;
                     }
-                    if (vertices.back().Is(BOUNDARY)) {
+                    if (vertices.back().Is(BOUNDARY))
+                    {
                         numboundary++;
                     }
-                    if (vertices.back().GetValue(NO_MESH)) {
+                    if (vertices.back().GetValue(NO_MESH))
+                    {
                         noremesh = true;
                     }
-                    if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID)) {
+                    if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
+                    {
                         numrigid++;
 
                         NodeWeakPtrVectorType &rN = vertices.back().GetValue(NEIGHBOUR_NODES);
                         bool localIsolatedWallNode = true;
-                        for (unsigned int i = 0; i < rN.size(); i++) {
-                            if (rN[i].IsNot(RIGID)) {
+                        for (unsigned int i = 0; i < rN.size(); i++)
+                        {
+                            if (rN[i].IsNot(RIGID))
+                            {
                                 localIsolatedWallNode = false;
                             }
                         }
-                        if (localIsolatedWallNode == true) {
+                        if (localIsolatedWallNode == true)
+                        {
                             countIsolatedWallNodes++;
                         }
                     }
-                    if (vertices.back().Is(SOLID) && vertices.back().IsNot(BOUNDARY)) {
+                    if (vertices.back().Is(SOLID) && vertices.back().IsNot(BOUNDARY))
+                    {
                         numinternalsolid++;
                     }
-                    if (vertices.back().Is(SOLID)) {
+                    if (vertices.back().Is(SOLID))
+                    {
                         numsolid++;
                     }
-                    if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY)) {
+                    if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY))
+                    {
                         numfreesurf++;
                         const array_1d<double, 3> &velocityP0 = vertices.back().FastGetSolutionStepValue(VELOCITY, 0);
                         normVelocityP[pn] = norm_2(velocityP0);
                         checkedNodes++;
-                    } else if (vertices.back().Is(ISOLATED)) {
+                    }
+                    else if (vertices.back().Is(ISOLATED))
+                    {
                         checkedNodes++;
                         const array_1d<double, 3> &velocityP0 = vertices.back().FastGetSolutionStepValue(VELOCITY, 0);
                         normVelocityP[pn] = norm_2(velocityP0);
                     }
-                    if (vertices.back().Is(INLET)) {
+                    if (vertices.back().Is(INLET))
+                    {
                         numinlet++;
+                    }
+
+                    if (refiningBox == true && vertices.back().IsNot(RIGID))
+                    {
+
+                        array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
+                        array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
+                        array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
+                        array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
+                        array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
+                        array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
+
+                        minExternalPoint[0] -= mrRemesh.Refine->CriticalRadius;
+                        minExternalPoint[1] -= mrRemesh.Refine->CriticalRadius;
+                        minExternalPoint[2] -= mrRemesh.Refine->CriticalRadius;
+                        maxExternalPoint[0] += mrRemesh.Refine->CriticalRadius;
+                        maxExternalPoint[1] += mrRemesh.Refine->CriticalRadius;
+                        maxExternalPoint[2] += mrRemesh.Refine->CriticalRadius;
+
+
+                        minInternalPoint[0] += mrRemesh.Refine->CriticalRadius;
+                        minInternalPoint[1] += mrRemesh.Refine->CriticalRadius;
+                        minInternalPoint[2] += mrRemesh.Refine->CriticalRadius;
+                        maxInternalPoint[0] -= mrRemesh.Refine->CriticalRadius;
+                        maxInternalPoint[1] -= mrRemesh.Refine->CriticalRadius;
+                        maxInternalPoint[2] -= mrRemesh.Refine->CriticalRadius;
+
+                        if ((vertices.back().X() > minExternalPoint[0] && vertices.back().X() < minInternalPoint[0] && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]) ||
+                            (vertices.back().X() > maxInternalPoint[0] && vertices.back().X() < maxExternalPoint[0] && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]) ||
+                            (vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < minInternalPoint[1] && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]) ||
+                            (vertices.back().Y() > maxInternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]) ||
+                            (vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < minInternalPoint[2] && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0]) ||
+                            (vertices.back().Z() > maxInternalPoint[2] && vertices.back().Z() < maxExternalPoint[2] && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0]))
+                        {
+                            increaseAlfa = true;
+                            MeanMeshSize = 0.5 * (mrRemesh.RefiningBoxMeshSize + mrRemesh.Refine->CriticalRadius);
+                        }
+                        if (vertices.back().X() > mrRemesh.RefiningBoxMinimumPoint[0] && vertices.back().Y() > mrRemesh.RefiningBoxMinimumPoint[1] && vertices.back().Z() > mrRemesh.RefiningBoxMinimumPoint[2] &&
+                            vertices.back().X() < mrRemesh.RefiningBoxMaximumPoint[0] && vertices.back().Y() < mrRemesh.RefiningBoxMaximumPoint[1] && vertices.back().Z() < mrRemesh.RefiningBoxMaximumPoint[2])
+                        {
+                            MeanMeshSize = mrRemesh.RefiningBoxMeshSize;
+                        }
                     }
                 }
 
-                if (box_side_element || wrong_added_node) {
+                if (box_side_element || wrong_added_node)
+                {
                     std::cout << " ,,,,,,,,,,,,,,,,,,,,,,,,,,,,, Box_Side_Element " << std::endl;
                     continue;
                 }
 
                 double Alpha = mrRemesh.AlphaParameter; //*nds;
 
-                if (dimension == 2) {
-                    if ((numfreesurf == nds || (numisolated + numfreesurf) == nds) && firstMesh == false) {
-                        if (checkedNodes == nds) {
+                if (increaseAlfa == true)
+                {
+                    Alpha *= 1.25;
+                }
+                if (refiningBox == true){
+                    Alpha *= 1.1;
+                }
+
+                if (dimension == 2)
+                {
+                    if ((numfreesurf == nds || (numisolated + numfreesurf) == nds) && firstMesh == false)
+                    {
+                        if (checkedNodes == nds)
+                        {
                             const double maxValue = 1.5;
                             const double minValue = 1.0 / maxValue;
                             if (normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[1] < minValue ||
@@ -241,21 +324,29 @@ public:
                             {
                                 Alpha *= 0;
                             }
-                        } else {
+                        }
+                        else
+                        {
                             KRATOS_INFO("ATTENTION!!! CHECKED NODES= ") << checkedNodes << " and the nodes are " << nds << std::endl;
                             Alpha *= 0;
                         }
                     }
 
-                    if (numrigid == 0 && numfreesurf == 0 && numisolated == 0) {
+                    if (numrigid == 0 && numfreesurf == 0 && numisolated == 0)
+                    {
                         Alpha *= 1.75;
-                    } else {
+                    }
+                    else
+                    {
                         Alpha *= 1.04;
                     }
                 }
-                else if (dimension == 3) {
-                    if (numfreesurf == nds || (numisolated + numfreesurf) == nds) {
-                        if (checkedNodes == nds) {
+                else if (dimension == 3)
+                {
+                    if (numfreesurf == nds || (numisolated + numfreesurf) == nds)
+                    {
+                        if (checkedNodes == nds)
+                        {
                             const double maxValue = 1.5;
                             const double minValue = 1.0 / maxValue;
                             if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
@@ -267,32 +358,41 @@ public:
                             {
                                 Alpha *= 0;
                             }
-                        } else {
+                        }
+                        else
+                        {
                             std::cout << "ATTENTION!!! CHECKED NODES= " << checkedNodes << " and the nodes are " << nds << std::endl;
                             Alpha *= 0;
                         }
                     }
 
-                    if (numrigid == 0 && numfreesurf == 0 && numisolated == 0) {
+                    if (numrigid == 0 && numfreesurf == 0 && numisolated == 0)
+                    {
                         Alpha *= 1.75;
-                    } else {
+                    }
+                    else
+                    {
                         Alpha *= 1.125;
                     }
 
-                    if (numrigid == nds) {
+                    if (numrigid == nds)
+                    {
                         Alpha *= 0.95;
                     }
                 }
-                if (firstMesh == true) {
+                if (firstMesh == true)
+                {
                     Alpha *= 1.15;
                 }
 
                 bool accepted = false;
                 MesherUtilities MesherUtils;
-                if (mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH)) {
+                if (mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
+                {
                     accepted = MesherUtils.ShrankAlphaShape(Alpha, vertices, mrRemesh.OffsetFactor, dimension);
-                } else {
-                    double MeanMeshSize = mrRemesh.Refine->CriticalRadius;
+                }
+                else
+                {
                     accepted = MesherUtils.AlphaShape(Alpha, vertices, dimension, MeanMeshSize);
                 }
 
@@ -301,25 +401,31 @@ public:
                     self_contact = MesherUtils.CheckSubdomain(vertices);
 
                 //4.- to control that the element is inside of the domain boundaries
-                if (accepted) {
-                    if (mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH)) {
+                if (accepted)
+                {
+                    if (mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
+                    {
                         accepted = MesherUtils.CheckOuterCentre(vertices, mrRemesh.OffsetFactor, self_contact);
                     }
                 }
 
-                if (numrigid == nds || noremesh == true) {
+                if (numrigid == nds || noremesh == true)
+                {
                     accepted = false;
                 }
 
                 // to control that the element has a good shape
-                if (accepted && (numfreesurf > 0 || numrigid == nds)) {
-                    if (dimension == 3 && nds == 4) {
+                if (accepted && (numfreesurf > 0 || numrigid == nds))
+                {
+                    if (dimension == 3 && nds == 4)
+                    {
                         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
 
                         double Volume = tetrahedron->Volume();
                         double CriticalVolume = 0.01 * mrRemesh.Refine->MeanVolume;
 
-                        if (CriticalVolume == 0) {
+                        if (CriticalVolume == 0)
+                        {
                             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
                             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
                             double meanLength = sqrt(SquaredLength) / 6.0;
@@ -342,7 +448,8 @@ public:
                             CriticalVolume = 0.00001 * regularTetrahedronVolume;
                         }
 
-                        if (Volume < CriticalVolume) {
+                        if (Volume < CriticalVolume)
+                        {
                             accepted = false;
                             number_of_slivers++;
                         }
@@ -350,7 +457,8 @@ public:
                     }
                 }
 
-                if (accepted) {
+                if (accepted)
+                {
                     number += 1;
                     mrRemesh.PreservedElements[el] = number;
                 }
@@ -358,11 +466,13 @@ public:
             mrRemesh.Info->NumberOfElements = number;
         }
 
-        if (mEchoLevel > 1) {
+        if (mEchoLevel > 1)
+        {
             std::cout << "Number of Preserved Fluid Elements " << mrRemesh.Info->NumberOfElements << " (slivers detected: " << number_of_slivers << ") " << std::endl;
             std::cout << "TOTAL removed nodes " << mrRemesh.Info->RemovedNodes << std::endl;
         }
-        if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES)) {
+        if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES))
+        {
             ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
             const unsigned int nds = (*element_begin).GetGeometry().size();
 
@@ -371,9 +481,12 @@ public:
             ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
 
             //check engaged nodes
-            for (int el = 0; el < OutNumberOfElements; el++) {
-                if (mrRemesh.PreservedElements[el]) {
-                    for (unsigned int pn = 0; pn < nds; pn++) {
+            for (int el = 0; el < OutNumberOfElements; el++)
+            {
+                if (mrRemesh.PreservedElements[el])
+                {
+                    for (unsigned int pn = 0; pn < nds; pn++)
+                    {
                         //set vertices
                         rNodes[OutElementList[el * nds + pn]].Set(BLOCKED);
                     }
@@ -381,9 +494,12 @@ public:
             }
 
             int count_release = 0;
-            for (ModelPart::NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end(); i_node++) {
-                if (i_node->IsNot(BLOCKED)) {
-                    if (!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID))) {
+            for (ModelPart::NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end(); i_node++)
+            {
+                if (i_node->IsNot(BLOCKED))
+                {
+                    if (!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID)))
+                    {
                         i_node->Set(TO_ERASE);
                         if (mEchoLevel > 0)
                             std::cout << " NODE " << i_node->Id() << " RELEASE " << std::endl;
@@ -391,7 +507,8 @@ public:
                             std::cout << " ERROR: node " << i_node->Id() << " IS BOUNDARY RELEASE " << std::endl;
                     }
                 }
-                if (i_node->Is(TO_ERASE)) {
+                if (i_node->Is(TO_ERASE))
+                {
                     count_release++;
                 }
 
@@ -400,9 +517,12 @@ public:
 
             if (mEchoLevel > 0)
                 std::cout << "   fluid NUMBER OF RELEASED NODES " << count_release << std::endl;
-        } else {
+        }
+        else
+        {
             ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
-            for (ModelPart::NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end(); i_node++) {
+            for (ModelPart::NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end(); i_node++)
+            {
                 i_node->Reset(BLOCKED);
             }
         }
@@ -411,7 +531,8 @@ public:
         mMesherUtilities.SetNodes(mrModelPart, mrRemesh);
         mrRemesh.InputInitializedFlag = true;
 
-        if (mEchoLevel > 1) {
+        if (mEchoLevel > 1)
+        {
             std::cout << "   Generated_Elements :" << OutNumberOfElements << std::endl;
             std::cout << "   Passed_AlphaShape  :" << mrRemesh.Info->NumberOfElements << std::endl;
             std::cout << "   SELECT MESH ELEMENTS ]; " << std::endl;

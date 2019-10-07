@@ -49,6 +49,14 @@ class FluidMeshingDomain(object):
                 "upper_point"      : [10,10,10],
                 "lower_point"      : [-10,-10,-10]
             },
+            "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+            },
             "refining_parameters":{
                "critical_size": 0.0,
                "threshold_variable": "PLASTIC_STRAIN",
@@ -80,12 +88,6 @@ class FluidMeshingDomain(object):
                    "on_distance": false,
                    "on_threshold": false,
                    "on_error": false
-               },
-               "refining_box":{
-                   "refine_in_box_only": false,
-                   "radius": 0.0,
-                   "center": [0.0, 0.0, 0.0],
-                   "velocity": [0.0, 0.0, 0.0]
                }
             },
             "elemental_variables_to_transfer":[]
@@ -159,24 +161,13 @@ class FluidMeshingDomain(object):
 
         # set mesh refinement in box
         size = self.dimension
-        refining_box = self.settings["refining_parameters"]["refining_box"]
-        if(refining_box["refine_in_box_only"].GetBool()):
-            radius   = refining_box["radius"].GetDouble()
-            center   = Vector(size)
-            velocity = Vector(size)
-
-            for i in range(0, size):
-                center[i]   = refining_box["center"][i].GetDouble()
-                velocity[i] = refining_box["velocity"][i].GetDouble()
-
-            refining_box = KratosDelaunay.SpatialBoundingBox(center, radius, velocity)
-            self.RefiningParameters.SetRefiningBox(refining_box)
-
-        self.RefiningParameters.SetThresholdVariable(KratosMultiphysics.KratosGlobals.GetVariable(self.settings["refining_parameters"]["threshold_variable"].GetString() ))
-        self.RefiningParameters.SetReferenceThreshold(self.settings["refining_parameters"]["reference_threshold"].GetDouble())
-
-        self.RefiningParameters.SetErrorVariable(KratosMultiphysics.KratosGlobals.GetVariable(self.settings["refining_parameters"]["error_variable"].GetString()))
-        self.RefiningParameters.SetReferenceError(self.settings["refining_parameters"]["reference_error"].GetDouble())
+        refining_box = self.settings["spatial_refining_box"]
+        if(refining_box["use_refining_box"].GetBool()):
+            self.MeshingParameters.SetUseRefiningBox(True) 
+            self.MeshingParameters.SetRefiningBoxMinimumPoint(refining_box["lower_point"][0].GetDouble(),refining_box["lower_point"][1].GetDouble(),refining_box["lower_point"][2].GetDouble()) 
+            self.MeshingParameters.SetRefiningBoxMaximumPoint(refining_box["upper_point"][0].GetDouble(),refining_box["upper_point"][1].GetDouble(),refining_box["upper_point"][2].GetDouble()) 
+            self.MeshingParameters.SetRefiningBoxTimeInterval(refining_box["initial_time"].GetDouble(),refining_box["final_time"].GetDouble())
+            self.MeshingParameters.SetRefiningBoxMeshSize(refining_box["mesh_size"].GetDouble())
 
 
         removing_options = KratosMultiphysics.Flags()
