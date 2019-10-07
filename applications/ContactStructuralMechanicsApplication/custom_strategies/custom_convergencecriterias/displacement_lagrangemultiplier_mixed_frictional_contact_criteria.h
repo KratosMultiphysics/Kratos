@@ -95,6 +95,9 @@ public:
     /// The key type definition
     typedef std::size_t                                       KeyType;
 
+    /// The epsilon tolerance definition
+    static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -374,18 +377,18 @@ public:
                 }
             }
 
-            if(normal_lm_increase_norm == 0.0) normal_lm_increase_norm = 1.0;
-            if(tangent_lm_stick_increase_norm == 0.0) tangent_lm_stick_increase_norm = 1.0;
-            if(tangent_lm_slip_increase_norm == 0.0) tangent_lm_slip_increase_norm = 1.0;
-            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm == 0.0) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+            if(normal_lm_increase_norm < Tolerance) normal_lm_increase_norm = 1.0;
+            if(tangent_lm_stick_increase_norm < Tolerance) tangent_lm_stick_increase_norm = 1.0;
+            if(tangent_lm_slip_increase_norm < Tolerance) tangent_lm_slip_increase_norm = 1.0;
+            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm < Tolerance) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             mDispCurrentResidualNorm = disp_residual_solution_norm;
 
             const TDataType normal_lm_ratio = std::sqrt(normal_lm_increase_norm/normal_lm_solution_norm);
-            const TDataType tangent_lm_slip_ratio = std::sqrt(tangent_lm_slip_increase_norm/tangent_lm_slip_solution_norm);
-            const TDataType tangent_lm_stick_ratio = std::sqrt(tangent_lm_stick_increase_norm/tangent_lm_stick_solution_norm);
+            const TDataType tangent_lm_slip_ratio = tangent_lm_slip_solution_norm > Tolerance ? std::sqrt(tangent_lm_slip_increase_norm/tangent_lm_slip_solution_norm) : 0.0;
+            const TDataType tangent_lm_stick_ratio = tangent_lm_stick_solution_norm > Tolerance ? std::sqrt(tangent_lm_stick_increase_norm/tangent_lm_stick_solution_norm) : 0.0;
 
-            const TDataType normal_lm_abs = std::sqrt(normal_lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
+            const TDataType normal_lm_abs = std::sqrt(normal_lm_increase_norm)/static_cast<TDataType>(lm_dof_num);
             const TDataType tangent_lm_stick_abs = lm_stick_dof_num > 0 ?  std::sqrt(tangent_lm_stick_increase_norm)/ static_cast<TDataType>(lm_stick_dof_num) : 0.0;
             const TDataType tangent_lm_slip_abs = lm_slip_dof_num > 0 ? std::sqrt(tangent_lm_slip_increase_norm)/ static_cast<TDataType>(lm_slip_dof_num) : 0.0;
 
@@ -396,7 +399,7 @@ public:
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
-                mDispInitialResidualNorm = (disp_residual_solution_norm == 0.0) ? 1.0 : disp_residual_solution_norm;
+                mDispInitialResidualNorm = (disp_residual_solution_norm < Tolerance) ? 1.0 : disp_residual_solution_norm;
                 residual_disp_ratio = 1.0;
                 mOptions.Set(DisplacementLagrangeMultiplierMixedFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, true);
             }
