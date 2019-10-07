@@ -11,9 +11,6 @@ from predictors.test_linear import TestPredictorLinear
 from solver_wrappers.pipe.test_flow_solver import TestSolverWrapperPipeFlowSolver
 from solver_wrappers.pipe.test_structure_solver import TestSolverWrapperPipeStructureSolver
 
-from co_simulation_test_factory import TestCoSimulationNightlyCases
-from co_simulation_test_factory import TestCoSimulationValidationCases
-
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -43,11 +40,9 @@ def AssembleTestSuites():
     smallSuite.addTest(TestSolverWrapperPipeStructureSolver("test_solver_wrapper_pipe_structure_solver"))
 
     nightlySuite = suites['nightly']  # These tests are executed in the nightly build
-    nightlySuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationNightlyCases]))
     nightlySuite.addTests(smallSuite)
 
     validationSuite = suites['validation']   # These tests are very long and should not be in nightly, for validation
-    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationValidationCases]))
 
     # Create a test suit that contains all tests:
     allSuite = suites['all']
