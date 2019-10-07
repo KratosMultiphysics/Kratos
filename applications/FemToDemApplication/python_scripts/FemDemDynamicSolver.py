@@ -5,7 +5,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 
 # Import the mechanical solver base class
-import FemDemMechanicalSolver as BaseSolver
+import KratosMultiphysics.FemToDemApplication.FemDemMechanicalSolver as BaseSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return ImplicitMechanicalSolver(main_model_part, custom_settings)
@@ -117,16 +117,15 @@ class ImplicitMechanicalSolver(BaseSolver.FemDemMechanicalSolver):
         linear_solver = self._get_linear_solver()
         mechanical_convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
-        # KratosMultiphysics.LineSearchStrategy (alternative -> to test)
-        return KratosSolid.ResidualBasedNewtonRaphsonLineSearchStrategy(computing_model_part,
-                                                                        mechanical_scheme,
-                                                                        linear_solver,
-                                                                        mechanical_convergence_criterion,
-                                                                        builder_and_solver,
-                                                                        self.settings["max_iteration"].GetInt(),
-                                                                        self.settings["compute_reactions"].GetBool(),
-                                                                        self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                        self.settings["move_mesh_flag"].GetBool())
+        return KratosMultiphysics.LineSearchStrategy(computing_model_part,
+                                                     mechanical_scheme,
+                                                     linear_solver,
+                                                     mechanical_convergence_criterion,
+                                                     builder_and_solver,
+                                                     self.settings["max_iteration"].GetInt(),
+                                                     self.settings["compute_reactions"].GetBool(),
+                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                     self.settings["move_mesh_flag"].GetBool())
 
     def _create_line_search_implex_strategy(self):
         computing_model_part = self.GetComputingModelPart()

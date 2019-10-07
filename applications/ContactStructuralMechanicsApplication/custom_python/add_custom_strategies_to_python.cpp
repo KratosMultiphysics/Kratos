@@ -24,6 +24,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/line_search_contact_strategy.h"
 #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_strategy.h"
+#include "custom_strategies/custom_strategies/residualbased_newton_raphson_mpc_contact_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -46,6 +47,7 @@
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_residual_contact_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_residual_frictional_contact_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/contact_error_mesh_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/mpc_contact_criteria.h"
 
 // Builders and solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -82,6 +84,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom strategy types
     typedef ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactStrategyType;
     typedef LineSearchContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  LineSearchContactStrategyType;
+    typedef ResidualBasedNewtonRaphsonMPCContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonMPCContactStrategyType;
 
     // Custom scheme types
 
@@ -102,6 +105,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef DisplacementLagrangeMultiplierResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualContactCriteriaType;
     typedef DisplacementLagrangeMultiplierResidualFrictionalContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualFrictionalContactCriteriaType;
     typedef ContactErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ContactErrorMeshCriteriaType;
+    typedef MPCContactCriteria< SparseSpaceType,  LocalSpaceType > MPCContactCriteriaType;
 
     // Linear solvers
 
@@ -141,6 +145,16 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
         .def("SetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
         .def("GetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
+        ;
+
+    // Residual Based Newton Raphson Contact Strategy
+    py::class_< ResidualBasedNewtonRaphsonMPCContactStrategyType, typename ResidualBasedNewtonRaphsonMPCContactStrategyType::Pointer, BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonMPCContactStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+        .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonMPCContactStrategyType::SetMaxIterationNumber)
+        .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonMPCContactStrategyType::GetMaxIterationNumber)
+        .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonMPCContactStrategyType::SetKeepSystemConstantDuringIterations)
+        .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonMPCContactStrategyType::GetKeepSystemConstantDuringIterations)
         ;
 
     //********************************************************************
@@ -310,8 +324,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Error mesh Convergence Criterion
     py::class_< ContactErrorMeshCriteriaType, typename ContactErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ContactErrorMeshCriteria")
-    .def(py::init<Parameters>())
-    ;
+        .def(py::init<Parameters>())
+        ;
+
+    // Contact convergence criteria
+    py::class_< MPCContactCriteriaType, typename MPCContactCriteriaType::Pointer, ConvergenceCriteriaType > (m, "MPCContactCriteria")
+        .def(py::init< >())
+        ;
 
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************

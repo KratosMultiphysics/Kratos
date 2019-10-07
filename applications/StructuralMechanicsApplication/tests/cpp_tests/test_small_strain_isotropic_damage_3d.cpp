@@ -86,11 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosS
     //
     KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN_ENERGY));  // = False, in order to use CalculateValue())
     KRATOS_CHECK_IS_FALSE(cl.Has(DAMAGE_VARIABLE));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK(cl.Has(NUMBER_OF_INTERNAL_VARIABLES));  // = True
     KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
-    int nr_variables;
-    cl.GetValue(NUMBER_OF_INTERNAL_VARIABLES, nr_variables);
-    KRATOS_CHECK_NEAR(nr_variables, 1, 1.e-5);  // = True
     Vector internal_variables_w(1);
     internal_variables_w[0] = 0.123;
     cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());

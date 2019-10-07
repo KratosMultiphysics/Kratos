@@ -71,8 +71,8 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "normal_variation"              : "no_derivatives_computation",
             "frictional_law"                : "Coulomb",
             "tangent_factor"                : 1.0e0,
-            "slip_convergence_coefficient"  : 1.0,
-            "slip_augmentation_coefficient" : 1.0,
+            "slip_augmentation_coefficient" : 0.0,
+            "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
             "clear_inactive_for_post"       : true,
@@ -87,7 +87,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
                 "database_step_update"                : 1,
-                "normal_orientation_threshold"        : 0.0,
+                "normal_orientation_threshold"        : 1.0e-1,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
                 "predict_correct_lagrange_multiplier" : false,
@@ -96,6 +96,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                     "bounding_box_factor"             : 0.1,
                     "debug_obb"                       : false,
                     "OBB_intersection_type"           : "SeparatingAxisTheorem",
+                    "build_from_bounding_box"         : true,
                     "lower_bounding_box_coefficient"  : 0.0,
                     "higher_bounding_box_coefficient" : 1.0
                 }
@@ -410,8 +411,8 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We set the value that scales in the tangent direction the penalty and scale parameter
         if self.is_frictional:
             process_info[KM.TANGENT_FACTOR] = self.contact_settings["tangent_factor"].GetDouble()
-            process_info[CSMA.SLIP_CONVERGENCE_COEFFICIENT] = self.contact_settings["slip_convergence_coefficient"].GetDouble()
             process_info[CSMA.SLIP_AUGMENTATION_COEFFICIENT] = self.contact_settings["slip_augmentation_coefficient"].GetDouble()
+            process_info[CSMA.SLIP_THRESHOLD] = self.contact_settings["slip_threshold"].GetDouble()
 
     def _initialize_problem_parameters(self):
         """ This method initializes the ALM parameters from the process info
