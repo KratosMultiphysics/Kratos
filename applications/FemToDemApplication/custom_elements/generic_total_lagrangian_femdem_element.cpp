@@ -715,26 +715,16 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateBSensitivity
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 std::size_t GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GetStrainSize() const
 {
     return GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
-/***********************************************************************************/
-/***********************************************************************************/
-template<unsigned int TDim, unsigned int TyieldSurf>
-int  GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Check(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
-    return ier;
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateSensitivityMatrix(
     const Variable<array_1d<double, 3>>& rDesignVariable,
@@ -810,6 +800,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateSensitivityM
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::save( Serializer& rSerializer ) const
 {
@@ -818,6 +809,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::save( Serializer& rSe
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::load( Serializer& rSerializer )
 {
@@ -826,6 +818,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::load( Serializer& rSe
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateStressDamageMechanics(
     double& rThreshold,
@@ -1040,6 +1033,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVaria
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<>
 double GenericTotalLagrangianFemDemElement<3,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
@@ -2070,6 +2064,37 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
     }
 
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
+    const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    std::vector<Vector> stress_vector;
+
+    if (rVariable == STRESS_TENSOR_INTEGRATED) {
+        this->CalculateOnIntegrationPoints(STRESS_VECTOR_INTEGRATED, stress_vector, rCurrentProcessInfo);
+
+        // Loop integration points
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+            if (rOutput[point_number].size2() != dimension)
+                rOutput[point_number].resize( dimension, dimension, false);
+
+            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+        }
+    }
+
+}
+
+
 /***********************************************************************************/
 /***********************************************************************************/
 template class GenericTotalLagrangianFemDemElement<2,0>;
