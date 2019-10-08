@@ -335,7 +335,7 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
             hyd_stress += cons_law_values.GetStressVector()[d];
         }
         hyd_stress /= 3.0;
-        const double bulk_modulus = hyd_stress * vol_strain / std::pow(vol_strain, 2);
+        const double bulk_modulus = vol_strain > 1.0e-12 ? hyd_stress * vol_strain / std::pow(vol_strain, 2) : 1.0e+12;
 
         for (unsigned int i = 0; i < n_nodes; ++i) {
             for (unsigned int j = 0; j < n_nodes; ++j) {
