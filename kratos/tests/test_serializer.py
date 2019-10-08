@@ -99,10 +99,10 @@ class TestSerializer(KratosUnittest.TestCase):
 
         self.assertTrue(third_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
         self.assertTrue(third_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
-
         self.assertTrue(third_model.HasModelPart("Main.Inlets"))
         self.assertTrue(third_model.HasModelPart("Main.Temp"))
         self.assertTrue(1 in third_model["Main"].Nodes)
         self.assertTrue(1 in third_model["Other"].Nodes)
+
 if __name__ == '__main__':
     KratosUnittest.main()
