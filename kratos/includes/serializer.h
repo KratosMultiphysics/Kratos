@@ -172,11 +172,19 @@ public:
         delete mpBuffer;
     }
 
-
     ///@}
     ///@name Operators
     ///@{
 
+    /// Sets the Serializer in a state ready to be loaded
+    /// Note: If the same object is loaded twice before deleting it from memory all its pointers will be duplicated.
+    void SetLoadState();
+
+    /// Sets the pointer of the stream buffer at the begnining
+    void SeekBegin();
+
+    /// Sets the pointer of the stream buffer at tht end 
+    void SeekEnd();
 
     ///@}
     ///@name Operations
@@ -302,7 +310,6 @@ public:
         }
     }
 
-
     template<class TDataType>
     void load(std::string const & rTag, Kratos::unique_ptr<TDataType>& pValue)
     {
@@ -347,7 +354,6 @@ public:
             }
         }
     }
-
 
     template<class TDataType>
     void load(std::string const & rTag, TDataType*& pValue)
