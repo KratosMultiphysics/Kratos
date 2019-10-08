@@ -24,8 +24,8 @@ cmake ..                                                                        
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11"                                            \
 -DBOOST_ROOT="your_boost_folder/boost_1_71_0"                                                       \
 -DPYTHON_EXECUTABLE="your_python_folder/Python/Python37/python.exe"                                 \
--DLAPACK_LIBRARIES="your_libs_folder/liblapack.lib"                                                 \
--DBLAS_LIBRARIES="your_libs_folder/libblas.lib"                                                     \
+-DLAPACK_LIBRARIES="your_msys_folder/msys64/mingw64/lib/liblapack.dll.a"                            \
+-DBLAS_LIBRARIES="your_msys_folder/msys64/mingw64/lib/libblas.dll.a"                                \
 -DMESHING_APPLICATION=OFF                                                                           \
 -DEXTERNAL_SOLVERS_APPLICATION=ON                                                                   \
 -DSTRUCTURAL_MECHANICS_APPLICATION=OFF                                                              \
