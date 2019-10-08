@@ -24,6 +24,7 @@
 #include "utilities/integration_utilities.h"
 #include "fem_to_dem_application_variables.h"
 #include "utilities/geometrical_sensitivity_utility.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
