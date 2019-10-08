@@ -70,11 +70,12 @@ namespace Testing
         p_element->Initialize(); // Initialize the element to initialize the constitutive law
         p_element->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
-        KRATOS_WATCH(LHS)
-        KRATOS_WATCH(RHS)
-
-        // KRATOS_CHECK_LESS_EQUAL((0.0223607 - process_info[ERROR_OVERALL])/0.0223607, 1.0e-5);
-        // KRATOS_CHECK_LESS_EQUAL((0.148492 - process_info[ENERGY_NORM_OVERALL])/0.148492, 1.0e-5);
+        // Check RHS and LHS results
+        const double tolerance = 1.0e-5;
+        const std::vector<double> expected_RHS({-47008.5,-47008.5,0.00208333,38461.5,8547.01,0.00208333,8547.01,38461.5,0.0025});
+        const std::vector<double> expected_LHS_row_0({-876068,-106838,854701,384615,-277778,854701,491453,384615,854701});
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
     }
 
 } // namespace Testing
