@@ -57,6 +57,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
      	//.def("MoveNodes",&ROMBuilderAndSolverType::MoveNodes)
      	;
 
+
+
+    typedef HROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> HROMBuilderAndSolverType;
+
+     py::class_<HROMBuilderAndSolverType, typename HROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "HROMBuilderAndSolver")
+     	.def(py::init< LinearSolverType::Pointer, Parameters>() )
+     	//.def("MoveNodes",&HROMBuilderAndSolverType::MoveNodes)
+     	;
 }
 
 } // namespace Python.
