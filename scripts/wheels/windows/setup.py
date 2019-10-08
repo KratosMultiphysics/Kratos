@@ -1,8 +1,8 @@
 import setuptools
 import os
 
- with open("README.md", "r") as fh:
-     long_description = fh.read()
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 class BinaryDistribution(setuptools.Distribution):
     def has_ext_modules(foo):
