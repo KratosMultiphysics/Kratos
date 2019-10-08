@@ -71,12 +71,38 @@ class TestSerializer(KratosUnittest.TestCase):
         self._check_results()
 
     def test_serializer_loading(self):
-        # Reading the model from a file and serializing
-        self._prepare_test()
-        # Loading the model from the serialized object again
-        second_model = KratosMultiphysics.Model()
-        self.serialized_model.SetLoadState()
-        self.serialized_model.Load("ModelSerialization", second_model)
+        # Creating a model with nodes and variables
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        model_part.CreateSubModelPart("Inlets")
+        model_part.CreateSubModelPart("Temp")
+        model_part.CreateNewNode(1,0.0,0.0,0.0)
+        other = current_model.CreateModelPart("Other")
+        other.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        other.CreateNewNode(1,0.0,0.0,0.0)
 
+        # Serializing model
+        serialized_model = KratosMultiphysics.StreamSerializer()
+        serialized_model.Save("ModelSerialization", current_model)
+
+        # Loading model several times
+        first_model = KratosMultiphysics.Model()
+        serialized_model.SetLoadState()
+        serialized_model.Load("ModelSerialization", first_model)
+        second_model = KratosMultiphysics.Model()
+        serialized_model.SetLoadState()
+        serialized_model.Load("ModelSerialization", second_model)
+        third_model = KratosMultiphysics.Model()
+        serialized_model.SetLoadState()
+        serialized_model.Load("ModelSerialization", third_model)
+
+        self.assertTrue(third_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
+        self.assertTrue(third_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
+
+        self.assertTrue(third_model.HasModelPart("Main.Inlets"))
+        self.assertTrue(third_model.HasModelPart("Main.Temp"))
+        self.assertTrue(1 in third_model["Main"].Nodes)
+        self.assertTrue(1 in third_model["Other"].Nodes)
 if __name__ == '__main__':
     KratosUnittest.main()
