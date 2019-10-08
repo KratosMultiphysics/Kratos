@@ -16,7 +16,7 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestSerializer(KratosUnittest.TestCase):
-    def _prepare_test(self):
+    def _prepare_fluid_test(self):
         # Define a model and load the parameters
         self.pre_serialized_model = KratosMultiphysics.Model()
         with open(GetFilePath("auxiliar_files_for_python_unnitest/parameters_files/test_serializer.json"),'r') as parameter_file:
@@ -61,7 +61,7 @@ class TestSerializer(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(dependencies_are_available,"FluidDynamicsApplication is not available")
     def test_serializer_fluid_analysis(self):
-        self._prepare_test()
+        self._prepare_fluid_test()
         # Solving simulation before serializing to later check the results
         self.pre_serialized_simulation.RunSolutionLoop()
         self.pre_serialized_simulation.Finalize()
@@ -70,8 +70,7 @@ class TestSerializer(KratosUnittest.TestCase):
         self.serialized_simulation.Run()
         self._check_results()
 
-    @KratosUnittest.skipUnless(dependencies_are_available,"FluidDynamicsApplication is not available")
-    def test_serializer_fluid_analysis(self):
+    def test_serializer_loading(self):
         # Reading the model from a file and serializing
         self._prepare_test()
         # Loading the model from the serialized object again
