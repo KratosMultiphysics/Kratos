@@ -117,7 +117,6 @@ class Parameters(object):
         if self.Has(key): # removing a non-existing key does not throw in Kratos
             self.param.pop(key)
 
-
     def __CheckIfSubParameter(self, fct_name):
         if not self.IsSubParameter():
             raise TypeError('"{}" can only be used if the value is of Parameter type'.format(fct_name))
@@ -159,7 +158,6 @@ class Parameters(object):
     def IsNull(self):
         return self.__Is(type(None))
 
-
     def __Is(self, exp_type):
         return type(self.param) == exp_type
 
@@ -180,12 +178,10 @@ class Parameters(object):
     def GetString(self):
         return self.__Get(self.IsString, "string")
 
-
     def __Get(self, cmp_fct, exp_type_str):
         if not cmp_fct():
             raise TypeError("Argument must be a {}!".format(exp_type_str))
         return self.param
-
 
 
     ##########################
@@ -195,15 +191,14 @@ class Parameters(object):
     def SetInt(self, val):
         self.__Set(val)
 
-    def SetDouble(self):
+    def SetDouble(self, val):
         self.__Set(val)
 
-    def SetBool(self):
-        self._Set(val)
-
-    def SetString(self):
+    def SetBool(self, val):
         self.__Set(val)
 
+    def SetString(self, val):
+        self.__Set(val)
 
     def __Set(self, val):
         self.param = val
