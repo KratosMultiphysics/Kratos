@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
-from process_factory import KratosProcessFactory
+from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
