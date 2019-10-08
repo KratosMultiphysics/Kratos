@@ -19,9 +19,127 @@
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_io/gid_eigen_io.h"
+#include "custom_io/vtk_eigen_output.h"
 
 namespace Kratos
 {
+
+namespace { // helpers namespace
+
+// helper struct to wrap the different outputs
+struct BaseEigenOutputWrapper
+{
+    virtual ~BaseEigenOutputWrapper() = default;
+
+    virtual void PrintOutput(
+        const std::string& rLabel,
+        const int AnimationStep,
+        const std::vector<Variable<double>>& rRequestedDoubleResults,
+        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) = 0;
+};
+
+struct GidEigenOutputWrapper : public BaseEigenOutputWrapper
+{
+public:
+    GidEigenOutputWrapper(ModelPart& rModelPart, Parameters OutputParameters)
+        : mrModelPart(rModelPart)
+    {
+        std::string result_file_name = OutputParameters["result_file_name"].GetString();
+
+        if (result_file_name == "") { // use the name of the ModelPart in case nothing was assigned
+            result_file_name = mrModelPart.Name();
+        }
+
+        result_file_name += "_EigenResults_";
+
+        const std::string file_label = OutputParameters["file_label"].GetString();
+        if (file_label == "step") {
+            result_file_name += std::to_string(mrModelPart.GetProcessInfo()[STEP]);
+        } else if (file_label == "time") {
+            result_file_name += std::to_string(mrModelPart.GetProcessInfo()[TIME]);
+        } else {
+            KRATOS_ERROR << "\"file_label\" can only be \"step\" or \"time\"" << std::endl;
+        }
+
+        if (OutputParameters["save_output_files_in_folder"].GetBool()) {
+            result_file_name = OutputParameters["folder_name"].GetString() + "/" + result_file_name;
+        }
+
+        const auto post_mode = OutputParameters["result_file_format_use_ascii"].GetBool() ? GiD_PostAscii : GiD_PostBinary;
+
+        mpGidEigenIO = Kratos::make_unique<GidEigenIO>(
+            result_file_name,
+            post_mode,
+            MultiFileFlag::SingleFile,
+            WriteDeformedMeshFlag::WriteUndeformed,
+            WriteConditionsFlag::WriteConditions);
+
+        // deliberately rewritting the mesh in case the geometry is updated
+        mpGidEigenIO->InitializeMesh(0.0);
+        mpGidEigenIO->WriteMesh(mrModelPart.GetMesh());
+        mpGidEigenIO->WriteNodeMesh(mrModelPart.GetMesh());
+        mpGidEigenIO->FinalizeMesh();
+        mpGidEigenIO->InitializeResults(0.0, mrModelPart.GetMesh());
+    }
+
+    ~GidEigenOutputWrapper()
+    {
+        mpGidEigenIO->FinalizeResults();
+    }
+
+    void PrintOutput(
+        const std::string& rLabel,
+        const int AnimationStep,
+        const std::vector<Variable<double>>& rRequestedDoubleResults,
+        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
+    {
+        for (const auto& r_variable : rRequestedDoubleResults) {
+            mpGidEigenIO->WriteEigenResults(mrModelPart, r_variable, rLabel, AnimationStep);
+        }
+
+        for (const auto& r_variable : rRequestedVectorResults) {
+            mpGidEigenIO->WriteEigenResults(mrModelPart, r_variable, rLabel, AnimationStep);
+        }
+    }
+
+private:
+    Kratos::unique_ptr<GidEigenIO> mpGidEigenIO;
+    ModelPart& mrModelPart;
+
+};
+
+struct VtkEigenOutputWrapper : public BaseEigenOutputWrapper
+{
+public:
+    VtkEigenOutputWrapper(ModelPart& rModelPart, Parameters OutputParameters)
+    {
+        Parameters vtk_parameters(Parameters(R"({
+            "file_format" : "binary"
+        })" ));
+
+        if (OutputParameters["result_file_format_use_ascii"].GetBool()) {
+            vtk_parameters["file_format"].SetString("ascii");
+        }
+
+        mpVtkEigenOutput = Kratos::make_unique<VtkEigenOutput>(rModelPart, OutputParameters, vtk_parameters);
+    }
+
+    void PrintOutput(
+        const std::string& rLabel,
+        const int AnimationStep,
+        const std::vector<Variable<double>>& rRequestedDoubleResults,
+        const std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) override
+    {
+        mpVtkEigenOutput->PrintEigenOutput(rLabel, AnimationStep, rRequestedDoubleResults, rRequestedVectorResults);
+    }
+
+
+private:
+    Kratos::unique_ptr<VtkEigenOutput> mpVtkEigenOutput;
+
+};
+
+} // helpers namespace
 
 PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPart,
                                                                 Parameters OutputParameters)
@@ -31,8 +149,11 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPa
     Parameters default_parameters(R"(
         {
             "result_file_name"              : "Structure",
+            "file_format"                   : "vtk",
             "file_label"                    : "step",
             "result_file_format_use_ascii"  : false,
+            "folder_name"                   : "EigenResults",
+            "save_output_files_in_folder"   : true,
             "animation_steps"               : 20,
             "label_type"                    : "frequency",
             "list_of_result_variables"      : ["DISPLACEMENT"]
@@ -44,44 +165,15 @@ PostprocessEigenvaluesProcess::PostprocessEigenvaluesProcess(ModelPart& rModelPa
 
 void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
 {
-    // note that the parameters are read each time output is written
-    // this is done in order to limit the members of this class
-
-    std::string result_file_name = mOutputParameters["result_file_name"].GetString();
-
-    if (result_file_name == "") { // use the name of the ModelPart in case nothing was assigned
-        result_file_name = mrModelPart.Name();
-    }
-
-    result_file_name += "_EigenResults_";
-
-    const std::string file_label = mOutputParameters["file_label"].GetString();
-
-    if (file_label == "step") {
-        result_file_name += std::to_string(mrModelPart.GetProcessInfo()[STEP]);
-    } else if (file_label == "time") {
-        result_file_name += std::to_string(mrModelPart.GetProcessInfo()[TIME]);
+    Kratos::unique_ptr<BaseEigenOutputWrapper> p_eigen_io_wrapper;
+    const std::string file_format(mOutputParameters["file_format"].GetString());
+    if (file_format == "vtk") {
+        p_eigen_io_wrapper = Kratos::make_unique<VtkEigenOutputWrapper>(mrModelPart, mOutputParameters);
+    } else if (file_format == "gid") {
+        p_eigen_io_wrapper = Kratos::make_unique<GidEigenOutputWrapper>(mrModelPart, mOutputParameters);
     } else {
-        KRATOS_ERROR << "\"file_label\" can only be \"step\" or \"time\"" << std::endl;
+        KRATOS_ERROR << "\"file_format\" can only be \"vtk\" or \"gid\"" << std::endl;
     }
-
-    auto post_mode = GiD_PostBinary;
-    if (mOutputParameters["result_file_format_use_ascii"].GetBool()) { // this format is only needed for testing
-        post_mode = GiD_PostAscii;
-    }
-
-    GidEigenIO gid_eigen_io(
-        result_file_name,
-        post_mode,
-        MultiFileFlag::SingleFile,
-        WriteDeformedMeshFlag::WriteUndeformed,
-        WriteConditionsFlag::WriteConditions);
-
-    // deliberately rewritting the mesh in case the geometry is updated
-    gid_eigen_io.InitializeMesh(0.0);
-    gid_eigen_io.WriteMesh(mrModelPart.GetMesh());
-    gid_eigen_io.WriteNodeMesh(mrModelPart.GetMesh());
-    gid_eigen_io.FinalizeMesh();
 
     const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
     // Note: this is omega^2
@@ -93,7 +185,6 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
     std::vector<Variable<array_1d<double,3>>> requested_vector_results;
     GetVariables(requested_double_results, requested_vector_results);
 
-    gid_eigen_io.InitializeResults(0.0, mrModelPart.GetMesh());
 
     for (SizeType i=0; i<num_animation_steps; ++i) {
         const double cos_angle = std::cos(2 * Globals::Pi * i / num_animation_steps);
@@ -105,10 +196,10 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
             for (int k=0; k<static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
                 // Copy the eigenvector to the Solutionstepvariable. Credit to Michael Andre
                 DofsContainerType& r_node_dofs = (nodes_begin+k)->GetDofs();
-                Matrix& r_node_eigenvectors = (nodes_begin+k)->GetValue(EIGENVECTOR_MATRIX);
+                const Matrix& r_node_eigenvectors = (nodes_begin+k)->GetValue(EIGENVECTOR_MATRIX);
 
                 KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2())
-                    << "Number of results on node " << (nodes_begin+i)->Id() << " is wrong" << std::endl;
+                    << "Number of results on node #" << (nodes_begin+i)->Id() << " is wrong" << std::endl;
 
                 SizeType l = 0;
                 for (auto& r_dof : r_node_dofs) {
@@ -122,20 +213,13 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
                 ConstraintUtilities::ApplyConstraints(mrModelPart);
             }
 
-            for (const auto& variable : requested_double_results) {
-                gid_eigen_io.WriteEigenResults(mrModelPart, variable, label, i);
-            }
-
-            for (const auto& variable : requested_vector_results) {
-                gid_eigen_io.WriteEigenResults(mrModelPart, variable, label, i);
-            }
+            p_eigen_io_wrapper->PrintOutput(label, i, requested_double_results, requested_vector_results);
         }
     }
-    gid_eigen_io.FinalizeResults();
 }
 
 void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
-                                                std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults)
+                                                std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) const
 {
     for (SizeType i=0; i<mOutputParameters["list_of_result_variables"].size(); ++i) {
         const std::string variable_name = mOutputParameters["list_of_result_variables"].GetArrayItem(i).GetString();
@@ -165,7 +249,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
 }
 
 std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue,
-                                                    const double EigenvalueSolution)
+                                                    const double EigenvalueSolution) const
 {
     double label_number;
 

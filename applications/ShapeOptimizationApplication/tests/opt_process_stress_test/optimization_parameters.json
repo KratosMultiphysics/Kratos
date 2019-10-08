@@ -18,8 +18,8 @@
         "objectives" : [{
             "identifier" : "max_stress",
             "type"       : "minimization",
-            "use_kratos" : true,
-            "kratos_response_settings":{
+            "analyzer"   : "kratos",
+            "response_settings":{
                 "response_type"        : "adjoint_max_stress",
                 "gradient_mode"        : "semi_analytic",
                 "step_size"            : 1.0e-6,
