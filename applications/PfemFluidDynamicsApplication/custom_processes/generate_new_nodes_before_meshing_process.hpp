@@ -259,7 +259,7 @@ private:
 		unsigned int inletNodes = 0;
 		bool toEraseNodeFound = false;
 
-		double numNodes = 0;
+		bool refinedZone=false;
 		double sumRefiningSize = 0;
 		double meanMeshSize=mrRemesh.Refine->CriticalRadius;
 		const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
@@ -301,7 +301,7 @@ private:
 				{
 					// meanMeshSize = mrRemesh.RefiningBoxMeshSize;
 					sumRefiningSize += mrRemesh.RefiningBoxMeshSize;
-					numNodes += 1.0;
+					refinedZone=true;
 				}
 				else
 				{
@@ -309,7 +309,7 @@ private:
 				}
 			}
 		}
-		if (numNodes > 0.01)
+		if (refinedZone==true)
 		{
 			meanMeshSize = sumRefiningSize / double(nds);
 		}
@@ -506,7 +506,7 @@ private:
 		unsigned int inletNodes = 0;
 		bool toEraseNodeFound = false;
 
-		double numNodes = 0;
+		bool refinedZone =false;
 		double sumRefiningSize = 0;
 		double meanMeshSize=mrRemesh.Refine->CriticalRadius;
 		const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
@@ -549,7 +549,7 @@ private:
 				{
 					// meanMeshSize = mrRemesh.RefiningBoxMeshSize;
 					sumRefiningSize += mrRemesh.RefiningBoxMeshSize;
-					numNodes += 1.0;
+					refinedZone=true;
 				}
 				else
 				{
@@ -559,7 +559,7 @@ private:
 
 
 		}
-		if (numNodes > 0.01)
+		if (refinedZone==true)
 		{
 			meanMeshSize = sumRefiningSize / double(nds);
 		}
