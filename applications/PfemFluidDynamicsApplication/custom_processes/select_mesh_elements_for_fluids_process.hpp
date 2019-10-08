@@ -307,7 +307,7 @@ public:
                     Alpha *= 1.25;
                 }
                 if (refiningBox == true){
-                    Alpha *= 1.1;
+                    Alpha *= 1.05;
                 }
 
                 if (dimension == 2)
