@@ -215,9 +215,10 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
         # test simple FSI loop
         for i in range(5):
-            self.write_position_update_test(0.005)
+            self.write_position_update_test(0.01)
             self.send_message('continue')
             self.wait_message('fluent_ready')
+            time.sleep(2)
         self.send_message('stop')
 
         print('FINISHED TEST')
@@ -225,7 +226,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def write_position_update_test(self, f):
         for t in range(self.n_threads):
-            self.node_coords[t][:, 1] += (1 - np.cos(2 * np.pi * self.node_coords[t][:, 0])) * 0.5 * f
+            self.node_coords[t][:, 1] += np.cos(2 * np.pi * self.node_coords[t][:, 0]) * 0.5 * f
             with open(os.path.join(self.dir_cfd, f'new_node_coords_thread{self.thread_ids[t]}.dat'), 'w') as file:
                 file.write(f'{self.node_ids[t].size}\n')
                 for i in range(self.node_ids[t].size):
