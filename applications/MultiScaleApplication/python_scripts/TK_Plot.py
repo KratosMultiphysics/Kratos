@@ -3,30 +3,28 @@ from KratosMultiphysics import *
 from KratosMultiphysics.MultiScaleApplication import *
 import os
 import glob
-CheckForPreviousImport()
-
 
 class GNUPlot_Folder:
 
 	def __init__(self, Name):
 		self.Name = Name
-		
+
 	def Initialize(self, Model):
 		if not os.path.exists(self.Name):
 			os.mkdir(self.Name)
-		
+
 	def OnBeforeSolutionStage(self, Model):
 		pass
-		
+
 	def OnSolutionStageCompleted(self, Model):
 		pass
-		
+
 	def OnBeforeSolutionStep(self, Model):
 		pass
-		
+
 	def OnSolutionStepCompleted(self, Model):
 		pass
-		
+
 	def Finalize(self, Model):
 		pass
 
@@ -50,7 +48,7 @@ class GNUPlot_Nodal:
 		self.ofile = None
 		self.Frequency = Frequency
 		self.Tn = None
-	
+
 	def __check_write_freq(self,t):
 		r = True
 		f = self.Frequency
@@ -64,7 +62,7 @@ class GNUPlot_Nodal:
 				else:
 					r = False
 		return r
-		
+
 	def Initialize(self, Model):
 		if not os.path.exists(self.BaseName):
 			os.mkdir(self.BaseName)
@@ -75,16 +73,16 @@ class GNUPlot_Nodal:
 		self.ofile.write(str(xx) + "   " + str(yy) + '\n')
 		self.ofile.flush()
 		self.Tn = Model.ProcessInfo[TIME]
-	
+
 	def OnBeforeSolutionStage(self, Model):
 		pass
-		
+
 	def OnSolutionStageCompleted(self, Model):
 		pass
-	
+
 	def OnBeforeSolutionStep(self, Model):
 		pass
-	
+
 	def OnSolutionStepCompleted(self, Model):
 		t = Model.ProcessInfo[TIME]
 		if( (t == Model.ProcessInfo[END_TIME]) or (self.__check_write_freq(t)) ):
@@ -92,7 +90,7 @@ class GNUPlot_Nodal:
 			yy = Model.Nodes[self.NodeY].GetSolutionStepValue(self.VarY)
 			self.ofile.write(str(xx) + "   " + str(yy) + '\n')
 			self.ofile.flush()
-	
+
 	def Finalize(self, Model):
 		self.ofile.close()
 
@@ -124,7 +122,7 @@ class GNUPlot_Nodal_Multiple:
 		self.YSumFactor=YSumFactor
 		self.Frequency = Frequency
 		self.Tn = None
-	
+
 	def __check_write_freq(self,t):
 		r = True
 		f = self.Frequency
@@ -138,7 +136,7 @@ class GNUPlot_Nodal_Multiple:
 				else:
 					r = False
 		return r
-	
+
 	def Initialize(self, Model):
 		if not os.path.exists(self.BaseName):
 			os.mkdir(self.BaseName)
@@ -156,16 +154,16 @@ class GNUPlot_Nodal_Multiple:
 		self.ofile.write(str(self.FactorX*sum_x) + "   " + str(self.FactorY*sum_y) + '\n')
 		self.ofile.flush()
 		self.Tn = Model.ProcessInfo[TIME]
-	
+
 	def OnBeforeSolutionStage(self, Model):
 		pass
-		
+
 	def OnSolutionStageCompleted(self, Model):
 		pass
-	
+
 	def OnBeforeSolutionStep(self, Model):
 		pass
-	
+
 	def OnSolutionStepCompleted(self, Model):
 		t = Model.ProcessInfo[TIME]
 		if( (t == Model.ProcessInfo[END_TIME]) or (self.__check_write_freq(t)) ):
@@ -177,7 +175,7 @@ class GNUPlot_Nodal_Multiple:
 				sum_y += Model.Nodes[i].GetSolutionStepValue(self.VarY)
 			self.ofile.write(str(self.FactorX*sum_x) + "   " + str(self.FactorY*sum_y) + '\n')
 			self.ofile.flush()
-	
+
 	def Finalize(self, Model):
 		self.ofile.close()
 
@@ -205,7 +203,7 @@ class GNUPlot_Elemental:
 		self.ComponentY = ComponentY
 		self.Frequency = Frequency
 		self.Tn = None
-	
+
 	def __check_write_freq(self,t):
 		r = True
 		f = self.Frequency
@@ -219,7 +217,7 @@ class GNUPlot_Elemental:
 				else:
 					r = False
 		return r
-	
+
 	def Initialize(self, Model):
 		if not os.path.exists(self.BaseName):
 			os.mkdir(self.BaseName)
@@ -230,16 +228,16 @@ class GNUPlot_Elemental:
 		self.ofile.write(str(xx) + "   " + str(yy) + '\n')
 		self.ofile.flush()
 		self.Tn = Model.ProcessInfo[TIME]
-	
+
 	def OnBeforeSolutionStage(self, Model):
 		pass
-		
+
 	def OnSolutionStageCompleted(self, Model):
 		pass
-	
+
 	def OnBeforeSolutionStep(self, Model):
 		pass
-	
+
 	def OnSolutionStepCompleted(self, Model):
 		t = Model.ProcessInfo[TIME]
 		if( (t == Model.ProcessInfo[END_TIME]) or (self.__check_write_freq(t)) ):
@@ -257,7 +255,7 @@ class GNUPlot_Elemental:
 				yy = my[self.ComponentY]
 			self.ofile.write(str(xx) + "   " + str(yy) + '\n')
 			self.ofile.flush()
-	
+
 	def Finalize(self, Model):
 		self.ofile.close()
 
@@ -284,7 +282,7 @@ class Plot_StrainVsStress:
 		self.ofile = None
 		self.ComponentX = ComponentX
 		self.ComponentY = ComponentY
-		
+
 	def Initialize(self, Model):
 		if not os.path.exists(self.BaseName):
 			os.mkdir(self.BaseName)
@@ -294,16 +292,16 @@ class Plot_StrainVsStress:
 		yy = 0.0
 		self.ofile.write(str(xx) + "   " + str(yy) + '\n')
 		self.ofile.flush()
-	
+
 	def OnBeforeSolutionStage(self, Model):
 		pass
-		
+
 	def OnSolutionStageCompleted(self, Model):
 		pass
-	
+
 	def OnBeforeSolutionStep(self, Model):
 		pass
-	
+
 	def OnSolutionStepCompleted(self, Model):
 		allx = Model.Elements[self.ElementID].GetValuesOnIntegrationPoints(self.VarX, Model.ProcessInfo)
 		ally = Model.Elements[self.ElementID].GetValuesOnIntegrationPoints(self.VarY, Model.ProcessInfo)
@@ -319,7 +317,7 @@ class Plot_StrainVsStress:
 			yy = my[self.ComponentY]
 		self.ofile.write(str(xx) + "   " + str(yy) + '\n')
 		self.ofile.flush()
-	
+
 	def Finalize(self, Model):
 		self.ofile.close()
 
@@ -335,20 +333,20 @@ class GNUPlot_YieldSurf2D:
 		self.Name = Name
 		self.ElementID = ElementID
 		self.GpID = GpID
-		
+
 	def Initialize(self, Model):
 		if not os.path.exists(self.BaseName):
 			os.mkdir(self.BaseName)
-	
+
 	def OnBeforeSolutionStage(self, Model):
 		pass
-		
+
 	def OnSolutionStageCompleted(self, Model):
 		pass
-	
+
 	def OnBeforeSolutionStep(self, Model):
 		pass
-	
+
 	def OnSolutionStepCompleted(self, Model):
 		time = Model.ProcessInfo[TIME]
 		stime = str(time).replace('.','_')
@@ -363,6 +361,6 @@ class GNUPlot_YieldSurf2D:
 			y = str(yy[i])
 			ofile.write(x + "   " + y + '\n')
 		ofile.close()
-		
+
 	def Finalize(self, Model):
 		pass

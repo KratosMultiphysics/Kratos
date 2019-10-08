@@ -78,7 +78,7 @@ class PotentialFlowSolver(FluidSolver):
                 "input_filename": "unknown_name"
             },
             "material_import_settings": {
-                "materials_filename": "unknown_materials.json"
+                "materials_filename": ""
             },
             "formulation": {
                 "element_type": "incompressible"
@@ -120,6 +120,7 @@ class PotentialFlowSolver(FluidSolver):
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.reference_chord = custom_settings["reference_chord"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KCPFApp.REFERENCE_CHORD,self.reference_chord)
+        self.element_has_nodal_properties = False
 
         #construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory

@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import Logger
 
 from unittest import * # needed to make all functions available to the tests using this file
+from unittest.util import safe_repr
 from contextlib import contextmanager
 
 import getopt
@@ -39,6 +40,32 @@ class TestCase(TestCase):
 
         if first < (second - tolerance) or first > (second + tolerance):
             raise self.failureException(msg or '%r != %r within %r places' % (first, second, tolerance))
+
+    def assertIsClose(self, first, second, rel_tol=None, abs_tol=None, msg=None):
+        """Fail if the two objects are unequal as determined by their
+           absolute and relative difference
+
+           If the two objects compare equal then they will automatically
+           compare relative almost equal.
+        """
+        if first == second:
+            # shortcut
+            return
+
+        if rel_tol is None:
+            rel_tol = 1e-09
+        if abs_tol is None:
+            abs_tol = 0.0
+
+        if isclose(first, second, rel_tol, abs_tol):
+            return
+
+        standardMsg = '%s != %s within %s rel-tol and %s abs-tol' % (safe_repr(first),
+                                                     safe_repr(second),
+                                                     rel_tol, abs_tol)
+        msg = self._formatMessage(msg, standardMsg)
+        raise self.failureException(msg)
+
 
     assertEqualTolerance = failUnlessEqualWithTolerance
 
@@ -170,7 +197,8 @@ KratosSuites = {
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     '''Same implementation as math.isclose
-    self-implemented bcs msth.isclose was only introduced in python3.5
+    self-implemented bcs math.isclose was only introduced in python3.5
+    see https://www.python.org/dev/peps/pep-0485/
     '''
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 

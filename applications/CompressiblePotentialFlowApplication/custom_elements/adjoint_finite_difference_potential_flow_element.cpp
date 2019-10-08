@@ -13,7 +13,10 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
 #include "compressible_potential_flow_element.h"
+#include "embedded_incompressible_potential_flow_element.h"
+#include "embedded_compressible_potential_flow_element.h"
 #include "adjoint_finite_difference_potential_flow_element.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -89,6 +92,58 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
+    void AdjointFiniteDifferencePotentialFlowElement<TPrimalElement>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+                                    Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+
+        auto pPrimalElement = this->pGetPrimalElement();
+
+        double column_size = (pPrimalElement->GetValue(WAKE)) ? 2*NumNodes : NumNodes;
+        if (rOutput.size1() != NumNodes || rOutput.size2() != column_size)
+            rOutput.resize(NumNodes, column_size, false);
+        rOutput.clear();
+
+        BoundedVector<double,NumNodes> distances;
+        for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+            distances[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        }
+        const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
+
+        // Calculate sensitivity matrix in elements that are cut and active.
+        if (is_embedded && this->Is(ACTIVE)){
+
+            const double delta = this->GetPerturbationSize();
+            ProcessInfo process_info = rCurrentProcessInfo;
+            const auto& r_geometry = this->GetGeometry();
+            Vector RHS;
+            Vector RHS_perturbed;
+
+            pPrimalElement->CalculateRightHandSide(RHS, process_info);
+
+            for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+                // Apply F.D in all cut nodes that are not trailing edge nodes.
+                if (!r_geometry[i_node].GetValue(TRAILING_EDGE)){
+                    // Perturbate distance
+                    pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i_node]+delta;
+                    // Compute perturbated RHS
+                    pPrimalElement->CalculateRightHandSide(RHS_perturbed, process_info);
+                    // Recover distance value
+                    pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i_node];
+
+                    for (unsigned int i_dof =0;i_dof<RHS.size();i_dof++) {
+                        rOutput(i_node,i_dof) = (RHS_perturbed(i_dof)-RHS(i_dof))/delta;
+                    }
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    template <class TPrimalElement>
     double AdjointFiniteDifferencePotentialFlowElement<TPrimalElement>::GetPerturbationSize()
     {
         const double delta = this->GetValue(SCALE_FACTOR);
@@ -130,5 +185,7 @@ namespace Kratos
 
     template class AdjointFiniteDifferencePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
     template class AdjointFiniteDifferencePotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
+    template class AdjointFiniteDifferencePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
+    template class AdjointFiniteDifferencePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>>;
 } // namespace Kratos.
 
