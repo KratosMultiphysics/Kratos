@@ -57,7 +57,7 @@ MAPcond::~MAPcond()
 //***********************************************************************************
 //***********************************************************************************
 
-void MAPcond::Initialize()
+void MAPcond::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
 
 }
@@ -70,7 +70,7 @@ void MAPcond::CalculateRightHandSide(
     ProcessInfo& r_process_info)
 {
 
- }
+}
 
 
  void MAPcond::AddExplicitContribution(const VectorType& rRHS,
