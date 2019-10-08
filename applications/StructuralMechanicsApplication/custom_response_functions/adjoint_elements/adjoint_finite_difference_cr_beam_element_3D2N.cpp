@@ -59,6 +59,17 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
         const double J = this->GetProperties()[TORSIONAL_INERTIA];
         const double Iy = this->GetProperties()[I22];
         const double Iz = this->GetProperties()[I33];
+        double Ay = 0.00;
+        if (this->GetProperties().Has(AREA_EFFECTIVE_Y))
+        {
+            Ay = this->GetProperties()[AREA_EFFECTIVE_Y];
+        }
+
+        double Az = 0.00;
+        if (this->GetProperties().Has(AREA_EFFECTIVE_Z))
+        {
+            Az = this->GetProperties()[AREA_EFFECTIVE_Z];
+        }
 
         if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_PARTICULAR_CURVATURE)
         {
@@ -88,8 +99,14 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegratio
             for (IndexType i = 0; i < rOutput.size(); ++i)
             {
                 rOutput[i][0] *= 1.0 / (E * A);
-                rOutput[i][1] *= 0.0;
-                rOutput[i][2] *= 0.0;
+                if(Ay > 0.0)
+                    rOutput[i][1] *= 1.0 / (G * Ay);
+                else
+                    rOutput[i][1] = 0.0;
+                if(Az > 0.0)
+                    rOutput[i][2] *= 1.0 / (G * Az);
+                else
+                    rOutput[i][2] = 0.0;
             }
         }
 
