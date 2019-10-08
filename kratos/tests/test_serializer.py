@@ -40,6 +40,7 @@ class TestSerializer(KratosUnittest.TestCase):
 
         # Deserialize and store the new model
         self.current_model = KratosMultiphysics.Model()
+        self.serialized_model.SetLoadState()
         self.serialized_model.Load("ModelSerialization",self.current_model)
 
     def _check_results(self):
@@ -75,6 +76,7 @@ class TestSerializer(KratosUnittest.TestCase):
         self._prepare_test()
         # Loading the model from the serialized object again
         second_model = KratosMultiphysics.Model()
+        self.serialized_model.SetLoadState()
         self.serialized_model.Load("ModelSerialization", second_model)
 
 if __name__ == '__main__':
