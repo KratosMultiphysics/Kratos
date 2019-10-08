@@ -36,7 +36,7 @@ for (_d = 0; _d < dim; _d++) {                                      \
     ASSIGN_MEMORY(name[_d], size, type);                            \
 }
 
-/* sending and receiving */
+/* sending and receiving arrays in parallel */
 #define PRF_CSEND_INT_N(to, name, n, tag, dim)                      \
 for (_d = 0; _d < dim; _d++) {                                      \
     PRF_CSEND_INT(to, name[_d], n, tag);                            \
@@ -57,15 +57,9 @@ for (_d = 0; _d < dim; _d++) {                                      \
     PRF_CRECV_REAL(from, name[_d], n, tag);                         \
 }
 
-
-/*#define pi 3.1415926535
-#define e 2.7182818284*/
 #define mnpf |max_nodes_per_face|
 
-/* Make UDF compatible with 2D and 3D cases, use ND_ND etc */
-
 int _d; /* don't use in UDFs! */
-
 int n_threads;
 DECLARE_MEMORY(thread_ids, int);
 

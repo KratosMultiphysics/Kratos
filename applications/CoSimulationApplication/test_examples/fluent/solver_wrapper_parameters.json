@@ -13,14 +13,7 @@
                 "fluent_gui": true,
                 "max_nodes_per_face": 4,
                 "dimensions": 2,
-                "hybrid_initialization": true,
-                "interface_input": {
-                    "wall_top": "DISPLACEMENT_X"
-                },
-                "interface_output":
-                {
-                    "wall_top": "AREA"
-                }
+                "hybrid_initialization": true
             }
         }
     ]

@@ -22,9 +22,9 @@ class ModelPart:
 
     def AddNodalSolutionStepVariable(self, variable):
         if isinstance(variable, list):  # For vector variables
+            self.solution_step_variables.append(variable[0])
             self.solution_step_variables.append(variable[1])
             self.solution_step_variables.append(variable[2])
-            self.solution_step_variables.append(variable[3])
         else:
             self.solution_step_variables.append(variable)
         # To do: add variables to existing Nodes

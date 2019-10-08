@@ -44,9 +44,10 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         with open(os.path.join(path_src, journal), 'r') as infile:
             with open(os.path.join(self.dir_cfd, journal), 'w') as outfile:
                 for line in infile:
-                    line = line.replace('|case|', os.path.join(self.dir_cfd, self.case_file))
+                    line = line.replace('|case|', os.path.join(self.dir_cfd, self.case_file))  #*** change back to capitals, that's clearer...
                     line = line.replace('|thread_names|', thread_names_str)
                     line = line.replace('|hybrid_initialization|', hybrid_initialization)
+                    line = line.replace('|iterations|', str(50))
                     outfile.write(line)
 
         # prepare Fluent UDF
@@ -193,7 +194,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
             # *** TO DO: define CoSimulationInterfaces... not sure how
 
 
-        # *** reading in pressure and traction data: analogous to reading in face data
+        # *** reading in pressure and traction data is analogous to reading in face data
         # *** perhaps put the overlapping code in some kind of read-function??
 
 
@@ -201,22 +202,37 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         # create and write test data to deform threads in Fluent
         node_coords_new = copy.deepcopy(self.node_coords)
         for t in range(self.n_threads):
-            print(node_coords_new[t])
-            node_coords_new[t][:, 1] += self.node_coords[t][:, 0] * 0.02
-            print(node_coords_new[t])
-
+            node_coords_new[t][:, 1] += self.node_coords[t][:, 0] * 0.
             with open(os.path.join(self.dir_cfd, f'new_node_coords_thread{self.thread_ids[t]}.dat'), 'w') as file:
                 file.write(f'{self.node_ids[t].size}\n')
                 for i in range(self.node_ids[t].size):
                     for d in range(self.dimensions):
                         file.write(f'{node_coords_new[t][i, d]}\t')
                     file.write(self.node_ids[t][i] + '\n')
+
         self.send_message('test_position_updates')
+        self.wait_message('test_finished')
+
+        # test simple FSI loop
+        for i in range(5):
+            self.write_position_update_test(0.01)
+            self.send_message('continue')
+            self.wait_message('fluent_ready')
+            time.sleep(2)
+        self.send_message('stop')
 
         print('FINISHED TEST')
 
 
-
+    def write_position_update_test(self, f):
+        for t in range(self.n_threads):
+            self.node_coords[t][:, 1] += np.cos(2 * np.pi * self.node_coords[t][:, 0]) * 0.5 * f
+            with open(os.path.join(self.dir_cfd, f'new_node_coords_thread{self.thread_ids[t]}.dat'), 'w') as file:
+                file.write(f'{self.node_ids[t].size}\n')
+                for i in range(self.node_ids[t].size):
+                    for d in range(self.dimensions):
+                        file.write(f'{self.node_coords[t][i, d]}\t')
+                    file.write(self.node_ids[t][i] + '\n')
 
     def send_message(self, message):
         file = os.path.join(self.dir_cfd, message + ".msg")

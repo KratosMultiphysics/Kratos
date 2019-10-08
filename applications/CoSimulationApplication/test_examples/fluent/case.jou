@@ -1,5 +1,6 @@
 file set-batch-options n n n
 (enable-dynamic-mesh-node-ids #t)
+f startt "transcript.txt"
 
 f rc "mesh.msh"
 solve set expert y n y
@@ -17,7 +18,7 @@ def models viscous laminar y
 def bc vel inlet n y y n , n 1 n 0
 
 def dyn dyn y n n
-def dyn controls smoothing n
+def dyn controls smoothing y
 def dyn zones create default-interior deforming faceted n y n n ,,, n
 def dyn zones create inlet deforming faceted n y n n ,,, n
 def dyn zones create outlet deforming faceted n y n n ,,, n
