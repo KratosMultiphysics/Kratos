@@ -122,8 +122,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
     const SizeType dimension       = r_geometry.WorkingSpaceDimension();
     const SizeType strain_size     = this->mConstitutiveLawVector[0]->GetStrainSize();
 
-    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-    ConstitutiveVariables this_constitutive_variables(strain_size);
+    BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters cl_values(r_geometry,this->GetProperties(),rCurrentProcessInfo);
@@ -177,8 +177,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
     const SizeType strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 
-    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-    ConstitutiveVariables this_constitutive_variables(strain_size);
+    BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
     // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
@@ -302,8 +302,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
     const auto strain_size           = this->GetStrainSize();
     const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 
-    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-    ConstitutiveVariables this_constitutive_variables(strain_size);
+    BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
     // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
@@ -411,7 +411,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateKinematicVariables(
-    KinematicVariables& rThisKinematicVariables,
+    BaseSolidElement::KinematicVariables& rThisKinematicVariables,
     const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod
     )
@@ -587,8 +587,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::ComputeEquivalentF(
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateConstitutiveVariables(
-    KinematicVariables& rThisKinematicVariables,
-    ConstitutiveVariables& rThisConstitutiveVariables,
+    BaseSolidElement::KinematicVariables& rThisKinematicVariables,
+    BaseSolidElement::ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
@@ -607,8 +607,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateConstitutiveVari
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::SetConstitutiveVariables(
-    KinematicVariables& rThisKinematicVariables,
-    ConstitutiveVariables& rThisConstitutiveVariables,
+    BaseSolidElement::KinematicVariables& rThisKinematicVariables,
+    BaseSolidElement::ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints
@@ -703,8 +703,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
         const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-        ConstitutiveVariables this_constitutive_variables(strain_size);
+        BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
@@ -742,8 +742,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
         const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-        ConstitutiveVariables this_constitutive_variables(strain_size);
+        BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
@@ -781,8 +781,8 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoi
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
         const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-        ConstitutiveVariables this_constitutive_variables(strain_size);
+        BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);

@@ -220,7 +220,7 @@ protected:
      * @param rIntegrationMethod The integration method considered
      */
     void CalculateKinematicVariables(
-        KinematicVariables& rThisKinematicVariables,
+        BaseSolidElement::KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         );
@@ -238,16 +238,16 @@ protected:
     // void ComputeEquivalentF(Matrix& rF, const Vector& rStrainTensor);
 
     void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
+        BaseSolidElement::KinematicVariables& rThisKinematicVariables,
+        BaseSolidElement::ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure);
 
     void SetConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
+        BaseSolidElement::KinematicVariables& rThisKinematicVariables,
+        BaseSolidElement::ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints);
