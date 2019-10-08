@@ -1,3 +1,4 @@
+import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import ImportDataStructure
@@ -17,7 +18,10 @@ class TestConvergenceCriterionAbsoluteNorm(KratosUnittest.TestCase):
         interface_settings = {"wall": "AREA"}
 
         # Create interface
-        variable = "AREA"
+        variable = KM.KratosGlobals.GetVariable("AREA")
+        # only names defined in Variables.py are allowed, otherwise they are not global
+        #   so just add whatever names you like! :D
+        #   (that seems like the easiest fix...)
         model = cs_data_structure.Model()
         model_part = model.CreateModelPart("wall")
         model_part.AddNodalSolutionStepVariable(variable)

@@ -3,6 +3,7 @@ import copy
 
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 cs_data_structure = cs_tools.cs_data_structure
+import KratosMultiphysics as KM
 
 
 # Class CoSimulationInterface: Holds the different ModelParts of the interface.
@@ -16,8 +17,9 @@ class CoSimulationInterface(object):
     def GetPythonList(self):
         data = []
         step = 0
-        for model_part_name, variable in self.model_parts_variables:
+        for model_part_name, variable_name in self.model_parts_variables:
             model_part = self.model.GetModelPart(model_part_name)
+            variable = KM.KratosGlobals.GetVariable(variable_name)
             for node in model_part.Nodes:
                 value = node.GetSolutionStepValue(variable, step)
                 data.append(value)
@@ -29,8 +31,9 @@ class CoSimulationInterface(object):
     def SetPythonList(self, data):
         index = 0
         step = 0
-        for model_part_name, variable in self.model_parts_variables:
+        for model_part_name, variable_name in self.model_parts_variables:
             model_part = self.model.GetModelPart(model_part_name)
+            variable = KM.KratosGlobals.GetVariable(variable_name)
             for node in model_part.Nodes:
                 value = data[index]
                 index += 1

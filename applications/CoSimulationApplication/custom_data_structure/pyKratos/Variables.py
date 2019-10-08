@@ -94,3 +94,5 @@ CreateDoubleVariable("NODAL_MASS")
 CreateDoubleVariable("NODAL_ERROR")
 
 CreateVectorVariable("EXTERNAL_FORCES_VECTOR")
+
+CreateDoubleVariable("AREA")
