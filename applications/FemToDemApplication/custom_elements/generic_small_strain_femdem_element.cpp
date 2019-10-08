@@ -674,31 +674,6 @@ bool GenericSmallStrainFemDemElement<TDim,TyieldSurf>::UseElementProvidedStrain(
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAndAddResidualVector(
-    VectorType& rRightHandSideVector,
-    const KinematicVariables& rThisKinematicVariables,
-    const ProcessInfo& rCurrentProcessInfo,
-    const array_1d<double, 3>& rBodyForce,
-    const Vector& rStressVector,
-    const double IntegrationWeight
-    ) const
-{
-    KRATOS_TRY
-
-    // Operation performed: rRightHandSideVector += ExtForce * IntegrationWeight
-    this->CalculateAndAddExtForceContribution( rThisKinematicVariables.N, rCurrentProcessInfo, rBodyForce, rRightHandSideVector, IntegrationWeight );
-
-    // Operation performed: rRightHandSideVector -= IntForce * IntegrationWeight
-    noalias( rRightHandSideVector ) -= IntegrationWeight * prod( trans( rThisKinematicVariables.B ), rStressVector );
-
-    KRATOS_CATCH( "" )
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-
-template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,

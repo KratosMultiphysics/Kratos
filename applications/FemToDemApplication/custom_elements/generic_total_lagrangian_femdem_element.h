@@ -109,7 +109,7 @@ public:
 
     // Copy constructor
     GenericTotalLagrangianFemDemElement(GenericTotalLagrangianFemDemElement const& rOther)
-        :BaseType(rOther)
+        : BaseSolidElement(rOther)
     {};
 
     /// Destructor.
@@ -167,7 +167,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process info instance
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    // int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     //std::string Info() const;
 
@@ -350,11 +350,6 @@ protected:
     void InitializeInternalVariablesAfterMapping();
 
     /**
-     * this saves the converged values with the later non-conv values
-     */
-    void UpdateDataBase();
-
-    /**
      * this computes the average vector on the edge for a certain variable
      */
     void CalculateAverageVariableOnEdge(const Element* pCurrentElement, const Variable<Vector> ThisVariable, Vector& rAverageStress, const int edge);
@@ -382,34 +377,9 @@ protected:
     double CalculateCharacteristicLength(GenericTotalLagrangianFemDemElement *pCurrentElement);
 
     /**
-     * this computes VolumeForce of the element
-     */
-    Vector& CalculateVolumeForce(Vector& rVolumeForce, const Vector& rN);
-
-    /**
      * this computes the damage according to a exp softening
      */
     void CalculateExponentialDamage(double& rDamage, const double DamageParameter, const double UniaxialStress, const double InitialThrehsold);
-
-    /**
-     * this computes stress predictor S = C:E
-     */
-    void CalculateStressVectorPredictor(Vector& rStressVector, const Matrix& rConstitutiveMAtrix, const Vector& rStrainVector);
-
-    /**
-     * this adds the internal forces
-     */
-    void CalculateAndAddInternalForcesVector(Vector& rRightHandSideVector, const Matrix& rB, const Vector& rStressVector, const double IntegrationWeight);
-
-    /**
-     * this adds geometric contribution to the LHS
-     */
-    void CalculateGeometricK(MatrixType& rLeftHandSideMatrix, const Matrix& rDN_DX, const Vector& rStressVector, const double IntegrationWeight);
-
-    /**
-     * this adds material contribution to the LHS when secant
-     */
-    void CalculateAndAddMaterialK(MatrixType& rLeftHandSideMatrix,const Matrix& B, const Matrix& D, const double IntegrationWeight, const double Damage);
 
     /**
      * this computes the Green-Lagrange Strain vector from F
