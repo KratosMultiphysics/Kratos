@@ -137,13 +137,15 @@ public:
 
       /// Calculating the displacement of the current node
       array_1d<double, 3> transformed_coordinates;
-      TransformNode(it_node->Coordinates(),
-                    transformed_coordinates, mDTheta);
+      TransformNode(it_node->GetInitialPosition().Cordinates(),
+                    transformed_coordinates, mTheta);
 
-      it_node->X0() = transformed_coordinates[0];
-      it_node->Y0() = transformed_coordinates[1];
+      it_node->X() = transformed_coordinates[0];
+      it_node->Y() = transformed_coordinates[1];
       if (domain_size > 2)
-        it_node->Z0() = transformed_coordinates[2];
+        it_node->Z() = transformed_coordinates[2];
+
+      it_node->SetSolutionStepValue(DISPLACEMENT, transformed_coordinates - it_node->GetInitialPosition().Cordinates());
 
       // Computing the linear velocity at this it_node
       DenseVector<double> radius(3);
@@ -403,6 +405,7 @@ private:
     auto& r_torque_model_part = r_model.HasModelPart(mParameters["torque_model_part_name"].GetString()) ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
     KRATOS_INFO("RotateRegionProcess")<<"Current angular velocity   :: "<<mAngularVelocityRadians<<std::endl;
     KRATOS_INFO("RotateRegionProcess")<<"Current angle of rotation  :: "<<mTheta<<std::endl;
+    KRATOS_INFO("RotateRegionProcess")<<"dCurrent angle of rotation :: "<<mDTheta<<std::endl;
 
     r_torque_model_part.SetValue(ROTATIONAL_ANGLE, mTheta);
     r_torque_model_part.SetValue(ROTATIONAL_VELOCITY, mAngularVelocityRadians);
