@@ -414,8 +414,16 @@ private:
 			if (refiningBox == true)
 			{
 				array_1d<double, 3> NodeCoordinates = in->Coordinates();
-
-				initialMeanRadius = SetMeshSizeInMeshRefinementArea(NodeCoordinates);
+				NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+				bool boundaryElement=false;
+				for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
+				{
+					if ((nn)->Is(RIGID) || (nn)->Is(SOLID))
+					{
+						boundaryElement=true;
+					}
+				}
+				initialMeanRadius = SetMeshSizeInMeshRefinementArea(NodeCoordinates,boundaryElement);
 			}
 
 			double size_for_distance_inside = 0.6 * initialMeanRadius; //compared to element radius
@@ -945,7 +953,7 @@ private:
 		KRATOS_CATCH("")
 	}
 
-	double SetMeshSizeInMeshRefinementArea(array_1d<double, 3> NodeCoordinates)
+	double SetMeshSizeInMeshRefinementArea(array_1d<double, 3> NodeCoordinates, bool boundaryElement)
 	{
 		KRATOS_TRY
 
@@ -978,6 +986,9 @@ private:
 			else
 			{
 				meshSize = mrRemesh.RefiningBoxMeshSize;
+			}
+			if(boundaryElement==true){
+				meshSize =0.5*(mrRemesh.Refine->CriticalRadius+mrRemesh.RefiningBoxMeshSize);
 			}
 		}
 		return meshSize;
