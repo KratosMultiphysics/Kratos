@@ -67,16 +67,8 @@ class Node(DataValueContainer):
             var_to_check = variable.GetSourceVariable()
         else:
             var_to_check = variable
-        if not var_to_check in self.__hist_variables:
-            print('in error-loop:')
-            print(var_to_check, id(var_to_check))
-            for _ in self.__hist_variables:
-                print(_,  not id(_) - id(var_to_check))
+        if var_to_check not in self.__hist_variables:
             raise Exception('Trying to access historical variable "{}" which does not exist!'.format(variable))
-        # print('not in error-loop:')
-        # print(var_to_check, id(var_to_check))
-        # for _ in self.__hist_variables:
-        #     print(_, id(_), not id(_) - id(var_to_check))
 
     def __CheckBufferSize(self, step):
         if step+1 > self.__buffer_size:

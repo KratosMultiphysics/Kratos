@@ -205,4 +205,5 @@ class ModelPart(DataValueContainer):
         pass
 
     def __str__(self):
-        return "ModelPart:\n    Number of Nodes: {0}\n    Nunber of Elements: {1}".format(len(self.NodesMap), len(self.ElementsMap))
+        # previous string representation contained invalid information
+        return f'ModelPart "{self.Name}"'
