@@ -1771,6 +1771,55 @@ void  GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateTangentTens
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
+void  GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateTangentTensorSecondOrder(
+    Matrix& rTangentTensor,
+    const Vector& rStrainVectorGP,
+    const Vector& rStressVectorGP,
+    const Matrix& rDeformationGradientGP,
+    const Matrix& rElasticMatrix,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const double number_components = rStrainVectorGP.size();
+    rTangentTensor.resize(number_components, number_components);
+    Vector perturbed_stress_plus, perturbed_strain_plus;
+    Vector perturbed_stress_minus, perturbed_strain_minus;
+
+    perturbed_stress_plus.resize(number_components);
+    perturbed_strain_plus.resize(number_components);
+    perturbed_stress_minus.resize(number_components);
+    perturbed_strain_minus.resize(number_components);
+
+    Matrix perturbed_deformation_gradient_plus, perturbed_deformation_gradient_minus;
+    perturbed_deformation_gradient_plus.resize(number_components, number_components);
+    perturbed_deformation_gradient_minus.resize(number_components, number_components);
+    const double size_1 = rDeformationGradientGP.size1();
+    const double size_2 = rDeformationGradientGP.size2();
+    
+    for (unsigned int i_component = 0; i_component < size_1; i_component++) {
+        for (unsigned int j_component = i_component; j_component < size_2; j_component++) {
+            double perturbation;
+            const int component_voigt_index = this->CalculateVoigtIndex(number_components, i_component, j_component);
+            this->CalculatePerturbation(rStrainVectorGP, perturbation, component_voigt_index);
+
+            this->PerturbateDeformationGradient(perturbed_deformation_gradient_plus, rDeformationGradientGP, perturbation, i_component, j_component);
+            this->CalculateGreenLagrangeStrainVector(perturbed_strain_plus, perturbed_deformation_gradient_plus);
+            this->IntegratePerturbedStrain(perturbed_stress_plus, perturbed_strain_plus, rElasticMatrix, rValues);
+
+            this->PerturbateDeformationGradient(perturbed_deformation_gradient_minus, rDeformationGradientGP, -perturbation, i_component, j_component);
+            this->CalculateGreenLagrangeStrainVector(perturbed_strain_minus, perturbed_deformation_gradient_minus);
+            this->IntegratePerturbedStrain(perturbed_stress_minus, perturbed_strain_minus, rElasticMatrix, rValues);
+
+            const Vector& r_delta_stress = perturbed_stress_plus - perturbed_stress_minus;
+            this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress,2.0*perturbation, component_voigt_index);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::PerturbateDeformationGradient(
     Matrix& rPerturbedDeformationGradient,
     const Matrix& rDeformationGradientGP,
@@ -1800,15 +1849,15 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculatePerturbation
 {
     double perturbation_1, perturbation_2;
     if (std::abs(rStrainVectorGP[Component]) > tolerance) {
-        perturbation_1 = 1.0e-5 * rStrainVectorGP[Component];
+        perturbation_1 = 1.0e-7 * rStrainVectorGP[Component];
     } else {
         double min_strain_component = ConstitutiveLawUtilities<VoigtSize>::GetMinAbsValue(rStrainVectorGP);
-        perturbation_1 = 1.0e-5 * min_strain_component;
+        perturbation_1 = 1.0e-7 * min_strain_component;
     }
     const double max_strain_component = ConstitutiveLawUtilities<VoigtSize>::GetMaxAbsValue(rStrainVectorGP);
-    perturbation_2 = 1.0e-10 * max_strain_component;
+    perturbation_2 = 1.0e-12 * max_strain_component;
     rPerturbation = std::max(perturbation_1, perturbation_2);
-    if (rPerturbation < 1e-8) rPerturbation = 1e-8;
+    if (rPerturbation < 1e-9) rPerturbation = 1e-9;
 }
 
 /***********************************************************************************/
