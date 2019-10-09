@@ -63,6 +63,9 @@ public:
     , mRank(Rank)
 #endif
      {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
      }
 
   /** Constructor by Kratos::shared_ptr
@@ -75,6 +78,9 @@ public:
     , mRank(Rank) 
 #endif
   {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
   }
 
   /** Constructor by Kratos::shared_ptr
@@ -87,6 +93,9 @@ public:
     , mRank(Rank) 
 #endif
   {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
   }
 
   /** Constructor by Kratos::weak_ptr
@@ -99,6 +108,9 @@ public:
     , mRank(Rank) 
 #endif
   {
+#ifndef KRATOS_USING_MPI
+     KRATOS_DEBUG_ERROR_IF(Rank != 0) << "trying to construct a global pointer with rank different from zero when kratos is not in MPI mode " << std::endl;
+#endif
   }
 
   /** Constructor by std::unique_ptr
