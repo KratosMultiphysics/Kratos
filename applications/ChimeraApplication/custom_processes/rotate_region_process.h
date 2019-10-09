@@ -140,10 +140,10 @@ public:
       TransformNode(it_node->Coordinates(),
                     transformed_coordinates, mDTheta);
 
-      it_node->X() = transformed_coordinates[0];
-      it_node->Y() = transformed_coordinates[1];
+      it_node->X0() = transformed_coordinates[0];
+      it_node->Y0() = transformed_coordinates[1];
       if (domain_size > 2)
-        it_node->Z() = transformed_coordinates[2];
+        it_node->Z0() = transformed_coordinates[2];
 
       // Computing the linear velocity at this it_node
       DenseVector<double> radius(3);
