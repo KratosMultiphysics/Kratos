@@ -1846,10 +1846,9 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStr
     const double characteristic_length = this->CalculateCharacteristicLength(this);
     bool dummy = false;
 
-    Vector average_stress_edge = r_perturbed_predictive_stress;
-    Vector average_strain_edge = rPerturbedStrainVector;
-
     for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+        Vector average_stress_edge = r_perturbed_predictive_stress;
+        Vector average_strain_edge = rPerturbedStrainVector;
         this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
         this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 

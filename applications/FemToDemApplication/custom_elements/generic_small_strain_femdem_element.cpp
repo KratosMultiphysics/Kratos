@@ -151,9 +151,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
 
         // Compute material reponse
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
+        this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
+        this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
     }
-    this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
-    this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
+
 
     KRATOS_CATCH("")
 }
@@ -243,10 +244,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
             // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
             Vector average_strain_edge(VoigtSize);
-            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
+                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
  
@@ -258,15 +259,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
                                                      is_damaging);
             } // Loop over edges
         }
-
         // Calculate the elemental Damage...
-        double damage_element;
-        if (CalculateResidualVectorFlag)
-            damage_element = this->CalculateElementalDamage(damages_edges);
-        else
-            damage_element = this->CalculateElementalDamage(this->mDamages);
+        const double damage_element = this->CalculateElementalDamage(damages_edges);
 
-        const Vector  r_strain_vector = this_constitutive_variables.StrainVector;
+        const Vector& r_strain_vector = this_constitutive_variables.StrainVector;
         const Vector& r_stress_vector = this_constitutive_variables.StressVector;
         const Vector& r_integrated_stress_vector = (1.0 - damage_element)*r_stress_vector;
 
@@ -277,7 +273,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
                 this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_constitutive_variables.D, cl_values);
                 noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
             } else {
-                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0 - damage_element)*this_constitutive_variables.D, int_to_reference_weight);
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0-damage_element)*this_constitutive_variables.D, int_to_reference_weight);
             }
         }
         if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
@@ -353,10 +349,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
             // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
             Vector average_strain_edge(VoigtSize);
-            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
+                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
                 
