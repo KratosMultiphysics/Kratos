@@ -23,6 +23,7 @@ class NavierStokesSolverFractionalStepForChimera(NavierStokesSolverFractionalSte
         super(NavierStokesSolverFractionalStepForChimera,self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStepForChimera", "Fluid solver variables added correctly.")
 

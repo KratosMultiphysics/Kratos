@@ -22,6 +22,7 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
         super(NavierStokesSolverMonolithicChimera,self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicChimera", "Fluid solver variables added correctly.")
 
