@@ -160,12 +160,12 @@ public:
     virtual void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
-        const auto &r_process_info = mrMainModelPart.GetProcessInfo();
-        const double time = r_process_info[TIME];
-        if(mTime == time)
-            return;
+        // const auto &r_process_info = mrMainModelPart.GetProcessInfo();
+        // const double time = r_process_info[TIME];
+        // if(mTime == time)
+        //     return;
 
-        mTime = time;
+        // mTime = time;
         // Actual execution of the functionality of this class
         if(mReformulateEveryStep || !mIsFormulated){
             DoChimeraLoop();
