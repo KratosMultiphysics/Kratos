@@ -62,7 +62,7 @@ class ChimeraRotateRegionTest(UnitTest.TestCase):
             step = step + 1
             model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             rotate_region_process.ExecuteInitializeSolutionStep()
-            print("######################## ",model_part.GetValue(chm.ROTATIONAL_ANGLE))
+
             model_part.CloneTimeStep(time)
             model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.REACTION_X, 0, reaction_one)
             model_part.Nodes[1].SetSolutionStepValue(KratosMultiphysics.REACTION_Y, 0, reaction_one)
@@ -96,6 +96,5 @@ class ChimeraRotateRegionTest(UnitTest.TestCase):
         self.assertAlmostEqual(model_part.Nodes[2].Z, 0.7886732979903135)
 
     def __CheckRotation_with_torque(self, model_part):
-        print("######################## ",model_part.GetValue(chm.ROTATIONAL_ANGLE))
         self.assertAlmostEqual(model_part.Nodes[2].Z, 0.8159416708229201)
         self.assertAlmostEqual(model_part.GetValue(chm.ROTATIONAL_ANGLE), 0.0955993170666295)
