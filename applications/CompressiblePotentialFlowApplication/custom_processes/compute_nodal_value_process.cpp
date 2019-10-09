@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Marc Nunez, based on R.Rossi and V.Mataix work
+//  Main authors:    Marc Nunez, Inigo Lopez based on R.Rossi and V.Mataix work
 //
 //
 //
@@ -19,8 +19,6 @@
 /* Project includes */
 #include "utilities/variable_utils.h"
 #include "compute_nodal_value_process.h"
-#include "compressible_potential_flow_application_variables.h"
-#include "custom_utilities/potential_flow_utilities.h"
 #include "processes/calculate_nodal_area_process.h"
 
 
@@ -131,8 +129,7 @@ void ComputeNodalValueProcess::ClearNodalValues()
 
 template< typename TValueType >
 void ComputeNodalValueProcess::AddElementsContribution(const Variable<TValueType>& rVariable){
-    // Auxiliar containers
-    Matrix DN_DX;
+    // Auxiliar container
     Vector N;
 
     const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
