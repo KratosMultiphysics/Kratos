@@ -66,6 +66,13 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+    void AdjointPotentialResponseFunction::InitializeSolutionStep()
+    {
+        KRATOS_TRY;
+
+        KRATOS_CATCH("");
+    }
+
     void AdjointPotentialResponseFunction::CalculateGradient(const Condition& rAdjointCondition,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,

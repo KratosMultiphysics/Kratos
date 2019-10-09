@@ -16,7 +16,7 @@ class KratosProcessFactory(object):
         for i in range(0,process_list.size()):
             item = process_list[i]
             if not item.Has("python_module"):
-                KratosMultiphysics.Logger.PrintWarning("Your list of processes: ", process_list)
+                KM.Logger.PrintWarning("Your list of processes: ", process_list)
                 raise NameError('"python_module" must be defined in your parameters. Check all your processes')
 
             # python-script that contains the process
@@ -32,12 +32,8 @@ class KratosProcessFactory(object):
                 if not kratos_module_name.startswith("KratosMultiphysics"):
                     kratos_module_name = "KratosMultiphysics." + kratos_module_name
 
-                try:
-                    full_module_name = kratos_module_name + "." + python_module_name
-                    python_module = import_module(full_module_name)
-                except ImportError: # old import mechanism for backwards-compatibility
-                    import_module(kratos_module_name)
-                    python_module = import_module(python_module_name)
+                full_module_name = kratos_module_name + "." + python_module_name
+                python_module = import_module(full_module_name)
 
                 p = python_module.Factory(item, self.Model)
                 constructed_processes.append( p )

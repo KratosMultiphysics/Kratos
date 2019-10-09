@@ -170,13 +170,13 @@ CMAKE_EXTRA=(
   -DINSTALL_EMBEDDED_PYTHON=ON
 
   # Metis
-  -DMETIS_APPLICATION=OFF
-  -DUSE_METIS_5=ON
-  -DMETIS_ROOT_DIR="/home/roigcarlo/CompiledLibs/metis-5.1.0"
+  -DMETIS_APPLICATION=ON
 
   # Trillinos
   -DTRILINOS_APPLICATION=OFF
-  -DTRILINOS_ROOT="/home/youruser/compiled_libraries/trilinos-10.2.0"
+  -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"
+  -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"
+  -DTRILINOS_LIBRARY_PREFIX="trilinos_"
 
   -DUSE_COTIRE=ON
 )

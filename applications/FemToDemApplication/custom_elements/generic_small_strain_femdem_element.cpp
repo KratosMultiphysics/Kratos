@@ -4,12 +4,12 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velazquez
-//
-
+//  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo
 // System includes
 
 // External includes
@@ -24,75 +24,59 @@ namespace Kratos
 
 //***********************DEFAULT CONSTRUCTOR******************************************
 //************************************************************************************
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry)
-	: SmallDisplacementElement(NewId, pGeometry)
+    : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry)
 {
-	//DO NOT ADD DOFS HERE!!!
+    // DO NOT ADD DOFS HERE!!!
+    if (this->mThresholds.size() != NumberOfEdges)
+        this->mThresholds.resize(NumberOfEdges);
+    noalias(this->mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
+
+    if (this->mDamages.size() != NumberOfEdges)
+        this->mDamages.resize(NumberOfEdges);
+    noalias(this->mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 }
+
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim, TyieldSurf>::GenericSmallStrainFemDemElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-	: SmallDisplacementElement(NewId, pGeometry, pProperties)
+    : GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>(NewId, pGeometry, pProperties)
 {
-	// BY DEFAULT, THE GEOMETRY WILL DEFINE THE INTEGRATION METHOD
-	mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    // DO NOT ADD DOFS HERE!!!
+    if (this->mThresholds.size() != NumberOfEdges)
+        this->mThresholds.resize(NumberOfEdges);
+    noalias(this->mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
 
-	// Each component == Each edge
-	if (mNonConvergedThresholds.size() != NumberOfEdges)
-    	mNonConvergedThresholds.resize(NumberOfEdges);
-	noalias(mNonConvergedThresholds) = ZeroVector(NumberOfEdges);   // Equivalent stress
-
-	if (mThresholds.size() != NumberOfEdges)
-    	mThresholds.resize(NumberOfEdges);
-	noalias(mThresholds) = ZeroVector(NumberOfEdges); // Stress mThreshold on edge
-
-	if (mDamages.size() != NumberOfEdges)
-    	mDamages.resize(NumberOfEdges);
-	noalias(mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
-
-	if (mNonConvergedDamages.size() != NumberOfEdges)
-    	mNonConvergedDamages.resize(NumberOfEdges);
-	noalias(mNonConvergedDamages) = ZeroVector(NumberOfEdges); // mDamages on edges of "i" iteration
+    if (this->mDamages.size() != NumberOfEdges)
+        this->mDamages.resize(NumberOfEdges);
+    noalias(this->mDamages) = ZeroVector(NumberOfEdges); // Converged mDamage on each edge
 }
 
-//******************************COPY CONSTRUCTOR**************************************
-//************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GenericSmallStrainFemDemElement(GenericSmallStrainFemDemElement const& rOther)
-	: SmallDisplacementElement(rOther)
+Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
+    return Kratos::make_intrusive<GenericSmallStrainFemDemElement>( NewId, this->GetGeometry().Create( ThisNodes ), pProperties );
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
+//************************************************************************************
+
 template<unsigned int TDim, unsigned int TyieldSurf>
-GenericSmallStrainFemDemElement<TDim, TyieldSurf> &GenericSmallStrainFemDemElement<TDim,TyieldSurf>::operator=(GenericSmallStrainFemDemElement const& rOther)
+Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
 {
-	SmallDisplacementElement::operator=(rOther);
-	return *this;
+    return Kratos::make_intrusive<GenericSmallStrainFemDemElement>( NewId, pGeom, pProperties );
 }
 
-//*********************************OPERATIONS*****************************************
-//************************************************************************************
-template<unsigned int TDim, unsigned int TyieldSurf>
-Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const
-{
-	return Element::Pointer(new GenericSmallStrainFemDemElement(NewId, GetGeometry().Create(rThisNodes), pProperties));
-}
+/***********************************************************************************/
+/***********************************************************************************/
 
-//************************************CLONE*******************************************
-//************************************************************************************
-template<unsigned int TDim, unsigned int TyieldSurf>
-Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Clone(IndexType NewId, NodesArrayType const &rThisNodes) const
-{
-	GenericSmallStrainFemDemElement NewElement(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
-	return Element::Pointer(new GenericSmallStrainFemDemElement(NewElement));
-}
-
-//*******************************DESTRUCTOR*******************************************
-//************************************************************************************
 template<unsigned int TDim, unsigned int TyieldSurf>
 GenericSmallStrainFemDemElement<TDim,TyieldSurf>::~GenericSmallStrainFemDemElement()
 {
@@ -100,17 +84,28 @@ GenericSmallStrainFemDemElement<TDim,TyieldSurf>::~GenericSmallStrainFemDemEleme
 
 /***********************************************************************************/
 /***********************************************************************************/
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeSolutionStep(
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-	if (this->GetValue(RECOMPUTE_NEIGHBOURS)) {
-		this->ComputeEdgeNeighbours(rCurrentProcessInfo);
-		this->SetValue(RECOMPUTE_NEIGHBOURS, false);		
-	}
 
-	this->InitializeInternalVariablesAfterMapping();
+template<unsigned int TDim, unsigned int TyieldSurf>
+Element::Pointer GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Clone(
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Pointer p_new_elem = Kratos::make_intrusive<GenericSmallStrainFemDemElement>(NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+
+    // Currently selected integration methods
+    p_new_elem->SetIntegrationMethod(BaseType::mThisIntegrationMethod);
+
+    // The vector containing the constitutive laws
+    p_new_elem->SetConstitutiveLawVector(BaseType::mConstitutiveLawVector);
+
+    return p_new_elem;
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -121,636 +116,175 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
     ProcessInfo& rCurrentProcessInfo
     )
 {
-	KRATOS_TRY
+    KRATOS_TRY
+    const auto& r_geometry         = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension       = r_geometry.WorkingSpaceDimension();
+    const SizeType strain_size     = this->mConstitutiveLawVector[0]->GetStrainSize();
 
-	//create and initialize element variables:
-	ElementDataType variables;
-	this->InitializeElementData(variables,rCurrentProcessInfo);
+    BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
-	//create constitutive law parameters:
-	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters cl_values(r_geometry,this->GetProperties(),rCurrentProcessInfo);
 
-	//set constitutive law flags:
-	Flags &ConstitutiveLawOptions = values.GetOptions();
+    // Set constitutive law flags:
+    Flags& cl_options = cl_values.GetOptions();
+    cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
+    cl_values.SetStressVector(this_constitutive_variables.StressVector);
+    cl_values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-	//reading integration points
-	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    // Reading integration points
+    const Properties& r_properties = this->GetProperties();
+    const auto& N_values = r_geometry.ShapeFunctionsValues(this->mThisIntegrationMethod);
 
-	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++) {
-		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(variables,point_number);
+    // Reading integration points
+    const auto& integration_points = r_geometry.IntegrationPoints(this->mThisIntegrationMethod);
 
-		//calculate material response
-		this->CalculateMaterialResponse(variables, values, point_number);
-	}
-	this->SetValue(STRESS_VECTOR, values.GetStressVector());
-	this->SetValue(STRAIN_VECTOR, values.GetStrainVector());
+    for (IndexType point_number = 0; point_number < this->mConstitutiveLawVector.size(); ++point_number) {
+        // Compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->mThisIntegrationMethod);
 
-	KRATOS_CATCH("")
+        // Compute material reponse
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
+    }
+    this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
+    this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeNonLinearIteration(
-    ProcessInfo& CurrentProcessInfo
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
     )
 {
-}
+    KRATOS_TRY;
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLocalSystem(
-	MatrixType& rLeftHandSideMatrix,
-	VectorType& rRightHandSideVector,
-	ProcessInfo& rCurrentProcessInfo
-    )
-{
-	KRATOS_TRY
+    auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
-	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-	const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-	//resizing as needed the LHS
-	unsigned int mat_size = number_of_nodes * (dimension); 
-	if (rLeftHandSideMatrix.size1() != mat_size)
-	rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
-	noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
-	if (rRightHandSideVector.size() != mat_size )
-	rRightHandSideVector.resize(mat_size, false);
+    // Resizing as needed the LHS
+    const SizeType mat_size = number_of_nodes * dimension;
 
-	noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
+    if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
+        if (rLeftHandSideMatrix.size1() != mat_size )
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
 
-	//create and initialize element variables:
-	ElementDataType variables;
-	this->InitializeElementData(variables, rCurrentProcessInfo);
-	//create constitutive law parameters:
-	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+    }
 
-	//set constitutive law flags:
-	Flags& ConstitutiveLawOptions = values.GetOptions();
+    // Resizing as needed the RHS
+    if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
+        if (rRightHandSideVector.size() != mat_size )
+            rRightHandSideVector.resize( mat_size, false);
 
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+    }
 
-	// reading integration points
-	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    // Reading integration points and local gradients
+    const auto& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    ConstitutiveLaw::Parameters cl_values(r_geometry,this->GetProperties(),rCurrentProcessInfo);
 
-	//auxiliary terms
-	Vector volume_force(dimension);
-	const double characteristic_length = this->CalculateCharacteristicLength(this);
+    // Set constitutive law flags:
+    Flags& cl_options=cl_values.GetOptions();
+    cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    if (CalculateStiffnessMatrixFlag) {
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    } else {
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    }
 
-	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++) {
+    // If strain has to be computed inside of the constitutive law with PK2
+    cl_values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
 
-		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(variables,point_number);
+    // Some declarations
+    array_1d<double, 3> body_force;
+    double int_to_reference_weight;
+    const double characteristic_length = this->CalculateCharacteristicLength(this);
 
-		//calculate material response
-		this->CalculateMaterialResponse(variables, values, point_number);
+    // Computing in all integrations points
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+        // Contribution to external forces
+        noalias(body_force) = this->GetBodyForce(integration_points, point_number);
 
-		//calculating weights for integration on the "reference configuration"
-		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
-		variables.IntegrationWeight = this->CalculateIntegrationWeight(variables.IntegrationWeight);
+        // Compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+        // Compute material reponse
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
+
+        // Calculating weights for integration on the reference configuration
+        int_to_reference_weight = this->GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
+
+        if (dimension == 2 && this->GetProperties().Has(THICKNESS))
+            int_to_reference_weight *= this->GetProperties()[THICKNESS];
 
         bool is_damaging = false;
+        Vector damages_edges = ZeroVector(NumberOfEdges);
         if (yield_surface != "Elastic") {
-			// Loop over edges of the element...
-			Vector average_stress_edge(VoigtSize);
-			Vector average_strain_edge(VoigtSize);
-			noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-			noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
+            // Loop over edges of the element...
+            Vector average_stress_edge(VoigtSize);
+            Vector average_strain_edge(VoigtSize);
+            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
+            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
-			for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+ 
+                damages_edges[edge] = this->mDamages[edge];
+                double threshold    = this->mThresholds[edge];
+                
+                this->IntegrateStressDamageMechanics(threshold, damages_edges[edge], average_strain_edge, 
+                                                     average_stress_edge, edge, characteristic_length, cl_values, 
+                                                     is_damaging);
+            } // Loop over edges
+        }
 
-				this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-				this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+        // Calculate the elemental Damage...
+        double damage_element;
+        if (CalculateResidualVectorFlag)
+            damage_element = this->CalculateElementalDamage(damages_edges);
+        else
+            damage_element = this->CalculateElementalDamage(this->mDamages);
 
-				double damage_edge = mDamages[edge];
-				double threshold = mThresholds[edge];
-				
-				this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-					average_stress_edge, edge, characteristic_length, values, is_damaging);
+        const Vector  r_strain_vector = this_constitutive_variables.StrainVector;
+        const Vector& r_stress_vector = this_constitutive_variables.StressVector;
+        const Vector& r_integrated_stress_vector = (1.0 - damage_element)*r_stress_vector;
 
-				mNonConvergedDamages[edge] = damage_edge;
-				mNonConvergedThresholds[edge] = threshold;
-			} // Loop over edges
-		} else {
-			noalias(mNonConvergedDamages) = ZeroVector(NumberOfEdges);
-		}
-
-		// Calculate the elemental Damage...
-		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
-
-		const Vector& r_predictive_stress_vector = values.GetStressVector();
-		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
-		const Vector& r_strain_vector = values.GetStrainVector();
-
-		//contributions to stiffness matrix calculated on the reference config
-		const Matrix& r_elastic_matrix =  values.GetConstitutiveMatrix();
-		Matrix tangent_tensor;
-
-		if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
-			this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, r_elastic_matrix, values);
-			noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * prod(trans(variables.B), Matrix(prod(tangent_tensor, variables.B)));
-		} else {
-			noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(r_elastic_matrix, variables.B)));
-		}
-		
-		//contribution to external forces
-		volume_force = this->CalculateVolumeForce(volume_force, variables.N);
-
-		// operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-		this->CalculateAndAddExternalForces(rRightHandSideVector, variables, volume_force, variables.IntegrationWeight );
-
-		// operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-		rRightHandSideVector -= variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
-	}
-	KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, 
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-	KRATOS_TRY
-	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-	const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-	//resizing as needed the LHS
-	unsigned int mat_size = number_of_nodes * (dimension); 
-	rLeftHandSideMatrix = ZeroMatrix(mat_size, mat_size);
-
-	//create and initialize element variables:
-	ElementDataType variables;
-	this->InitializeElementData(variables,rCurrentProcessInfo);
-
-	//create constitutive law parameters:
-	ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-	//set constitutive law flags:
-	Flags& r_constitutive_law_options = values.GetOptions();
-	r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-	//reading integration points
-	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++ ) {
-		
-		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(variables, point_number);
-
-		//calculate material response
-		this->CalculateMaterialResponse(variables, values, point_number);
-
-		//calculating weights for integration on the "reference configuration"
-		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
-		variables.IntegrationWeight = this->CalculateIntegrationWeight( variables.IntegrationWeight );
-
-		// Calculate the elemental Damage...
-		const double damage_element = this->CalculateElementalDamage(mDamages);
-		const Matrix& r_elastic_matrix =  values.GetConstitutiveMatrix();
-
-		noalias(rLeftHandSideMatrix) += variables.IntegrationWeight * (1.0 - damage_element) * prod(trans(variables.B), Matrix(prod(r_elastic_matrix, variables.B)));
-	}
-	KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-	KRATOS_TRY
-    const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
-	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-	const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-	//resizing as needed the LHS
-	unsigned int mat_size = number_of_nodes * (dimension); 
-	rRightHandSideVector = ZeroVector(mat_size);
-	//create and initialize element variables:
-	ElementDataType variables;
-	this->InitializeElementData(variables, rCurrentProcessInfo);
-
-	//create constitutive law parameters:
-	ConstitutiveLaw::Parameters values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-	//set constitutive law flags:
-	Flags& ConstitutiveLawOptions = values.GetOptions();
-
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-	//reading integration points
-	const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-	//auxiliary terms
-	Vector volume_force(dimension);
-	noalias(volume_force) = ZeroVector(dimension);
-	const double characteristic_length = this->CalculateCharacteristicLength(this);
-
-	for (SizeType point_number = 0; point_number < r_integration_points.size(); point_number++) {
-		
-		//compute element kinematic variables B, F, DN_DX ...
-		this->CalculateKinematics(variables, point_number);
-
-		//calculate material response
-		this->CalculateMaterialResponse(variables,values,point_number);
-
-		//calculating weights for integration on the "reference configuration"
-		variables.IntegrationWeight = r_integration_points[point_number].Weight() * variables.detJ;
-		variables.IntegrationWeight = this->CalculateIntegrationWeight(variables.IntegrationWeight);
-
-		bool is_damaging = false;
-		Vector damages(NumberOfEdges);
-		if (yield_surface != "Elastic") {
-			// Loop over edges of the element...
-			Vector average_stress_edge(VoigtSize);
-			Vector average_strain_edge(VoigtSize);
-			noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-			noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
-
-			for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-				this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-				this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
-
-				double damage_edge = mDamages[edge];
-				double threshold = mThresholds[edge];
-				
-				this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-					average_stress_edge, edge, characteristic_length, values, is_damaging);
-
-				damages[edge] = damage_edge;
-			} // Loop over edges
-		} else {
-			noalias(damages) = ZeroVector(NumberOfEdges);
-		}
-
-		// Calculate the elemental Damage...
-		const double damage_element = this->CalculateElementalDamage(damages);
-		const Vector& r_predictive_stress_vector = values.GetStressVector();
-		const Vector& r_integrated_stress_vector = (1.0 - damage_element) * r_predictive_stress_vector;
-		const Vector& r_strain_vector = values.GetStrainVector();
-
-		this->SetValue(STRESS_VECTOR, r_predictive_stress_vector);
-		this->SetValue(STRESS_VECTOR_INTEGRATED, r_integrated_stress_vector);
-		this->SetValue(STRAIN_VECTOR, r_strain_vector);
-		
-		//contribution to external forces
-		volume_force = this->CalculateVolumeForce(volume_force, variables.N);
-
-		// operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-		this->CalculateAndAddExternalForces(rRightHandSideVector, variables, volume_force, variables.IntegrationWeight );
-
-		// operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-		rRightHandSideVector -= variables.IntegrationWeight * prod(trans(variables.B), r_integrated_stress_vector);
-	}
-	KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegrateStressDamageMechanics(
-	double& rThreshold,
-	double& rDamage,
-	const Vector& rStrainVector,
-	const Vector& rStressVector,
-	const int Edge,
-	const double CharacteristicLength,
-    ConstitutiveLaw::Parameters& rValues,
-	bool& rIsDamaging
-	)
-{
-    double uniaxial_stress;
-    this->CalculateEquivalentStress(rStressVector, rStrainVector, uniaxial_stress, rValues);
-
-    double initial_threshold;
-    this->GetInitialUniaxialThreshold(rValues, initial_threshold);
-
-	if (rThreshold < tolerance) {
-		rThreshold = initial_threshold; // 1st iteration sets threshold as c_max
-	}  else if (initial_threshold > rThreshold) { // remeshing stuff
-		rThreshold = initial_threshold;
-	}
-
-	const double F = uniaxial_stress - rThreshold;
-	if (F <= 0.0) { // Elastic region --> Damage is constant
-		rDamage = mDamages[Edge];
-	} else {
-		double damage_parameter; // A parameter
-		this->CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
-		this->CalculateExponentialDamage(rDamage, damage_parameter, uniaxial_stress, initial_threshold);
-		rThreshold = uniaxial_stress;
-		rIsDamaging = true;
-	}
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void GenericSmallStrainFemDemElement<3,0>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,1>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,2>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,3>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,4>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,5>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,6>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge3D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,0>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,1>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,2>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,3>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,4>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,5>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,6>::CalculateAverageVariableOnEdge(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector,
-    const int edge
-    )
-{
-    this->CalculateAverageVariableOnEdge2D(pCurrentElement, ThisVariable, rAverageVector, edge);
-}
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge2D(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector, // must be assigned to the current element outside this method
-    const int edge
-    )
-{
-	auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-	KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
-	rAverageVector += pCurrentElement->GetValue(ThisVariable);
-	rAverageVector *= 0.5;
-}
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAverageVariableOnEdge3D(
-    const Element* pCurrentElement,
-    const Variable<Vector> ThisVariable,
-    Vector& rAverageVector, // must be assigned to the current element outside this method
-    const int edge
-    )
-{
-    std::vector<Element*> p_edge_neighbours = this->GetEdgeNeighbourElements(edge);
-	int counter = 0;
-
-	for (unsigned int elem = 0; elem < p_edge_neighbours.size(); elem++) {
-		rAverageVector += p_edge_neighbours[elem]->GetValue(ThisVariable);
-		counter++;
-	}
-	rAverageVector /= (counter + 1);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-double GenericSmallStrainFemDemElement<3,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-    return this->CalculateElementalDamage3D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<3,1>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-    return this->CalculateElementalDamage3D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<3,2>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-    return this->CalculateElementalDamage3D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<3,3>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-    return this->CalculateElementalDamage3D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<3,4>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-    return this->CalculateElementalDamage3D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<3,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-    return this->CalculateElementalDamage3D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<3,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-    return this->CalculateElementalDamage3D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<2,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-   return this->CalculateElementalDamage2D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<2,1>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-   return this->CalculateElementalDamage2D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<2,2>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-   return this->CalculateElementalDamage2D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<2,3>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-   return this->CalculateElementalDamage2D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<2,4>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-   return this->CalculateElementalDamage2D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<2,5>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-   return this->CalculateElementalDamage2D(rEdgeDamages);
-}
-template<>
-double GenericSmallStrainFemDemElement<2,6>::CalculateElementalDamage(const Vector& rEdgeDamages)
-{
-   return this->CalculateElementalDamage2D(rEdgeDamages);
-}
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage3D(const Vector& rEdgeDamages)
-{
-	// 7 modes of fracture of the tetrahedron
-	Vector damage_mode_fracture = ZeroVector(7);
-	const double one_third = 1.0 / 3.0;
-	damage_mode_fracture[0] = one_third * (rEdgeDamages[0] + rEdgeDamages[1] + rEdgeDamages[2]);
-	damage_mode_fracture[1] = one_third * (rEdgeDamages[0] + rEdgeDamages[3] + rEdgeDamages[4]);
-	damage_mode_fracture[2] = one_third * (rEdgeDamages[1] + rEdgeDamages[3] + rEdgeDamages[5]);
-	damage_mode_fracture[3] = 0.25 * (rEdgeDamages[1] + rEdgeDamages[2] + rEdgeDamages[3] + rEdgeDamages[4]);
-	damage_mode_fracture[4] = 0.25 * (rEdgeDamages[0] + rEdgeDamages[1] + rEdgeDamages[4] + rEdgeDamages[5]);
-	damage_mode_fracture[5] = one_third * (rEdgeDamages[2] + rEdgeDamages[4] + rEdgeDamages[5]);
-	damage_mode_fracture[6] = 0.25 * (rEdgeDamages[0] + rEdgeDamages[2] + rEdgeDamages[3] + rEdgeDamages[5]);
-	return ConstitutiveLawUtilities<VoigtSize>::GetMaxValue(damage_mode_fracture);
-}
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage2D(const Vector& rEdgeDamages)
-{
-	Vector two_max_values;
-	ConstitutiveLawUtilities<VoigtSize>::Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
-	return 0.5*(two_max_values[0] + two_max_values[1]);
-}
-
-
-/***********************************************************************************/
-/***********************************************************************************/
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::UpdateDataBase()
-{	
-	for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-		mDamages[edge] = mNonConvergedDamages[edge];
-		mThresholds[edge] = mNonConvergedThresholds[edge];
-	}
-
-	const double converged_damage = this->CalculateElementalDamage(mDamages);
-	if (converged_damage > mDamage) mDamage = converged_damage;
-	const double converged_threshold = this->CalculateElementalDamage(mThresholds);
-	if (converged_threshold > mThreshold) mThreshold = converged_threshold;
+        if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
+            // Contributions to stiffness matrix calculated on the reference config
+            if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
+                Matrix tangent_tensor;
+                this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_constitutive_variables.D, cl_values);
+                noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
+            } else {
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0 - damage_element)*this_constitutive_variables.D, int_to_reference_weight);
+            }
+        }
+        if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
+            this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, r_integrated_stress_vector, int_to_reference_weight);
+        }
+    }
+    KRATOS_CATCH( "" )
 }
 
 /***********************************************************************************/
@@ -761,645 +295,87 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
     ProcessInfo& rCurrentProcessInfo
     )
 {
-	this->UpdateDataBase();
+    KRATOS_TRY;
 
-	if (mDamage >= 0.98) {
-		this->Set(ACTIVE, false);
-		mDamage = 0.98;
-		// We set a "flag" to generate the DEM 
-		rCurrentProcessInfo[GENERATE_DEM] = true;
-	}
-}
+    const SizeType number_of_nodes   = this->GetGeometry().size();
+    const SizeType dimension         = this->GetGeometry().WorkingSpaceDimension();
+    const auto strain_size           = this->GetStrainSize();
+    const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 
-/***********************************************************************************/
-/***********************************************************************************/
+    BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
 
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeInternalVariablesAfterMapping()
-{
-    // After the mapping, the thresholds of the edges (are equal to 0.0) are imposed equal to the IP threshold
-    const double element_threhsold = mThreshold;
-    if (norm_2(mThresholds) < std::numeric_limits<double>::epsilon()) {
-        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-            mThresholds[edge] = element_threhsold;
+    // Resizing as needed the LHS
+    const SizeType mat_size = number_of_nodes * dimension;
+
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
+
+    // Set constitutive law flags:
+    Flags& cl_options = cl_values.GetOptions();
+    cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    // If strain has to be computed inside of the constitutive law with PK2
+    cl_values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
+
+    // Some declarations
+    array_1d<double, 3> body_force;
+    double int_to_reference_weight;
+    const double characteristic_length = this->CalculateCharacteristicLength(this);
+
+    const GeometryType& r_geometry = this->GetGeometry();
+    const Properties& r_properties = this->GetProperties();
+    const auto& N_values = r_geometry.ShapeFunctionsValues(this->mThisIntegrationMethod);
+
+    // Computing in all integrations points
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+        // Contribution to external forces
+        noalias(body_force) = this->GetBodyForce(integration_points, point_number);
+
+        // Compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+        // Compute material reponse
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
+
+        // Call the constitutive law to update material variables
+        this->mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(cl_values, this->GetStressMeasure());
+
+        // TODO: Deprecated, remove this
+        this->mConstitutiveLawVector[point_number]->FinalizeSolutionStep(r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
+
+        bool is_damaging = false;
+        if (yield_surface != "Elastic") {
+            // Loop over edges of the element...
+            Vector average_stress_edge(VoigtSize);
+            Vector average_strain_edge(VoigtSize);
+            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
+            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
+
+            for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
+                this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+                
+                this->IntegrateStressDamageMechanics(this->mThresholds[edge], this->mDamages[edge], 
+                                                     average_strain_edge, average_stress_edge, edge, 
+                                                     characteristic_length, cl_values, is_damaging);
+            } // Loop over edges
+        }
+        // Calculate the elemental Damage...
+        this->mDamage = this->CalculateElementalDamage(this->mDamages);
+
+        if (this->mDamage >= 0.98) {
+            this->Set(ACTIVE, false);
+            this->mDamage = 0.98;
+            // We set a "flag" to generate the DEM 
+            rCurrentProcessInfo[GENERATE_DEM] = true;
         }
     }
-
-    // IDEM with the edge damages
-    const double damage_element = mDamage;
-    if (norm_2(mDamages) < std::numeric_limits<double>::epsilon()) {
-        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-            mDamages[edge] = damage_element;
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void GenericSmallStrainFemDemElement<3,0>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-{
-    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,1>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-{
-    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,2>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-{
-    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,3>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-{
-    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-{
-    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-{
-    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo)
-{
-    this->AuxComputeEdgeNeighbours(rCurrentProcessInfo);
-}
-
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void GenericSmallStrainFemDemElement<2,0>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-template<> 
-void GenericSmallStrainFemDemElement<2,1>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-template<> 
-void GenericSmallStrainFemDemElement<2,2>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-template<> 
-void GenericSmallStrainFemDemElement<2,3>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-template<> 
-void GenericSmallStrainFemDemElement<2,4>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-template<> 
-void GenericSmallStrainFemDemElement<2,5>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-template<> 
-void GenericSmallStrainFemDemElement<2,6>::ComputeEdgeNeighbours(ProcessInfo& rCurrentProcessInfo) {}
-
-/***********************************************************************************/
-/***********************************************************************************/
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AuxComputeEdgeNeighbours(
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-	std::vector<std::vector<Element*>> edge_neighbours_container;
-	auto& r_nodes_current_element = this->GetGeometry();
-
-	auto& pNode0 = r_nodes_current_element[0];
-	auto& pNode1 = r_nodes_current_element[1];
-	auto& pNode2 = r_nodes_current_element[2];
-	auto& pNode3 = r_nodes_current_element[3];
-
-	// Neighbour elements of each node of the current element
-	GlobalPointersVector<Element>& r_neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
-	GlobalPointersVector<Element>& r_neigh_node_1 = pNode1.GetValue(NEIGHBOUR_ELEMENTS);
-	GlobalPointersVector<Element>& r_neigh_node_2 = pNode2.GetValue(NEIGHBOUR_ELEMENTS);
-	GlobalPointersVector<Element>& r_neigh_node_3 = pNode3.GetValue(NEIGHBOUR_ELEMENTS);
-
-	// Nodal neighbours container
-	std::vector<GlobalPointersVector<Element>> nodal_neighbours;
-	nodal_neighbours.push_back(r_neigh_node_0);
-	nodal_neighbours.push_back(r_neigh_node_1);
-	nodal_neighbours.push_back(r_neigh_node_2);
-	nodal_neighbours.push_back(r_neigh_node_3);
-
-	// Aux indexes
-	Matrix nodes_indexes = ZeroMatrix(6, 2);
-	this->SetNodeIndexes(nodes_indexes);
-
-	// Loop over EDGES to assign the elements that share that edge -> Fill mEdgeNeighboursContainer
-	for (unsigned int edge = 0; edge < 6; edge++) {
-		const int node_index_1 = nodes_indexes(edge, 0);
-		const int node_index_2 = nodes_indexes(edge, 1);
-
-		// Neigh elements of local node 1 and 2  //
-		auto& r_neigh_of_node_1 = nodal_neighbours[node_index_1];
-		auto& r_neigh_of_node_2 = nodal_neighbours[node_index_2];
-
-		const int node_id_1 = r_nodes_current_element[node_index_1].Id();
-		const int node_id_2 = r_nodes_current_element[node_index_2].Id();
-
-		std::vector<Element*> edge_shared_elements_node_1;
-		// Loop over neigh elements of the node 1
-		for (unsigned int neigh_elem = 0; neigh_elem < r_neigh_of_node_1.size(); neigh_elem++) {
-			// Nodes of the neigh element
-			auto& r_nodes_neigh_elem = r_neigh_of_node_1[neigh_elem].GetGeometry();
-
-			// Loop over the nodes of the neigh element
-			for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
-				const int neigh_element_node_id = r_nodes_neigh_elem[neigh_elem_node].Id();
-
-				if (neigh_element_node_id == node_id_2 && this->Id() != r_neigh_of_node_1[neigh_elem].Id()) {
-					edge_shared_elements_node_1.push_back(&r_neigh_of_node_1[neigh_elem]); // ( [] returns an Element object!!)
-				}
-			}
-		}
-
-		std::vector<Element *> edge_shared_elements_node_2;
-		// Loop over neigh elements of the node 2
-		for (unsigned int neigh_elem = 0; neigh_elem < r_neigh_of_node_2.size(); neigh_elem++) {
-			// Nodes of the neigh element
-			auto &r_nodes_neigh_elem = r_neigh_of_node_2[neigh_elem].GetGeometry();
-
-			// Loop over the nodes of the neigh element
-			for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
-				const int neigh_element_node_id = r_nodes_neigh_elem[neigh_elem_node].Id();
-
-				if (neigh_element_node_id == node_id_1 && this->Id() != r_neigh_of_node_2[neigh_elem].Id()) {
-					edge_shared_elements_node_2.push_back(&r_neigh_of_node_2[neigh_elem]);
-				}
-			}
-		}
-		// Let's create the vector of neighbour elements for this edge
-		std::vector<Element *> edge_shared_elements = edge_shared_elements_node_1;
-		// Add the neigh elements from the node 2
-		for (unsigned int i = 0; i < edge_shared_elements_node_2.size(); i++) {
-			int aux = 0;
-
-			for (unsigned int j = 0; j < edge_shared_elements.size(); j++) {
-				if (edge_shared_elements_node_2[i]->Id() == edge_shared_elements[j]->Id())
-					aux++;
-			}
-			if (aux == 0)
-				edge_shared_elements.push_back(edge_shared_elements_node_2[i]);
-		}
-		edge_neighbours_container.push_back(edge_shared_elements);
-	} // End loop edges
-
-	// Storages the information inside the element
-	this->SaveEdgeNeighboursContainer(edge_neighbours_container);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void GenericSmallStrainFemDemElement<2,0>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,0>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressModifiedMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,1>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressRankine(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,1>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressRankine(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,2>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressSimoJu(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,2>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressSimoJu(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,3>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressDruckerPrager(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,3>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressDruckerPrager(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,4>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressHuberVonMises(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,4>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressHuberVonMises(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,5>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,5>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressTresca(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,6>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,6>::CalculateEquivalentStress(
-    const array_1d<double,VoigtSize>& rPredictiveStressVector,
-    const Vector& rStrainVector,
-    double& rEquivalentStress,
-    ConstitutiveLaw::Parameters& rValues
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateEquivalentStressMohrCoulomb(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
-}
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void GenericSmallStrainFemDemElement<2,0>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdModifiedMohrCoulomb(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,0>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdModifiedMohrCoulomb(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,1>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdRankine(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,1>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdRankine(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,2>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdSimoJu(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,2>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdSimoJu(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,3>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdDruckerPrager(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,3>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdDruckerPrager(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,4>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,4>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdHuberVonMises(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,5>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdTresca(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,5>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdTresca(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,6>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdMohrCoulomb(rValues, rThreshold);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,6>::GetInitialUniaxialThreshold(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rThreshold
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::GetInitialUniaxialThresholdMohrCoulomb(rValues, rThreshold);
-}
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void GenericSmallStrainFemDemElement<2,0>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterModifiedMohrCoulomb(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,0>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterModifiedMohrCoulomb(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,1>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterRankine(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,1>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterRankine(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,2>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterSimoJu(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,2>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterSimoJu(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,3>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterDruckerPrager(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,3>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterDruckerPrager(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,4>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,4>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,5>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterTresca(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,5>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterTresca(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<2,6>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterMohrCoulomb(rValues, rAParameter, CharacteristicLength);
-}
-template<>
-void GenericSmallStrainFemDemElement<3,6>::CalculateDamageParameter(
-    ConstitutiveLaw::Parameters& rValues,
-    double& rAParameter,
-    const double CharacteristicLength
-    )
-{
-    ConstitutiveLawUtilities<VoigtSize>::CalculateDamageParameterMohrCoulomb(rValues, rAParameter, CharacteristicLength);
-}
-/***********************************************************************************/
-/***********************************************************************************/
-template<unsigned int TDim, unsigned int TyieldSurf>
-double GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateCharacteristicLength(
-    GenericSmallStrainFemDemElement<TDim,TyieldSurf> *pCurrentElement
-	)
-{
-	auto& r_geometry = pCurrentElement->GetGeometry();
-	const SizeType number_of_edges = r_geometry.EdgesNumber();
-	const auto& r_edges = r_geometry.Edges();
-
-	double sum_of_lengths = 0.0;
-	for (IndexType i = 0; i < number_of_edges; ++i) {
-		auto& node_1 = r_edges[i][0];
-		auto& node_2 = r_edges[i][1];
-		auto coordinates_1 = node_1.GetInitialPosition();
-		auto coordinates_2 = node_2.GetInitialPosition();
-		sum_of_lengths += std::sqrt(std::pow(coordinates_1[0] - coordinates_2[0], 2) + 
-			std::pow(coordinates_1[1] - coordinates_2[1], 2) + std::pow(coordinates_1[2] - coordinates_2[2], 2));
-	}
-	return sum_of_lengths / number_of_edges;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-Vector& GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateVolumeForce(
-    Vector& rVolumeForce, 
-    const Vector& rN
-    )
-{
-	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-	if (rVolumeForce.size() != dimension)
-		rVolumeForce.resize(dimension, false);
-
-	noalias(rVolumeForce) = ZeroVector(dimension);
-
-	for (unsigned int j = 0; j < number_of_nodes; j++) {
-		if (GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION)) { // it must be checked once at the begining only
-			array_1d<double, 3> &VolumeAcceleration = GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-			for (unsigned int i = 0; i < dimension; i++)
-				rVolumeForce[i] += rN[j] * VolumeAcceleration[i];
-		}
-	}
-
-	rVolumeForce *= GetProperties()[DENSITY];
-	return rVolumeForce;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateExponentialDamage(
-	double& rDamage,
-	const double DamageParameter,
-	const double UniaxialStress,
-	const double InitialThrehsold
-	)
-{
-	rDamage = 1.0 - (InitialThrehsold / UniaxialStress) * std::exp(DamageParameter *
-			 (1.0 - UniaxialStress / InitialThrehsold)); // Exponential softening law
-	if (rDamage > 0.999) rDamage = 0.999;
+    KRATOS_CATCH( "" )
 }
 
 /***********************************************************************************/
@@ -1407,170 +383,291 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateExponentialDamag
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
-	Matrix& rTangentTensor,
-	const Vector& rStrainVectorGP,
-	const Vector& rStressVectorGP,
-	const Matrix& rElasticMatrix,
+    Matrix& rTangentTensor,
+    const Vector& rStrainVectorGP,
+    const Vector& rStressVectorGP,
+    const Matrix& rElasticMatrix,
     ConstitutiveLaw::Parameters& rValues
-	)
+    )
 {
-	const double number_components = rStrainVectorGP.size();
-	rTangentTensor.resize(number_components, number_components);
-	Vector perturbed_stress, perturbed_strain;
-	perturbed_strain.resize(number_components);
-	perturbed_stress.resize(number_components);
-	
-	for (unsigned int component = 0; component < number_components; component++) {
-		double perturbation;
-		this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
-		this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
-		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix, rValues);
-		const Vector& r_delta_stress = perturbed_stress - rStressVectorGP;
-		this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, perturbation, component);
-	}
+    const double number_components = rStrainVectorGP.size();
+    rTangentTensor.resize(number_components, number_components);
+    Vector perturbed_stress, perturbed_strain;
+    perturbed_strain.resize(number_components);
+    perturbed_stress.resize(number_components);
+
+    for (unsigned int component = 0; component < number_components; component++) {
+        double perturbation;
+        this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
+        this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
+        this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix, rValues);
+        const Vector& r_delta_stress = perturbed_stress - rStressVectorGP;
+        this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, perturbation, component);
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculatePerturbation(
-	const Vector& rStrainVectorGP,
-	double& rPerturbation,
-	const int Component
-	)
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateKinematicVariables(
+    BaseSolidElement::KinematicVariables& rThisKinematicVariables,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationMethod& rIntegrationMethod
+    )
 {
-	double perturbation_1, perturbation_2;
-	if (std::abs(rStrainVectorGP[Component]) > tolerance) {
-		perturbation_1 = 1.0e-5 * rStrainVectorGP[Component];
-	} else {
-		double min_strain_component = ConstitutiveLawUtilities<VoigtSize>::GetMinAbsValue(rStrainVectorGP);
-		perturbation_1 = 1.0e-5 * min_strain_component;
-	}
-	const double max_strain_component = ConstitutiveLawUtilities<VoigtSize>::GetMaxAbsValue(rStrainVectorGP);
-	perturbation_2 = 1.0e-10 * max_strain_component;
-	rPerturbation = std::max(perturbation_1, perturbation_2);
-	if (rPerturbation < 1e-8) rPerturbation = 1e-8;
+    const auto& r_geometry = this->GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
+    // Shape functions
+    rThisKinematicVariables.N = r_geometry.ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
+    rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, rIntegrationMethod);
+    KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0) << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
+
+    // Compute B
+    this->CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.DN_DX);
+
+    // Compute equivalent F
+    this->GetValuesVector(rThisKinematicVariables.Displacements);
+    Vector strain_vector = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
+    ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
+    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void GenericSmallStrainFemDemElement<2,0>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,0>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,1>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,1>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,2>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,2>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,3>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,3>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,4>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,4>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,5>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,5>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<2,6>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate2DB(rB, rDN_DX);
+}
+template<>
+void GenericSmallStrainFemDemElement<3,6>::CalculateB(Matrix& rB, const Matrix& rDN_DX)
+{
+    this->Calculate3DB(rB, rDN_DX);
+}
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Calculate2DB(
+    Matrix& rB, 
+    const Matrix& rDN_DX
+    )
+{
+    KRATOS_TRY
+
+    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+
+    for (SizeType i = 0; i < number_of_nodes; ++i) {
+        rB(0, i*2    ) = rDN_DX(i, 0);
+        rB(1, i*2 + 1) = rDN_DX(i, 1);
+        rB(2, i*2    ) = rDN_DX(i, 1);
+        rB(2, i*2 + 1) = rDN_DX(i, 0);
+    }
+
+    KRATOS_CATCH( "" )
+}
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::Calculate3DB(
+    Matrix& rB, 
+    const Matrix& rDN_DX
+    )
+{
+    KRATOS_TRY
+
+    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+
+    for (SizeType i = 0; i < number_of_nodes; ++i) {
+        rB(0, i*3    ) = rDN_DX(i, 0);
+        rB(1, i*3 + 1) = rDN_DX(i, 1);
+        rB(2, i*3 + 2) = rDN_DX(i, 2);
+        rB(3, i*3    ) = rDN_DX(i, 1);
+        rB(3, i*3 + 1) = rDN_DX(i, 0);
+        rB(4, i*3 + 1) = rDN_DX(i, 2);
+        rB(4, i*3 + 2) = rDN_DX(i, 1);
+        rB(5, i*3    ) = rDN_DX(i, 2);
+        rB(5, i*3 + 2) = rDN_DX(i, 0);
+    }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::PerturbateStrainVector(
-	Vector& rPerturbedStrainVector,
-	const Vector& rStrainVectorGP,
-	const double Perturbation,
-	const int Component
-	)
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::ComputeEquivalentF(
+    Matrix& rF,
+    const Vector& rStrainTensor
+    )
 {
-    noalias(rPerturbedStrainVector) = rStrainVectorGP;
-    rPerturbedStrainVector[Component] += Perturbation;
+    const SizeType dim = this->GetGeometry().WorkingSpaceDimension();
+
+    if (dim == 2) {
+        rF(0,0) = 1.0+rStrainTensor(0);
+        rF(0,1) = 0.5*rStrainTensor(2);
+        rF(1,0) = 0.5*rStrainTensor(2);
+        rF(1,1) = 1.0+rStrainTensor(1);
+    } else {
+        rF(0,0) = 1.0+rStrainTensor(0);
+        rF(0,1) = 0.5*rStrainTensor(3);
+        rF(0,2) = 0.5*rStrainTensor(5);
+        rF(1,0) = 0.5*rStrainTensor(3);
+        rF(1,1) = 1.0+rStrainTensor(1);
+        rF(1,2) = 0.5*rStrainTensor(4);
+        rF(2,0) = 0.5*rStrainTensor(5);
+        rF(2,1) = 0.5*rStrainTensor(4);
+        rF(2,2) = 1.0+rStrainTensor(2);
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStrain(
-	Vector& rPerturbedStressVector,
-	const Vector& rPerturbedStrainVector,
-	const Matrix& rElasticMatrix,
-    ConstitutiveLaw::Parameters& rValues
-	)
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateConstitutiveVariables(
+    BaseSolidElement::KinematicVariables& rThisKinematicVariables,
+    BaseSolidElement::ConstitutiveVariables& rThisConstitutiveVariables,
+    ConstitutiveLaw::Parameters& rValues,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    )
 {
-	const Vector& r_perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
-	Vector damages_edges = ZeroVector(NumberOfEdges);
-	const double characteristic_length = this->CalculateCharacteristicLength(this);
-    bool dummy = false;
+    // Set the constitutive variables
+    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
-    Vector average_stress_edge = r_perturbed_predictive_stress;
-    Vector average_strain_edge = rPerturbedStrainVector;
-
-	for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-		this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-		this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
-
-		double damage_edge = mDamages[edge];
-		double threshold = mThresholds[edge];
-
-		this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-			average_stress_edge, edge, characteristic_length, rValues, dummy);
-
-		damages_edges[edge] = damage_edge;
-	} // Loop edges
-	const double damage_element = this->CalculateElementalDamage(damages_edges);
-	rPerturbedStressVector = (1.0 - damage_element) * r_perturbed_predictive_stress;
+    // Actually do the computations in the ConstitutiveLaw
+    this->mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::AssignComponentsToTangentTensor(
-	Matrix& rTangentTensor,
-	const Vector& rDeltaStress,
-	const double Perturbation,
-	const int Component
-	)
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::SetConstitutiveVariables(
+    BaseSolidElement::KinematicVariables& rThisKinematicVariables,
+    BaseSolidElement::ConstitutiveVariables& rThisConstitutiveVariables,
+    ConstitutiveLaw::Parameters& rValues,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+    )
 {
-	const IndexType voigt_size = rDeltaStress.size();
-	for (IndexType row = 0; row < voigt_size; ++row) {
-		rTangentTensor(row, Component) = rDeltaStress[row] / Perturbation;
-	}
+    const auto& r_geometry         = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension       = r_geometry.WorkingSpaceDimension();
+    const SizeType mat_size        = number_of_nodes * dimension;
+
+    // Displacements vector
+    Vector displacements(mat_size);
+    this->GetValuesVector(displacements);
+
+    // Compute strain
+    noalias(rThisConstitutiveVariables.StrainVector) = prod(rThisKinematicVariables.B, displacements);
+
+    // Here we essentially set the input parameters
+    rValues.SetShapeFunctionsValues(rThisKinematicVariables.N); // shape functions
+    rValues.SetDeterminantF(rThisKinematicVariables.detF); //assuming the determinant is computed somewhere else
+    rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
+
+    // Here we set the space on which the results shall be written
+    rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); //assuming the determinant is computed somewhere else
+    rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValueOnIntegrationPoints(
-	const Variable<double> &rVariable,
-	std::vector<double> &rValues,
-	const ProcessInfo &rCurrentProcessInfo)
+void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValuesVector(
+    Vector& rValues,
+    int Step
+    )
 {
-	if (rVariable == DAMAGE_ELEMENT || 
-	rVariable == IS_DAMAGED || 
-	rVariable == STRESS_THRESHOLD || 
-	rVariable == EQUIVALENT_STRESS_VM) {
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	}
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const SizeType mat_size = number_of_nodes * dimension;
+    if (rValues.size() != mat_size)
+        rValues.resize(mat_size, false);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        const array_1d<double, 3 >& displacement = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const SizeType index = i * dimension;
+        for(unsigned int k = 0; k < dimension; ++k) {
+            rValues[index + k] = displacement[k];
+        }
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValueOnIntegrationPoints(
-	const Variable<Vector> &rVariable,
-	std::vector<Vector> &rValues,
-	const ProcessInfo &rCurrentProcessInfo)
+bool GenericSmallStrainFemDemElement<TDim,TyieldSurf>::UseElementProvidedStrain() const
 {
-	if (rVariable == STRAIN_VECTOR) {
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	} else if (rVariable == STRESS_VECTOR) {
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	} else if (rVariable == STRESS_VECTOR_INTEGRATED) {
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	}
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValueOnIntegrationPoints(
-	const Variable<Matrix> &rVariable,
-	std::vector<Matrix> &rValues,
-	const ProcessInfo &rCurrentProcessInfo)
-{
-	if (rVariable == STRAIN_TENSOR) {
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	} else if (rVariable == STRESS_TENSOR) {
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	} else if (rVariable == STRESS_TENSOR_INTEGRATED) {
-		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	}
+    return true;
 }
 
 /***********************************************************************************/
@@ -1578,67 +675,140 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::GetValueOnIntegrationPoin
 
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
-	const Variable<double> &rVariable,
-	std::vector<double> &rOutput,
-	const ProcessInfo &rCurrentProcessInfo)
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
 {
-	if (rVariable == DAMAGE_ELEMENT) {
-		rOutput.resize(1);
-		for (unsigned int point_number = 0; point_number < 1; point_number++) {
-			rOutput[point_number] = mDamage;
-		}
-	} else if (rVariable == IS_DAMAGED) {
-		rOutput.resize(1);
-		for (unsigned int point_number = 0; point_number < 1; point_number++) {
-			rOutput[point_number] = double(this->GetValue(IS_DAMAGED));
-		}
-	} else if (rVariable == STRESS_THRESHOLD) {
-		rOutput.resize(1);
-		for (unsigned int point_number = 0; point_number < 1; point_number++) {
-			rOutput[point_number] = mThreshold;
-		}
-	}
-}
+    const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
 
-/***********************************************************************************/
-/***********************************************************************************/
+    const SizeType number_of_integration_points = integration_points.size();
+    if ( rOutput.size() != number_of_integration_points )
+        rOutput.resize( number_of_integration_points );
 
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
-	const Variable<Vector> &rVariable,
-	std::vector<Vector> &rOutput,
-	const ProcessInfo &rCurrentProcessInfo)
-{
-	if (rVariable == STRESS_VECTOR) {
-		rOutput[0] = this->GetValue(STRESS_VECTOR);
-	} else if (rVariable == STRAIN_VECTOR) {
-		rOutput[0] = this->GetValue(STRAIN_VECTOR);
-	} else if (rVariable == STRESS_VECTOR_INTEGRATED) {
-		rOutput[0] = (1.0 - mDamage) * (this->GetValue(STRESS_VECTOR));
-	}
-}
 
-/***********************************************************************************/
-/***********************************************************************************/
+    if ( rVariable == INSITU_STRESS ) {
+        const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
+        Vector strain_vector( strain_size );
 
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
-	const Variable<Matrix> &rVariable,
-	std::vector<Matrix> &rOutput,
-	const ProcessInfo &rCurrentProcessInfo)
-{
-	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        for ( IndexType point_number = 0; point_number < this->mConstitutiveLawVector.size(); ++point_number ) {
+            if ( rOutput[point_number].size() != strain_vector.size() )
+                rOutput[point_number].resize( strain_vector.size(), false );
 
-	if (rOutput[0].size2() != dimension)
-		rOutput[0].resize(dimension, dimension, false);
+            rOutput[point_number] = this->mConstitutiveLawVector[point_number]->GetValue( INSITU_STRESS, rOutput[point_number] );
+        }
+    } else if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR ) {
+        // Create and initialize element variables:
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+        const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
 
-	if (rVariable == STRESS_TENSOR) {
-		rOutput[0] = MathUtils<double>::StressVectorToTensor(this->GetValue(STRESS_VECTOR));
-	} else if (rVariable == STRAIN_TENSOR) {
-		rOutput[0] = MathUtils<double>::StrainVectorToTensor(this->GetValue(STRAIN_VECTOR));
-	} else if (rVariable == STRESS_TENSOR_INTEGRATED) {
-		rOutput[0] = MathUtils<double>::StressVectorToTensor((1.0 - mDamage) * (this->GetValue(STRESS_VECTOR)));
-	}
+        BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags& cl_options=cl_values.GetOptions();
+        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+        // Reading integration points
+        for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+            // Compute element kinematics B, F, DN_DX ...
+            this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+            //call the constitutive law to update material variables
+            if( rVariable == CAUCHY_STRESS_VECTOR) {
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+            } else {
+                // Compute material reponse
+                this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
+            }
+
+            if (rOutput[point_number].size() != strain_size )
+                rOutput[point_number].resize( strain_size, false);
+
+            rOutput[point_number] = this_constitutive_variables.StressVector;
+        }
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR) {
+        // Create and initialize element variables:
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+        const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
+
+        BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags &cl_options = cl_values.GetOptions();
+        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+        const ConstitutiveLaw::StressMeasure this_stress_measure = rVariable == GREEN_LAGRANGE_STRAIN_VECTOR ? ConstitutiveLaw::StressMeasure_PK2 : ConstitutiveLaw::StressMeasure_Kirchhoff;
+
+        //reading integration points
+        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+            // Compute element kinematics B, F, DN_DX ...
+            this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+            // Compute material reponse
+            this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this_stress_measure);
+
+            if ( rOutput[point_number].size() != strain_size)
+                rOutput[point_number].resize( strain_size, false );
+
+            rOutput[point_number] = this_constitutive_variables.StrainVector;
+        }
+    } else if (rVariable == STRESS_VECTOR_INTEGRATED) {
+        const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod() );
+        const SizeType number_of_integration_points = integration_points.size();
+        if ( rOutput.size() != number_of_integration_points )
+            rOutput.resize( number_of_integration_points );
+        // Create and initialize element variables:
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+        const SizeType strain_size = this->mConstitutiveLawVector[0]->GetStrainSize();
+
+        BaseSolidElement::KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        BaseSolidElement::ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters cl_values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags& cl_options = cl_values.GetOptions();
+        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+        // Reading integration points
+        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+            //call the constitutive law to update material variables
+            // Compute material reponse
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+
+            if ( rOutput[point_number].size() != strain_size )
+                rOutput[point_number].resize(strain_size, false);
+            rOutput[point_number] = (1.0 - this->mDamage)*this_constitutive_variables.StressVector;
+        }
+    }
 }
 
 /***********************************************************************************/

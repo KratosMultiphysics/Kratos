@@ -29,11 +29,6 @@
 #include "linear_solvers/linear_solver.h"
 #include "external_includes/amgcl_mpi_solver.h"
 
-//aztec solver includes
-#include "AztecOO.h"
-#include "Epetra_LinearProblem.h"
-//#include "Teuchos_ParameterList.hpp"
-
 #include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
@@ -166,9 +161,9 @@ public:
         mprm.put("precond.usolver.precond.type", rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString());
 
         //setting pressure solver options
-        mprm.put("precond.psolver.solver.type", rParameters["pressure_block_preconditioner"]["krylov_type"].GetString());
-        mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
-        mprm.put("precond.psolver.solver.maxiter", rParameters["pressure_block_preconditioner"]["max_iteration"].GetInt());
+        mprm.put("precond.psolver.isolver.type", rParameters["pressure_block_preconditioner"]["krylov_type"].GetString());
+        mprm.put("precond.psolver.isolver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
+        mprm.put("precond.psolver.isolver.maxiter", rParameters["pressure_block_preconditioner"]["max_iteration"].GetInt());
 //         mprm.put("precond.psolver.precond.local.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
 //         mprm.put("precond.psolver.precond.local.coarsening.aggr.eps_strong", 0.0);
 //         mprm.put("precond.psolver.precond.local.coarsening.aggr.block_size", 1);
@@ -230,8 +225,8 @@ public:
             > SDD;
 
         std::function<double(ptrdiff_t,unsigned)> dv = amgcl::mpi::constant_deflation(1);
-        mprm.put("precond.psolver.precond.num_def_vec", 1);
-        mprm.put("precond.psolver.precond.def_vec", &dv);
+        mprm.put("precond.psolver.num_def_vec", 1);
+        mprm.put("precond.psolver.def_vec", &dv);
 
         mprm.put("precond.pmask", static_cast<void*>(&mPressureMask[0]));
         mprm.put("precond.pmask_size", mPressureMask.size());

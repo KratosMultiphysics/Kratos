@@ -87,6 +87,22 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
+    def test_EmbeddedCircle(self):
+        if not hdf5_is_available:
+            self.skipTest("Missing required application: HDF5Application")
+        settings_file_name = "embedded_circle_parameters.json"
+        settings_adjoint_file_name = "embedded_circle_adjoint_parameters.json"
+        work_folder = "embedded_test"
+
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], -0.08769331821378197, 0.0, 1e-9)
+            self._runTest(settings_adjoint_file_name)
+
+            for file_name in os.listdir(os.getcwd()):
+                if file_name.endswith(".h5"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
     def test_WakeProcess3DSmall(self):
         if not numpy_stl_is_available:
             self.skipTest("Missing required dependency: numpy-stl.")
