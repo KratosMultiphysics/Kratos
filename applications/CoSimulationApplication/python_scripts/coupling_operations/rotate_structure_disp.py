@@ -62,6 +62,8 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
         # original configuration.
         angle_of_rotation = 1*self.modelpart.GetValue(ChimeraApp.ROTATIONAL_ANGLE)
         axis_of_rotation = self.settings["axis_of_rotation"].GetVector()
+        print("RotateStructDispOperation: ROTATIONAL_ANGLE : ", angle_of_rotation)
+        print("RotateStructDispOperation: ROTATIONAL_AXIS  : ", axis_of_rotation)
         for node in self.modelpart.Nodes:
             data_vector = node.GetSolutionStepValue(self.interface_data.variable)
             rotated_data = self.__RotateVector(data_vector,angle_of_rotation, axis_of_rotation)
@@ -92,9 +94,8 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
         Following the answer in :
         https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
         """
-        # M = expm(cross(eye(3), axis/norm(axis)*angle))
         M = __GetRotationMatrix(theta, axis)
-        return dot(M,vector)
+        return np.dot(M,vector)
 
     def __GetRotationMatrix(self, theta, axis):
         """
