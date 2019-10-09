@@ -272,6 +272,20 @@ class ExplicitStrategy(object):
         for properties in self.inlet_model_part.Properties:
             self.ModifyProperties(properties)
 
+        for submp in self.inlet_model_part.SubModelParts:
+            if submp.Has(CLUSTER_FILE_NAME):
+                cluster_file_name = submp[CLUSTER_FILE_NAME]
+                [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
+                pre_utils = PreUtilities(self.spheres_model_part)
+                props_id = submp[PROPERTIES_ID]
+                for prop in self.inlet_model_part.Properties:
+                    if prop.Id == props_id:
+                        properties = prop
+                        break
+                pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
+                if not properties.Has(BREAKABLE_CLUSTER):
+                    properties.SetValue(BREAKABLE_CLUSTER, False)
+
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
 
