@@ -5,7 +5,7 @@
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
