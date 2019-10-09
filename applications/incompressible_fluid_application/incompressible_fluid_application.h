@@ -358,8 +358,6 @@ private:
     const ProjDirichletCond mProjDirichletCond;
     const ProjDirichletCond3D mProjDirichletCond3D;
 
-    const Fluid2DSplit mFluid2DSplit;
-
     const NoNewtonianASGS2D mNoNewtonianASGS2D;
     const NoNewtonianASGS3D mNoNewtonianASGS3D;
     const BinghamNonNewtonianASGS2D mBinghamNonNewtonianASGS2D;

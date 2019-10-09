@@ -6,9 +6,6 @@ Begin Properties 0
 End Properties
 
 Begin Properties 1
-    DENSITY 1000.0
-    DYNAMIC_VISCOSITY 1.0e-2
-    SOUND_VELOCITY 1.0e+12
 End Properties
 
 Begin Nodes

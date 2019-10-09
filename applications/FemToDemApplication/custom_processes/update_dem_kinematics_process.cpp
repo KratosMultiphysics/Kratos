@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license:
+//  License:         BSD License
+//                     Kratos default license:
 //kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
@@ -31,13 +31,12 @@ UpdateDemKinematicsProcess::UpdateDemKinematicsProcess(
 void UpdateDemKinematicsProcess::Execute() 
 {
     const auto it_node_begin = mrModelPart.NodesBegin();
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
         if (it_node->GetValue(IS_DEM)) {
-            const int node_id = it_node->Id();
-            auto& associated_dem = mrDEMModelPart.GetNode(node_id);
-            this->UpdateKinematics(it_node, associated_dem);
+            auto p_associated_dem = it_node->GetValue(DEM_PARTICLE_POINTER);
+            this->UpdateKinematics(it_node, p_associated_dem->GetGeometry()[0]);
         }
     }
 }
@@ -51,12 +50,12 @@ void UpdateDemKinematicsProcess::UpdateKinematics(
     )
 {
     const array_1d<double,3> coordinates = rNode->Coordinates();
-    const array_1d<double,3> displacement = rNode->GetSolutionStepValue(DISPLACEMENT);
-    const array_1d<double,3> velocity = rNode->GetSolutionStepValue(VELOCITY);
+    const array_1d<double,3> displacement = rNode->FastGetSolutionStepValue(DISPLACEMENT);
+    const array_1d<double,3> velocity = rNode->FastGetSolutionStepValue(VELOCITY);
 
-    auto& r_displ_dem = rDEMNode.GetSolutionStepValue(DISPLACEMENT);
+    auto& r_displ_dem = rDEMNode.FastGetSolutionStepValue(DISPLACEMENT);
     r_displ_dem = displacement;
-    auto& r_vel_dem = rDEMNode.GetSolutionStepValue(VELOCITY);
+    auto& r_vel_dem = rDEMNode.FastGetSolutionStepValue(VELOCITY);
     r_vel_dem = velocity;
 
     array_1d<double,3>& r_dem_coordinates = rDEMNode.Coordinates();

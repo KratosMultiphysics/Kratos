@@ -1,12 +1,15 @@
 {
     "solver_settings" : {
-        "solver_type"                   : "two_fluids_solver_from_defaults",
+        "solver_type"                   : "TwoFluidNoRedistanceSolver",
         "model_part_name"               : "Fluid",
         "domain_size"                   : 3,
         "model_import_settings"       : {
             "input_type"     : "mdpa",
             "input_filename" : "darcy_channel_test",
             "reorder": false
+        },
+        "material_import_settings": {
+            "materials_filename": "darcy_channel_test_materials.json"
         },
         "echo_level"                  : 0,
         "compute_reactions"           : false,
