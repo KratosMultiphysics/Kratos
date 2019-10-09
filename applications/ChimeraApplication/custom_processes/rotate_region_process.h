@@ -137,7 +137,7 @@ public:
 
       /// Calculating the displacement of the current node
       array_1d<double, 3> transformed_coordinates;
-      TransformNode(it_node->GetInitialPosition().Cordinates(),
+      TransformNode(it_node->GetInitialPosition().Coordinates(), 
                     transformed_coordinates, mTheta);
 
       it_node->X() = transformed_coordinates[0];
@@ -145,7 +145,7 @@ public:
       if (domain_size > 2)
         it_node->Z() = transformed_coordinates[2];
 
-      it_node->SetSolutionStepValue(DISPLACEMENT, transformed_coordinates - it_node->GetInitialPosition().Cordinates());
+      it_node->FastGetSolutionStepValue(DISPLACEMENT) = transformed_coordinates - it_node->GetInitialPosition().Coordinates();;
 
       // Computing the linear velocity at this it_node
       DenseVector<double> radius(3);
