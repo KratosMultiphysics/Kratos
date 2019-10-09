@@ -237,7 +237,7 @@ public:
     {
         PrintHorizontalLine();
         
-        if (mBoldFont == true) {
+        if (mBoldFont) {
         #if !defined(_WIN32)
             *mOutStream << "\x1B[1m";
         #endif
@@ -261,7 +261,7 @@ public:
 
         *mOutStream << "|";
 
-        if (mBoldFont == true) {
+        if (mBoldFont) {
         #if !defined(_WIN32)
             *mOutStream << "\x1B[0m";
         #endif
