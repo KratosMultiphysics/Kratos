@@ -4,8 +4,8 @@ from __future__ import print_function, absolute_import, division  # makes these 
 import KratosMultiphysics as KM
 import KratosMultiphysics.ChimeraApplication as ChimeraApp
 
-from numpy import cross, eye, dot
-from scipy.linalg import expm, norm
+import numpy as np
+import math
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
@@ -19,7 +19,7 @@ def Create(settings, solver_wrappers):
 
 class RotateFluidForcesOperation(CoSimulationCouplingOperation):
     """This operation Rotates the fluid forces from the deformed config
-        to the original config. The rotation angle is obtained from the 
+        to the original config. The rotation angle is obtained from the
         modelpart itself. ChimeraApp's Rotate region process calculates
         and puts it on the modelpart under variable ChimeraApp.ROTATIONAL_ANGLE
 
@@ -85,12 +85,28 @@ class RotateFluidForcesOperation(CoSimulationCouplingOperation):
         this_defaults.AddMissingParameters(super(RotateFluidForcesOperation, cls)._GetDefaultSettings())
         return this_defaults
 
-    def __RotateVector(self,vector, angle, axis):
+    def __RotateVector(self,vector, theta, axis):
         """
-        Following the answer in : 
+        Following the answer in :
         https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
         """
-        M = expm(cross(eye(3), axis/norm(axis)*angle))
-        return dot(M,vector)
+        # M = expm(cross(eye(3), axis/norm(axis)*angle))
+        M = __GetRotationMatrix(theta, axis)
+        return np.dot(M,vector)
+
+    def __GetRotationMatrix(self, theta, axis):
+        """
+        Return the rotation matrix associated with counterclockwise rotation about
+        the given axis by theta radians.
+        """
+        axis = np.asarray(axis)
+        axis = axis / math.sqrt(np.dot(axis, axis))
+        a = math.cos(theta / 2.0)
+        b, c, d = -axis * math.sin(theta / 2.0)
+        aa, bb, cc, dd = a * a, b * b, c * c, d * d
+        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+        return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                        [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                        [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
 
