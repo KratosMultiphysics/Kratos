@@ -131,6 +131,7 @@ public:
         mEchoLevel = 0;
         mReformulateEveryStep = false;
         mIsFormulated = false;
+        mTime = 0.0;
     }
 
     /// Destructor.
@@ -159,6 +160,11 @@ public:
     virtual void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
+        const double time = r_process_info[TIME];
+        if(mTime == time)
+        return;
+
+        mTime = time;
         // Actual execution of the functionality of this class
         if(mReformulateEveryStep || !mIsFormulated){
             DoChimeraLoop();
@@ -221,6 +227,7 @@ protected:
     bool mReformulateEveryStep;
     std::map<std::string, PointLocatorPointerType> mPointLocatorsMap;
     bool mIsFormulated;
+    double mTime;
     ///@}
     ///@name Protected Operators
     ///@{
