@@ -349,7 +349,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
             if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
                 Matrix tangent_tensor;
                 this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, cl_values);
-                noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, tangent_tensor, int_to_reference_weight);
             } else {
                 this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0 - damage_element)*this_constitutive_variables.D, int_to_reference_weight);
             }

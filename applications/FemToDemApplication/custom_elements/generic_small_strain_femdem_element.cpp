@@ -271,7 +271,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
             if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
                 Matrix tangent_tensor;
                 this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_constitutive_variables.D, cl_values);
-                noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, tangent_tensor, int_to_reference_weight);
             } else {
                 this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0-damage_element)*this_constitutive_variables.D, int_to_reference_weight);
             }
@@ -399,6 +399,43 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
         this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix, rValues);
         const Vector& r_delta_stress = perturbed_stress - rStressVectorGP;
         this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, perturbation, component);
+    }
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void  GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensorSecondOrder(
+    Matrix& rTangentTensor,
+    const Vector& rStrainVectorGP,
+    const Vector& rStressVectorGP,
+    const Matrix& rElasticMatrix,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const double number_components = rStrainVectorGP.size();
+    rTangentTensor.resize(number_components, number_components);
+    Vector perturbed_stress_plus, perturbed_strain_plus;
+    Vector perturbed_stress_minus, perturbed_strain_minus;
+    perturbed_strain_minus.resize(number_components);
+    perturbed_strain_plus.resize(number_components);
+    perturbed_stress_minus.resize(number_components);
+    perturbed_stress_plus.resize(number_components);
+
+    for (unsigned int component = 0; component < number_components; component++) {
+        double perturbation;
+        this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
+
+        this->PerturbateStrainVector(perturbed_strain_plus, rStrainVectorGP, perturbation, component);
+        this->IntegratePerturbedStrain(perturbed_stress_plus, perturbed_strain_plus, rElasticMatrix, rValues);
+
+        this->PerturbateStrainVector(perturbed_strain_minus, rStrainVectorGP, -perturbation, component);
+        this->IntegratePerturbedStrain(perturbed_stress_minus, perturbed_strain_minus, rElasticMatrix, rValues);
+
+        const Vector& r_delta_stress = perturbed_stress_plus - perturbed_stress_minus;
+        this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, 2.0*perturbation, component);
     }
 }
 
