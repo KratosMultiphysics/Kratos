@@ -11,8 +11,8 @@
 //                    
 //
 
-#if !defined(_COLORS_)
-#define _COLORS_
+#ifndef COLOR_UTILITIES_H_INCLUDED
+#define COLOR_UTILITIES_H_INCLUDED
 
 // System includes
 #ifdef _WIN32
@@ -50,4 +50,4 @@
 #define BOLDFONT(x) BOLD x RST
 #define UNDL(x) "\x1B[4m" x RST
 
-#endif  /* _COLORS_ */
+#endif  /* COLOR_UTILITIES_H_INCLUDED */
