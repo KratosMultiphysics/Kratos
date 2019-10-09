@@ -15,7 +15,7 @@ class TestConvergenceCriterionRelativeNorm(KratosUnittest.TestCase):
         a0 = 10.0
         a1 = 1.0e-4
         a2 = 1.0e-6
-        interface_settings = {"wall": "AREA"}
+        interface_settings = cs_data_structure.Parameters('{"wall": "AREA"}')
 
         # Create interface
         variable = KM.KratosGlobals.GetVariable("AREA")

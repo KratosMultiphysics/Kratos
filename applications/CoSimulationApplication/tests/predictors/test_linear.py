@@ -15,7 +15,7 @@ class TestPredictorLinear(KratosUnittest.TestCase):
         a1 = 1.5
         a2 = 2.0
         a3 = 2.5
-        interface_settings = {"wall": "AREA"}
+        interface_settings = cs_data_structure.Parameters('{"wall": "AREA"}')
 
         # Create interface
         variable = KM.KratosGlobals.GetVariable("AREA")

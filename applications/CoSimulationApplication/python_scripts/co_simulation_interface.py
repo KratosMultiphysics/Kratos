@@ -19,7 +19,8 @@ class CoSimulationInterface(object):
         step = 0
         for model_part_name, variable_name in self.model_parts_variables:
             model_part = self.model.GetModelPart(model_part_name)
-            variable = KM.KratosGlobals.GetVariable(variable_name)
+            variable = KM.KratosGlobals.GetVariable(variable_name.GetString())
+            # *** add if to see it its a string or parameter?
             for node in model_part.Nodes:
                 value = node.GetSolutionStepValue(variable, step)
                 data.append(value)
@@ -33,10 +34,13 @@ class CoSimulationInterface(object):
         step = 0
         for model_part_name, variable_name in self.model_parts_variables:
             model_part = self.model.GetModelPart(model_part_name)
-            variable = KM.KratosGlobals.GetVariable(variable_name)
+            variable = KM.KratosGlobals.GetVariable(variable_name.GetString())
             for node in model_part.Nodes:
                 value = data[index]
                 index += 1
+                # print('\n\nwhich historical variables do we have??')
+                # print(node._Node__hist_variables)
+                # print('\n\n')
                 node.SetSolutionStepValue(variable, step, value)
 
     def SetNumpyArray(self, data):

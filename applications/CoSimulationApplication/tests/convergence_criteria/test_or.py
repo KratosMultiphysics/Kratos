@@ -13,7 +13,7 @@ class TestConvergenceCriterionOr(KratosUnittest.TestCase):
         m = 10
         dz = 2.0
         a0 = 1.0
-        interface_settings = {"wall": "AREA"}
+        interface_settings = cs_data_structure.Parameters('{"wall": "AREA"}')
 
         # Create interface
         variable = KM.KratosGlobals.GetVariable("AREA")
