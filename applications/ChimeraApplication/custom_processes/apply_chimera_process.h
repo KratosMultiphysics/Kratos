@@ -160,9 +160,10 @@ public:
     virtual void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
+        const auto &r_process_info = mrMainModelPart.GetProcessInfo();
         const double time = r_process_info[TIME];
         if(mTime == time)
-        return;
+            return;
 
         mTime = time;
         // Actual execution of the functionality of this class
