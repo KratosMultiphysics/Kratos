@@ -65,7 +65,7 @@ public:
     Parameters default_parameters(R"(
             {
                 "model_part_name":"SPECIFY_MODELPART_NAME",
-                "torque_model_part_name":""
+                "torque_model_part_name":"",
                 "center_of_rotation":[],
                 "calculate_torque":false,
                 "moment_of_inertia":0.0,
@@ -249,7 +249,7 @@ private:
      * @brief Advances the rotation system in time
      * @param NewTime Time where the system is to be set
      */
-    bool CloneTimeStep(const double NewTime, const double Dt) {
+    void CloneTimeStep(const double NewTime, const double Dt) {
       mTime = NewTime;
       // compute BDF coefficients
       mDt = Dt;
