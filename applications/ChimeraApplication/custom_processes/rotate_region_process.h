@@ -65,6 +65,7 @@ public:
     Parameters default_parameters(R"(
             {
                 "model_part_name":"SPECIFY_MODELPART_NAME",
+                "torque_model_part_name":""
                 "center_of_rotation":[],
                 "calculate_torque":false,
                 "moment_of_inertia":0.0,
@@ -396,7 +397,7 @@ private:
       mTheta += mAngularVelocityRadians * dt;
     }
     auto& r_model = mrModelPart.GetModel();
-    auto& r_torque_model_part = mParameters.Has("torque_model_part_name") ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
+    auto& r_torque_model_part = r_model.HasModelPart(mParameters["torque_model_part_name"].GetString()) ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
     KRATOS_INFO("RotateRegionProcess")<<"Current angular velocity   :: "<<mAngularVelocityRadians<<std::endl;
     KRATOS_INFO("RotateRegionProcess")<<"Current angle of rotation  :: "<<mTheta<<std::endl;
 
@@ -448,7 +449,7 @@ private:
   double CalculateTorque() const {
     double torque = 0.0;
     auto& r_model = mrModelPart.GetModel();
-    auto& r_torque_model_part = mParameters.Has("torque_model_part_name") ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
+    auto& r_torque_model_part = r_model.HasModelPart(mParameters["torque_model_part_name"].GetString()) ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
     const int num_nodes = r_torque_model_part.NumberOfNodes();
     const NodeIteratorType it_node_begin = r_torque_model_part.NodesBegin();
 
