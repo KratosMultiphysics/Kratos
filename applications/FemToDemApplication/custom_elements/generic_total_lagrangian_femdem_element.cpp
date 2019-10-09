@@ -318,10 +318,10 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
             // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
             Vector average_strain_edge(VoigtSize);
-            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
+                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
  
@@ -336,11 +336,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         }
 
         // Calculate the elemental Damage...
-        double damage_element;
-        if (CalculateResidualVectorFlag)
-            damage_element = this->CalculateElementalDamage(damages_edges);
-        else
-            damage_element = this->CalculateElementalDamage(mDamages);
+        const double damage_element = this->CalculateElementalDamage(damages_edges);
 
         Vector r_strain_vector;
         this->CalculateGreenLagrangeStrainVector(r_strain_vector, this_kinematic_variables.F);
@@ -439,10 +435,10 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
             // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
             Vector average_strain_edge(VoigtSize);
-            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
+                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
