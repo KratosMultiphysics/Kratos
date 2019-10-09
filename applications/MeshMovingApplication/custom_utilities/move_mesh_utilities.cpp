@@ -53,8 +53,9 @@ void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
     #pragma omp parallel for
     for (int i=0; i<num_nodes; i++) {
         const auto it_node  = nodes_begin + i;
-        noalias(it_node->Coordinates()) = it_node->GetInitialPosition()
-            + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        auto new_update = it_node->Coordinates() - (it_node->GetInitialPosition()
+                                                  + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT));
+        it_node->Coordinates() += new_update;
     }
 
     KRATOS_CATCH("");
