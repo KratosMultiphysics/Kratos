@@ -11,7 +11,7 @@
 //                   license: ChimeraApplication/license.txt
 //
 //  Authors:        Aditya Ghantasala, https://github.com/adityaghantasala
-// 					Navaneeth K Narayanan
+// 					        Navaneeth K Narayanan
 // ==============================================================================
 //
 
@@ -137,8 +137,8 @@ public:
 
       /// Calculating the displacement of the current node
       array_1d<double, 3> transformed_coordinates;
-      TransformNode(it_node->GetInitialPosition().Coordinates(),
-                    transformed_coordinates);
+      TransformNode(it_node->Coordinates(),
+                    transformed_coordinates, mDTheta);
 
       it_node->X() = transformed_coordinates[0];
       it_node->Y() = transformed_coordinates[1];
@@ -273,12 +273,13 @@ private:
     /*
      * @brief Calculates the current state of the system
      */
-    void CalculateCurrentRotationState() {
+    double CalculateCurrentRotationState() {
       Predict();
       double LHS = ComputeLHS();
       double RHS = ComputeRHS();
       double d_theta = RHS / LHS;
       Update(d_theta);
+      return d_theta;
     }
 
     /*
@@ -366,6 +367,7 @@ private:
   array_1d<double, 3> mAxisOfRotationVector;
   array_1d<double, 3> mCenterOfRotation;
   double mTheta;
+  double mDTheta;
   bool mToCalculateTorque;
   double mMomentOfInertia;
   double mRotationalDamping;
@@ -389,12 +391,13 @@ private:
       const double torque = CalculateTorque();
       KRATOS_INFO("RotateRegionProcess")<<"Current torque             :: "<<torque<<std::endl;
       mpRotationSystem->ApplyTorque(torque);
-      mpRotationSystem->CalculateCurrentRotationState();
+      mDTheta = mpRotationSystem->CalculateCurrentRotationState();
       mTheta = mpRotationSystem->GetCurrentTheta();
       mAngularVelocityRadians = mpRotationSystem->GetCurrentOmega();
     } else {
       const double dt = r_process_info[DELTA_TIME];
-      mTheta += mAngularVelocityRadians * dt;
+      mDTheta = mAngularVelocityRadians * dt;
+      mTheta += mDTheta;
     }
     auto& r_model = mrModelPart.GetModel();
     auto& r_torque_model_part = r_model.HasModelPart(mParameters["torque_model_part_name"].GetString()) ? r_model.GetModelPart(mParameters["torque_model_part_name"].GetString()) : mrModelPart;
@@ -431,12 +434,13 @@ private:
    * @out rTransformedCoordinates the rotated nodal coordinates.
    */
   void TransformNode(const array_1d<double, 3> &rCoordinates,
-                     array_1d<double, 3> &rTransformedCoordinates) const {
+                     array_1d<double, 3> &rTransformedCoordinates,
+                     double Theta) const {
     // Changing the origin to the center of rotation
     auto new_coordinates = rCoordinates - mCenterOfRotation;
     Quaternion<double> mQuaternion = Quaternion<double>::FromAxisAngle(
         mAxisOfRotationVector(0), mAxisOfRotationVector(1),
-        mAxisOfRotationVector(2), mTheta);
+        mAxisOfRotationVector(2), Theta);
     mQuaternion.RotateVector3(new_coordinates, rTransformedCoordinates);
     // Bringing back to the original coordinate system.
     rTransformedCoordinates = rTransformedCoordinates + mCenterOfRotation;
