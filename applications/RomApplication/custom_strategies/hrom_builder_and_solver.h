@@ -382,9 +382,10 @@ public:
             auto it_el = el_begin + k;
             //detect if the element is active or not. If the user did not make any choice the element
             //is active by default
-            bool element_is_active = true;
-            if ((it_el)->IsDefined(ACTIVE))
-                element_is_active = (it_el)->Is(ACTIVE);            
+            bool element_is_active = false;
+            if ((it_el)->Has(HROM_WEIGHT))
+                KRATOS_WATCH(k);
+                element_is_active = true;            
             
             if (element_is_active)
             {
@@ -429,9 +430,10 @@ public:
 
             //detect if the element is active or not. If the user did not make any choice the element
             //is active by default
-            bool condition_is_active = true;
-            if ((it)->IsDefined(ACTIVE))
-                condition_is_active = (it)->Is(ACTIVE);
+            bool condition_is_active = false;
+            if ((it)->Has(HROM_WEIGHT))
+                KRATOS_WATCH(k);
+                condition_is_active = true;
 
             if (condition_is_active)
             {
@@ -468,7 +470,12 @@ public:
                 pScheme->CleanMemory(*(it.base()));
             }
         }
-       
+        // Checking the already fully built matrices 
+
+        KRATOS_WATCH(Arom);
+        KRATOS_WATCH(brom);
+
+
 
         const double stop_build = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("HROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
