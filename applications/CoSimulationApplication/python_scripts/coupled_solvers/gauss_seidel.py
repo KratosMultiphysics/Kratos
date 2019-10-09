@@ -60,7 +60,6 @@ class CoupledSolverGaussSeidel(CoSimulationComponent):
                 self.x += dx
             y = self.solver_wrappers[0].SolveSolutionStep(self.x)
             xt = self.solver_wrappers[1].SolveSolutionStep(y)
-            print(type(self.x))
 
             r = xt - self.x
             self.convergence_accelerator.Update(self.x, xt)
