@@ -97,7 +97,8 @@ public:
     {
         KRATOS_TRY
 
-        if (mEchoLevel > 1) {
+        if (mEchoLevel > 1)
+        {
             std::cout << " [ SELECT MESH ELEMENTS in PfemFluid: (" << mrRemesh.OutMesh.GetNumberOfElements() << ") " << std::endl;
             std::cout << "MODEL PART InNumberOfElements " << mrRemesh.InMesh.GetNumberOfElements() << std::endl;
             std::cout << "MODEL PART InNumberOfPoints " << mrRemesh.InMesh.GetNumberOfPoints() << std::endl;
@@ -116,7 +117,8 @@ public:
         double currentTime = rCurrentProcessInfo[TIME];
         double timeInterval = rCurrentProcessInfo[DELTA_TIME];
         bool firstMesh = false;
-        if (currentTime < 2 * timeInterval) {
+        if (currentTime < 2 * timeInterval)
+        {
             firstMesh = true;
         }
 
@@ -268,7 +270,6 @@ public:
                         maxExternalPoint[1] += mrRemesh.Refine->CriticalRadius;
                         maxExternalPoint[2] += mrRemesh.Refine->CriticalRadius;
 
-
                         minInternalPoint[0] += mrRemesh.Refine->CriticalRadius;
                         minInternalPoint[1] += mrRemesh.Refine->CriticalRadius;
                         minInternalPoint[2] += mrRemesh.Refine->CriticalRadius;
@@ -304,10 +305,25 @@ public:
 
                 if (increaseAlfa == true)
                 {
-                    Alpha *= 1.25;
+                    if (numfreesurf < nds && numisolated == 0)
+                    {
+                        Alpha *= 1.275;
+                    }
                 }
-                if (refiningBox == true){
-                    Alpha *= 1.05;
+                if (refiningBox == true && numfreesurf < (0.5 * nds) && (numrigid < (0.5 * nds) && numfreesurf > 0))
+                {
+                    if (numisolated == 0)
+                    {
+                        Alpha *= 1.0;
+                    }
+                    else if (numfreesurf == 0)
+                    {
+                        Alpha *= 1.1;
+                    }
+                    else
+                    {
+                        Alpha *= 1.05;
+                    }
                 }
 
                 if (dimension == 2)

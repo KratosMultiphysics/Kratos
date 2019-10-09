@@ -184,9 +184,13 @@ public:
 		else
 		{
 
-			if (ElementsToRefine <50)
+			if (ElementsToRefine < 10)
 			{
-				ElementsToRefine = 50;
+				ElementsToRefine = 10;
+			}
+			else
+			{
+				ElementsToRefine *= 3;
 			}
 			std::vector<array_1d<double, 3>> NewPositions;
 			std::vector<double> BiggestVolumes;
@@ -790,7 +794,7 @@ private:
 		double initialTime = mrRemesh.RefiningBoxInitialTime;
 		double finalTime = mrRemesh.RefiningBoxFinalTime;
 		bool refiningBox = mrRemesh.UseRefiningBox;
-
+		double sumMeshSize = 0;
 		if (!(refiningBox == true && currentTime > initialTime && currentTime < finalTime))
 		{
 			refiningBox = false;
@@ -823,15 +827,26 @@ private:
 				if (Element[pn].X() > RefiningBoxLowerPoint[0] && Element[pn].Y() > RefiningBoxLowerPoint[1] && Element[pn].Z() > RefiningBoxLowerPoint[2] &&
 					Element[pn].X() < RefiningBoxUpperPoint[0] && Element[pn].Y() < RefiningBoxUpperPoint[1] && Element[pn].Z() < RefiningBoxUpperPoint[2])
 				{
-					meanMeshSize = mrRemesh.RefiningBoxMeshSize;
+					sumMeshSize += mrRemesh.RefiningBoxMeshSize;
+				}
+				else
+				{
+					sumMeshSize += mrRemesh.Refine->CriticalRadius;
 				}
 			}
 		}
-		double penalization=1.0;
-		if(freesurfaceNodes>0){
-			penalization=1.2;
+
+		double penalization = 1.0;
+		if (refiningBox == true)
+		{
+			if (freesurfaceNodes > 0)
+			{
+				penalization = 1.2; //to avoid to gain too much volume during remeshing step
+			}
+			meanMeshSize = sumMeshSize / double(nds);
 		}
-		double limitEdgeLength = 1.9 * meanMeshSize*penalization;
+
+		double limitEdgeLength = 2.0 * meanMeshSize * penalization;
 		double safetyCoefficient2D = 1.5;
 
 		double ElementalVolume = Element.Area();
@@ -978,7 +993,7 @@ private:
 		double initialTime = mrRemesh.RefiningBoxInitialTime;
 		double finalTime = mrRemesh.RefiningBoxFinalTime;
 		bool refiningBox = mrRemesh.UseRefiningBox;
-
+		double sumMeshSize = 0;
 		if (!(refiningBox == true && currentTime > initialTime && currentTime < finalTime))
 		{
 			refiningBox = false;
@@ -1011,12 +1026,26 @@ private:
 				if (Element[pn].X() > RefiningBoxLowerPoint[0] && Element[pn].Y() > RefiningBoxLowerPoint[1] && Element[pn].Z() > RefiningBoxLowerPoint[2] &&
 					Element[pn].X() < RefiningBoxUpperPoint[0] && Element[pn].Y() < RefiningBoxUpperPoint[1] && Element[pn].Z() < RefiningBoxUpperPoint[2])
 				{
-					meanMeshSize = mrRemesh.RefiningBoxMeshSize;
+					sumMeshSize += mrRemesh.RefiningBoxMeshSize;
+				}
+				else
+				{
+					sumMeshSize += mrRemesh.Refine->CriticalRadius;
 				}
 			}
 		}
 
-		double limitEdgeLength = 1.75 * meanMeshSize;
+		double penalization = 1.0;
+		if (refiningBox == true)
+		{
+			if (freesurfaceNodes > 0)
+			{
+				penalization = 1.2; //to avoid to gain too much volume during remeshing step
+			}
+			meanMeshSize = sumMeshSize / double(nds);
+		}
+
+		double limitEdgeLength = 1.75 * meanMeshSize * penalization;
 		double safetyCoefficient3D = 1.6;
 
 		double ElementalVolume = Element.Volume();
