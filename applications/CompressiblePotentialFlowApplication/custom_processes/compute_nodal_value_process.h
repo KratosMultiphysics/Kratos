@@ -112,7 +112,7 @@ private:
      * @brief Reads the variables list specified in the input and stores them
      * in the mDoubleVariablesList and the mComponentVariablesList.
      * @param rVariableStringArray Array containing the variables whose value
-     * to be transfered from elements to nodes
+     * is transfered from elements to nodes
     */
     void StoreVariableList(const std::vector<std::string>& rVariableStringArray);
 
@@ -139,7 +139,7 @@ private:
                           const Variable<array_1d<double, 3>>& rVariable,
                           const double& rN,
                           const double& rGaussPointVolume,
-                          const array_1d<double, 3> rGrad);
+                          const array_1d<double, 3>& rGaussPointValue);
 
     /**
      * This updates the nodal value of double variables
@@ -148,7 +148,7 @@ private:
                           const Variable<double>& rVariable,
                           const double& rN,
                           const double& rGaussPointVolume,
-                          const double rGrad);
+                          const double& rGaussPointValue);
 
     /**
      * This divides the nodal value by the nodal area

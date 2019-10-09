@@ -191,7 +191,7 @@ void ComputeNodalValueProcess::UpdateNodalValue(Element::NodeType& rNode,
     const Variable<array_1d<double, 3>>& rVariable,
     const double& rN,
     const double& rGaussPointVolume,
-    const array_1d<double, 3> rGaussPointValue)
+    const array_1d<double, 3>& rGaussPointValue)
 {
     auto& r_gradient = rNode.GetValue(rVariable);
     for(std::size_t k=0; k<r_gradient.size(); ++k) {
@@ -204,7 +204,7 @@ void ComputeNodalValueProcess::UpdateNodalValue(Element::NodeType& rNode,
     const Variable<double>& rVariable,
     const double& rN,
     const double& rGaussPointVolume,
-    const double rGaussPointValue)
+    const double& rGaussPointValue)
 {
     double& value = rNode.GetValue(rVariable);
     #pragma omp atomic
