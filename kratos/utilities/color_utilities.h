@@ -15,20 +15,18 @@
 #define COLOR_UTILITIES_H_INCLUDED
 
 // System includes
-#ifdef _WIN32
-#include <Windows.h>
-#endif
+
 // External includes
 
 // Project includes
 
-/* FOREGROUND */
-#ifdef _WIN32
+#ifdef KRATOS_COMPILED_IN_WINDOWS
     #define PREPARE_STL_OUTPUT SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 #else
     #define PREPARE_STL_OUTPUT void();
 #endif
-    
+
+/* FOREGROUND */    
 #define RST   "\x1B[0m"
 #define BOLD  "\x1B[1m"
 #define KRED  "\x1B[31m"
