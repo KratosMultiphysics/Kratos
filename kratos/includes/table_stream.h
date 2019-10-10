@@ -28,6 +28,7 @@
 #include "includes/serializer.h"
 #include "includes/shared_pointers.h"
 #include "includes/exception.h"
+#include "utilities/color_utilities.h"
 
 namespace Kratos 
 {
@@ -238,9 +239,7 @@ public:
         PrintHorizontalLine();
         
         if (mBoldFont) {
-        #if !defined(_WIN32)
-            *mOutStream << "\x1B[1m";
-        #endif
+            *mOutStream << BOLD;
         }
 
         *mOutStream << "|";
@@ -262,9 +261,7 @@ public:
         *mOutStream << "|";
 
         if (mBoldFont) {
-        #if !defined(_WIN32)
-            *mOutStream << "\x1B[0m";
-        #endif
+            *mOutStream << RST;
         }
 
         *mOutStream << "\n";
