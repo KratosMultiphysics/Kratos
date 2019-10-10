@@ -48,21 +48,51 @@ CoSimIO::CoSimIO(const std::string& rSettingsFileName)
 
 CoSimIO::~CoSimIO()
 {
-    if (!mpComm->Disconnect()) {
-        std::cout << "Warning: Disconnect was not successful!" << std::endl;
+    if (mIsConnected) {
+        std::cout << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;
+        Disconnect();
     }
 }
 
+bool CoSimIO::Connect()
+{
+    if (mIsConnected) {
+        throw std::runtime_error("A connection was already established!");
+    }
+
+    mIsConnected = mpComm->Connect();
+
+    if (!mIsConnected) {
+        throw std::runtime_error("Connection was not successful!");
+    }
+}
+
+bool CoSimIO::Disconnect()
+{
+    if (mIsConnected) {
+        if (!mpComm->Disconnect()) {
+            std::cout << "Warning: Disconnect was not successful!" << std::endl;
+            return false;
+        }
+    } else {
+        std::cout << "Warning: Calling Disconnect but there was no active connection!" << std::endl;
+        return false;
+    }
+
+    return true;
+}
 
 template<class DataContainer>
 bool CoSimIO::Import(DataContainer& rContainer, const std::string& rIdentifier)
 {
+    CheckConnection();
     return mpComm->Import(rContainer, rIdentifier);
 }
 
 template<class DataContainer>
 bool CoSimIO::Export(const DataContainer& rContainer, const std::string& rIdentifier)
 {
+    CheckConnection();
     return mpComm->Export(rContainer, rIdentifier);
 }
 
@@ -88,9 +118,12 @@ void CoSimIO::Initialize(SettingsType& rSettings)
     } else {
         throw std::runtime_error("comm format not available!"); // TODO improve message
     }
+}
 
-    if (!mpComm->Connect()) {
-        throw std::runtime_error("Connection was not successful!");
+void CoSimIO::CheckConnection()
+{
+    if (!mIsConnected) {
+        throw std::runtime_error("No active connection exists!");
     }
 }
 

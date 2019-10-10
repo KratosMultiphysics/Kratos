@@ -37,12 +37,12 @@ class CoSimIO
 public:
     typedef CoSimComm::SettingsType SettingsType;
 
-    // Constructor establishes connection (RAII)
     explicit CoSimIO(SettingsType& rSettings);
     explicit CoSimIO(const std::string& rSettingsFileName);
-
-    // Destructor performs disconnect (RAII)
     ~CoSimIO();
+
+    bool Connect();
+    bool Disconnect();
 
     template<class DataContainer>
     bool Import(DataContainer& rDataContainer, const std::string& rIdentifier);
@@ -51,9 +51,13 @@ public:
     bool Export(const DataContainer& rDataContainer, const std::string& rIdentifier);
 
 private:
+    bool mIsConnected = false;
+    int mEchoLevel = 1;
     std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
 
     void Initialize(SettingsType& rSettings);
+
+    void CheckConnection();
 
 }; // class CoSimIO
 
