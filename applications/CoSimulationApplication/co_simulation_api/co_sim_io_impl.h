@@ -36,12 +36,12 @@
 
 namespace CoSim {
 
-CoSimIO::CoSimIO(const std::string rName, const std::string& rSettingsFileName)
-    : CoSimIO::CoSimIO(rName, ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
+CoSimIO::CoSimIO(const std::string& rName, const std::string& rSettingsFileName)
+    : CoSimIO::CoSimIO(rName, Tools::ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
 
-CoSimIO::CoSimIO(const std::string rName, SettingsType rSettings)
+CoSimIO::CoSimIO(const std::string& rName, SettingsType rSettings)
 {
-    Initialize(rSettings);
+    Initialize(rName, rSettings);
 }
 
 bool CoSimIO::Connect()
@@ -66,29 +66,26 @@ bool CoSimIO::Export(const DataContainer& rContainer, const std::string& rIdenti
     return mpComm->Export(rContainer, rIdentifier);
 }
 
-
-void CoSimIO::Initialize(SettingsType& rSettings)
+void CoSimIO::Initialize(const std::string& rName, SettingsType& rSettings)
 {
-    AddMissingSettings(rSettings);
+    std::string comm_format("file"); // default is file-communication
+    if (rSettings.count("communication_format") != 0) { // communication format has been specified
+        comm_format = rSettings.at("communication_format");
+    }
 
-    const std::string comm_format(rSettings.at("communication_format"));
-    mEchoLevel = std::stoi(rSettings.at("echo_level"));
-
-    std::cout << "CoSimIO uses the following configuration:";
-    std::cout << "\n    Communication Format: " << comm_format;
-    std::cout << "\n    Echo Level: " << mEchoLevel << std::endl;
+    std::cout << "CoSimIO for \"" << rName << "\" uses communication format: " << comm_format << std::endl;
 
     if (comm_format == "file") {
-        mpComm = std::unique_ptr<CoSimComm>(new FileComm(rSettings)); // make_unique is C++14
+        mpComm = std::unique_ptr<CoSimComm>(new FileComm(rName, rSettings)); // make_unique is C++14
     } else if (comm_format == "sockets") {
 #ifdef KRATOS_CO_SIM_IO_ENABLE_SOCKETS
-        mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(rSettings)); // make_unique is C++14
+        mpComm = std::unique_ptr<CoSimComm>(new SocketsComm(rName, rSettings)); // make_unique is C++14
 #else
         throw std::runtime_error("Support for Sockets was not compiled!");
 #endif /* KRATOS_CO_SIM_IO_ENABLE_SOCKETS */
     } else if (comm_format == "mpi") {
 #ifdef KRATOS_CO_SIM_IO_ENABLE_MPI
-        mpComm = std::unique_ptr<CoSimComm>(new MPIComm(rSettings)); // make_unique is C++14
+        mpComm = std::unique_ptr<CoSimComm>(new MPIComm(rName, rSettings)); // make_unique is C++14
 #else
         throw std::runtime_error("Support for MPI was not compiled!");
 #endif /* KRATOS_CO_SIM_IO_ENABLE_MPI */
@@ -96,36 +93,6 @@ void CoSimIO::Initialize(SettingsType& rSettings)
         std::stringstream err_msg;
         err_msg << "Unsupported communication format: " << comm_format;
         throw std::runtime_error(err_msg.str());
-    }
-}
-
-void CoSimIO::AddMissingSettings(SettingsType& rSettings)
-{
-    const SettingsType default_settings = {
-		{"communication_format", "file"},
-		{"echo_level",           "1"}
-    };
-
-    for (const auto& r_setting : default_settings) {
-        if (rSettings.count(r_setting.first) == 0) {
-            rSettings[r_setting.first] = r_setting.second;
-        }
-    }
-}
-
-CoSimIO::SettingsType CoSimIO::ReadSettingsFile(const std::string& rSettingsFileName)
-{
-    std::ifstream settings_file(rSettingsFileName);
-
-    if (!settings_file.good()) {
-        std::cout << "Input file \"" << rSettingsFileName << "\" could not be read, using default configuration" << std::endl;
-        return SettingsType();
-    }
-
-    std::string current_line;
-
-    while (std::getline(settings_file, current_line)) {
-        // TODO implement this
     }
 }
 

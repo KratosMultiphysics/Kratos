@@ -19,6 +19,7 @@
 
 // Project includes
 #include "co_sim_data_containers.h"
+#include "co_sim_api_tools.h"
 
 namespace CoSim {
 
@@ -37,7 +38,15 @@ namespace CoSim {
 class CoSimComm
 {
 public:
-    typedef std::unordered_map<std::string, std::string> SettingsType;
+    typedef Tools::SettingsType SettingsType;
+
+    CoSimComm(const std::string& rName, SettingsType& rSettings) : mName(rName), mrSettings(rSettings)
+    {
+        const SettingsType default_settings = {
+            {"echo_level", "1"}
+        };
+        Tools::AddMissingSettings(default_settings, mrSettings);
+    }
 
     virtual ~CoSimComm()
     {
@@ -85,7 +94,10 @@ public:
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Data);
 
 private:
+    std::string mName;
+    SettingsType& mrSettings;
     bool mIsConnected = false;
+    int mEchoLevel = 1;
 
     virtual bool ConnectDetail() = 0;
     virtual bool DisconnectDetail() = 0;
@@ -99,11 +111,6 @@ private:
         if (!mIsConnected) {
             throw std::runtime_error("No active connection exists!");
         }
-    }
-
-    void AssignAndValidateDefaults(const SettingsType& rDefaultSettings, SettingsType& rSettings)
-    {
-        // ...
     }
 
 };

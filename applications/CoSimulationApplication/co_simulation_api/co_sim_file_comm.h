@@ -22,21 +22,25 @@ namespace CoSim {
 class FileComm : public CoSimComm
 {
 public:
-    explicit FileComm(SettingsType& rSettings)
+    explicit FileComm(const std::string& rName, SettingsType& rSettings)
+        : CoSimComm(rName, rSettings)
     {
-        throw std::runtime_error("Files Communication is not implemented yet");
+        // throw std::runtime_error("Files Communication is not implemented yet");
     }
 
 private:
 
     bool ConnectDetail() override
     {
-        return true;
+        std::cout << "FileComm; ConnectDetail" << std::endl;
+        return true; // nothing needed here for file-based communication
     }
 
     bool DisconnectDetail() override
     {
-        return true;
+        std::cout << "FileComm; DisconnectDetail" << std::endl;
+
+        return true; // nothing needed here for file-based communication
     }
 
     bool ExportDetail(const DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override

@@ -37,8 +37,8 @@ class CoSimIO
 public:
     typedef CoSimComm::SettingsType SettingsType;
 
-    explicit CoSimIO(const std::string rName, const std::string& rSettingsFileName);
-    explicit CoSimIO(const std::string rName, SettingsType rSettings);
+    explicit CoSimIO(const std::string& rName, const std::string& rSettingsFileName);
+    explicit CoSimIO(const std::string& rName, SettingsType rSettings);
 
     bool Connect();
     bool Disconnect();
@@ -50,14 +50,9 @@ public:
     bool Export(const DataContainer& rDataContainer, const std::string& rIdentifier);
 
 private:
-    int mEchoLevel = 1;
     std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
 
-    void Initialize(SettingsType& rSettings);
-
-    void AddMissingSettings(SettingsType& rSettings);
-
-    SettingsType ReadSettingsFile(const std::string& rSettingsFileName);
+    void Initialize(const std::string& rName, SettingsType& rSettings);
 
 }; // class CoSimIO
 
