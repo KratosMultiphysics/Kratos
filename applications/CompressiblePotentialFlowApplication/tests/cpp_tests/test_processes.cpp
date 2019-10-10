@@ -19,7 +19,7 @@
 #include "custom_processes/compute_embedded_lift_process.h"
 #include "custom_processes/define_2d_wake_process.h"
 #include "custom_processes/apply_far_field_process.h"
-#include "custom_processes/compute_nodal_potential_flow_velocity_process.h"
+#include "custom_processes/compute_nodal_value_process.h"
 
 namespace Kratos {
   namespace Testing {
@@ -217,12 +217,17 @@ namespace Kratos {
       }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(ComputeNodalPotentialFlowVelocityProcess, CompressiblePotentialApplicationFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ComputeNodalValueProcess, CompressiblePotentialApplicationFastSuite)
     {
       // Create model_part
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
       model_part.GetProcessInfo()[DOMAIN_SIZE] = 2;
+
+      // Set model_part properties
+      BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+      free_stream_velocity(0) = 10.0;
+      model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
 
       // Variables addition
       model_part.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
@@ -267,14 +272,20 @@ namespace Kratos {
           r_element.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+1;
       }
       // Construct the ComputeNodalPotentialFlowVelocityProcess
-      ComputeNodalPotentialFlowVelocityProcess ComputeNodalPotentialFlowVelocityProcess(model_part);
+      const std::vector<std::string> variable_array = {"VELOCITY","PRESSURE_COEFFICIENT"};
+      ComputeNodalValueProcess ComputeNodalValueProcess(model_part, variable_array);
 
       // Execute the ComputeNodalPotentialFlowVelocityProcess
-      ComputeNodalPotentialFlowVelocityProcess.Execute();
+      ComputeNodalValueProcess.Execute();
       for (auto& r_node : model_part.Nodes()) {
+        auto nodal_area = r_node.GetValue(NODAL_AREA);
+        KRATOS_CHECK_NEAR(nodal_area, 0.166667, 1e-6);
         auto nodal_velocity = r_node.GetValue(VELOCITY);
         KRATOS_CHECK_NEAR(nodal_velocity[0], 1, 1e-6);
         KRATOS_CHECK_NEAR(nodal_velocity[1], 2, 1e-6);
+        KRATOS_CHECK_NEAR(nodal_velocity[2], 0, 1e-6);
+        auto nodal_pressure = r_node.GetValue(PRESSURE_COEFFICIENT);
+        KRATOS_CHECK_NEAR(nodal_pressure, 0.95, 1e-6);
       }
     }
   } // namespace Testing
