@@ -49,8 +49,8 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.c02 = self.cmk2 - self.p0 / 2.0  # Wave speed squared with reference pressure
 
         # ModelParts
-        self.variable_pres = KM.KratosGlobals.GetVariable("PRESSURE")
-        self.variable_area = KM.KratosGlobals.GetVariable("AREA")
+        self.variable_pres = vars(KM)["PRESSURE"]
+        self.variable_area = vars(KM)["AREA"]
         self.model = cs_data_structure.Model()
         self.model_part = self.model.CreateModelPart("wall")
         self.model_part.AddNodalSolutionStepVariable(self.variable_pres)

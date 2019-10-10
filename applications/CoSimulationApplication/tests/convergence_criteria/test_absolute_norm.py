@@ -20,10 +20,11 @@ class TestConvergenceCriterionAbsoluteNorm(KratosUnittest.TestCase):
         interface_settings = cs_data_structure.Parameters('{"wall": "AREA"}')
 
         # Create interface
-        variable = KM.KratosGlobals.GetVariable("AREA")
+        variable = vars(KM)["AREA"]
         # only names defined in Variables.py are allowed, otherwise they are not global
         #   so just add whatever names you like! :D
         #   (that seems like the easiest fix...)
+        # *** TODO: actually, I found a way to do this, adapt code...
         model = cs_data_structure.Model()
         model_part = model.CreateModelPart("wall")
         model_part.AddNodalSolutionStepVariable(variable)

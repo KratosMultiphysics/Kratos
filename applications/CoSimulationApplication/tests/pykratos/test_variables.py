@@ -55,7 +55,7 @@ class TestPyKratosVariables(KratosUnittest.TestCase):
 
 
         # print output of test
-        if True:
+        if False:
             print('\nTestPyKratosVariables successful.\n')
             self.assertTrue(False)
 

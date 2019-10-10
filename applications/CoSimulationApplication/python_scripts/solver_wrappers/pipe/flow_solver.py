@@ -64,8 +64,8 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         self.an = np.ones(self.m + 2) * m.pi * self.d ** 2 / 4.0  # Previous area of cross section
 
         # ModelParts
-        self.variable_area = KM.KratosGlobals.GetVariable("AREA")
-        self.variable_pres = KM.KratosGlobals.GetVariable("PRESSURE")
+        self.variable_area = vars(KM)["AREA"]
+        self.variable_pres = vars(KM)["PRESSURE"]
         self.model = cs_data_structure.Model()
         self.model_part = self.model.CreateModelPart("wall")
         self.model_part.AddNodalSolutionStepVariable(self.variable_area)
