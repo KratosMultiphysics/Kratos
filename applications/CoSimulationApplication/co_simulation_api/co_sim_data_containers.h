@@ -19,20 +19,24 @@
 namespace CoSim {
 
 namespace DataContainers {
+
+    struct Geometry
+    {
+        std::vector<double> patches;
+        std::vector<double> triming;
+        /* ... */
+    };
+
     struct Mesh
     {
         std::vector<double> node_coords;
         std::vector<int> connectivities;
         std::vector<int> cell_types;
-
-        const std::string type="Mesh";
     };
 
-    struct ConvergenceSignal
+    struct Data
     {
-        bool is_converged;
-
-        const std::string type="ConvergenceSignal";
+        std::vector<double> data;
     };
 }
 
