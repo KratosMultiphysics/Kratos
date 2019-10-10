@@ -14,30 +14,51 @@ class TestPyKratosParameters(KratosUnittest.TestCase):
         with open(file_name, 'r') as file:
             par = cs_data_structure.Parameters(file.read())
 
-
+        # check if correct type is returned
+        self.assertIsInstance(par, cs_data_structure.Parameters)
+        self.assertIsInstance(par['sub_parameters'], cs_data_structure.Parameters)
+        self.assertIsInstance(par['test_list'], cs_data_structure.Parameters)
+        self.assertIsInstance(par['test_int'], cs_data_structure.Parameters)
+        self.assertIsInstance(par['test_int'].GetInt(), int)
 
         # test getters and setters
         par.SetInt('test_int', 2)
         par.SetDouble('test_float', 2.2)
         par.SetBool('test_bool', False)
         par.SetString('test_str', 'two')
-
         self.assertEqual(par['test_int'].GetInt(), 2)
         self.assertEqual(par['test_float'].GetDouble(), 2.2)
         self.assertEqual(par['test_bool'].GetBool(), False)
         self.assertEqual(par['test_str'].GetString(), 'two')
 
-        # *** what to test??
+        # test AddMissingParameters
+        par_missing = par['sub_parameters']
+        par.AddMissingParameters(par_missing)
+        self.assertEqual(par['test_int'].GetInt(), 2)
+        self.assertEqual(par['test_float'].GetDouble(), 2.2)
+        self.assertEqual(par['test_str'].GetString(), 'two')
+        self.assertEqual(par['missing_int'].GetInt(), 5)
+        self.assertEqual(par['missing_float'].GetDouble(), 5.5)
+        self.assertEqual(par['missing_str'].GetString(), 'five')
 
+        # test AddValue
+        par.AddValue('added_value', par['test_int'])
+        self.assertEqual(par['added_value'].GetInt(), 2)
+        par.AddValue('added_value', par['test_float'])
+        self.assertEqual(par['added_value'].GetDouble(), 2.2)
 
+        # test AddEmptyValue
+        self.assertIsNone(par.AddEmptyValue('empty'))
 
+        # test RemoveValue
+        par.RemoveValue('not_a_value')
+        par.RemoveValue('added_value')
+        par.RemoveValue('empty')
 
-        # *** how do lists/arrays work wrt Parameters class?
-
-
-        print('\n\nREACHED END OF TEST')
-        self.assertTrue(False)
-        # *** stdout is only shown when test encounters an error
+        # print output of test
+        if False:
+            print('\nTestPyKratosParameters successful.\n')
+            self.assertTrue(False)
 
 
 if __name__ == '__main__':
