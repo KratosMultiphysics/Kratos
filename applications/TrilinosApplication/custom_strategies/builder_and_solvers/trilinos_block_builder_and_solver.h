@@ -830,8 +830,9 @@ public:
         IndexType i = 0;
         for (const auto& dof : BaseType::mDofSet) {
             const int global_id = dof.EquationId();
-            global_ids[i++] = global_id;
+            global_ids[i] = global_id;
             is_dirichlet[i] = dof.IsFixed();
+            ++i;
         }
 
         // here we construct and fill a vector "fixed local" which cont
