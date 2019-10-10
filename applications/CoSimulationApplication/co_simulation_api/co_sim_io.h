@@ -57,6 +57,10 @@ private:
 
     void Initialize(SettingsType& rSettings);
 
+    void AddMissingSettings(SettingsType& rSettings);
+
+    SettingsType ReadSettingsFile(const std::string& rSettingsFileName);
+
     void CheckConnection();
 
 }; // class CoSimIO
