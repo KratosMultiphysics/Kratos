@@ -14,7 +14,6 @@ class TestPyKratosVariables(KratosUnittest.TestCase):
 
         pres = "PRESSURE"
         disp = "DISPLACEMENT"
-        new = "NEW"
 
         # calling global variables (different ways)
         var_pres = vars(KM)[pres]
@@ -38,20 +37,19 @@ class TestPyKratosVariables(KratosUnittest.TestCase):
         self.assertNotEqual(var_disp, var_disp_3)
 
         # dynamically add global variables
-        var_new_1 = cs_data_structure.CreateDoubleVariable(new)
-        self.assertFalse(new in vars(KM).keys())
+        """
+        I don't think this is possible.
+        Variables are defined as globals in the module.
+        But it is not possible to add stuff to the module, 
+        from outside the module, so no globals can be added.
+        """
 
-        vars(KM)[new] = var_new_1
-        self.assertTrue(new in vars(KM).keys())
-
-        var_new_2 = vars(KM)[new]
-        self.assertEqual(var_new_1, var_new_2)
-
-        # *** check if dynamically added global variables work correctly
-
-        # different types of variables?
+        # different types of variables? *** --> check in test_cosimulation_interface
         print(var_pres)
         print(var_disp)
+
+        print(type(var_pres))
+        print(type(var_disp))
 
 
         # print output of test
