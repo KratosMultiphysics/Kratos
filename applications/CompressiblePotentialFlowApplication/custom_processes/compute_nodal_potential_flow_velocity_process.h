@@ -45,7 +45,7 @@ namespace Kratos
 ///@{
 
 
-class KRATOS_API(CompressiblePotentialFlowApplication) ComputeNodalPotentialFlowVelocityProcess
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputeNodalPotentialFlowVelocityProcess
     : public Process
 {
 public:
