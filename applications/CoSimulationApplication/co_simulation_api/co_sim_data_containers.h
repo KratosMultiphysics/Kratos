@@ -22,21 +22,21 @@ namespace DataContainers {
 
     struct Geometry
     {
-        std::vector<double> patches;
-        std::vector<double> triming;
+        const std::vector<double>& patches;
+        const std::vector<double>& triming;
         /* ... */
     };
 
     struct Mesh
     {
-        std::vector<double> node_coords;
-        std::vector<int> connectivities;
-        std::vector<int> cell_types;
+        const std::vector<double>& node_coords;
+        const std::vector<int>& connectivities;
+        const std::vector<int>& cell_types;
     };
 
     struct Data
     {
-        std::vector<double> data;
+        const std::vector<double>& data;
     };
 }
 
