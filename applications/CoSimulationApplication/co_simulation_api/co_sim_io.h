@@ -37,8 +37,8 @@ class CoSimIO
 public:
     typedef CoSimComm::SettingsType SettingsType;
 
-    explicit CoSimIO(SettingsType& rSettings);
-    explicit CoSimIO(const std::string& rSettingsFileName);
+    explicit CoSimIO(const std::string rName, const std::string& rSettingsFileName);
+    explicit CoSimIO(const std::string rName, SettingsType rSettings);
     ~CoSimIO();
 
     bool Connect();

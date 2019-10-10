@@ -28,7 +28,6 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <stdexcept>
 
 // Project includes
@@ -37,16 +36,12 @@
 
 namespace CoSim {
 
-CoSimIO::CoSimIO(SettingsType& rSettings)
+CoSimIO::CoSimIO(const std::string rName, const std::string& rSettingsFileName)
+    : CoSimIO::CoSimIO(rName, ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
+
+CoSimIO::CoSimIO(const std::string rName, SettingsType rSettings)
 {
     Initialize(rSettings);
-}
-
-CoSimIO::CoSimIO(const std::string& rSettingsFileName)
-{
-    auto settings = ReadSettingsFile(rSettingsFileName);
-
-    Initialize(settings);
 }
 
 CoSimIO::~CoSimIO()
