@@ -158,6 +158,7 @@ namespace Kratos {
         GetSearchControl() = r_process_info[SEARCH_CONTROL];
 
         InitializeDEMElements();
+
         InitializeFEMElements();
         UpdateMaxIdOfCreatorDestructor();
         InitializeClusters(); // This adds elements to the balls modelpart
@@ -299,6 +300,7 @@ namespace Kratos {
                 double& node_area = geometry[i].FastGetSolutionStepValue(DEM_NODAL_AREA);
                 node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes
             }
+
         }
 
         KRATOS_CATCH("")
@@ -674,7 +676,7 @@ namespace Kratos {
 
             #pragma omp for nowait
             for (int k = 0; k < (int) pGhostClusters.size(); k++) {
-                 ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
+                ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
                 cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
@@ -806,6 +808,7 @@ namespace Kratos {
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
 
         if (fem_model_part.NumberOfSubModelParts()) {
+
             for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
                 ModelPart& submp = *sub_model_part;
@@ -814,9 +817,10 @@ namespace Kratos {
                 #pragma omp parallel for
                 for (int i=0; i<(int)pTConditions.size(); i++) {
                     ConditionsArrayType::iterator it = pTConditions.ptr_begin() + i;
-                    (it)->Initialize();
+                    (it)->Initialize(r_process_info);
                 }
 
+                if (!r_process_info[IS_RESTARTED]){
                 // Central Node
                 Node<3>::Pointer central_node;
                 Geometry<Node<3> >::PointsArrayType central_node_list;
@@ -895,6 +899,20 @@ namespace Kratos {
 
                 rigid_body_element->Initialize(r_process_info);
                 rigid_body_element->CustomInitialize(submp);
+                }
+                else {
+
+                    // There is no need to create the rigid body elements, they already there
+                    // But they need to be initialized
+                    ElementsArrayType& pFemElements = fem_model_part.GetCommunicator().LocalMesh().Elements();
+
+                    for (int k = 0; k < (int) pFemElements.size(); k++) {
+                        ElementsArrayType::iterator it = pFemElements.ptr_begin() + k;
+                        RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
+                        rigid_body_element.Initialize(r_process_info);
+                        rigid_body_element.CustomInitialize(submp);
+                    }
+                }
             }
         }
 
@@ -1006,8 +1024,10 @@ namespace Kratos {
             double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
             array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
 
-            node_pressure = node_pressure / node_area;
-            shear_stress = GeometryFunctions::module(node_rhs_tang) / node_area;
+            if (node_area > 0.0){
+                node_pressure = node_pressure / node_area;
+                shear_stress = GeometryFunctions::module(node_rhs_tang) / node_area;
+            }
         }
         KRATOS_CATCH("")
     }
@@ -1537,6 +1557,7 @@ namespace Kratos {
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
         std::vector<unsigned int> contact_element_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+        const ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
 
         #pragma omp parallel for
         for (int k = 0; k < mNumberOfThreads; k++) {
@@ -1544,7 +1565,7 @@ namespace Kratos {
             ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
 
             for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-                (it_contact)->Initialize();
+                (it_contact)->Initialize(r_process_info);
             } //loop over CONTACT ELEMENTS
         }// loop threads OpenMP
 
