@@ -20,6 +20,9 @@ into the CoSimulation framework works
 #include <array>
 #include <stdexcept>
 
+// CoSimulation includes
+#include "co_simulation_api/co_sim_io.h"
+
 typedef std::vector<std::vector<std::array<double, 2>>> MeshType;
 typedef std::vector<double> DataFieldType;
 
@@ -93,11 +96,16 @@ void RunSolutionLoop()
 
 void ConductCoupling()
 {
-    // CoSimIO co_sim_io("dummy_solver_io_settings");
+    CoSim::CoSimIO co_sim_io("dummy_solver_io_settings");
 
-    // co_sim_io.Connect();
+    co_sim_io.Connect();
 
-    // co_sim_io.Export(/*mesh*/);
+    std::vector<double> dummy;
+    std::vector<int> dummy2;
+
+    CoSim::DataContainers::Mesh mesh = {dummy, dummy2, dummy2};
+
+    co_sim_io.Export(mesh, "exchange_mesh");
 
     // // in this case the CoSimulation controls the solution loop / order of execution
     // while (true) {
@@ -131,7 +139,7 @@ void ConductCoupling()
     //     }
     // }
 
-    // co_sim_io.Disconnect();
+    co_sim_io.Disconnect();
 }
 
 void Finalize()
