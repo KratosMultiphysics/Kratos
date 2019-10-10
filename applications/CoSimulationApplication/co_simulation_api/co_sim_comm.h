@@ -36,9 +36,9 @@ public:
     virtual bool Connect()    { return true; };
     virtual bool Disconnect() { return true; };
 
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(std::vector<double>);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Geometry);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Mesh);
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::ConvergenceSignal);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Data);
 
 private:
     void AssignAndValidateDefaults(const SettingsType& rDefaultSettings, SettingsType& rSettings)
