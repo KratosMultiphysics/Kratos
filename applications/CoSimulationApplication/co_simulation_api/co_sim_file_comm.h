@@ -27,7 +27,19 @@ public:
         throw std::runtime_error("Files Communication is not implemented yet");
     }
 
-    bool Export(const DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
+private:
+
+    bool ConnectDetail() override
+    {
+        return true;
+    }
+
+    bool DisconnectDetail() override
+    {
+        return true;
+    }
+
+    bool ExportDetail(const DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
     {
         return true;
     }

@@ -23,9 +23,15 @@
 namespace CoSim {
 
 #define CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainerType)                              \
-    virtual bool Import(DataContainerType& rDataContainer, const std::string& rIdentifier)       \
+    bool Import(DataContainerType& rDataContainer, const std::string& rIdentifier)               \
+        { CheckConnection(); return ImportDetail(rDataContainer, rIdentifier); }                 \
+    bool Export(const DataContainerType& rDataContainer, const std::string& rIdentifier)         \
+        { CheckConnection(); return ExportDetail(rDataContainer, rIdentifier); }                 \
+
+#define CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainerType)                       \
+    virtual bool ImportDetail(DataContainerType& rDataContainer, const std::string& rIdentifier) \
         { throw std::runtime_error("Type of data not yet supported"); }                          \
-    virtual bool Export(const DataContainerType& rDataContainer, const std::string& rIdentifier) \
+    virtual bool ExportDetail(const DataContainerType& rDataContainer, const std::string& rIdentifier) \
         { throw std::runtime_error("Type of data not yet supported"); }                          \
 
 class CoSimComm
@@ -33,14 +39,67 @@ class CoSimComm
 public:
     typedef std::unordered_map<std::string, std::string> SettingsType;
 
-    virtual bool Connect()    { return true; };
-    virtual bool Disconnect() { return true; };
+    virtual ~CoSimComm()
+    {
+        if (mIsConnected) {
+            std::cout << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;
+            Disconnect();
+        }
+    }
+
+    bool Connect()
+    {
+        std::cout << "Connecting ..." << std::endl;
+
+        if (mIsConnected) {
+            throw std::runtime_error("A connection was already established!");
+        }
+
+        mIsConnected = ConnectDetail();
+
+        if (!mIsConnected) {
+            throw std::runtime_error("Connection was not successful!");
+        }
+
+        return mIsConnected;
+    }
+
+    bool Disconnect()
+    {
+        if (mIsConnected) {
+            if (!DisconnectDetail()) {
+                std::cout << "Warning: Disconnect was not successful!" << std::endl;
+                return false;
+            }
+        } else {
+            std::cout << "Warning: Calling Disconnect but there was no active connection!" << std::endl;
+            return false;
+        }
+
+        return true;
+    }
 
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Geometry);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Mesh);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Data);
 
 private:
+    bool mIsConnected = false;
+
+    virtual bool ConnectDetail() = 0;
+    virtual bool DisconnectDetail() = 0;
+
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Geometry);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Mesh);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Data);
+
+    void CheckConnection()
+    {
+        if (!mIsConnected) {
+            throw std::runtime_error("No active connection exists!");
+        }
+    }
+
     void AssignAndValidateDefaults(const SettingsType& rDefaultSettings, SettingsType& rSettings)
     {
         // ...
@@ -49,6 +108,7 @@ private:
 };
 
 #undef CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE // this macro should only be used for this class
+#undef CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL // this macro should only be used for this class
 
 } // namespace CoSim
 

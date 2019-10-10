@@ -39,7 +39,6 @@ public:
 
     explicit CoSimIO(const std::string rName, const std::string& rSettingsFileName);
     explicit CoSimIO(const std::string rName, SettingsType rSettings);
-    ~CoSimIO();
 
     bool Connect();
     bool Disconnect();
@@ -51,7 +50,6 @@ public:
     bool Export(const DataContainer& rDataContainer, const std::string& rIdentifier);
 
 private:
-    bool mIsConnected = false;
     int mEchoLevel = 1;
     std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
 
@@ -60,8 +58,6 @@ private:
     void AddMissingSettings(SettingsType& rSettings);
 
     SettingsType ReadSettingsFile(const std::string& rSettingsFileName);
-
-    void CheckConnection();
 
 }; // class CoSimIO
 
