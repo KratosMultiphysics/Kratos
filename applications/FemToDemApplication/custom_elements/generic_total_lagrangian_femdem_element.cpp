@@ -348,8 +348,16 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
             /* Material stiffness matrix */
             if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
                 Matrix tangent_tensor;
+                if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 0) {
+                    tangent_tensor = this_constitutive_variables.D;
+                } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 1) {
+                    tangent_tensor = (1.0 - damage_element) * this_constitutive_variables.D;
+                } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 2) {
                 this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, cl_values);
-                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, tangent_tensor, int_to_reference_weight);
+                } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 3) {
+                this->CalculateTangentTensorSecondOrder(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, cl_values);
+                }
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, tangent_tensor, int_to_reference_weight);                
             } else {
                 this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0 - damage_element)*this_constitutive_variables.D, int_to_reference_weight);
             }
@@ -1890,10 +1898,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStr
     Vector damages_edges = ZeroVector(NumberOfEdges);
     const double characteristic_length = this->CalculateCharacteristicLength(this);
     bool dummy = false;
+    Vector average_stress_edge(VoigtSize), average_strain_edge(VoigtSize);
 
     for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-        Vector average_stress_edge = r_perturbed_predictive_stress;
-        Vector average_strain_edge = rPerturbedStrainVector;
+        average_stress_edge = r_perturbed_predictive_stress;
+        average_strain_edge = rPerturbedStrainVector;
         this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
         this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
@@ -1901,7 +1910,8 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStr
         double threshold = mThresholds[edge];
 
         this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-            average_stress_edge, edge, characteristic_length, rValues, dummy);
+                                             average_stress_edge, edge, characteristic_length, 
+                                             rValues, dummy);
 
         damages_edges[edge] = damage_edge;
     } // Loop edges
