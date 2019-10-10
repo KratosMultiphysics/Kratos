@@ -1,0 +1,16 @@
+{
+    "test_int": 1,
+    "test_float": 1.1,
+    "test_bool": true,
+    "test_str": "one",
+    "sub_parameters":
+    {
+        "test_int": 3,
+        "test_float": 3.3,
+        "test_str": "three",
+        "missing_int": 5,
+        "missing_float": 5.5,
+        "missing_str": "five"
+    },
+    "test_list": [4, 4.4, "four"]
+}
