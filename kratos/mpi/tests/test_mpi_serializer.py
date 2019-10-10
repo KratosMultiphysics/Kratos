@@ -38,7 +38,7 @@ def executeComputeArea_Task(pickled_model):
 
     return total_sum
 
-class TestMPINodalArea(UnitTest.TestCase):
+class TestMPISerializer(UnitTest.TestCase):
 
     def setUp(self):
         communicator = KratosMultiphysics.DataCommunicator.GetDefault()
