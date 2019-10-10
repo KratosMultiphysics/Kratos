@@ -4,7 +4,23 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.mpi import distributed_import_model_part_utility
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-import pickle
+# Use cPickle on Python 2.7 (Note that only the cPickle module is supported on Python 2.7)
+# Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
+pickle_message = ""
+try:
+    import cpickle as pickle
+    have_pickle_module = True
+except ImportError:
+    if sys.version_info > (3, 0):
+        try:
+            import pickle
+            have_pickle_module = True
+        except ImportError:
+            have_pickle_module = False
+            pickle_message = "No pickle module found"
+    else:
+        have_pickle_module = False
+        pickle_message = "No valid pickle module found"
 
 def executeComputeArea_Task(pickled_model):
 
@@ -75,6 +91,7 @@ class TestMPISerializer(UnitTest.TestCase):
         kratos_utilities.DeleteFileIfExisting("test_mpi_serializer_"+str(rank)+".time")
         communicator.Barrier()
 
+    @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: " + pickle_message)
     def testCalculateNodalArea(self):
         total_nodal_area = executeComputeArea_Task(self.pickled_data)
         # Check result
