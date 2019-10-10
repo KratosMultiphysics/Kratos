@@ -61,7 +61,7 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     install(
         FILES ${CMAKE_CURRENT_BINARY_DIR}/tests/dummy_solver/fortran/dummy_solver_fortran
         DESTINATION libs
-        PERMISSIONS OWNER_EXECUTE) # required to preseve execute-permissions
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
 
     # changing the .dll suffix to .pyd (Windows)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
