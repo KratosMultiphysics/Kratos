@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 import json
+import copy
 
 class Parameters(object):
 
@@ -188,17 +189,26 @@ class Parameters(object):
     ##### SetXXX Methods #####
     ##########################
 
-    def SetInt(self, val):
-        self.__Set(val)
+    # Old setters did not work because a copy of the param was set.
+    # Not sure how, but somewhere a copy was made, and nothing was set...
+    # For the getters, this is not a problem, so not changing those now.
 
-    def SetDouble(self, val):
-        self.__Set(val)
+    def SetInt(self, key, val):
+        self.__Set(key, val, int)
 
-    def SetBool(self, val):
-        self.__Set(val)
+    def SetDouble(self, key, val):
+        self.__Set(key, val, float)
 
-    def SetString(self, val):
-        self.__Set(val)
+    def SetBool(self, key, val):
+        self.__Set(key, val, bool)
 
-    def __Set(self, val):
-        self.param = val
+    def SetString(self, key, val):
+        self.__Set(key, val, str)
+
+    def __Set(self, key, val, val_type):
+        if type(val) is not val_type:
+            raise TypeError("Argument must be a {}!".format(val_type))
+        if key not in list(self.param.keys()):
+            raise KeyError("Invalid key {}!".format(key))
+        self.param[key] = val
+

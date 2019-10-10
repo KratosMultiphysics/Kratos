@@ -10,6 +10,7 @@ from mappers.test_linear import TestMapperLinear
 from predictors.test_linear import TestPredictorLinear
 from solver_wrappers.pipe.test_flow_solver import TestSolverWrapperPipeFlowSolver
 from solver_wrappers.pipe.test_structure_solver import TestSolverWrapperPipeStructureSolver
+from pykratos.test_parameters_class import TestPyKratosParameters
 
 
 def AssembleTestSuites():
@@ -38,6 +39,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestPredictorLinear("test_predictor_linear"))
     smallSuite.addTest(TestSolverWrapperPipeFlowSolver("test_solver_wrapper_pipe_flow_solver"))
     smallSuite.addTest(TestSolverWrapperPipeStructureSolver("test_solver_wrapper_pipe_structure_solver"))
+    smallSuite.addTest(TestPyKratosParameters("test_pykratos_parameters"))
 
     nightlySuite = suites['nightly']  # These tests are executed in the nightly build
     nightlySuite.addTests(smallSuite)
