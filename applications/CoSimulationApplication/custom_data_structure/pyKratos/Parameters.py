@@ -110,7 +110,7 @@ class Parameters(object):
     def AddEmptyValue(self, key):
         self.__CheckIfSubParameter("AddEmptyValue")
         if not self.Has(key):
-            self.param[key] = self.__CreateParameters(None)
+            self.param[key] = None
         return self.param[key]
 
     def RemoveValue(self, key):
@@ -211,4 +211,3 @@ class Parameters(object):
         if key not in list(self.param.keys()):
             raise KeyError("Invalid key {}!".format(key))
         self.param[key] = val
-
