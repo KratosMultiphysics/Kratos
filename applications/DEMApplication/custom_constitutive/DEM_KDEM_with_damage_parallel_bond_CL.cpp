@@ -46,7 +46,6 @@ namespace Kratos {
         } else {
             mDebugPrintingOption = bool(pProp->GetValue(DEBUG_PRINTING_OPTION));
         }
-        mDebugPrintingOption = true;
     }
 
     void DEM_KDEM_with_damage_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
@@ -54,6 +53,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
+        //TODO: Sometimes we do not compute mean values this way. Sometimes we use 2xy/(x+y)
         const double unbonded_equivalent_young = 0.5 * (element1->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS] + element2->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS]);
         const double unbonded_equivalent_shear = unbonded_equivalent_young / (2.0 * (1 + equiv_poisson));
 
@@ -192,16 +192,28 @@ namespace Kratos {
         const double fracture_energy = 0.5 * (element1->GetProperties()[FRACTURE_ENERGY] + element2->GetProperties()[FRACTURE_ENERGY]);
         mDamageEnergyCoeff = 2.0 * fracture_energy * kn_el / (calculation_area * tension_limit * tension_limit) - 1.0;
 
-        if (mDamageEnergyCoeff < 0.0) {
-            mDamageEnergyCoeff = 0.0;
-        }
-
         double k_unload = 0.0;
         double limit_force = 0.0;
         static bool first_time_entered = true;
 
+        // printing Id, DamageCoeff and calculation area
+        /*const std::string filename = "id_damage_and_calculation_area.txt";
+        static std::ifstream ifile(filename.c_str());
+        if ((bool) ifile && first_time_entered) {
+            std::remove("id_damage_and_calculation_area.txt");
+            first_time_entered = false;
+        }
+        static std::ofstream id_damage_and_calculation_area_file("id_damage_and_calculation_area.txt", std::ios_base::out | std::ios_base::app);
+        id_damage_and_calculation_area_file << element1->Id() << " " << mDamageEnergyCoeff << " " <<  element1->GetRadius() << '\n';
+        id_damage_and_calculation_area_file.flush();
+        */
+
+        if (mDamageEnergyCoeff < 0.0) {
+            mDamageEnergyCoeff = 0.0;
+        }
+
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 2;
+            unsigned int sphere_id = 22222222;
             const std::string filename = "normal_forces_damage.txt";
 
             if (element1->Id() == sphere_id) {
@@ -282,7 +294,7 @@ namespace Kratos {
         LocalElasticContactForce[2] = BondedLocalElasticContactForce2 + mUnbondedLocalElasticContactForce2;
 
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 2;
+            unsigned int sphere_id = 22222222;
 
             if (element1->Id() == sphere_id) {
                 static std::ofstream normal_forces_file("normal_forces_damage.txt", std::ios_base::out | std::ios_base::app);
@@ -327,7 +339,7 @@ namespace Kratos {
         static bool first_time_entered = true;
 
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 2;
+            unsigned int sphere_id = 22222222;
             const std::string filename = "tangential_forces_damage.txt";
 
             if (element1->Id() == sphere_id) {
@@ -501,7 +513,7 @@ namespace Kratos {
         }
 
         if (mDebugPrintingOption) {
-            unsigned int sphere_id = 2;
+            unsigned int sphere_id = 22222222;
 
             if (element1->Id() == sphere_id) {
                 static std::ofstream tangential_forces_file("tangential_forces_damage.txt", std::ios_base::out | std::ios_base::app);
@@ -559,6 +571,18 @@ namespace Kratos {
         double u1 = Ntstr_el / kn_el;
         if (u1 > 2*radius_sum) {u1 = 2*radius_sum;} // avoid error in special cases with too high tensile
         return u1;
+    }
+
+    void DEM_KDEM_with_damage_parallel_bond::AdjustEquivalentYoung(double& equiv_young, SphericContinuumParticle* element, SphericContinuumParticle* neighbor) {
+
+        KRATOS_TRY
+
+        //TODO: Sometimes we do not compute mean values this way. Sometimes we use 2xy/(x+y)
+        const double unbonded_equivalent_young = 0.5 * (element->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS] + neighbor->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS]);
+
+        equiv_young -= unbonded_equivalent_young;
+
+        KRATOS_CATCH("")
     }
 
 } // namespace Kratos
