@@ -165,10 +165,10 @@ public:
         mprm.put("precond.psolver.solver.type", rParameters["pressure_block_preconditioner"]["krylov_type"].GetString());
         mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
         mprm.put("precond.psolver.solver.maxiter", rParameters["pressure_block_preconditioner"]["max_iteration"].GetInt());
-//         mprm.put("precond.psolver.precond.local.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
+        mprm.put("precond.psolver.precond.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
+        mprm.put("precond.psolver.precond.coarse_enough", mCoarseEnough);
 //         mprm.put("precond.psolver.precond.local.coarsening.aggr.eps_strong", 0.0);
 //         mprm.put("precond.psolver.precond.local.coarsening.aggr.block_size", 1);
-//         mprm.put("precond.psolver.precond.local.coarse_enough",mCoarseEnough);
 
     }
 
