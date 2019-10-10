@@ -24,9 +24,10 @@ except ImportError:
         pickle_message = "No valid pickle module found"
 
 def executeComputeArea_Task(pickled_model):
-
+    # Unpickling model
     serialized_model = pickle.loads(pickled_model)
 
+    # Unserializing model
     deserialized_model = KratosMultiphysics.Model()
     serialized_model.Load("ModelSerialization", deserialized_model)
 
@@ -49,7 +50,7 @@ def executeComputeArea_Task(pickled_model):
     # Assembling nodal values
     communicator.AssembleNonHistoricalData(KratosMultiphysics.NODAL_AREA)
 
-    # Comuting sum of total area to check results.
+    # Computing sum of total area to check results.
     local_sum = sum(node.GetValue(KratosMultiphysics.NODAL_AREA) for node in model_part.Nodes if node.GetSolutionStepValue(KratosMultiphysics.PARTITION_INDEX) == communicator.GetDataCommunicator().Rank())
     total_sum = communicator.GetDataCommunicator().SumAll(local_sum)
 
