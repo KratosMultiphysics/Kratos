@@ -53,6 +53,9 @@ class CoSimulationInterface(object):
         are also copied. However, these are global variables, so
         when they're copied, their address changes which gives problems.
         """
+
+        # *** TODO: change method to __deepcopy__(self, _) and test it
+
         cp = copy.deepcopy(self)
         cp.model_parts_variables = self.model_parts_variables
         for key_mp in cp.model.__dict__.keys():
