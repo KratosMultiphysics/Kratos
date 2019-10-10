@@ -18,7 +18,7 @@ class TestConvergenceCriterionRelativeNorm(KratosUnittest.TestCase):
         interface_settings = cs_data_structure.Parameters('{"wall": "AREA"}')
 
         # Create interface
-        variable = KM.KratosGlobals.GetVariable("AREA")
+        variable = vars(KM)["AREA"]
         model = cs_data_structure.Model()
         model_part = model.CreateModelPart("wall")
         model_part.AddNodalSolutionStepVariable(variable)

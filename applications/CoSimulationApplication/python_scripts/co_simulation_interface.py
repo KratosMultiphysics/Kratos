@@ -19,7 +19,7 @@ class CoSimulationInterface(object):
         step = 0
         for model_part_name, variable_name in self.model_parts_variables:
             model_part = self.model.GetModelPart(model_part_name)
-            variable = KM.KratosGlobals.GetVariable(variable_name.GetString())
+            variable = vars(KM)[variable_name.GetString()]
             for node in model_part.Nodes:
                 value = node.GetSolutionStepValue(variable, step)
                 data.append(value)
@@ -33,7 +33,7 @@ class CoSimulationInterface(object):
         step = 0
         for model_part_name, variable_name in self.model_parts_variables:
             model_part = self.model.GetModelPart(model_part_name)
-            variable = KM.KratosGlobals.GetVariable(variable_name.GetString())
+            variable = vars(KM)[variable_name.GetString()]
             for node in model_part.Nodes:
                 value = data[index]
                 index += 1
