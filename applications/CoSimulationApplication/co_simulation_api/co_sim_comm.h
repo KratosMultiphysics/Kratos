@@ -67,7 +67,8 @@ public:
     bool Disconnect()
     {
         if (mIsConnected) {
-            if (!DisconnectDetail()) {
+            mIsConnected = !DisconnectDetail();
+            if (mIsConnected) {
                 std::cout << "Warning: Disconnect was not successful!" << std::endl;
                 return false;
             }
