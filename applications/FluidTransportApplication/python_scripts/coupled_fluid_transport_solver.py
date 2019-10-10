@@ -1,13 +1,9 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
-import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
 
 # Importing the base class
 from KratosMultiphysics.ConvectionDiffusionApplication.coupled_fluid_thermal_solver import CoupledFluidThermalSolver

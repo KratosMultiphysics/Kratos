@@ -1,19 +1,9 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-# Time monitoring
-import time as timer
-
 ## Importing modules -----------------------------------------------------------------------------------------
-
-# Import system python
-import os
 
 # Import kratos core and applications
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.ExternalSolversApplication
-import KratosMultiphysics.ConvectionDiffusionApplication
-import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
 
 from KratosMultiphysics.FluidTransportApplication.fluid_transport_analysis import FluidTransportAnalysis
 from KratosMultiphysics.analysis_stage import AnalysisStage

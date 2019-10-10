@@ -5,9 +5,6 @@ import KratosMultiphysics
 from KratosMultiphysics.FluidTransportApplication.fluid_transport_solver import FluidTransportSolver
 
 # Import applications
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.FluidTransportApplication as KratosFluidTransport
 
 def CreateSolver(main_model_part, custom_settings):
 
