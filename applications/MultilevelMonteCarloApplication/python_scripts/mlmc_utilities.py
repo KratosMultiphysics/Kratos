@@ -2,6 +2,7 @@ from __future__ import absolute_import, division # makes KratosMultiphysics back
 
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
 
 # Import packages
 import numpy as np
@@ -1013,22 +1014,24 @@ class MultilevelMonteCarlo(object):
     def SerializeModelParametersConcurrentAdaptiveRefinement(self):
         with open(self.project_parameters_path,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        # create wrapper instance to modify current project parameters
+        self.wrapper = ParametersWrapper(parameters)
         # save problem name
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
         # serialize parmeters (to avoid adding new data dependent on the application)
-        parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("use_input_model_part")
+        parameters = self.wrapper.SetModelImportSettingsInputType("use_input_model_part")
         serialized_project_parameters = KratosMultiphysics.StreamSerializer()
         serialized_project_parameters.Save("ParametersSerialization",parameters)
         self.serialized_project_parameters.append(serialized_project_parameters)
         # reset to read the model part
-        parameters["solver_settings"]["model_import_settings"]["input_type"].SetString("mdpa")
+        parameters = self.wrapper.SetModelImportSettingsInputType("mdpa")
         # prepare the model to serialize
         model = KratosMultiphysics.Model()
         fake_sample = generator.GenerateSample(self.problem_name) # only used to serialize
         simulation = self.analysis(model,parameters,fake_sample)
         simulation.Initialize()
         # reset general flags
-        main_model_part_name = parameters["solver_settings"]["model_part_name"].GetString()
+        main_model_part_name = self.wrapper.GetModelPartName()
         simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
         # serialize model
         serialized_model = KratosMultiphysics.StreamSerializer()

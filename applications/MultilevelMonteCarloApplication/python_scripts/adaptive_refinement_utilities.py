@@ -6,6 +6,7 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.MeshingApplication as KratosMeshing
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.MultilevelMonteCarloApplication.tools import ParametersWrapper
 
 # Import packages
 import numpy as np
@@ -34,6 +35,7 @@ class AdaptiveRefinement(object):
         self.problem_type = self.parameters_coarse["solver_settings"]["solver_type"].GetString()
         self.metric = metric_name
         self.current_level = current_level
+        self.wrapper = ParametersWrapper(self.parameters_coarse)
 
     """
     function computing the refinement of the model based on the solution on the coarse mesh,
@@ -164,7 +166,7 @@ class AdaptiveRefinement(object):
     def ComputeMeshSizeCoarsestLevel(self):
         model_coarse = self.model_coarse
         parameters_coarse = self.parameters_coarse
-        model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
+        model_part_name = self.wrapper.GetModelPartName()
         # set NODAL_AREA and NODAL_H as non historical variables
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, model_coarse.GetModelPart(model_part_name).Nodes)
@@ -188,7 +190,7 @@ class AdaptiveRefinement(object):
         current_level = self.current_level
         if (self.metric is "hessian"):
             original_interp_error = self.metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
-            domain_size = self.parameters_coarse["solver_settings"]["domain_size"].GetInt()
+            domain_size = self.wrapper.GetDomainSize()
             if (domain_size == 2):
                 coefficient = 2/9 # 2d
             elif (domain_size == 3):
