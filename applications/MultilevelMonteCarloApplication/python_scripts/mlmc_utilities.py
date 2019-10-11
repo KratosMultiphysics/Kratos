@@ -488,11 +488,11 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_le
         time_5 = time.time()
     time_6 = time.time()
     simulation = current_analysis_stage(current_model,current_project_parameters,sample)
-    print("[CHECK OUTPUT]: sample value:", str(sample))
+    # print("[CHECK OUTPUT]: sample value:", str(sample))
     sys.stdout.flush()
     simulation.Run()
     QoI = simulation.EvaluateQuantityOfInterest()
-    print("[CHECK OUTPUT]: simulation qoi:", str(QoI))
+    # print("[CHECK OUTPUT]: simulation qoi:", str(QoI))
     sys.stdout.flush()
     time_7 = time.time()
     # save model and parameters as StreamSerializer Kratos objects
@@ -506,9 +506,8 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_le
     # register results of the current level in the MultilevelMonteCarloResults class
     mlmc_results.time_ML[current_level].append(end_MLMC_time-start_MLMC_time) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
     mlmc_results.QoI[current_level].append(QoI) # saving each result in the corresponding list in order to ensure the correctness of the results order and the levels
-
     # post process times of the task
-    print("\n","#"*50," TIMES EXECUTE TASK ","#"*50,"\n")
+    # print("\n","#"*50," TIMES EXECUTE TASK ","#"*50,"\n")
     deserialization_time = time_1 - time_0
     if (current_level > 0):
         mmg_refinement_time = time_4 - time_3
@@ -516,22 +515,22 @@ def ExecuteInstanceConcurrentAdaptiveRefinementAux_Functionality(current_MLMC_le
     Kratos_run_time = time_7 - time_6
     serialization_time = time_8 - time_7
     total_task_time = time_8 - time_0
-    print("[LEVEL] current level:",current_level)
-    print("[TIMER] total task time:", total_task_time)
-    print("[TIMER] Kratos Run time:",Kratos_run_time)
-    print("[TIMER] Deserialization time:",deserialization_time)
-    print("[TIMER] Serialization time:",serialization_time)
-    print("[TIMER] Refinement time:",refinement_time)
-    if (current_level > 0):
-        print("[TIMER] mmg refinement time",mmg_refinement_time)
-    print("RATIOs: time of interest / total task time")
-    print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
-    print("[RATIO] Relative serialization time:",(serialization_time)/total_task_time)
-    print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
-    print("[RATIO] Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
-    if (current_level > 0):
-        print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
-    print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
+    # print("[LEVEL] current level:",current_level)
+    # print("[TIMER] total task time:", total_task_time)
+    # print("[TIMER] Kratos Run time:",Kratos_run_time)
+    # print("[TIMER] Deserialization time:",deserialization_time)
+    # print("[TIMER] Serialization time:",serialization_time)
+    # print("[TIMER] Refinement time:",refinement_time)
+    # if (current_level > 0):
+    #     print("[TIMER] mmg refinement time",mmg_refinement_time)
+    # print("RATIOs: time of interest / total task time")
+    # print("[RATIO] Relative deserialization time:",(deserialization_time)/total_task_time)
+    # print("[RATIO] Relative serialization time:",(serialization_time)/total_task_time)
+    # print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
+    # print("[RATIO] Relative refinement time (deserialization + mmg refinement + initialization Kratos)",refinement_time/total_task_time)
+    # if (current_level > 0):
+    #     print("[RATIO] Relative ONLY mmg refinement time:",mmg_refinement_time/total_task_time)
+    # print("\n","#"*50," END TIMES EXECUTE TASK ","#"*50,"\n")
     sys.stdout.flush()
     return mlmc_results,pickled_finer_model
 
@@ -1246,7 +1245,10 @@ class MultilevelMonteCarlo(object):
     """
     def UpdateBatches(self):
         # set here number of batches to append
-        new_number_batches = 1
+        if (len(self.batches_number_samples) >= self.settings["maximum_number_iterations"].GetInt()):
+            new_number_batches = 0
+        else:
+            new_number_batches = 1
         if (self.settings["adaptive_number_samples"].GetBool() is True):
             # compute optimal number of levels
             self.ComputeLevels()

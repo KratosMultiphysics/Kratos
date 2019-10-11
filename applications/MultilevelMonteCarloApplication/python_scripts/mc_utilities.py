@@ -148,18 +148,18 @@ def ExecuteInstanceAux_Task(pickled_model,pickled_project_parameters,sample,curr
     time_2 = time.time()
     mc_results_class.QoI[current_level].append(QoI) # saving results in the corresponding list, for MC only list of level 0
     # post process execution times
-    print("\n","#"*50," EXECUTE INSTANCE TASK TIMES ","#"*50,"\n")
+    # print("\n","#"*50," EXECUTE INSTANCE TASK TIMES ","#"*50,"\n")
     deserialization_time = time_1 - time_0
     Kratos_run_time = time_2 - time_1
     total_task_time = time_2 - time_0
-    print("[LEVEL] current level:",current_level)
-    print("[TIMER] total task time:", total_task_time)
-    print("[TIMER] Kratos run time:",Kratos_run_time)
-    print("[TIMER] Serializer time:",deserialization_time)
-    print("RATIOs: time of interest / total task time")
-    print("[RATIO] Relative serializer time:",deserialization_time/total_task_time)
-    print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
-    print("\n","#"*50," END EXECUTE INSTANCE TASK TIMES ","#"*50,"\n")
+    # print("[LEVEL] current level:",current_level)
+    # print("[TIMER] total task time:", total_task_time)
+    # print("[TIMER] Kratos run time:",Kratos_run_time)
+    # print("[TIMER] Serializer time:",deserialization_time)
+    # print("RATIOs: time of interest / total task time")
+    # print("[RATIO] Relative serializer time:",deserialization_time/total_task_time)
+    # print("[RATIO] Relative Kratos run time:",Kratos_run_time/total_task_time)
+    # print("\n","#"*50," END EXECUTE INSTANCE TASK TIMES ","#"*50,"\n")
     # end post process execution times
     return mc_results_class
 
@@ -373,7 +373,10 @@ class MonteCarlo(object):
     """
     def UpdateBatches(self):
         # set here number of batches to append
-        new_number_batches = 1
+        if (len(self.batches_number_samples) >= self.settings["maximum_number_iterations"].GetInt()):
+            new_number_batches = 0
+        else:
+            new_number_batches = 1
         # update batch size
         self.UpdateBatchSize()
         for _ in range (new_number_batches):
