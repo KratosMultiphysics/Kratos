@@ -28,6 +28,7 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     # generate variables with the sources
     set( KRATOS_CO_SIMULATION_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_application.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_application_variables.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/co_simulation_python_application.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
     )
