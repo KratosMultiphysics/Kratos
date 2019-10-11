@@ -50,4 +50,40 @@
 #define BOLDFONT(x) BOLD_FONT x RST
 #define UNDL(x) UNDERLINE_FONT x RST
 
+namespace Kratos
+{
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+/**
+ * @namespace ColorUtilities
+ * @ingroup KratosCore
+ * @brief This namespace includes several utilities necessaries for use ANSI colors
+ * @author Vicente Mataix Ferrandiz
+ */
+namespace ColorUtilities
+{
+    /**
+     * @brief This method inits the standard STD output in each OS
+     */
+    void KRATOS_API(KRATOS_CORE) InitializeSTDOutput();
+
+}; // namespace ColorUtilities
+}  // namespace Kratos
+
 #endif  /* COLOR_UTILITIES_H_INCLUDED */
