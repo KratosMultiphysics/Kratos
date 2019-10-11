@@ -83,12 +83,12 @@
                 "data" : {
                     "disp" : {
                         "model_part_name" : "Sdof",
-                        "variable_name" : "DISPLACEMENT_Y",
+                        "variable_name" : "SCALAR_DISPLACEMENT",
                         "location"      : "model_part"
                     },
                     "load" : {
                         "model_part_name" : "Sdof",
-                        "variable_name" : "FORCE_Y",
+                        "variable_name" : "SCALAR_FORCE",
                         "location"      : "model_part"
                     }
                 }

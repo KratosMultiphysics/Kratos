@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
-import KratosMultiphysics as KM
+import KratosMultiphysics.CoSimulationApplication as KMC
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
@@ -39,11 +39,11 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
 
 
     def SolveSolutionStep(self):
-        self._sdof_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self.mp[KM.DISPLACEMENT_X], 0)
-        self._sdof_solver.SetSolutionStepValue("LOAD", self.mp[KM.FORCE_Y], 0)
+        self._sdof_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self.mp[KMC.SCALAR_ROOT_POINT_DISPLACEMENT], 0)
+        self._sdof_solver.SetSolutionStepValue("LOAD", self.mp[KMC.SCALAR_FORCE], 0)
         self._sdof_solver.SolveSolutionStep()
-        self.mp[KM.DISPLACEMENT_Y] = self._sdof_solver.GetSolutionStepValue("DISPLACEMENT", 0)
-        self.mp[KM.REACTION_Y] = self._sdof_solver.GetSolutionStepValue("REACTION", 0)
+        self.mp[KMC.SCALAR_DISPLACEMENT] = self._sdof_solver.GetSolutionStepValue("DISPLACEMENT", 0)
+        self.mp[KMC.SCALAR_REACTION] = self._sdof_solver.GetSolutionStepValue("REACTION", 0)
 
     def GetBufferSize(self):
         self._sdof_solver.GetBufferSize()

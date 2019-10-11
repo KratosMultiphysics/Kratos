@@ -186,8 +186,9 @@
             "help"            : "",
             "process_name"    : "PointOutputProcess",
             "Parameters" : {
-            "position"         : [4.50, 5.50, 0.0],
-                "entity_type"      : "node",
+            "position"         : [4.50, 6.547809, 0.0],
+            "entity_type"      : "element",
+            "search_tolerance"  : 1e-3,
                 "model_part_name"  : "FluidModelPart",
                 "output_file_settings": {
                     "file_name"  : "fsi_sdof_cfd_results_disp.dat",
