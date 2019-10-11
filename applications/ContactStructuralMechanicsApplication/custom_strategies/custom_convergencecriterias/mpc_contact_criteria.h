@@ -96,6 +96,8 @@ public:
     explicit MPCContactCriteria()
         : BaseType()
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
     }
 
     ///Copy constructor

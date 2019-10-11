@@ -105,6 +105,9 @@ public:
         const bool IODebug = false
         ) : BaseType(ComputeDynamicFactor, IODebug, PureSlip)
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
+
         // Set local flags
         BaseType::mOptions.Set(PenaltyFrictionalMortarConvergenceCriteria::PRINTING_OUTPUT, PrintingOutput);
         BaseType::mOptions.Set(PenaltyFrictionalMortarConvergenceCriteria::TABLE_IS_INITIALIZED, false);

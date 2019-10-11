@@ -125,6 +125,9 @@ public:
         const bool PrintingOutput = false
         ) : BaseType()
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
+
         // Set local flags
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ENSURE_CONTACT, EnsureContact);
         mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::PRINTING_OUTPUT, PrintingOutput);

@@ -103,6 +103,9 @@ public:
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mThisParameters(ThisParameters)
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
+        
         /**
          * error_mesh_tolerance: The tolerance in the convergence criteria of the error
          * error_mesh_constant: The constant considered in the remeshing process

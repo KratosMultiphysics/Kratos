@@ -126,6 +126,9 @@ public:
         )
         : BaseType()
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
+
         // Set local flags
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT, EnsureContact);
         mOptions.Set(DisplacementLagrangeMultiplierFrictionalContactCriteria::PRINTING_OUTPUT, PrintingOutput);

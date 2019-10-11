@@ -101,6 +101,9 @@ public:
         const bool GiDIODebug = false
         ) : BaseType(ComputeDynamicFactor, GiDIODebug)
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
+
         // Set local flags
         BaseType::mOptions.Set(ALMFrictionlessComponentsMortarConvergenceCriteria::PRINTING_OUTPUT, PrintingOutput);
         BaseType::mOptions.Set(ALMFrictionlessComponentsMortarConvergenceCriteria::TABLE_IS_INITIALIZED, false);
