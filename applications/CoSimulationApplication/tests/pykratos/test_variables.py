@@ -44,13 +44,11 @@ class TestPyKratosVariables(KratosUnittest.TestCase):
         from outside the module, so no globals can be added.
         """
 
-        # different types of variables? *** --> check in test_cosimulation_interface
+        # different types of variables
         print(var_pres)
         print(var_disp)
-
         print(type(var_pres))
         print(type(var_disp))
-
 
         # print output of test
         if False:

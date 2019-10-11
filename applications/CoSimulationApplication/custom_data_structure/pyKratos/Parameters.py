@@ -199,10 +199,6 @@ class Parameters(object):
     ##### SetXXX Methods #####
     ##########################
 
-    # Old setters did not work because a copy of the param was set.
-    # Not sure how, but somewhere a copy was made, and nothing was set...
-    # For the getters, this is not a problem, so not changing those now.
-
     def SetInt(self, key, val):
         self.__Set(key, val, int)
 

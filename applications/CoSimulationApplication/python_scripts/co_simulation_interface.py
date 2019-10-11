@@ -8,13 +8,37 @@ import KratosMultiphysics as KM
 
 # Class CoSimulationInterface: Holds the different ModelParts of the interface.
 class CoSimulationInterface(object):
+    """
+    When copying a CosimulationInterface object, its proper
+    deepcopy method must be used (self.deepcopy()). If they are
+    copied using copy.deepcopy(), the global Variables will be
+    referenced wrong.
+    """
+
     def __init__(self, model, parameters):
         """
         The input 'parameters' is a Parameters object: the keys
         contain the ModelPart names, the values contain the
         names of the Variables. The latter are given either as
         a single string, or as a list of one or more strings.
+
+        Two examples of input Parameters:
+            {
+            "interface_a":
+                {
+                    "mp_1": ["PRESSURE", "FORCE"],
+                    "mp_2": "DENSITY"
+                }
+            }
+            {
+            "interface_b":
+                {
+                    "mp_1": ["TEMPERATURE"],
+                    "mp_3": "DISPLACEMENT"
+                }
+            }
         """
+
         super().__init__()
 
         self.model = model

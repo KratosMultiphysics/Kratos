@@ -4,6 +4,29 @@ from __future__ import print_function, absolute_import, division  # makes these 
 from copy import deepcopy
 
 class Variable(object):
+    """
+    Variables are global objects which are a part of the
+    KratosMultiphysics module.
+
+    They can be accessed in different ways, see code
+    example below:
+
+        import KratosMultiphysics as KM
+        var = vars(KM)[disp]
+        var = KM.__dict__[disp]
+        var = KM.KratosGlobals.GetVariable(disp)
+
+    Variables must be created in the module itself,
+    i.e. in the Variables.py file. As far as I know,
+    no new Variables can be created on-the-go.
+    Therefore, if you need a variable which has not
+    been defined yet, add it to this file.
+
+    For 1D variables, CreateDoubleVariable is used,
+    for 3D vector variables, CreateArray3Variable is used.
+    Not sure what CreateVectorVariable is for...
+    """
+
     def __init__(self, var_name, var_type, zero_val):
         self.__name = var_name
         self.__type = var_type
