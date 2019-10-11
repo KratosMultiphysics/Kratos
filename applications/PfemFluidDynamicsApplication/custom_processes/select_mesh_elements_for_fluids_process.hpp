@@ -175,6 +175,8 @@ public:
                 unsigned int countIsolatedWallNodes = 0;
                 double MeanMeshSize = mrRemesh.Refine->CriticalRadius;
                 bool increaseAlfa = false;
+                double distance = 2.0 * MeanMeshSize;
+
                 for (unsigned int pn = 0; pn < nds; pn++)
                 {
                     //set vertices
@@ -256,41 +258,97 @@ public:
                     if (refiningBox == true && vertices.back().IsNot(RIGID))
                     {
 
+                        array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
+                        array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
                         array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
                         array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
                         array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
                         array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
-                        array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
-                        array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-
-                        minExternalPoint[0] -= mrRemesh.Refine->CriticalRadius;
-                        minExternalPoint[1] -= mrRemesh.Refine->CriticalRadius;
-                        minExternalPoint[2] -= mrRemesh.Refine->CriticalRadius;
-                        maxExternalPoint[0] += mrRemesh.Refine->CriticalRadius;
-                        maxExternalPoint[1] += mrRemesh.Refine->CriticalRadius;
-                        maxExternalPoint[2] += mrRemesh.Refine->CriticalRadius;
-
-                        minInternalPoint[0] += mrRemesh.Refine->CriticalRadius;
-                        minInternalPoint[1] += mrRemesh.Refine->CriticalRadius;
-                        minInternalPoint[2] += mrRemesh.Refine->CriticalRadius;
-                        maxInternalPoint[0] -= mrRemesh.Refine->CriticalRadius;
-                        maxInternalPoint[1] -= mrRemesh.Refine->CriticalRadius;
-                        maxInternalPoint[2] -= mrRemesh.Refine->CriticalRadius;
-
-                        if ((vertices.back().X() > minExternalPoint[0] && vertices.back().X() < minInternalPoint[0] && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]) ||
-                            (vertices.back().X() > maxInternalPoint[0] && vertices.back().X() < maxExternalPoint[0] && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]) ||
-                            (vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < minInternalPoint[1] && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]) ||
-                            (vertices.back().Y() > maxInternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]) ||
-                            (vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < minInternalPoint[2] && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0]) ||
-                            (vertices.back().Z() > maxInternalPoint[2] && vertices.back().Z() < maxExternalPoint[2] && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0]))
+                        if (dimension == 2)
                         {
-                            increaseAlfa = true;
-                            MeanMeshSize = 0.5 * (mrRemesh.RefiningBoxMeshSize + mrRemesh.Refine->CriticalRadius);
+                            if (vertices.back().X() > RefiningBoxMinimumPoint[0] && vertices.back().Y() > RefiningBoxMinimumPoint[1] &&
+                                vertices.back().X() < RefiningBoxMaximumPoint[0] && vertices.back().Y() < RefiningBoxMaximumPoint[1])
+                            {
+                                MeanMeshSize = mrRemesh.RefiningBoxMeshSize;
+                            }
+                            else if ((vertices.back().X() < RefiningBoxMinimumPoint[0] && vertices.back().X() > (minExternalPoint[0] - distance) && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1]))
+                            {
+                                double seperation = vertices.back().X() - RefiningBoxMinimumPoint[0];
+                                double coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                                increaseAlfa = true;
+                            }
+                            else if ((vertices.back().Y() < RefiningBoxMinimumPoint[1] && vertices.back().Y() > (minExternalPoint[1] - distance) && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0]))
+                            {
+                                double seperation = vertices.back().Y() - RefiningBoxMinimumPoint[1];
+                                double coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                                increaseAlfa = true;
+                            }
+                            else if ((vertices.back().X() > RefiningBoxMaximumPoint[0] && vertices.back().X() < (maxExternalPoint[0] + distance) && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1]))
+                            {
+                                double seperation = vertices.back().X() - RefiningBoxMaximumPoint[0];
+                                double coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                                increaseAlfa = true;
+                            }
+                            else if ((vertices.back().Y() > RefiningBoxMaximumPoint[1] && vertices.back().Y() < (maxExternalPoint[1] + distance) && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0]))
+                            {
+                                double seperation = vertices.back().Y() - RefiningBoxMaximumPoint[1];
+                                double coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                                increaseAlfa = true;
+                            }
                         }
-                        if (vertices.back().X() > mrRemesh.RefiningBoxMinimumPoint[0] && vertices.back().Y() > mrRemesh.RefiningBoxMinimumPoint[1] && vertices.back().Z() > mrRemesh.RefiningBoxMinimumPoint[2] &&
-                            vertices.back().X() < mrRemesh.RefiningBoxMaximumPoint[0] && vertices.back().Y() < mrRemesh.RefiningBoxMaximumPoint[1] && vertices.back().Z() < mrRemesh.RefiningBoxMaximumPoint[2])
+                        else if (dimension == 3)
                         {
-                            MeanMeshSize = mrRemesh.RefiningBoxMeshSize;
+                            if (vertices.back().X() > RefiningBoxMinimumPoint[0] && vertices.back().Y() > RefiningBoxMinimumPoint[1] && vertices.back().Z() > RefiningBoxMinimumPoint[2] &&
+                                vertices.back().X() < RefiningBoxMaximumPoint[0] && vertices.back().Y() < RefiningBoxMaximumPoint[1] && vertices.back().Z() < RefiningBoxMaximumPoint[2])
+                            {
+                                MeanMeshSize = mrRemesh.RefiningBoxMeshSize;
+                            }
+                            else if ((vertices.back().X() < RefiningBoxMinimumPoint[0] && vertices.back().X() > (minExternalPoint[0] - distance) && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]))
+                            {
+                                double seperation = vertices.back().X() - RefiningBoxMinimumPoint[0];
+                                double coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                                increaseAlfa = true;
+                            }
+                            else if ((vertices.back().Y() < RefiningBoxMinimumPoint[1] && vertices.back().Y() > (minExternalPoint[1] - distance) && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]))
+                            {
+                                double seperation = vertices.back().Y() - RefiningBoxMinimumPoint[1];
+                                double coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                                increaseAlfa = true;
+                            }
+                            else if ((vertices.back().Z() < RefiningBoxMinimumPoint[2] && vertices.back().Z() > (minExternalPoint[2] - distance) && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0] && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1]))
+                            {
+                                double seperation = vertices.back().Z() - RefiningBoxMinimumPoint[2];
+                                double coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                                increaseAlfa = true;
+                            }
+                            else if ((vertices.back().X() > RefiningBoxMaximumPoint[0] && vertices.back().X() < (maxExternalPoint[0] + distance) && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]))
+                            {
+                                double seperation = vertices.back().X() - RefiningBoxMaximumPoint[0];
+                                double coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                                increaseAlfa = true;
+                            }
+                            else if ((vertices.back().Y() > RefiningBoxMaximumPoint[1] && vertices.back().Y() < (maxExternalPoint[1] + distance) && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0] && vertices.back().Z() > minExternalPoint[2] && vertices.back().Z() < maxExternalPoint[2]))
+                            {
+                                double seperation = vertices.back().Y() - RefiningBoxMaximumPoint[1];
+                                double coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                                increaseAlfa = true;
+                            }
+                            else if ((vertices.back().Z() > RefiningBoxMaximumPoint[2] && vertices.back().Z() < (maxExternalPoint[2] + distance) && vertices.back().X() > minExternalPoint[0] && vertices.back().X() < maxExternalPoint[0] && vertices.back().Y() > minExternalPoint[1] && vertices.back().Y() < maxExternalPoint[1]))
+                            {
+                                double seperation = vertices.back().Z() - RefiningBoxMaximumPoint[2];
+                                double coefficient = fabs(seperation) / (distance + MeanMeshSize);
+                                MeanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+                                increaseAlfa = true;
+                            }
                         }
                     }
                 }
@@ -309,10 +367,22 @@ public:
                     {
                         Alpha *= 1.275;
                     }
+                    else if (numfreesurf == 0 && numrigid == 0 && numisolated == 0)
+                    {
+                        Alpha *= 1.4;
+                    }
+                    else if (numfreesurf == 0 && numrigid > (0.5 * nds) && numisolated == 0)
+                    {
+                        Alpha *= 5;
+                    }
+                    else if (numfreesurf == 0 && numrigid > 0 && numisolated == 0)
+                    {
+                        Alpha *= 1.8;
+                    }
                 }
                 if (refiningBox == true && numfreesurf < (0.5 * nds) && (numrigid < (0.5 * nds) && numfreesurf > 0))
                 {
-                    if (numisolated == 0)
+                    if (numisolated > 0)
                     {
                         Alpha *= 1.0;
                     }

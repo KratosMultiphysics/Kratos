@@ -414,16 +414,14 @@ private:
 			if (refiningBox == true)
 			{
 				array_1d<double, 3> NodeCoordinates = in->Coordinates();
-				NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
-				bool boundaryElement=false;
-				for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
+				if (dimension == 2)
 				{
-					if ((nn)->Is(RIGID) || (nn)->Is(SOLID))
-					{
-						boundaryElement=true;
-					}
+					initialMeanRadius = SetMeshSizeInMeshRefinementArea(NodeCoordinates);
 				}
-				initialMeanRadius = SetMeshSizeInMeshRefinementArea(NodeCoordinates,boundaryElement);
+				else if (dimension == 2)
+				{
+					initialMeanRadius = SetMeshSizeInMeshRefinementVolume(NodeCoordinates);
+				}
 			}
 
 			double size_for_distance_inside = 0.6 * initialMeanRadius; //compared to element radius
@@ -927,33 +925,7 @@ private:
 		KRATOS_CATCH("")
 	}
 
-	void SetMeshRefinementZoneLimits(array_1d<double, 3> &RefiningBoxMinimumPoint,
-									 array_1d<double, 3> &RefiningBoxMaximumPoint,
-									 array_1d<double, 3> &minExternalPoint,
-									 array_1d<double, 3> &minInternalPoint,
-									 array_1d<double, 3> &maxExternalPoint,
-									 array_1d<double, 3> &maxInternalPoint)
-	{
-		KRATOS_TRY
-
-		minExternalPoint[0] = RefiningBoxMinimumPoint[0] - mrRemesh.Refine->CriticalRadius;
-		minExternalPoint[1] = RefiningBoxMinimumPoint[1] - mrRemesh.Refine->CriticalRadius;
-		minExternalPoint[2] = RefiningBoxMinimumPoint[2] - mrRemesh.Refine->CriticalRadius;
-		minInternalPoint[0] = RefiningBoxMinimumPoint[0] + mrRemesh.RefiningBoxMeshSize;
-		minInternalPoint[1] = RefiningBoxMinimumPoint[1] + mrRemesh.RefiningBoxMeshSize;
-		minInternalPoint[2] = RefiningBoxMinimumPoint[2] + mrRemesh.RefiningBoxMeshSize;
-
-		maxExternalPoint[0] = RefiningBoxMaximumPoint[0] + mrRemesh.Refine->CriticalRadius;
-		maxExternalPoint[1] = RefiningBoxMaximumPoint[1] + mrRemesh.Refine->CriticalRadius;
-		maxExternalPoint[2] = RefiningBoxMaximumPoint[2] + mrRemesh.Refine->CriticalRadius;
-		maxInternalPoint[0] = RefiningBoxMaximumPoint[0] - mrRemesh.RefiningBoxMeshSize;
-		maxInternalPoint[1] = RefiningBoxMaximumPoint[1] - mrRemesh.RefiningBoxMeshSize;
-		maxInternalPoint[2] = RefiningBoxMaximumPoint[2] - mrRemesh.RefiningBoxMeshSize;
-
-		KRATOS_CATCH("")
-	}
-
-	double SetMeshSizeInMeshRefinementArea(array_1d<double, 3> NodeCoordinates, bool boundaryElement)
+	double SetMeshSizeInMeshRefinementArea(array_1d<double, 3> NodeCoordinates)
 	{
 		KRATOS_TRY
 
@@ -965,31 +937,96 @@ private:
 		array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
 
 		double meshSize = mrRemesh.Refine->CriticalRadius;
-
-		if (NodeCoordinates[0] > minInternalPoint[0] && NodeCoordinates[0] < maxInternalPoint[0] &&
-			NodeCoordinates[1] > minInternalPoint[1] && NodeCoordinates[1] < maxInternalPoint[1] &&
-			NodeCoordinates[2] > minInternalPoint[2] && NodeCoordinates[2] < maxInternalPoint[2])
+		double distance = 2 * meshSize;
+		if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[0] < RefiningBoxMaximumPoint[0] &&
+			NodeCoordinates[1] > RefiningBoxMinimumPoint[1] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1])
 		{
 			meshSize = mrRemesh.RefiningBoxMeshSize; // in the internal domain the size is the one given by the user
 		}
-		else if ((NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < minInternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]) ||
-				 (NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < minInternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0]) ||
-				 (NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < minInternalPoint[2] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0]) ||
-				 (NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[0] > maxInternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]) ||
-				 (NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[1] > maxInternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0]) ||
-				 (NodeCoordinates[2] < maxExternalPoint[2] && NodeCoordinates[2] > maxInternalPoint[2] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0]))
+		else if ((NodeCoordinates[0] < RefiningBoxMinimumPoint[0] && NodeCoordinates[0] > (minExternalPoint[0] - distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
 		{
-			if (mrRemesh.Refine->CriticalRadius < mrRemesh.RefiningBoxMeshSize)
-			{
-				meshSize = mrRemesh.Refine->CriticalRadius;
-			}
-			else
-			{
-				meshSize = mrRemesh.RefiningBoxMeshSize;
-			}
-			if(boundaryElement==true){
-				meshSize =0.5*(mrRemesh.Refine->CriticalRadius+mrRemesh.RefiningBoxMeshSize);
-			}
+			double seperation = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+			double coefficient = fabs(seperation) / (distance + meshSize);
+			meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+		}
+		else if ((NodeCoordinates[1] < RefiningBoxMinimumPoint[1] && NodeCoordinates[1] > (minExternalPoint[1] - distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0]))
+		{
+			double seperation = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+			double coefficient = fabs(seperation) / (distance + meshSize);
+			meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+		}
+		else if ((NodeCoordinates[0] > RefiningBoxMaximumPoint[0] && NodeCoordinates[0] < (maxExternalPoint[0] + distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
+		{
+			double seperation = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+			double coefficient = fabs(seperation) / (distance + meshSize);
+			meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+		}
+		else if ((NodeCoordinates[1] > RefiningBoxMaximumPoint[1] && NodeCoordinates[1] < (maxExternalPoint[1] + distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0]))
+		{
+			double seperation = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+			double coefficient = fabs(seperation) / (distance + meshSize);
+			meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+		}
+
+		return meshSize;
+
+		KRATOS_CATCH("")
+	}
+
+	double SetMeshSizeInMeshRefinementVolume(array_1d<double, 3> NodeCoordinates)
+	{
+		KRATOS_TRY
+
+		array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
+		array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
+		array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
+		array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
+		array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
+		array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
+
+		double meshSize = mrRemesh.Refine->CriticalRadius;
+		double distance = 2 * meshSize;
+		if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[0] < RefiningBoxMaximumPoint[0] &&
+			NodeCoordinates[1] > RefiningBoxMinimumPoint[1] && NodeCoordinates[1] < RefiningBoxMaximumPoint[1] &&
+			NodeCoordinates[2] > RefiningBoxMinimumPoint[2] && NodeCoordinates[2] < RefiningBoxMaximumPoint[2])
+		{
+			meshSize = mrRemesh.RefiningBoxMeshSize; // in the internal domain the size is the one given by the user
+		}
+		else if ((NodeCoordinates[0] < RefiningBoxMinimumPoint[0] && NodeCoordinates[0] > (minExternalPoint[0] - distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
+		{
+			double seperation = NodeCoordinates[0] - RefiningBoxMinimumPoint[0];
+			double coefficient = fabs(seperation) / (distance + meshSize);
+			meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+		}
+		else if ((NodeCoordinates[1] < RefiningBoxMinimumPoint[1] && NodeCoordinates[1] > (minExternalPoint[1] - distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
+		{
+			double seperation = NodeCoordinates[1] - RefiningBoxMinimumPoint[1];
+			double coefficient = fabs(seperation) / (distance + meshSize);
+			meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+		}
+		else if ((NodeCoordinates[2] < RefiningBoxMinimumPoint[2] && NodeCoordinates[2] > (minExternalPoint[2] - distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
+		{
+			double seperation = NodeCoordinates[2] - RefiningBoxMinimumPoint[2];
+			double coefficient = fabs(seperation) / (distance + meshSize);
+			meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+		}
+		else if ((NodeCoordinates[0] > RefiningBoxMaximumPoint[0] && NodeCoordinates[0] < (maxExternalPoint[0] + distance) && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
+		{
+			double seperation = NodeCoordinates[0] - RefiningBoxMaximumPoint[0];
+			double coefficient = fabs(seperation) / (distance + meshSize);
+			meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+		}
+		else if ((NodeCoordinates[1] > RefiningBoxMaximumPoint[1] && NodeCoordinates[1] < (maxExternalPoint[1] + distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[2] > minExternalPoint[2] && NodeCoordinates[2] < maxExternalPoint[2]))
+		{
+			double seperation = NodeCoordinates[1] - RefiningBoxMaximumPoint[1];
+			double coefficient = fabs(seperation) / (distance + meshSize);
+			meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+		}
+		else if ((NodeCoordinates[2] > RefiningBoxMaximumPoint[2] && NodeCoordinates[2] < (maxExternalPoint[2] + distance) && NodeCoordinates[0] > minExternalPoint[0] && NodeCoordinates[0] < maxExternalPoint[0] && NodeCoordinates[1] > minExternalPoint[1] && NodeCoordinates[1] < maxExternalPoint[1]))
+		{
+			double seperation = NodeCoordinates[2] - RefiningBoxMaximumPoint[2];
+			double coefficient = fabs(seperation) / (distance + meshSize);
+			meshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
 		}
 		return meshSize;
 

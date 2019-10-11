@@ -101,13 +101,8 @@ public:
     if (mEchoLevel > 1)
       std::cout << "  COMPUTE AVERAGE PFEM MESH PARAMETERS PROCESS ]; " << std::endl;
 
-    const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-
     bool refiningBox = mrRemesh.UseRefiningBox;
-    if (!(refiningBox == true && rCurrentProcessInfo[TIME] > mrRemesh.RefiningBoxInitialTime && rCurrentProcessInfo[TIME] < mrRemesh.RefiningBoxFinalTime))
-    {
-      refiningBox = false;
-    }
+
     array_1d<double, 3> &minExternalPointRefiningBox = mrRemesh.RefiningBoxMinExternalPoint;
     array_1d<double, 3> &minInternalPointRefiningBox = mrRemesh.RefiningBoxMinInternalPoint;
     array_1d<double, 3> &maxExternalPointRefiningBox = mrRemesh.RefiningBoxMaxExternalPoint;
@@ -118,7 +113,7 @@ public:
     double fluidNodes = 0;
     double meanNodalSize = 0;
 
-    // const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     // unsigned int count=0;
     for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
     {
@@ -132,19 +127,34 @@ public:
       }
       else
       {
-        if (i_node->X() < RefiningBoxMinimumPoint[0] || i_node->Y() < RefiningBoxMinimumPoint[1] || i_node->Z() < RefiningBoxMinimumPoint[2] ||
-            i_node->X() > RefiningBoxMaximumPoint[0] || i_node->Y() > RefiningBoxMaximumPoint[1] || i_node->Z() > RefiningBoxMaximumPoint[2])
+        if (dimension == 2)
         {
-          //CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREA
-          if (i_node->Is(FLUID))
+          if (i_node->X() < RefiningBoxMinimumPoint[0] || i_node->Y() < RefiningBoxMinimumPoint[1] ||
+              i_node->X() > RefiningBoxMaximumPoint[0] || i_node->Y() > RefiningBoxMaximumPoint[1])
           {
-            fluidNodes += 1.0;
-            meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+            //CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREA
+            if (i_node->Is(FLUID))
+            {
+              fluidNodes += 1.0;
+              meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+            }
+          }
+        }
+        else if (dimension == 3)
+        {
+          if (i_node->X() < RefiningBoxMinimumPoint[0] || i_node->Y() < RefiningBoxMinimumPoint[1] || i_node->Z() < RefiningBoxMinimumPoint[2] ||
+              i_node->X() > RefiningBoxMaximumPoint[0] || i_node->Y() > RefiningBoxMaximumPoint[1] || i_node->Z() > RefiningBoxMaximumPoint[2])
+          {
+            //CONSIDER ONLY THE NODES OUT FROM THE REFINEMENT AREA
+            if (i_node->Is(FLUID))
+            {
+              fluidNodes += 1.0;
+              meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
+            }
           }
         }
       }
     }
-
     meanNodalSize *= 1.0 / fluidNodes;
 
     mrRemesh.Refine->CriticalRadius = meanNodalSize;
