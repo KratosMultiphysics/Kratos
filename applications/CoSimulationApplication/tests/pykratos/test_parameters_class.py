@@ -55,6 +55,12 @@ class TestPyKratosParameters(KratosUnittest.TestCase):
         par.RemoveValue('added_value')
         par.RemoveValue('empty')
 
+        # test list
+        self.assertIsInstance(par['test_list'].list(), list)
+        self.assertIsInstance(par['test_int'].list(), list)
+        self.assertEqual(len(par['test_list'].list()), par['test_list'].size())
+        self.assertEqual(len(par['test_int'].list()), 1)
+
         # print output of test
         if False:
             print('\nTestPyKratosParameters successful.\n')
