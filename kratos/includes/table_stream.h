@@ -85,6 +85,9 @@ public:
             mSeparator(Separator),
             mBoldFont(UseBoldFont)
     {
+        // Initialize STD output
+        ColorUtilities::InitializeSTDOutput();
+
         // Initialize values
         mIndexRow    = 0;
         mIndexColumn = 0;
