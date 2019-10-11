@@ -193,6 +193,7 @@ public:
      * this computes the Tangent tensor via numerical derivation (perturbations)
      */
     void CalculateTangentTensor(Matrix& rTangentTensor,const Vector& rStrainVectorGP,const Vector& rStressVectorGP,const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
+    void CalculateTangentTensorSecondOrder(Matrix& rTangentTensor,const Vector& rStrainVectorGP,const Vector& rStressVectorGP,const Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues);
 
     void ComputeEquivalentF(Matrix& rF,const Vector& rStrainTensor);
 protected:
