@@ -5,9 +5,6 @@ import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.LagrangianMPMApplication
 #import KratosMultiphysics.SolidMechanicsApplication
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def CreateSolver(main_model_part, custom_settings):
     return LagrangianMPMSolver(main_model_part, custom_settings)
 

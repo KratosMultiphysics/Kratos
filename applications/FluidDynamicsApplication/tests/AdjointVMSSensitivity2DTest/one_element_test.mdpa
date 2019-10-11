@@ -6,9 +6,6 @@ Begin Properties 0
 End Properties
 
 Begin Properties 1
-    DENSITY   1.00000E+00 
-    VISCOSITY   1.00000E-05 
-    DYNAMIC_VISCOSITY 1.00000E-05
 End Properties
 
 Begin Nodes
@@ -18,7 +15,7 @@ Begin Nodes
 End Nodes
 
 Begin Elements Element2D3N// GUI group identifier: Fluid
-         1          1         1         2         3 
+         1          1         1         2         3
 End Elements
 
 Begin SubModelPart Parts_Fluid // Group Fluid // Subtree Parts

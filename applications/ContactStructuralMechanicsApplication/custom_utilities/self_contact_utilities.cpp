@@ -216,7 +216,7 @@ void ComputeSelfContactPairing(
         master_counter = 0;
         slave_counter = 0;
 
-        // The slave geoemtry
+        // The slave geometry
         auto& r_geometry = it_cond->GetGeometry();
         const std::size_t number_of_nodes = r_geometry.size();
 
