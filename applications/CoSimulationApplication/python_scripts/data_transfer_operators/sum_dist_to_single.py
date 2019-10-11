@@ -23,9 +23,11 @@ class SumDistToSingle(CoSimulationDataTransferOperator):
 
         if "swap_sign" in transfer_options.GetStringArray():
             summed_data_array *= (-1)
-
-        to_solver_data.SetData(summed_data_array)
+        if "add_values" in transfer_options.GetStringArray():
+            to_solver_data.SetData(to_solver_data.GetData() + summed_data_array)
+        else:
+            to_solver_data.SetData(summed_data_array)
 
     @classmethod
     def _GetListAvailableTransferOptions(cls):
-        return ["swap_sign"]
+        return ["swap_sign", "add_values"]
