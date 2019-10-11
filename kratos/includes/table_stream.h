@@ -239,7 +239,7 @@ public:
         PrintHorizontalLine();
         
         if (mBoldFont) {
-            *mOutStream << BOLD;
+            *mOutStream << BOLD_FONT;
         }
 
         *mOutStream << "|";
