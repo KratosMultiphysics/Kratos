@@ -96,7 +96,7 @@ void RunSolutionLoop()
 
 void ConductCoupling()
 {
-    CoSim::CoSimIO co_sim_io("dummy_solver_io_settings");
+    CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
     co_sim_io.Connect();
 
@@ -107,37 +107,37 @@ void ConductCoupling()
 
     co_sim_io.Export(mesh, "exchange_mesh");
 
-    // // in this case the CoSimulation controls the solution loop / order of execution
-    // while (true) {
-    //     int command_id;
-    //     std::string identifier;
-    //     CoSimSolverWrapper::ReceiveCommand(command_id, identifier);
+    // in this case the CoSimulation controls the solution loop / order of execution
+    while (true) {
+        int control_signal;
+        std::string identifier;
+        co_sim_io.RecvControlSignal(control_signal, identifier);
 
-    //     if (command_id == 1) {
-    //         std::vector<double> time_vec(1);
-    //         co_sim_io.Import(/*data*/); // import current time
-    //         const double current_time = time_vec[0];
-    //         const double new_time = AdvanceInTime(current_time);
-    //         time_vec[0] = new_time;
-    //         co_sim_io.Export(/*data*/); // export new time
-    //     } else if (command_id == 2) {
-    //         InitializeSolutionStep();
-    //     } else if (command_id == 3) {
-    //         Predict();
-    //     } else if (command_id == 4) {
-    //         SolveSolutionStep();
-    //     } else if (command_id == 5) {
-    //         FinalizeSolutionStep();
-    //     } else if (command_id == 11) {
-    //         co_sim_io.Import(/*data*/);
-    //     } else if (command_id == 12) {
-    //         co_sim_io.Export(/*data*/);
-    //     } else if (command_id == 6) {
-    //        break;
-    //     } else {
-    //         error, unknown command!
-    //     }
-    // }
+        if (control_signal == 1) {
+            std::vector<double> time_vec(1);
+            // co_sim_io.Import(/*data*/); // import current time
+            const double current_time = time_vec[0];
+            const double new_time = AdvanceInTime(current_time);
+            time_vec[0] = new_time;
+            // co_sim_io.Export(/*data*/); // export new time
+        } else if (control_signal == 2) {
+            InitializeSolutionStep();
+        } else if (control_signal == 3) {
+            Predict();
+        } else if (control_signal == 4) {
+            SolveSolutionStep();
+        } else if (control_signal == 5) {
+            FinalizeSolutionStep();
+        } else if (control_signal == 11) {
+            // co_sim_io.Import(/*data*/);
+        } else if (control_signal == 12) {
+            // co_sim_io.Export(/*data*/);
+        } else if (control_signal == 6) {
+           break;
+        } else {
+            // error, unknown command!
+        }
+    }
 
     co_sim_io.Disconnect();
 }
@@ -191,6 +191,8 @@ int main(int argc, char **argv)
     }
 
     Finalize();
+
+    std::cout << "finished simulation" << std::endl;
 
     return (0);
 }

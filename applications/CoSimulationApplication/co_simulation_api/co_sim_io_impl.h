@@ -54,6 +54,16 @@ bool CoSimIO::Disconnect()
     return mpComm->Disconnect();
 }
 
+
+void CoSimIO::SendControlSignal(int& rSignal, const std::string& rIdentifier)
+{
+
+}
+void CoSimIO::RecvControlSignal(int& rSignal, const std::string& rIdentifier)
+{
+    rSignal = 6;
+}
+
 template<class DataContainer>
 bool CoSimIO::Import(DataContainer& rContainer, const std::string& rIdentifier)
 {
