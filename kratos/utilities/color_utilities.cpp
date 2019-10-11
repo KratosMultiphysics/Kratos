@@ -10,8 +10,11 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+// Project includes
+#include "utilities/color_utilities.h"  // Must be included first in order to include define.h
+
 // System includes
-// #ifdef KRATOS_COMPILED_IN_WINDOWS
+#ifdef KRATOS_COMPILED_IN_WINDOWS
     #include <stdio.h>
     #ifndef _WIN32_WINNT
         #define _WIN32_WINNT 0x0601 // Windows 7 or later. See https://docs.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt?view=vs-2019
@@ -20,12 +23,9 @@
     #if defined(__MINGW32__) || defined(__MINGW64__)
         #include <winbase.h>
     #endif
-// #endif
+#endif
 
 // External includes
-
-// Project includes
-#include "utilities/color_utilities.h"
 
 namespace Kratos
 {
