@@ -27,7 +27,7 @@ namespace Kratos
 void ShallowWaterUtilities::ComputeFreeSurfaceElevation(ModelPart& rModelPart)
 {
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = rModelPart.NodesBegin() + i;
         it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = it_node->FastGetSolutionStepValue(HEIGHT) - it_node->FastGetSolutionStepValue(BATHYMETRY);
@@ -37,7 +37,7 @@ void ShallowWaterUtilities::ComputeFreeSurfaceElevation(ModelPart& rModelPart)
 void ShallowWaterUtilities::ComputeHeightFromFreeSurface(ModelPart& rModelPart)
 {
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = rModelPart.NodesBegin() + i;
         it_node->FastGetSolutionStepValue(HEIGHT) = it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) + it_node->FastGetSolutionStepValue(BATHYMETRY);
@@ -47,7 +47,7 @@ void ShallowWaterUtilities::ComputeHeightFromFreeSurface(ModelPart& rModelPart)
 void ShallowWaterUtilities::ComputeVelocity(ModelPart& rModelPart)
 {
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = rModelPart.NodesBegin() + i;
         it_node->FastGetSolutionStepValue(VELOCITY) = it_node->FastGetSolutionStepValue(MOMENTUM) / it_node->FastGetSolutionStepValue(HEIGHT);
@@ -57,10 +57,47 @@ void ShallowWaterUtilities::ComputeVelocity(ModelPart& rModelPart)
 void ShallowWaterUtilities::ComputeMomentum(ModelPart& rModelPart)
 {
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
     {
         auto it_node = rModelPart.NodesBegin() + i;
         it_node->FastGetSolutionStepValue(MOMENTUM) = it_node->FastGetSolutionStepValue(VELOCITY) * it_node->FastGetSolutionStepValue(HEIGHT);
+    }
+}
+
+void ShallowWaterUtilities::UpdatePrimitiveVariables(ModelPart& rModelPart)
+{
+    double dry_height = rModelPart.GetProcessInfo()[DRY_HEIGHT];
+    UpdatePrimitiveVariables(rModelPart, dry_height);
+}
+
+void ShallowWaterUtilities::UpdatePrimitiveVariables(ModelPart& rModelPart, double Epsilon)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+        const double height = it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - it_node->FastGetSolutionStepValue(TOPOGRAPHY);
+        it_node->FastGetSolutionStepValue(HEIGHT) = height;
+        it_node->FastGetSolutionStepValue(VELOCITY) = it_node->FastGetSolutionStepValue(MOMENTUM) / std::max(std::abs(height), Epsilon);
+    }
+}
+
+void ShallowWaterUtilities::ComputeAccelerations(ModelPart& rModelPart)
+{
+    double dt_inv = rModelPart.GetProcessInfo()[DELTA_TIME];
+
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+    {
+        auto it_node = rModelPart.NodesBegin() + i;
+
+        // Free suface derivative or vertical velocity
+        auto delta_surface = it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - it_node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION,1);
+        it_node->FastGetSolutionStepValue(VELOCITY_Z) = dt_inv * delta_surface;
+
+        // Acceleration
+        auto delta_vel = it_node->FastGetSolutionStepValue(VELOCITY) - it_node->FastGetSolutionStepValue(VELOCITY,1);
+        it_node->SetValue(ACCELERATION, dt_inv * delta_vel);
     }
 }
 
