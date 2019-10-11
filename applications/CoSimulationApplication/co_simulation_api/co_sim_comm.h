@@ -40,12 +40,14 @@ class CoSimComm
 public:
     typedef Tools::SettingsType SettingsType;
 
-    CoSimComm(const std::string& rName, SettingsType& rSettings) : mName(rName), mrSettings(rSettings)
+    explicit CoSimComm(const std::string& rName, SettingsType& rSettings) : mName(rName), mrSettings(rSettings)
     {
         const SettingsType default_settings = {
             {"echo_level", "1"}
         };
         Tools::AddMissingSettings(default_settings, mrSettings);
+
+        mEchoLevel = std::stoi(mrSettings.at("echo_level"));
     }
 
     virtual ~CoSimComm()
