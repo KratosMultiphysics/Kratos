@@ -97,6 +97,16 @@ class Parameters(object):
         self.__CheckIfSubParameter("items")
         return [tup for tup in zip(self.keys(), self.values())]
 
+    def list(self):
+        # returns a list of Parameters
+        out = []
+        if self.IsArray():
+            for i in range(self.size()):
+                out.append(self[i])
+        else:
+            out.append(self)
+        return out
+
     def AddValue(self, key, other_param):
         self.__CheckIfSubParameter("AddValue")
         self.__CheckIfParameter(other_param)
