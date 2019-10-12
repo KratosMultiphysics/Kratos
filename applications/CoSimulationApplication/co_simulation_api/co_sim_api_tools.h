@@ -25,7 +25,7 @@ namespace Tools {
 
 typedef std::unordered_map<std::string, std::string> SettingsType;
 
-void AddMissingSettings(const SettingsType& rDefaultSettings, SettingsType& rSettings)
+inline void AddMissingSettings(const SettingsType& rDefaultSettings, SettingsType& rSettings)
 {
     for (const auto& r_setting : rDefaultSettings) {
         if (rSettings.count(r_setting.first) == 0) {
@@ -34,7 +34,7 @@ void AddMissingSettings(const SettingsType& rDefaultSettings, SettingsType& rSet
     }
 }
 
-SettingsType ReadSettingsFile(const std::string& rSettingsFileName)
+inline SettingsType ReadSettingsFile(const std::string& rSettingsFileName)
 {
     std::ifstream settings_file(rSettingsFileName);
 

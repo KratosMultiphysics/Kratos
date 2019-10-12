@@ -36,30 +36,30 @@
 
 namespace CoSim {
 
-CoSimIO::CoSimIO(const std::string& rName, const std::string& rSettingsFileName)
+inline CoSimIO::CoSimIO(const std::string& rName, const std::string& rSettingsFileName)
     : CoSimIO::CoSimIO(rName, Tools::ReadSettingsFile(rSettingsFileName)) { } // forwarding constructor call
 
-CoSimIO::CoSimIO(const std::string& rName, SettingsType rSettings)
+inline CoSimIO::CoSimIO(const std::string& rName, SettingsType rSettings)
 {
     Initialize(rName, rSettings);
 }
 
-bool CoSimIO::Connect()
+inline bool CoSimIO::Connect()
 {
     return mpComm->Connect();
 }
 
-bool CoSimIO::Disconnect()
+inline bool CoSimIO::Disconnect()
 {
     return mpComm->Disconnect();
 }
 
 
-void CoSimIO::SendControlSignal(int& rSignal, const std::string& rIdentifier)
+inline void CoSimIO::SendControlSignal(int& rSignal, const std::string& rIdentifier)
 {
 
 }
-void CoSimIO::RecvControlSignal(int& rSignal, const std::string& rIdentifier)
+inline void CoSimIO::RecvControlSignal(int& rSignal, const std::string& rIdentifier)
 {
     rSignal = 6;
 }
@@ -76,7 +76,7 @@ bool CoSimIO::Export(const DataContainer& rContainer, const std::string& rIdenti
     return mpComm->Export(rContainer, rIdentifier);
 }
 
-void CoSimIO::Initialize(const std::string& rName, SettingsType& rSettings)
+inline void CoSimIO::Initialize(const std::string& rName, SettingsType& rSettings)
 {
     std::string comm_format("file"); // default is file-communication
     if (rSettings.count("communication_format") != 0) { // communication format has been specified
