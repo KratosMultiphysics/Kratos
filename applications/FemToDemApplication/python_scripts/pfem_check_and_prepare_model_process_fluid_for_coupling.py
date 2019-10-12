@@ -66,6 +66,18 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
 
 #============================================================================================================================
     def AddAndReorderFEMDEMBoundary(self):
+        
+        self.FEM_model_part.CreateSubModelPart("SkinDEMModelPart")
+        skin_params = KratosMultiphysics.Parameters("""
+        {
+            "name_auxiliar_model_part" : "SkinDEMModelPart",
+            "name_auxiliar_condition"  : "Condition",
+            "echo_level"               : 1
+        }""")
+
+        skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_model_part, skin_params)
+        skin_detection_process.Execute()
+
         max_id = 0
         for node in self.main_model_part.Nodes:
             if node.Id > max_id:
@@ -73,7 +85,12 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
         self.main_model_part.CreateSubModelPart("FEMDEM_boundary")
         femdem_model_part = self.main_model_part.GetSubModelPart("FEMDEM_boundary")
 
+        # Reorder nodes Id
         for node in self.FEM_model_part.Nodes:
             node.Id = node.Id + max_id
+            node.SetValue(KratosPfemFluid.NO_MESH, True)
             femdem_model_part.AddNode(node, 0)
+
+        for node in self.FEM_model_part.GetSubModelPart("SkinDEMModelPart").Nodes:
+            node.SetValue(KratosPfemFluid.NO_MESH, False)
 #============================================================================================================================
