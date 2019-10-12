@@ -98,11 +98,11 @@ public:
 
 protected:
     SettingsType& mrSettings;
+    int mEchoLevel = 1;
 
 private:
     std::string mName;
     bool mIsConnected = false;
-    int mEchoLevel = 1;
 
     virtual bool ConnectDetail() = 0;
     virtual bool DisconnectDetail() = 0;
