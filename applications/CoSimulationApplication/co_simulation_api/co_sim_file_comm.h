@@ -25,10 +25,20 @@ public:
     explicit FileComm(const std::string& rName, SettingsType& rSettings)
         : CoSimComm(rName, rSettings)
     {
-        // throw std::runtime_error("Files Communication is not implemented yet");
+        const SettingsType default_settings = {
+            {"communication_folder_name_suffix", ""},
+            {"use_folder_for_communication" , "0"}
+        };
+        Tools::AddMissingSettings(default_settings, CoSimComm::mrSettings);
+
+        mCommFolderSuffix = CoSimComm::mrSettings.at("communication_folder_name_suffix");
+        mCommInFolder = (CoSimComm::mrSettings.at("use_folder_for_communication") == "1");
     }
 
 private:
+
+    std::string mCommFolderSuffix = "";
+    bool mCommInFolder = false;
 
     bool ConnectDetail() override
     {
