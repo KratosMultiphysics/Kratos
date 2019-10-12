@@ -34,16 +34,19 @@ void Initialize(MeshType& rMesh, DataFieldType& rDataField, const int NumNodesPe
     double domain_x[] = {0.0, 10,0};
     double domain_y[] = {0.0, 5,0};
 
+    const double dx = (domain_x[1] - domain_x[0]) / (NumNodesPerDir-1);
+    const double dy = (domain_y[1] - domain_y[0]) / (NumNodesPerDir-1);
+
     // creating the mesh
     rMesh.resize(NumNodesPerDir);
 
     for (int i_x=0; i_x<NumNodesPerDir; ++i_x) {
         rMesh[i_x].resize(NumNodesPerDir);
-        for (int j_x=0; j_x<NumNodesPerDir; ++j_x) {
-
+        for (int i_y=0; i_y<NumNodesPerDir; ++i_y) {
+            std::array<double, 2> xy_coord = {i_x*dx, i_y*dy};
+            rMesh[i_x][i_y] = xy_coord;
         }
     }
-
 
     // intializing the data-field
     const int size_data_field = NumNodesPerDir*NumNodesPerDir;
@@ -51,7 +54,6 @@ void Initialize(MeshType& rMesh, DataFieldType& rDataField, const int NumNodesPe
     for (int i=0; i<size_data_field; ++i) {
         rDataField[i] = 0.0;
     }
-
 }
 
 
@@ -99,6 +101,14 @@ void ImportMesh(CoSim::CoSimIO& rCoSimIO, MeshType& rMesh, const std::string& rI
 void ExportMesh(CoSim::CoSimIO& rCoSimIO, const MeshType& rMesh, const std::string& rIdentifier="")
 {
     std::vector<double> node_coords(rMesh.size()*rMesh.size()*3, 0.0);
+    int counter=0;
+    for (int i_x=0; i_x<static_cast<int>(rMesh.size()); ++i_x) {
+        for (int i_y=0; i_y<static_cast<int>(rMesh.size()); ++i_y) {
+            node_coords[counter++] = rMesh[i_x][i_y][0];
+            node_coords[counter++] = rMesh[i_x][i_y][1];
+        }
+    }
+
     // mesh has no cells, hence arguments are only dummy
     std::vector<int> connectivities;
     std::vector<int> cell_types;
