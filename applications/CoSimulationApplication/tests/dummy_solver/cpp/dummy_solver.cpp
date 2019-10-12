@@ -123,7 +123,7 @@ void ImportData(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::
     rCoSimIO.Import(data, rIdentifier);
 }
 
-void ExportData(CoSim::CoSimIO& rCoSimIO, const DataFieldType& rDataField, const std::string& rIdentifier="")
+void ExportData(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier="")
 {
     CoSim::DataContainers::Data data = {rDataField};
     rCoSimIO.Export(data, rIdentifier);
