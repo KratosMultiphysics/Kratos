@@ -20,7 +20,7 @@ class DummySolverIO(CoSimulationIO):
     def __init__(self, settings, model, solver_name):
         super(DummySolverIO, self).__init__(settings, model, solver_name)
 
-        self.io = KratosCoSim.CoSimIO(solver_name, ParametersToStringDict(self.settings.items()))
+        self.io = KratosCoSim.CoSimIO(solver_name, ParametersToStringDict(self.settings))
 
         self.io.Connect()
 
