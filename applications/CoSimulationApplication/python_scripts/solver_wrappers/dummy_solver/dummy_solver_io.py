@@ -30,18 +30,19 @@ class DummySolverIO(CoSimulationIO):
     def ImportCouplingInterface(self, interface_config):
         self.io.ImportMesh(self.model[interface_config["model_part_name"]]) # TODO this can also be geometry at some point
 
-    # def ImportData(self, data_config):
-    #     data_type = data_config["type"]
-    #     if data_type == "coupling_interface_data":
-    #         interface_data = data_config["interface_data"]
-    #         KratosCoSim.EMPIRE_API.EMPIRE_API_recvDataField(interface_data.GetModelPart(), self.solver_name+"_"+interface_data.name, interface_data.variable)
-    #     else:
-    #         raise NotImplementedError('Importing interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
+    def ImportData(self, data_config):
+        data_type = data_config["type"]
+        if data_type == "coupling_interface_data":
+            interface_data = data_config["interface_data"]
+            self.io.ImportData(interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location))
+        else:
+            raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
     def ExportData(self, data_config):
         data_type = data_config["type"]
         if data_type == "coupling_interface_data":
-            self.io.ExportData(data_config["interface_data"].GetModelPart())
+            interface_data = data_config["interface_data"]
+            self.io.ExportData(interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location))
         elif data_type == "control_signal":
             control_signal_key = cs_tools.control_signal_map[data_config["signal"]]
             self.io.SendControlSignal(control_signal_key,"ddd")
@@ -73,3 +74,13 @@ def ParametersToStringDict(param):
         string_dict[k] = str(v)
 
     return string_dict
+
+def GetDataLocation(location_str):
+    location_map = {
+        "node_historical" : KratosCoSim.DataLocation.NodeHistorical,
+        "node_non_historical" : KratosCoSim.DataLocation.NodeNonHistorical,
+        "element" : KratosCoSim.DataLocation.Element,
+        "condition" : KratosCoSim.DataLocation.Condition,
+        "model_part" : KratosCoSim.DataLocation.ModelPart
+    }
+    return location_map[location_str]
