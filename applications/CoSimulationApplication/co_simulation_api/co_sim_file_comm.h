@@ -70,6 +70,16 @@ private:
         return true;
     }
 
+    bool ImportDetail(int& rDataContainer, const std::string& rIdentifier) override
+    {
+        return true;
+    }
+
+    bool ExportDetail(const int& rDataContainer, const std::string& rIdentifier) override
+    {
+        return true;
+    }
+
 };
 
 } // namespace CoSim
