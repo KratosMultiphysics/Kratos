@@ -106,6 +106,7 @@ void ExportMesh(CoSim::CoSimIO& rCoSimIO, const MeshType& rMesh, const std::stri
         for (int i_y=0; i_y<static_cast<int>(rMesh.size()); ++i_y) {
             node_coords[counter++] = rMesh[i_x][i_y][0];
             node_coords[counter++] = rMesh[i_x][i_y][1];
+            node_coords[counter++] = 0.0; // for 3D
         }
     }
 
