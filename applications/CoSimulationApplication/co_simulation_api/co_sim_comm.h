@@ -40,7 +40,7 @@ class CoSimComm
 public:
     typedef Tools::SettingsType SettingsType;
 
-    explicit CoSimComm(const std::string& rName, SettingsType& rSettings) : mName(rName), mrSettings(rSettings)
+    explicit CoSimComm(const std::string& rName, SettingsType& rSettings) : mrSettings(rSettings),  mName(rName)
     {
         const SettingsType default_settings = {
             {"echo_level", "1"}
@@ -96,9 +96,11 @@ public:
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Data);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(int);
 
+protected:
+    SettingsType& mrSettings;
+
 private:
     std::string mName;
-    SettingsType& mrSettings;
     bool mIsConnected = false;
     int mEchoLevel = 1;
 
