@@ -42,18 +42,30 @@ private:
 
     bool ConnectDetail() override
     {
-        std::cout << "FileComm; ConnectDetail" << std::endl;
         return true; // nothing needed here for file-based communication
     }
 
     bool DisconnectDetail() override
     {
-        std::cout << "FileComm; DisconnectDetail" << std::endl;
-
         return true; // nothing needed here for file-based communication
     }
 
+    bool ImportDetail(DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
+    {
+        return true;
+    }
+
     bool ExportDetail(const DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
+    {
+        return true;
+    }
+
+    bool ImportDetail(DataContainers::Data& rDataContainer, const std::string& rIdentifier) override
+    {
+        return true;
+    }
+
+    bool ExportDetail(const DataContainers::Data& rDataContainer, const std::string& rIdentifier) override
     {
         return true;
     }
