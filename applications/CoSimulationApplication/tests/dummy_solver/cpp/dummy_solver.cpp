@@ -58,7 +58,7 @@ void Initialize(MeshType& rMesh, DataFieldType& rDataField, const int NumNodesPe
 double AdvanceInTime(const double CurrentTime)
 {
     std::cout << "  AdvanceInTime" << std::endl;
-    return 0.0;
+    return CurrentTime + 0.1;
 }
 void InitializeSolutionStep()
 {
@@ -81,6 +81,36 @@ void OutputSolutionStep()
     std::cout << "  OutputSolutionStep" << std::endl;
 }
 
+void ImportGeometry(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
+{
+
+}
+
+void ExportGeometry(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
+{
+
+}
+
+void ImportMesh(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
+{
+
+}
+
+void ExportMesh(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
+{
+
+}
+
+void ImportData(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
+{
+
+}
+
+void ExportData(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
+{
+
+}
+
 void RunSolutionLoop()
 {
     for (int i=0; i<3; ++i) {
@@ -94,48 +124,115 @@ void RunSolutionLoop()
     }
 }
 
-void ConductCoupling()
+void RunSolutionLoopWithWeakCoupling()
+{
+    // Note the following only works with one coupling inteface, requires more effort to make it work with multiple coupling interfaces.
+
+    CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
+
+    co_sim_io.Connect();
+    ExportMesh(co_sim_io); // send the coupling-interface mesh to be used for e.g. mapping
+
+    for (int i=0; i<3; ++i) {
+        AdvanceInTime(0.0);
+        InitializeSolutionStep();
+        Predict();
+        ImportData(co_sim_io);
+        SolveSolutionStep();
+        ExportData(co_sim_io);
+        FinalizeSolutionStep();
+        OutputSolutionStep();
+        std::cout << std::endl;
+    }
+
+    co_sim_io.Disconnect();
+}
+
+void RunSolutionLoopWithStrongCoupling()
+{
+    // Note the following only works with one coupling inteface, requires more effort to make it work with multiple coupling interfaces.
+
+    CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
+
+    co_sim_io.Connect();
+    ExportMesh(co_sim_io); // send the coupling-interface mesh to be used for e.g. mapping
+
+    int control_signal;
+    std::string identifier;
+
+    for (int i=0; i<3; ++i) {
+        AdvanceInTime(0.0);
+        InitializeSolutionStep();
+        Predict();
+        while(true) {
+            ImportData(co_sim_io);
+            SolveSolutionStep();
+            ExportData(co_sim_io);
+            co_sim_io.RecvControlSignal(control_signal, identifier);
+            if (control_signal == 51) { // convergence acheived
+                break;
+            }
+        }
+
+        FinalizeSolutionStep();
+        OutputSolutionStep();
+        std::cout << std::endl;
+    }
+
+    co_sim_io.Disconnect();
+}
+
+void RunSolutionCoSimulationOrchestrated()
 {
     CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
     co_sim_io.Connect();
 
-    std::vector<double> dummy;
-    std::vector<int> dummy2;
-
-    CoSim::DataContainers::Mesh mesh = {dummy, dummy2, dummy2};
-
-    co_sim_io.Export(mesh, "exchange_mesh");
-
-    // in this case the CoSimulation controls the solution loop / order of execution
-    while (true) {
-        int control_signal;
-        std::string identifier;
+    int control_signal;
+    std::string identifier;
+    while(true) {
+        // receive control signal to decide what to do
+        // the signals are defined in KratosMultiphysics/applications/CoSimulationApplication/python_scripts/co_simulation_tools.py
         co_sim_io.RecvControlSignal(control_signal, identifier);
-
         if (control_signal == 1) {
+            break; // coupled simulation is done
+        }
+        else if (control_signal == 11) {
             std::vector<double> time_vec(1);
             // co_sim_io.Import(/*data*/); // import current time
             const double current_time = time_vec[0];
             const double new_time = AdvanceInTime(current_time);
             time_vec[0] = new_time;
             // co_sim_io.Export(/*data*/); // export new time
-        } else if (control_signal == 2) {
+        }
+        else if (control_signal == 12) {
             InitializeSolutionStep();
-        } else if (control_signal == 3) {
-            Predict();
-        } else if (control_signal == 4) {
+        }
+        else if (control_signal == 13) {
             SolveSolutionStep();
-        } else if (control_signal == 5) {
+        }
+        else if (control_signal == 14) {
             FinalizeSolutionStep();
-        } else if (control_signal == 11) {
-            // co_sim_io.Import(/*data*/);
-        } else if (control_signal == 12) {
-            // co_sim_io.Export(/*data*/);
-        } else if (control_signal == 6) {
-           break;
+        }
+        else if (control_signal == 21) {
+            ImportGeometry(co_sim_io, identifier);
+        }
+        else if (control_signal == 22) {
+            ExportGeometry(co_sim_io, identifier);
+        }
+        else if (control_signal == 31) {
+            ImportMesh(co_sim_io, identifier);
+        }
+        else if (control_signal == 32) {
+            ExportMesh(co_sim_io, identifier);
+        }
+        else if (control_signal == 41) {
+            ImportData(co_sim_io, identifier);
+        }
+        else if (control_signal == 42) {
+            ExportData(co_sim_io, identifier);
         } else {
-            // error, unknown command!
+            throw std::runtime_error("Unknown control signal: " + std::to_string(control_signal));
         }
     }
 
@@ -157,8 +254,7 @@ void ParseInput(int argc, char **argv, int* Settings)
         Settings[i-1] = std::atoi(argv[i]);
     }
     std::cout << "Using configuration:";
-    std::cout << "\n    Number of nodes/dir: " << Settings[0];
-    std::cout << "\n    Coupling is enabled: " << Settings[1] << std::endl << std::endl;
+    std::cout << "\n    Number of nodes/dir: " << Settings[0] << std::endl;
 }
 
 } // helpers namespace
@@ -170,7 +266,7 @@ int main(int argc, char **argv)
     // defining the default settings
     int settings[] = {
         10, // number of nodes/dir
-        0   // enable coupling (true/false)
+        0
     };
 
     ParseInput(argc, argv, settings);
@@ -180,14 +276,18 @@ int main(int argc, char **argv)
 
     Initialize(mesh, data_field, settings[0]);
 
-    const bool do_coupling = settings[1];
-
-    if (do_coupling) {
-        std::cout << ">> Doing COUPLED simulation <<\n" << std::endl;
-        ConductCoupling();
-    } else {
+    if (settings[1] == 0) {
         std::cout << ">> Doing STANDALONE simulation <<\n" << std::endl;
         RunSolutionLoop();
+    } else if (settings[1] == 1) {
+        std::cout << ">> Doing COUPLED simulation (weakly coupled) <<\n" << std::endl;
+        RunSolutionLoopWithWeakCoupling();
+    } else if (settings[1] == 2) {
+        std::cout << ">> Doing COUPLED simulation (strongly coupled) <<\n" << std::endl;
+        RunSolutionLoopWithStrongCoupling();
+    } else if (settings[1] == 3) {
+        std::cout << ">> Doing COUPLED simulation orchestrated by CoSimulation <<\n" << std::endl;
+        RunSolutionCoSimulationOrchestrated();
     }
 
     Finalize();
