@@ -26,6 +26,8 @@ namespace Python {
 
 namespace CoSimIO_Wrappers { // helpers namespace
 
+enum class DataLocation { NodeHistorical, NodeNonHistorical, Element, Condition, ModelPart };
+
 void ExportGeometry(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart)
 {
     KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
@@ -91,14 +93,190 @@ void ImportMesh(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart)
     // }
 }
 
-void ExportData(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart)
+void ExportData_Scalar(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart, const Variable<double>& rVariable, const DataLocation DataLoc)
 {
-    KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
+    std::vector<double> data_vals;
+
+    if (DataLoc == DataLocation::NodeHistorical) {
+        std::size_t counter = 0;
+        data_vals.resize(rModelPart.NumberOfNodes());
+        for (const auto& r_node : rModelPart.Nodes()) {
+            data_vals[counter++] = r_node.FastGetSolutionStepValue(rVariable);
+        }
+
+    } else if (DataLoc == DataLocation::NodeNonHistorical) {
+        std::size_t counter = 0;
+        data_vals.resize(rModelPart.NumberOfNodes());
+        for (const auto& r_node : rModelPart.Nodes()) {
+            data_vals[counter++] = r_node.GetValue(rVariable);
+        }
+
+    } else if (DataLoc == DataLocation::Element) {
+        std::size_t counter = 0;
+        data_vals.resize(rModelPart.NumberOfElements());
+        for (const auto& r_elem : rModelPart.Elements()) {
+            data_vals[counter++] = r_elem.GetValue(rVariable);
+        }
+
+    } else if (DataLoc == DataLocation::Condition) {
+        std::size_t counter = 0;
+        data_vals.resize(rModelPart.NumberOfConditions());
+        for (const auto& r_cond : rModelPart.Conditions()) {
+            data_vals[counter++] = r_cond.GetValue(rVariable);
+        }
+
+    } else if (DataLoc == DataLocation::ModelPart) {
+        data_vals.resize(1);
+        data_vals[0] = rModelPart[rVariable];
+    }
+
+    CoSim::DataContainers::Data data_container = {data_vals};
+    rCoSimIO.Export(data_container, rModelPart.Name());
 }
 
-void ImportData(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart)
+void ImportData_Scalar(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Variable<double>& rVariable, const DataLocation DataLoc)
 {
-    KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
+    std::vector<double> data_vals;
+    CoSim::DataContainers::Data data_container = {data_vals};
+    rCoSimIO.Import(data_container, rModelPart.Name());
+
+    // TODO implement size-checks
+
+    if (DataLoc == DataLocation::NodeHistorical) {
+        std::size_t counter = 0;
+        for (auto& r_node : rModelPart.Nodes()) {
+            r_node.FastGetSolutionStepValue(rVariable) = data_vals[counter++];
+        }
+
+    } else if (DataLoc == DataLocation::NodeNonHistorical) {
+        std::size_t counter = 0;
+        for (auto& r_node : rModelPart.Nodes()) {
+            r_node.GetValue(rVariable) = data_vals[counter++];
+        }
+
+    } else if (DataLoc == DataLocation::Element) {
+        std::size_t counter = 0;
+        for (auto& r_elem : rModelPart.Elements()) {
+            r_elem.GetValue(rVariable) = data_vals[counter++];
+        }
+
+    } else if (DataLoc == DataLocation::Condition) {
+        std::size_t counter = 0;
+        for (auto& r_cond : rModelPart.Conditions()) {
+            r_cond.GetValue(rVariable) = data_vals[counter++];
+        }
+
+    } else if (DataLoc == DataLocation::ModelPart) {
+        rModelPart[rVariable] = data_vals[0];
+    }
+}
+
+void ExportData_Vector(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable, const DataLocation DataLoc)
+{
+    std::vector<double> data_vals;
+
+    if (DataLoc == DataLocation::NodeHistorical) {
+        std::size_t counter = 0;
+        data_vals.resize(rModelPart.NumberOfNodes()*3);
+        for (const auto& r_node : rModelPart.Nodes()) {
+            const array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
+            data_vals[counter++] = r_val[0];
+            data_vals[counter++] = r_val[1];
+            data_vals[counter++] = r_val[2];
+        }
+
+    } else if (DataLoc == DataLocation::NodeNonHistorical) {
+        std::size_t counter = 0;
+        data_vals.resize(rModelPart.NumberOfNodes()*3);
+        for (const auto& r_node : rModelPart.Nodes()) {
+            const array_1d<double, 3>& r_val = r_node.GetValue(rVariable);
+            data_vals[counter++] = r_val[0];
+            data_vals[counter++] = r_val[1];
+            data_vals[counter++] = r_val[2];
+        }
+
+    } else if (DataLoc == DataLocation::Element) {
+        std::size_t counter = 0;
+        data_vals.resize(rModelPart.NumberOfElements()*3);
+        for (const auto& r_elem : rModelPart.Elements()) {
+            const array_1d<double, 3>& r_val = r_elem.GetValue(rVariable);
+            data_vals[counter++] = r_val[0];
+            data_vals[counter++] = r_val[1];
+            data_vals[counter++] = r_val[2];
+        }
+
+    } else if (DataLoc == DataLocation::Condition) {
+        std::size_t counter = 0;
+        data_vals.resize(rModelPart.NumberOfConditions()*3);
+        for (const auto& r_cond : rModelPart.Conditions()) {
+            const array_1d<double, 3>& r_val = r_cond.GetValue(rVariable);
+            data_vals[counter++] = r_val[0];
+            data_vals[counter++] = r_val[1];
+            data_vals[counter++] = r_val[2];
+        }
+
+    } else if (DataLoc == DataLocation::ModelPart) {
+        data_vals.resize(3);
+        const auto& r_val = rModelPart[rVariable];
+        data_vals[0] = r_val[0];
+        data_vals[1] = r_val[1];
+        data_vals[2] = r_val[2];
+    }
+
+    CoSim::DataContainers::Data data_container = {data_vals};
+    rCoSimIO.Export(data_container, rModelPart.Name());
+}
+
+void ImportData_Vector(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable, const DataLocation DataLoc)
+{
+    std::vector<double> data_vals;
+    CoSim::DataContainers::Data data_container = {data_vals};
+    rCoSimIO.Import(data_container, rModelPart.Name());
+
+    // TODO implement size-checks
+
+    if (DataLoc == DataLocation::NodeHistorical) {
+        std::size_t counter = 0;
+        for (auto& r_node : rModelPart.Nodes()) {
+            array_1d<double, 3>& r_val = r_node.FastGetSolutionStepValue(rVariable);
+            r_val[0] = data_vals[counter++];
+            r_val[1] = data_vals[counter++];
+            r_val[2] = data_vals[counter++];
+        }
+
+    } else if (DataLoc == DataLocation::NodeNonHistorical) {
+        std::size_t counter = 0;
+        for (auto& r_node : rModelPart.Nodes()) {
+            array_1d<double, 3>& r_val = r_node.GetValue(rVariable);
+            r_val[0] = data_vals[counter++];
+            r_val[1] = data_vals[counter++];
+            r_val[2] = data_vals[counter++];
+        }
+
+    } else if (DataLoc == DataLocation::Element) {
+        std::size_t counter = 0;
+        for (auto& r_elem : rModelPart.Elements()) {
+            array_1d<double, 3>& r_val = r_elem.GetValue(rVariable);
+            r_val[0] = data_vals[counter++];
+            r_val[1] = data_vals[counter++];
+            r_val[2] = data_vals[counter++];
+        }
+
+    } else if (DataLoc == DataLocation::Condition) {
+        std::size_t counter = 0;
+        for (auto& r_cond : rModelPart.Conditions()) {
+            array_1d<double, 3>& r_val = r_cond.GetValue(rVariable);
+            r_val[0] = data_vals[counter++];
+            r_val[1] = data_vals[counter++];
+            r_val[2] = data_vals[counter++];
+        }
+
+    } else if (DataLoc == DataLocation::ModelPart) {
+        auto& r_val = rModelPart[rVariable];
+        r_val[0] = data_vals[0];
+        r_val[1] = data_vals[1];
+        r_val[2] = data_vals[2];
+    }
 }
 
 } // helpers namespace
@@ -126,9 +304,19 @@ void  AddCoSimIOToPython(pybind11::module& m)
         .def("ImportMesh", CoSimIO_Wrappers::ImportMesh)
         .def("ExportMesh", CoSimIO_Wrappers::ExportMesh)
 
-        .def("ImportData", CoSimIO_Wrappers::ImportData)
-        .def("ExportData", CoSimIO_Wrappers::ExportData)
+        .def("ImportData", CoSimIO_Wrappers::ImportData_Scalar)
+        .def("ExportData", CoSimIO_Wrappers::ExportData_Scalar)
+        .def("ImportData", CoSimIO_Wrappers::ImportData_Vector)
+        .def("ExportData", CoSimIO_Wrappers::ExportData_Vector)
         ;
+
+    py::enum_<CoSimIO_Wrappers::DataLocation>(m,"DataLocation")
+    .value("NodeHistorical", CoSimIO_Wrappers::DataLocation::NodeHistorical)
+    .value("NodeNonHistorical", CoSimIO_Wrappers::DataLocation::NodeNonHistorical)
+    .value("Element", CoSimIO_Wrappers::DataLocation::Element)
+    .value("Condition", CoSimIO_Wrappers::DataLocation::Condition)
+    .value("ModelPart", CoSimIO_Wrappers::DataLocation::ModelPart)
+    ;
 
 }
 
