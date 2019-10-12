@@ -91,6 +91,9 @@ public:
     /// The key type definition
     typedef std::size_t                                       KeyType;
 
+    /// The epsilon tolerance definition
+    static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -234,17 +237,17 @@ public:
                 }
             }
 
-            if(disp_increase_norm == 0.0) disp_increase_norm = 1.0;
-            if(lm_increase_norm == 0.0) lm_increase_norm = 1.0;
-            if(disp_solution_norm == 0.0) disp_solution_norm = 1.0;
+            if(disp_increase_norm < Tolerance) disp_increase_norm = 1.0;
+            if(lm_increase_norm < Tolerance) lm_increase_norm = 1.0;
+            if(disp_solution_norm < Tolerance) disp_solution_norm = 1.0;
 
-            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm == 0.0) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             const TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
-            const TDataType lm_ratio = std::sqrt(lm_increase_norm/lm_solution_norm);
+            const TDataType lm_ratio = lm_solution_norm > Tolerance ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
 
-            const TDataType disp_abs = std::sqrt(disp_increase_norm)/ static_cast<TDataType>(disp_dof_num);
-            const TDataType lm_abs = std::sqrt(lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
+            const TDataType disp_abs = std::sqrt(disp_increase_norm)/static_cast<TDataType>(disp_dof_num);
+            const TDataType lm_abs = std::sqrt(lm_increase_norm)/static_cast<TDataType>(lm_dof_num);
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -272,7 +275,7 @@ public:
 
             // We check if converged
             const bool disp_converged = (disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance);
-            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm == 0.0) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
+            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
 
             if (disp_converged && lm_converged) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {

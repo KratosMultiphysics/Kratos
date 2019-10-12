@@ -26,8 +26,10 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
     def ExecuteFinalizeSolutionStep(self):
         if (self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)==2):
             CPFApp.ComputeEmbeddedLiftProcess2D(self.fluid_model_part,self.resultant_force).Execute()
+        elif (self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)==3):
+            CPFApp.ComputeEmbeddedLiftProcess3D(self.fluid_model_part,self.resultant_force).Execute()
         else:
-            raise(Exception("Dimension of the problem is not 2. Only 2D cases are currently supported."))
+            raise(Exception("Dimension of the problem is different than 2 or 3."))
 
         self._CalculateWakeTangentAndNormalDirections()
 

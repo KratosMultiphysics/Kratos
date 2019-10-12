@@ -57,7 +57,7 @@ DEMWall::~DEMWall()
 //***********************************************************************************
 //***********************************************************************************
 
-void DEMWall::Initialize()
+void DEMWall::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::Initialize) shouldn't be accessed, use derived class instead", 0);
 }

@@ -1,10 +1,12 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import MainDEM_for_coupling as DEM
-import MainFEM_for_coupling as FEM
-import FEMDEMParticleCreatorDestructor as PCD
+
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
+
+import KratosMultiphysics.FemToDemApplication.MainDEM_for_coupling as DEM
+import KratosMultiphysics.FemToDemApplication.MainFEM_for_coupling as FEM
+import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as PCD
 import math
 import os
 import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -85,6 +87,12 @@ class MainCoupledFemDem_Solution:
             self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
         if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
+        if self.FEM_Solution.ProjectParameters.Has("tangent_operator") == True:
+            # 0 -> Elastic , 1 -> Secant , 2 -> Tangent , 3 -> Tangent 2nd Order
+            tangent_type = self.FEM_Solution.ProjectParameters["tangent_operator"].GetInt()
+            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.TANGENT_CONSTITUTIVE_TENSOR] = tangent_type
+        else:
+            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.TANGENT_CONSTITUTIVE_TENSOR] = 2
 
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
         {
