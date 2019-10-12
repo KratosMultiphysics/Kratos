@@ -35,14 +35,16 @@ control_signal_map = {
     "SolveSolutionStep"      : 13,
     "FinalizeSolutionStep"   : 14,
 
-    "ImportMesh"             : 21,
-    "ExportMesh"             : 22,
+    "ImportGeometry"         : 21,
+    "ExportGeometry"         : 22,
 
-    "ImportGeometry"         : 31,
-    "ExportGeometry"         : 32,
+    "ImportMesh"             : 31,
+    "ExportMesh"             : 32,
 
     "ImportData"             : 41,
     "ExportData"             : 42,
+
+    "ConvergenceAchieved"    : 51,
 }
 if len(control_signal_map.keys()) != len(set(control_signal_map.values())):
     raise Exception("The ControlSignals have to be unique!")

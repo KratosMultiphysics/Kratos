@@ -27,32 +27,32 @@ namespace CoSimIO_Wrappers { // helpers namespace
 
 void ExportGeometry(const ModelPart& rModelPart)
 {
-
+    KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
 }
 
 void ImportGeometry(ModelPart& rModelPart)
 {
-
+    KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
 }
 
 void ExportMesh(const ModelPart& rModelPart)
 {
-
+    KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
 }
 
 void ImportMesh(ModelPart& rModelPart)
 {
-
+    KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
 }
 
 void ExportData(const ModelPart& rModelPart)
 {
-
+    KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
 }
 
 void ImportData(ModelPart& rModelPart)
 {
-
+    KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
 }
 
 } // helpers namespace
