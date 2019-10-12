@@ -34,15 +34,23 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
 
         self.controlling_external_solver = wrapper_settings["controlling_external_solver"].GetBool()
 
-        model_part_name = self.settings["solver_wrapper_settings"]["main_model_part_name"].GetString()
+        self.model_part_name = self.settings["solver_wrapper_settings"]["main_model_part_name"].GetString()
         cs_tools.CreateMainModelPartsFromCouplingData(self.data_dict.values(), self.model, self.name)
         cs_tools.AllocateHistoricalVariablesFromCouplingData(self.data_dict.values(), self.model, self.name)
+
+    def Initialize(self):
+        super(DummySolverWrapper, self).Initialize()
+
+        interface_config = { "model_part_name" : self.model_part_name }
+
+        self.ImportCouplingInterface(interface_config)
 
     def AdvanceInTime(self, current_time):
         self.__CheckExternalSolverProcess()
         if self.controlling_external_solver:
             self.__SendControlSignal("AdvanceInTime")
-            # TODO this requires more!
+            # TODO this requires more, then delete the next line!
+            return 0.0
         else:
             return 0.0
 
@@ -82,7 +90,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
         super(DummySolverWrapper, self).ImportData(data_config)
 
     def ExportData(self, data_config):
-        if self.controlling_external_solver:
+        if not data_config["type"] == "control_signal" and self.controlling_external_solver:
             self.__SendControlSignal("ImportData")
         super(DummySolverWrapper, self).ExportData(data_config)
 

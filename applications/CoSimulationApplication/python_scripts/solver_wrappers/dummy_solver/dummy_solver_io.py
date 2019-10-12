@@ -27,21 +27,8 @@ class DummySolverIO(CoSimulationIO):
     def Finalize(self):
         self.io.Disconnect()
 
-    # def ImportCouplingInterface(self, interface_config):
-    #     model_part_name = interface_config["model_part_name"]
-    #     comm_name = interface_config["comm_name"]
-
-    #     if not self.model.HasModelPart(model_part_name):
-    #         main_model_part_name, *sub_model_part_names = model_part_name.split(".")
-    #         cs_tools.RecursiveCreateModelParts(self.model[main_model_part_name], ".".join(sub_model_part_names))
-
-    #     model_part = self.model[model_part_name]
-    #     KratosCoSim.EMPIRE_API.EMPIRE_API_recvMesh(model_part, comm_name)
-
-    # def ExportCouplingInterface(self, interface_config):
-    #     model_part_name = interface_config["model_part_name"]
-    #     comm_name = interface_config["comm_name"]
-    #     KratosCoSim.EMPIRE_API.EMPIRE_API_sendMesh(self.model[model_part_name], comm_name)
+    def ImportCouplingInterface(self, interface_config):
+        self.io.ImportMesh(self.model[interface_config["model_part_name"]]) # TODO this can also be geometry at some point
 
     # def ImportData(self, data_config):
     #     data_type = data_config["type"]
@@ -54,11 +41,10 @@ class DummySolverIO(CoSimulationIO):
     def ExportData(self, data_config):
         data_type = data_config["type"]
         if data_type == "coupling_interface_data":
-            interface_data = data_config["interface_data"]
-            self.ExportData(interface_data.GetData()) # TODO come up with sth better here, this copies every time!
+            self.io.ExportData(data_config["interface_data"].GetModelPart())
         elif data_type == "control_signal":
-            control_signal_key = cs.Tools.control_signal_map[data_config["signal"]]
-            self.io.ExportData(control_signal_key)
+            control_signal_key = cs_tools.control_signal_map[data_config["signal"]]
+            self.io.SendControlSignal(control_signal_key,"ddd")
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
