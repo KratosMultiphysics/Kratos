@@ -177,7 +177,7 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
             ImportData(co_sim_io, rDataField);
             SolveSolutionStep();
             ExportData(co_sim_io, rDataField);
-            co_sim_io.RecvControlSignal(control_signal, identifier);
+            control_signal = co_sim_io.RecvControlSignal(identifier);
             if (control_signal == 51) { // convergence acheived
                 break;
             }
@@ -202,7 +202,7 @@ void RunSolutionCoSimulationOrchestrated(MeshType& rMesh, DataFieldType& rDataFi
     while(true) {
         // receive control signal to decide what to do
         // the signals are defined in KratosMultiphysics/applications/CoSimulationApplication/python_scripts/co_simulation_tools.py
-        co_sim_io.RecvControlSignal(control_signal, identifier);
+        control_signal = co_sim_io.RecvControlSignal(identifier);
         if (control_signal == 1) {
             break; // coupled simulation is done
         }

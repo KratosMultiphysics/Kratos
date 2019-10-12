@@ -26,7 +26,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
         if start_external_solver:
             command_txt = wrapper_settings["external_solver_start_command"].GetString()
             command_args = wrapper_settings["external_solver_arguments"].GetStringArray()
-            cs_tools.cs_print_info(self._ClassName(), 'Running external solver with command: {} | arguments: {}'.format(command_txt, command_args))
+            cs_tools.cs_print_info(self._ClassName(), 'Running external solver with command: "{}" | arguments: "{}"'.format(command_txt, command_args))
 
             full_command = [command_txt]
             full_command.extend(command_args)
