@@ -52,6 +52,11 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
         if self.controlling_external_solver:
             self.__SendControlSignal("FinalizeSolutionStep")
 
+    def Finalize(self):
+        super(DummySolverWrapper, self).Finalize()
+        if self.controlling_external_solver:
+            self.__SendControlSignal("Finalize")
+
     def ImportCouplingInterface(self, interface_config):
         if self.controlling_external_solver:
             self.__SendControlSignal("ExportMesh") # TODO this can also be geometry at some point

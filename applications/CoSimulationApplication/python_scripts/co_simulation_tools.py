@@ -28,6 +28,8 @@ def UsingPyKratos():
 
 
 control_signal_map = {
+    "Finalize"               : 1,
+
     "AdvanceInTime"          : 11,
     "InitializeSolutionStep" : 12,
     "SolveSolutionStep"      : 13,
