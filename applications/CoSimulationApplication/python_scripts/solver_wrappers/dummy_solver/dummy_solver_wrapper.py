@@ -70,9 +70,9 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
             self.__SendControlSignal("FinalizeSolutionStep")
 
     def Finalize(self):
-        super(DummySolverWrapper, self).Finalize()
         if self.controlling_external_solver:
             self.__SendControlSignal("Finalize")
+        super(DummySolverWrapper, self).Finalize() # this also does the disconnect
 
     def ImportCouplingInterface(self, interface_config):
         if self.controlling_external_solver:
@@ -108,7 +108,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
         self.ExportData(data_config)
 
     def __CheckExternalSolverProcess(self):
-        if hasattr(self, 'external_solver_process'):
+        if hasattr(self, 'external_solver_process') and self.external_solver_process.poll() is None:
             _, process_stderr = self.external_solver_process.communicate()
             if process_stderr:
                 raise Exception("{} terminated with the following error:\n{}".format(self._ClassName(), process_stderr.decode('ascii')))
