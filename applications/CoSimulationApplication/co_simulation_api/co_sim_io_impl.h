@@ -55,13 +55,14 @@ inline bool CoSimIO::Disconnect()
 }
 
 
-inline void CoSimIO::SendControlSignal(int& rSignal, const std::string& rIdentifier)
+inline void CoSimIO::SendControlSignal(const int rSignal, const std::string& rIdentifier)
 {
+    mpComm->Export(rSignal, rIdentifier);
 
 }
 inline void CoSimIO::RecvControlSignal(int& rSignal, const std::string& rIdentifier)
 {
-    rSignal = 6;
+    mpComm->Import(rSignal, rIdentifier);
 }
 
 template<class DataContainer>

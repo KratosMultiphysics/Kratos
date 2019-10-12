@@ -94,6 +94,7 @@ public:
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Geometry);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Mesh);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Data);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(int);
 
 private:
     std::string mName;
@@ -107,6 +108,7 @@ private:
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Geometry);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Mesh);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Data);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(int);
 
     void CheckConnection()
     {
