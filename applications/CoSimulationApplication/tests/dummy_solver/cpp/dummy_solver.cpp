@@ -83,35 +83,42 @@ void OutputSolutionStep()
 
 void ImportGeometry(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
 {
-
+    throw std::runtime_error("not yet implemented");
 }
 
 void ExportGeometry(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
 {
-
+    throw std::runtime_error("not yet implemented");
 }
 
-void ImportMesh(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
+void ImportMesh(CoSim::CoSimIO& rCoSimIO, MeshType& rMesh, const std::string& rIdentifier="")
 {
-
+    throw std::runtime_error("not yet implemented");
 }
 
-void ExportMesh(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
+void ExportMesh(CoSim::CoSimIO& rCoSimIO, const MeshType& rMesh, const std::string& rIdentifier="")
 {
-
+    std::vector<double> node_coords(rMesh.size()*rMesh.size()*3, 0.0);
+    // mesh has no cells, hence arguments are only dummy
+    std::vector<int> connectivities;
+    std::vector<int> cell_types;
+    CoSim::DataContainers::Mesh mesh = {node_coords, connectivities, cell_types};
+    rCoSimIO.Export(mesh, rIdentifier);
 }
 
-void ImportData(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
+void ImportData(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier="")
 {
-
+    CoSim::DataContainers::Data data = {rDataField};
+    rCoSimIO.Import(data, rIdentifier);
 }
 
-void ExportData(CoSim::CoSimIO& rCoSimIO, const std::string& rIdentifier="")
+void ExportData(CoSim::CoSimIO& rCoSimIO, const DataFieldType& rDataField, const std::string& rIdentifier="")
 {
-
+    CoSim::DataContainers::Data data = {rDataField};
+    rCoSimIO.Export(data, rIdentifier);
 }
 
-void RunSolutionLoop()
+void RunSolutionLoop(MeshType& rMesh, DataFieldType& rDataField)
 {
     for (int i=0; i<3; ++i) {
         AdvanceInTime(0.0);
@@ -124,22 +131,24 @@ void RunSolutionLoop()
     }
 }
 
-void RunSolutionLoopWithWeakCoupling()
+void RunSolutionLoopWithWeakCoupling(MeshType& rMesh, DataFieldType& rDataField)
 {
     // Note the following only works with one coupling inteface, requires more effort to make it work with multiple coupling interfaces.
 
     CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
     co_sim_io.Connect();
-    ExportMesh(co_sim_io); // send the coupling-interface mesh to be used for e.g. mapping
+    ExportMesh(co_sim_io, rMesh); // send the coupling-interface mesh to be used for e.g. mapping
 
     for (int i=0; i<3; ++i) {
         AdvanceInTime(0.0);
         InitializeSolutionStep();
         Predict();
-        ImportData(co_sim_io);
+
+        ImportData(co_sim_io, rDataField);
         SolveSolutionStep();
-        ExportData(co_sim_io);
+        ExportData(co_sim_io, rDataField);
+
         FinalizeSolutionStep();
         OutputSolutionStep();
         std::cout << std::endl;
@@ -148,14 +157,14 @@ void RunSolutionLoopWithWeakCoupling()
     co_sim_io.Disconnect();
 }
 
-void RunSolutionLoopWithStrongCoupling()
+void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataField)
 {
     // Note the following only works with one coupling inteface, requires more effort to make it work with multiple coupling interfaces.
 
     CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
     co_sim_io.Connect();
-    ExportMesh(co_sim_io); // send the coupling-interface mesh to be used for e.g. mapping
+    ExportMesh(co_sim_io, rMesh); // send the coupling-interface mesh to be used for e.g. mapping
 
     int control_signal;
     std::string identifier;
@@ -165,9 +174,9 @@ void RunSolutionLoopWithStrongCoupling()
         InitializeSolutionStep();
         Predict();
         while(true) {
-            ImportData(co_sim_io);
+            ImportData(co_sim_io, rDataField);
             SolveSolutionStep();
-            ExportData(co_sim_io);
+            ExportData(co_sim_io, rDataField);
             co_sim_io.RecvControlSignal(control_signal, identifier);
             if (control_signal == 51) { // convergence acheived
                 break;
@@ -182,7 +191,7 @@ void RunSolutionLoopWithStrongCoupling()
     co_sim_io.Disconnect();
 }
 
-void RunSolutionCoSimulationOrchestrated()
+void RunSolutionCoSimulationOrchestrated(MeshType& rMesh, DataFieldType& rDataField)
 {
     CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
@@ -221,16 +230,16 @@ void RunSolutionCoSimulationOrchestrated()
             ExportGeometry(co_sim_io, identifier);
         }
         else if (control_signal == 31) {
-            ImportMesh(co_sim_io, identifier);
+            ImportMesh(co_sim_io, rMesh, identifier);
         }
         else if (control_signal == 32) {
-            ExportMesh(co_sim_io, identifier);
+            ExportMesh(co_sim_io, rMesh, identifier);
         }
         else if (control_signal == 41) {
-            ImportData(co_sim_io, identifier);
+            ImportData(co_sim_io, rDataField, identifier);
         }
         else if (control_signal == 42) {
-            ExportData(co_sim_io, identifier);
+            ExportData(co_sim_io, rDataField, identifier);
         } else {
             throw std::runtime_error("Unknown control signal: " + std::to_string(control_signal));
         }
@@ -278,16 +287,16 @@ int main(int argc, char **argv)
 
     if (settings[1] == 0) {
         std::cout << ">> Doing STANDALONE simulation <<\n" << std::endl;
-        RunSolutionLoop();
+        RunSolutionLoop(mesh, data_field);
     } else if (settings[1] == 1) {
         std::cout << ">> Doing COUPLED simulation (weakly coupled) <<\n" << std::endl;
-        RunSolutionLoopWithWeakCoupling();
+        RunSolutionLoopWithWeakCoupling(mesh, data_field);
     } else if (settings[1] == 2) {
         std::cout << ">> Doing COUPLED simulation (strongly coupled) <<\n" << std::endl;
-        RunSolutionLoopWithStrongCoupling();
+        RunSolutionLoopWithStrongCoupling(mesh, data_field);
     } else if (settings[1] == 3) {
         std::cout << ">> Doing COUPLED simulation orchestrated by CoSimulation <<\n" << std::endl;
-        RunSolutionCoSimulationOrchestrated();
+        RunSolutionCoSimulationOrchestrated(mesh, data_field);
     }
 
     Finalize();
