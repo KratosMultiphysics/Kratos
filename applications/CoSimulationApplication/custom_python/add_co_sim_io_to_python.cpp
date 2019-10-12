@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "custom_python/add_co_sim_io_to_python.h"
 
 // CoSimIO
@@ -21,6 +22,40 @@
 
 namespace Kratos {
 namespace Python {
+
+namespace CoSimIO_Wrappers { // helpers namespace
+
+void ExportGeometry(const ModelPart& rModelPart)
+{
+
+}
+
+void ImportGeometry(ModelPart& rModelPart)
+{
+
+}
+
+void ExportMesh(const ModelPart& rModelPart)
+{
+
+}
+
+void ImportMesh(ModelPart& rModelPart)
+{
+
+}
+
+void ExportData(const ModelPart& rModelPart)
+{
+
+}
+
+void ImportData(ModelPart& rModelPart)
+{
+
+}
+
+} // helpers namespace
 
 void  AddCoSimIOToPython(pybind11::module& m)
 {
@@ -39,14 +74,15 @@ void  AddCoSimIOToPython(pybind11::module& m)
         .def("SendControlSignal",&CoSimIOType::SendControlSignal)
         // .def("RecvControlSignal",&CoSimIOType::RecvControlSignal) // not needed on CoSim side!
 
-        .def("ImportGeometry",&CoSimIOType::Import<CoSim::DataContainers::Geometry>)
-        .def("ExportGeometry",&CoSimIOType::Export<CoSim::DataContainers::Geometry>)
+        .def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry)
+        .def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry)
+
+        .def("ImportMesh", CoSimIO_Wrappers::ImportMesh)
+        .def("ExportMesh", CoSimIO_Wrappers::ExportMesh)
+
+        .def("ImportData", CoSimIO_Wrappers::ImportData)
+        .def("ExportData", CoSimIO_Wrappers::ExportData)
         ;
-
-
-
-
-
 
 }
 
