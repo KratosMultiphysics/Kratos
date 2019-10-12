@@ -1,0 +1,93 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.0,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 0,
+        "predictors" : [
+        ],
+        "data_transfer_operators" : {
+            "copy_transfer" : {
+                "type" : "copy"
+            }
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "helpers_dummy_kratos_solver",
+                "input_data_list"  : [
+                ],
+                "output_data_list" : [
+                    {
+                        "data"           : "send_data",
+                        "to_solver"      : "external_cpp",
+                        "to_solver_data" : "recv_data",
+                        "data_transfer_operator" : "copy_transfer"
+                    }
+                ]
+            },
+            {
+                "name": "external_cpp",
+                "input_data_list"   : [
+                ],
+                "output_data_list"  : [{
+                    "data"           : "send_data",
+                    "to_solver"      : "helpers_dummy_kratos_solver",
+                    "to_solver_data" : "recv_data",
+                    "data_transfer_operator" : "copy_transfer"
+                }]
+            }
+        ],
+        "solvers" :
+        {
+            "helpers_dummy_kratos_solver":
+            {
+                "type" : "helpers.dummy_solver_wrapper",
+                "solver_wrapper_settings" : {
+                    "time_step" : 0.1,
+                    "main_model_part_name" : "interface",
+                    "mdpa_file_name" : "dummy_solver_test/domain_2d",
+                    "domain_size" : 2
+                },
+                "data" : {
+                    "send_data" : {
+                        "model_part_name" : "interface",
+                        "variable_name"   : "PRESSURE"
+                    },
+                    "recv_data" : {
+                        "model_part_name" : "interface",
+                        "variable_name"   : "PRESSURE"
+                    }
+                }
+            },
+            "external_cpp" :
+            {
+                "type" : "solver_wrappers.dummy_solver.dummy_solver_wrapper",
+                "solver_wrapper_settings" : {
+                    "start_external_solver" : true,
+                    "external_solver_start_command" : "../../../libs/dummy_solver_cpp",
+                    "external_solver_arguments" : ["15", "1"],
+                    "controlling_external_solver" : true,
+                    "main_model_part_name" : "interface"
+                },
+                "data" : {
+                    "send_data" : {
+                        "model_part_name" : "interface",
+                        "variable_name"   : "PRESSURE"
+                    },
+                    "recv_data" : {
+                        "model_part_name" : "interface",
+                        "variable_name"   : "PRESSURE"
+                    }
+                }
+            }
+        }
+    }
+}
