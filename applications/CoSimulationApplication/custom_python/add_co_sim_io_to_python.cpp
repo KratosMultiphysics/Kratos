@@ -296,7 +296,7 @@ void  AddCoSimIOToPython(pybind11::module& m)
         .def("Disconnect",&CoSimIOType::Disconnect)
 
         .def("SendControlSignal",&CoSimIOType::SendControlSignal)
-        // .def("RecvControlSignal",&CoSimIOType::RecvControlSignal) // not needed on CoSim side!
+        // .def("RecvControlSignal",&CoSimIOType::RecvControlSignal) // not needed on CoSim side! (also would not work with direct exposure due to pass-by-ref)
 
         .def("ImportGeometry", CoSimIO_Wrappers::ImportGeometry)
         .def("ExportGeometry", CoSimIO_Wrappers::ExportGeometry)

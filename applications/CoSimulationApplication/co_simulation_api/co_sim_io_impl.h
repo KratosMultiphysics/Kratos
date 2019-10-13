@@ -60,7 +60,7 @@ inline void CoSimIO::SendControlSignal(const int rSignal, const std::string& rId
     mpComm->Export(rSignal, rIdentifier);
 
 }
-inline int CoSimIO::RecvControlSignal(const std::string& rIdentifier)
+inline int CoSimIO::RecvControlSignal(std::string& rIdentifier)
 {
     int signal;
     mpComm->Import(signal, rIdentifier);
