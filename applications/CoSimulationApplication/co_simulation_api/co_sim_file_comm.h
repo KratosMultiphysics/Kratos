@@ -381,8 +381,6 @@ private:
 
 };
 
-// TODO undef the CS_LOG macro???
-
 } // namespace CoSim
 
 #endif /* KRATOS_CO_SIM_FILE_COMM_H_INCLUDED */
