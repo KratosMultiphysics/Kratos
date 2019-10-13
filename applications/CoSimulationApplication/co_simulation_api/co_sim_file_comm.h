@@ -144,51 +144,42 @@ private:
                 if (nodes_read) throw std::runtime_error("The nodes were read already!");
                 nodes_read = true;
 
-        //         EMPIRE_API_helpers::ReadNumberAfterKeyword("POINTS", current_line, *numNodes);
+                int num_nodes;
+                current_line = current_line.substr(current_line.find("POINTS") + 7); // removing "POINTS"
+                std::istringstream line_stream(current_line);
+                line_stream >> num_nodes;
 
-        //         CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << *numNodes << " Nodes" << std::endl;
+                CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << num_nodes << " Nodes" << std::endl;
 
-        //         // allocating memory for nodes
-        //         // note that this has to be deleted by the client!
-        //         EMPIRE_API_helpers::AllocateMemory(nodes, (*numNodes) * 3); // *nodes = new double[(*numNodes) * 3];
-        //         EMPIRE_API_helpers::AllocateMemory(nodeIDs, *numNodes); // *nodeIDs = new int[*numNodes];
+                rDataContainer.node_coords.resize(3*num_nodes);
 
-        //         for (int i=0; i<*numNodes*3; ++i) {
-        //             input_file >> (*nodes)[i];
-        //         }
-
-        //         for (int i=0; i<*numNodes; ++i) {
-        //             (*nodeIDs)[i] = i+1; // Node Ids have an offset of 1 from Kratos to VTK
-        //         }
+                for (int i=0; i<num_nodes*3; ++i) {
+                    input_file >> rDataContainer.node_coords[i];
+                }
             }
 
             // reading cells
             if (current_line.find("CELLS") != std::string::npos) {
                 if (!nodes_read) throw std::runtime_error("The nodes were not yet read!");
 
-        //         int num_nodes_per_elem, node_id, cell_list_size;
-        //         current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
-        //         std::istringstream line_stream(current_line);
-        //         line_stream >> *numElems;
-        //         line_stream >> cell_list_size;
+                int num_nodes_per_cell, num_cells, node_id, cell_list_size;
+                current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
+                std::istringstream line_stream(current_line);
+                line_stream >> num_cells;
+                line_stream >> cell_list_size;
 
-        //         CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << *numElems << " Elements" << std::endl;
+                CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << num_cells << " Cells" << std::endl;
 
-        //         // allocating memory for elements
-        //         // note that this has to be deleted by the client!
-        //         EMPIRE_API_helpers::AllocateMemory(numNodesPerElem, *numElems); // *numNodesPerElem = new int[*numElems];
-        //         EMPIRE_API_helpers::AllocateMemory(elem, cell_list_size-*numElems); // *elem = new int[cell_list_size-*numElems];
-
-        //         int counter=0;
-        //         for (int i=0; i<*numElems; ++i) {
-        //             input_file >> num_nodes_per_elem;
-        //             (*numNodesPerElem)[i] = num_nodes_per_elem;
-        //             for (int j=0; j<num_nodes_per_elem; ++j) {
-        //                 input_file >> node_id;
-        //                 (*elem)[counter++] = node_id+1; // Node Ids have an offset of 1 from Kratos to VTK
-        //             }
-        //         }
-        //         break; // no further information reading required => CELL_TYPES are not used here
+                // int counter=0;
+                // for (int i=0; i<num_cells; ++i) {
+                //     input_file >> num_nodes_per_cell;
+                //     (*numNodesPerElem)[i] = num_nodes_per_cell;
+                //     for (int j=0; j<num_nodes_per_cell; ++j) {
+                //         input_file >> node_id;
+                //         (*elem)[counter++] = node_id+1; // Node Ids have an offset of 1 from Kratos to VTK
+                //     }
+                // }
+                break; // no further information reading required => CELL_TYPES are not used here
             }
         }
 
