@@ -265,19 +265,44 @@ private:
         return true;
     }
 
-    bool ImportDetail(int& rDataContainer, const std::string& rIdentifier) override
+    void SendControlSignalDetail(const int rSignal, const std::string& rIdentifier) override
     {
-        std::vector<int> data_vec;
-        ReceiveArray(rIdentifier, data_vec);
-        rDataContainer = data_vec[0];
-        return true;
+        const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetName() + ".dat"));
+
+        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send control signal in file \"" << file_name << "\" ..." << std::endl;
+
+        std::ofstream output_file;
+        output_file.open(GetTempFileName(file_name));
+        CheckStream(output_file, file_name);
+
+        output_file << rSignal << " " << rIdentifier;
+
+        output_file.close();
+        MakeFileVisible(file_name);
+
+        CS_LOG_IF(GetEchoLevel()>1) << "Finished sending control signal" << std::endl;
     }
 
-    bool ExportDetail(const int& rDataContainer, const std::string& rIdentifier) override
+    int RecvControlSignalDetail(std::string& rIdentifier) override
     {
-        std::vector<int> data_vec = {rDataContainer};
-        SendArray(rIdentifier, data_vec);
-        return true;
+        const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetName() + ".dat"));
+
+        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to receive control signal in file \"" << file_name << "\" ..." << std::endl;
+
+        WaitForFile(file_name);
+
+        std::ifstream input_file(file_name);
+        CheckStream(input_file, file_name);
+
+        int control_signal;
+        input_file >> control_signal;
+        input_file >> rIdentifier;
+
+        RemoveFile(file_name);
+
+        CS_LOG_IF(GetEchoLevel()>1) << "Finished receiving control signal" << std::endl;
+
+        return control_signal;
     }
 
 
