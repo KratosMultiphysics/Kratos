@@ -188,7 +188,7 @@ def CreateFastestAvailableDirectLinearSolver():
         if KM.LinearSolverFactory().Has(solver_name):
             linear_solver_configuration = KM.Parameters("""{ "solver_type" : "%s"}""" % solver_name)
 
-            KM.Logger.PrintInfo('Creating "{}" as fastest available direct solver'.format(solver_name))
+            KM.Logger.PrintInfo('Linear-Solver-Factory', 'Creating "{}" as fastest available direct solver'.format(solver_name))
             return KM.LinearSolverFactory().Create(linear_solver_configuration)
 
     raise Exception("Linear-Solver could not be constructed!")
