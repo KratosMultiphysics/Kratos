@@ -169,27 +169,26 @@ def ConstructSolver(configuration):
             "Constructing a regular (non-complex) linear-solver")
         return KM.LinearSolverFactory().Create(configuration)
 
-def CreateDirectLinearSolver(settings):
-    if not settings.Has("linear_solver_settings"):
-        settings.AddEmptyValue("linear_solver_settings")
-    linear_solver_configuration = settings["linear_solver_settings"]
-    if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-        return ConstructSolver(linear_solver_configuration)
-    else:
-        # Using a default linear solver (selecting the fastest one available)
-        linear_solvers_by_speed = [
-            "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
-            "sparse_lu",  # EigenSolversApplication
-            "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
-            "super_lu",   # ExternalSolversApplication
-            "skyline_lu_factorization" # in Core, always available, but slow
-        ]
+def CreateFastestAvailableDirectLinearSolver():
+    # Using a default linear solver (selecting the fastest one available)
+    if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
+        from KratosMultiphysics import EigenSolversApplication
+    elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
+        from KratosMultiphysics import ExternalSolversApplication
 
-        for solver_name in linear_solvers_by_speed:
-            if KM.LinearSolverFactory().Has(solver_name):
-                linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
-                KM.Logger.PrintInfo('::[MechanicalSolver]:: ',\
-                    'Using "' + solver_name + '" as default linear solver')
-                return KM.LinearSolverFactory().Create(linear_solver_configuration)
+    linear_solvers_by_speed = [
+        "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
+        "sparse_lu",  # EigenSolversApplication
+        "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
+        "super_lu",   # ExternalSolversApplication
+        "skyline_lu_factorization" # in Core, always available, but slow
+    ]
+
+    for solver_name in linear_solvers_by_speed:
+        if KM.LinearSolverFactory().Has(solver_name):
+            linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
+            KM.Logger.PrintInfo('::[MechanicalSolver]:: ',\
+                'Using "' + solver_name + '" as default linear solver')
+            return KM.LinearSolverFactory().Create(linear_solver_configuration)
 
     raise Exception("Linear-Solver could not be constructed!")
