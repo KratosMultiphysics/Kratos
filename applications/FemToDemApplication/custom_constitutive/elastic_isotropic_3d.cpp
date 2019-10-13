@@ -204,12 +204,12 @@ Vector& ElasticIsotropic3D::CalculateValue(
     )
 {
     if (rThisVariable == STRAIN ||
-        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rThisVariable == ALMANSI_STRAIN_VECTOR) {
+        rThisVariable == KratosComponents<Variable<Vector>>::Get("GREEN_LAGRANGE_STRAIN_VECTOR") ||
+        rThisVariable == KratosComponents<Variable<Vector>>::Get("ALMANSI_STRAIN_VECTOR")) {
         this->CalculateCauchyGreenStrain( rParameterValues, rValue);
     } else if (rThisVariable == STRESSES ||
         rThisVariable == CAUCHY_STRESS_VECTOR ||
-        rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
+        rThisVariable == KratosComponents<Variable<Vector>>::Get("KIRCHHOFF_STRESS_VECTOR") ||
         rThisVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
@@ -243,8 +243,8 @@ Matrix& ElasticIsotropic3D::CalculateValue(
     )
 {
     if (rThisVariable == CONSTITUTIVE_MATRIX ||
-        rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
-        rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
+        rThisVariable == KratosComponents<Variable<Matrix>>::Get("CONSTITUTIVE_MATRIX_PK2") ||
+        rThisVariable == KratosComponents<Variable<Matrix>>::Get("CONSTITUTIVE_MATRIX_KIRCHHOFF")) {
         this->CalculateElasticMatrix(rValue, rParameterValues);
     }
 

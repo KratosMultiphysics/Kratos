@@ -1,0 +1,39 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+    PARTICLE_DENSITY 2500.0
+    YOUNG_MODULUS 100000.0
+    POISSON_RATIO 0.20
+    FRICTION 1.0
+    COEFFICIENT_OF_RESTITUTION 0.2
+    PARTICLE_MATERIAL 1
+    ROLLING_FRICTION 0.01
+    ROLLING_FRICTION_WITH_WALLS 0.01
+    PARTICLE_SPHERICITY 1.0
+    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+    PARTICLE_COHESION 0.0
+    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes
+    1        0.00000        0.00000        0.02000
+End Nodes
+
+
+Begin Nodes
+End Nodes
+
+
+Begin Nodes
+End Nodes
+
+
+Begin Elements SphericParticle3D// GUI group identifier: DEM
+        1          1          1 
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: DEM
+          1 0 0.00432601
+End NodalData

@@ -318,10 +318,10 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
             // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
             Vector average_strain_edge(VoigtSize);
-            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
+                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
  
@@ -336,11 +336,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         }
 
         // Calculate the elemental Damage...
-        double damage_element;
-        if (CalculateResidualVectorFlag)
-            damage_element = this->CalculateElementalDamage(damages_edges);
-        else
-            damage_element = this->CalculateElementalDamage(mDamages);
+        const double damage_element = this->CalculateElementalDamage(damages_edges);
 
         Vector r_strain_vector;
         this->CalculateGreenLagrangeStrainVector(r_strain_vector, this_kinematic_variables.F);
@@ -352,8 +348,16 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
             /* Material stiffness matrix */
             if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
                 Matrix tangent_tensor;
+                if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 0) {
+                    tangent_tensor = this_constitutive_variables.D;
+                } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 1) {
+                    tangent_tensor = (1.0 - damage_element) * this_constitutive_variables.D;
+                } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 2) {
                 this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, cl_values);
-                noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
+                } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 3) {
+                this->CalculateTangentTensorSecondOrder(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_kinematic_variables.F, this_constitutive_variables.D, cl_values);
+                }
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, tangent_tensor, int_to_reference_weight);                
             } else {
                 this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0 - damage_element)*this_constitutive_variables.D, int_to_reference_weight);
             }
@@ -439,10 +443,10 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
             // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
             Vector average_strain_edge(VoigtSize);
-            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
+                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
@@ -715,26 +719,16 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateBSensitivity
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 std::size_t GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GetStrainSize() const
 {
     return GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
-/***********************************************************************************/
-/***********************************************************************************/
-template<unsigned int TDim, unsigned int TyieldSurf>
-int  GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::Check(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-    int ier = BaseSolidElement::Check(rCurrentProcessInfo);
-    return ier;
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateSensitivityMatrix(
     const Variable<array_1d<double, 3>>& rDesignVariable,
@@ -810,6 +804,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateSensitivityM
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::save( Serializer& rSerializer ) const
 {
@@ -818,6 +813,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::save( Serializer& rSe
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::load( Serializer& rSerializer )
 {
@@ -826,6 +822,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::load( Serializer& rSe
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateStressDamageMechanics(
     double& rThreshold,
@@ -1040,6 +1037,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVaria
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<>
 double GenericTotalLagrangianFemDemElement<3,0>::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
@@ -1781,6 +1779,55 @@ void  GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateTangentTens
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
+void  GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateTangentTensorSecondOrder(
+    Matrix& rTangentTensor,
+    const Vector& rStrainVectorGP,
+    const Vector& rStressVectorGP,
+    const Matrix& rDeformationGradientGP,
+    const Matrix& rElasticMatrix,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const double number_components = rStrainVectorGP.size();
+    rTangentTensor.resize(number_components, number_components);
+    Vector perturbed_stress_plus, perturbed_strain_plus;
+    Vector perturbed_stress_minus, perturbed_strain_minus;
+
+    perturbed_stress_plus.resize(number_components);
+    perturbed_strain_plus.resize(number_components);
+    perturbed_stress_minus.resize(number_components);
+    perturbed_strain_minus.resize(number_components);
+
+    Matrix perturbed_deformation_gradient_plus, perturbed_deformation_gradient_minus;
+    perturbed_deformation_gradient_plus.resize(number_components, number_components);
+    perturbed_deformation_gradient_minus.resize(number_components, number_components);
+    const double size_1 = rDeformationGradientGP.size1();
+    const double size_2 = rDeformationGradientGP.size2();
+    
+    for (unsigned int i_component = 0; i_component < size_1; i_component++) {
+        for (unsigned int j_component = i_component; j_component < size_2; j_component++) {
+            double perturbation;
+            const int component_voigt_index = this->CalculateVoigtIndex(number_components, i_component, j_component);
+            this->CalculatePerturbation(rStrainVectorGP, perturbation, component_voigt_index);
+
+            this->PerturbateDeformationGradient(perturbed_deformation_gradient_plus, rDeformationGradientGP, perturbation, i_component, j_component);
+            this->CalculateGreenLagrangeStrainVector(perturbed_strain_plus, perturbed_deformation_gradient_plus);
+            this->IntegratePerturbedStrain(perturbed_stress_plus, perturbed_strain_plus, rElasticMatrix, rValues);
+
+            this->PerturbateDeformationGradient(perturbed_deformation_gradient_minus, rDeformationGradientGP, -perturbation, i_component, j_component);
+            this->CalculateGreenLagrangeStrainVector(perturbed_strain_minus, perturbed_deformation_gradient_minus);
+            this->IntegratePerturbedStrain(perturbed_stress_minus, perturbed_strain_minus, rElasticMatrix, rValues);
+
+            const Vector& r_delta_stress = perturbed_stress_plus - perturbed_stress_minus;
+            this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress,2.0*perturbation, component_voigt_index);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
 void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::PerturbateDeformationGradient(
     Matrix& rPerturbedDeformationGradient,
     const Matrix& rDeformationGradientGP,
@@ -1810,15 +1857,15 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculatePerturbation
 {
     double perturbation_1, perturbation_2;
     if (std::abs(rStrainVectorGP[Component]) > tolerance) {
-        perturbation_1 = 1.0e-5 * rStrainVectorGP[Component];
+        perturbation_1 = 1.0e-7 * rStrainVectorGP[Component];
     } else {
         double min_strain_component = ConstitutiveLawUtilities<VoigtSize>::GetMinAbsValue(rStrainVectorGP);
-        perturbation_1 = 1.0e-5 * min_strain_component;
+        perturbation_1 = 1.0e-7 * min_strain_component;
     }
     const double max_strain_component = ConstitutiveLawUtilities<VoigtSize>::GetMaxAbsValue(rStrainVectorGP);
-    perturbation_2 = 1.0e-10 * max_strain_component;
+    perturbation_2 = 1.0e-12 * max_strain_component;
     rPerturbation = std::max(perturbation_1, perturbation_2);
-    if (rPerturbation < 1e-8) rPerturbation = 1e-8;
+    if (rPerturbation < 1e-9) rPerturbation = 1e-9;
 }
 
 /***********************************************************************************/
@@ -1851,11 +1898,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStr
     Vector damages_edges = ZeroVector(NumberOfEdges);
     const double characteristic_length = this->CalculateCharacteristicLength(this);
     bool dummy = false;
-
-    Vector average_stress_edge = r_perturbed_predictive_stress;
-    Vector average_strain_edge = rPerturbedStrainVector;
+    Vector average_stress_edge(VoigtSize), average_strain_edge(VoigtSize);
 
     for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+        average_stress_edge = r_perturbed_predictive_stress;
+        average_strain_edge = rPerturbedStrainVector;
         this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
         this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
 
@@ -1863,7 +1910,8 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStr
         double threshold = mThresholds[edge];
 
         this->IntegrateStressDamageMechanics(threshold, damage_edge, average_strain_edge, 
-            average_stress_edge, edge, characteristic_length, rValues, dummy);
+                                             average_stress_edge, edge, characteristic_length, 
+                                             rValues, dummy);
 
         damages_edges[edge] = damage_edge;
     } // Loop edges
@@ -2070,6 +2118,37 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
     }
 
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegrationPoints(
+    const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    std::vector<Vector> stress_vector;
+
+    if (rVariable == STRESS_TENSOR_INTEGRATED) {
+        this->CalculateOnIntegrationPoints(STRESS_VECTOR_INTEGRATED, stress_vector, rCurrentProcessInfo);
+
+        // Loop integration points
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+            if (rOutput[point_number].size2() != dimension)
+                rOutput[point_number].resize( dimension, dimension, false);
+
+            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+        }
+    }
+
+}
+
+
 /***********************************************************************************/
 /***********************************************************************************/
 template class GenericTotalLagrangianFemDemElement<2,0>;
