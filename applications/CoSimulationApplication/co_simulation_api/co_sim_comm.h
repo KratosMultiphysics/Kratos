@@ -40,7 +40,7 @@ class CoSimComm
 public:
     typedef Tools::SettingsType SettingsType;
 
-    explicit CoSimComm(const std::string& rName, SettingsType& rSettings) : mrSettings(rSettings),  mName(rName)
+    explicit CoSimComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings), mIsConnectionMaster(IsConnectionMaster), mName(rName)
     {
         const SettingsType default_settings = {
             {"echo_level",   "1"},
@@ -55,14 +55,14 @@ public:
     virtual ~CoSimComm()
     {
         if (mIsConnected) {
-            std::cout << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;
+            CS_LOG << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;
             Disconnect();
         }
     }
 
     bool Connect()
     {
-        std::cout << "Connecting ..." << std::endl;
+        CS_LOG << "Connecting \"" << mName << "\" as Connection-" << (mIsConnectionMaster ? "MASTER" : "SLAVE") << " ..." << std::endl;
 
         if (mIsConnected) {
             throw std::runtime_error("A connection was already established!");
@@ -74,21 +74,27 @@ public:
             throw std::runtime_error("Connection was not successful!");
         }
 
+        CS_LOG << "Connection established" << std::endl;
+
         return mIsConnected;
     }
 
     bool Disconnect()
     {
+        CS_LOG << "Disconnecting \"" << mName << " ..." << std::endl;
+
         if (mIsConnected) {
             mIsConnected = !DisconnectDetail();
             if (mIsConnected) {
-                std::cout << "Warning: Disconnect was not successful!" << std::endl;
+                CS_LOG << "Warning: Disconnect was not successful!" << std::endl;
                 return false;
             }
         } else {
-            std::cout << "Warning: Calling Disconnect but there was no active connection!" << std::endl;
+            CS_LOG << "Warning: Calling Disconnect but there was no active connection!" << std::endl;
             return false;
         }
+
+        CS_LOG << "Disconnecting successful" << std::endl;
 
         return true;
     }
@@ -101,6 +107,7 @@ public:
 protected:
     SettingsType& mrSettings;
     int mEchoLevel = 1;
+    bool mIsConnectionMaster = false;
     bool mPrintTiming = false;
 
 private:

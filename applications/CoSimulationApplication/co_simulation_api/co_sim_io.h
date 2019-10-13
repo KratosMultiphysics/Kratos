@@ -37,8 +37,8 @@ class CoSimIO
 public:
     typedef CoSimComm::SettingsType SettingsType;
 
-    explicit CoSimIO(const std::string& rName, const std::string& rSettingsFileName);
-    explicit CoSimIO(const std::string& rName, SettingsType rSettings);
+    explicit CoSimIO(const std::string& rName, const std::string& rSettingsFileName, const bool IsConnectionMaster=false);
+    explicit CoSimIO(const std::string& rName, SettingsType rSettings, const bool IsConnectionMaster=false);
 
     bool Connect();
     bool Disconnect();
@@ -55,7 +55,7 @@ public:
 private:
     std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
 
-    void Initialize(const std::string& rName, SettingsType& rSettings);
+    void Initialize(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster);
 
 }; // class CoSimIO
 

@@ -76,8 +76,8 @@ static int GetVtkCellType(const int NumberOfNodes)
 class FileComm : public CoSimComm
 {
 public:
-    explicit FileComm(const std::string& rName, SettingsType& rSettings)
-        : CoSimComm(rName, rSettings)
+    explicit FileComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
+        : CoSimComm(rName, rSettings, IsConnectionMaster)
     {
         const SettingsType default_settings = {
             {"communication_folder_name_suffix", ""},

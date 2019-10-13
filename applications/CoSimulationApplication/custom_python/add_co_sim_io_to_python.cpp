@@ -289,8 +289,8 @@ void  AddCoSimIOToPython(pybind11::module& m)
     typedef CoSim::CoSimIO CoSimIOType;
 
     py::class_<CoSimIOType>(m,"CoSimIO")
-        .def(py::init<const std::string&, const std::string&>())
-        .def(py::init<const std::string&, SettingsType>())
+        .def(py::init<const std::string&, const std::string&, const bool>())
+        .def(py::init<const std::string&, SettingsType, const bool>())
 
         .def("Connect",&CoSimIOType::Connect)
         .def("Disconnect",&CoSimIOType::Disconnect)
