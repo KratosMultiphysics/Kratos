@@ -43,7 +43,7 @@ public:
     explicit CoSimComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings),mName(rName), mIsConnectionMaster(IsConnectionMaster)
     {
         const SettingsType default_settings = {
-            {"echo_level",   "2"},
+            {"echo_level",   "1"},
             {"print_timing", "0"}
         };
         Tools::AddMissingSettings(default_settings, mrSettings);
