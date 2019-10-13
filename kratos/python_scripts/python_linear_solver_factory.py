@@ -169,7 +169,7 @@ def ConstructSolver(configuration):
             "Constructing a regular (non-complex) linear-solver")
         return KM.LinearSolverFactory().Create(configuration)
 
-def CreateFastestAvailableDirectLinearSolver(linear_solver_configuration):
+def CreateFastestAvailableDirectLinearSolver():
     # Using a default linear solver (selecting the fastest one available)
     if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
         from KratosMultiphysics import EigenSolversApplication
@@ -186,9 +186,9 @@ def CreateFastestAvailableDirectLinearSolver(linear_solver_configuration):
 
     for solver_name in linear_solvers_by_speed:
         if KM.LinearSolverFactory().Has(solver_name):
-            linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
-            KM.Logger.PrintInfo('::[MechanicalSolver]:: ',\
-                'Using "' + solver_name + '" as default linear solver')
+            linear_solver_configuration = KM.Parameters("""{ "solver_type" : "%s"}""" % solver_name)
+
+            KM.Logger.PrintInfo('Creating "{}" as fastest available direct solver'.format(solver_name))
             return KM.LinearSolverFactory().Create(linear_solver_configuration)
 
     raise Exception("Linear-Solver could not be constructed!")
