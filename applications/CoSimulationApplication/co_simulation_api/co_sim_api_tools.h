@@ -23,6 +23,9 @@
 namespace CoSim {
 namespace Tools {
 
+#define CS_LOG std::cout << "[CoSimIO] "
+#define CS_LOG_IF(condition) if(condition) std::cout << "[CoSimIO] "
+
 typedef std::unordered_map<std::string, std::string> SettingsType;
 
 inline void AddMissingSettings(const SettingsType& rDefaultSettings, SettingsType& rSettings)
