@@ -392,7 +392,11 @@ class MechanicalSolver(PythonSolver):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        return linear_solver_factory.CreateDirectLinearSolver(self.settings)
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
+            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
+        else:
+            return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
