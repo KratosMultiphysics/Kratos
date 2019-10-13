@@ -161,12 +161,10 @@ def ConstructSolver(configuration):
         __DeprecatedApplicationImport(solver_type)
 
     if KM.ComplexLinearSolverFactory().Has(solver_type):
-        KM.Logger.PrintInfo("Linear-Solver-Factory",\
-            "Constructing a complex linear-solver")
+        KM.Logger.PrintInfo("Linear-Solver-Factory", "Constructing a complex linear-solver")
         return KM.ComplexLinearSolverFactory().Create(configuration)
     else:
-        KM.Logger.PrintInfo("Linear-Solver-Factory",\
-            "Constructing a regular (non-complex) linear-solver")
+        KM.Logger.PrintInfo("Linear-Solver-Factory", "Constructing a regular (non-complex) linear-solver")
         return KM.LinearSolverFactory().Create(configuration)
 
 def CreateFastestAvailableDirectLinearSolver():
