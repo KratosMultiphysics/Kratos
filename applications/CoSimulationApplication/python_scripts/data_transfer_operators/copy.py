@@ -3,6 +3,9 @@ from __future__ import print_function, absolute_import, division  # makes these 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.colors as colors
+
 def Create(settings):
     return CopyDataTransferOperator(settings)
 
@@ -13,7 +16,7 @@ class CopyDataTransferOperator(CoSimulationDataTransferOperator):
         from_solver_data_size = from_solver_data.Size()
         to_solver_data_size = to_solver_data.Size()
         if not from_solver_data_size == to_solver_data_size:
-            raise Exception('The sizes of the data are not matching: {} != {}!'.format(from_solver_data_size, to_solver_data_size))
+            raise Exception('The sizes of the data are not matching: {} (data "{}" of solver "{}") != {} (data "{}" of solver "{}")!'.format(from_solver_data_size, colors.magenta(from_solver_data.name), colors.blue(from_solver_data.solver_name), to_solver_data_size, colors.magenta(to_solver_data.name), colors.blue(to_solver_data.solver_name)))
 
         from_solver_data_array = from_solver_data.GetData()
 
