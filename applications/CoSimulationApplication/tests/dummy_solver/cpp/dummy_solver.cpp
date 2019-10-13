@@ -117,13 +117,13 @@ void ExportMesh(CoSim::CoSimIO& rCoSimIO, const MeshType& rMesh, const std::stri
     rCoSimIO.Export(mesh, rIdentifier);
 }
 
-void ImportData(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier="")
+void ImportData(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier)
 {
     CoSim::DataContainers::Data data = {rDataField};
     rCoSimIO.Import(data, rIdentifier);
 }
 
-void ExportData(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier="")
+void ExportData(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::string& rIdentifier)
 {
     CoSim::DataContainers::Data data = {rDataField};
     rCoSimIO.Export(data, rIdentifier);
@@ -156,9 +156,9 @@ void RunSolutionLoopWithWeakCoupling(MeshType& rMesh, DataFieldType& rDataField)
         InitializeSolutionStep();
         Predict();
 
-        ImportData(co_sim_io, rDataField);
+        ImportData(co_sim_io, rDataField, "interface");
         SolveSolutionStep();
-        ExportData(co_sim_io, rDataField);
+        ExportData(co_sim_io, rDataField, "interface");
 
         FinalizeSolutionStep();
         OutputSolutionStep();
@@ -185,9 +185,9 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
         InitializeSolutionStep();
         Predict();
         while(true) {
-            ImportData(co_sim_io, rDataField);
+            ImportData(co_sim_io, rDataField, "interface");
             SolveSolutionStep();
-            ExportData(co_sim_io, rDataField);
+            ExportData(co_sim_io, rDataField, "interface");
             control_signal = co_sim_io.RecvControlSignal(identifier);
             if (control_signal == 51) { // convergence acheived
                 break;
