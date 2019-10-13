@@ -70,7 +70,7 @@ class TestMPISerializer(UnitTest.TestCase):
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "test_mpi_serializer",
-                "partition_in_memory" : false
+                "partition_in_memory" : true
             },
             "echo_level" : 0
         }""")
