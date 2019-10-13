@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 0.3,
+        "end_time" : 0.5,
         "echo_level" : 0,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
@@ -85,12 +85,12 @@
                 "solver_wrapper_settings" : {
                     "start_external_solver" : false,
                     "external_solver_start_command" : "../../../libs/dummy_solver_cpp",
-                    "external_solver_arguments" : ["15", "1"],
+                    "external_solver_arguments" : ["15", "3"],
                     "controlling_external_solver" : true,
                     "main_model_part_name" : "interface"
                 },
                 "io_settings" : {
-                    "echo_level" : 2
+                    "echo_level" : 0
                 },
                 "data" : {
                     "interface_pressure" : {

@@ -131,8 +131,10 @@ void ExportData(CoSim::CoSimIO& rCoSimIO, DataFieldType& rDataField, const std::
 
 void RunSolutionLoop(MeshType& rMesh, DataFieldType& rDataField)
 {
-    for (int i=0; i<3; ++i) {
-        AdvanceInTime(0.0);
+    double current_time = 0.0;
+    const double end_time = 0.49;
+    while (current_time<end_time) {
+        current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
         Predict();
         SolveSolutionStep();
@@ -151,8 +153,10 @@ void RunSolutionLoopWithWeakCoupling(MeshType& rMesh, DataFieldType& rDataField)
     co_sim_io.Connect();
     ExportMesh(co_sim_io, rMesh, "interface"); // send the coupling-interface mesh to be used for e.g. mapping
 
-    for (int i=0; i<3; ++i) {
-        AdvanceInTime(0.0);
+    double current_time = 0.0;
+    const double end_time = 0.49;
+    while (current_time<end_time) {
+        current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
         Predict();
 
@@ -180,8 +184,10 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
     int control_signal;
     std::string identifier;
 
-    for (int i=0; i<3; ++i) {
-        AdvanceInTime(0.0);
+    double current_time = 0.0;
+    const double end_time = 0.49;
+    while (current_time<end_time) {
+        current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
         Predict();
         while(true) {
