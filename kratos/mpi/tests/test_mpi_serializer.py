@@ -1,10 +1,13 @@
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.mpi import distributed_import_model_part_utility
 import KratosMultiphysics.KratosUnittest as UnitTest
 import sys
 import os
+
+dependencies_are_available = kratos_utilities.CheckIfApplicationsAvailable("MetisApplication")
+if dependencies_are_available:
+    from KratosMultiphysics.mpi import distributed_import_model_part_utility
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -93,13 +96,12 @@ class TestMPISerializer(UnitTest.TestCase):
     def tearDown(self):
         communicator = KratosMultiphysics.DataCommunicator.GetDefault()
         rank = communicator.Rank()
-        if rank == 0:
-            kratos_utilities.DeleteFileIfExisting("test_mpi_serializer.time")
+        kratos_utilities.DeleteFileIfExisting("test_mpi_serializer.time")
         kratos_utilities.DeleteFileIfExisting("test_mpi_serializer_"+str(rank)+".mdpa")
         kratos_utilities.DeleteFileIfExisting("test_mpi_serializer_"+str(rank)+".time")
-        communicator.Barrier()
 
     @UnitTest.skipUnless(have_pickle_module, "Pickle module error: " + pickle_message)
+    @UnitTest.skipUnless(dependencies_are_available,"MetisApplication is not available")
     def testCalculateNodalArea(self):
         total_nodal_area = executeComputeArea_Task(self.pickled_data)
         # Check result
