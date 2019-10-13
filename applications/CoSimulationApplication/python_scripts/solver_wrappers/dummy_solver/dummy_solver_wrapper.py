@@ -46,7 +46,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
         self.ImportCouplingInterface(interface_config)
 
     def AdvanceInTime(self, current_time):
-        self.__CheckExternalSolverProcess()
+        # self.__CheckExternalSolverProcess() # TODO check why this is blocking
         if self.controlling_external_solver:
             self.__SendControlSignal("AdvanceInTime")
             # TODO this requires more, then delete the next line!
