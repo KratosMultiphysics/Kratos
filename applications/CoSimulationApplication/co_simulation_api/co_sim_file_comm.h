@@ -53,20 +53,26 @@ static void CheckStream(const T& rStream, const std::string& rFileName)
     }
 }
 
-static int GetVtkCellType(const int NumberOfNodes)
+static int GetNumNodesForVtkCellType(const int VtkCellType)
 {
-    if (NumberOfNodes == 1) {
-        return 1;
-    } else if (NumberOfNodes == 2) {
-        return 3;
-    } else if (NumberOfNodes == 3) {
-        return 5;
-    } else if (NumberOfNodes == 4) {
-        return 9;
+    const std::unordered_map<int, int> vtk_cell_type_map = {
+        { /*Point3D,          */ 1 ,  1},
+        { /*Line3D2,          */ 3 ,  2},
+        { /*Triangle3D3,      */ 5 ,  3},
+        { /*Quadrilateral3D4, */ 9 ,  4},
+        { /*Tetrahedra3D4,    */ 10 , 4},
+        { /*Hexahedra3D8,     */ 12 , 8},
+        { /*Prism3D6,         */ 13 , 6},
+        { /*Line3D3,          */ 21 , 3},
+        { /*Triangle3D6,      */ 22 , 6},
+        { /*Quadrilateral3D8, */ 23 , 7},
+        { /*Tetrahedra3D10,   */ 24,  10}
+    };
+
+    if (vtk_cell_type_map.count(VtkCellType) > 0) {
+        return vtk_cell_type_map.at(VtkCellType);
     } else {
-        std::stringstream err_msg;
-        err_msg << "Unsupported number of nodes/element: " << NumberOfNodes;
-        throw std::runtime_error(err_msg.str());
+        throw std::runtime_error("Unsupported cell type: "+std::to_string(VtkCellType));
     }
 }
 
@@ -92,6 +98,14 @@ public:
         }
     }
 
+    ~FileComm() override
+    {
+        if (GetIsConnected()) {
+            CS_LOG << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;
+            Disconnect();
+        }
+    }
+
 private:
 
     std::string mCommFolder = "";
@@ -99,19 +113,19 @@ private:
 
     bool ConnectDetail() override
     {
-        return true; // nothing needed here for file-based communication
+        return true; // nothing needed here for file-based communication (maybe do sth here?)
     }
 
     bool DisconnectDetail() override
     {
-        return true; // nothing needed here for file-based communication
+        return true; // nothing needed here for file-based communication (maybe do sth here?)
     }
 
     bool ImportDetail(DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_mesh_" + rIdentifier + ".vtk"));
+        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
 
-        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
+        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to receive mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
         WaitForFile(file_name);
 
@@ -124,11 +138,11 @@ private:
         std::string current_line;
         bool nodes_read = false;
 
-        // while (std::getline(input_file, current_line)) {
-        //     // reading nodes
-        //     if (current_line.find("POINTS") != std::string::npos) {
-        //         if (nodes_read) throw std::runtime_error("The nodes were read already!");
-        //         nodes_read = true;
+        while (std::getline(input_file, current_line)) {
+            // reading nodes
+            if (current_line.find("POINTS") != std::string::npos) {
+                if (nodes_read) throw std::runtime_error("The nodes were read already!");
+                nodes_read = true;
 
         //         EMPIRE_API_helpers::ReadNumberAfterKeyword("POINTS", current_line, *numNodes);
 
@@ -146,11 +160,11 @@ private:
         //         for (int i=0; i<*numNodes; ++i) {
         //             (*nodeIDs)[i] = i+1; // Node Ids have an offset of 1 from Kratos to VTK
         //         }
-        //     }
+            }
 
-        //     // reading elements
-        //     if (current_line.find("CELLS") != std::string::npos) {
-        //         if (!nodes_read) throw std::runtime_error("The nodes were not yet read!");
+            // reading cells
+            if (current_line.find("CELLS") != std::string::npos) {
+                if (!nodes_read) throw std::runtime_error("The nodes were not yet read!");
 
         //         int num_nodes_per_elem, node_id, cell_list_size;
         //         current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
@@ -175,8 +189,8 @@ private:
         //             }
         //         }
         //         break; // no further information reading required => CELL_TYPES are not used here
-        //     }
-        // }
+            }
+        }
 
         RemoveFile(file_name);
 
@@ -189,7 +203,7 @@ private:
 
     bool ExportDetail(const DataContainers::Mesh& rDataContainer, const std::string& rIdentifier) override
     {
-        const std::string file_name(GetFullPath("CoSimIO_mesh_" + rIdentifier + ".vtk"));
+        const std::string file_name(GetFullPath("CoSimIO_mesh_" + GetName() + "_" + rIdentifier + ".vtk"));
 
         const int num_nodes = rDataContainer.node_coords.size()/3;
         const int num_cells = rDataContainer.cell_types.size();
@@ -210,41 +224,33 @@ private:
         output_file << "ASCII\n";
         output_file << "DATASET UNSTRUCTURED_GRID\n\n";
 
-        // // write nodes
-        // int vtk_id = 0;
-        // std::unordered_map<int, int> node_vtk_id_map;
-        // output_file << "POINTS " << num_nodes << " float\n";
-        // for (int i=0; i<num_nodes; ++i) {
-        //     output_file << rDataContainer.node_coords[i*3] << " " << rDataContainer.node_coords[i*3+1] << " " << rDataContainer.node_coords[i*3+2] << "\n";
-        //     node_vtk_id_map[nodeIDs[i]] = vtk_id++;
-        // }
-        // output_file << "\n";
+        // write nodes
+        output_file << "POINTS " << num_nodes << " float\n";
+        for (int i=0; i<num_nodes; ++i) {
+            output_file << rDataContainer.node_coords[i*3] << " " << rDataContainer.node_coords[i*3+1] << " " << rDataContainer.node_coords[i*3+2] << "\n";
+        }
+        output_file << "\n";
 
-        // // write cells connectivity
-        // int cell_list_size = 0;
-        // for (int i=0; i<num_cells; ++i) {
-        //     cell_list_size += numNodesPerElem[i] + 1;
-        // }
+        // write cells connectivity
+        int counter=0;
+        output_file << "CELLS " << num_cells << " " << rDataContainer.connectivities.size() << "\n";
+        for (int i=0; i<num_cells; ++i) {
+            const int num_nodes_cell = GetNumNodesForVtkCellType(rDataContainer.cell_types[i]);
+            output_file << num_nodes_cell << " ";
+            for (int j=0; j<num_nodes_cell; ++j) {
+                output_file << rDataContainer.connectivities[counter++];
+                if (j<num_nodes_cell-1) output_file << " "; // not adding a whitespace after last number
+            }
+            output_file << "\n";
+        }
 
-        // int counter=0;
-        // output_file << "CELLS " << num_cells << " " << cell_list_size << "\n";
-        // for (int i=0; i<num_cells; ++i) {
-        //     const int num_nodes_elem = numNodesPerElem[i];
-        //     output_file << num_nodes_elem << " ";
-        //     for (int j=0; j<num_nodes_elem; ++j) {
-        //         output_file << node_vtk_id_map.at(elems[counter++]);
-        //         if (j<num_nodes_elem-1) output_file << " "; // not adding a whitespace after last number
-        //     }
-        //     output_file << "\n";
-        // }
+        output_file << "\n";
 
-        // output_file << "\n";
-
-        // // write cell types
-        // output_file << "CELL_TYPES " << num_cells << "\n";
-        // for (int i=0; i<num_cells; ++i) {
-        //     output_file << GetVtkCellType(numNodesPerElem[i]) << "\n";
-        // }
+        // write cell types
+        output_file << "CELL_TYPES " << num_cells << "\n";
+        for (int i=0; i<num_cells; ++i) {
+            output_file << rDataContainer.cell_types[i] << "\n";
+        }
 
         output_file.close();
         MakeFileVisible(file_name);
@@ -287,7 +293,7 @@ private:
     template<typename T>
     void SendArray(const std::string& rIdentifier, const std::vector<T>& rArray)
     {
-        const std::string file_name(GetFullPath("CoSimIO_data_" + rIdentifier + ".dat"));
+        const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
 
         const int size = rArray.size();
 
@@ -320,7 +326,7 @@ private:
     template<typename T>
     void ReceiveArray(const std::string& rIdentifier, std::vector<T>& rArray)
     {
-        const std::string file_name(GetFullPath("CoSimIO_data_" + rIdentifier + ".dat"));
+        const std::string file_name(GetFullPath("CoSimIO_data_" + GetName() + "_" + rIdentifier + ".dat"));
 
         CS_LOG_IF(GetEchoLevel()>1) << "Attempting to receive array \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
