@@ -93,7 +93,7 @@ void ImportMesh(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart)
     // }
 }
 
-void ExportData_Scalar(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart, const Variable<double>& rVariable, const DataLocation DataLoc)
+void ExportData_Scalar(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart, const Variable<double>& rVariable, const DataLocation DataLoc, const std::string& rIdentifier)
 {
     std::vector<double> data_vals;
 
@@ -131,14 +131,14 @@ void ExportData_Scalar(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart, co
     }
 
     CoSim::DataContainers::Data data_container = {data_vals};
-    rCoSimIO.Export(data_container, rModelPart.Name() + "_" + rVariable.Name());
+    rCoSimIO.Export(data_container, rIdentifier);
 }
 
-void ImportData_Scalar(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Variable<double>& rVariable, const DataLocation DataLoc)
+void ImportData_Scalar(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Variable<double>& rVariable, const DataLocation DataLoc, const std::string& rIdentifier)
 {
     std::vector<double> data_vals;
     CoSim::DataContainers::Data data_container = {data_vals};
-    rCoSimIO.Import(data_container, rModelPart.Name() + "_" + rVariable.Name());
+    rCoSimIO.Import(data_container, rIdentifier);
 
     // TODO implement size-checks
 
@@ -171,7 +171,7 @@ void ImportData_Scalar(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Va
     }
 }
 
-void ExportData_Vector(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable, const DataLocation DataLoc)
+void ExportData_Vector(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable, const DataLocation DataLoc, const std::string& rIdentifier)
 {
     std::vector<double> data_vals;
 
@@ -224,14 +224,14 @@ void ExportData_Vector(CoSim::CoSimIO& rCoSimIO, const ModelPart& rModelPart, co
     }
 
     CoSim::DataContainers::Data data_container = {data_vals};
-    rCoSimIO.Export(data_container, rModelPart.Name() + "_" + rVariable.Name());
+    rCoSimIO.Export(data_container, rIdentifier);
 }
 
-void ImportData_Vector(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable, const DataLocation DataLoc)
+void ImportData_Vector(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable, const DataLocation DataLoc, const std::string& rIdentifier)
 {
     std::vector<double> data_vals;
     CoSim::DataContainers::Data data_container = {data_vals};
-    rCoSimIO.Import(data_container, rModelPart.Name() + "_" + rVariable.Name());
+    rCoSimIO.Import(data_container, rIdentifier);
 
     // TODO implement size-checks
 
