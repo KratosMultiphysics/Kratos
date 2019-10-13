@@ -40,7 +40,7 @@ class CoSimComm
 public:
     typedef Tools::SettingsType SettingsType;
 
-    explicit CoSimComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings), mIsConnectionMaster(IsConnectionMaster), mName(rName)
+    explicit CoSimComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings),mName(rName), mIsConnectionMaster(IsConnectionMaster)
     {
         const SettingsType default_settings = {
             {"echo_level",   "1"},
@@ -106,12 +106,16 @@ public:
 
 protected:
     SettingsType& mrSettings;
-    int mEchoLevel = 1;
-    bool mIsConnectionMaster = false;
-    bool mPrintTiming = false;
+
+    int GetEchoLevel() const          {return mEchoLevel;}
+    int GetIsConnectionMaster() const {return mIsConnectionMaster;}
+    int GetPrintTiming() const        {return mPrintTiming;}
 
 private:
     std::string mName;
+    int mEchoLevel = 1;
+    bool mIsConnectionMaster = false;
+    bool mPrintTiming = false;
     bool mIsConnected = false;
 
     virtual bool ConnectDetail() = 0;

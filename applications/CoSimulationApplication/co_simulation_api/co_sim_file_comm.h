@@ -108,7 +108,7 @@ private:
     {
         const std::string file_name(GetFullPath("CoSimIO_mesh_" + rIdentifier + ".vtk"));
 
-        CS_LOG_IF(mEchoLevel>1) << "Attempting to send mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
+        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
         WaitForFile(file_name);
 
@@ -129,7 +129,7 @@ private:
 
         //         EMPIRE_API_helpers::ReadNumberAfterKeyword("POINTS", current_line, *numNodes);
 
-        //         CS_LOG_IF(mEchoLevel>1) << "Mesh contains " << *numNodes << " Nodes" << std::endl;
+        //         CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << *numNodes << " Nodes" << std::endl;
 
         //         // allocating memory for nodes
         //         // note that this has to be deleted by the client!
@@ -155,7 +155,7 @@ private:
         //         line_stream >> *numElems;
         //         line_stream >> cell_list_size;
 
-        //         CS_LOG_IF(mEchoLevel>1) << "Mesh contains " << *numElems << " Elements" << std::endl;
+        //         CS_LOG_IF(GetEchoLevel()>1) << "Mesh contains " << *numElems << " Elements" << std::endl;
 
         //         // allocating memory for elements
         //         // note that this has to be deleted by the client!
@@ -177,9 +177,9 @@ private:
 
         RemoveFile(file_name);
 
-        CS_LOG_IF(mEchoLevel>1) << "Finished receiving mesh" << std::endl;
+        CS_LOG_IF(GetEchoLevel()>1) << "Finished receiving mesh" << std::endl;
 
-        CS_LOG_IF(mPrintTiming) << "Receiving Mesh \"" << file_name << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        CS_LOG_IF(GetPrintTiming()) << "Receiving Mesh \"" << file_name << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
 
         return true;
     }
@@ -191,7 +191,7 @@ private:
         const int num_nodes = rDataContainer.node_coords.size()/3;
         const int num_cells = rDataContainer.cell_types.size();
 
-        CS_LOG_IF(mEchoLevel>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_cells << " Cells in file \"" << file_name << "\" ..." << std::endl;
+        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send mesh \"" << rIdentifier << "\" with " << num_nodes << " Nodes | " << num_cells << " Cells in file \"" << file_name << "\" ..." << std::endl;
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -246,9 +246,9 @@ private:
         output_file.close();
         MakeFileVisible(file_name);
 
-        CS_LOG_IF(mEchoLevel>1) << "Finished sending mesh" << std::endl;
+        CS_LOG_IF(GetEchoLevel()>1) << "Finished sending mesh" << std::endl;
 
-        CS_LOG_IF(mPrintTiming) << "Sending Mesh \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        CS_LOG_IF(GetPrintTiming()) << "Sending Mesh \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
 
         return true;
     }
@@ -288,7 +288,7 @@ private:
 
         const int size = rArray.size();
 
-        CS_LOG_IF(mEchoLevel>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << size << " in file \"" << file_name << "\" ..." << std::endl;
+        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send array \"" << rIdentifier << "\" with size: " << size << " in file \"" << file_name << "\" ..." << std::endl;
 
         const auto start_time(std::chrono::steady_clock::now());
 
@@ -309,9 +309,9 @@ private:
         output_file.close();
         MakeFileVisible(file_name);
 
-        CS_LOG_IF(mEchoLevel>1) << "Finished sending array" << std::endl;
+        CS_LOG_IF(GetEchoLevel()>1) << "Finished sending array" << std::endl;
 
-        CS_LOG_IF(mPrintTiming) << "Sending Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        CS_LOG_IF(GetPrintTiming()) << "Sending Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
 
     template<typename T>
@@ -319,7 +319,7 @@ private:
     {
         const std::string file_name(GetFullPath("CoSimIO_data_" + rIdentifier + ".dat"));
 
-        CS_LOG_IF(mEchoLevel>1) << "Attempting to receive array \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
+        CS_LOG_IF(GetEchoLevel()>1) << "Attempting to receive array \"" << rIdentifier << "\" in file \"" << file_name << "\" ..." << std::endl;
 
         WaitForFile(file_name);
 
@@ -341,9 +341,9 @@ private:
 
         RemoveFile(file_name);
 
-        CS_LOG_IF(mEchoLevel>1) << "Finished receiving array" << std::endl;
+        CS_LOG_IF(GetEchoLevel()>1) << "Finished receiving array" << std::endl;
 
-        CS_LOG_IF(mPrintTiming) << "Receiving Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
+        CS_LOG_IF(GetPrintTiming()) << "Receiving Array \"" << rIdentifier << "\" took: " << ElapsedSeconds(start_time) << " [sec]" << std::endl;
     }
 
     std::string GetTempFileName(const std::string& rFileName)
@@ -360,12 +360,12 @@ private:
 
     void WaitForFile(const std::string& rFileName)
     {
-        CS_LOG_IF(mEchoLevel>0) << "Waiting for file: \"" << rFileName << "\"" << std::endl;
+        CS_LOG_IF(GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\"" << std::endl;
         while(!FileExists(rFileName)) {
             std::this_thread::sleep_for(std::chrono::milliseconds(500)); // wait 0.5s before next check
-            CS_LOG_IF(mEchoLevel>2) << "    Waiting" << std::endl;
+            CS_LOG_IF(GetEchoLevel()>2) << "    Waiting" << std::endl;
         }
-        CS_LOG_IF(mEchoLevel>0) << "Found file: \"" << rFileName << "\"" << std::endl;
+        CS_LOG_IF(GetEchoLevel()>0) << "Found file: \"" << rFileName << "\"" << std::endl;
     }
 
     void MakeFileVisible(const std::string& rFinalFileName)
