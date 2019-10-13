@@ -43,11 +43,13 @@ public:
     explicit CoSimComm(const std::string& rName, SettingsType& rSettings) : mrSettings(rSettings),  mName(rName)
     {
         const SettingsType default_settings = {
-            {"echo_level", "1"}
+            {"echo_level",   "1"},
+            {"print_timing", "0"}
         };
         Tools::AddMissingSettings(default_settings, mrSettings);
 
         mEchoLevel = std::stoi(mrSettings.at("echo_level"));
+        mPrintTiming = (mrSettings.at("print_timing") == "1");
     }
 
     virtual ~CoSimComm()
@@ -99,6 +101,7 @@ public:
 protected:
     SettingsType& mrSettings;
     int mEchoLevel = 1;
+    bool mPrintTiming = false;
 
 private:
     std::string mName;
