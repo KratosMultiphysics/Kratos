@@ -24,7 +24,7 @@ namespace CoSim {
 namespace Tools {
 
 #define CS_LOG std::cout << "[CoSimIO] "
-#define CS_LOG_IF(condition) if(condition) std::cout << "[CoSimIO] "
+#define CS_LOG_IF(condition) if(condition) CS_LOG
 
 typedef std::unordered_map<std::string, std::string> SettingsType;
 
