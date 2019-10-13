@@ -98,7 +98,7 @@ void ImportMesh(CoSim::CoSimIO& rCoSimIO, MeshType& rMesh, const std::string& rI
     throw std::runtime_error("not yet implemented");
 }
 
-void ExportMesh(CoSim::CoSimIO& rCoSimIO, const MeshType& rMesh, const std::string& rIdentifier="")
+void ExportMesh(CoSim::CoSimIO& rCoSimIO, const MeshType& rMesh, const std::string& rIdentifier)
 {
     std::vector<double> node_coords(rMesh.size()*rMesh.size()*3, 0.0);
     int counter=0;
@@ -149,16 +149,16 @@ void RunSolutionLoopWithWeakCoupling(MeshType& rMesh, DataFieldType& rDataField)
     CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
     co_sim_io.Connect();
-    ExportMesh(co_sim_io, rMesh); // send the coupling-interface mesh to be used for e.g. mapping
+    ExportMesh(co_sim_io, rMesh, "interface"); // send the coupling-interface mesh to be used for e.g. mapping
 
     for (int i=0; i<3; ++i) {
         AdvanceInTime(0.0);
         InitializeSolutionStep();
         Predict();
 
-        ImportData(co_sim_io, rDataField, "interface");
+        ImportData(co_sim_io, rDataField, "interface_TEMPERATURE");
         SolveSolutionStep();
-        ExportData(co_sim_io, rDataField, "interface");
+        ExportData(co_sim_io, rDataField, "interface_PRESSURE");
 
         FinalizeSolutionStep();
         OutputSolutionStep();
@@ -175,21 +175,20 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
     CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
     co_sim_io.Connect();
-    ExportMesh(co_sim_io, rMesh); // send the coupling-interface mesh to be used for e.g. mapping
+    ExportMesh(co_sim_io, rMesh, "interface"); // send the coupling-interface mesh to be used for e.g. mapping
 
     int control_signal;
-    std::string identifier;
 
     for (int i=0; i<3; ++i) {
         AdvanceInTime(0.0);
         InitializeSolutionStep();
         Predict();
         while(true) {
-            ImportData(co_sim_io, rDataField, "interface");
+            ImportData(co_sim_io, rDataField, "interface_TEMPERATURE");
             SolveSolutionStep();
-            ExportData(co_sim_io, rDataField, "interface");
-            control_signal = co_sim_io.RecvControlSignal(identifier);
-            if (control_signal == 51) { // convergence acheived
+            ExportData(co_sim_io, rDataField, "interface_PRESSURE");
+            control_signal = co_sim_io.RecvControlSignal("convergence_signal");
+            if (control_signal == 51) { // convergence achieved
                 break;
             }
         }
