@@ -390,7 +390,7 @@ class MechanicalSolver(PythonSolver):
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
             return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
-            return linear_solver_factory.CreateFastestAvailableDirectLinearSolver()
+            return linear_solver_factory.CreateFastestAvailableDirectLinearSolver(linear_solver_configuration)
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
