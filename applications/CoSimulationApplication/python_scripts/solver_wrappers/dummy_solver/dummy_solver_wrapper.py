@@ -86,16 +86,15 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
 
     def ImportData(self, data_config):
         if self.controlling_external_solver:
-            interface_data = data_config["interface_data"]
-            identifier = "{}_{}".format(interface_data.name, interface_data.name)
-            self.__SendControlSignal("ExportData", identifier)
+            self.__SendControlSignal("ExportData", data_config["interface_data"].name)
         super(DummySolverWrapper, self).ImportData(data_config)
 
     def ExportData(self, data_config):
         if not data_config["type"] == "control_signal" and self.controlling_external_solver:
-            interface_data = data_config["interface_data"]
-            identifier = "{}_{}".format(interface_data.name, interface_data.name)
-            self.__SendControlSignal("ImportData", identifier)
+            if data_config["type"] == "convergence_signal":
+                # we control the ext solver, no need for sending a convergence signal
+                return
+            self.__SendControlSignal("ImportData", data_config["interface_data"].name)
         super(DummySolverWrapper, self).ExportData(data_config)
 
     def PrintInfo(self):
