@@ -276,6 +276,10 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
                             linear_solver = KM.AMGCLSolver(linear_solver_settings)
                         mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
                         return mixed_ulm_solver
+                    else:
+                        return linear_solver
+                else:
+                    return linear_solver
             else:
                 KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
                 return linear_solver
