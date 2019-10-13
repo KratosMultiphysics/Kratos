@@ -93,10 +93,18 @@ public:
         return true;
     }
 
+    void SendControlSignal(const int rSignal, const std::string& rIdentifier)
+    {
+        CheckConnection(); return SendControlSignalDetail(rSignal, rIdentifier);
+    }
+    int RecvControlSignal(std::string& rIdentifier)
+    {
+        CheckConnection(); return RecvControlSignalDetail(rIdentifier);
+    }
+
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Geometry);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Mesh);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Data);
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(int);
 
 protected:
     SettingsType& mrSettings;
@@ -117,10 +125,18 @@ private:
     virtual bool ConnectDetail() = 0;
     virtual bool DisconnectDetail() = 0;
 
+    virtual void SendControlSignalDetail(const int rSignal, const std::string& rIdentifier)
+    {
+        throw std::runtime_error("SendControlSignalDetail not implemented for this comm-type");
+    }
+    virtual int RecvControlSignalDetail(std::string& rIdentifier)
+    {
+        throw std::runtime_error("RecvControlSignalDetail not implemented for this comm-type");
+    }
+
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Geometry);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Mesh);
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Data);
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(int);
 
     void CheckConnection()
     {
