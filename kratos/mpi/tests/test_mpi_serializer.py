@@ -4,6 +4,10 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.mpi import distributed_import_model_part_utility
 import KratosMultiphysics.KratosUnittest as UnitTest
 import sys
+import os
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 # Use cPickle on Python 2.7 (Note that only the cPickle module is supported on Python 2.7)
 # Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
@@ -69,11 +73,13 @@ class TestMPISerializer(UnitTest.TestCase):
         importer_settings = KratosMultiphysics.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "test_mpi_serializer",
+                "input_filename": "",
                 "partition_in_memory" : true
             },
             "echo_level" : 0
         }""")
+        mdpa_name = GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_mpi_serializer")
+        importer_settings["model_import_settings"]["input_filename"].SetString(mdpa_name)
 
         model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part_to_read, importer_settings)
         model_part_import_util.ImportModelPart()
