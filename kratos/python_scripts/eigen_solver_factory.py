@@ -6,12 +6,6 @@ import KratosMultiphysics as KM
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-    import KratosMultiphysics.EigenSolversApplication as EiSA
-
-if kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-    import KratosMultiphysics.ExternalSolversApplication as ExSA
-
 def ConstructSolver(settings):
     if not isinstance(settings, KM.Parameters):
         raise Exception("Input is expected to be provided as a Kratos Parameters object")
@@ -20,6 +14,7 @@ def ConstructSolver(settings):
 
     if solver_type == "eigen_eigensystem":
         if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
+            import KratosMultiphysics.EigenSolversApplication as EiSA
             eigen_solver = EiSA.EigensystemSolver(settings)
             return eigen_solver
         else:
@@ -35,6 +30,7 @@ def ConstructSolver(settings):
         eigen_solver = KM.RayleighQuotientIterationEigenvalueSolver( settings, linear_solver)
     elif solver_type == "FEAST" or solver_type == "feast":
         if kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
+            import KratosMultiphysics.ExternalSolversApplication as ExSA
             eigen_solver = ExSA.FEASTSolver(settings, linear_solver)
         else:
             raise Exception("ExternalSolversApplication not available")
