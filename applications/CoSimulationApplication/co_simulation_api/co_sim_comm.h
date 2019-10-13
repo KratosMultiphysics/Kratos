@@ -43,7 +43,7 @@ public:
     explicit CoSimComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings),mName(rName), mIsConnectionMaster(IsConnectionMaster)
     {
         const SettingsType default_settings = {
-            {"echo_level",   "1"},
+            {"echo_level",   "2"},
             {"print_timing", "0"}
         };
         Tools::AddMissingSettings(default_settings, mrSettings);
@@ -52,13 +52,7 @@ public:
         mPrintTiming = (mrSettings.at("print_timing") == "1");
     }
 
-    virtual ~CoSimComm()
-    {
-        if (mIsConnected) {
-            CS_LOG << "Warning: Disconnect was not performed, attempting automatic disconnection!" << std::endl;
-            Disconnect();
-        }
-    }
+    virtual ~CoSimComm() = default; // impl of disconnect has to be in derived class due to order of class destruction
 
     bool Connect()
     {
@@ -81,7 +75,7 @@ public:
 
     bool Disconnect()
     {
-        CS_LOG << "Disconnecting \"" << mName << " ..." << std::endl;
+        CS_LOG << "Disconnecting \"" << mName << "\" ..." << std::endl;
 
         if (mIsConnected) {
             mIsConnected = !DisconnectDetail();
@@ -107,9 +101,11 @@ public:
 protected:
     SettingsType& mrSettings;
 
-    int GetEchoLevel() const          {return mEchoLevel;}
-    int GetIsConnectionMaster() const {return mIsConnectionMaster;}
-    int GetPrintTiming() const        {return mPrintTiming;}
+    std::string GetName() const        {return mName;}
+    int GetEchoLevel() const           {return mEchoLevel;}
+    bool GetIsConnectionMaster() const {return mIsConnectionMaster;}
+    bool GetPrintTiming() const        {return mPrintTiming;}
+    bool GetIsConnected() const        {return mIsConnected;}
 
 private:
     std::string mName;
