@@ -269,6 +269,8 @@ private:
     {
         const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetName() + ".dat"));
 
+        WaitUntilFileIsRemoved(file_name); // TODO maybe this can be queued somehow ... => then it would not block the sender
+
         CS_LOG_IF(GetEchoLevel()>1) << "Attempting to send control signal in file \"" << file_name << "\" ..." << std::endl;
 
         std::ofstream output_file;
@@ -391,6 +393,16 @@ private:
             CS_LOG_IF(GetEchoLevel()>2) << "    Waiting" << std::endl;
         }
         CS_LOG_IF(GetEchoLevel()>0) << "Found file: \"" << rFileName << "\"" << std::endl;
+    }
+
+    void WaitUntilFileIsRemoved(const std::string& rFileName)
+    {
+        CS_LOG_IF(GetEchoLevel()>0) << "Waiting for file: \"" << rFileName << "\" to be removed" << std::endl;
+        while(FileExists(rFileName)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // wait 0.5s before next check
+            CS_LOG_IF(GetEchoLevel()>2) << "    Waiting" << std::endl;
+        }
+        CS_LOG_IF(GetEchoLevel()>0) << "File: \"" << rFileName << "\" was removed" << std::endl;
     }
 
     void MakeFileVisible(const std::string& rFinalFileName)
