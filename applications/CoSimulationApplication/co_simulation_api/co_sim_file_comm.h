@@ -87,6 +87,10 @@ public:
 
         mCommFolderSuffix = mrSettings.at("communication_folder_name_suffix");
         // mCommInFolder = (mrSettings.at("use_folder_for_communication") == "1"); // this is not yet supported
+
+        if (mCommInFolder && GetIsConnectionMaster()) {
+            // delete and recreate folder
+        }
     }
 
 private:
