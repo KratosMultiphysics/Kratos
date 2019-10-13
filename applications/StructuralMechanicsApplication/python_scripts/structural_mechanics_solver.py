@@ -16,12 +16,6 @@ from KratosMultiphysics import python_linear_solver_factory as linear_solver_fac
 from KratosMultiphysics import auxiliary_solver_utilities
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
-    import KratosMultiphysics.EigenSolversApplication as EiSA
-
-if kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
-    import KratosMultiphysics.ExternalSolversApplication as ExSA
-
 class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
 
