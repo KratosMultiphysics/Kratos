@@ -32,6 +32,7 @@ do
 	cp /workspace/kratos/Kratos/libs/Kratos* /workspace/wheel/KratosMultiphysics/.libs
 
 	cp /workspace/kratos/Kratos/scripts/wheels/linux/setup.py /workspace/wheel/setup.py
+	cp /workspace/kratos/Kratos/scripts/wheels/linux/README.md /workspace/wheel/README.md
 	cp /workspace/kratos/Kratos/scripts/wheels/linux/__init__.py /workspace/wheel/KratosMultiphysics/__init__.py
 
 
