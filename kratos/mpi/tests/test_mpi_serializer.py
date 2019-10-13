@@ -1,13 +1,12 @@
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
+from KratosMultiphysics.mpi import distributed_import_model_part_utility
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.KratosUnittest as UnitTest
 import sys
 import os
 
 dependencies_are_available = kratos_utilities.CheckIfApplicationsAvailable("MetisApplication")
-if dependencies_are_available:
-    from KratosMultiphysics.mpi import distributed_import_model_part_utility
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
