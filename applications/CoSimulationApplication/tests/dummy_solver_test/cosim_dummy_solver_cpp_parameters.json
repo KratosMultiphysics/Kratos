@@ -2,22 +2,34 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 1.0,
+        "end_time" : 0.3,
         "echo_level" : 0,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
     },
     "solver_settings" :
     {
-        "type" : "coupled_solvers.gauss_seidel_weak",
+        "type" : "coupled_solvers.gauss_seidel_strong",
         "echo_level" : 0,
         "predictors" : [
         ],
         "data_transfer_operators" : {
-            "copy_transfer" : {
-                "type" : "copy"
+            "data_transfer" : {
+                "type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                }
             }
         },
+        "convergence_criteria" : [
+            {
+                "type"          : "relative_norm_previous_residual",
+                "solver"        : "helpers_dummy_kratos_solver",
+                "data_name"     : "send_data",
+                "abs_tolerance" : 1e-5,
+                "rel_tolerance" : 1e-5
+            }
+        ],
         "coupling_sequence":
         [
             {
@@ -27,21 +39,21 @@
                 "output_data_list" : [
                     {
                         "data"           : "send_data",
-                        "to_solver"      : "external_cpp",
+                        "to_solver"      : "dummy_solver_cpp",
                         "to_solver_data" : "recv_data",
-                        "data_transfer_operator" : "copy_transfer"
+                        "data_transfer_operator" : "data_transfer"
                     }
                 ]
             },
             {
-                "name": "external_cpp",
+                "name": "dummy_solver_cpp",
                 "input_data_list"   : [
                 ],
                 "output_data_list"  : [{
                     "data"           : "send_data",
                     "to_solver"      : "helpers_dummy_kratos_solver",
                     "to_solver_data" : "recv_data",
-                    "data_transfer_operator" : "copy_transfer"
+                    "data_transfer_operator" : "data_transfer"
                 }]
             }
         ],
@@ -63,19 +75,22 @@
                     },
                     "recv_data" : {
                         "model_part_name" : "interface",
-                        "variable_name"   : "PRESSURE"
+                        "variable_name"   : "TEMPERATURE"
                     }
                 }
             },
-            "external_cpp" :
+            "dummy_solver_cpp" :
             {
                 "type" : "solver_wrappers.dummy_solver.dummy_solver_wrapper",
                 "solver_wrapper_settings" : {
-                    "start_external_solver" : true,
+                    "start_external_solver" : false,
                     "external_solver_start_command" : "../../../libs/dummy_solver_cpp",
                     "external_solver_arguments" : ["15", "1"],
                     "controlling_external_solver" : true,
                     "main_model_part_name" : "interface"
+                },
+                "io_settings" : {
+                    "echo_level" : 2
                 },
                 "data" : {
                     "send_data" : {
@@ -84,7 +99,7 @@
                     },
                     "recv_data" : {
                         "model_part_name" : "interface",
-                        "variable_name"   : "PRESSURE"
+                        "variable_name"   : "TEMPERATURE"
                     }
                 }
             }
