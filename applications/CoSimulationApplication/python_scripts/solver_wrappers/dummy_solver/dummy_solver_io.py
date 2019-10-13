@@ -45,7 +45,7 @@ class DummySolverIO(CoSimulationIO):
             self.io.ExportData(interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location))
         elif data_type == "control_signal":
             control_signal_key = cs_tools.control_signal_map[data_config["signal"]]
-            self.io.SendControlSignal(control_signal_key,"ddd")
+            self.io.SendControlSignal(control_signal_key, data_config["identifier"])
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 

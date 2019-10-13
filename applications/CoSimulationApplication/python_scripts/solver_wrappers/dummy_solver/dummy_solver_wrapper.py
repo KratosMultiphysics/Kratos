@@ -76,22 +76,22 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
 
     def ImportCouplingInterface(self, interface_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal("ExportMesh") # TODO this can also be geometry at some point
+            self.__SendControlSignal("ExportMesh", interface_config["model_part_name"]) # TODO this can also be geometry at some point
         super(DummySolverWrapper, self).ImportCouplingInterface(interface_config)
 
     def ExportCouplingInterface(self, interface_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal("ImportMesh") # TODO this can also be geometry at some point
+            self.__SendControlSignal("ImportMesh", interface_config["model_part_name"]) # TODO this can also be geometry at some point
         super(DummySolverWrapper, self).ExportCouplingInterface(interface_config)
 
     def ImportData(self, data_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal("ExportData")
+            self.__SendControlSignal("ExportData", data_config["interface_data"].name)
         super(DummySolverWrapper, self).ImportData(data_config)
 
     def ExportData(self, data_config):
         if not data_config["type"] == "control_signal" and self.controlling_external_solver:
-            self.__SendControlSignal("ImportData")
+            self.__SendControlSignal("ImportData", data_config["interface_data"].name)
         super(DummySolverWrapper, self).ExportData(data_config)
 
     def PrintInfo(self):
@@ -100,10 +100,11 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
     def _GetIOType(self):
         return "dummy_solver.dummy_solver_io"
 
-    def __SendControlSignal(self, signal):
+    def __SendControlSignal(self, signal, identifier=""):
         data_config = {
-            "type" : "control_signal",
-            "signal" : signal
+            "type"       : "control_signal",
+            "signal"     : signal,
+            "identifier" : identifier
         }
         self.ExportData(data_config)
 
