@@ -59,7 +59,7 @@ void Initialize(MeshType& rMesh, DataFieldType& rDataField, const int NumNodesPe
 
 double AdvanceInTime(const double CurrentTime)
 {
-    std::cout << "\n  >>> AdvanceInTime" << std::endl;
+    std::cout << "\n  >>> AdvanceInTime: from: " << CurrentTime << " to: " << CurrentTime + 0.1 << std::endl;
     return CurrentTime + 0.1;
 }
 void InitializeSolutionStep()
@@ -156,7 +156,7 @@ void RunSolutionLoopWithWeakCoupling(MeshType& rMesh, DataFieldType& rDataField)
         InitializeSolutionStep();
         Predict();
 
-        ImportData(co_sim_io, rDataField, "interface_temperature");
+        ImportData(co_sim_io, rDataField, "interface_temp");
         SolveSolutionStep();
         ExportData(co_sim_io, rDataField, "interface_pressure");
 
@@ -185,7 +185,7 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
         InitializeSolutionStep();
         Predict();
         while(true) {
-            ImportData(co_sim_io, rDataField, "interface_temperature");
+            ImportData(co_sim_io, rDataField, "interface_temp");
             SolveSolutionStep();
             ExportData(co_sim_io, rDataField, "interface_pressure");
             control_signal = co_sim_io.RecvControlSignal(identifier);
