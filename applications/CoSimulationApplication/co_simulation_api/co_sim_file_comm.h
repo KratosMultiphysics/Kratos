@@ -80,12 +80,11 @@ public:
         : CoSimComm(rName, rSettings, IsConnectionMaster)
     {
         const SettingsType default_settings = {
-            {"communication_folder_name_suffix", ""},
             {"use_folder_for_communication" , "0"}
         };
         Tools::AddMissingSettings(default_settings, mrSettings);
 
-        mCommFolderSuffix = mrSettings.at("communication_folder_name_suffix");
+        mCommFolder = ".CoSimIOFileComm_"+rName;
         // mCommInFolder = (mrSettings.at("use_folder_for_communication") == "1"); // this is not yet supported
 
         if (mCommInFolder && GetIsConnectionMaster()) {
@@ -95,7 +94,7 @@ public:
 
 private:
 
-    std::string mCommFolderSuffix = "";
+    std::string mCommFolder = "";
     bool mCommInFolder = false;
 
     bool ConnectDetail() override
