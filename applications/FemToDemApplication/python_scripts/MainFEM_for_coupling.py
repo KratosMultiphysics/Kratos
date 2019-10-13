@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication.MainFemDem as MainFemDem
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
-import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
 # Python script created to modify the existing one due to the coupling of the DEM app in 2D
 
