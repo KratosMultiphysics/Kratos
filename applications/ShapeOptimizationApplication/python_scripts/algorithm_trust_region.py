@@ -89,9 +89,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         timer.StartTimer()
 
         for self.opt_iteration in range(1,self.algorithm_settings["max_iterations"].GetInt()+1):
-            print("\n>===================================================================")
-            print("> ",timer.GetTimeStamp(),": Starting optimization iteration ",self.opt_iteration)
-            print(">===================================================================\n")
+            KM.Logger.Print("")
+            KM.Logger.Print("===============================================================================")
+            KM.Logger.PrintInfo("ShapeOpt", timer.GetTimeStamp(), ": Starting optimization iteration ",self.opt_iteration)
+            KM.Logger.Print("===============================================================================\n")
 
             timer.StartNewLap()
 
@@ -124,8 +125,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             self.__LogCurrentOptimizationStep(values_to_be_logged)
 
-            print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
-            print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+            KM.Logger.Print("")
+            KM.Logger.PrintInfo("ShapeOpt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            KM.Logger.PrintInfo("ShapeOpt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
@@ -265,7 +267,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             direction = cm.ScalarVectorProduct(-1/norm_inf,modified_gradient)
             length = -value/cm.Dot(gradient, direction)
         else:
-            print("\nWarning! Vanishing norm-infinity for gradient detected!")
+            KM.Logger.PrintWarning("ShapeOpt::AlgorithmTrustRegion", "Vanishing norm-infinity for gradient detected!")
             direction = modified_gradient
             length = 0.0
 
@@ -305,7 +307,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __DetermineStep(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
-        print("\n> Starting determination of step...")
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Starting determination of step...")
 
         timer = Timer()
         timer.StartTimer()
@@ -319,7 +322,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         inactive_threshold = 100
         test_norm_dX, is_projection_sucessfull = projector.RunProjection(len_obj_test, inactive_threshold)
 
-        print("> Time needed for one projection step = ", timer.GetTotalTime(), "s")
+        KM.Logger.PrintInfo("ShapeOpt", "Time needed for one projection step = ", timer.GetTotalTime(), "s")
 
         # 2. Determine step following two different modes depending on the previos found step length to the feasible domain
         if is_projection_sucessfull:
@@ -354,7 +357,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         else:
             raise RuntimeError("Case of not converged test projection not yet implemented yet!")
 
-        print("\n> Time needed for determining step = ", timer.GetTotalTime(), "s")
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Time needed for determining step = ", timer.GetTotalTime(), "s")
 
         process_details = { "test_norm_dX": test_norm_dX,
                             "bi_itrs":bi_itrs,
