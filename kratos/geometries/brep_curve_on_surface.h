@@ -13,8 +13,8 @@
 //                   Philipp Bucher
 //
 
-#if !defined(KRATOS_BREP_FACE_CURVE_3D_H_INCLUDED )
-#define  KRATOS_BREP_FACE_CURVE_3D_H_INCLUDED
+#if !defined(KRATOS_BREP_CURVE_ON_SURFACE_3D_H_INCLUDED )
+#define  KRATOS_BREP_CURVE_ON_SURFACE_3D_H_INCLUDED
 
 // System includes
 
@@ -31,12 +31,12 @@ namespace Kratos
 ///@{
 
 /**
- * @class BrepFaceCurve
+ * @class BrepCurveOnSurface
  * @ingroup KratosCore
- * @brief The BrepFaceCurve acts as topology for curves on surfaces.
+ * @brief The BrepCurveOnSurface acts as topology for curves on surfaces.
  */
 template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType>
-class BrepFaceCurve
+class BrepCurveOnSurface
     : public Geometry<typename TContainerPointType::value_type>
 {
 public:
@@ -44,8 +44,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /** Pointer definition of BrepFaceCurve */
-    KRATOS_CLASS_POINTER_DEFINITION( BrepFaceCurve );
+    /** Pointer definition of BrepCurveOnSurface */
+    KRATOS_CLASS_POINTER_DEFINITION( BrepCurveOnSurface );
 
     typedef typename TContainerPointType::value_type PointType;
 
@@ -70,7 +70,7 @@ public:
     ///@{
 
     /// constructor for untrimmed surface
-    BrepFaceCurve( 
+    BrepCurveOnSurface( 
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve)
         : BaseType(PointsArrayType(), &msGeometryData)
@@ -78,7 +78,7 @@ public:
     {
     }
 
-    BrepFaceCurve(
+    BrepCurveOnSurface(
         typename NurbsSurfaceType::Pointer pSurface,
         typename NurbsCurveType::Pointer pCurve,
         NurbsInterval CurveNurbsInterval)
@@ -89,7 +89,7 @@ public:
     {
     }
 
-    explicit BrepFaceCurve(const PointsArrayType& ThisPoints)
+    explicit BrepCurveOnSurface(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
     }
@@ -103,7 +103,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    BrepFaceCurve( BrepFaceCurve const& rOther )
+    BrepCurveOnSurface( BrepCurveOnSurface const& rOther )
         : BaseType( rOther )
     {
     }
@@ -121,13 +121,13 @@ public:
      * source geometry's points too.
      */
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType> explicit BrepFace(
-        BrepFaceCurve<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
+        BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
     {
     }
 
     /// Destructor
-    ~BrepFaceCurve() override = default;
+    ~BrepCurveOnSurface() override = default;
 
     ///@}
     ///@name Operators
@@ -144,7 +144,7 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    BrepFaceCurve& operator=( const BrepFaceCurve& rOther )
+    BrepCurveOnSurface& operator=( const BrepCurveOnSurface& rOther )
     {
         BaseType::operator=( rOther );
         return *this;
@@ -162,7 +162,7 @@ public:
      * @see ClonePoints
      */
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
-    BrepFaceCurve& operator=( BrepFaceCurve<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
+    BrepCurveOnSurface& operator=( BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
         return *this;
@@ -174,7 +174,7 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new BrepFaceCurve( ThisPoints ) );
+        return typename BaseType::Pointer( new BrepCurveOnSurface( ThisPoints ) );
     }
 
     ///@}
@@ -214,7 +214,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
-        KRATOS_ERROR << "IsInside is not yet implemented within the BrepFaceCurve";
+        KRATOS_ERROR << "IsInside is not yet implemented within the BrepCurveOnSurface";
     }
 
     ///@name Shape Function
@@ -312,12 +312,12 @@ private:
         rSerializer.load("NurbsCurve", mpNurbsCurve);
     }
 
-    BrepFaceCurve()
+    BrepCurveOnSurface()
         : BaseType( PointsArrayType(), &msGeometryData )
     {}
 
     ///@}
-}; // Class BrepFaceCurve
+}; // Class BrepCurveOnSurface
 
 ///@name Input and output
 ///@{
@@ -325,12 +325,12 @@ private:
 /// input stream functions
 template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
     std::istream& rIStream,
-    BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType>& rThis );
+    BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>& rThis );
 
 /// output stream functions
 template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType>& rThis )
+    const BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -343,16 +343,16 @@ template<class TContainerPointType, class TContainerPointEmbeddedType = TContain
 ///@{
 
 template<class TContainerPointType, class TContainerPointEmbeddedType> const
-GeometryData BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
+GeometryData BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>
-const GeometryDimension BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
+const GeometryDimension BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
     1, 3, 2);
 
 ///@}
 }// namespace Kratos.
 
-#endif // KRATOS_BREP_FACE_CURVE_3D_H_INCLUDED  defined
+#endif // KRATOS_BREP_CURVE_ON_SURFACE_3D_H_INCLUDED  defined
