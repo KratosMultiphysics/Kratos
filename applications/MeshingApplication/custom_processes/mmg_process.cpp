@@ -823,7 +823,7 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
         auto p_new_node = r_auxiliar_model_part.CreateNewNode(total_number_of_nodes + r_pair.first, average_coordinates[0], average_coordinates[1], average_coordinates[2]);
         p_new_node->SetValue(THICKNESS, distance);
         // In case of considering metric tensor
-        if (p_new_node->Has(METRIC_TENSOR_3D)) {
+        if (pnode1->Has(METRIC_TENSOR_3D)) {
             p_new_node->SetValue(METRIC_TENSOR_3D, 0.5 * (pnode1->GetValue(METRIC_TENSOR_3D) + pnode2->GetValue(METRIC_TENSOR_3D))); // Average metric
         } else {
             p_new_node->SetValue(METRIC_SCALAR, 0.5 * (pnode1->GetValue(METRIC_SCALAR) + pnode2->GetValue(METRIC_SCALAR))); // Average metric
