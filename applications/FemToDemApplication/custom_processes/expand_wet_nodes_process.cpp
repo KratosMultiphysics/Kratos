@@ -38,7 +38,7 @@ void ExpandWetNodesProcess::Execute()
         for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
             auto it_elem = it_elem_begin + i;
             
-            bool element_done = it_elem->GetValue(PRESSURE_EXPANDED);
+            const bool element_done = it_elem->GetValue(PRESSURE_EXPANDED);
             bool condition_is_active = true;
             if (it_elem->IsDefined(ACTIVE)) {
                 condition_is_active = it_elem->Is(ACTIVE);
@@ -52,10 +52,11 @@ void ExpandWetNodesProcess::Execute()
             }
         }
     }
-    
+
+    const auto elem_begin = mrModelPart.ElementsBegin();
     #pragma omp parallel for
-    for(int i = 0; i<static_cast<int>(mrModelPart.Elements().size()); i++) {
-        auto it_elem = mrModelPart.ElementsBegin() + i;
+    for (int i = 0; i<static_cast<int>(mrModelPart.Elements().size()); i++) {
+        auto it_elem = elem_begin + i;
         it_elem->SetValue(PRESSURE_EXPANDED, false);
     }
 
