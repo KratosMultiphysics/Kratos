@@ -75,6 +75,8 @@ public:
 
     void ExpandWetNodesIfTheyAreSkin();
 
+    void ExpandWetNodesWithLatestPressureId();
+
 protected:
     // Member Variables
     ModelPart& mrModelPart;

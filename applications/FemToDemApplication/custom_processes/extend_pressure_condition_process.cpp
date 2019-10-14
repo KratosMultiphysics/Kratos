@@ -242,12 +242,13 @@ void ExtendPressureConditionProcess<2>::CreateNewConditions()
         if (!(*it_elem)->GetValue(SMOOTHING)) {
             // We count how many nodes are wet
             auto& r_geometry = (*it_elem)->GetGeometry();
-            int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id;
+            int wet_nodes_counter = 0, non_wet_local_id_node = 10, pressure_id = 0;
 
             for (IndexType local_id = 0; local_id < r_geometry.PointsNumber(); ++local_id) {
-                if (r_geometry[local_id].GetValue(PRESSURE_ID) != 0) {
+                const int nodal_pressure_id = r_geometry[local_id].GetValue(PRESSURE_ID);
+                if (nodal_pressure_id != 0) {
                     wet_nodes_counter++;
-                    pressure_id = r_geometry[local_id].GetValue(PRESSURE_ID);
+                    pressure_id = (nodal_pressure_id > pressure_id) ? nodal_pressure_id : pressure_id;
                 } else {
                     non_wet_local_id_node = local_id;
                 }
@@ -330,13 +331,23 @@ template <SizeType TDim>
 void ExtendPressureConditionProcess<TDim>::SavePreviousProperties()
 {
     const std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
-    mpPropertiesVector.resize(submodel_parts_names.size());
+    int number_pressure_conditions = 0;
+    for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
+        if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8))
+            number_pressure_conditions++;
+    }
+    mpPropertiesVector.resize(number_pressure_conditions);
+
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
         if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8)) {
             auto& r_sub_model_part = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
+            const int pressure_id = this->GetPressureIdSubModel(submodel_parts_names[i]);
             ModelPart::ConditionIterator it_cond = r_sub_model_part.ConditionsBegin();
-            ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
-            // mpPropertiesVector.push_back(p_properties);
+
+            ModelPart::PropertiesType::Pointer p_properties;
+            if (r_sub_model_part.Conditions().size() > 0)
+                p_properties = it_cond->pGetProperties();
+            mpPropertiesVector[pressure_id - 1] = p_properties;
         }
     }
 }
@@ -383,11 +394,12 @@ void ExtendPressureConditionProcess<TDim>::GetPressureId(
     int& rPressureId
     )
 {
+    rPressureId = 0;
     auto& r_geometry = (*itElem)->GetGeometry();
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
-        if (r_geometry[i].GetValue(PRESSURE_ID) != 0) {
-            rPressureId = r_geometry[i].GetValue(PRESSURE_ID);
-            break;
+        const int pressure_id = r_geometry[i].GetValue(PRESSURE_ID);
+        if (pressure_id != 0) {
+            rPressureId = (pressure_id > rPressureId) ? pressure_id : rPressureId;
         }
     }
 }
