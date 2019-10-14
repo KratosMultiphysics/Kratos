@@ -65,11 +65,11 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         gui = ''
         if not fluent_gui:
             gui = ' -gu'
-        subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
-                             shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
+        # subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
+        #                      shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
 
         # get surface thread ID's from report.sum and write them to bcs.txt
-        self.wait_message('surface_info_exported')  # *** ON/OFF
+        # self.wait_message('surface_info_exported')  # *** ON/OFF
         report = os.path.join(self.dir_cfd, 'report.sum')
         check = 0
         info = []
@@ -96,7 +96,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.send_message('thread_ids_written_to_file')
 
         # import node and face information
-        self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
+        # self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
 
         # create Model
         self.model = cs_data_structure.Model()
@@ -173,71 +173,79 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 mp.CreateNewNode(ids_tmp[i],
                     coords_tmp[i, 0], coords_tmp[i, 1], coords_tmp[i, 2])
 
-
-        # *** old stuff
-        if 0:
-            self.node_coords = [None] * self.n_threads
-            self.node_ids = [None] * self.n_threads
-            for t in range(self.n_threads):
-                id = self.thread_ids[t]
-                file = os.path.join(self.dir_cfd, f'nodes_thread{id}.dat')
-                data = np.loadtxt(file, skiprows=1)
-                if data.shape[1] != self.dimensions + 1:
-                    raise ValueError(f'given dimension does not match coordinates')
-
-                coords_tmp = np.zeros((data.shape[0], 3))
-                coords_tmp[:, :self.dimensions] = data[:, :-1]  # add column z if 2D
-                ids_tmp = data[:, -1].astype(int).astype(str)  # array is flattened
-
-                args = np.unique(ids_tmp, return_index=True)[1].tolist()
-                self.node_coords[t] = coords_tmp[args, :]
-                self.node_ids[t] = ids_tmp[args]
-
-            # import face data, unique sort on ID-string
-            self.face_coords = [None] * self.n_threads
-            self.face_ids = [None] * self.n_threads
-            for t in range(self.n_threads):
-                id = self.thread_ids[t]
-                file = os.path.join(self.dir_cfd, f'faces_thread{id}.dat')
-                data = np.loadtxt(file, skiprows=1)
-                if data.shape[1] != self.dimensions + self.mnpf:
-                    raise ValueError(f'given dimension does not match coordinates')
-
-                coords_tmp = np.zeros((data.shape[0], 3))
-                coords_tmp[:, :self.dimensions] = data[:, :-self.mnpf]  # add column z if 2D
-                ids_tmp_all = data[:, -self.mnpf:].astype(int)
-                ids_tmp = np.zeros(data.shape[0], dtype='U256')  # array is flattened
-                for j in range(ids_tmp.size):
-                    tmp = np.unique(ids_tmp_all[j, :])
-                    if tmp[0] == -1:
-                        tmp = tmp[1:]
-                    ids_tmp[j] = '-'.join(tuple(tmp.astype(str)))
-
-                args = np.unique(ids_tmp, return_index=True)[1].tolist()
-                self.face_coords[t] = coords_tmp[args, :]
-                self.face_ids[t] = ids_tmp[args]
+        # create CoSimulationInterfaces
+        self.interface_input = CoSimulationInterface(self.model, self.settings['interface_input'])
+        self.interface_output = CoSimulationInterface(self.model, self.settings['interface_output'])
 
         # *** HOW TO STORE absolute coordinates at all times?
         """
         adapt Node.X,Y,Z in every step
-        don't make an other object locally in flow solver!
+            in interface object: add DISPLACEMENT to X, Y, Z
+        don't make an other object locally in flow solver! overkill
         """
 
-        # create Variables *** not used here!!
-        if 0:
-            pressure = vars(KM)['PRESSURE']
-            traction = vars(KM)['TRACTION']
-            displacement = vars(KM)['DISPLACEMENT']
+        # create Variables
+        self.pressure = vars(KM)['PRESSURE']
+        self.traction = vars(KM)['TRACTION']
+        self.displacement = vars(KM)['DISPLACEMENT']
 
         # test simple FSI loop
-        for i in range(1):
-            self.set_node_coordinates_test(0.005)
+        for i in range(0):  # *** ON/OFF
+            self.set_node_coordinates_test(0.01)
             self.write_node_positions()
             self.send_message('continue')
             self.wait_message('fluent_ready')
         self.send_message('stop')
 
         print('FINISHED TEST')
+
+    def Initialize(self):
+        super().Initialize()
+        # *** should sth happen in here?
+        # I think most of the init already happends in __init__?
+        # when using restart, __init__ is called again??
+
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+        # *** should sth happen in here?
+        # update index in Fluent? and let Fluent do some more stuff?
+
+    def SolveSolutionStep(self, interface_input):
+        self.interface_input = interface_input
+
+        # update iteration index
+
+        # update X,Y,Z in interface
+        print(self.interface_input.model_parts_variables)
+
+        # for key in self.settings['interface_input'].keys():
+        #     for node in self.model[key].Nodes:
+        #         node.Y += (1 - np.cos(2 * np.pi * node.X)) * 0.5 * f
+
+        # *** what?
+        # write interface data
+        # let Fluent run, wait for data
+        # return interface_output (single!)
+        pass
+
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+
+    def Finalize(self):
+        super().Finalize()
+
+    def GetInterfaceInput(self):
+        print('\nGETTING interface input\n')
+        return self.interface_input  # *** protect with deepcopy?
+
+    def SetInterfaceInput(self):
+        Exception("This solver interface provides no mapping.")
+
+    def GetInterfaceOutput(self):
+        return self.interface_output  # *** protect with deepcopy?
+
+    def SetInterfaceOutput(self):
+        Exception("This solver interface provides no mapping.")
 
     def get_unique_face_ids(self, data):
         """

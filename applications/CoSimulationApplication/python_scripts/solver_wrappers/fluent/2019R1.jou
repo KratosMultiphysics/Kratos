@@ -96,4 +96,4 @@ define user-defined execute-on-demand "store_pressure_traction::2019R1"
 
 ;   SAVE CASE
 file write-case-data "case_out.cas"
-exit y
+;exit y

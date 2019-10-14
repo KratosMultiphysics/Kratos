@@ -23,3 +23,7 @@ with open(parameter_file_name, 'r') as parameter_file:
     parameters = cs_data_structure.Parameters(parameter_file.read())
 
 solver = cs_tools.CreateInstance(parameters["solver_wrappers"][0])
+
+interface_input = solver.GetInterfaceInput()
+
+solver.SolveSolutionStep(interface_input)
