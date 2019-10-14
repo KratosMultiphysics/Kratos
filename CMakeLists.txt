@@ -1,8 +1,6 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
 
-
-
 # Setting some policies
 # No recursive dereferencing
 if(POLICY CMP0054)
@@ -13,8 +11,6 @@ endif(POLICY CMP0054)
 if(POLICY CMP0022)
   cmake_policy(SET CMP0022 NEW)
 endif(POLICY CMP0022)
-
-
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 7)
@@ -174,6 +170,12 @@ if(NOT DEFINED KRATOS_BUILD_TESTING)
 	message("KRATOS_BUILD_TESTING not defined. Setting to ON")
 	SET (KRATOS_BUILD_TESTING ON)
 endif(NOT DEFINED KRATOS_BUILD_TESTING)
+
+# If no color policy not enable by default
+if(NOT DEFINED KRATOS_COLOR_STREAM)
+	message("KRATOS_COLOR_STREAM not defined. Setting to OFF")
+	SET (KRATOS_COLOR_STREAM OFF)
+endif(NOT DEFINED KRATOS_COLOR_STREAM)
 
 # If install prefix is set, install all the files.
 if(DEFINED KRATOS_INSTALL_PREFIX)

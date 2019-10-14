@@ -22,22 +22,39 @@
 #include "includes/define.h"
 
 /* FOREGROUND */    
-#ifdef KRATOS_COMPILED_IN_WINDOWS
-    #define BASE_STRING_ANSI   "\033"
+#if KRATOS_COLOR_STREAM
+    #ifdef KRATOS_COMPILED_IN_WINDOWS
+        #define BASE_STRING_ANSI   "\033"
+    #else
+        #define BASE_STRING_ANSI   "\x1B"
+    #endif
 #else
-    #define BASE_STRING_ANSI   "\x1B"
+    #define BASE_STRING_ANSI   ""
 #endif
 
-#define RST   BASE_STRING_ANSI "[0m"
-#define BOLD_FONT  BASE_STRING_ANSI "[1m"
-#define KRED  BASE_STRING_ANSI "[31m"
-#define KGRN  BASE_STRING_ANSI "[32m"
-#define KYEL  BASE_STRING_ANSI "[33m"
-#define KBLU  BASE_STRING_ANSI "[34m"
-#define KMAG  BASE_STRING_ANSI "[35m"
-#define KCYN  BASE_STRING_ANSI "[36m"
-#define KWHT  BASE_STRING_ANSI "[37m"
-#define UNDERLINE_FONT  BASE_STRING_ANSI "[4m"
+#if KRATOS_COLOR_STREAM
+    #define RST   BASE_STRING_ANSI "[0m"
+    #define BOLD_FONT  BASE_STRING_ANSI "[1m"
+    #define KRED  BASE_STRING_ANSI "[31m"
+    #define KGRN  BASE_STRING_ANSI "[32m"
+    #define KYEL  BASE_STRING_ANSI "[33m"
+    #define KBLU  BASE_STRING_ANSI "[34m"
+    #define KMAG  BASE_STRING_ANSI "[35m"
+    #define KCYN  BASE_STRING_ANSI "[36m"
+    #define KWHT  BASE_STRING_ANSI "[37m"
+    #define UNDERLINE_FONT  BASE_STRING_ANSI "[4m"
+#else
+    #define RST   BASE_STRING_ANSI ""
+    #define BOLD_FONT  BASE_STRING_ANSI ""
+    #define KRED  BASE_STRING_ANSI ""
+    #define KGRN  BASE_STRING_ANSI ""
+    #define KYEL  BASE_STRING_ANSI ""
+    #define KBLU  BASE_STRING_ANSI ""
+    #define KMAG  BASE_STRING_ANSI ""
+    #define KCYN  BASE_STRING_ANSI ""
+    #define KWHT  BASE_STRING_ANSI ""
+    #define UNDERLINE_FONT  BASE_STRING_ANSI ""
+#endif
 
 #define FRED(x) KRED x RST
 #define FGRN(x) KGRN x RST
