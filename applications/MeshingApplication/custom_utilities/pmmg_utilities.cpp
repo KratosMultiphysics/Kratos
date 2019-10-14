@@ -1596,18 +1596,18 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::GenerateParallelInterfaces(
     ModelPart& rModelPart
     ) 
 {
-    IndexType interfaceSize = size(rModelPart.GetCommunicator().NeighbourIndices());
+    IndexType interfaceSize = rModelPart.GetCommunicator().NeighbourIndices().size();
     PMMG_Set_numberOfNodeCommunicators(mParMmgMesh, interfaceSize);
 
     for(std::size_t i = 0; i < interfaceSize; i++) {
-        std::vector<std::size_t> globalId(rModelPart.GetCommunicator().NeighbourIndices()[i], mModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes());
+        std::vector<int> globalId(rModelPart.GetCommunicator().NeighbourIndices()[i], rModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes());
 
-        for(auto& node: rModelPart.GetCommunicator().NeighbourIndices()[i], mModelPart.GetCommunicator().LocalMesh(i).Nodes()) {
+        for(auto& node: rModelPart.GetCommunicator().NeighbourIndices()[i], rModelPart.GetCommunicator().LocalMesh(i).Nodes()) {
             globalId[i] = node.Id();
         }
 
-        PMMG_Set_ithNodeCommunicatorSize(mParMmgMesh, i, rModelPart.GetCommunicator().NeighbourIndices()[i], mModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes());
-        PMMG_Set_ithNodeCommunicator_nodes(mParMmgMesh, i, globalId().data(), globalId().data(), 1); // Last parameters shoould be 0
+        PMMG_Set_ithNodeCommunicatorSize(mParMmgMesh, i, rModelPart.GetCommunicator().NeighbourIndices()[i], rModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes());
+        PMMG_Set_ithNodeCommunicator_nodes(mParMmgMesh, i, globalId.data(), globalId.data(), 1); // Last parameters shoould be 0
     }
 }
 

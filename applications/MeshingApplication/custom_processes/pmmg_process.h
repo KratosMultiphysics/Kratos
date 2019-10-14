@@ -108,7 +108,7 @@ public:
     typedef Geometry<NodeType>                                     GeometryType;
 
     /// Conditions array size
-    static constexpr SizeType Dimension = (TPMMGLibrary == PMMGLibrary::PMMG2D) ? 2 : 3;
+    static constexpr SizeType Dimension = 3;
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
@@ -294,7 +294,7 @@ private:
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
     NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
 
-    PMmgUtilities<TPMMGLibrary> mPMmmgUtilities;                     /// The PMMG utilities class
+    ParMmgUtilities<TPMMGLibrary> mPMmmgUtilities;                     /// The PMMG utilities class
 
     std::string mFilename;                                           /// I/O file name
     IndexType mEchoLevel;                                            /// The echo level
