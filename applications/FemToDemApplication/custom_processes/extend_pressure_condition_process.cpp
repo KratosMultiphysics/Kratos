@@ -330,12 +330,13 @@ template <SizeType TDim>
 void ExtendPressureConditionProcess<TDim>::SavePreviousProperties()
 {
     const std::vector<std::string> submodel_parts_names = mrModelPart.GetSubModelPartNames();
+    mpPropertiesVector.resize(submodel_parts_names.size());
     for (IndexType i = 0; i < submodel_parts_names.size(); ++i) {
         if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8)) {
             auto& r_sub_model_part = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
             ModelPart::ConditionIterator it_cond = r_sub_model_part.ConditionsBegin();
             ModelPart::PropertiesType::Pointer p_properties = it_cond->pGetProperties();
-            mpPropertiesVector.push_back(p_properties);
+            // mpPropertiesVector.push_back(p_properties);
         }
     }
 }
@@ -415,6 +416,26 @@ void ExtendPressureConditionProcess<TDim>::CalculateNumberOfElementsOnNodes()
                 number_of_elems++;
             }
         }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDim>
+int ExtendPressureConditionProcess<TDim>::GetPressureIdSubModel(
+    const std::string& rSubModelName 
+)
+{
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+    const std::size_t dimension = r_process_info[DOMAIN_SIZE];
+    const IndexType ref_string_size = (dimension == 2) ? 18 : 20;
+    const IndexType string_size = rSubModelName.size();
+
+    if (rSubModelName.size() == ref_string_size) { // from 1 to 9
+        return std::stoi(rSubModelName.substr(string_size - 1, string_size));
+    } else { // from 10 to 99
+        return std::stoi(rSubModelName.substr(string_size - 2, string_size));
     }
 }
 

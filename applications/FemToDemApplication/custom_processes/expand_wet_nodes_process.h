@@ -55,7 +55,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ExpandWetNodesProcess);
 
     // Constructor
-    ExpandWetNodesProcess(ModelPart &r_model_part);
+    ExpandWetNodesProcess(ModelPart &rModelPart);
 
     // Destructor
     ~ExpandWetNodesProcess() override = default;

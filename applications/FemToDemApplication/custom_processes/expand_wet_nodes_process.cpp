@@ -74,13 +74,14 @@ bool ExpandWetNodesProcess::ElementHasWetNodes(
     )
 {
     rNumberOfWetNodes = 0;
+    rPressureId = 0;
     bool auxiliar = false;
     auto& r_geometry = itElem->GetGeometry();
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
         const int pressure_id = r_geometry[i].GetValue(PRESSURE_ID);
         if (pressure_id != 0) {
             rNumberOfWetNodes++;
-            rPressureId = pressure_id;
+            rPressureId = (pressure_id > rPressureId) ? pressure_id : rPressureId;
             auxiliar = true;
         }
     }
@@ -142,13 +143,14 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
     int expanded_elements = 1;
     while (expanded_elements > 0) {
         expanded_elements = 0;
+        auto it_elem_begin = mrModelPart.ElementsBegin();
 
         //#pragma omp parallel for
         for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-            auto it_elem = mrModelPart.ElementsBegin() + i;
+            auto it_elem = it_elem_begin + i;
             auto& r_geometry = it_elem->GetGeometry();
 
-            bool element_done = it_elem->GetValue(PRESSURE_EXPANDED);
+            const bool element_done = it_elem->GetValue(PRESSURE_EXPANDED);
             int number_of_wet_nodes, node_pressure_id;
             // Indicator to reconstruct the Pressure afterwards
             auto& r_process_info = mrModelPart.GetProcessInfo();

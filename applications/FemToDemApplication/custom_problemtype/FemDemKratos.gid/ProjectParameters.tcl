@@ -185,8 +185,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     # gauss_point_results
     set PutStrings \[
     set iGroup 0
-    AppendOutputVariables PutStrings iGroup Write_Strain STRAIN_VECTOR
-    AppendOutputVariables PutStrings iGroup Write_Predictive_Stress STRESS_VECTOR
+    AppendOutputVariables PutStrings iGroup Write_Strain GREEN_LAGRANGE_STRAIN_VECTOR
+    AppendOutputVariables PutStrings iGroup Write_Predictive_Stress CAUCHY_STRESS_VECTOR
     AppendOutputVariables PutStrings iGroup Write_Integrated_Stress STRESS_VECTOR_INTEGRATED
     AppendOutputVariables PutStrings iGroup Write_Damage DAMAGE_ELEMENT
     AppendOutputVariables PutStrings iGroup Stress_Threshold STRESS_THRESHOLD
