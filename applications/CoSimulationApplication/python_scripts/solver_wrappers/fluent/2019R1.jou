@@ -4,6 +4,8 @@ file set-batch-options n n n
 file start-transcript "transcript.txt"
 (enable-dynamic-mesh-node-ids #t)
 ;file binary-files n
+(define unsteady |unsteady|)
+(define flow_iterations |flow_iterations|)
 
 ;   FUNCTIONS
 (define (send_message message)
@@ -25,6 +27,7 @@ file start-transcript "transcript.txt"
     (if
         (file-exists? (string-append message ".msg"))
         (begin
+            (newline)(display (string-append "RECEIVED MESSAGE " message))(newline)
             (system (string-append "rm " message ".msg"))
             (= 0 0)
         )
@@ -32,6 +35,10 @@ file start-transcript "transcript.txt"
 	)
 )
 
+;   STUFF TO DO WHEN NOT RESTARTING
+; add init condition??
+(rp-var-define 'udf/timestep 0 'int #f)
+(rp-var-define 'udf/iteration 0 'int #f)
 
 ;   READ CASE
 file read-case |case|
@@ -55,6 +62,14 @@ define user-defined execute-on-demand "get_thread_ids::2019R1"
     (ti-menu-load-string (format #f "define dynamic-mesh zones create ~a
         user-defined \"move_nodes::2019R1\"" (list-ref face_threads k)))
 )
+define dynamic-mesh controls implicit-update-parameters motion-relaxation 1
+define dynamic-mesh controls implicit-update-parameters residual-criteria -1
+
+;   ENABLE UPDATING MESH WHEN UNSTEADY
+
+(if unsteady
+    (ti-menu-load-string "define dynamic-mesh controls implicit-update-parameters update-interval 1")
+)
 
 ;   STORE COORDINATES AND ID
 define user-defined execute-on-demand "store_coordinates_id::2019R1"
@@ -65,35 +80,59 @@ define user-defined execute-on-demand "store_coordinates_id::2019R1"
     (ti-menu-load-string "solve initialize hyb-initialization y")
     (ti-menu-load-string "solve initialize initialize-flow y")
 )
-
-;   TEST-RUN
 solve monitors residual check-convergence n n n
-solve iterate 100
-
-;   STORE PRESSURE AND TRACTION
-define user-defined execute-on-demand "store_pressure_traction::2019R1"
 
 ;   MAKE SIMPLE UPDATE LOOP
-(rp-var-define 'udf/iteration 0 'integer #f))
+(ti-menu-load-string "disp setw 2")
+(newline)(display "START UPDATE LOOP")(newline)
 (do ((j 0 j)) ((= j 1))
     (if (check_message "stop")
         (set! j 1)
     )
+    (if (check_message "next")
+        (begin
+            (rpsetvar 'udf/iteration 0)
+            (rpsetvar 'udf/timestep (+ (%rpgetvar 'udf/timestep) 1))
+            ;(if unsteady
+            ;    (ti-menu-load-string "solve dual-time-iterate 1 0")
+            ;)
+            (send_message "next_ready")
+        )
+    )
     (if (check_message "continue")
         (begin
             (rpsetvar 'udf/iteration (+ (%rpgetvar 'udf/iteration) 1))
-            (ti-menu-load-string "solve mesh-motion y")
-            (ti-menu-load-string "disp setw 2")
-            (ti-menu-load-string "disp mesh")
-            (ti-menu-load-string "solve iterate |iterations|")
-            (send_message "fluent_ready")
+            (if unsteady
+                (if (= (%rpgetvar 'udf/iteration) 1)
+                    (begin
+                        (ti-menu-load-string "solve dual-time-iterate 1 0")
+                        (ti-menu-load-string "disp setw 2")
+                        (ti-menu-load-string "disp mesh")
+                        (ti-menu-load-string (format #f "solve iterate ~d" flow_iterations))
+                    )
+                    (begin
+                        (ti-menu-load-string "solve dual-time-iterate 0 1")
+                        (ti-menu-load-string "solve iterate 1")
+                        (ti-menu-load-string "disp setw 2")
+                        (ti-menu-load-string "disp mesh")
+                        (ti-menu-load-string "solve dual-time-iterate 0 0")
+                        (ti-menu-load-string (format #f "solve iterate ~d" (- flow_iterations 1)))
+                    )
+                )
+                (begin
+                    (ti-menu-load-string "solve mesh-motion y")
+                    (ti-menu-load-string "disp setw 2")
+                    (ti-menu-load-string "disp mesh")
+                    (ti-menu-load-string "solve iterate flow_iterations")
+                )
+            )
+            (ti-menu-load-string "define user-defined execute-on-demand \"store_pressure_traction::2019R1\"")
+            (send_message "continue_ready")
         )
     )
     (system "sleep 0.1")
 )
 
-
-
 ;   SAVE CASE
 file write-case-data "case_out.cas"
-;exit y
+exit y

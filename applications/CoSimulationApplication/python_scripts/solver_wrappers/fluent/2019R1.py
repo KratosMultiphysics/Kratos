@@ -22,13 +22,18 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
         # settings
         self.settings = parameters['settings']
-        self.dir_cfd = os.path.join(os.getcwd(), self.settings['working_directory'].GetString())  # *** alternative for getcwd?
+        self.dir_cfd = join(os.getcwd(), self.settings['working_directory'].GetString())  # *** alternative for getcwd?
         path_src = os.path.realpath(os.path.dirname(__file__))
+
+        self.remove_all_messages()
 
         self.cores = self.settings['cores'].GetInt()
         self.case_file = self.settings['case_file'].GetString()
         self.mnpf = self.settings['max_nodes_per_face'].GetInt()
         self.dimensions = self.settings['dimensions'].GetInt()
+        self.unsteady = self.settings['unsteady'].GetBool()
+        self.hybrid_initialization = self.settings['hybrid_initialization'].GetBool()
+        self.flow_iterations = self.settings['flow_iterations'].GetInt()
 
         self.thread_names = [_.GetString() for _ in self.settings['thread_names'].list()]
         self.n_threads = len(self.thread_names)
@@ -39,23 +44,28 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         thread_names_str = ''
         for key in self.thread_names:
             thread_names_str += ' "' + key + '"'
-        if self.settings['hybrid_initialization'].GetBool():
+        unsteady = '#f'
+        if self.unsteady:
+            unsteady = '#t'
+        hybrid_initialization = '#f'
+        if self.hybrid_initialization:
             hybrid_initialization = '#t'
-        else:
-            hybrid_initialization = '#f'
-        with open(os.path.join(path_src, journal), 'r') as infile:
-            with open(os.path.join(self.dir_cfd, journal), 'w') as outfile:
+        with open(join(path_src, journal), 'r') as infile:
+            with open(join(self.dir_cfd, journal), 'w') as outfile:
                 for line in infile:
-                    line = line.replace('|case|', os.path.join(self.dir_cfd, self.case_file))  #*** change back to capitals, that's clearer...
+                    line = line.replace('|case|', join(self.dir_cfd, self.case_file))
                     line = line.replace('|thread_names|', thread_names_str)
+                    line = line.replace('|unsteady|', unsteady)
                     line = line.replace('|hybrid_initialization|', hybrid_initialization)
-                    line = line.replace('|iterations|', str(50))
+                    line = line.replace('|flow_iterations|', str(self.flow_iterations))
                     outfile.write(line)
+
+        # *** change names to |NAME| instead of |name|, it's more clear in .jou and .udf...
 
         # prepare Fluent UDF
         udf = '2019R1.c'
-        with open(os.path.join(path_src, udf), 'r') as infile:
-            with open(os.path.join(self.dir_cfd, udf), 'w') as outfile:
+        with open(join(path_src, udf), 'r') as infile:
+            with open(join(self.dir_cfd, udf), 'w') as outfile:
                 for line in infile:
                     line = line.replace('|max_nodes_per_face|', str(self.mnpf))
                     outfile.write(line)
@@ -65,12 +75,29 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         gui = ''
         if not fluent_gui:
             gui = ' -gu'
-        # subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
-        #                      shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
+        subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
+                             shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
+
+        # get general simulation info from report.sum
+        self.wait_message('surface_info_exported')  # *** ON/OFF
+        report = join(self.dir_cfd, 'report.sum')
+        check = 0
+        with open(report, 'r') as file:
+            for line in file:
+                if check == 2 and 'Time' in line:
+                    if 'Steady' in line and self.unsteady:
+                        raise ValueError('steady in JSON does not match unsteady Fluent')
+                    elif 'Unsteady' in line and not self.unsteady:
+                        raise ValueError('unsteady in JSON does not match steady Fluent')
+                    break
+                if check == 1 and 'Space' in line:
+                    if str(self.dimensions) not in line:
+                        raise ValueError(f'dimension in JSON does not match Fluent')
+                    check = 2
+                if 'Model' in line and 'Settings' in line:
+                    check = 1
 
         # get surface thread ID's from report.sum and write them to bcs.txt
-        # self.wait_message('surface_info_exported')  # *** ON/OFF
-        report = os.path.join(self.dir_cfd, 'report.sum')
         check = 0
         info = []
         with open(report, 'r') as file:
@@ -88,15 +115,14 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                     check = 2
                 if 'Boundary Conditions' in line:
                     check = 1
-
-        with open(os.path.join(self.dir_cfd, 'bcs.txt'), 'w') as file:
+        with open(join(self.dir_cfd, 'bcs.txt'), 'w') as file:
             file.write(str(len(info)) + '\n')
             for line in info:
                 file.write(line + '\n')
         self.send_message('thread_ids_written_to_file')
 
         # import node and face information
-        # self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
+        self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
 
         # create Model
         self.model = cs_data_structure.Model()
@@ -127,7 +153,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
             # read in datafile
             tmp = 'nodes_thread' + str(mp.thread_id) + '.dat'
-            file_name = os.path.join(self.dir_cfd, tmp)
+            file_name = join(self.dir_cfd, tmp)
             data = np.loadtxt(file_name, skiprows=1)
             if data.shape[1] != self.dimensions + 1:
                 raise ValueError(f'given dimension does not match coordinates')
@@ -153,7 +179,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
             # read in datafile
             tmp = 'faces_thread' + str(mp.thread_id) + '.dat'
-            file_name = os.path.join(self.dir_cfd, tmp)
+            file_name = join(self.dir_cfd, tmp)
             data = np.loadtxt(file_name, skiprows=1)
             if data.shape[1] != self.dimensions + self.mnpf:
                 raise ValueError(f'given dimension does not match coordinates')
@@ -177,27 +203,19 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.interface_input = CoSimulationInterface(self.model, self.settings['interface_input'])
         self.interface_output = CoSimulationInterface(self.model, self.settings['interface_output'])
 
-        # *** HOW TO STORE absolute coordinates at all times?
-        """
-        adapt Node.X,Y,Z in every step
-            in interface object: add DISPLACEMENT to X, Y, Z
-        don't make an other object locally in flow solver! overkill
-        """
-
         # create Variables
         self.pressure = vars(KM)['PRESSURE']
         self.traction = vars(KM)['TRACTION']
         self.displacement = vars(KM)['DISPLACEMENT']
 
         # test simple FSI loop
-        for i in range(0):  # *** ON/OFF
-            self.set_node_coordinates_test(0.01)
-            self.write_node_positions()
-            self.send_message('continue')
-            self.wait_message('fluent_ready')
-        self.send_message('stop')
-
-        print('FINISHED TEST')
+        if 0:  # *** ON/OFF
+            for i in range(5):
+                self.set_node_coordinates_test(0.01)
+                self.write_node_positions()
+                self.send_message('continue')
+                self.wait_message('fluent_ready')
+            self.send_message('stop')
 
     def Initialize(self):
         super().Initialize()
@@ -205,28 +223,24 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         # I think most of the init already happends in __init__?
         # when using restart, __init__ is called again??
 
-        self.n = 0  # time step
+        self.timestep = 0  # time step
 
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
-        # *** when is this called? also at start??
-
-        # *** should sth happen in here?
-        # update index in Fluent? and let Fluent do some more stuff?
-
-        self.k = 0
+        self.iteration = 0
+        self.timestep += 1
+        print(f'Timestep {self.timestep}')
 
         self.send_message('next')
+        self.wait_message('next_ready')
 
     def SolveSolutionStep(self, interface_input):
-        # *** do sth about filenames! what should be included in the name??
+        self.iteration += 1
+        print(f'\tIteration {self.iteration}')
 
         # store incoming displacements
         self.interface_input.SetPythonList(interface_input.GetPythonList())
-
-        # update iteration index
-        # *** TODO
 
         # update X,Y,Z in interface
         for key in [_[0] for _ in self.interface_input.model_parts_variables]:
@@ -241,15 +255,15 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
         # let Fluent run, wait for data
         self.send_message('continue')
-        # self.wait_message('fluent_ready')
+        self.wait_message('continue_ready')
 
         # read data from Fluent
         for key in self.settings['interface_output'].keys():
             mp = self.model[key]
 
             # read in datafile
-            tmp = 'pressure_traction_thread' + str(mp.thread_id) + '.dat'
-            file_name = os.path.join(self.dir_cfd, tmp)
+            tmp = f'pressure_traction_timestep{self.timestep}_thread{mp.thread_id}.dat'
+            file_name = join(self.dir_cfd, tmp)
             data = np.loadtxt(file_name, skiprows=1)
             if data.shape[1] != self.dimensions + 1 + self.mnpf:
                 raise ValueError('given dimension does not match coordinates')
@@ -282,9 +296,11 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
+        # *** save cas and dat?
 
     def Finalize(self):
         super().Finalize()
+        self.send_message('stop')
 
     def GetInterfaceInput(self):
         return self.interface_input  # *** protect with deepcopy?
@@ -326,35 +342,40 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def write_node_positions(self):
         # *** TODO: add formatter 27.18e or sth...
+
         for key in self.settings['interface_input'].keys():
             mp = self.model[key]
-            file_name = join(self.dir_cfd, f'new_node_coords_thread{mp.thread_id}.dat')
+            tmp = f'nodes_update_timestep{self.timestep}_thread{mp.thread_id}.dat'
+            file_name = join(self.dir_cfd, tmp)
             with open(file_name, 'w') as file:
                 file.write(f'{mp.NumberOfNodes()}\n')
                 for node in mp.Nodes:
                     if self.dimensions == 2:
-                        file.write(f'{node.X} {node.Y} {node.Id}\n')
+                        file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Id:>27}\n')
                     else:
-                        file.write(f'{node.X} {node.Y} {node.Z} {node.Id}\n')
+                        file.write(f'{node.X:27.17e} {node.Y:27.17e} {node.Z:27.17e} {node.Id:>27}\n')
 
     def send_message(self, message):
-        file = os.path.join(self.dir_cfd, message + ".msg")
+        file = join(self.dir_cfd, message + ".msg")
         open(file, 'w').close()
         return
 
     def wait_message(self, message):
-        file = os.path.join(self.dir_cfd, message + ".msg")
+        file = join(self.dir_cfd, message + ".msg")
         while not os.path.isfile(file):
             time.sleep(0.01)
         os.remove(file)
         return
 
     def check_message(self, message):
-        file = os.path.join(self.dir_cfd, message + ".msg")
+        file = join(self.dir_cfd, message + ".msg")
         if os.path.isfile(file):
             os.remove(file)
             return True
         return False
 
-
-
+    def remove_all_messages(self):
+        for file_name in os.listdir(self.dir_cfd):
+            if file_name.endswith('.msg'):
+                file = join(self.dir_cfd, file_name)
+                os.remove(file)

@@ -8,23 +8,27 @@
             "type": "solver_wrappers.fluent.2019R1",
             "settings": {
                 "working_directory" : "CFD",
+                "case_file": "case.cas",
+                "dimensions": 2,
+                "unsteady": true,
+                "first_timestep": 0,
+                "last_timestep": 1,
                 "thread_names": ["wall_top", "wall_bottom"],
                 "interface_input":
                 {
                     "wall_top_nodes": "DISPLACEMENT",
-                    "wall_bottom_nodes": "DISPLACEMENT"
+                    "wall_bottom_nodes": ["DISPLACEMENT"]
                 },
                 "interface_output":
                 {
                     "wall_top_faces": ["PRESSURE", "TRACTION"],
                     "wall_bottom_faces": ["PRESSURE", "TRACTION"]
                 },
-                "case_file": "case.cas",
                 "cores": 2,
                 "fluent_gui": true,
                 "max_nodes_per_face": 4,
-                "dimensions": 2,
-                "hybrid_initialization": true
+                "hybrid_initialization": true,
+                "flow_iterations": 10
             }
         }
     ]

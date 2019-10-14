@@ -2,11 +2,15 @@ file set-batch-options n n n
 (enable-dynamic-mesh-node-ids #t)
 f startt "transcript.txt"
 
+(define unsteady #t)
+
 f rc "mesh.msh"
 solve set expert y n y
 
-def models steady y
-;def models unsteady-1 y
+(if unsteady
+    (ti-menu-load-string "def models unsteady-1 y")
+    (ti-menu-load-string "def models steady y")
+)
 
 def materials copy fluid water-liquid
 def bc fluid , y water-liquid ,,, ,,, ,,,,
@@ -17,14 +21,19 @@ def models viscous laminar y
 
 def bc vel inlet n y y n , n 1 n 0
 
-def dyn dyn y n n
+(if unsteady
+    (ti-menu-load-string "def dyn dyn y n n y n")
+    (ti-menu-load-string "def dyn dyn y n n")
+)
 def dyn controls smoothing y
-def dyn controls smoothing-par smoothing-method diffusion
-def dyn controls smoothing-par diffusion-coeff-function boundary-distance
-def dyn controls smoothing-par diffusion-coeff-parameter 1.5
+
 def dyn zones create default-interior deforming faceted n y n n ,,, n
 def dyn zones create inlet deforming faceted n y n n ,,, n
 def dyn zones create outlet deforming faceted n y n n ,,, n
+
+def dyn controls smoothing-par smoothing-method diffusion
+def dyn controls smoothing-par diffusion-coeff-function boundary-distance
+def dyn controls smoothing-par diffusion-coeff-parameter 1.5
 
 solve initialize compute-defaults velocity-inlet ,
 
