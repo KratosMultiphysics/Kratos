@@ -75,7 +75,7 @@ bool ExpandWetNodesProcess::ElementHasWetNodes(
     int& rPressureId,
     int& rNumberOfWetNodes
     )
-{
+{   // Assigns the maximum Pressure Id 
     rNumberOfWetNodes = 0;
     rPressureId = 0;
     bool auxiliar = false;
@@ -91,6 +91,44 @@ bool ExpandWetNodesProcess::ElementHasWetNodes(
     return auxiliar;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool ExpandWetNodesProcess::ElementHasWetNodes2(
+    ElementIterator itElem,
+    int& rPressureId,
+    int& rNumberOfWetNodes
+    )
+{   // Assigns the dominant Pressure Id 
+    rNumberOfWetNodes = 0;
+    rPressureId = 0;
+    bool auxiliar = false;
+    auto& r_geometry = itElem->GetGeometry();
+    const auto number_points = r_geometry.PointsNumber();
+    Vector pressures_ids(number_points);
+    for (IndexType i = 0; i < number_points; ++i) {
+        const int pressure_id = r_geometry[i].GetValue(PRESSURE_ID);
+
+        if (pressure_id != 0) {
+            pressures_ids(i) = pressure_id;
+            rNumberOfWetNodes++;
+            rPressureId = (pressure_id > rPressureId) ? pressure_id : rPressureId;
+            auxiliar = true;
+        }
+    }
+
+    if (rNumberOfWetNodes == number_points) {
+        if (pressures_ids(0) == pressures_ids(1)) {
+            rPressureId = pressures_ids(0);
+        } else if (pressures_ids(0) == pressures_ids(2)) {
+            rPressureId = pressures_ids(0);
+        } else if (pressures_ids(1) == pressures_ids(2)) {
+            rPressureId = pressures_ids(1);
+        }
+
+    }
+    return auxiliar;
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -189,6 +227,8 @@ void ExpandWetNodesProcess::ExpandWetNodesIfTheyAreSkin()
 void ExpandWetNodesProcess::ExpandWetNodesWithLatestPressureId()
 {
     int expanded_elements = 1;
+    auto& r_process_info = mrModelPart.GetProcessInfo();
+    const std::size_t dimension = r_process_info[DOMAIN_SIZE];
 
     while (expanded_elements > 0) {
 
@@ -210,6 +250,15 @@ void ExpandWetNodesProcess::ExpandWetNodesWithLatestPressureId()
             // Indicator to reconstruct the Pressure afterwards
             auto& r_process_info = mrModelPart.GetProcessInfo();
 
+            int non_pressure_node;
+            for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+                auto& r_node = r_geometry[i];
+                node_pressure_id = r_node.GetValue(PRESSURE_ID);
+                if (node_pressure_id == 0)
+                    non_pressure_node = i;
+            }
+
+
             if (this->ElementHasWetNodes(it_elem, pressure_id, number_of_wet_nodes) && !element_done && condition_is_active) {
                 // Loop over the nodes
                 for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
@@ -217,11 +266,15 @@ void ExpandWetNodesProcess::ExpandWetNodesWithLatestPressureId()
                    const int reference_pressure_id = pressure_id;
                    node_pressure_id = r_node.GetValue(PRESSURE_ID);
 
-                    if (node_pressure_id != 0 && node_pressure_id < reference_pressure_id ) {
-                       r_node.SetValue(PRESSURE_ID, reference_pressure_id);
-                       expanded_elements++;
-                       it_elem->SetValue(PRESSURE_EXPANDED, true);
-                       r_process_info[RECONSTRUCT_PRESSURE_LOAD] = 1;
+
+
+                    if (node_pressure_id != 0 && 
+                        node_pressure_id < reference_pressure_id && 
+                        number_of_wet_nodes < r_geometry.PointsNumber()) {
+                            r_node.SetValue(PRESSURE_ID, reference_pressure_id);
+                            expanded_elements++;
+                            it_elem->SetValue(PRESSURE_EXPANDED, true);
+                            r_process_info[RECONSTRUCT_PRESSURE_LOAD] = 1;
                     }
                 }
             }

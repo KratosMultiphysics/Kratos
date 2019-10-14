@@ -69,6 +69,11 @@ public:
         int& rPressureId,
         int& rNumberOfWetNodes);
 
+    bool ElementHasWetNodes2(
+        ElementIterator itElem,
+        int& rPressureId,
+        int& rNumberOfWetNodes);
+
     void ExpandWetNodes(
         ElementIterator itElem,
         const int PressureId);
