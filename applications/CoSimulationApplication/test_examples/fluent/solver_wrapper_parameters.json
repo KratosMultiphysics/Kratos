@@ -2,12 +2,23 @@
     "settings": {
         "data_structure": "pyKratos"
     },
-    "solver_wrappers": [
+    "solver_wrappers":
+    [
         {
             "type": "solver_wrappers.fluent.2019R1",
             "settings": {
                 "working_directory" : "CFD",
                 "thread_names": ["wall_top", "wall_bottom"],
+                "interface_input":
+                {
+                    "wall_top_nodes": "DISPLACEMENT",
+                    "wall_bottom_nodes": "DISPLACEMENT"
+                },
+                "interface_output":
+                {
+                    "wall_top_faces": ["PRESSURE", "TRACTION"],
+                    "wall_bottom_faces": ["PRESSURE", "TRACTION"]
+                },
                 "case_file": "case.cas",
                 "cores": 2,
                 "fluent_gui": true,
