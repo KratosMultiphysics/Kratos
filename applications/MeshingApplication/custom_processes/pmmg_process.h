@@ -352,22 +352,22 @@ private:
     }
 
     /**
-     * @brief This function generates the mesh PMMG5 structure from a Kratos Model Part
+     * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
      */
     void InitializeMeshData();
 
     /**
-     *@brief This function generates the metric PMMG5 structure from a Kratos Model Part
+     *@brief This function generates the metric MMG5 structure from a Kratos Model Part
      */
     void InitializeSolDataMetric();
 
     /**
-     *@brief This function generates the PMMG5 structure for the distance field from a Kratos Model Part
+     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
      */
     void InitializeSolDataDistance();
 
     /**
-     *@brief This function generates the displacement PMMG5 structure from a Kratos Model Part
+     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
      */
     void InitializeDisplacementData();
 

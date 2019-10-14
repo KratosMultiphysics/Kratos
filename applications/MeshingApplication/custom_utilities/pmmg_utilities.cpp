@@ -17,7 +17,7 @@
 /* The includes related with the PMMG library */
 #if !defined(PMMG_INCLUDES)
 #define PMMG_INCLUDES
-#include "pmmg/libparmmg.h"
+#include "parmmg/libparmmg.h"
 #endif /* PMMG_INCLUDES defined */
 
 // Project includes
@@ -89,9 +89,9 @@ template struct PMMGMeshInfo<PMMGLibrary::PMMG3D>;
 /***********************************************************************************/
 
 // The member variables related with the PMMG library
-PMMG5_pMesh mParMmgMesh; /// The mesh data from PMMG
-PMMG5_pSol  mParMmgSol;  /// The metric variable for PMMG
-PMMG5_pSol  mParMmgDisp; /// The displacement variable for PMMG
+MMG5_pMesh mParMmgMesh; /// The mesh data from PMMG
+MMG5_pSol  mParMmgSol;  /// The metric variable for PMMG
+MMG5_pSol  mParMmgDisp; /// The displacement variable for PMMG
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -162,18 +162,10 @@ void ParMmgUtilities<TPMMGLibrary>::PrintAndGetParMmgMeshInfo(PMMGMeshInfo<TPMMG
     }
 
     KRATOS_INFO_IF("ParMmgUtilities", mEchoLevel > 0) << "\tNodes created: " << rPMMGMeshInfo.NumberOfNodes << std::endl;
-    if (TPMMGLibrary == PMMGLibrary::PMMG2D) { // 2D
-        KRATOS_INFO_IF("ParMmgUtilities", mEchoLevel > 0) <<
-        "Conditions created: " << rPMMGMeshInfo.NumberOfLines << "\n" <<
-        "Elements created: " << rPMMGMeshInfo.NumberOfTriangles << std::endl;
-    } else if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
+    if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
         KRATOS_INFO_IF("ParMmgUtilities", mEchoLevel > 0) <<
         "Conditions created: " << rPMMGMeshInfo.NumberOfTriangles + rPMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rPMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rPMMGMeshInfo.NumberOfQuadrilaterals << "\n" <<
         "Elements created: " << rPMMGMeshInfo.NumberOfTetrahedra + rPMMGMeshInfo.NumberOfPrism << "\n\tTetrahedron: " << rPMMGMeshInfo.NumberOfTetrahedra << "\tPrisms: " << rPMMGMeshInfo.NumberOfPrism << std::endl;
-    } else { // Surfaces
-        KRATOS_INFO_IF("ParMmgUtilities", mEchoLevel > 0) <<
-        "Conditions created: " << rPMMGMeshInfo.NumberOfLines << "\n" <<
-        "Elements created: " << rPMMGMeshInfo.NumberOfTriangles << std::endl;
     }
 }
 
@@ -226,7 +218,7 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckFirstTypeConditions()
     for(int i = 0; i < mParMmgMesh->nt; ++i) {
         int vertex_0, vertex_1, vertex_2, prop_id, is_required;
 
-        KRATOS_ERROR_IF(PMMG3D_Get_triangle(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &prop_id, &is_required) != 1 ) << "Unable to get triangle" << std::endl;
+        KRATOS_ERROR_IF(PMMG_Get_triangle(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &prop_id, &is_required) != 1 ) << "Unable to get triangle" << std::endl;
 
         ids_triangles[0] = vertex_0;
         ids_triangles[1] = vertex_1;
@@ -260,7 +252,7 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckSecondTypeConditions(
     for(int i = 0; i < mParMmgMesh->nquad; ++i) {
         int vertex_0, vertex_1, vertex_2, vertex_3, prop_id, is_required;
 
-        KRATOS_ERROR_IF(PMMG3D_Get_quadrilateral(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &prop_id, &is_required) != 1 ) << "Unable to get quadrilateral" << std::endl;
+        KRATOS_ERROR_IF(PMMG_Get_quadrilateral(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &prop_id, &is_required) != 1 ) << "Unable to get quadrilateral" << std::endl;
 
         ids_quadrialteral[0] = vertex_0;
         ids_quadrialteral[1] = vertex_1;
@@ -295,7 +287,7 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckFirstTypeElements()
     for(int i = 0; i < mParMmgMesh->ne; ++i) {
         int vertex_0, vertex_1, vertex_2, vertex_3, prop_id, is_required;
 
-        KRATOS_ERROR_IF(PMMG3D_Get_tetrahedron(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &prop_id, &is_required) != 1 ) << "Unable to get tetrahedron" << std::endl;
+        KRATOS_ERROR_IF(PMMG_Get_tetrahedron(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &prop_id, &is_required) != 1 ) << "Unable to get tetrahedron" << std::endl;
 
         ids_tetrahedron[0] = vertex_0;
         ids_tetrahedron[1] = vertex_1;
@@ -306,41 +298,6 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckFirstTypeElements()
         std::sort(ids_tetrahedron.begin(), ids_tetrahedron.end());
 
         auto& r_count = triangle_map[ids_tetrahedron];
-        r_count += 1;
-
-        if (r_count > 1)
-            elements_to_remove.push_back(i + 1);
-    }
-
-    return elements_to_remove;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-IndexVectorType ParMmgUtilities<PMMGLibrary::PMMGS>::CheckFirstTypeElements()
-{
-    IndexVectorMapType triangle_map;
-
-    IndexVectorType ids_triangles(3);
-
-    IndexVectorType elements_to_remove;
-
-    // Iterate in the elements
-    for(int i = 0; i < mParMmgMesh->nt; ++i) {
-        int vertex_0, vertex_1, vertex_2, prop_id, is_required;
-
-        KRATOS_ERROR_IF(PMMGS_Get_triangle(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &prop_id, &is_required) != 1 ) << "Unable to get triangle" << std::endl;
-
-        ids_triangles[0] = vertex_0;
-        ids_triangles[1] = vertex_1;
-        ids_triangles[2] = vertex_2;
-
-        //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-        std::sort(ids_triangles.begin(), ids_triangles.end());
-
-        auto& r_count = triangle_map[ids_triangles];
         r_count += 1;
 
         if (r_count > 1)
@@ -365,7 +322,7 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckSecondTypeElements()
     for(int i = 0; i < mParMmgMesh->nprism; ++i) {
         int vertex_0, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5, prop_id, is_required;
 
-        KRATOS_ERROR_IF(PMMG3D_Get_prism(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &prop_id, &is_required) != 1 ) << "Unable to get prism" << std::endl;
+        KRATOS_ERROR_IF(PMMG_Get_prism(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &prop_id, &is_required) != 1 ) << "Unable to get prism" << std::endl;
 
         ids_prisms[0] = vertex_0;
         ids_prisms[1] = vertex_1;
@@ -394,7 +351,7 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckSecondTypeElements()
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::BlockNode(const IndexType iNode)
 {
-    KRATOS_ERROR_IF(PMMG3D_Set_requiredVertex(mParMmgMesh, iNode) != 1 ) << "Unable to block vertex" << std::endl;
+    KRATOS_ERROR_IF(PMMG_Set_requiredVertex(mParMmgMesh, iNode) != 1 ) << "Unable to block vertex" << std::endl;
 }
 
 /***********************************************************************************/
@@ -403,7 +360,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::BlockNode(const IndexType iNode)
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::BlockCondition(const IndexType iCondition)
 {
-    KRATOS_ERROR_IF(PMMG3D_Set_requiredTriangle(mParMmgMesh, iCondition) != 1 ) << "Unable to block edge" << std::endl;
+    KRATOS_ERROR_IF(PMMG_Set_requiredTriangle(mParMmgMesh, iCondition) != 1 ) << "Unable to block edge" << std::endl;
 }
 
 /***********************************************************************************/
@@ -413,7 +370,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::BlockCondition(const IndexType iCondi
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::BlockElement(const IndexType iElement)
 {
-    KRATOS_ERROR_IF(PMMG3D_Set_requiredTetrahedron(mParMmgMesh, iElement) != 1 ) << "Unable to block tetrahedron" << std::endl;
+    KRATOS_ERROR_IF(PMMG_Set_requiredTetrahedron(mParMmgMesh, iElement) != 1 ) << "Unable to block tetrahedron" << std::endl;
 }
 
 /***********************************************************************************/
@@ -430,7 +387,7 @@ Node<3>::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateNode(
     double coord_0, coord_1, coord_2;
     int is_corner;
 
-    KRATOS_ERROR_IF(PMMG3D_Get_vertex(mParMmgMesh, &coord_0, &coord_1, &coord_2, &Ref, &is_corner, &IsRequired) != 1 ) << "Unable to get vertex" << std::endl;
+    KRATOS_ERROR_IF(PMMG_Get_vertex(mParMmgMesh, &coord_0, &coord_1, &coord_2, &Ref, &is_corner, &IsRequired) != 1 ) << "Unable to get vertex" << std::endl;
 
     NodeType::Pointer p_node = rModelPart.CreateNewNode(iNode, coord_0, coord_1, coord_2);
 
@@ -455,7 +412,7 @@ Condition::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeConditio
 
     int vertex_0, vertex_1, vertex_2;
 
-    KRATOS_ERROR_IF(PMMG3D_Get_triangle(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &Ref, &IsRequired) != 1 ) << "Unable to get triangle" << std::endl;
+    KRATOS_ERROR_IF(PMMG_Get_triangle(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &Ref, &IsRequired) != 1 ) << "Unable to get triangle" << std::endl;
 
     // Sometimes PMMG creates conditions where there are not, then we skip
     Properties::Pointer p_prop = nullptr;
@@ -513,7 +470,7 @@ Condition::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateSecondTypeConditi
 
     int vertex_0, vertex_1, vertex_2, vertex_3;
 
-    KRATOS_ERROR_IF(PMMG3D_Get_quadrilateral(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get quadrilateral" << std::endl;
+    KRATOS_ERROR_IF(PMMG_Get_quadrilateral(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get quadrilateral" << std::endl;
 
     // Sometimes PMMG creates conditions where there are not, then we skip
     if (rMapPointersRefCondition[Ref].get() == nullptr) {
@@ -559,7 +516,7 @@ Element::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeElement(
 
     int vertex_0, vertex_1, vertex_2, vertex_3;
 
-    KRATOS_ERROR_IF(PMMG3D_Get_tetrahedron(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get tetrahedron" << std::endl;
+    KRATOS_ERROR_IF(PMMG_Get_tetrahedron(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &Ref, &IsRequired) != 1 ) << "Unable to get tetrahedron" << std::endl;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // The existence of a _nullptr_ indicates an element that was removed. This is not an alarming indicator.
@@ -641,7 +598,7 @@ Element::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateSecondTypeElement(
 
     int vertex_0, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5;
 
-    KRATOS_ERROR_IF(PMMG3D_Get_prism(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &Ref, &IsRequired) != 1 ) << "Unable to get prism" << std::endl;
+    KRATOS_ERROR_IF(PMMG_Get_prism(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &Ref, &IsRequired) != 1 ) << "Unable to get prism" << std::endl;
 
     // Sometimes PMMG creates elements where there are not, then we skip
     if (rMapPointersRefElement[Ref].get() == nullptr) {
@@ -686,11 +643,11 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitMesh()
 
     // We init the PMMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
-        PMMG3D_Init_mesh( PMMG5_ARG_start, PMMG5_ARG_ppMesh, &mParMmgMesh, PMMG5_ARG_ppMet, &mParMmgSol, PMMG5_ARG_end);
+        PMMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mParMmgMesh, MMG5_ARG_ppMet, &mParMmgSol, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-        PMMG3D_Init_mesh( PMMG5_ARG_start, PMMG5_ARG_ppMesh, &mParMmgMesh, PMMG5_ARG_ppMet, &mParMmgSol, PMMG5_ARG_ppDisp, &mParMmgDisp, PMMG5_ARG_end);
+        PMMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mParMmgMesh, MMG5_ARG_ppMet, &mParMmgSol, MMG5_ARG_ppDisp, &mParMmgDisp, MMG5_ARG_end);
     } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        PMMG3D_Init_mesh( PMMG5_ARG_start, PMMG5_ARG_ppMesh, &mParMmgMesh, PMMG5_ARG_ppLs, &mParMmgSol, PMMG5_ARG_end);
+        PMMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mParMmgMesh, MMG5_ARG_ppLs, &mParMmgSol, MMG5_ARG_end);
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
@@ -726,7 +683,7 @@ void ParMmgUtilities<TPMMGLibrary>::InitVerbosity()
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitVerbosityParameter(const IndexType VerbosityPMMG)
 {
-    KRATOS_ERROR_IF( !PMMG3D_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_verbose, VerbosityPMMG) ) << "Unable to set verbosity" << std::endl;
+    KRATOS_ERROR_IF( !PMMG_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_verbose, VerbosityPMMG) ) << "Unable to set verbosity" << std::endl;
 }
 
 /***********************************************************************************/
@@ -736,7 +693,7 @@ template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetMeshSize(PMMGMeshInfo<PMMGLibrary::PMMG3D>& rPMMGMeshInfo)
 {
     //Give the size of the mesh: NumNodes Vertex, num_elements tetra and prism, NumArrayConditions triangles and quadrilaterals, 0 edges (3D)
-    KRATOS_ERROR_IF( PMMG3D_Set_meshSize(mParMmgMesh, rPMMGMeshInfo.NumberOfNodes, rPMMGMeshInfo.NumberOfTetrahedra, rPMMGMeshInfo.NumberOfPrism, rPMMGMeshInfo.NumberOfTriangles, rPMMGMeshInfo.NumberOfQuadrilaterals, 0) != 1 ) << "Unable to set mesh size" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_meshSize(mParMmgMesh, rPMMGMeshInfo.NumberOfNodes, rPMMGMeshInfo.NumberOfTetrahedra, rPMMGMeshInfo.NumberOfPrism, rPMMGMeshInfo.NumberOfTriangles, rPMMGMeshInfo.NumberOfQuadrilaterals, 0) != 1 ) << "Unable to set mesh size" << std::endl;
 }
 
 /***********************************************************************************/
@@ -745,7 +702,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetMeshSize(PMMGMeshInfo<PMMGLibrary:
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetSolSizeScalar(const SizeType NumNodes)
 {
-    KRATOS_ERROR_IF( PMMG3D_Set_solSize(mParMmgMesh,mParMmgSol,PMMG5_Vertex,NumNodes,PMMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_solSize(mParMmgMesh,mParMmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 ) << "Unable to set metric size" << std::endl;
 }
 
 /***********************************************************************************/
@@ -754,7 +711,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetSolSizeScalar(const SizeType NumNo
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetSolSizeVector(const SizeType NumNodes)
 {
-    KRATOS_ERROR_IF( PMMG3D_Set_solSize(mParMmgMesh,mParMmgSol,PMMG5_Vertex,NumNodes,PMMG5_Vector) != 1 ) << "Unable to set metric size" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_solSize(mParMmgMesh,mParMmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set metric size" << std::endl;
 }
 
 /***********************************************************************************/
@@ -763,7 +720,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetSolSizeVector(const SizeType NumNo
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetSolSizeTensor(const SizeType NumNodes)
 {
-    KRATOS_ERROR_IF( PMMG3D_Set_solSize(mParMmgMesh,mParMmgSol,PMMG5_Vertex,NumNodes,PMMG5_Tensor) != 1 ) << "Unable to set metric size" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_solSize(mParMmgMesh,mParMmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 ) << "Unable to set metric size" << std::endl;
 }
 
 /***********************************************************************************/
@@ -773,8 +730,8 @@ template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetDispSizeVector(const SizeType NumNodes)
 {
     // TODO: Reactivate when dependency problem is solved
-//     KRATOS_ERROR_IF( PMMG3D_Set_iparameter(mParMmgMesh,mParMmgDisp,PMMG3D_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
-    KRATOS_ERROR_IF( PMMG3D_Set_solSize(mParMmgMesh,mParMmgDisp,PMMG5_Vertex,NumNodes,PMMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
+//     KRATOS_ERROR_IF( PMMG_Set_iparameter(mParMmgMesh,mParMmgDisp,PMMG3D_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_solSize(mParMmgMesh,mParMmgDisp,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
 }
 
 /***********************************************************************************/
@@ -800,8 +757,8 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InputMesh(const std::string& rOutputN
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
-    // a)  Give the ouptut mesh name using PMMG3D_Set_inputMeshName
-    PMMG3D_Set_inputMeshName(mParMmgMesh,mesh_file);
+    // a)  Give the ouptut mesh name using PMMG_Set_inputMeshName
+    PMMG_Set_inputMeshName(mParMmgMesh,mesh_file);
 
     // b) function calling
     KRATOS_INFO_IF("ParMmgUtilities", PMMG3D_loadMesh(mParMmgMesh,mesh_file) != 1) << "UNABLE TO LOAD MESH" << std::endl;
@@ -816,8 +773,8 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InputSol(const std::string& rInputNam
     const std::string sol_name = rInputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
-    // a)  Give the ouptut mesh name using PMMG3D_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
-    PMMG3D_Set_inputSolName(mParMmgMesh, mParMmgSol, sol_file);
+    // a)  Give the ouptut mesh name using PMMG_Set_inputSolName (by default, the mesh is saved in the "mesh.o.mesh") file
+    PMMG_Set_inputSolName(mParMmgMesh, mParMmgSol, sol_file);
 
     // b) function calling
     KRATOS_INFO_IF("ParMmgUtilities", PMMG3D_loadSol(mParMmgMesh, mParMmgSol, sol_file) != 1) << "UNABLE TO READ METRIC" << std::endl;
@@ -832,8 +789,8 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::OutputMesh(const std::string& rOutput
     const std::string mesh_name = rOutputName + ".mesh";
     const char* mesh_file = mesh_name.c_str();
 
-    // a)  Give the ouptut mesh name using PMMG3D_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
-    PMMG3D_Set_outputMeshName(mParMmgMesh,mesh_file);
+    // a)  Give the ouptut mesh name using PMMG_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh") file
+    PMMG_Set_outputMeshName(mParMmgMesh,mesh_file);
 
     // b) function calling
     KRATOS_INFO_IF("ParMmgUtilities", PMMG3D_saveMesh(mParMmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
@@ -848,8 +805,8 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::OutputSol(const std::string& rOutputN
     const std::string sol_name = rOutputName + ".sol";
     const char* sol_file = sol_name.c_str();
 
-    // a)  Give the ouptut sol name using PMMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
-    PMMG3D_Set_outputSolName(mParMmgMesh, mParMmgSol, sol_file);
+    // a)  Give the ouptut sol name using PMMG_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+    PMMG_Set_outputSolName(mParMmgMesh, mParMmgSol, sol_file);
 
     // b) Function calling
     KRATOS_INFO_IF("ParMmgUtilities", PMMG3D_saveSol(mParMmgMesh,mParMmgSol, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
@@ -864,8 +821,8 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::OutputDisplacement(const std::string&
     const std::string sol_name = rOutputName + ".disp.sol";
     const char* sol_file = sol_name.c_str();
 
-    // a)  Give the ouptut sol name using PMMG3D_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
-    PMMG3D_Set_outputSolName(mParMmgMesh, mParMmgDisp, sol_file);
+    // a)  Give the ouptut sol name using PMMG_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+    PMMG_Set_outputSolName(mParMmgMesh, mParMmgDisp, sol_file);
 
     // b) Function calling
     KRATOS_INFO_IF("ParMmgUtilities", PMMG3D_saveSol(mParMmgMesh,mParMmgDisp, sol_file) != 1)<< "UNABLE TO SAVE DISPLACEMENT" << std::endl;
@@ -925,9 +882,9 @@ template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::FreeAll()
 {
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-        PMMG3D_Free_all(PMMG5_ARG_start,PMMG5_ARG_ppMesh,&mParMmgMesh,PMMG5_ARG_ppMet,&mParMmgSol,PMMG5_ARG_ppDisp,&mParMmgDisp,PMMG5_ARG_end);
+        PMMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mParMmgMesh,MMG5_ARG_ppMet,&mParMmgSol,MMG5_ARG_ppDisp,&mParMmgDisp,MMG5_ARG_end);
     } else {
-        PMMG3D_Free_all(PMMG5_ARG_start,PMMG5_ARG_ppMesh,&mParMmgMesh,PMMG5_ARG_ppMet,&mParMmgSol,PMMG5_ARG_end);
+        PMMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mParMmgMesh,MMG5_ARG_ppMet,&mParMmgSol,MMG5_ARG_end);
     }
 }
 
@@ -942,48 +899,48 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
     /* Advanced configurations */
     // Global hausdorff value (default value = 0.01) applied on the whole boundary
     if (ConfigurationParameters["advanced_parameters"]["force_hausdorff_value"].GetBool()) {
-        if ( PMMG3D_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hausd, ConfigurationParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
+        if ( PMMG_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hausd, ConfigurationParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
     }
 
     // Avoid/allow point relocation
-    if ( PMMG3D_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_nomove, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 )
+    if ( PMMG_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_nomove, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
 
     // Avoid/allow surface modifications
-    if ( PMMG3D_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_nosurf, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 )
+    if ( PMMG_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_nosurf, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
 
     // Don't insert nodes on mesh
-    if ( PMMG3D_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_noinsert, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 )
+    if ( PMMG_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_noinsert, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set no insertion/suppression point" << std::endl;
 
     // Don't swap mesh
-    if ( PMMG3D_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_noswap, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 )
+    if ( PMMG_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_noswap, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
 
     // Set the angle detection
     const bool deactivate_detect_angle = ConfigurationParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
     if ( deactivate_detect_angle) {
-        if ( PMMG3D_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 )
+        if ( PMMG_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 )
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
     }
 
     // Set the gradation
     if (ConfigurationParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
-        if ( PMMG3D_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
+        if ( PMMG_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set gradation" << std::endl;
     }
 
     // Minimal edge size
     if (ConfigurationParameters["force_sizes"]["force_min"].GetBool()) {
-        if ( PMMG3D_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hmin, ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 )
+        if ( PMMG_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hmin, ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
     }
 
     // Minimal edge size
     if (ConfigurationParameters["force_sizes"]["force_max"].GetBool()) {
-        if ( PMMG3D_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hmax, ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
+        if ( PMMG_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hmax, ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
             KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
         }
     }
@@ -997,9 +954,9 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
         ier = PMMG3D_mmg3dlib(mParMmgMesh, mParMmgSol);
     }
 
-    if ( ier == PMMG5_STRONGFAILURE )
+    if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF PMMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
-    else if ( ier == PMMG5_LOWFAILURE )
+    else if ( ier == MMG5_LOWFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF PMMG3DLIB. ier: " << ier << std::endl;
 
     KRATOS_CATCH("");
@@ -1015,7 +972,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallIsoSurface(Parameters Conf
 
     /**------------------- Level set discretization option ---------------------*/
     /* Ask for level set discretization */
-    KRATOS_ERROR_IF( PMMG3D_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
 
     /** (Not mandatory): check if the number of given entities match with mesh size */
     KRATOS_ERROR_IF( PMMG3D_Chk_meshData(mParMmgMesh,mParMmgSol) != 1 ) << "Unable to check if the number of given entities match with mesh size" << std::endl;
@@ -1024,38 +981,38 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallIsoSurface(Parameters Conf
 
     // Global hausdorff value (default value = 0.01) applied on the whole boundary
     if (ConfigurationParameters["advanced_parameters"]["force_hausdorff_value"].GetBool()) {
-        if ( PMMG3D_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hausd, ConfigurationParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
+        if ( PMMG_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hausd, ConfigurationParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
     }
 
     // Set the gradation
     if (ConfigurationParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
-        if ( PMMG3D_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
+        if ( PMMG_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set gradation" << std::endl;
     }
 
     // Minimal edge size
     if (ConfigurationParameters["force_sizes"]["force_min"].GetBool()) {
-        if ( PMMG3D_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hmin, ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 )
+        if ( PMMG_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hmin, ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
     }
 
     // Minimal edge size
     if (ConfigurationParameters["force_sizes"]["force_max"].GetBool()) {
-        if ( PMMG3D_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hmax, ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
+        if ( PMMG_Set_dparameter(mParMmgMesh,mParMmgSol,PMMG3D_DPARAM_hmax, ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
             KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
         }
     }
 
     /**------------------- level set discretization ---------------------------*/
 //     /* Debug mode ON (default value = OFF) */
-//     KRATOS_ERROR_IF( PMMG3D_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
+//     KRATOS_ERROR_IF( PMMG_Set_iparameter(mParMmgMesh,mParMmgSol,PMMG3D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
     const int ier = PMMG3D_mmg3dls(mParMmgMesh, mParMmgSol);
 
-    if ( ier == PMMG5_STRONGFAILURE )
+    if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF PMMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
-    else if ( ier == PMMG5_LOWFAILURE )
+    else if ( ier == MMG5_LOWFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF PMMG3DLIB. ier: " << ier << std::endl;
 
     KRATOS_CATCH("");
@@ -1073,7 +1030,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetNodes(
     const IndexType Index
     )
 {
-    KRATOS_ERROR_IF( PMMG3D_Set_vertex(mParMmgMesh, X, Y, Z, Color, Index) != 1 ) << "Unable to set vertex" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_vertex(mParMmgMesh, X, Y, Z, Color, Index) != 1 ) << "Unable to set vertex" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1093,7 +1050,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetConditions(
 //         const IndexType id1 = rGeometry[0].Id(); // First node id
 //         const IndexType id2 = rGeometry[1].Id(); // Second node id
 //
-//         KRATOS_ERROR_IF( PMMG3D_Set_edge(mParMmgMesh, id1, id2, Color, Index) != 1 ) << "Unable to set edge" << std::endl;
+//         KRATOS_ERROR_IF( PMMG_Set_edge(mParMmgMesh, id1, id2, Color, Index) != 1 ) << "Unable to set edge" << std::endl;
 //
 //         // Set fixed boundary
 //         bool blocked_1 = false;
@@ -1103,13 +1060,13 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetConditions(
 //         if (rGeometry[1].IsDefined(BLOCKED))
 //             blocked_2 = rGeometry[1].Is(BLOCKED);
 //
-//         if ((blocked_1 && blocked_2)) KRATOS_ERROR_IF( PMMG3D_Set_requiredEdge(mParMmgMesh, Index) != 1 ) << "Unable to block edge" << std::endl;
+//         if ((blocked_1 && blocked_2)) KRATOS_ERROR_IF( PMMG_Set_requiredEdge(mParMmgMesh, Index) != 1 ) << "Unable to block edge" << std::endl;
     } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {// Triangle
         const IndexType id_1 = rGeometry[0].Id(); // First node Id
         const IndexType id_2 = rGeometry[1].Id(); // Second node Id
         const IndexType id_3 = rGeometry[2].Id(); // Third node Id
 
-        KRATOS_ERROR_IF( PMMG3D_Set_triangle(mParMmgMesh, id_1, id_2, id_3, Color, Index) != 1 ) << "Unable to set triangle" << std::endl;
+        KRATOS_ERROR_IF( PMMG_Set_triangle(mParMmgMesh, id_1, id_2, id_3, Color, Index) != 1 ) << "Unable to set triangle" << std::endl;
 
         // Set fixed boundary
         bool blocked_1 = false;
@@ -1129,7 +1086,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetConditions(
         const IndexType id_3 = rGeometry[2].Id(); // Third node Id
         const IndexType id_4 = rGeometry[3].Id(); // Fourth node Id
 
-        KRATOS_ERROR_IF( PMMG3D_Set_quadrilateral(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set quadrilateral" << std::endl;
+        KRATOS_ERROR_IF( PMMG_Set_quadrilateral(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set quadrilateral" << std::endl;
     } else {
         const SizeType size_geometry = rGeometry.size();
         KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
@@ -1152,12 +1109,12 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetElements(
     const IndexType id_4 = rGeometry[3].Id(); // Fourth node Id
 
     if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
-        KRATOS_ERROR_IF( PMMG3D_Set_tetrahedron(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set tetrahedron" << std::endl;
+        KRATOS_ERROR_IF( PMMG_Set_tetrahedron(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set tetrahedron" << std::endl;
     } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
         const IndexType id_5 = rGeometry[4].Id(); // 5th node Id
         const IndexType id_6 = rGeometry[5].Id(); // 6th node Id
 
-        KRATOS_ERROR_IF( PMMG3D_Set_prism(mParMmgMesh, id_1, id_2, id_3, id_4, id_5, id_6, Color, Index) != 1 ) << "Unable to set prism" << std::endl;
+        KRATOS_ERROR_IF( PMMG_Set_prism(mParMmgMesh, id_1, id_2, id_3, id_4, id_5, id_6, Color, Index) != 1 ) << "Unable to set prism" << std::endl;
     } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) { // Hexaedron
 //         const IndexType id_5 = rGeometry[4].Id(); // 5th node Id
 //         const IndexType id_6 = rGeometry[5].Id(); // 6th node Id
@@ -1181,7 +1138,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetMetricScalar(
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( PMMG3D_Set_scalarSol(mParMmgSol, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_scalarSol(mParMmgSol, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1193,7 +1150,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetMetricVector(
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( PMMG3D_Set_vectorSol(mParMmgSol, rMetric[0], rMetric[1], rMetric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_vectorSol(mParMmgSol, rMetric[0], rMetric[1], rMetric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1205,7 +1162,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetMetricTensor(
     )
 {
     // The order is XX, XY, XZ, YY, YZ, ZZ
-    KRATOS_ERROR_IF( PMMG3D_Set_tensorSol(mParMmgSol, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_tensorSol(mParMmgSol, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1217,7 +1174,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetDisplacementVector(
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( PMMG3D_Set_vectorSol(mParMmgDisp, rDisplacement[0], rDisplacement[1], rDisplacement[2], NodeId) != 1 ) << "Unable to set vector displacement" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_vectorSol(mParMmgDisp, rDisplacement[0], rDisplacement[1], rDisplacement[2], NodeId) != 1 ) << "Unable to set vector displacement" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1226,7 +1183,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetDisplacementVector(
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetMetricScalar(double& rMetric)
 {
-    KRATOS_ERROR_IF( PMMG3D_Get_scalarSol(mParMmgSol, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Get_scalarSol(mParMmgSol, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1234,7 +1191,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetMetricScalar(double& rMetric)
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetMetricVector(array_1d<double, 3>& rMetric)
 {
-    KRATOS_ERROR_IF( PMMG3D_Get_vectorSol(mParMmgSol, &rMetric[0], &rMetric[1], &rMetric[2]) != 1 ) << "Unable to get vector metric" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Get_vectorSol(mParMmgSol, &rMetric[0], &rMetric[1], &rMetric[2]) != 1 ) << "Unable to get vector metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1244,7 +1201,7 @@ template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetMetricTensor(array_1d<double, 6>& rMetric)
 {
     // The order is XX, XY, XZ, YY, YZ, ZZ
-    KRATOS_ERROR_IF( PMMG3D_Get_tensorSol(mParMmgSol, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Get_tensorSol(mParMmgSol, &rMetric[0], &rMetric[3], &rMetric[5], &rMetric[1], &rMetric[4], &rMetric[2]) != 1 ) << "Unable to get tensor metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1253,7 +1210,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetMetricTensor(array_1d<double, 6>& 
 template<>
 void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetDisplacementVector(array_1d<double, 3>& rDisplacement)
 {
-    KRATOS_ERROR_IF( PMMG3D_Get_vectorSol(mParMmgDisp, &rDisplacement[0], &rDisplacement[1], &rDisplacement[2]) != 1 ) << "Unable to get vector displacement" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Get_vectorSol(mParMmgDisp, &rDisplacement[0], &rDisplacement[1], &rDisplacement[2]) != 1 ) << "Unable to get vector displacement" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1307,7 +1264,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
     }
 
     /////////* MESH FILE */////////
-    // Build mesh in PMMG5 format //
+    // Build mesh in MMG5 format //
 
     // Iterate over components
     auto& r_nodes_array = rModelPart.Nodes();

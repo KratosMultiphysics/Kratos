@@ -139,7 +139,7 @@ public:
     typedef Geometry<NodeType>                                     GeometryType;
 
     /// Spatial dimension
-    static constexpr SizeType Dimension = (TPMMGLibrary == PMMGLibrary::PMMG2D) ? 2 : 3;
+    static constexpr SizeType Dimension = 3;
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
@@ -380,11 +380,11 @@ public:
     /**
      * @brief Initialisation of mesh and sol structures
      * @details Initialisation of mesh and sol structures args of InitMesh:
-     * -# PMMG5_ARG_start we start to give the args of a variadic func
-     * -# PMMG5_ARG_ppMesh next arg will be a pointer over a PMMG5_pMesh
-     * -# &mmgMesh pointer toward your PMMG5_pMesh (that store your mesh)
-     * -# PMMG5_ARG_ppMet next arg will be a pointer over a PMMG5_pSol storing a metric
-     * -# &mmgSol pointer toward your PMMG5_pSol (that store your metric)
+     * -# MMG5_ARG_start we start to give the args of a variadic func
+     * -# MMG5_ARG_ppMesh next arg will be a pointer over a MMG5_pMesh
+     * -# &mmgMesh pointer toward your MMG5_pMesh (that store your mesh)
+     * -# MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
+     * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
      */
     void InitMesh();
 
