@@ -29,7 +29,7 @@
 #include "includes/model_part_io.h"
 
 
-// NOTE: The following contains the license of the MMG library
+// NOTE: The following contains the license of the PMMG library
 /* =============================================================================
 **  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
 **
@@ -57,8 +57,8 @@ namespace Kratos
 /************************************* CONSTRUCTOR *********************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-MmgProcess<TMMGLibrary>::MmgProcess(
+template<PMMGLibrary TPMMGLibrary>
+ParMmgProcess<TPMMGLibrary>::ParMmgProcess(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
     ):mrThisModelPart(rThisModelPart),
@@ -75,14 +75,14 @@ MmgProcess<TMMGLibrary>::MmgProcess(
 
     // The discretization type
     mDiscretization = ConvertDiscretization(mThisParameters["discretization_type"].GetString());
-    if (TMMGLibrary != MMGLibrary::MMGS) {
+    if (TPMMGLibrary != PMMGLibrary::PMMGS) {
         if (mDiscretization == DiscretizationOption::LAGRANGIAN && mFramework == FrameworkEulerLagrange::EULERIAN) {
             mFramework = FrameworkEulerLagrange::LAGRANGIAN;
-            KRATOS_WARNING("MmgProcess") << "Inconsistent discretization and framework. Assigning LAGRANGIAN framework" << std::endl;
+            KRATOS_WARNING("ParMmgProcess") << "Inconsistent discretization and framework. Assigning LAGRANGIAN framework" << std::endl;
         }
     } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
         mDiscretization = DiscretizationOption::STANDARD;
-        KRATOS_WARNING("MmgProcess") << "Surface meshes not compatible with Lagrangian motion. Reassign to standard discretization" << std::endl;
+        KRATOS_WARNING("ParMmgProcess") << "Surface meshes not compatible with Lagrangian motion. Reassign to standard discretization" << std::endl;
     }
 
     // Checking isosurface flag
@@ -99,8 +99,8 @@ MmgProcess<TMMGLibrary>::MmgProcess(
 /*************************************** EXECUTE ***********************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::Execute()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::Execute()
 {
     KRATOS_TRY;
 
@@ -115,13 +115,13 @@ void MmgProcess<TMMGLibrary>::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ExecuteInitialize()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::ExecuteInitialize()
 {
     KRATOS_TRY;
 
     /* We print one important information message */
-    KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition)" << std::endl;
+    KRATOS_INFO_IF("ParMmgProcess", mEchoLevel > 0) << "We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition)" << std::endl;
 
     // The conditions are re-created in the process
     if( mRemoveRegions ) {
@@ -149,10 +149,10 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
         VariableUtils().ResetFlag(MARKER, mrThisModelPart.Conditions());
 
         // Passing that info to logger
-        KRATOS_INFO("MmgProcess") << "Conditions were cleared" << std::endl;
+        KRATOS_INFO("ParMmgProcess") << "Conditions were cleared" << std::endl;
     }
 
-    /* We restart the MMG mesh and solution */
+    /* We restart the PMMG mesh and solution */
     mMmmgUtilities.SetEchoLevel(mEchoLevel);
     mMmmgUtilities.SetDiscretization(mDiscretization);
     mMmmgUtilities.SetRemoveRegions(mRemoveRegions);
@@ -164,8 +164,8 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ExecuteBeforeSolutionLoop()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::ExecuteBeforeSolutionLoop()
 {
     KRATOS_TRY;
 
@@ -175,8 +175,8 @@ void MmgProcess<TMMGLibrary>::ExecuteBeforeSolutionLoop()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
@@ -226,8 +226,8 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ExecuteFinalizeSolutionStep()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY;
 
@@ -237,8 +237,8 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalizeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ExecuteBeforeOutputStep()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::ExecuteBeforeOutputStep()
 {
     KRATOS_TRY;
 
@@ -248,8 +248,8 @@ void MmgProcess<TMMGLibrary>::ExecuteBeforeOutputStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ExecuteAfterOutputStep()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::ExecuteAfterOutputStep()
 {
     KRATOS_TRY;
 
@@ -259,8 +259,8 @@ void MmgProcess<TMMGLibrary>::ExecuteAfterOutputStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ExecuteFinalize()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::ExecuteFinalize()
 {
     KRATOS_TRY;
 
@@ -306,8 +306,8 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
 /************************************* OPERATOR() **********************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::operator()()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::operator()()
 {
     Execute();
 }
@@ -315,8 +315,8 @@ void MmgProcess<TMMGLibrary>::operator()()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::InitializeMeshData()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
 {
     // We create a list of submodelparts to later reassign flags after remesh
     if (mThisParameters["preserve_flags"].GetBool()) {
@@ -362,8 +362,8 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::InitializeSolDataMetric()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::InitializeSolDataMetric()
 {
     // We initialize the solution data with the given modelpart
     mMmmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
@@ -372,8 +372,8 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataMetric()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::InitializeSolDataDistance()
 {
     ////////* SOLUTION FILE for ISOSURFACE*////////
     // Iterate in the nodes
@@ -419,8 +419,8 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::InitializeDisplacementData()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::InitializeDisplacementData()
 {
     // We initialize the displacement data with the given modelpart
     mMmmgUtilities.GenerateDisplacementDataFromModelPart(mrThisModelPart);
@@ -429,8 +429,8 @@ void MmgProcess<TMMGLibrary>::InitializeDisplacementData()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
 {
     // Getting the parameters
     const bool save_to_file = mThisParameters["save_external_files"].GetBool();
@@ -442,10 +442,10 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     mThisParameters["step_data_size"].SetInt(step_data_size);
     mThisParameters["buffer_size"].SetInt(buffer_size);
 
-    KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "Step data size: " << step_data_size << " Buffer size: " << buffer_size << std::endl;
+    KRATOS_INFO_IF("ParMmgProcess", mEchoLevel > 0) << "Step data size: " << step_data_size << " Buffer size: " << buffer_size << std::endl;
 
-    ////////* MMG LIBRARY CALL *////////
-    KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "////////* MMG LIBRARY CALL *////////" << std::endl;
+    ////////* PMMG LIBRARY CALL *////////
+    KRATOS_INFO_IF("ParMmgProcess", mEchoLevel > 0) << "////////* PMMG LIBRARY CALL *////////" << std::endl;
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
     Model& r_owner_model = mrThisModelPart.GetModel();
@@ -461,16 +461,16 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     // Calling the library functions
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        mMmmgUtilities.MMGLibCallIsoSurface(mThisParameters);
+        mMmmgUtilities.PMMGLibCallIsoSurface(mThisParameters);
     } else {
-        mMmmgUtilities.MMGLibCallMetric(mThisParameters);
+        mMmmgUtilities.PMMGLibCallMetric(mThisParameters);
     }
 
     /* Save to file */
     if (save_to_file) SaveSolutionToFile(true);
 
     // Some information
-    MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
+    PMMGMeshInfo<TPMMGLibrary> mmg_mesh_info;
     mMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
 
     // We clear the OLD_ENTITY flag
@@ -603,7 +603,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
     interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
     interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
     interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-    if (TMMGLibrary == MMGLibrary::MMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
+    if (TPMMGLibrary == PMMGLibrary::PMMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
     NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
     interpolate_nodal_values_process.Execute();
 
@@ -675,8 +675,8 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::InitializeElementsAndConditions()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::InitializeElementsAndConditions()
 {
     // Iterate over conditions
     auto& r_conditions_array = mrThisModelPart.Conditions();
@@ -696,8 +696,8 @@ void MmgProcess<TMMGLibrary>::InitializeElementsAndConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 {
     /* GET RESULTS */
     const int step = mrThisModelPart.GetProcessInfo()[STEP];
@@ -726,10 +726,10 @@ void MmgProcess<TMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::FreeMemory()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::FreeMemory()
 {
-    // Free the MMG structures
+    // Free the PMMG structures
     mMmmgUtilities.FreeAll();
 
     // Free reference std::unordered_map
@@ -743,8 +743,8 @@ void MmgProcess<TMMGLibrary>::FreeMemory()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::OutputMdpa()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::OutputMdpa()
 {
     std::ofstream output_file;
     ModelPartIO model_part_io("output", IO::WRITE);
@@ -754,8 +754,8 @@ void MmgProcess<TMMGLibrary>::OutputMdpa()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::CollapsePrismsToTriangles()
 {
     // Connectivity map
     std::unordered_map<IndexType, IndexType> thickness_connectivity_map;
@@ -816,8 +816,8 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
 {
     // We look for the reference element
     Element::Pointer p_reference_element;
@@ -960,8 +960,8 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::ClearConditionsDuplicatedGeometries()
 {
     // Next check that the conditions are oriented accordingly to do so begin by putting all of the conditions in a set
     typedef std::unordered_map<DenseVector<IndexType>, std::vector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashMapType;
@@ -1005,7 +1005,7 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
             auto p_cond = mrThisModelPart.pGetCondition(i_id);
             if (p_cond->Is(MARKER) && counter < r_pairs.size()) { // Only remove dummy conditions repeated
                 p_cond->Set(TO_ERASE);
-                KRATOS_INFO_IF("MmgProcess", mEchoLevel > 2) << "Condition created ID:\t" << i_id << " will be removed" << std::endl;
+                KRATOS_INFO_IF("ParMmgProcess", mEchoLevel > 2) << "Condition created ID:\t" << i_id << " will be removed" << std::endl;
                 ++counter;
             }
             counter = 1;
@@ -1019,8 +1019,8 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 {
     Model& r_owner_model = mrThisModelPart.GetModel();
     ModelPart& r_auxiliar_model_part = r_owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
@@ -1076,7 +1076,7 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
 
     const int step = mrThisModelPart.GetProcessInfo()[STEP];
     const double label = static_cast<double>(step);
-    GidIO<> gid_io("BEFORE_AND_AFTER_MMG_MESH_STEP=" + std::to_string(step), GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+    GidIO<> gid_io("BEFORE_AND_AFTER_PMMG_MESH_STEP=" + std::to_string(step), GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
 
     gid_io.InitializeMesh(label);
     gid_io.WriteMesh(r_auxiliar_model_part.GetMesh());
@@ -1091,8 +1091,8 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::MarkConditionsSubmodelParts(ModelPart& rModelPart)
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::MarkConditionsSubmodelParts(ModelPart& rModelPart)
 {
     // Iterate over submodelparts
     for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
@@ -1104,8 +1104,8 @@ void MmgProcess<TMMGLibrary>::MarkConditionsSubmodelParts(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
+template<PMMGLibrary TPMMGLibrary>
+void ParMmgProcess<TPMMGLibrary>::CleanSuperfluousNodes()
 {
     // Iterate over nodes
     auto& r_nodes_array = mrThisModelPart.Nodes();
@@ -1132,14 +1132,14 @@ void MmgProcess<TMMGLibrary>::CleanSuperfluousNodes()
 
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     const SizeType final_num = mrThisModelPart.Nodes().size();
-    KRATOS_INFO("MmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
+    KRATOS_INFO("ParMmgProcess") << "In total " << (initial_num - final_num) <<" superfluous nodes were cleared" << std::endl;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<MMGLibrary TMMGLibrary>
-Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters()
+template<PMMGLibrary TPMMGLibrary>
+Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
     {
@@ -1208,8 +1208,6 @@ Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class MmgProcess<MMGLibrary::MMG2D>;
-template class MmgProcess<MMGLibrary::MMG3D>;
-template class MmgProcess<MMGLibrary::MMGS>;
+template class ParMmgProcess<PMMGLibrary::PMMG3D>;
 
 }// namespace Kratos.

@@ -10,15 +10,15 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MMG_PROCESS)
-#define KRATOS_MMG_PROCESS
+#if !defined(KRATOS_PMMG_PROCESS)
+#define KRATOS_PMMG_PROCESS
 
 // System includes
 #include <unordered_set>
 #include <unordered_map>
 
 // External includes
-// The includes related with the MMG library
+// The includes related with the PMMG library
 // #include "mmg/libmmg.h"
 
 // Project includes
@@ -26,11 +26,11 @@
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "custom_utilities/pmmg_utilities.h"
+#include "custom_utilities/mmg_utilities.h"
 #include "containers/variables_list.h"
 #include "meshing_application.h"
 
-// NOTE: The following contains the license of the MMG library
+// NOTE: The following contains the license of the PMMG library
 /* =============================================================================
 **  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
 **
@@ -83,15 +83,15 @@ namespace Kratos
 ///@{
 
 /**
- * @class MmgProcess
+ * @class ParMmgProcess
  * @ingroup MeshingApplication
- * @brief This class is a remesher which uses the MMG library
- * @details This class is a remesher which uses the MMG library. The class uses a class for the 2D and 3D cases.
+ * @brief This class is a remesher which uses the PMMG library
+ * @details This class is a remesher which uses the PMMG library. The class uses a class for the 2D and 3D cases.
  * The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
  * @author Vicente Mataix Ferrandiz
  */
-template<MMGLibrary TMMGLibrary>
-class KRATOS_API(MESHING_APPLICATION) MmgProcess
+template<PMMGLibrary TPMMGLibrary>
+class KRATOS_API(MESHING_APPLICATION) ParMmgProcess
     : public Process
 {
 public:
@@ -99,8 +99,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MmgProcess
-    KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
+    /// Pointer definition of ParMmgProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ParMmgProcess);
 
     /// Node definition
     typedef Node <3>                                                   NodeType;
@@ -108,7 +108,7 @@ public:
     typedef Geometry<NodeType>                                     GeometryType;
 
     /// Conditions array size
-    static constexpr SizeType Dimension = (TMMGLibrary == MMGLibrary::MMG2D) ? 2 : 3;
+    static constexpr SizeType Dimension = (TPMMGLibrary == PMMGLibrary::PMMG2D) ? 2 : 3;
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
@@ -135,13 +135,13 @@ public:
      * @param rThisModelPart The model part
      * @param ThisParameters The parameters
      */
-    MmgProcess(
+    ParMmgProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
     /// Destructor.
-    ~MmgProcess() override = default;
+    ~ParMmgProcess() override = default;
 
     ///@}
     ///@name Access
@@ -236,13 +236,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "MmgProcess";
+        return "ParMmgProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "MmgProcess";
+        rOStream << "ParMmgProcess";
     }
 
     /// Print object's data.
@@ -294,7 +294,7 @@ private:
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
     NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
 
-    MmgUtilities<TMMGLibrary> mMmmgUtilities;                        /// The MMG utilities class
+    MmgUtilities<TPMMGLibrary> mMmmgUtilities;                        /// The PMMG utilities class
 
     std::string mFilename;                                           /// I/O file name
     IndexType mEchoLevel;                                            /// The echo level
@@ -352,22 +352,22 @@ private:
     }
 
     /**
-     * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
+     * @brief This function generates the mesh PMMG5 structure from a Kratos Model Part
      */
     void InitializeMeshData();
 
     /**
-     *@brief This function generates the metric MMG5 structure from a Kratos Model Part
+     *@brief This function generates the metric PMMG5 structure from a Kratos Model Part
      */
     void InitializeSolDataMetric();
 
     /**
-     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
+     *@brief This function generates the PMMG5 structure for the distance field from a Kratos Model Part
      */
     void InitializeSolDataDistance();
 
     /**
-     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
+     *@brief This function generates the displacement PMMG5 structure from a Kratos Model Part
      */
     void InitializeDisplacementData();
 
@@ -497,14 +497,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    MmgProcess& operator=(MmgProcess const& rOther);
+    ParMmgProcess& operator=(ParMmgProcess const& rOther);
 
     /// Copy constructor.
-    MmgProcess(MmgProcess const& rOther);
+    ParMmgProcess(ParMmgProcess const& rOther);
 
     ///@}
 
-};// class MmgProcess
+};// class ParMmgProcess
 ///@}
 
 ///@name Type Definitions
@@ -516,14 +516,14 @@ private:
 ///@{
 
 /// input stream function
-template<MMGLibrary TMMGLibrary>
+template<PMMGLibrary TPMMGLibrary>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  MmgProcess<TMMGLibrary>& rThis);
+                                  ParMmgProcess<TPMMGLibrary>& rThis);
 
 /// output stream function
-template<MMGLibrary TMMGLibrary>
+template<PMMGLibrary TPMMGLibrary>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MmgProcess<TMMGLibrary>& rThis)
+                                  const ParMmgProcess<TPMMGLibrary>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -533,4 +533,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }// namespace Kratos.
-#endif /* KRATOS_MMG_PROCESS defined */
+#endif /* KRATOS_PMMG_PROCESS defined */
