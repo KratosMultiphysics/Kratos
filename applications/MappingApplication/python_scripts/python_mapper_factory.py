@@ -10,12 +10,14 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics as KM
 from KratosMultiphysics.MappingApplication import MapperFactory
 
+from importlib import import_module
+
 available_mappers = {
-    "empire_nearest_neighbor" : empire_mapper_wrapper,
-    "empire_nearest_element"  : empire_mapper_wrapper,
-    "empire_baracentric"      : empire_mapper_wrapper,
-    "empire_dual_mortar"      : empire_mapper_wrapper,
-    "empire_mortar"           : empire_mapper_wrapper
+    "empire_nearest_neighbor" : "empire_mapper_wrapper",
+    "empire_nearest_element"  : "empire_mapper_wrapper",
+    "empire_barycentric"      : "empire_mapper_wrapper",
+    "empire_dual_mortar"      : "empire_mapper_wrapper",
+    "empire_mortar"           : "empire_mapper_wrapper"
 }
 
 def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
@@ -46,9 +48,9 @@ def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
         if mapper_type.startswith("empire"):
             raw_mapper_name = mapper_type[7:]
             if raw_mapper_name in list_avail_mappers:
-                info_msg  = "Using a mapper from Empire ("{raw_mapper_name}"), even though the same mapper is available in Kratos\n".format(raw_mapper_name)
+                info_msg  = "Using a mapper from Empire ({}), even though the same mapper is available in Kratos\n".format(raw_mapper_name)
                 info_msg += "Consider switching for improved performance, less overead and native MPI support"
-                KM.PrintInfo("Python-Mapper-Factory", info_msg)
+                KM.Logger.PrintInfo("Python-Mapper-Factory", info_msg)
 
         return import_module("KratosMultiphysics.MappingApplication." + mapper_module_name).CreateMapper(model_part_origin, model_part_destination, mapper_settings)
     else:
