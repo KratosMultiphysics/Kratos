@@ -171,24 +171,10 @@ class MainCoupledFemDem_Solution:
         self.FEM_Solution.solver.Solve()
         ########################################################
 
-        self.ExpandWetNodes()
+        self.ExecuteBeforeGeneratingDEM()
         self.GenerateDEM() # we create the new DEM of this time step
-        self.ExtrapolatePressureLoad()
-
-        self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
-
-        # We update coordinates, displ and velocities of the DEM according to FEM
-        self.UpdateDEMVariables()
-
-        self.DEM_Solution.InitializeTimeStep()
-        self.DEM_Solution.time = self.FEM_Solution.time
-        self.DEM_Solution.step = self.FEM_Solution.step
-        self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
-                                                                   self.DEM_Solution.time,
-                                                                   self.DEM_Solution.solver.dt,
-                                                                   self.DEM_Solution.step,
-                                                                   self.DEM_Solution.IsTimeToPrintPostProcess())
-        self.DEM_Solution._BeforeSolveOperations(self.DEM_Solution.time)
+        self.ExecuteAfterGeneratingDEM()
+        self.BeforeSolveDEMOperations()
 
         #### SOLVE DEM #########################################
         self.DEM_Solution.solver.Solve()
@@ -805,7 +791,6 @@ class MainCoupledFemDem_Solution:
             self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates, R, Id)
             node.SetValue(KratosFemDem.IS_DEM, True)
 
-
 #============================================================================================================================
     def RemoveAloneDEMElements(self):
         if self.echo_level > 0:
@@ -815,3 +800,26 @@ class MainCoupledFemDem_Solution:
                                                          self.FEM_Solution.main_model_part, 
                                                          self.SpheresModelPart)
         remove_alone_DEM_elements_process.Execute()
+
+#============================================================================================================================
+    def ExecuteBeforeGeneratingDEM(self):
+        self.ExpandWetNodes()
+
+#============================================================================================================================
+    def ExecuteAfterGeneratingDEM(self):
+        self.ExtrapolatePressureLoad()
+        self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
+        # We update coordinates, displ and velocities of the DEM according to FEM
+        self.UpdateDEMVariables()
+
+#============================================================================================================================
+    def BeforeSolveDEMOperations(self):
+        self.DEM_Solution.InitializeTimeStep()
+        self.DEM_Solution.time = self.FEM_Solution.time
+        self.DEM_Solution.step = self.FEM_Solution.step
+        self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
+                                                                   self.DEM_Solution.time,
+                                                                   self.DEM_Solution.solver.dt,
+                                                                   self.DEM_Solution.step,
+                                                                   self.DEM_Solution.IsTimeToPrintPostProcess())
+        self.DEM_Solution._BeforeSolveOperations(self.DEM_Solution.time)
