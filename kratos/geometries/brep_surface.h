@@ -22,7 +22,7 @@
 
 // Project includes
 #include "geometries/geometry.h"
-#include "geometries/brep_face_curve.h"
+#include "geometries/brep_curve_on_surface.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
 
@@ -32,13 +32,13 @@ namespace Kratos
 ///@{
 
 /**
- * @class BrepFace
+ * @class BrepSurface
  * @ingroup KratosCore
- * @brief The BrepFace acts as topology for faces. Those
+ * @brief The BrepSurface acts as topology for faces. Those
  *        can be enclosed by a certain set of brep face curves.
  */
 template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType>
-class BrepFace
+class BrepSurface
     : public Geometry<typename TContainerPointType::value_type>
 {
 public:
@@ -46,8 +46,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /** Pointer definition of BrepFace */
-    KRATOS_CLASS_POINTER_DEFINITION( BrepFace );
+    /** Pointer definition of BrepSurface */
+    KRATOS_CLASS_POINTER_DEFINITION( BrepSurface );
 
     typedef typename TContainerPointType::value_type PointType;
 
@@ -57,10 +57,10 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
-    typedef BrepFaceCurve<TContainerPointType, TContainerPointEmbeddedType> BrepFaceCurveType;
+    typedef BrepSurfaceCurve<TContainerPointType, TContainerPointEmbeddedType> BrepSurfaceCurveType;
 
-    typedef DenseVector<typename BrepFaceCurveType::Pointer> BrepFaceCurveLoopType;
-    typedef DenseVector<DenseVector<typename BrepFaceCurveType::Pointer>> BrepFaceCurveLoopArrayType;
+    typedef DenseVector<typename BrepSurfaceCurveType::Pointer> BrepSurfaceCurveLoopType;
+    typedef DenseVector<DenseVector<typename BrepSurfaceCurveType::Pointer>> BrepSurfaceCurveLoopArrayType;
 
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
 
@@ -75,7 +75,7 @@ public:
     ///@{
 
     /// Constructor for untrimmed patch
-    BrepFace( 
+    BrepSurface( 
         typename NurbsSurfaceType::Pointer pSurface)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
@@ -83,7 +83,7 @@ public:
     }
 
     /// Constructor for trimmed patch
-    BrepFace(
+    BrepSurface(
         typename NurbsSurfaceType::Pointer pSurface,
         BrepFaceCurveLoopArrayType& BrepOuterLoopArray,
         BrepFaceCurveLoopArrayType& BrepInnerLoopArray)
@@ -94,7 +94,7 @@ public:
     {
     }
 
-    explicit BrepFace(const PointsArrayType& ThisPoints)
+    explicit BrepSurface(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
     }
@@ -108,7 +108,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    BrepFace( BrepFace const& rOther )
+    BrepSurface( BrepSurface const& rOther )
         : BaseType( rOther )
     {
     }
@@ -125,14 +125,14 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType> explicit BrepFace(
-        BrepFace<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
+    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType> explicit BrepSurface(
+        BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
     {
     }
 
     /// Destructor
-    ~BrepFace() override = default;
+    ~BrepSurface() override = default;
 
     ///@}
     ///@name Operators
@@ -149,7 +149,7 @@ public:
      * @see Clone
      * @see ClonePoints
      */
-    BrepFace& operator=( const BrepFace& rOther )
+    BrepSurface& operator=( const BrepSurface& rOther )
     {
         BaseType::operator=( rOther );
         return *this;
@@ -167,7 +167,7 @@ public:
      * @see ClonePoints
      */
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
-    BrepFace& operator=( BrepFace<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
+    BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
         return *this;
@@ -179,7 +179,7 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new BrepFace( ThisPoints ) );
+        return typename BaseType::Pointer( new BrepSurface( ThisPoints ) );
     }
 
     ///@}
@@ -311,13 +311,13 @@ private:
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
     }
 
-    BrepFace()
+    BrepSurface()
         : BaseType( PointsArrayType(), &msGeometryData )
     {}
 
     ///@}
 
-}; // Class BrepFace
+}; // Class BrepSurface
 
 ///@name Input and output
 ///@{
@@ -325,12 +325,12 @@ private:
 /// input stream functions
 template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
     std::istream& rIStream,
-    BrepFace<TContainerPointType, TContainerPointEmbeddedType>& rThis );
+    BrepSurface<TContainerPointType, TContainerPointEmbeddedType>& rThis );
 
 /// output stream functions
 template<class TContainerPointType, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const BrepFace<TContainerPointType, TContainerPointEmbeddedType>& rThis )
+    const BrepSurface<TContainerPointType, TContainerPointEmbeddedType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -343,13 +343,13 @@ template<class TContainerPointType, class TContainerPointEmbeddedType = TContain
 ///@{
 
 template<class TContainerPointType, class TContainerPointEmbeddedType> const
-GeometryData BrepFace<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
+GeometryData BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>
-const GeometryDimension BrepFace<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
+const GeometryDimension BrepSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryDimension(
     2, 3, 2);
 
 ///@}
