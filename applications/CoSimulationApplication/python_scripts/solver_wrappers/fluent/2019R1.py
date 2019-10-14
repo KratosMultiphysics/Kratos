@@ -205,28 +205,80 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         # I think most of the init already happends in __init__?
         # when using restart, __init__ is called again??
 
+        self.n = 0  # time step
+
+
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
+        # *** when is this called? also at start??
+
         # *** should sth happen in here?
         # update index in Fluent? and let Fluent do some more stuff?
 
+        self.k = 0
+
+        self.send_message('next')
+
     def SolveSolutionStep(self, interface_input):
-        self.interface_input = interface_input
+        # *** do sth about filenames! what should be included in the name??
+
+        # store incoming displacements
+        self.interface_input.SetPythonList(interface_input.GetPythonList())
 
         # update iteration index
+        # *** TODO
 
         # update X,Y,Z in interface
-        print(self.interface_input.model_parts_variables)
+        for key in [_[0] for _ in self.interface_input.model_parts_variables]:
+            for node in self.model[key].Nodes:
+                disp = node.GetSolutionStepValue(self.displacement)
+                node.X += disp[0]
+                node.Y += disp[1]
+                node.Z += disp[2]
 
-        # for key in self.settings['interface_input'].keys():
-        #     for node in self.model[key].Nodes:
-        #         node.Y += (1 - np.cos(2 * np.pi * node.X)) * 0.5 * f
-
-        # *** what?
         # write interface data
+        self.write_node_positions()
+
         # let Fluent run, wait for data
-        # return interface_output (single!)
-        pass
+        self.send_message('continue')
+        # self.wait_message('fluent_ready')
+
+        # read data from Fluent
+        for key in self.settings['interface_output'].keys():
+            mp = self.model[key]
+
+            # read in datafile
+            tmp = 'pressure_traction_thread' + str(mp.thread_id) + '.dat'
+            file_name = os.path.join(self.dir_cfd, tmp)
+            data = np.loadtxt(file_name, skiprows=1)
+            if data.shape[1] != self.dimensions + 1 + self.mnpf:
+                raise ValueError('given dimension does not match coordinates')
+
+            # get face coordinates and ids
+            traction_tmp = np.zeros((data.shape[0], 3)) * 0.
+            traction_tmp[:, :self.dimensions] = data[:, :-1 - self.mnpf]
+            pressure_tmp = data[:, self.dimensions]
+            ids_tmp = self.get_unique_face_ids(data[:, -self.mnpf:])
+
+            # sort and remove doubles
+            args = np.unique(ids_tmp, return_index=True)[1].tolist()
+            traction_tmp = traction_tmp[args, :]
+            pressure_tmp = pressure_tmp[args]
+            ids_tmp = ids_tmp[args]
+
+            # store pressure and traction in Nodes
+            if ids_tmp.size != mp.NumberOfNodes():
+                raise ValueError('number of nodes does not match size of data')
+            index = 0
+            for node in mp.Nodes:
+                if ids_tmp[index] != node.Id:
+                    raise ValueError(f'node IDs do not match: {ids_tmp[index]}, {node.Id}')
+                node.SetSolutionStepValue(self.traction, 0, traction_tmp[index, :].tolist())
+                node.SetSolutionStepValue(self.pressure, 0, pressure_tmp[index])
+                index += 1
+
+        # return interface_output object
+        return self.interface_output
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -235,7 +287,6 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         super().Finalize()
 
     def GetInterfaceInput(self):
-        print('\nGETTING interface input\n')
         return self.interface_input  # *** protect with deepcopy?
 
     def SetInterfaceInput(self):
