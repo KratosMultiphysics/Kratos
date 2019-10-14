@@ -632,7 +632,7 @@ public:
      */
     void GenerateParallelInterfaces(
         ModelPart& rModelPart   
-    )
+    );
 
     /**
      * @brief This method generates the maps of reference for conditions and elements

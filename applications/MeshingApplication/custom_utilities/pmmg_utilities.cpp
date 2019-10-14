@@ -153,12 +153,16 @@ bool ParMmgUtilities<TPMMGLibrary>::GetRemoveRegions()
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::PrintAndGetParMmgMeshInfo(PMMGMeshInfo<TPMMGLibrary>& rPMMGMeshInfo)
 {
-    rPMMGMeshInfo.NumberOfNodes = mParMmgMesh->np;
+    int np,ne,nprism,nt,nquad,na;
+    KRATOS_ERROR_IF(PMMG_Get_meshSize(mParMmgMesh,&np,&ne,&nprism,&nt,&nquad,&na) != 1) << "Unable to get mesh size" << std::endl;
+
+    /* Warning: mesh groups must be merged on each local partition */
+    rPMMGMeshInfo.NumberOfNodes = np;
     if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
-        rPMMGMeshInfo.NumberOfTriangles = mParMmgMesh->nt;
-        rPMMGMeshInfo.NumberOfQuadrilaterals = mParMmgMesh->nquad;
-        rPMMGMeshInfo.NumberOfTetrahedra = mParMmgMesh->ne;
-        rPMMGMeshInfo.NumberOfPrism = mParMmgMesh->nprism;
+        rPMMGMeshInfo.NumberOfTriangles = nt;
+        rPMMGMeshInfo.NumberOfQuadrilaterals = nquad;
+        rPMMGMeshInfo.NumberOfTetrahedra = ne;
+        rPMMGMeshInfo.NumberOfPrism = nprism;
     }
 
     KRATOS_INFO_IF("ParMmgUtilities", mEchoLevel > 0) << "\tNodes created: " << rPMMGMeshInfo.NumberOfNodes << std::endl;
@@ -215,7 +219,10 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckFirstTypeConditions()
 
     IndexVectorType conditions_to_remove;
 
-    for(int i = 0; i < mParMmgMesh->nt; ++i) {
+    int np,ne,nprism,nt,nquad,na;
+    KRATOS_ERROR_IF(PMMG_Get_meshSize(mParMmgMesh,&np,&ne,&nprism,&nt,&nquad,&na) !=1 ) << "Unable to get mesh size" << std::endl;
+
+    for(int i = 0; i < nt; ++i) {
         int vertex_0, vertex_1, vertex_2, prop_id, is_required;
 
         KRATOS_ERROR_IF(PMMG_Get_triangle(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &prop_id, &is_required) != 1 ) << "Unable to get triangle" << std::endl;
@@ -249,7 +256,10 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckSecondTypeConditions(
 
     IndexVectorType conditions_to_remove;
 
-    for(int i = 0; i < mParMmgMesh->nquad; ++i) {
+    int np,ne,nprism,nt,nquad,na;
+    KRATOS_ERROR_IF(PMMG_Get_meshSize(mParMmgMesh,&np,&ne,&nprism,&nt,&nquad,&na) !=1 ) << "Unable to get mesh size" << std::endl;
+
+    for(int i = 0; i < nquad; ++i) {
         int vertex_0, vertex_1, vertex_2, vertex_3, prop_id, is_required;
 
         KRATOS_ERROR_IF(PMMG_Get_quadrilateral(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &prop_id, &is_required) != 1 ) << "Unable to get quadrilateral" << std::endl;
@@ -284,7 +294,10 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckFirstTypeElements()
 
     IndexVectorType elements_to_remove;
 
-    for(int i = 0; i < mParMmgMesh->ne; ++i) {
+    int np,ne,nprism,nt,nquad,na;
+    KRATOS_ERROR_IF(PMMG_Get_meshSize(mParMmgMesh,&np,&ne,&nprism,&nt,&nquad,&na) !=1 ) << "Unable to get mesh size" << std::endl;
+
+    for(int i = 0; i < ne; ++i) {
         int vertex_0, vertex_1, vertex_2, vertex_3, prop_id, is_required;
 
         KRATOS_ERROR_IF(PMMG_Get_tetrahedron(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &prop_id, &is_required) != 1 ) << "Unable to get tetrahedron" << std::endl;
@@ -319,7 +332,10 @@ IndexVectorType ParMmgUtilities<PMMGLibrary::PMMG3D>::CheckSecondTypeElements()
 
     IndexVectorType elements_to_remove;
 
-    for(int i = 0; i < mParMmgMesh->nprism; ++i) {
+    int np,ne,nprism,nt,nquad,na;
+    KRATOS_ERROR_IF(PMMG_Get_meshSize(mParMmgMesh,&np,&ne,&nprism,&nt,&nquad,&na) !=1 ) << "Unable to get mesh size" << std::endl;
+
+    for(int i = 0; i < nprism; ++i) {
         int vertex_0, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5, prop_id, is_required;
 
         KRATOS_ERROR_IF(PMMG_Get_prism(mParMmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &prop_id, &is_required) != 1 ) << "Unable to get prism" << std::endl;
@@ -641,7 +657,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitMesh()
 
     // We init the PMMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
-        PMMG_Init_parMesh( PMMG_ARG_start, PMMG_ARG_ppParMesh, &mParMmgMesh, PMMG_ARG_pMesh, PPMG_ARG_pMet, PMMG_ARG_dim, 3, PMMG_ARG_MPIComm, MPI_COMM_WORLD, PMMG_ARG_end);
+        PMMG_Init_parMesh( PMMG_ARG_start, PMMG_ARG_ppParMesh, &mParMmgMesh, PMMG_ARG_pMesh, PMMG_ARG_pMet, PMMG_ARG_dim, 3, PMMG_ARG_MPIComm, MPI_COMM_WORLD, PMMG_ARG_end);
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
@@ -1015,8 +1031,10 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetConditions(
 
         if (blocked_1 && blocked_2 && blocked_3) BlockCondition(Index);
     } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) { // Quadrilaterals
-        KRATOS_ERROR_IF( PMMG_Set_quadrilateral(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set quadrilateral" << std::endl;
+        KRATOS_ERROR << "Not yet implemented" << std::endl;
+        //KRATOS_ERROR_IF( PMMG_Set_quadrilateral(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set quadrilateral" << std::endl;
     } else {
+        const SizeType size_geometry = rGeometry.size(); 
         KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
     }
 }
@@ -1039,10 +1057,13 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetElements(
     if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
         KRATOS_ERROR_IF( PMMG_Set_tetrahedron(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set tetrahedron" << std::endl;
     } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
+        const SizeType size_geometry = rGeometry.size(); 
         KRATOS_ERROR << "ERROR: PRISM NON IMPLEMENTED IN THE LIBRARY " << size_geometry << std::endl;
     } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) { // Hexaedron
+        const SizeType size_geometry = rGeometry.size(); 
         KRATOS_ERROR << "ERROR: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY " << size_geometry << std::endl;
     } else {
+        const SizeType size_geometry = rGeometry.size(); 
         KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << std::endl;
     }
 }
@@ -1571,7 +1592,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
 }
 
 template<>
-void ParMmgUtilities<PMMGLibrary::PMMG3D>GenerateParallelInterfaces(
+void ParMmgUtilities<PMMGLibrary::PMMG3D>::GenerateParallelInterfaces(
     ModelPart& rModelPart
     ) 
 {
@@ -1585,8 +1606,8 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>GenerateParallelInterfaces(
             globalId[i] = node.Id();
         }
 
-        PMMG_Set_ifNodeCommunicatorSize(mParMmgMesh, i, rModelPart.GetCommunicator().NeighbourIndices()[i], mModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes());
-        PMMG_Set_ifNodeCommunicator_nodes(mParMmgMesh, i, globalId().data(), globalId().data(), 1); // Last parameters shoould be 0
+        PMMG_Set_ithNodeCommunicatorSize(mParMmgMesh, i, rModelPart.GetCommunicator().NeighbourIndices()[i], mModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes());
+        PMMG_Set_ithNodeCommunicator_nodes(mParMmgMesh, i, globalId().data(), globalId().data(), 1); // Last parameters shoould be 0
     }
 }
 
