@@ -26,7 +26,7 @@
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "custom_utilities/mmg_utilities.h"
+#include "custom_utilities/pmmg_utilities.h"
 #include "containers/variables_list.h"
 #include "meshing_application.h"
 
@@ -294,7 +294,7 @@ private:
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
     NodeType::DofsContainerType mDofs;                               /// Storage for the dof of the node
 
-    MmgUtilities<TPMMGLibrary> mMmmgUtilities;                        /// The PMMG utilities class
+    PMmgUtilities<TPMMGLibrary> mPMmmgUtilities;                     /// The PMMG utilities class
 
     std::string mFilename;                                           /// I/O file name
     IndexType mEchoLevel;                                            /// The echo level
