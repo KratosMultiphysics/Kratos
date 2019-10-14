@@ -643,11 +643,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitMesh()
 
     // We init the PMMG mesh and sol
     if (mDiscretization == DiscretizationOption::STANDARD) {
-        PMMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mParMmgMesh, MMG5_ARG_ppMet, &mParMmgSol, MMG5_ARG_end);
-    } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-        PMMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mParMmgMesh, MMG5_ARG_ppMet, &mParMmgSol, MMG5_ARG_ppDisp, &mParMmgDisp, MMG5_ARG_end);
-    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        PMMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mParMmgMesh, MMG5_ARG_ppLs, &mParMmgSol, MMG5_ARG_end);
+        PMMG_Init_parMesh( PMMG_ARG_start, PMMG_ARG_ppMesh, &mParMmgMesh, PMMG_ARG_ppMet, &mParMmgSol, PMMG_ARG_dim, 3, PMMG_ARG_MPIComm, MPI_COMM_WORLD, PMMG_ARG_end);
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
     }
