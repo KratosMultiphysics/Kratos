@@ -1,17 +1,12 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-# Importing the base class
-from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
+# CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 # Other imports
 import numpy as np
 import json
 import os
-
-#def Create(solver_settings):
-#    return SDoFSolver(solver_settings)
 
 class SDoFSolver(object):
     def __init__(self, input_file_name):
@@ -200,7 +195,7 @@ class SDoFSolver(object):
         #external load
         excitation_load = self.ApplyForceExcitation()
         self.load_vector[-1] += excitation_load
-        print("external load= ", self.load_vector[-1])
+        # print("external load= ", self.load_vector[-1])
         b += self.load_vector
         #root point displacement
         d_f_excitation = self.ApplyRootPointExcitation()
