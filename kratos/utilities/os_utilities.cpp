@@ -18,12 +18,12 @@
 #include <sys/stat.h>
 #include <stdio.h>  /* defines FILENAME_MAX */
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-#include <direct.h>
-#include "Shlwapi.h"
-#define GetCurrentDir _getcwd
+    #include <direct.h>
+    #include "Shlwapi.h"
+    #define GetCurrentDir _getcwd
 #else
-#include <unistd.h>
-#define GetCurrentDir getcwd
+    #include <unistd.h>
+    #define GetCurrentDir getcwd
 #endif
 
 // External includes
