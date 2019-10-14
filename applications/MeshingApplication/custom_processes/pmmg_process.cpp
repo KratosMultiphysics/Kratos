@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/mmg_process.h"
+#include "custom_processes/pmmg_process.h"
 #include "containers/model.h"
 // We indlude the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
@@ -74,23 +74,10 @@ ParMmgProcess<TPMMGLibrary>::ParMmgProcess(
     mFramework = ConvertFramework(mThisParameters["framework"].GetString());
 
     // The discretization type
-    mDiscretization = ConvertDiscretization(mThisParameters["discretization_type"].GetString());
-    if (TPMMGLibrary != PMMGLibrary::PMMGS) {
-        if (mDiscretization == DiscretizationOption::LAGRANGIAN && mFramework == FrameworkEulerLagrange::EULERIAN) {
-            mFramework = FrameworkEulerLagrange::LAGRANGIAN;
-            KRATOS_WARNING("ParMmgProcess") << "Inconsistent discretization and framework. Assigning LAGRANGIAN framework" << std::endl;
-        }
-    } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-        mDiscretization = DiscretizationOption::STANDARD;
-        KRATOS_WARNING("ParMmgProcess") << "Surface meshes not compatible with Lagrangian motion. Reassign to standard discretization" << std::endl;
-    }
+    mDiscretization = DiscretizationOption::STANDARD;
+    KRATOS_WARNING("ParMmgProcess") << "Surface meshes not compatible with Lagrangian motion. Reassign to standard discretization" << std::endl;
 
-    // Checking isosurface flag
-    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        mRemoveRegions = mThisParameters["isosurface_parameters"]["remove_internal_regions"].GetBool();
-    } else {
-        mRemoveRegions = false;
-    }
+    mRemoveRegions = false;
 
     mpRefElement.clear();
     mpRefCondition.clear();
@@ -205,10 +192,10 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteInitializeSolutionStep()
     }
 
     // Check if the number of given entities match with mesh size
-    mPMmmgUtilities.CheckMeshData();
+    //mPMmmgUtilities.CheckMeshData();
 
     // Save to file
-    if (safe_to_file) SaveSolutionToFile(false);
+    // if (safe_to_file) SaveSolutionToFile(false);
 
     // We execute the remeshing
     ExecuteRemeshing();
@@ -463,18 +450,14 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     }
 
     // Calling the library functions
-    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        mPMmmgUtilities.PMMGLibCallIsoSurface(mThisParameters);
-    } else {
-        mPMmmgUtilities.PMMGLibCallMetric(mThisParameters);
-    }
+    mPMmmgUtilities.PMMGLibCallMetric(mThisParameters);
 
     /* Save to file */
     if (save_to_file) SaveSolutionToFile(true);
 
     // Some information
     PMMGMeshInfo<TPMMGLibrary> mmg_mesh_info;
-    mPMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
+    mPMmmgUtilities.PrintAndGetParMmgMeshInfo(mmg_mesh_info);
 
     // We clear the OLD_ENTITY flag
     if (collapse_prisms_elements) {
@@ -606,7 +589,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
     interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
     interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-    if (TPMMGLibrary == PMMGLibrary::PMMGS) interpolate_parameters["surface_elements"].SetBool(!collapse_prisms_elements);
+
     NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_model_part, mrThisModelPart, interpolate_parameters);
     interpolate_nodal_values_process.Execute();
 
@@ -1181,7 +1164,12 @@ Parameters ParMmgProcess<TPMMGLibrary>::GetDefaultParameters()
             "normal_regularization_mesh"          : false,
             "deactivate_detect_angle"             : false,
             "force_gradation_value"               : false,
-            "gradation_value"                     : 1.3
+            "gradation_value"                     : 1.3,
+            "niter"                               : 4,
+            "meshSize"                            : 30000,
+            "metisRatio"                          : 82,
+            "hgradreq"                            : 5.0,
+            "APImode"                             : 0  
         },
         "collapse_prisms_elements"             : false,
         "save_external_files"                  : false,
