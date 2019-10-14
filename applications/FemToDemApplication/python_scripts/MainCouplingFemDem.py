@@ -802,7 +802,9 @@ class MainCoupledFemDem_Solution:
         remove_alone_DEM_elements_process.Execute()
 
 #============================================================================================================================
-    def ExecuteBeforeGeneratingDEM(self):
+    def ExecuteBeforeGeneratingDEM(self): 
+        """Here the erased are labeled as INACTIVE so you can access to them. After calling
+           GenerateDEM they are totally erased"""
         self.ExpandWetNodes()
 
 #============================================================================================================================
