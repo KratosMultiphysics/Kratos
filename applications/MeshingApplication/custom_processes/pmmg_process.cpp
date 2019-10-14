@@ -153,10 +153,10 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteInitialize()
     }
 
     /* We restart the PMMG mesh and solution */
-    mMmmgUtilities.SetEchoLevel(mEchoLevel);
-    mMmmgUtilities.SetDiscretization(mDiscretization);
-    mMmmgUtilities.SetRemoveRegions(mRemoveRegions);
-    mMmmgUtilities.InitMesh();
+    mPMmmgUtilities.SetEchoLevel(mEchoLevel);
+    mPMmmgUtilities.SetDiscretization(mDiscretization);
+    mPMmmgUtilities.SetRemoveRegions(mRemoveRegions);
+    mPMmmgUtilities.InitMesh();
 
     KRATOS_CATCH("");
 }
@@ -205,7 +205,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteInitializeSolutionStep()
     }
 
     // Check if the number of given entities match with mesh size
-    mMmmgUtilities.CheckMeshData();
+    mPMmmgUtilities.CheckMeshData();
 
     // Save to file
     if (safe_to_file) SaveSolutionToFile(false);
@@ -284,7 +284,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteFinalize()
             TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
 
             // We set the metric
-            mMmmgUtilities.GetMetricTensor(r_metric);
+            mPMmmgUtilities.GetMetricTensor(r_metric);
         }
     }
 
@@ -320,7 +320,7 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
 {
     // We create a list of submodelparts to later reassign flags after remesh
     if (mThisParameters["preserve_flags"].GetBool()) {
-        mMmmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
+        mPMmmgUtilities.CreateAuxiliarSubModelPartForFlags(mrThisModelPart);
     }
 
     // The auxiliar color maps
@@ -345,7 +345,7 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
     }
 
     // Actually generate mesh data
-    mMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework, collapse_prisms_elements);
+    mPMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework, collapse_prisms_elements);
 
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     auto& r_nodes_array = mrThisModelPart.Nodes();
@@ -356,7 +356,7 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
         (**it_dof).FreeDof();
 
     // Generate the maps of reference
-    mMmmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
+    mPMmmgUtilities.GenerateReferenceMaps(mrThisModelPart, aux_ref_cond, aux_ref_elem, mpRefCondition, mpRefElement);
 }
 
 /***********************************************************************************/
@@ -366,7 +366,7 @@ template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::InitializeSolDataMetric()
 {
     // We initialize the solution data with the given modelpart
-    mMmmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
+    mPMmmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
 }
 
 /***********************************************************************************/
@@ -381,7 +381,7 @@ void ParMmgProcess<TPMMGLibrary>::InitializeSolDataDistance()
     const auto it_node_begin = r_nodes_array.begin();
 
     // Set size of the solution
-    mMmmgUtilities.SetSolSizeScalar(r_nodes_array.size() );
+    mPMmmgUtilities.SetSolSizeScalar(r_nodes_array.size() );
 
     // GEtting variable for scalar filed
     const std::string& r_isosurface_variable_name = mThisParameters["isosurface_parameters"]["isosurface_variable"].GetString();
@@ -411,7 +411,7 @@ void ParMmgProcess<TPMMGLibrary>::InitializeSolDataDistance()
             }
 
             // We set the isosurface variable
-            mMmmgUtilities.SetMetricScalar(isosurface_value, i + 1);
+            mPMmmgUtilities.SetMetricScalar(isosurface_value, i + 1);
         }
     }
 }
@@ -423,7 +423,7 @@ template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::InitializeDisplacementData()
 {
     // We initialize the displacement data with the given modelpart
-    mMmmgUtilities.GenerateDisplacementDataFromModelPart(mrThisModelPart);
+    mPMmmgUtilities.GenerateDisplacementDataFromModelPart(mrThisModelPart);
 }
 
 /***********************************************************************************/
@@ -461,9 +461,9 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
 
     // Calling the library functions
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        mMmmgUtilities.PMMGLibCallIsoSurface(mThisParameters);
+        mPMmmgUtilities.PMMGLibCallIsoSurface(mThisParameters);
     } else {
-        mMmmgUtilities.PMMGLibCallMetric(mThisParameters);
+        mPMmmgUtilities.PMMGLibCallMetric(mThisParameters);
     }
 
     /* Save to file */
@@ -471,7 +471,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
 
     // Some information
     PMMGMeshInfo<TPMMGLibrary> mmg_mesh_info;
-    mMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
+    mPMmmgUtilities.PrintAndGetMmgMeshInfo(mmg_mesh_info);
 
     // We clear the OLD_ENTITY flag
     if (collapse_prisms_elements) {
@@ -533,10 +533,10 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // Writing the new mesh data on the model part
-    mMmmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
+    mPMmmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
 
     // Writing the new solution data on the model part
-    mMmmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
+    mPMmmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
 
     // In case of prism collapse we extrapolate now (and later extrude)
     if (collapse_prisms_elements) {
@@ -559,7 +559,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
         interpolate_nodal_values_process.Execute();
 
         // Reorder before extrude
-        mMmmgUtilities.ReorderAllIds(mrThisModelPart);
+        mPMmmgUtilities.ReorderAllIds(mrThisModelPart);
 
         /* Now we can extrude */
         ExtrudeTrianglestoPrisms(r_old_model_part);
@@ -569,11 +569,11 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     }
 
     /* After that we reorder nodes, conditions and elements: */
-    mMmmgUtilities.ReorderAllIds(mrThisModelPart);
+    mPMmmgUtilities.ReorderAllIds(mrThisModelPart);
 
     /* We assign flags and clear the auxiliar model parts created to reassing the flags */
     if (mThisParameters["preserve_flags"].GetBool()) {
-        mMmmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(mrThisModelPart);
+        mPMmmgUtilities.AssignAndClearAuxiliarSubModelPartForFlags(mrThisModelPart);
     }
 
     /* Unmoving the original mesh to be able to interpolate */
@@ -704,19 +704,19 @@ void ParMmgProcess<TPMMGLibrary>::SaveSolutionToFile(const bool PostOutput)
     const std::string file_name = mFilename + "_step=" + std::to_string(step) + (PostOutput ? ".o" : "");
 
     // Automatically save the mesh
-    mMmmgUtilities.OutputMesh(file_name);
+    mPMmmgUtilities.OutputMesh(file_name);
 
     // Automatically save the solution
-    mMmmgUtilities.OutputSol(file_name);
+    mPMmmgUtilities.OutputSol(file_name);
 
     // The current displacement
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-        mMmmgUtilities.OutputDisplacement(file_name);
+        mPMmmgUtilities.OutputDisplacement(file_name);
     }
 
     if (mThisParameters["save_colors_files"].GetBool()) {
         // Output the reference files
-        mMmmgUtilities.OutputReferenceEntitities(file_name, mpRefCondition, mpRefElement);
+        mPMmmgUtilities.OutputReferenceEntitities(file_name, mpRefCondition, mpRefElement);
 
         // Writing the colors to a JSON
         AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(file_name, mColors);
@@ -730,7 +730,7 @@ template<PMMGLibrary TPMMGLibrary>
 void ParMmgProcess<TPMMGLibrary>::FreeMemory()
 {
     // Free the PMMG structures
-    mMmmgUtilities.FreeAll();
+    mPMmmgUtilities.FreeAll();
 
     // Free reference std::unordered_map
     mpRefElement.clear();
