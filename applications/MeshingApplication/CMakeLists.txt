@@ -38,6 +38,15 @@ set( KRATOS_MESHING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/multiscale_refining_process.cpp
 )
 
+## If we have PMMG support, use it
+set(KRATOS_MESHING_APPLICATION_CORE_PMMG "")
+if(${INCLUDE_PMMG} MATCHES ON)
+set( KRATOS_MESHING_APPLICATION_CORE_PMMG ${KRATOS_MESHING_APPLICATION_CORE_PMMG}
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/pmmg_utilities.cpp
+)
+endif(${INCLUDE_PMMG} MATCHES ON)
+
+
 ## If we have MMG support, use it
 set(KRATOS_MESHING_APPLICATION_CORE_MMG "")
 if(${INCLUDE_MMG} MATCHES ON)
@@ -60,9 +69,38 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_CORE_MMG} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
+add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_CORE_PMMG} ${KRATOS_MESHING_APPLICATION_CORE_MMG} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt)
 set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
+
+if(${INCLUDE_PMMG} MATCHES ON)
+    add_definitions( -DINCLUDE_PMMG )
+   ## find Metis for ParMmg
+   if(NOT DEFINED USE_METIS_5)
+   	message("USE_METIS_5 not defined. Setting to ON")
+   	SET (USE_METIS_5 ON)
+   endif(NOT DEFINED USE_METIS_5)
+   
+   if(${USE_METIS_5} MATCHES ON)
+       message("using metis (and not Parmetis) version 5")
+       add_definitions(-DKRATOS_USE_METIS_5)
+       find_package(METIS REQUIRED)
+       include_directories(${METIS_INCLUDE_DIR})
+       link_directories(${METIS_LIBRARIES})
+       install(FILES ${METIS_LIBRARIES} DESTINATION libs)
+   #else(${USE_METIS_5} MATCHES ON)
+   #    message("using PARMETIS < 4 as default. Set USE_METIS_5=ON to compile with METIS v5 instead- note that current compile option is deprecated and will be removed soon")
+   #    find_package(PARMETIS REQUIRED)
+   #    include_directories(${PARMETIS_INCLUDE_DIR})
+   #    link_directories(${PARMETIS_LIBRARIES})
+   endif(${USE_METIS_5} MATCHES ON)
+
+
+    INCLUDE_DIRECTORIES(${PMMG_INCLUDE_DIR})
+    INCLUDE_DIRECTORIES(${MMG3D_INCLUDE_DIR})
+
+    target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt ${METIS_LIBRARY} ${PMMG_LIBRARY} ${MMG3D_LIBRARY})
+endif(${INCLUDE_PMMG} MATCHES ON)
 
 if(${INCLUDE_MMG} MATCHES ON)
     add_definitions( -DINCLUDE_MMG )

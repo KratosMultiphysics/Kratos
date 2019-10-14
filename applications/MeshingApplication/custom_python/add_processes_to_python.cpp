@@ -32,6 +32,10 @@
     #include "custom_processes/mmg_process.h"
 #endif
 
+#ifdef INCLUDE_PMMG
+    #include "custom_processes/pmmg_process.h"
+#endif
+
 namespace Kratos
 {
 
@@ -161,6 +165,17 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("CleanSuperfluousNodes", &MmgProcess<MMGLibrary::MMGS>::CleanSuperfluousNodes)
     ;
 #endif
+    /* PMMG PROCESS */
+#ifdef INCLUDE_PMMG
+    // 3D
+    py::class_<ParMmgProcess<PMMGLibrary::PMMG3D>, ParMmgProcess<PMMGLibrary::PMMG3D>::Pointer, Process>(m, "ParMmgProcess3D")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def("OutputMdpa", &ParMmgProcess<PMMGLibrary::PMMG3D>::OutputMdpa)
+    .def("CleanSuperfluousNodes", &ParMmgProcess<PMMGLibrary::PMMG3D>::CleanSuperfluousNodes)
+    ;
+#endif
+
 }
 
 }  // namespace Python.
