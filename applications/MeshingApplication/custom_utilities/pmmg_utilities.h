@@ -394,6 +394,13 @@ public:
     void InitVerbosity();
 
     /**
+     * @brief Here the API mode is set using the API
+     * @param[in] API Mode sets the mode in which the parallel communicator works
+     */
+    void InitAPIModeParameter(const IndexType VerbosityPMMG);
+
+
+    /**
      * @brief Here the verbosity is set using the API
      * @param[in] VerbosityPMMG The equivalent verbosity level in the PMMG API
      */
@@ -618,6 +625,14 @@ public:
         const FrameworkEulerLagrange Framework = FrameworkEulerLagrange::EULERIAN,
         const bool CollapsePrismElements = false
         );
+
+    /**
+     * @brief This method generates the interface data for the parallel communicator
+     * @param[in,out] rModelPart The model part with the kratos communicator.
+     */
+    void GenerateParallelInterfaces(
+        ModelPart& rModelPart   
+    )
 
     /**
      * @brief This method generates the maps of reference for conditions and elements

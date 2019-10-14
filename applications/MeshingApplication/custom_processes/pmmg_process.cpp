@@ -347,6 +347,9 @@ void ParMmgProcess<TPMMGLibrary>::InitializeMeshData()
     // Actually generate mesh data
     mPMmmgUtilities.GenerateMeshDataFromModelPart(mrThisModelPart, mColors, aux_ref_cond, aux_ref_elem, mFramework, collapse_prisms_elements);
 
+    // Generate Interface data
+    mPMmmgUtilities.GenerateParallelInterfaces(mrThisModelPart);
+
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     auto& r_nodes_array = mrThisModelPart.Nodes();
     const auto& r_old_dofs = r_nodes_array.begin()->GetDofs();
