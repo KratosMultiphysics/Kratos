@@ -329,6 +329,15 @@ public:
     }
 
     ///@}
+    ///@name GeometryDimension
+    ///@{
+
+    void SetGeometryDimension(GeometryDimension const* pGeometryDimension)
+    {
+        mpGeometryDimension = pGeometryDimension;
+    }
+
+    ///@}
     ///@name Informations
     ///@{
 
