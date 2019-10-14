@@ -19,8 +19,8 @@
 #include "testing/testing.h"
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
-#include "geometries/brep_face_curve.h"
-#include "geometries/brep_face.h"
+#include "geometries/brep_curve_on_surface.h"
+#include "geometries/brep_surface.h"
 
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
@@ -151,21 +151,21 @@ namespace Testing {
         auto p_curve_2 = GenerateReference2Curve2dPointer();
         auto p_curve_3 = GenerateReference3Curve2dPointer();
 
-        auto p_brep_face_curve_1 = Kratos::make_shared<BrepFaceCurve<PointerVector<NodeType>, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_1 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(
             p_surface, p_curve_1);
-        auto p_brep_face_curve_2 = Kratos::make_shared<BrepFaceCurve<PointerVector<NodeType>, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_2 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(
             p_surface, p_curve_2);
-        auto p_brep_face_curve_3 = Kratos::make_shared<BrepFaceCurve<PointerVector<NodeType>, PointerVector<Point>>>(
+        auto p_brep_curve_on_surface_3 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(
             p_surface, p_curve_3);
 
-        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepFaceCurveLoopType outer_loop(3);
-        outer_loop[0] = p_brep_face_curve_1;
-        outer_loop[1] = p_brep_face_curve_2;
-        outer_loop[2] = p_brep_face_curve_3;
+        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(3);
+        outer_loop[0] = p_brep_curve_on_surface_1;
+        outer_loop[1] = p_brep_curve_on_surface_2;
+        outer_loop[2] = p_brep_curve_on_surface_3;
 
-        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepFaceCurveLoopArrayType outer_loops(1);
+        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType outer_loops(1);
         outer_loops[0] = outer_loop;
-        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepFaceCurveLoopArrayType inner_loops(0);
+        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(0);
 
         auto brep_face = BrepFace<PointerVector<NodeType>, PointerVector<Point>>(
             p_surface, outer_loops, inner_loops);
@@ -180,17 +180,17 @@ namespace Testing {
         //coords[0] = 1.0;
         //Vector N;
 
-        //p_brep_face_curve.ShapeFunctionsValues(N, coords);
+        //p_brep_curve_on_surface.ShapeFunctionsValues(N, coords);
         //KRATOS_WATCH(N)
         //Matrix DN_De;
-        //p_brep_face_curve.ShapeFunctionsLocalGradients(DN_De, coords);
+        //p_brep_curve_on_surface.ShapeFunctionsLocalGradients(DN_De, coords);
         //KRATOS_WATCH(DN_De)
 
         //array_1d<double, 3> result(3, 0.0);
-        //p_brep_face_curve.GlobalCoordinates(result, coords);
+        //p_brep_curve_on_surface.GlobalCoordinates(result, coords);
         //KRATOS_WATCH(result)
 
-        //auto results = p_brep_face_curve.GlobalDerivatives(coords, 3);
+        //auto results = p_brep_curve_on_surface.GlobalDerivatives(coords, 3);
         //KRATOS_WATCH(results[0])
     }
 } // namespace Testing.
