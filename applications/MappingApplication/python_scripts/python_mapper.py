@@ -3,6 +3,10 @@ import KratosMultiphysics as KM
 class PythonMapper(object):
     """Baseclass for python based mappers in Kratos
     The inteface matches the C++ version ("custom_mappers/mapper.h")
+    The py-mappers are intentionally NOT derived from the c++ version.
+    Reasons:
+    - Doing so would require some special treatment of the pure virtual functions exposed to python
+    - They are more or less temporary until Kratos has more Mappers
     """
     def __init__(self, model_part_origin, model_part_destination, mapper_settings):
         self.model_part_origin = model_part_origin
