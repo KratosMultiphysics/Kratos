@@ -81,13 +81,18 @@ public:
         
         const int number_nodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if(number_nodes != 0) {
+        if (number_nodes != 0) {
             const auto& it_begin = mrModelPart.NodesBegin();
-
             #pragma omp parallel for
-            for(int i = 0; i < number_nodes; i++) {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->FastGetSolutionStepValue(var) = value;
+            for (int i = 0; i < number_nodes; i++) {
+                auto it_node = it_begin + i;
+
+                double reduction_factor_pressure = 1.0;
+                if (it_node->GetValue(PRESSURE_INITIAL_VOLUME) != 0.0) {
+                    reduction_factor_pressure = it_node->GetValue(PRESSURE_INITIAL_VOLUME) / it_node->GetValue(PRESSURE_VOLUME);
+                }
+
+                it_node->FastGetSolutionStepValue(var) = reduction_factor_pressure * value;
             }
         }
         KRATOS_CATCH("");

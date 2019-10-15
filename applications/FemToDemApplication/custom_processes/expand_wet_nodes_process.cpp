@@ -138,8 +138,19 @@ void ExpandWetNodesProcess::ExpandWetNodes(
     )
 {
     auto& r_geometry = itElem->GetGeometry();
+    double initial_vol_pressure, vol_pressure;
+    for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+        if (r_geometry[i].GetValue(PRESSURE_INITIAL_VOLUME) != 0.0) {
+            initial_vol_pressure = r_geometry[i].GetValue(PRESSURE_INITIAL_VOLUME);
+            vol_pressure = r_geometry[i].GetValue(PRESSURE_VOLUME);
+            break;
+        }
+    }
+
     for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
         r_geometry[i].SetValue(PRESSURE_ID, PressureId);
+        r_geometry[i].SetValue(PRESSURE_INITIAL_VOLUME, initial_vol_pressure);
+        r_geometry[i].SetValue(PRESSURE_VOLUME, vol_pressure);
     }
 
     // Indicator to reconstruct the Pressure afterwards
