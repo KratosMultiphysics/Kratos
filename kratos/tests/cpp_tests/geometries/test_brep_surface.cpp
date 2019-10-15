@@ -158,22 +158,22 @@ namespace Testing {
         auto p_brep_curve_on_surface_3 = Kratos::make_shared<BrepCurveOnSurface<PointerVector<NodeType>, PointerVector<Point>>>(
             p_surface, p_curve_3);
 
-        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(3);
+        BrepSurface<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopType outer_loop(3);
         outer_loop[0] = p_brep_curve_on_surface_1;
         outer_loop[1] = p_brep_curve_on_surface_2;
         outer_loop[2] = p_brep_curve_on_surface_3;
 
-        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType outer_loops(1);
+        BrepSurface<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType outer_loops(1);
         outer_loops[0] = outer_loop;
-        BrepFace<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(0);
+        BrepSurface<PointerVector<NodeType>, PointerVector<Point>>::BrepCurveOnSurfaceLoopArrayType inner_loops(0);
 
-        auto brep_face = BrepFace<PointerVector<NodeType>, PointerVector<Point>>(
+        auto brep_surface = BrepSurface<PointerVector<NodeType>, PointerVector<Point>>(
             p_surface, outer_loops, inner_loops);
 
         //// Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(brep_face.Dimension(), 2);
-        KRATOS_CHECK_EQUAL(brep_face.WorkingSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL(brep_face.LocalSpaceDimension(), 2);
+        KRATOS_CHECK_EQUAL(brep_surface.Dimension(), 2);
+        KRATOS_CHECK_EQUAL(brep_surface.WorkingSpaceDimension(), 3);
+        KRATOS_CHECK_EQUAL(brep_surface.LocalSpaceDimension(), 2);
 
 
         //array_1d<double, 3> coords(3, 0.0);
