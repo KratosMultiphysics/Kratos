@@ -57,10 +57,10 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
-    typedef BrepSurfaceCurve<TContainerPointType, TContainerPointEmbeddedType> BrepSurfaceCurveType;
+    typedef BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
 
-    typedef DenseVector<typename BrepSurfaceCurveType::Pointer> BrepSurfaceCurveLoopType;
-    typedef DenseVector<DenseVector<typename BrepSurfaceCurveType::Pointer>> BrepSurfaceCurveLoopArrayType;
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
+    typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
 
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
 
