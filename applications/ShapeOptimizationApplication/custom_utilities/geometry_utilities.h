@@ -332,7 +332,7 @@ private:
                 else if (cond_i.GetGeometry().PointsNumber() == 4)
                     CalculateNormal3DQuad(cond_i,An,v1,v2);
                 else
-                    KRATOS_ERROR << "> Calculation of surface normal not implemented for the given surface conditions!";
+                    KRATOS_ERROR << "Calculation of surface normal not implemented for the given surface conditions!";
             }
         }
 
