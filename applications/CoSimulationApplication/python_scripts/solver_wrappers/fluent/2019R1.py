@@ -17,6 +17,7 @@ def Create(parameters):
 
 
 class SolverWrapperFluent2019R1(CoSimulationComponent):
+
     def __init__(self, parameters):
         super().__init__()
 
@@ -34,12 +35,13 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.unsteady = self.settings['unsteady'].GetBool()
         self.hybrid_initialization = self.settings['hybrid_initialization'].GetBool()
         self.flow_iterations = self.settings['flow_iterations'].GetInt()
+        self.timestep_start = self.settings['timestep_start'].GetInt()
 
         self.thread_names = [_.GetString() for _ in self.settings['thread_names'].list()]
         self.n_threads = len(self.thread_names)
         self.thread_ids = [None] * self.n_threads
 
-        # prepare Fluent input journal
+        # prepare Fluent journal
         journal = '2019R1.jou'
         thread_names_str = ''
         for key in self.thread_names:
@@ -58,15 +60,17 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                     line = line.replace('|UNSTEADY|', unsteady)
                     line = line.replace('|HYBRID_INITIALIZATION|', hybrid_initialization)
                     line = line.replace('|FLOW_ITERATIONS|', str(self.flow_iterations))
+                    line = line.replace('|TIMESTEP_START|', str(self.timestep_start))
                     outfile.write(line)
 
         # prepare Fluent UDF
-        udf = '2019R1.c'
-        with open(join(path_src, udf), 'r') as infile:
-            with open(join(self.dir_cfd, udf), 'w') as outfile:
-                for line in infile:
-                    line = line.replace('|MAX_NODES_PER_FACE|', str(self.mnpf))
-                    outfile.write(line)
+        if not self.timestep_start:
+            udf = '2019R1.c'
+            with open(join(path_src, udf), 'r') as infile:
+                with open(join(self.dir_cfd, udf), 'w') as outfile:
+                    for line in infile:
+                        line = line.replace('|MAX_NODES_PER_FACE|', str(self.mnpf))
+                        outfile.write(line)
 
         # start Fluent with journal
         fluent_gui = self.settings['fluent_gui'].GetBool()
@@ -77,7 +81,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                              shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
 
         # get general simulation info from report.sum
-        self.wait_message('surface_info_exported')  # *** ON/OFF
+        self.wait_message('case_info_exported')  # *** ON/OFF
         report = join(self.dir_cfd, 'report.sum')
         check = 0
         with open(report, 'r') as file:
@@ -206,25 +210,14 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.traction = vars(KM)['TRACTION']
         self.displacement = vars(KM)['DISPLACEMENT']
 
-        # test simple FSI loop
-        if 0:  # *** ON/OFF
-            for i in range(5):
-                self.set_node_coordinates_test(0.01)
-                self.write_node_positions()
-                self.send_message('continue')
-                self.wait_message('fluent_ready')
-            self.send_message('stop')
-
     def Initialize(self):
         super().Initialize()
-        # TODO I think most of the init already happends in __init__?
-        # when using restart, __init__ is called again??
 
-        self.timestep = 0
-
+        self.timestep = self.timestep_start
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
+
         self.iteration = 0
         self.timestep += 1
         print(f'Timestep {self.timestep}')

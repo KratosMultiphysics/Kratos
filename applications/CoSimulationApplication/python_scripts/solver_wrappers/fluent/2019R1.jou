@@ -1,4 +1,3 @@
-
 ;   GENERAL SETTINGS
 file set-batch-options n n n
 file start-transcript "transcript.txt"
@@ -6,8 +5,9 @@ file start-transcript "transcript.txt"
 ;file binary-files n
 (define unsteady |UNSTEADY|)
 (define flow_iterations |FLOW_ITERATIONS|)
-
-;   FUNCTIONS
+(define timestep_start |TIMESTEP_START|)
+;
+;   FUNCTION DEFINITIONS
 (define (send_message message)
     (system (string-append "touch " message ".msg"))
 )
@@ -42,55 +42,58 @@ file start-transcript "transcript.txt"
         (newline)
     )
 )
-
-
-;   STUFF TO DO WHEN NOT RESTARTING
-; add init condition??
-(rp-var-define 'udf/timestep 0 'int #f)
-(rp-var-define 'udf/iteration 0 'int #f)
-
-;   READ CASE
-file read-case |CASE|
-solve set expert y n y
-
-;   SAVE DATA FOR SURFACE IDS
+;
+;   READ CASE/DATA, COMPILE AND LOAD UDF
+(if (= timestep_start 0)
+    (begin
+        (ti-menu-load-string "file read-case |CASE|")
+        (ti-menu-load-string "solve set expert y n y")
+        (rp-var-define 'udf/timestep 0 'int #f)
+        (rp-var-define 'udf/iteration 0 'int #f)
+        (ti-menu-load-string "define user-defined compiled-functions compile \"2019R1\" y \"2019R1.c\" \"\" \"\"")
+        (ti-menu-load-string "define user-defined compiled-functions load \"2019R1\"")
+    )
+    (ti-menu-load-string (format #f "file read-case-data \"case_timestep~a.cas\"" timestep_start))
+)
+;
+;   SAVE CASE INFO TO TEXT FILE
 report summary y "report.sum"
-(send_message "surface_info_exported")
-
-;   COMPILE AND LOAD UDF
-define user-defined compiled-functions compile "2019R1" y "2019R1.c" "" ""
-define user-defined compiled-functions load "2019R1"
-
+(send_message "case_info_exported")
+;
 ;   GET_THREAD_IDS IN UDF AND JOURNAL
 (wait_message "thread_ids_written_to_file")
 define user-defined execute-on-demand "get_thread_ids::2019R1"
 (define face_threads (list|THREAD_NAMES|))
-
-;   CREATE DYNAMIC MESH ZONES
-(do ((k 0 (+ k 1))) ((>= k (length face_threads)))
-    (ti-menu-load-string (format #f "define dynamic-mesh zones create ~a
-        user-defined \"move_nodes::2019R1\"" (list-ref face_threads k)))
+;
+;   SETUP DYNAMIC MESH
+(if (= timestep_start 0)
+    (begin
+        (do ((k 0 (+ k 1))) ((>= k (length face_threads)))
+            (ti-menu-load-string (format #f "define dynamic-mesh zones create ~a
+                user-defined \"move_nodes::2019R1\"" (list-ref face_threads k)))
+        )
+        (ti-menu-load-string "define dynamic-mesh controls implicit-update-parameters motion-relaxation 1")
+        (ti-menu-load-string "define dynamic-mesh controls implicit-update-parameters residual-criteria -1")
+        (if unsteady
+            (ti-menu-load-string "define dynamic-mesh controls implicit-update-parameters update-interval 1")
+        )
+    )
 )
-define dynamic-mesh controls implicit-update-parameters motion-relaxation 1
-define dynamic-mesh controls implicit-update-parameters residual-criteria -1
-
-;   ENABLE UPDATING MESH WHEN UNSTEADY
-
-(if unsteady
-    (ti-menu-load-string "define dynamic-mesh controls implicit-update-parameters update-interval 1")
-)
-
+;
 ;   STORE COORDINATES AND ID
 define user-defined execute-on-demand "store_coordinates_id::2019R1"
 (send_message "nodes_and_faces_stored")
-
+;
 ;   INITIALIZE SOLUTION
-(if |HYBRID_INITIALIZATION|
-    (ti-menu-load-string "solve initialize hyb-initialization y")
-    (ti-menu-load-string "solve initialize initialize-flow y")
+(if (= timestep_start 0)
+    (if |HYBRID_INITIALIZATION|
+        (ti-menu-load-string "solve initialize hyb-initialization y")
+        (ti-menu-load-string "solve initialize initialize-flow y")
+    )
 )
+;
 solve monitors residual check-convergence n n n
-
+;
 ;   FSI LOOP
 (do ((j 0 j)) ((= j 1))
     (if (check_message "stop")
@@ -145,7 +148,4 @@ solve monitors residual check-convergence n n n
     )
     (system "sleep 0.1")
 )
-
-;   SAVE CASE
-file write-case-data "case_out.cas"
 exit y

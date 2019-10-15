@@ -11,8 +11,7 @@
                 "case_file": "case.cas",
                 "dimensions": 2,
                 "unsteady": true,
-                "first_timestep": 0,
-                "last_timestep": 1,
+                "timestep_start": 2,
                 "thread_names": ["wall_top", "wall_bottom"],
                 "interface_input":
                 {
@@ -29,7 +28,7 @@
                 "max_nodes_per_face": 4,
                 "hybrid_initialization": true,
                 "flow_iterations": 10,
-                "save_iterations": 2
+                "save_iterations": 1
             }
         }
     ]
