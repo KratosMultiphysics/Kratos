@@ -94,36 +94,23 @@ public:
     {
     }
 
-    /**
-     * Copy constructor.
-     * Construct this geometry as a copy of given geometry.
-     *
-     * @note This copy constructor does not copy the points and new
-     * geometry shares points with given source geometry. It is
-     * obvious that any change to this new geometry's point affect
-     * source geometry's points too.
-     */
+    /// Copy constructor.
     BrepCurveOnSurface( BrepCurveOnSurface const& rOther )
         : BaseType( rOther )
+        , mpNurbsSurface(rOther.mpNurbsSurface)
+        , mpNurbsCurve(rOther.mpNurbsCurve)
+        , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
     {
     }
 
-    /**
-     * Copy constructor from a geometry with other point type.
-     * Construct this geometry as a copy of given geometry which
-     * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
-     * geometry PointType.
-     *
-     * @note This copy constructor does not copy the points and new
-     * geometry shares points with given source geometry. It is
-     * obvious that any change to this new geometry's point affect
-     * source geometry's points too.
-     */
+    /// Copy constructor from a geometry with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     explicit BrepCurveOnSurface(
         BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
+        , mpNurbsSurface(rOther.mpNurbsSurface)
+        , mpNurbsCurve(rOther.mpNurbsCurve)
+        , mCurveNurbsInterval(rOther.mCurveNurbsInterval)
     {
     }
 
@@ -148,6 +135,9 @@ public:
     BrepCurveOnSurface& operator=( const BrepCurveOnSurface& rOther )
     {
         BaseType::operator=( rOther );
+        mpNurbsSurface = rOther.mpNurbsSurface;
+        mOuterLoopArray = rOther.mOuterLoopArray;
+        mInnerLoopArray = rOther.mInnerLoopArray;
         return *this;
     }
 
@@ -166,6 +156,9 @@ public:
     BrepCurveOnSurface& operator=( BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
+        mpNurbsSurface = rOther.mpNurbsSurface;
+        mOuterLoopArray = rOther.mOuterLoopArray;
+        mInnerLoopArray = rOther.mInnerLoopArray;
         return *this;
     }
 
