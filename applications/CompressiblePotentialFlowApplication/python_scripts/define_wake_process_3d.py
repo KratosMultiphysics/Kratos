@@ -1,7 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
-
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def DotProduct(A,B):
     result = 0
@@ -26,7 +26,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "body_model_part_name": "",
             "wake_stl_file_name" : "",
             "wake_normal": [0.0,0.0,1.0],
-            "output_wake": true,
+            "output_wake": false,
             "epsilon": 1e-9
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
@@ -361,7 +361,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             elem.Id = counter
             counter +=1
 
-        from gid_output_process import GiDOutputProcess
         output_file = "representation_of_wake"
         gid_output =  GiDOutputProcess(self.wake_model_part,
                                 output_file,

@@ -940,40 +940,6 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <class TData>
-void VtkOutput::WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream) const
-{
-    if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
-        rFileStream << rData;
-    } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
-        TData data = rData;
-        ForceBigEndian(reinterpret_cast<unsigned char *>(&data));
-        rFileStream.write(reinterpret_cast<char *>(&data), sizeof(TData));
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TData>
-void VtkOutput::WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream) const
-{
-    if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
-        for (const auto& r_data_comp : rData) {
-            rFileStream << r_data_comp << " ";
-        }
-    } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
-        for (const auto& r_data_comp : rData ) {
-            float data_comp_local = (float)r_data_comp; // should not be const or a reference for enforcing big endian
-            ForceBigEndian(reinterpret_cast<unsigned char *>(&data_comp_local));
-            rFileStream.write(reinterpret_cast<char *>(&data_comp_local), sizeof(float));
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
 {
     if (mShouldSwap) {
