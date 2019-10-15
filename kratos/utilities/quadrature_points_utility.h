@@ -44,9 +44,10 @@ namespace Kratos
         ///@name Operations
         ///@{
 
-        static GeometryType::Pointer CreateFromCoordinates(
+        static typename GeometryType::Pointer CreateFromCoordinates(
             typename GeometryType::Pointer pGeometry,
-            const array_1d<double, 3>& rCoordinates) {
+            const array_1d<double, 3>& rCoordinates)
+        {
             KRATOS_TRY;
 
             auto local_coordinates = pGeometry->PointLocalCoordinates();
