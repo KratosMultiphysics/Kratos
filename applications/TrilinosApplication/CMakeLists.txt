@@ -4,6 +4,22 @@ message("**** configuring KratosTrilinosApplication ****")
 
 include(pybind11Tools)
 
+
+if(${TRILINOS_EXCLUDE_ML_SOLVER} MATCHES ON)
+    add_definitions(-DTRILINOS_EXCLUDE_ML_SOLVER)
+    message("**** WARNING: Manually disabled ML-Solver ****")
+endif(${TRILINOS_EXCLUDE_ML_SOLVER} MATCHES ON)
+
+if(${TRILINOS_EXCLUDE_AZTEC_SOLVER} MATCHES ON)
+    add_definitions(-DTRILINOS_EXCLUDE_AZTEC_SOLVER)
+    message("**** WARNING: Manually disabled Aztec-Solver ****")
+endif(${TRILINOS_EXCLUDE_AZTEC_SOLVER} MATCHES ON)
+
+if(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
+    add_definitions(-DTRILINOS_EXCLUDE_AMESOS_SOLVER)
+    message("**** WARNING: Manually disabled Amesos-Solver ****")
+endif(${TRILINOS_EXCLUDE_AMESOS_SOLVER} MATCHES ON)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 # Find trilinos solver package -- this is our own find package!!
