@@ -51,14 +51,15 @@ SolidFace3D::~SolidFace3D() {}
 //***********************************************************************************
 //***********************************************************************************
 
-void SolidFace3D::Initialize() {
+void SolidFace3D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+    if (! rCurrentProcessInfo[IS_RESTARTED]){
+        const unsigned int number_of_nodes = GetGeometry().size();
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-
-    for (unsigned int i=0; i< number_of_nodes; i++)
-    {
-        this->GetGeometry()[i].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-        this->GetGeometry()[i].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+        for (unsigned int i=0; i< number_of_nodes; i++)
+        {
+            this->GetGeometry()[i].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+            this->GetGeometry()[i].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+        }
     }
 }
 
