@@ -27,6 +27,7 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_pressure_value_pfem_conditions_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_pressure_id_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/expand_wet_nodes_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_initial_volume_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/regenerate_pfem_pressure_conditions_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/generate_dem_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/update_dem_kinematics_process.cpp

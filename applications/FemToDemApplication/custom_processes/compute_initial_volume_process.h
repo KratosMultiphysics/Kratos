@@ -11,11 +11,9 @@
 //  Main authors:    Alejandro Cornejo Velazquez
 //
 
-#if !defined(KRATOS_ASSIGN_PRESSURE_ID_PROCESS)
-#define KRATOS_ASSIGN_PRESSURE_ID_PROCESS
+#if !defined(KRATOS_COMPUTE_INITIAL_VOLUME_PROCESS)
+#define KRATOS_COMPUTE_INITIAL_VOLUME_PROCESS
 
-
-#include "includes/model_part.h"
 #include "processes/process.h"
 #include "fem_to_dem_application_variables.h"
 
@@ -42,15 +40,13 @@ class ComputeInitialVolumeProcess : public Process
 
   void Execute() override;
 
-  void AssignPressureIdToNodes(std::string rSubModelPartName, const int PressureId);
-
 protected:
 
   // Member Variables
   ModelPart& mrModelPart;
-  int mDimension;
+  std::size_t mDimension;
 
 };  // Class
 
 }  // namespace Kratos
-#endif /* KRATOS_EXTEND_PRESSURE_PROCESS defined */
+#endif /* KRATOS_COMPUTE_INITIAL_VOLUME_PROCESS defined */
