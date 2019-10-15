@@ -502,7 +502,7 @@ DEFINE_GRID_MOTION(move_nodes, domain, dynamic_thread, time, dtime) {
 	host_to_node_int_1(iteration);
 	host_to_node_int_1(timestep);
 
-	if (iteration) {
+
 
 #if !RP_NODE
         sprintf(file_name, "nodes_update_timestep%i_thread%i.dat",
@@ -554,8 +554,7 @@ DEFINE_GRID_MOTION(move_nodes, domain, dynamic_thread, time, dtime) {
             }
         } end_f_loop(face, face_thread);
 #endif /* !RP_HOST */
-    }
+        if (myid == 0) {printf("\nFinished UDF move_nodes.\n"); fflush(stdout);}
 
-    if (myid == 0) {printf("\nFinished UDF move_nodes.\n"); fflush(stdout);}
 }
 

@@ -34,6 +34,15 @@ file start-transcript "transcript.txt"
         (= 0 1)
 	)
 )
+(define (print-iter-info)
+    (begin
+        (newline)
+        (display (format #f "### timestep ~a, iteration ~a ###"
+            (%rpgetvar 'udf/timestep) (%rpgetvar 'udf/iteration)) )
+        (newline)
+    )
+)
+
 
 ;   STUFF TO DO WHEN NOT RESTARTING
 ; add init condition??
@@ -82,26 +91,30 @@ define user-defined execute-on-demand "store_coordinates_id::2019R1"
 )
 solve monitors residual check-convergence n n n
 
-;   MAKE SIMPLE UPDATE LOOP
-(ti-menu-load-string "disp setw 2")
-(newline)(display "START UPDATE LOOP")(newline)
+;   FSI LOOP
 (do ((j 0 j)) ((= j 1))
     (if (check_message "stop")
         (set! j 1)
+    )
+    (if (check_message "save")
+        (begin
+            (ti-menu-load-string (format #f
+                "file write-case-data \"case_timestep~a.cas\"" (%rpgetvar 'udf/timestep)))
+            (send_message "save_ready")
+        )
     )
     (if (check_message "next")
         (begin
             (rpsetvar 'udf/iteration 0)
             (rpsetvar 'udf/timestep (+ (%rpgetvar 'udf/timestep) 1))
-            ;(if unsteady
-            ;    (ti-menu-load-string "solve dual-time-iterate 1 0")
-            ;)
+            (print-iter-info)
             (send_message "next_ready")
         )
     )
     (if (check_message "continue")
         (begin
             (rpsetvar 'udf/iteration (+ (%rpgetvar 'udf/iteration) 1))
+            (print-iter-info)
             (if unsteady
                 (if (= (%rpgetvar 'udf/iteration) 1)
                     (begin

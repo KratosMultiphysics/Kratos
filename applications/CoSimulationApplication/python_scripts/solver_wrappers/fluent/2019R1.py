@@ -296,20 +296,23 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        # *** save cas and dat?
+
+        if not self.timestep % self.settings['save_iterations'].GetInt():
+            self.send_message('save')
+            self.wait_message('save_ready')
 
     def Finalize(self):
         super().Finalize()
         self.send_message('stop')
 
     def GetInterfaceInput(self):
-        return self.interface_input  # *** protect with deepcopy?
+        return self.interface_input.deepcopy()
 
     def SetInterfaceInput(self):
         Exception("This solver interface provides no mapping.")
 
     def GetInterfaceOutput(self):
-        return self.interface_output  # *** protect with deepcopy?
+        return self.interface_output.deepcopy()
 
     def SetInterfaceOutput(self):
         Exception("This solver interface provides no mapping.")
@@ -341,8 +344,6 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                 node.Y += (1 - np.cos(2 * np.pi * node.X)) * 0.5 * f
 
     def write_node_positions(self):
-        # *** TODO: add formatter 27.18e or sth...
-
         for key in self.settings['interface_input'].keys():
             mp = self.model[key]
             tmp = f'nodes_update_timestep{self.timestep}_thread{mp.thread_id}.dat'

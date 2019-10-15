@@ -28,7 +28,8 @@
                 "fluent_gui": true,
                 "max_nodes_per_face": 4,
                 "hybrid_initialization": true,
-                "flow_iterations": 10
+                "flow_iterations": 10,
+                "save_iterations": 2
             }
         }
     ]
