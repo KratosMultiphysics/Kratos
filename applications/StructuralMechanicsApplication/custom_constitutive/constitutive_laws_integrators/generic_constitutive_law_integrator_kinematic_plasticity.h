@@ -33,7 +33,7 @@ namespace Kratos
 
 // The size type definition
 typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -68,7 +68,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
   public:
     ///@name Type Definitions
     ///@{
-      
+
     /// The machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -83,7 +83,13 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 
     /// The define the Voigt size, already defined in the yield surface
     static constexpr SizeType VoigtSize = YieldSurfaceType::VoigtSize;
-    
+
+    /// The definition of the Voigt array type
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+
     /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
@@ -150,8 +156,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rUniaxialStress The equivalent uniaxial stress
      * @param rThreshold The maximum uniaxial stress of the linear behaviour
      * @param rPlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
-     * @param rFflux The derivative of the yield surface
-     * @param rGflux The derivative of the plastic potential
+     * @param rYieldSurfaceDerivative The derivative of the yield surface
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rPlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param rPlasticStrainIncrement The increment of plastic strain of this time step
      * @param rConstitutiveMatrix The elastic constitutive matrix
@@ -162,15 +168,15 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rPreviousStressVector The previous converged stress vector
      */
     static void IntegrateStressVector(
-        array_1d<double, VoigtSize>& rPredictiveStressVector,
+        BoundedArrayType& rPredictiveStressVector,
         Vector& rStrainVector,
         double& rUniaxialStress,
         double& rThreshold,
         double& rPlasticDenominator,
-        array_1d<double, VoigtSize>& rFflux,
-        array_1d<double, VoigtSize>& rGflux,
+        BoundedArrayType& rYieldSurfaceDerivative,
+        BoundedArrayType& rDerivativePlasticPotential,
         double& rPlasticDissipation,
-        array_1d<double, VoigtSize>& rPlasticStrainIncrement,
+        BoundedArrayType& rPlasticStrainIncrement,
         const Matrix& rConstitutiveMatrix,
         Vector& rPlasticStrain,
         ConstitutiveLaw::Parameters& rValues,
@@ -179,18 +185,22 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         const Vector& rPreviousStressVector
         )
     {
+        // Material properties
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        // Defining some variables
         bool is_converged = false;
-        IndexType iteration = 0, max_iter = 100;
-        array_1d<double, VoigtSize> delta_sigma;
+        IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ? r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 100;
+        BoundedArrayType delta_sigma;
         double plastic_consistency_factor_increment, threshold_indicator;
-        array_1d<double, VoigtSize> r_kin_hard_stress_vector;
+        BoundedArrayType kin_hard_stress_vector;
 
         // Backward Euler
         while (is_converged == false && iteration <= max_iter) {
             threshold_indicator = rUniaxialStress - rThreshold;
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
 
-            noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
+            noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rDerivativePlasticPotential;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
             noalias(rPredictiveStressVector) -= delta_sigma;
@@ -198,9 +208,9 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             CalculateBackStress(rPredictiveStressVector, rValues, rPreviousStressVector,
                                             rPlasticStrainIncrement, rBackStressVector);
 
-            noalias(r_kin_hard_stress_vector) = rPredictiveStressVector - rBackStressVector;
-            threshold_indicator = CalculatePlasticParameters(r_kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold,
-                                       rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
+            noalias(kin_hard_stress_vector) = rPredictiveStressVector - rBackStressVector;
+            threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold,
+                                       rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,
                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
 
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
@@ -209,7 +219,10 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 iteration++;
             }
         }
-        KRATOS_WARNING_IF("Backward Euler Plasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+
+        if (iteration > max_iter) {
+            KRATOS_WARNING_FIRST_N("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        }
     }
 
     /**
@@ -219,8 +232,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rUniaxialStress The equivalent uniaxial stress
      * @param rThreshold The maximum uniaxial stress of the linear behaviour
      * @param rPlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
-     * @param rFflux The derivative of the yield surface
-     * @param rGflux The derivative of the plastic potential
+     * @param rYieldSurfaceDerivative The derivative of the yield surface
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rPlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param rPlasticStrainIncrement The increment of plastic strain of this time step
      * @param rConstitutiveMatrix The elastic constitutive matrix
@@ -228,15 +241,15 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param CharacteristicLength The equivalent length of the FE
      */
     static double CalculatePlasticParameters(
-        array_1d<double, VoigtSize>& rPredictiveStressVector,
+        BoundedArrayType& rPredictiveStressVector,
         Vector& rStrainVector,
         double& rUniaxialStress,
         double& rThreshold,
         double& rPlasticDenominator,
-        array_1d<double, VoigtSize>& rFflux,
-        array_1d<double, VoigtSize>& rGflux,
+        BoundedArrayType& rYieldSurfaceDerivative,
+        BoundedArrayType& rDerivativePlasticPotential,
         double& rPlasticDissipation,
-        array_1d<double, VoigtSize>& rPlasticStrainIncrement,
+        BoundedArrayType& rPlasticStrainIncrement,
         const Matrix& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues,
         const double CharacteristicLength,
@@ -244,25 +257,23 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         const Vector& rBackStressVector
         )
     {
-        array_1d<double, VoigtSize> deviator = ZeroVector(6);
-        array_1d<double, VoigtSize> h_capa = ZeroVector(6);
+        BoundedArrayType deviator = ZeroVector(6);
+        BoundedArrayType h_capa = ZeroVector(6);
         double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain;
 
         YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
         const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
-        CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rValues);
-        CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux, rValues);
+        CalculateDerivativeYieldSurface(rPredictiveStressVector, deviator, J2, rYieldSurfaceDerivative, rValues);
+        CalculateDerivativePlasticPotential(rPredictiveStressVector, deviator, J2, rDerivativePlasticPotential, rValues);
         CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor);
         CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor, rPlasticStrainIncrement,rPlasticDissipation, h_capa, rValues, CharacteristicLength);
         CalculateEquivalentPlasticStrain(rPredictiveStressVector, rUniaxialStress, rPlasticStrain, tensile_indicator_factor, rValues, equivalent_plastic_strain);
         CalculateEquivalentStressThreshold(rPlasticDissipation, tensile_indicator_factor,compression_indicator_factor, rThreshold, slope, rValues, equivalent_plastic_strain);
-        CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
-        CalculatePlasticDenominator(rFflux, rGflux, rConstitutiveMatrix, hardening_parameter, rPlasticDenominator, rBackStressVector, rValues);
-        
-        // Updating threshold indicator
-        const double threshold_indicator = rUniaxialStress - rThreshold;
-        return threshold_indicator;
+        CalculateHardeningParameter(rYieldSurfaceDerivative, slope, h_capa, hardening_parameter);
+        CalculatePlasticDenominator(rYieldSurfaceDerivative, rDerivativePlasticPotential, rConstitutiveMatrix, hardening_parameter, rPlasticDenominator, rBackStressVector, rValues);
+
+        return rUniaxialStress - rThreshold;
     }
 
     /**
@@ -270,22 +281,22 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the deviatoric part of the stress vector
-     * @param rFFluxVector The derivative of the yield surface
+     * @param rDerivativeYieldSurface The derivative of the yield surface
      * @param rValues Parameters of the constitutive law
      */
-    static void CalculateFFluxVector(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
-        const array_1d<double, VoigtSize>& rDeviator,
+    static void CalculateDerivativeYieldSurface(
+        const BoundedArrayType& rPredictiveStressVector,
+        const BoundedArrayType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rFFluxVector,
+        BoundedArrayType& rDerivativeYieldSurface,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, rDeviator, J2, rFFluxVector, rValues);
+        YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativeYieldSurface, rValues);
     }
 
     /**
-     * @brief This method computes the back stress for the kinematic plasticity 
+     * @brief This method computes the back stress for the kinematic plasticity
      * This method has 3 different ways of computing this back-stress:
      * Linear hardening, Amstrong-Frederick  and Araujo-Voyiadjis.
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
@@ -295,7 +306,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rBackStressVector The back-stress vector for the kinematic plasticity
      */
     static void CalculateBackStress(
-        array_1d<double, VoigtSize>& rPredictiveStressVector,
+        BoundedArrayType& rPredictiveStressVector,
         ConstitutiveLaw::Parameters& rValues,
         const Vector& rPreviousStressVector,
         const Vector& rPlasticStrainIncrement,
@@ -322,7 +333,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
                 denominator = 1.0 + (r_kinematic_parameters[1] * pDot);
                 rBackStressVector += (2.0 / 3.0 * r_kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
-				break;
+                break;
 
             case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:
                 KRATOS_ERROR_IF(r_kinematic_parameters.size() != 3) << "Kinematic Parameters not defined..." << std::endl;
@@ -351,18 +362,18 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the deviatoric part of the stress vector
-     * @param rGFluxVector The derivative of the yield surface
+     * @param rDerivativePlasticPotential The derivative of the yield surface
      * @param rValues Parameters of the constitutive law
      */
-    static void CalculateGFluxVector(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
-        const array_1d<double, VoigtSize>& rDeviator,
+    static void CalculateDerivativePlasticPotential(
+        const BoundedArrayType& rPredictiveStressVector,
+        const BoundedArrayType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rGFluxVector,
+        BoundedArrayType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        YieldSurfaceType::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rGFluxVector, rValues);
+        YieldSurfaceType::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -372,7 +383,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rCompressionIndicatorFactor The compressive indicator
      */
     static void CalculateIndicatorsFactors(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const BoundedArrayType& rPredictiveStressVector,
         double& rTensileIndicatorFactor,
         double& rCompressionIndicatorFactor
         )
@@ -426,12 +437,12 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculatePlasticDissipation(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const BoundedArrayType& rPredictiveStressVector,
         const double TensileIndicatorFactor,
         const double CompressionIndicatorFactor,
         const Vector& PlasticStrainInc,
         double& rPlasticDissipation,
-        array_1d<double, VoigtSize>& rHCapa,
+        BoundedArrayType& rHCapa,
         ConstitutiveLaw::Parameters& rValues,
         const double CharacteristicLength
         )
@@ -676,14 +687,14 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rValues Parameters of the constitutive law
      * @param rPlasticStrain The Plastic Strain internal variable
      */
-	static void CalculateEquivalentStressThresholdCurveFittingHardening(
+    static void CalculateEquivalentStressThresholdCurveFittingHardening(
         const double PlasticDissipation,
         const double TensileIndicatorFactor,
         const double CompressionIndicatorFactor,
         double& rEquivalentStressThreshold,
         double& rSlope,
         ConstitutiveLaw::Parameters& rValues,
-        const double EquivalentPlasticStrain      
+        const double EquivalentPlasticStrain
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -744,7 +755,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 
                 dS_dEp = 0.5 * (beta) / S_Ep;
                 dKp_dEp = S_Ep / fracture_energy;
-                
+
                 rEquivalentStressThreshold = S_Ep;
                 rSlope = dS_dEp / dKp_dEp;
             }
@@ -773,13 +784,13 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rPlasticStrain The plastic strain vector
      */
     static void CalculateEquivalentPlasticStrain(
-        const Vector& rStressVector, 
+        const Vector& rStressVector,
         const double UniaxialStress,
         const Vector& rPlasticStrain,
         const double r0,
         ConstitutiveLaw::Parameters& rValues,
         double& rEquivalentPlasticStrain
-        ) 
+        )
     {
         double scalar_product = 0.0;
         for (IndexType i = 0; i < rPlasticStrain.size(); ++i) {
@@ -809,13 +820,13 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      */
     static void CalculateHardeningParameter(
-        const array_1d<double, VoigtSize>& rGFlux,
+        const BoundedArrayType& rGFlux,
         const double SlopeThreshold,
-        const array_1d<double, VoigtSize>& rHCapa,
+        const BoundedArrayType& rHCapa,
         double& rHardeningParameter
         )
     {
-        rHardeningParameter = -SlopeThreshold;
+        rHardeningParameter = SlopeThreshold;
         double aux = 0.0;
 
         for (IndexType i = 0; i < VoigtSize; ++i) {
@@ -828,15 +839,15 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
     /**
      * @brief This method computes the plastic denominator needed
      * to compute the plastic consistency factor
-     * @param rFflux The derivative of the yield surface
-     * @param rGflux The derivative of the plastic potential
+     * @param rYieldSurfaceDerivative The derivative of the yield surface
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rConstitutiveMatrix The elastic constitutive matrix
      * @param rHardeningParameter The hardening parameter needed for the algorithm
      * @param rPlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
      */
     static void CalculatePlasticDenominator(
-        const array_1d<double, VoigtSize>& rFFlux,
-        const array_1d<double, VoigtSize>& rGFlux,
+        const BoundedArrayType& rFFlux,
+        const BoundedArrayType& rGFlux,
         const Matrix& rConstitutiveMatrix,
         double& rHardeningParameter,
         double& rPlasticDenominator,
@@ -847,7 +858,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         const Vector& r_kinematic_parameters = rValues.GetMaterialProperties()[KINEMATIC_PLASTICITY_PARAMETERS];
         const int kinematic_hardening_type = rValues.GetMaterialProperties()[KINEMATIC_HARDENING_TYPE];
 
-        const array_1d<double, VoigtSize> delta_vector = prod(rGFlux, rConstitutiveMatrix);
+        const BoundedArrayType delta_vector = prod(rGFlux, rConstitutiveMatrix);
         double A1 = 0.0;
         for (IndexType i = 0; i < VoigtSize; ++i) {
             A1 += rFFlux[i] * delta_vector[i];
@@ -855,13 +866,13 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         if (r_kinematic_parameters.size() == 3) {
             A1 *= (1.0 - r_kinematic_parameters[2]);
         } // Araujo case with 3 params
-        
+
         double dot_fflux_gflux = 0.0, A2;
         for (IndexType i = 0; i < VoigtSize; ++i) {
             dot_fflux_gflux += rFFlux[i] * rGFlux[i];
         }
         const double two_thirds = 2.0 / 3.0;
-		double dot_fflux_backstress = 0.0, dot_gflux_gflux = 0.0;
+        double dot_fflux_backstress = 0.0, dot_gflux_gflux = 0.0;
         switch (static_cast<KinematicHardeningType>(kinematic_hardening_type))
         {
             case KinematicHardeningType::LinearKinematicHardening:
@@ -933,11 +944,11 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CURVE_FITTING_PARAMETERS)) << "CURVE_FITTING_PARAMETERS is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(PLASTIC_STRAIN_INDICATORS)) << "PLASTIC_STRAIN_INDICATORS is not a defined value" << std::endl;
         }
-        
+
         if (!rMaterialProperties.Has(YIELD_STRESS)) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
-            
+
             const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
             const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
 

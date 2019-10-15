@@ -17,28 +17,24 @@
 ///@brief Basic set of tools to solve the shallow water equations.
 /// The Shallow Water Application implements a basic set of tools to
 /// solve shallow water problems. This applications contains a basic FEM
-/// implementation of common thechniques using both explicit pfem2 and
+/// implementation of common techniques using both explicit pfem2 and
 /// eulerian shemes.
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
 
 // Shallow water includes
-#include "shallow_water_application_variables.h"
 #include "custom_elements/shallow_element.h"
+#include "custom_elements/rv_swe.h"
+#include "custom_elements/cv_swe.h"
+#include "custom_elements/swe.h"
 #include "custom_elements/primitive_var_element.hpp"
 #include "custom_elements/conserved_var_element.hpp"
 #include "custom_elements/euler_prim_var_element.hpp"
@@ -71,7 +67,7 @@ namespace Kratos
     /// Short class definition.
     /** Detail class definition.
     */
-    class KratosShallowWaterApplication : public KratosApplication
+    class KRATOS_API(SHALLOW_WATER_APPLICATION) KratosShallowWaterApplication : public KratosApplication
     {
     public:
         ///@name Type Definitions
@@ -200,8 +196,21 @@ namespace Kratos
         ///@}
         ///@name Member Variables
         ///@{
+
         // Lagrangian elements
         const ShallowElement mShallowElement2D3N;
+        const RV_SWE<3, Eulerian> mRVSWE2D3N;
+        const RV_SWE<4, Eulerian> mRVSWE2D4N;
+        const RV_SWE<3, PFEM2> mPFEM2RVSWE2D3N;
+        const RV_SWE<4, PFEM2> mPFEM2RVSWE2D4N;
+        const CV_SWE<3, Eulerian> mCVSWE2D3N;
+        const CV_SWE<4, Eulerian> mCVSWE2D4N;
+        const CV_SWE<3, PFEM2> mPFEM2CVSWE2D3N;
+        const CV_SWE<4, PFEM2> mPFEM2CVSWE2D4N;
+        const SWE<3, Eulerian> mSWE2D3N;
+        const SWE<4, Eulerian> mSWE2D4N;
+        const SWE<3, PFEM2> mLagrangianSWE2D3N;
+        const SWE<4, PFEM2> mLagrangianSWE2D4N;
         const PrimitiveVarElement<3> mPrimitiveVarElement2D3N;
         const PrimitiveVarElement<4> mPrimitiveVarElement2D4N;
         const ConservedVarElement<3> mConservedVarElement2D3N;

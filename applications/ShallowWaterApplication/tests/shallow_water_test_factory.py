@@ -3,15 +3,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    have_external_solvers = True
-except ImportError as e:
-    have_external_solvers = False
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import shallow_water_analysis
+from KratosMultiphysics.ShallowWaterApplication.shallow_water_analysis import ShallowWaterAnalysis
 
 # Other imports
 import os
@@ -41,7 +36,7 @@ class ShallowWaterTestFactory(KratosUnittest.TestCase):
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = shallow_water_analysis.ShallowWaterAnalysis(model, ProjectParameters)
+            self.test = ShallowWaterAnalysis(model, ProjectParameters)
 
     def test_execution(self):
         # Within this location context:

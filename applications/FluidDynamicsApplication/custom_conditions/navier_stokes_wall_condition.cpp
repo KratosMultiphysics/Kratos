@@ -111,7 +111,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
 
     if ( this->Is(SLIP) ){
         // finding parent element to retrieve viscous stresses which are later stored in "data"
-        WeakPointerVector<Element> parentElement = this->GetValue( NEIGHBOUR_ELEMENTS );
+        GlobalPointersVector<Element> parentElement = this->GetValue( NEIGHBOUR_ELEMENTS );
         KRATOS_ERROR_IF( parentElement.size() > 1 ) << "A condition was assigned more than one parent element." << std::endl;
         KRATOS_ERROR_IF( parentElement.size() == 0 ) << "A condition was NOT assigned a parent element. "
         << "This leads to errors for the slip condition [BEHR2004] "
@@ -196,7 +196,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
 
     if ( this->Is(SLIP) ){
         // finding parent element to retrieve viscous stresses which are later stored in "data"
-        WeakPointerVector<Element> parentElement = this->GetValue( NEIGHBOUR_ELEMENTS );
+        GlobalPointersVector<Element> parentElement = this->GetValue( NEIGHBOUR_ELEMENTS );
         KRATOS_ERROR_IF( parentElement.size() > 1 ) << "A condition was assigned more than one parent element." << std::endl;
         KRATOS_ERROR_IF( parentElement.size() == 0 ) << "A condition was NOT assigned a parent element. "
         << "This leads to errors for the slip condition [BEHR2004] "

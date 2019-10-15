@@ -8,6 +8,8 @@
 //
 
 #include "delaunay_meshing_application_variables.h"
+#include "utilities/stl_vector_io.h"
+#include "containers/global_pointers_vector.h"
 
 namespace Kratos
 {
@@ -16,13 +18,6 @@ namespace Kratos
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
 
-  typedef Kratos::weak_ptr<Node<3> > NodeWeakPtrType;
-  typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
-  typedef Kratos::weak_ptr<Condition> ConditionWeakPtrType;
-
-  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
-  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
-  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
   ///@}
 
   ///@name Kratos Globals
@@ -44,7 +39,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int,                                 RIGID_WALL )
 
   //custom neighbor and masters
-  KRATOS_CREATE_VARIABLE(NodeWeakPtrType,                    MASTER_NODE )
+  KRATOS_CREATE_VARIABLE(GlobalPointer<Node<3>>,                    MASTER_NODE )
   KRATOS_CREATE_VARIABLE(ElementWeakPtrType,              MASTER_ELEMENT )
   KRATOS_CREATE_VARIABLE(ConditionWeakPtrType,          MASTER_CONDITION )
 

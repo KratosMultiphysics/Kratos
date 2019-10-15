@@ -222,7 +222,7 @@ public:
         	  //slip condition
         	  if (cond_it->GetValue(IS_STRUCTURE) == 1.0) //this is a slip face --> now look for its neighbours
         	  {
-        	      const WeakPointerVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
+        	      const GlobalPointersVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
 
         	      //check for neighbour zero
         	      if(neighb[0].Id() != current_id) //check if the neighbour exists
@@ -247,11 +247,11 @@ public:
               {
         	      if(in->GetValue(IS_VISITED)==1.0 && AllVelocitiesFixed(in)==false &&in->IsFixed(PRESSURE)==false) //node is potentially conflictive
         	      {
-        		  WeakPointerVector<Node<3> > ConflictiveNeigh;
-        		  WeakPointerVector<Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
+        		  GlobalPointersVector<Node<3> > ConflictiveNeigh;
+        		  GlobalPointersVector<Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
 
         		  unsigned int n_conflictive_neighbours = 0;
-        		  for(WeakPointerVector<Node<3> >::iterator nit = neighb.begin(); nit!=neighb.end(); nit++)
+        		  for(GlobalPointersVector<Node<3> >::iterator nit = neighb.begin(); nit!=neighb.end(); nit++)
         		  {
         		      if(nit->GetValue(IS_VISITED) == 1.0)
         		      {
@@ -528,7 +528,7 @@ private:
     void CornerDectectionHelper(Geometry< Node<3> >& face_geometry,
                                 const array_1d<double,3>& face_normal,
                                 const double An,
-                                const WeakPointerVector<Condition>& neighb,
+                                const GlobalPointersVector<Condition>& neighb,
                                 const unsigned int i1,
                                 const unsigned int i2,
                                 const unsigned int neighb_index

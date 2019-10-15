@@ -81,6 +81,10 @@ public:
         ModelPart& r_interface_model_part_origin = ReadInterfaceModelPart(rModelPartOrigin, MapperSettings, "origin");
         ModelPart& r_interface_model_part_destination = ReadInterfaceModelPart(rModelPartDestination, MapperSettings, "destination");
 
+        KRATOS_ERROR_IF(!TSparseSpace::IsDistributed() && (r_interface_model_part_origin.IsDistributed() || r_interface_model_part_destination.IsDistributed())) << "Trying to construct a non-MPI Mapper with a distributed ModelPart. Please use \"CreateMPIMapper\" instead!" << std::endl;
+
+        KRATOS_ERROR_IF(TSparseSpace::IsDistributed() && !r_interface_model_part_origin.IsDistributed() && !r_interface_model_part_destination.IsDistributed()) << "Trying to construct a MPI Mapper without a distributed ModelPart. Please use \"CreateMapper\" instead!" << std::endl;
+
         const std::string mapper_name = MapperSettings["mapper_type"].GetString();
 
         const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
@@ -116,6 +120,26 @@ public:
             std::make_pair(rMapperName, pMapperPrototype));
     }
 
+    template<class TSparseSpace, class TDenseSpace>
+    static bool HasMapper(const std::string& rMapperName)
+    {
+        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+        return mapper_list.find(rMapperName) != mapper_list.end();
+    }
+
+    template<class TSparseSpace, class TDenseSpace>
+    static std::vector<std::string> GetRegisteredMapperNames()
+    {
+        const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
+
+        std::vector<std::string> mapper_names;
+
+        for (auto const& r_registered_mapper : mapper_list) {
+            mapper_names.push_back(r_registered_mapper.first);
+        }
+
+        return mapper_names;
+    }
 
     ///@}
     ///@name Input and output

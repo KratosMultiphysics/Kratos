@@ -50,7 +50,7 @@ namespace Kratos {
                                                        double particle_radius,
                                                        double fluid_density,
                                                        double fluid_kinematic_viscosity,
-                                                       array_1d<double, 3>& slip_velocity,
+                                                       array_1d<double, 3>& minus_slip_velocity,
                                                        array_1d<double, 3>& basset_force,
                                                        const ProcessInfo& r_current_process_info)
     {
@@ -324,7 +324,7 @@ namespace Kratos {
         const int n = (int)N / 3;
         double fast_fractional_derivative[3] = {0.0};
 
-        for (int j = 0; j < n + 1; j++){
+        for (int j = 0; j < n + 1; ++j){
             double coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, j + 1, last_h_over_h, n_steps_per_quad_step);
             for (int i_comp = 0; i_comp < 3; i_comp++){
                 unsigned int integrand_component_position = N - 3 * j + i_comp;
@@ -332,7 +332,7 @@ namespace Kratos {
             }
         }
         present_coefficient = GetDaitcheCoefficient(mQuadratureOrder, n + 1, 0, last_h_over_h, n_steps_per_quad_step);
-        noalias(fractional_derivative) = present_coefficient * (node.FastGetSolutionStepValue(SLIP_VELOCITY) - node.FastGetSolutionStepValue(VELOCITY));
+        noalias(fractional_derivative) = present_coefficient * (node.FastGetSolutionStepValue(AUX_VEL) - node.FastGetSolutionStepValue(VELOCITY));
         SWIMMING_ADD_SECOND_TO_FIRST(fractional_derivative, fast_fractional_derivative)
     }
     //**************************************************************************************************************************************************
@@ -450,7 +450,7 @@ namespace Kratos {
             const double e = std::exp(1);
             array_1d<double, 3> Fi;
 
-            for (int i = 0; i < m; i++){
+            for (int i = 0; i < m; ++i){
                 const double ti = Ts[i];
                 const double beta = - 0.5 / ti;
                 const double alpha = std::sqrt(e / ti);
@@ -467,7 +467,7 @@ namespace Kratos {
 
         array_1d<double, 3> F_tail = ZeroVector(3);
 
-        for (int i = 0; i < m; i++){
+        for (int i = 0; i < m; ++i){
             double ai = BoussinesqBassetHistoryForceLaw::mAs[i];
             F_tail[0] += ai * hinsberg_tail_contributions[3 * i];
             F_tail[1] += ai * hinsberg_tail_contributions[3 * i + 1];
@@ -501,7 +501,7 @@ namespace Kratos {
             oldest_integrand[2] = hinsberg_tail_contributions[3 * m + 2];
             array_1d<double, 3> Fi;
 
-            for (int i = 0; i < m; i++){
+            for (int i = 0; i < m; ++i){
                 const double ti = Ts[i];
                 const double beta = - 0.5 / ti;
                 const double alpha = std::sqrt(e / ti);
@@ -518,7 +518,7 @@ namespace Kratos {
 
         else { // intermediate step: the time assigned to the tail has not changed (only an exponential factor is needed to correct fot the changing current time, which affects the approximate kernel)
 
-            for (int i = 0; i < m; i++){
+            for (int i = 0; i < m; ++i){
                 const double ti = Ts[i];
                 const double beta = - 0.5 / ti;
                 const double exp_beta_dt = std::exp(beta * delta_time);
@@ -531,7 +531,7 @@ namespace Kratos {
         array_1d<double, 3> F_tail = ZeroVector(3);
         const std::vector<double>& As = BoussinesqBassetHistoryForceLaw::mAs;
 
-        for (int i = 0; i < m; i++){
+        for (int i = 0; i < m; ++i){
             const double ai = As[i];
             F_tail[0] += ai * hinsberg_tail_contributions[3 * i];
             F_tail[1] += ai * hinsberg_tail_contributions[3 * i + 1];

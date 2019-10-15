@@ -13,14 +13,11 @@
 #if !defined(KRATOS_VARIABLES_H_INCLUDED )
 #define  KRATOS_VARIABLES_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -30,7 +27,7 @@
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "containers/periodic_variables_container.h"
 #include "utilities/table_stream_utility.h"
 #include "utilities/adjoint_extensions.h"
@@ -118,9 +115,13 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, EXTERNAL_ENERGY )
     KRATOS_DEFINE_VARIABLE( double, TOTAL_ENERGY )
 
+    KRATOS_DEFINE_VARIABLE( double, VOLUMETRIC_STRAIN )
+
     KRATOS_DEFINE_VARIABLE( double, THERMAL_EXPANSION_COEFFICIENT )
     KRATOS_DEFINE_VARIABLE( double, STABILIZATION_FACTOR )
     KRATOS_DEFINE_VARIABLE( double, DETERMINANT_F )
+
+    KRATOS_DEFINE_VARIABLE( double, GRADIENT_PENALTY_COEFFICIENT )
 
     //sheme info :: pass to elements
     KRATOS_DEFINE_VARIABLE( double, NEWMARK_BETA )
@@ -230,6 +231,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, AIR_SOUND_VELOCITY )
     KRATOS_DEFINE_VARIABLE( double, WATER_SOUND_VELOCITY )
     KRATOS_DEFINE_VARIABLE( double, NODAL_MASS )
+    KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA_TENSOR )
     KRATOS_DEFINE_VARIABLE( double, AUX_INDEX )
     KRATOS_DEFINE_VARIABLE( double, VELOCITY_PERIOD )
     KRATOS_DEFINE_VARIABLE( double, ANGULAR_VELOCITY_PERIOD )
@@ -423,11 +425,11 @@ namespace Kratos
 
     //for Structural application:
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )
-    
+
     //for General kratos application:
 
     //for Structural application:
-    //KRATOS_DEFINE_VARIABLE( WeakPointerVector< GeometricalObject >, NEIGHBOUR_EMBEDDED_FACES )
+    //KRATOS_DEFINE_VARIABLE( GlobalPointersVector< GeometricalObject >, NEIGHBOUR_EMBEDDED_FACES )
     //KRATOS_DEFINE_VARIABLE( ConvectionDiffusionSettings::Pointer,  CONVECTION_DIFFUSION_SETTINGS )
     //KRATOS_DEFINE_VARIABLE( RadiationSettings::Pointer,  RADIATION_SETTINGS )
 

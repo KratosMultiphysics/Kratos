@@ -71,7 +71,7 @@ AxisymmetricUpdatedLagrangianElement&  AxisymmetricUpdatedLagrangianElement::ope
 
 Element::Pointer AxisymmetricUpdatedLagrangianElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_shared< AxisymmetricUpdatedLagrangianElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    return Kratos::make_intrusive< AxisymmetricUpdatedLagrangianElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -116,7 +116,7 @@ Element::Pointer AxisymmetricUpdatedLagrangianElement::Clone( IndexType NewId, N
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Kratos::make_shared< AxisymmetricUpdatedLagrangianElement >(NewElement);
+    return Kratos::make_intrusive< AxisymmetricUpdatedLagrangianElement >(NewElement);
 }
 
 

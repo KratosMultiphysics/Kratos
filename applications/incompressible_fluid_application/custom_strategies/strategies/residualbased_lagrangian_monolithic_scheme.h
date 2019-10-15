@@ -53,8 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -63,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "includes/variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -333,10 +332,10 @@ public:
         double extrapolate_flag = 1.0;
         double ngh_ngh_water_pr = 0.0;
         double cnt = 0.0; //counter for water neighbours of a neighbor
-        WeakPointerVector< Node<3> >& neighbor_nds = base->GetValue(NEIGHBOUR_NODES);
+        GlobalPointersVector< Node<3> >& neighbor_nds = base->GetValue(NEIGHBOUR_NODES);
 
         //if there is a Water neighbor there is no need to extrapolate
-        for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
+        for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
         {
             double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
             if(ngh_flag == 1.0)
@@ -347,11 +346,11 @@ public:
         //check if the neighbors have a WATER neighbor or no
         if(extrapolate_flag == 1.0)
         {
-            for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
+            for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
             {
-                WeakPointerVector< Node<3> >& ngh_of_ngh = ngh_ind->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node<3> >& ngh_of_ngh = ngh_ind->GetValue(NEIGHBOUR_NODES);
 
-                for(WeakPointerVector< Node<3> >::iterator ngh_ngh_it = ngh_of_ngh.begin(); ngh_ngh_it !=ngh_of_ngh.end(); ngh_ngh_it++)
+                for(GlobalPointersVector< Node<3> >::iterator ngh_ngh_it = ngh_of_ngh.begin(); ngh_ngh_it !=ngh_of_ngh.end(); ngh_ngh_it++)
                 {
                     double water_flag = ngh_ngh_it->FastGetSolutionStepValue(IS_POROUS);
                     if(water_flag == 1.0)
@@ -375,9 +374,9 @@ public:
         			//extrapolating
         			double base_flag = ind->FastGetSolutionStepValue(IS_POROUS);
         			double extrapolate_flag = 0.0;
-        			WeakPointerVector< Node<3> >& neighbor_nds = ind->GetValue(NEIGHBOUR_NODES);
+        			GlobalPointersVector< Node<3> >& neighbor_nds = ind->GetValue(NEIGHBOUR_NODES);
         				//decide if it is neccesery or no
-        			 for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
+        			 for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
         	  			  {
         					double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
         					if(base_flag!=ngh_flag)
@@ -394,7 +393,7 @@ public:
         				double mean_water_pr = ind->FastGetSolutionStepValue(PRESSURE);
         				double cntr = 1;
         					//calculate mean water pressure
-        				for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
+        				for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
         	  			  {
         				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
 
@@ -405,7 +404,7 @@ public:
         					   }
         				  }
         					//add mean water pressure to AIR nodes
-        				for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
+        				for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
         	  			  {
         				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
         					//calculate mean water pressure
@@ -421,7 +420,7 @@ public:
         				double mean_air_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
         				double cntr = 1;
         					//calculate mean air pressure
-        				for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
+        				for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
         	  			  {
         				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
 
@@ -432,7 +431,7 @@ public:
         					   }
         				  }
         					//add mean air pressure to WATER nodes
-        				for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
+        				for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
         	  			  {
         				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
 

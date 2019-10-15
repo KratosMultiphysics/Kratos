@@ -37,6 +37,7 @@ typedef Node<3> NodeType;
 /**
     * Check the correct calculation of the integrated stress with the CL's
     */
+
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralMechanicsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
@@ -55,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralM
 
     stress_vector = ZeroVector(3);
     strain_vector = ZeroVector(3);
-    strain_vector[0] = 0.000787;
+    strain_vector[0] = 0.0008;
     strain_vector[1] = 0.0;
     strain_vector[2] = 0.0;
 
@@ -95,16 +96,14 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralM
     DamageDPlusDMinusMasonry2DLaw masonry2d_cl = DamageDPlusDMinusMasonry2DLaw();
 
     std::vector<double> masonry2d_res;
-    masonry2d_res = {926316.0, 185263.0, 0};
+    masonry2d_res = {909887.0, 181977.0, 0};
 
     Vector test_masonry2d_stress;
     masonry2d_cl.CalculateMaterialResponseCauchy(cl_parameters);
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    for (int comp = 0; comp < 3; comp++) {
-        // KRATOS_CHECK_NEAR(test_masonry2d_stress[comp], masonry2d_res[comp], 0.0001e6);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructuralMechanicsFastSuite)
@@ -125,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
 
     stress_vector = ZeroVector(3);
     strain_vector = ZeroVector(3);
-    strain_vector[0] = -0.02227;
+    strain_vector[0] = -0.00935;
     strain_vector[1] = 0.0;
     strain_vector[2] = 0.0;
  
@@ -165,16 +164,14 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
     DamageDPlusDMinusMasonry2DLaw masonry2d_cl = DamageDPlusDMinusMasonry2DLaw();
 
     std::vector<double> masonry2d_res;
-    masonry2d_res = {-2.06954e+07,  -4.13908e+06, 0};
+    masonry2d_res = {-1.85893e+07,  -3.71785e+06, 0};
 
     Vector test_masonry2d_stress;
     masonry2d_cl.CalculateMaterialResponseCauchy(cl_parameters);
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    for (int comp = 0; comp < 3; comp++) {
-        KRATOS_CHECK_NEAR(test_masonry2d_stress[comp], masonry2d_res[comp], 0.0001e6);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralMechanicsFastSuite)
@@ -197,12 +194,12 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralM
     strain_vector = ZeroVector(3);
     strain_vector[0] = 0.0;
     strain_vector[1] = 0.0;
-    strain_vector[2] = -0.005218;
+    strain_vector[2] = 0.003;
  
     material_properties.SetValue(YOUNG_MODULUS, 3718.0e+6);
     material_properties.SetValue(POISSON_RATIO, 0.2);
     material_properties.SetValue(YIELD_STRESS_TENSION, 1.559e+6);
-    material_properties.SetValue(FRACTURE_ENERGY_TENSION, 10.0e+3);
+    material_properties.SetValue(FRACTURE_ENERGY_TENSION, 10.0e+2);
     material_properties.SetValue(DAMAGE_ONSET_STRESS_COMPRESSION, 10.0e+6);
     material_properties.SetValue(YIELD_STRESS_COMPRESSION, 17.99e+6);
     material_properties.SetValue(YIELD_STRAIN_COMPRESSION, 0.02);
@@ -235,18 +232,15 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralM
     DamageDPlusDMinusMasonry2DLaw masonry2d_cl = DamageDPlusDMinusMasonry2DLaw();
 
     std::vector<double> masonry2d_res;
-    masonry2d_res = {-1.57685e+06, -1.57685e+06, -5.93494e+06};
+    masonry2d_res = {-1.62433e+06, -1.62433e+06, 2.06623e+06};
 
     Vector test_masonry2d_stress;
     masonry2d_cl.CalculateMaterialResponseCauchy(cl_parameters);
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    for (int comp = 0; comp < 3; comp++) {
-        KRATOS_CHECK_NEAR(test_masonry2d_stress[comp], masonry2d_res[comp], 0.0001e6);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
-
 
 } // namespace Testing
 } // namespace Kratos

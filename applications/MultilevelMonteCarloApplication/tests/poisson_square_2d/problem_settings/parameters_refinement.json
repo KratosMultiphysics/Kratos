@@ -1,0 +1,22 @@
+{
+    "hessian_metric": {
+		"hessian_strategy_parameters"              :{
+				"metric_variable"		: ["TEMPERATURE"],
+				"estimate_interpolation_error"  : false,
+				"interpolation_error"   	: 0.004
+		},
+		"enforce_current"                   : true,
+		"anisotropy_remeshing"              : true,
+		"anisotropy_parameters":{
+			"reference_variable_name"          : "TEMPERATURE",
+			"hmin_over_hmax_anisotropic_ratio" : 0.01,
+			"boundary_layer_max_distance"      : 10.0,
+			"interpolation"                    : "Linear"
+		},
+        "local_gradient_variable"              : "TEMPERATURE"
+    },
+    "refinement_mmg" : {
+        "initialize_entities"              : false,
+        "echo_level"                       : 0
+    }
+}

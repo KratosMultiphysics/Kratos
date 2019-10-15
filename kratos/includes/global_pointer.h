@@ -20,7 +20,7 @@
 #include "includes/key_hash.h"
 namespace Kratos {
 
-    
+
 
 template<class TDataType>
 class GlobalPointer {
@@ -32,11 +32,16 @@ private:
 
 public:
 
+  typedef TDataType element_type;
+
  /** Default constructor
 	* Default constructor
 	* This should never be called as we need a local pointer to exists
 	*/
-	GlobalPointer() = delete;
+	GlobalPointer() {
+    mDataPointer = nullptr;
+    this->mRank = 0;
+  };
 
   /** Constructor by Data
    * Constructor by Data
@@ -58,6 +63,15 @@ public:
    * @param DataPointer Boost Shared Pointer to the Data.
    */
   GlobalPointer(Kratos::shared_ptr<TDataType> DataPointer, int Rank = 0)
+    : mDataPointer(DataPointer.get())
+    , mRank(Rank) {
+  }
+
+  /** Constructor by Kratos::shared_ptr
+   * Constructor by Kratos::shared_ptr
+   * @param DataPointer Boost Shared Pointer to the Data.
+   */
+  GlobalPointer(Kratos::intrusive_ptr<TDataType>& DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.get())
     , mRank(Rank) {
   }
@@ -111,6 +125,14 @@ public:
   ~GlobalPointer() {
   }
 
+  TDataType* get() {
+	  return mDataPointer;
+  }
+
+  TDataType const* get() const {
+	  return mDataPointer;
+  }
+
   /** Pointer Operator
   * Pointer Operator
   */
@@ -160,9 +182,11 @@ public:
     return this->mRank;
   }
 
-  private: 
+  private:
 
   friend class Serializer;
+
+
 
   void save(Serializer& rSerializer) const
   {
@@ -174,9 +198,9 @@ public:
       {
         rSerializer.save("D", mDataPointer);
       }
- 
+
       rSerializer.save("R", mRank);
- 
+
   }
 
   void load(Serializer& rSerializer)
@@ -231,6 +255,23 @@ struct GlobalPointerComparor
         return ( &(*pGp1) == &(*pGp2)  &&  pGp1.GetRank() == pGp2.GetRank()  );
     }
 };
+
+/// input stream function
+template< class TDataType >
+inline std::istream& operator >> (std::istream& rIStream,
+                                  GlobalPointer<TDataType>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< class TDataType >
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const GlobalPointer<TDataType>& rThis)
+{
+
+    rOStream << reinterpret_cast<const std::size_t>(&*rThis) << " : " << rThis.GetRank();
+
+    return rOStream;
+}
 
 } // namespace Kratos
 

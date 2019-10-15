@@ -72,14 +72,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     Vector stress_vector, strain_vector;
 
     Model current_model;
-    ModelPart& test_model_part = current_model.CreateModelPart("Main");
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    auto geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -101,13 +101,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     material_properties.SetValue(HARDENING_CURVE, 0);
 
     // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    Flags& r_constitutive_law_options=cl_parameters.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    cl_parameters.SetElementGeometry(Geom);
-    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
+    cl_parameters.SetElementGeometry(geometry);
+    cl_parameters.SetProcessInfo(r_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
@@ -121,10 +121,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     T TrescaCL = T();
 
     std::vector<double> MCres, VMres, DPres, Tres;
-    MCres = {9.96862e+06,9.96862e+06,1.00628e+07,0,0,9.96661e-13};
-    VMres = {9.96935e+06,9.96935e+06,1.00613e+07,0,0,9.73593e-13};
-    DPres = {102202,102202,102199,0,0,-3.67488e-17};
-    Tres = {9.96935e+06,9.96935e+06,1.00613e+07,0,0,9.73593e-13};
+    MCres = {9.96711e+06,9.96711e+06,1.00658e+07,0,0,1.04486e-12};
+    VMres = {9.96669e+06,9.96669e+06,1.00666e+07,0,0,1.05792e-12};
+    DPres = {-4.24126e+08,-4.24126e+08,-4.24845e+08,0,0,-7.61457e-12};
+    Tres = {9.96669e+06,9.96669e+06,1.00666e+07,0,0,1.05792e-12};
 
     double plastic_dissipation;
     Vector TestMC, TestVM, TestDP, TestT;
@@ -154,7 +154,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
 
     // Check the results
     const double tolerance = 1.0e-4;
-    for (std::size_t comp = 0; comp < 6; ++comp){
+    for (std::size_t comp = 0; comp < 6; ++comp) {
         KRATOS_CHECK(!std::isnan(TestMC[comp]));
         KRATOS_CHECK_LESS_EQUAL(std::abs((MCres[comp] - TestMC[comp])/MCres[comp]), tolerance);
         KRATOS_CHECK(!std::isnan(VMres[comp]));
@@ -181,14 +181,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosStr
     Vector stress_vector, strain_vector;
 
     Model current_model;
-    ModelPart& test_model_part = current_model.CreateModelPart("Main");
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    auto geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -210,13 +210,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosStr
     material_properties.SetValue(HARDENING_CURVE, 0);
 
     // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    Flags& r_constitutive_law_options=cl_parameters.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    cl_parameters.SetElementGeometry(Geom);
-    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
+    cl_parameters.SetElementGeometry(geometry);
+    cl_parameters.SetProcessInfo(r_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
@@ -319,7 +319,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosStr
     TestT = cl_parameters_T.GetConstitutiveMatrix();
     TrescaCL.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "Tresca:: This test is not in plastic range" << std::endl;
-    
+
     // Check the results
     const double tolerance = 1.0e-4;
     for (std::size_t i = 0; i < 6 ; i++) {
@@ -372,14 +372,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     Vector stress_vector, strain_vector;
 
     Model current_model;
-    ModelPart& test_model_part = current_model.CreateModelPart("Main");
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    auto geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -407,13 +407,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     material_properties.SetValue(HARDENING_CURVE, 0);
 
     // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    Flags& r_constitutive_law_options=cl_parameters.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    cl_parameters.SetElementGeometry(Geom);
-    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
+    cl_parameters.SetElementGeometry(geometry);
+    cl_parameters.SetProcessInfo(r_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
@@ -451,7 +451,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     Tres = cl_parameters_T_res.GetStressVector();
 
     // Create the CL's (Finite strain)
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
     MCFS MohrCoulombCLFS = MCFS();
     VMFS VonMisesCLFS = VMFS();
     DPFS DruckerPragerCLFS = DPFS();
@@ -463,7 +463,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     // Mohr Coulomb
     ConstitutiveLaw::Parameters cl_parameters_MC(cl_parameters);
     MohrCoulombCLFS.CalculateMaterialResponsePK2(cl_parameters_MC);
-    MohrCoulombCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    MohrCoulombCLFS.FinalizeMaterialResponsePK2(cl_parameters_MC);
     TestMC = cl_parameters_MC.GetStressVector();
     MohrCoulombCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "MohrCoulomb:: This test is not in plastic range" << std::endl;
@@ -471,7 +471,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     // Von Mises
     ConstitutiveLaw::Parameters cl_parameters_VM(cl_parameters);
     VonMisesCLFS.CalculateMaterialResponsePK2(cl_parameters_VM);
-    VonMisesCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    VonMisesCLFS.FinalizeMaterialResponsePK2(cl_parameters_VM);
     TestVM = cl_parameters_VM.GetStressVector();
     VonMisesCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "VonMises:: This test is not in plastic range" << std::endl;
@@ -479,7 +479,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     // Drucker Pragger
     ConstitutiveLaw::Parameters cl_parameters_DP(cl_parameters);
     DruckerPragerCLFS.CalculateMaterialResponsePK2(cl_parameters_DP);
-    DruckerPragerCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    DruckerPragerCLFS.FinalizeMaterialResponsePK2(cl_parameters_DP);
     TestDP = cl_parameters_DP.GetStressVector();
     DruckerPragerCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "DruckerPrager:: This test is not in plastic range" << std::endl;
@@ -487,7 +487,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     // Tresca
     ConstitutiveLaw::Parameters cl_parameters_T(cl_parameters);
     TrescaCLFS.CalculateMaterialResponsePK2(cl_parameters_T);
-    TrescaCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    TrescaCLFS.FinalizeMaterialResponsePK2(cl_parameters_T);
     TestT = cl_parameters_T.GetStressVector();
     TrescaCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "Tresca:: This test is not in plastic range" << std::endl;
@@ -526,14 +526,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     Vector stress_vector, strain_vector;
 
     Model current_model;
-    ModelPart& test_model_part = current_model.CreateModelPart("Main");
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    auto geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -561,13 +561,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     material_properties.SetValue(HARDENING_CURVE, 0);
 
     // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    Flags& r_constitutive_law_options=cl_parameters.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    cl_parameters.SetElementGeometry(Geom);
-    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
+    cl_parameters.SetElementGeometry(geometry);
+    cl_parameters.SetProcessInfo(r_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
@@ -609,7 +609,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     Tres = cl_parameters_T_res.GetConstitutiveMatrix();
 
     // Create the CL's (Finite strain)
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
     MCFS MohrCoulombCLFS = MCFS();
     VMFS VonMisesCLFS = VMFS();
     DPFS DruckerPragerCLFS = DPFS();
@@ -622,7 +622,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     // Mohr Coulomb
     ConstitutiveLaw::Parameters cl_parameters_MC(cl_parameters);
     MohrCoulombCLFS.CalculateMaterialResponsePK2(cl_parameters_MC);
-    MohrCoulombCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    MohrCoulombCLFS.FinalizeMaterialResponsePK2(cl_parameters_MC);
     TestMC = cl_parameters_MC.GetConstitutiveMatrix();
     MohrCoulombCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "MohrCoulomb:: This test is not in plastic range" << std::endl;
@@ -630,7 +630,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     // Von Mises
     ConstitutiveLaw::Parameters cl_parameters_VM(cl_parameters);
     VonMisesCLFS.CalculateMaterialResponsePK2(cl_parameters_VM);
-    VonMisesCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    VonMisesCLFS.FinalizeMaterialResponsePK2(cl_parameters_VM);
     TestVM = cl_parameters_VM.GetConstitutiveMatrix();
     VonMisesCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "VonMises:: This test is not in plastic range" << std::endl;
@@ -638,7 +638,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     // Drucker Pragger
     ConstitutiveLaw::Parameters cl_parameters_DP(cl_parameters);
     DruckerPragerCLFS.CalculateMaterialResponsePK2(cl_parameters_DP);
-    DruckerPragerCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    DruckerPragerCLFS.FinalizeMaterialResponsePK2(cl_parameters_DP);
     TestDP = cl_parameters_DP.GetConstitutiveMatrix();
     DruckerPragerCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "DruckerPrager:: This test is not in plastic range" << std::endl;
@@ -646,7 +646,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     // Tresca
     ConstitutiveLaw::Parameters cl_parameters_T(cl_parameters);
     TrescaCLFS.CalculateMaterialResponsePK2(cl_parameters_T);
-    TrescaCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    TrescaCLFS.FinalizeMaterialResponsePK2(cl_parameters_T);
     TestT = cl_parameters_T.GetConstitutiveMatrix();
     TrescaCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "Tresca:: This test is not in plastic range" << std::endl;
@@ -691,14 +691,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNe
     Vector stress_vector, strain_vector;
 
     Model current_model;
-    ModelPart& test_model_part = current_model.CreateModelPart("Main");
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    auto geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -726,13 +726,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNe
     material_properties.SetValue(HARDENING_CURVE, 0);
 
     // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    Flags& r_constitutive_law_options=cl_parameters.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    cl_parameters.SetElementGeometry(Geom);
-    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
+    cl_parameters.SetElementGeometry(geometry);
+    cl_parameters.SetProcessInfo(r_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
@@ -770,7 +770,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNe
     Tres = cl_parameters_T_res.GetStressVector();
 
     // Create the CL's (Finite strain)
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
     MCFS MohrCoulombCLFS = MCFS();
     VMFS VonMisesCLFS = VMFS();
     DPFS DruckerPragerCLFS = DPFS();
@@ -782,7 +782,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNe
     // Mohr Coulomb
     ConstitutiveLaw::Parameters cl_parameters_MC(cl_parameters);
     MohrCoulombCLFS.CalculateMaterialResponsePK2(cl_parameters_MC);
-    MohrCoulombCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    MohrCoulombCLFS.FinalizeMaterialResponsePK2(cl_parameters_MC);
     TestMC = cl_parameters_MC.GetStressVector();
     MohrCoulombCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "MohrCoulomb:: This test is not in plastic range" << std::endl;
@@ -790,7 +790,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNe
     // Von Mises
     ConstitutiveLaw::Parameters cl_parameters_VM(cl_parameters);
     VonMisesCLFS.CalculateMaterialResponsePK2(cl_parameters_VM);
-    VonMisesCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    VonMisesCLFS.FinalizeMaterialResponsePK2(cl_parameters_VM);
     TestVM = cl_parameters_VM.GetStressVector();
     VonMisesCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "VonMises:: This test is not in plastic range" << std::endl;
@@ -798,7 +798,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNe
     // Drucker Pragger
     ConstitutiveLaw::Parameters cl_parameters_DP(cl_parameters);
     DruckerPragerCLFS.CalculateMaterialResponsePK2(cl_parameters_DP);
-    DruckerPragerCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    DruckerPragerCLFS.FinalizeMaterialResponsePK2(cl_parameters_DP);
     TestDP = cl_parameters_DP.GetStressVector();
     DruckerPragerCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "DruckerPrager:: This test is not in plastic range" << std::endl;
@@ -806,7 +806,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainNe
     // Tresca
     ConstitutiveLaw::Parameters cl_parameters_T(cl_parameters);
     TrescaCLFS.CalculateMaterialResponsePK2(cl_parameters_T);
-    TrescaCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    TrescaCLFS.FinalizeMaterialResponsePK2(cl_parameters_T);
     TestT = cl_parameters_T.GetStressVector();
     TrescaCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "Tresca:: This test is not in plastic range" << std::endl;
@@ -845,14 +845,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     Vector stress_vector, strain_vector;
 
     Model current_model;
-    ModelPart& test_model_part = current_model.CreateModelPart("Main");
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    auto geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
@@ -880,13 +880,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     material_properties.SetValue(HARDENING_CURVE, 0);
 
     // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    Flags& r_constitutive_law_options=cl_parameters.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    cl_parameters.SetElementGeometry(Geom);
-    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
+    cl_parameters.SetElementGeometry(geometry);
+    cl_parameters.SetProcessInfo(r_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
@@ -928,7 +928,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     Tres = cl_parameters_T_res.GetConstitutiveMatrix();
 
     // Create the CL's (Finite strain)
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
     MCFS MohrCoulombCLFS = MCFS();
     VMFS VonMisesCLFS = VMFS();
     DPFS DruckerPragerCLFS = DPFS();
@@ -941,7 +941,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     // Mohr Coulomb
     ConstitutiveLaw::Parameters cl_parameters_MC(cl_parameters);
     MohrCoulombCLFS.CalculateMaterialResponsePK2(cl_parameters_MC);
-    MohrCoulombCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    MohrCoulombCLFS.FinalizeMaterialResponsePK2(cl_parameters_MC);
     TestMC = cl_parameters_MC.GetConstitutiveMatrix();
     MohrCoulombCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "MohrCoulomb:: This test is not in plastic range" << std::endl;
@@ -949,7 +949,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     // Von Mises
     ConstitutiveLaw::Parameters cl_parameters_VM(cl_parameters);
     VonMisesCLFS.CalculateMaterialResponsePK2(cl_parameters_VM);
-    VonMisesCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    VonMisesCLFS.FinalizeMaterialResponsePK2(cl_parameters_VM);
     TestVM = cl_parameters_VM.GetConstitutiveMatrix();
     VonMisesCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "VonMises:: This test is not in plastic range" << std::endl;
@@ -957,7 +957,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     // Drucker Pragger
     ConstitutiveLaw::Parameters cl_parameters_DP(cl_parameters);
     DruckerPragerCLFS.CalculateMaterialResponsePK2(cl_parameters_DP);
-    DruckerPragerCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    DruckerPragerCLFS.FinalizeMaterialResponsePK2(cl_parameters_DP);
     TestDP = cl_parameters_DP.GetConstitutiveMatrix();
     DruckerPragerCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "DruckerPrager:: This test is not in plastic range" << std::endl;
@@ -965,13 +965,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainNeoHookean
     // Tresca
     ConstitutiveLaw::Parameters cl_parameters_T(cl_parameters);
     TrescaCLFS.CalculateMaterialResponsePK2(cl_parameters_T);
-    TrescaCLFS.FinalizeSolutionStep(material_properties, Geom, dummy, test_model_part.GetProcessInfo());
+    TrescaCLFS.FinalizeMaterialResponsePK2(cl_parameters_T);
     TestT = cl_parameters_T.GetConstitutiveMatrix();
     TrescaCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "Tresca:: This test is not in plastic range" << std::endl;
 
     // Check the results
-    const double tolerance = 5.0e-3;
+    const double tolerance = 1.0e-2;
     for (std::size_t i = 0; i < 6 ; i++) {
         for (std::size_t j = 0; j < 6 ; j++) {
             KRATOS_CHECK(!std::isnan(TestMC(i, j)));

@@ -32,19 +32,19 @@ namespace Kratos
  * @class Tetrahedra3D10
  * @ingroup KratosCore
  * @brief A ten node tetrahedra geometry with quadratic shape functions
- * @details The node ordering corresponds with:       
- *                     3                              
- *                   ,/|`\                          
- *                 ,/  |  `\       
- *               ,7    '.   `9     
- *             ,/       8     `\   
- *          ,/          |       `\ 
+ * @details The node ordering corresponds with:
+ *                     3
+ *                   ,/|`\
+ *                 ,/  |  `\
+ *               ,7    '.   `9
+ *             ,/       8     `\
+ *          ,/          |       `\
  *         0--------6--'.--------2
- *          `\.         |      ,/ 
- *             `\.      |    ,5   
- *                `4.   '. ,/     
- *                   `\. |/       
- *                      `1         
+ *          `\.         |      ,/
+ *             `\.      |    ,5
+ *                `4.   '. ,/
+ *                   `\. |/
+ *                      `1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -416,10 +416,10 @@ public:
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
-        ) override
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
@@ -440,31 +440,35 @@ public:
         return false;
     }
 
+    ///@}
+    ///@name Edge
+    ///@{
 
-    /** This method gives you number of all edges of this
-    geometry.
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
+    /**
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
+     * @return SizeType containes number of this geometry edges.
+     * @see EdgesNumber()
+     * @see Edges()
+     * @see GenerateEdges()
+     * @see FacesNumber()
+     * @see Faces()
+     * @see GenerateFaces()
      */
-    // will be used by refinement algorithm, thus uncommented. janosch.
     SizeType EdgesNumber() const override
     {
         return 6;
     }
 
-    SizeType FacesNumber() const override
-    {
-        return 4;
-    }
-
-    /** This method gives you all edges of this geometry.
-
-    @return GeometriesArrayType containes this geometry edges.
-    @see EdgesNumber()
-    @see Edge()
-    */
-    GeometriesArrayType Edges( void ) override
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -496,7 +500,31 @@ public:
         return edges;
     }
 
-    GeometriesArrayType Faces( void ) override
+    ///@}
+    ///@name Face
+    ///@{
+
+    /**
+     * @brief Returns the number of faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 4;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -723,6 +751,8 @@ private:
      */
     static const GeometryData msGeometryData;
 
+    static const GeometryDimension msGeometryDimension;
+
 
     ///@}
     ///@name Serialization
@@ -749,7 +779,7 @@ private:
 
     /**
      * @brief Returns vector of shape function values at local coordinate.
-     * 
+     *
      * For a definition of the shape functions see, e.g.,
      * P. Wriggers, Nonlinear Finite Element Methods, Springer, 2008, Sec. 4.1.
      */
@@ -966,12 +996,17 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData Tetrahedra3D10<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_2,
+    &msGeometryDimension,
+    GeometryData::GI_GAUSS_2,
     Tetrahedra3D10<TPointType>::AllIntegrationPoints(),
     Tetrahedra3D10<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
+template<class TPointType> const
+GeometryDimension Tetrahedra3D10<TPointType>::msGeometryDimension(
+    3, 3, 3);
+
 }// namespace Kratos.
 
-#endif // KRATOS_TETRAHEDRA_3D_4_H_INCLUDED  defined 
+#endif // KRATOS_TETRAHEDRA_3D_4_H_INCLUDED  defined

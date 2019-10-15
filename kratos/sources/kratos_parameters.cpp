@@ -404,7 +404,7 @@ Parameters::json_const_iteration_proxy Parameters::items() const noexcept
 
 bool Parameters::Has(const std::string& rEntry) const
 {
-    return mpValue->find(rEntry) != mpValue->end();
+    return mpValue->contains(rEntry);
 }
 
 /***********************************************************************************/
@@ -557,6 +557,20 @@ std::string Parameters::GetString() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::vector<std::string> Parameters::GetStringArray() const
+{
+    KRATOS_ERROR_IF_NOT(this->IsArray()) << "Argument must be an array" << std::endl;
+    std::vector<std::string> result(this->size());
+    for (std::size_t i = 0; i < result.size(); ++i)
+    {
+        result[i] = this->GetArrayItem(i).GetString();
+    }
+    return result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Vector Parameters::GetVector() const
 {
     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Argument must be a Vector (a json list)" << std::endl;
@@ -607,7 +621,6 @@ Matrix Parameters::GetMatrix() const
 
 void Parameters::SetDouble(const double Value)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_number()) << "Parameter must be a number" << std::endl;
     *mpValue=Value;
 }
 
@@ -616,7 +629,6 @@ void Parameters::SetDouble(const double Value)
 
 void Parameters::SetInt(const int Value)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_number()) << "Parameter must be a number" << std::endl;
     *mpValue=Value;
 }
 
@@ -625,7 +637,6 @@ void Parameters::SetInt(const int Value)
 
 void Parameters::SetBool(const bool Value)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_boolean()) << "Parameter must be a bool" << std::endl;
     *mpValue=Value;
 }
 
@@ -634,7 +645,6 @@ void Parameters::SetBool(const bool Value)
 
 void Parameters::SetString(const std::string& rValue)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_string()) << "Parameter must be a string" << std::endl;
     *mpValue=rValue;
 }
 
@@ -643,8 +653,6 @@ void Parameters::SetString(const std::string& rValue)
 
 void Parameters::SetVector(const Vector& rValue)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Parameter must be a Vector (a json list)" << std::endl;
-
     const SizeType size = rValue.size();
 
     nlohmann::json j_array(0.0, size);
@@ -660,8 +668,6 @@ void Parameters::SetVector(const Vector& rValue)
 
 void Parameters::SetMatrix(const Matrix& rValue)
 {
-//     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Parameter must be a Matrix (a json list of lists)" << std::endl;
-
     const SizeType nrows = rValue.size1();
     const SizeType ncols = rValue.size2();
 
@@ -715,7 +721,7 @@ Parameters::const_iterator Parameters::end() const
 
 Parameters::SizeType Parameters::size() const
 {
-    KRATOS_ERROR_IF_NOT(mpValue->is_array())  << "Size can only be queried if the value if of Array type" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Size can only be queried if the value is of Array type" << std::endl;
     return mpValue->size();
 }
 
@@ -1011,71 +1017,24 @@ bool Parameters::HasSameKeysAndTypeOfValuesAs(Parameters& rParameters)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void Parameters::ValidateAndAssignDefaults(Parameters& rDefaultParameters)
-{
-    KRATOS_TRY
-
-    // First verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
-    // If it is not the case throw an error
-    for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
-        const std::string& r_item_name = itr.key();
-        if(!rDefaultParameters.Has(r_item_name) ) {
-            std::stringstream msg;
-            msg << "The item with name \"" << r_item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
-            msg << "Hence Validation fails" << std::endl;
-            msg << "Parameters being validated are : " << std::endl;
-            msg << this->PrettyPrintJsonString() << std::endl;
-            msg << "Defaults against which the current parameters are validated are :" << std::endl;
-            msg << rDefaultParameters.PrettyPrintJsonString() << std::endl;
-            KRATOS_ERROR << msg.str() << std::endl;
-        }
-
-        bool type_coincides = false;
-        auto value_defaults = (rDefaultParameters[r_item_name]).GetUnderlyingStorage();
-        if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
-//             if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
-//             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
-        if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
-        if(itr->is_null() && value_defaults->is_null()) type_coincides = true;
-        if(itr->is_array() && value_defaults->is_array()) type_coincides = true;
-        if(itr->is_string() && value_defaults->is_string()) type_coincides = true;
-        if(itr->is_object() && value_defaults->is_object()) type_coincides = true;
-
-        if(type_coincides == false) {
-            std::stringstream msg;
-            msg << "******************************************************************************************************" << std::endl;
-            msg << "The item with name :\"" << r_item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
-            msg << "******************************************************************************************************" << std::endl;
-            msg << "Parameters being validated are : " << std::endl;
-            msg << this->PrettyPrintJsonString() << std::endl;
-            msg << "Defaults against which the current parameters are validated are :" << std::endl;
-            msg << rDefaultParameters.PrettyPrintJsonString() << std::endl;
-            KRATOS_ERROR << msg.str() << std::endl;
-        }
-
-    }
-
-    // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
-    if (rDefaultParameters.IsSubParameter()) {
-        for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
-            const std::string& r_item_name = itr.key();
-            if(mpValue->find(r_item_name) == mpValue->end()) {
-                (*mpValue)[r_item_name] = itr.value();
-            }
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void Parameters::ValidateAndAssignDefaults(const Parameters& rDefaultParameters)
 {
     KRATOS_TRY
 
-    // First verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
+    this->ValidateDefaults(rDefaultParameters);
+    this->AddMissingParameters(rDefaultParameters);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::ValidateDefaults(const Parameters& rDefaultParameters) const
+{
+    KRATOS_TRY
+
+    // Verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
     // If it is not the case throw an error
     for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
         const std::string& r_item_name = itr.key();
@@ -1115,86 +1074,22 @@ void Parameters::ValidateAndAssignDefaults(const Parameters& rDefaultParameters)
 
     }
 
-    // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
-    if (rDefaultParameters.IsSubParameter()) {
-        for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
-            const std::string& r_item_name = itr.key();
-            if(mpValue->find(r_item_name) == mpValue->end()) {
-                (*mpValue)[r_item_name] = itr.value();
-            }
-        }
-    }
-
     KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void Parameters::RecursivelyValidateAndAssignDefaults(Parameters& rDefaultParameters)
+void Parameters::AddMissingParameters(const Parameters& rDefaultParameters)
 {
     KRATOS_TRY
 
-    // First verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
-    // If it is not the case throw an error
-    for (auto itr = this->mpValue->cbegin(); itr != this->mpValue->cend(); ++itr) {
-        const std::string& r_item_name = itr.key();
-
-        if(!rDefaultParameters.Has(r_item_name) ) {
-            std::stringstream msg;
-            msg << "The item with name \"" << r_item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
-            msg << "Hence Validation fails" << std::endl;
-            msg << "Parameters being validated are : " << std::endl;
-            msg << this->PrettyPrintJsonString() << std::endl;
-            msg << "Defaults against which the current parameters are validated are :" << std::endl;
-            msg << rDefaultParameters.PrettyPrintJsonString() << std::endl;
-            KRATOS_ERROR << msg.str() << std::endl;
-        }
-
-        bool type_coincides = false;
-        auto value_defaults = (rDefaultParameters[r_item_name]).GetUnderlyingStorage();
-        if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
-//             if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
-//             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
-        if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
-        if(itr->is_null() && value_defaults->is_null()) type_coincides = true;
-        if(itr->is_array() && value_defaults->is_array()) type_coincides = true;
-        if(itr->is_string() && value_defaults->is_string()) type_coincides = true;
-        if(itr->is_object() && value_defaults->is_object()) type_coincides = true;
-
-        if(type_coincides == false) {
-            std::stringstream msg;
-            msg << "The item with name :\"" << r_item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
-            msg << "Parameters being validated are : " << std::endl;
-            msg << this->PrettyPrintJsonString() << std::endl;
-            msg << "Defaults against which the current parameters are validated are :" << std::endl;
-            msg << rDefaultParameters.PrettyPrintJsonString() << std::endl;
-            KRATOS_ERROR << msg.str() << std::endl;
-        }
-
-        // Now walk the tree recursively
-        if(itr->is_object()) {
-            Parameters subobject = (*this)[r_item_name];
-            Parameters defaults_subobject = rDefaultParameters[r_item_name];
-            subobject.RecursivelyValidateAndAssignDefaults(defaults_subobject);
-        }
-    }
-
-    // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
+    // Iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
     if (rDefaultParameters.IsSubParameter()) {
         for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
             const std::string& r_item_name = itr.key();
-
             if(mpValue->find(r_item_name) == mpValue->end()) {
                 (*mpValue)[r_item_name] = itr.value();
-            }
-
-            // Now walk the tree recursively
-            if(itr->is_object()) {
-                Parameters subobject = (*this)[r_item_name];
-                Parameters defaults_subobject = rDefaultParameters[r_item_name];
-
-                subobject.RecursivelyValidateAndAssignDefaults(defaults_subobject);
             }
         }
     }
@@ -1209,7 +1104,20 @@ void Parameters::RecursivelyValidateAndAssignDefaults(const Parameters& rDefault
 {
     KRATOS_TRY
 
-    // First verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
+    this->RecursivelyValidateDefaults(rDefaultParameters);
+    this->RecursivelyAddMissingParameters(rDefaultParameters);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::RecursivelyValidateDefaults(const Parameters& rDefaultParameters) const
+{
+    KRATOS_TRY
+
+    // Verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
     // If it is not the case throw an error
     for (auto itr = this->mpValue->cbegin(); itr != this->mpValue->cend(); ++itr) {
         const std::string& r_item_name = itr.key();
@@ -1250,9 +1158,19 @@ void Parameters::RecursivelyValidateAndAssignDefaults(const Parameters& rDefault
         if(itr->is_object()) {
             Parameters subobject = (*this)[r_item_name];
             Parameters defaults_subobject = rDefaultParameters[r_item_name];
-            subobject.RecursivelyValidateAndAssignDefaults(defaults_subobject);
+            subobject.RecursivelyValidateDefaults(defaults_subobject);
         }
     }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::RecursivelyAddMissingParameters(const Parameters& rDefaultParameters)
+{
+    KRATOS_TRY
 
     // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
     if (rDefaultParameters.IsSubParameter()) {
@@ -1268,7 +1186,7 @@ void Parameters::RecursivelyValidateAndAssignDefaults(const Parameters& rDefault
                 Parameters subobject = (*this)[r_item_name];
                 Parameters defaults_subobject = rDefaultParameters[r_item_name];
 
-                subobject.RecursivelyValidateAndAssignDefaults(defaults_subobject);
+                subobject.RecursivelyAddMissingParameters(defaults_subobject);
             }
         }
     }

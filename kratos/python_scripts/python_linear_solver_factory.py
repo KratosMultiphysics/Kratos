@@ -1,6 +1,8 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
+from KratosMultiphysics import kratos_utilities as kratos_utils
+from importlib import import_module
 
 def __DeprecatedApplicationImport(solver_type):
     # dict specifying in which applications the linear-solvers are defined
@@ -40,14 +42,13 @@ def __DeprecatedApplicationImport(solver_type):
             depr_msg += '\nPlease update your settings accordingly, the current settings are deprecated!'
             KM.Logger.PrintWarning('Linear-Solver-Factory', depr_msg)
 
-            from KratosMultiphysics import kratos_utilities as kratos_utils
             if not kratos_utils.CheckIfApplicationsAvailable(app_name):
                 err_msg  = 'Trying to use the linear-solver "' + solver_type
                 err_msg += '"\nThis solver is defined in the "' + app_name
                 err_msg += '" which is not compiled'
                 raise Exception(err_msg)
             # import the Application in which the linear solver is defined
-            __import__("KratosMultiphysics." + app_name)
+            import_module("KratosMultiphysics." + app_name)
             break
 
 def __CheckIfSolverTypeIsDeprecated(config):
@@ -155,15 +156,37 @@ def ConstructSolver(configuration):
         # the following is only needed for the check in the ComplexLinearSolverFactory
         # note that the solver-configuration is NOT modified
         solver_type = splitted_name[1]
-        __import__("KratosMultiphysics." + app_name)
+        import_module("KratosMultiphysics." + app_name)
     else:
         __DeprecatedApplicationImport(solver_type)
 
     if KM.ComplexLinearSolverFactory().Has(solver_type):
-        KM.Logger.PrintInfo("Linear-Solver-Factory",\
-            "Constructing a complex linear-solver")
+        KM.Logger.PrintInfo("Linear-Solver-Factory", "Constructing a complex linear-solver")
         return KM.ComplexLinearSolverFactory().Create(configuration)
     else:
-        KM.Logger.PrintInfo("Linear-Solver-Factory",\
-            "Constructing a regular (non-complex) linear-solver")
+        KM.Logger.PrintInfo("Linear-Solver-Factory", "Constructing a regular (non-complex) linear-solver")
         return KM.LinearSolverFactory().Create(configuration)
+
+def CreateFastestAvailableDirectLinearSolver():
+    # Using a default linear solver (selecting the fastest one available)
+    if kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication"):
+        from KratosMultiphysics import EigenSolversApplication
+    elif kratos_utils.CheckIfApplicationsAvailable("ExternalSolversApplication"):
+        from KratosMultiphysics import ExternalSolversApplication
+
+    linear_solvers_by_speed = [
+        "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
+        "sparse_lu",  # EigenSolversApplication
+        "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
+        "super_lu",   # ExternalSolversApplication
+        "skyline_lu_factorization" # in Core, always available, but slow
+    ]
+
+    for solver_name in linear_solvers_by_speed:
+        if KM.LinearSolverFactory().Has(solver_name):
+            linear_solver_configuration = KM.Parameters("""{ "solver_type" : "%s"}""" % solver_name)
+
+            KM.Logger.PrintInfo('Linear-Solver-Factory', 'Creating "{}" as fastest available direct solver'.format(solver_name))
+            return KM.LinearSolverFactory().Create(linear_solver_configuration)
+
+    raise Exception("Linear-Solver could not be constructed!")

@@ -22,11 +22,11 @@ namespace Kratos {
                                      double particle_radius,
                                      double fluid_density,
                                      double fluid_kinematic_viscosity,
-                                     array_1d<double, 3>& slip_velocity,
+                                     array_1d<double, 3>& minus_slip_velocity,
                                      array_1d<double, 3>& drag_force,
                                      const ProcessInfo& r_current_process_info)
     {
         double drag_coeff = 6.0 * Globals::Pi * fluid_kinematic_viscosity * fluid_density * particle_radius;
-        noalias(drag_force) = drag_coeff * slip_velocity;
+        noalias(drag_force) = drag_coeff * minus_slip_velocity;
     }
 } // namespace Kratos

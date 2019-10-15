@@ -48,6 +48,7 @@ namespace Kratos
  * finite differencing  (adjoint semi analytic approach). It is designed to be used in adjoint
  * sensitivity analysis
  */
+template <typename TPrimalElement>
 class AdjointFiniteDifferencingBaseElement : public Element
 {
 public:
@@ -55,7 +56,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferencingBaseElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferencingBaseElement);
     ///@}
 
     ///@name Classes
@@ -64,14 +65,33 @@ public:
 
     ///@name Life Cycle
     ///@{
-    AdjointFiniteDifferencingBaseElement() : Element()
-    {}
 
-    AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement);
+    AdjointFiniteDifferencingBaseElement(IndexType NewId = 0,
+                        bool HasRotationDofs = false)
+    : Element(NewId),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGetGeometry())),
+      mHasRotationDofs(HasRotationDofs)
+    {
+    }
 
-    AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement, bool HasRotationDofs);
+    AdjointFiniteDifferencingBaseElement(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        bool HasRotationDofs = false)
+    : Element(NewId, pGeometry),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry)),
+      mHasRotationDofs(HasRotationDofs)
+    {
+    }
 
-    ~AdjointFiniteDifferencingBaseElement() override;
+    AdjointFiniteDifferencingBaseElement(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties,
+                        bool HasRotationDofs = false)
+    : Element(NewId, pGeometry, pProperties),
+      mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties)),
+      mHasRotationDofs(HasRotationDofs)
+    {
+    }
 
     ///@}
 
@@ -82,7 +102,21 @@ public:
     ///@name Operations
     ///@{
 
-    // Basic
+    Element::Pointer Create(IndexType NewId,
+                              NodesArrayType const& ThisNodes,
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
+            NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+
+    Element::Pointer Create(IndexType NewId,
+                              GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_intrusive<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
+            NewId, pGeometry, pProperties);
+    }
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
@@ -296,7 +330,7 @@ public:
 					      std::vector<bool>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
@@ -307,28 +341,28 @@ public:
 					      std::vector< array_1d<double, 3 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					      std::vector< array_1d<double, 6 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 					      std::vector< Vector >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
 					      std::vector< Matrix >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base element is called!" << std::endl;
     }
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
@@ -351,7 +385,7 @@ public:
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Calculates the pseudo-load of the design variable SHAPE (coordinates of nodes) contribution of the element.
+     * Calculates the pseudo-load of the design variable SHAPE_SENSITIVITY (coordinates of nodes) contribution of the element.
      * This is done by finite differencing of the RHS of the primal element when perturbing a nodal coordinate.
      * This operation is currently NOT thread-save!
      */
@@ -424,12 +458,12 @@ private:
     /**
      * Get the perturbation size for a scalar variable
      */
-    double GetPerturbationSize(const Variable<double>& rDesignVariable);
+    double GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
 
     /**
      * Get the perturbation size for a vector variable
      */
-    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
+    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
 
     /**
      * Get the perturbation size modification factor for a scalar variable.
@@ -437,7 +471,7 @@ private:
      * Note: This approach is only based on experience.
      * This can be overwritten by derived classes.
      */
-    virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable);
+    virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable) const;
 
     /**
      * Get the perturbation size modification factor for a vector variable.
@@ -445,7 +479,7 @@ private:
      * Note: This approach is only based on experience.
      * This can be overwritten by derived classes.
      */
-    virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable);
+    virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const;
 
     ///@}
 

@@ -27,15 +27,15 @@ class KRATOS_API(DEM_APPLICATION) DEMWall : public Condition
 public:
 
     // Counted pointer of DEMWall
-    KRATOS_CLASS_POINTER_DEFINITION( DEMWall );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( DEMWall );
 
 
-	typedef WeakPointerVector<Element> ParticleWeakVectorType;
+	typedef GlobalPointersVector<Element> ParticleWeakVectorType;
 	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-	typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+	typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
 
-	typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-	typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+	typedef GlobalPointersVector<Condition> ConditionWeakVectorType;
+	typedef GlobalPointersVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     // Constructor void
@@ -59,7 +59,7 @@ public:
         PropertiesType::Pointer pProperties ) const override;
 
 
-    virtual void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
     virtual void CalculateElasticForces(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );
     virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override;
@@ -105,7 +105,9 @@ public:
      * or that no common error is found.
      * @param r_process_info
      */
-
+    std::vector<SphericParticle*>& GetVectorOfGluedParticles() {
+        return mVectorOfGluedParticles;
+    }
 
 
 protected:
@@ -114,12 +116,11 @@ protected:
 
 private:
     ///@name Static Member Variables
+    std::vector<SphericParticle*> mVectorOfGluedParticles;
+    /// private variables
 
-    /// privat variables
 
-
-    // privat name Operations
-
+    // private name Operations
 
 
     ///@}
@@ -131,11 +132,13 @@ private:
     virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        //rSerializer.save("mRightHandSideVector", mRightHandSideVector);
     }
 
     virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        //rSerializer.load("mRightHandSideVector", mRightHandSideVector);
     }
 
 

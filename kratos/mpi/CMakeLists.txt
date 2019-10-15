@@ -1,13 +1,17 @@
 # Not including current dir (we want to force users to specify the mpi/ in the include path)
 set(CMAKE_INCLUDE_CURRENT_DIR OFF)
 
+message("**** configuring Kratos to be compiled with MPI-Support ****")
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## Kratos MPI extension sources
 set( KRATOS_MPI_SOURCES
    mpi_environment.cpp
    sources/mpi_data_communicator.cpp
-   utilities/mpi_coloring_utilities.cpp
+   utilities/parallel_fill_communicator.cpp
+   utilities/gather_modelpart_utility.cpp
+   utilities/mpi_normal_calculation_utilities.cpp;
 )
 
 ## Kratos MPI extension Python interface

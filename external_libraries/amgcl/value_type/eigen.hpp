@@ -53,6 +53,12 @@ struct scalar_of< Eigen::Matrix<T, N, M> > {
     typedef typename math::scalar_of<T>::type type;
 };
 
+/// Replace scalar type in the static matrix
+template <class T, int N, int M, class S>
+struct replace_scalar< Eigen::Matrix<T, N, M>, S> {
+    typedef Eigen::Matrix<S, N, M> type;
+};
+
 /// RHS type corresponding to a non-scalar type.
 template <class T, int N>
 struct rhs_of< Eigen::Matrix<T, N, N> > {

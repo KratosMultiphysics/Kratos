@@ -42,8 +42,8 @@ void ComputeCenterOfGravityProcess::Execute()
     }
 
     // sum up across partitions
-    mrThisModelPart.GetCommunicator().SumAll(total_mass);
-    mrThisModelPart.GetCommunicator().SumAll(center_of_gravity);
+    total_mass = mrThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(total_mass);
+    center_of_gravity = mrThisModelPart.GetCommunicator().GetDataCommunicator().SumAll(center_of_gravity);
 
     center_of_gravity /= total_mass;
 

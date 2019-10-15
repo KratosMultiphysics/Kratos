@@ -5,7 +5,6 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.HDF5Application as KratosHDF5
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
