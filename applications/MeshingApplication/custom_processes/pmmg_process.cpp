@@ -453,7 +453,7 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     mPMmmgUtilities.PMMGLibCallMetric(mThisParameters);
 
     /* Save to file */
-    if (save_to_file) SaveSolutionToFile(true);
+    // if (save_to_file) SaveSolutionToFile(true);
 
     // Some information
     PMMGMeshInfo<TPMMGLibrary> mmg_mesh_info;
@@ -485,8 +485,8 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
             it_node->Set(TO_ERASE, true);
         }
     }
-    // r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
-    // mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+    r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
+    mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
     auto& r_conditions_array = mrThisModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
@@ -500,8 +500,8 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
             it_cond->Set(TO_ERASE, true);
         }
     }
-    // r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
-    // mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+    r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
+    mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
     auto& r_elements_array = mrThisModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
@@ -515,8 +515,8 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
             it_elem->Set(TO_ERASE, true);
         }
     }
-    // r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
-    // mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+    r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
+    mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // Writing the new mesh data on the model part
     mPMmmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
@@ -524,35 +524,35 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
     // Writing the new solution data on the model part
     mPMmmgUtilities.WriteSolDataToModelPart(mrThisModelPart);
 
-    // In case of prism collapse we extrapolate now (and later extrude)
-    if (collapse_prisms_elements) {
-        /* We interpolate all the values */
-        Parameters interpolate_parameters = Parameters(R"({})" );
-        interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
-        interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
-        interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
-        interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
-        interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
-        interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
-        interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
-        interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
-        interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-        interpolate_parameters["surface_elements"].SetBool(true);
+    // // In case of prism collapse we extrapolate now (and later extrude)
+    // if (collapse_prisms_elements) {
+    //     /* We interpolate all the values */
+    //     Parameters interpolate_parameters = Parameters(R"({})" );
+    //     interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
+    //     interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
+    //     interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
+    //     interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
+    //     interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
+    //     interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
+    //     interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
+    //     interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
+    //     interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
+    //     interpolate_parameters["surface_elements"].SetBool(true);
 
-        ModelPart& r_old_auxiliar_model_part = r_old_model_part.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
-        ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
-        NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_auxiliar_model_part, r_auxiliar_model_part, interpolate_parameters);
-        interpolate_nodal_values_process.Execute();
+    //     ModelPart& r_old_auxiliar_model_part = r_old_model_part.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+    //     ModelPart& r_auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+    //     NodalValuesInterpolationProcess<Dimension> interpolate_nodal_values_process(r_old_auxiliar_model_part, r_auxiliar_model_part, interpolate_parameters);
+    //     interpolate_nodal_values_process.Execute();
 
-        // Reorder before extrude
-        mPMmmgUtilities.ReorderAllIds(mrThisModelPart);
+    //     // Reorder before extrude
+    //     mPMmmgUtilities.ReorderAllIds(mrThisModelPart);
 
-        /* Now we can extrude */
-        ExtrudeTrianglestoPrisms(r_old_model_part);
+    //     /* Now we can extrude */
+    //     ExtrudeTrianglestoPrisms(r_old_model_part);
 
-        // Remove the auxiliar model part
-        mrThisModelPart.RemoveSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
-    }
+    //     // Remove the auxiliar model part
+    //     mrThisModelPart.RemoveSubModelPart("AUXILIAR_COLLAPSED_PRISMS");
+    // }
 
     /* After that we reorder nodes, conditions and elements: */
     mPMmmgUtilities.ReorderAllIds(mrThisModelPart);

@@ -931,7 +931,8 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
         KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
 
     // Avoid/allow surface modifications
-    if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_nosurf, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 )
+    if (static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_surf_mesh"].GetBool()) == 1) KRATOS_ERROR << "Trying to do surface" << std::endl;
+    if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_nosurf, 1) != 1 )
         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
 
     // Don't insert nodes on mesh
@@ -1180,23 +1181,23 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetDisplacementVector(array_1d<double
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
 {
-    // // Iterate over nodes
-    // auto& r_nodes_array = rModelPart.Nodes();
-    // const auto it_node_begin = r_nodes_array.begin();
-    // for(IndexType i = 0; i < r_nodes_array.size(); ++i)
-    //     (it_node_begin + i)->SetId(i + 1);
+    // Iterate over nodes
+    auto& r_nodes_array = rModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
+        (it_node_begin + i)->SetId(i + 1);
 
-    // // Iterate over conditions
-    // auto& r_conditions_array = rModelPart.Conditions();
-    // const auto it_cond_begin = r_conditions_array.begin();
-    // for(IndexType i = 0; i < r_conditions_array.size(); ++i)
-    //     (it_cond_begin + i)->SetId(i + 1);
+    // Iterate over conditions
+    auto& r_conditions_array = rModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
+    for(IndexType i = 0; i < r_conditions_array.size(); ++i)
+        (it_cond_begin + i)->SetId(i + 1);
 
-    // // Iterate over elements
-    // auto& r_elements_array = rModelPart.Elements();
-    // const auto it_elem_begin = r_elements_array.begin();
-    // for(IndexType i = 0; i < r_elements_array.size(); ++i)
-    //     (it_elem_begin + i)->SetId(i + 1);
+    // Iterate over elements
+    auto& r_elements_array = rModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+    for(IndexType i = 0; i < r_elements_array.size(); ++i)
+        (it_elem_begin + i)->SetId(i + 1);
 }
 
 /***********************************************************************************/
