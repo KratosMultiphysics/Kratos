@@ -24,6 +24,7 @@
 #include "containers/model.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "custom_utilities/pmmg_utilities.h"
+#include "meshing_application_variables.h"
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
@@ -1066,10 +1067,10 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetElements(
     const IndexType Index
     )
 {
-    const IndexType id_1 = rGeometry[0].Id(); // First node Id
-    const IndexType id_2 = rGeometry[1].Id(); // Second node Id
-    const IndexType id_3 = rGeometry[2].Id(); // Third node Id
-    const IndexType id_4 = rGeometry[3].Id(); // Fourth node Id
+    const IndexType id_1 = local_node_id[rGeometry[0].Id()]; // First node Id
+    const IndexType id_2 = local_node_id[rGeometry[1].Id()]; // Second node Id
+    const IndexType id_3 = local_node_id[rGeometry[2].Id()]; // Third node Id
+    const IndexType id_4 = local_node_id[rGeometry[3].Id()]; // Fourth node Id
 
     if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
         KRATOS_ERROR_IF( PMMG_Set_tetrahedron(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set tetrahedron" << std::endl;
@@ -1094,7 +1095,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetMetricScalar(
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( PMMG_Set_scalarMet( mParMmgMesh, Metric, NodeId) != 1 ) << "Unable to set scalar metric" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_scalarMet( mParMmgMesh, Metric, local_node_id[NodeId]) != 1 ) << "Unable to set scalar metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1106,7 +1107,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetMetricVector(
     const IndexType NodeId
     )
 {
-    KRATOS_ERROR_IF( PMMG_Set_vectorMet( mParMmgMesh, rMetric[0], rMetric[1], rMetric[2], NodeId) != 1 ) << "Unable to set vector metric" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_vectorMet( mParMmgMesh, rMetric[0], rMetric[1], rMetric[2], local_node_id[NodeId]) != 1 ) << "Unable to set vector metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1119,7 +1120,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetMetricTensor(
 {
     // KRATOS_ERROR << "Not yet implemented" << std::endl;
     // The order is XX, XY, XZ, YY, YZ, ZZ
-    KRATOS_ERROR_IF( PMMG_Set_tensorMet( mParMmgMesh, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], NodeId) != 1 ) << "Unable to set tensor metric" << std::endl;
+    KRATOS_ERROR_IF( PMMG_Set_tensorMet( mParMmgMesh, rMetric[0], rMetric[3], rMetric[5], rMetric[1], rMetric[4], rMetric[2], local_node_id[NodeId]) != 1 ) << "Unable to set tensor metric" << std::endl;
 }
 
 /***********************************************************************************/
@@ -1179,23 +1180,23 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::GetDisplacementVector(array_1d<double
 template<PMMGLibrary TPMMGLibrary>
 void ParMmgUtilities<TPMMGLibrary>::ReorderAllIds(ModelPart& rModelPart)
 {
-    // Iterate over nodes
-    auto& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
-        (it_node_begin + i)->SetId(i + 1);
+    // // Iterate over nodes
+    // auto& r_nodes_array = rModelPart.Nodes();
+    // const auto it_node_begin = r_nodes_array.begin();
+    // for(IndexType i = 0; i < r_nodes_array.size(); ++i)
+    //     (it_node_begin + i)->SetId(i + 1);
 
-    // Iterate over conditions
-    auto& r_conditions_array = rModelPart.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
-    for(IndexType i = 0; i < r_conditions_array.size(); ++i)
-        (it_cond_begin + i)->SetId(i + 1);
+    // // Iterate over conditions
+    // auto& r_conditions_array = rModelPart.Conditions();
+    // const auto it_cond_begin = r_conditions_array.begin();
+    // for(IndexType i = 0; i < r_conditions_array.size(); ++i)
+    //     (it_cond_begin + i)->SetId(i + 1);
 
-    // Iterate over elements
-    auto& r_elements_array = rModelPart.Elements();
-    const auto it_elem_begin = r_elements_array.begin();
-    for(IndexType i = 0; i < r_elements_array.size(); ++i)
-        (it_elem_begin + i)->SetId(i + 1);
+    // // Iterate over elements
+    // auto& r_elements_array = rModelPart.Elements();
+    // const auto it_elem_begin = r_elements_array.begin();
+    // for(IndexType i = 0; i < r_elements_array.size(); ++i)
+    //     (it_elem_begin + i)->SetId(i + 1);
 }
 
 /***********************************************************************************/
@@ -1318,20 +1319,26 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
             ++counter_to_remesh;
         }
     }
+
+    local_node_id = std::map<int, int>();
+    local_elem_id = std::map<int, int>();
+    local_cond_id = std::map<int, int>();
+
     // RESETING THE ID OF THE NODES (important for non consecutive meshes)
-    IndexType counter_remesh = 1;
+    IndexType counter_remesh = 0;
     IndexType counter_not_remesh = counter_to_remesh + 1;
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = it_node_begin + i;
 
-        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-        if (!old_entity) {
-            it_node->SetId(counter_remesh);
-            ++counter_remesh;
-        } else {
-            it_node->SetId(counter_not_remesh);
-            ++counter_not_remesh;
-        }
+        local_node_id[it_node->Id()] = ++counter_remesh;
+        // const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+        // if (!old_entity) {
+        //     it_node->SetId(counter_remesh);
+        //     ++counter_remesh;
+        // } else {
+        //     it_node->SetId(counter_not_remesh);
+        //     ++counter_not_remesh;
+        // }
     }
     counter_to_remesh = 0;
     #pragma omp parallel for reduction(+: counter_to_remesh)
@@ -1344,19 +1351,20 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     }
     // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
-    counter_remesh = 1;
+    counter_remesh = 0;
     counter_not_remesh = counter_to_remesh + 1;
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
         auto it_cond = it_cond_begin + i;
 
-        const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
-        if (!old_entity) {
-            it_cond->SetId(counter_remesh);
-            ++counter_remesh;
-        } else {
-            it_cond->SetId(counter_not_remesh);
-            ++counter_not_remesh;
-        }
+        local_cond_id[it_cond->Id()] = ++counter_remesh;
+        // const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
+        // if (!old_entity) {
+        //     it_cond->SetId(counter_remesh);
+        //     ++counter_remesh;
+        // } else {
+        //     it_cond->SetId(counter_not_remesh);
+        //     ++counter_not_remesh;
+        // }
     }
     counter_to_remesh = 0;
     #pragma omp parallel for reduction(+: counter_to_remesh)
@@ -1369,19 +1377,20 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
         }
     }
     // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
-    counter_remesh = 1;
+    counter_remesh = 0;
     counter_not_remesh = counter_to_remesh + 1;
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
         auto it_elem = it_elem_begin + i;
 
-        const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
-        if (!old_entity) {
-            it_elem->SetId(counter_remesh);
-            ++counter_remesh;
-        } else {
-            it_elem->SetId(counter_not_remesh);
-            ++counter_not_remesh;
-        }
+        local_elem_id[it_elem->Id()] = ++counter_remesh;
+        // const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
+        // if (!old_entity) {
+        //     it_elem->SetId(counter_remesh);
+        //     ++counter_remesh;
+        // } else {
+        //     it_elem->SetId(counter_not_remesh);
+        //     ++counter_not_remesh;
+        // }
     }
 
     // Now we compute the colors
@@ -1520,7 +1529,8 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
         const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
         if (!old_entity) {
             const array_1d<double, 3>& r_coordinates = Framework == FrameworkEulerLagrange::LAGRANGIAN ? it_node->GetInitialPosition() : it_node->Coordinates();
-            SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], it_node->Id());
+            //SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], it_node->Id());
+            SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[it_node->Id()], local_node_id[it_node->Id()]);
 
             bool blocked = false;
             if (it_node->IsDefined(BLOCKED))
@@ -1537,7 +1547,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
 
         const bool old_entity = it_cond->IsDefined(OLD_ENTITY) ? it_cond->Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], it_cond->Id());
+            SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], local_cond_id[it_cond->Id()]);
 
             bool blocked = false;
             if (it_cond->IsDefined(BLOCKED))
@@ -1554,7 +1564,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
 
         const bool old_entity = it_elem->IsDefined(OLD_ENTITY) ? it_elem->Is(OLD_ENTITY) : false;
         if (!old_entity) {
-            SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], it_elem->Id());
+            SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], local_elem_id[it_elem->Id()]);
 
             bool blocked = false;
             if (it_elem->IsDefined(BLOCKED))
@@ -1613,20 +1623,57 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::GenerateParallelInterfaces(
     PMMG_Set_numberOfNodeCommunicators(mParMmgMesh, neighbour_indices.size());
 
     for(std::size_t i = 0; i < neighbour_indices.size(); i++) {
-        std::vector<int> globalId(rModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes());
+        std::vector<int> globalId(0);
+        std::vector<int> localId(0);
+        globalId.reserve(rModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes() + rModelPart.GetCommunicator().GhostMesh(i).NumberOfNodes());
+        localId.reserve(rModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes() + rModelPart.GetCommunicator().GhostMesh(i).NumberOfNodes());
 
-        if ((neighbour_indices[i]) > 0) {
+        if ((neighbour_indices[i]) >= 0) {
             for(auto& node: rModelPart.GetCommunicator().LocalMesh(i).Nodes()) {
-                globalId[i] = node.Id();
+                globalId.push_back(node.Id());
+                localId.push_back(local_node_id[node.Id()]);
+            }
+
+            for(auto& node: rModelPart.GetCommunicator().GhostMesh(i).Nodes()) {
+                globalId.push_back(node.Id());
+                localId.push_back(local_node_id[node.Id()]);
             }
         }
 
-        PMMG_Set_ithNodeCommunicatorSize(mParMmgMesh, i, rModelPart.GetCommunicator().NeighbourIndices()[i], rModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes());
-        PMMG_Set_ithNodeCommunicator_nodes(mParMmgMesh, i, globalId.data(), globalId.data(), 1); // Last parameters shoould be 0
+        PMMG_Set_ithNodeCommunicatorSize(mParMmgMesh, i, rModelPart.GetCommunicator().NeighbourIndices()[i], rModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes() + rModelPart.GetCommunicator().GhostMesh(i).NumberOfNodes());
+        PMMG_Set_ithNodeCommunicator_nodes(mParMmgMesh, i, localId.data(), globalId.data(), 1); // Last parameters shoould be 1
     }
 }
 
+template<>
+void ParMmgUtilities<PMMGLibrary::PMMG3D>::PrintParallelInterfaces(
+    ModelPart& rModelPart
+    ) 
+{
+    auto& neighbour_indices = rModelPart.GetCommunicator().NeighbourIndices();
 
+    for(std::size_t i = 0; i < neighbour_indices.size(); i++) {
+        std::vector<int> globalId(0);
+        std::vector<int> localId(0);
+        globalId.reserve(rModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes() + rModelPart.GetCommunicator().GhostMesh(i).NumberOfNodes());
+        localId.reserve(rModelPart.GetCommunicator().LocalMesh(i).NumberOfNodes() + rModelPart.GetCommunicator().GhostMesh(i).NumberOfNodes());
+
+        if ((neighbour_indices[i]) >= 0) {
+            for(auto& node: rModelPart.GetCommunicator().LocalMesh(i).Nodes()) {
+                globalId.push_back(node.Id());
+                localId.push_back(local_node_id[node.Id()]);
+            }
+
+            for(auto& node: rModelPart.GetCommunicator().GhostMesh(i).Nodes()) {
+                globalId.push_back(node.Id());
+                localId.push_back(local_node_id[node.Id()]);
+            }
+        }
+
+        std::cout << "List of nodes from process " << rModelPart.GetCommunicator().GetDataCommunicator().Rank() << " to process " << neighbour_indices[i] << std::endl;
+        KRATOS_WATCH(globalId)
+    }
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1678,23 +1725,46 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rMod
     const auto it_node_begin = r_nodes_array.begin();
 
     // Set size of the solution
-    SetSolSizeTensor(r_nodes_array.size());
-
     const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
+    if (it_node_begin->Has(r_tensor_variable)) {
+        SetSolSizeTensor(r_nodes_array.size());
+    } else {
+        SetSolSizeScalar(r_nodes_array.size());
+    }
 
-        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-        if (!old_entity) {
-            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+    // In case of considering metric tensor
+    if (it_node_begin->Has(r_tensor_variable)) {
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
 
-            // We get the metric
-            const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
 
-            // We set the metric
-            SetMetricTensor(r_metric, it_node->Id());
+                // We get the metric
+                 const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+
+                // We set the metric
+                SetMetricTensor(r_metric, it_node->Id());
+            }
+        }
+    } else {
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
+
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(METRIC_SCALAR)) << "METRIC_SCALAR not defined for node " << it_node->Id() << std::endl;
+
+                // We get the metric
+                const double metric = it_node->GetValue(METRIC_SCALAR);
+
+                // We set the metric
+                SetMetricScalar(metric, it_node->Id());
+            }
         }
     }
 }
