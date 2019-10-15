@@ -120,7 +120,8 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType> explicit BrepFace(
+    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
+    explicit BrepCurveOnSurface(
         BrepCurveOnSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
     {
@@ -303,7 +304,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
         rSerializer.save("NurbsSurface", mpNurbsSurface);
         rSerializer.save("NurbsCurve", mpNurbsCurve);
-        rSerializer.save("NurbsInterval", mpNurbsInterval);
+        rSerializer.save("NurbsInterval", mCurveNurbsInterval);
     }
 
     void load( Serializer& rSerializer ) override
@@ -311,7 +312,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("NurbsSurface", mpNurbsSurface);
         rSerializer.load("NurbsCurve", mpNurbsCurve);
-        rSerializer.load("NurbsInterval", mpNurbsInterval);
+        rSerializer.load("NurbsInterval", mCurveNurbsInterval);
     }
 
     BrepCurveOnSurface()
