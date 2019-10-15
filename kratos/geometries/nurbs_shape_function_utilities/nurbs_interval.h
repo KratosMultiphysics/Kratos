@@ -32,22 +32,22 @@ namespace Kratos
 * Provides universal geometrical utiltity functions for the computation of
 * curve and surface NURBS/ B-Spline shape functions.
 */
-class Interval
+class NurbsInterval
 {
 public:
     ///@name Life Cycle
     ///@{
-    Interval()
+    NurbsInterval()
     {
     }
 
-    Interval(const double T0, const double T1)
+    NurbsInterval(const double T0, const double T1)
         : mT0(T0)
         , mT1(T1)
     {
     }
 
-    Interval(const std::pair<double, double> Bounds)
+    NurbsInterval(const std::pair<double, double> Bounds)
         : mT0(Bounds.first)
         , mT1(Bounds.second)
     {
@@ -117,15 +117,15 @@ public:
         return A + (B - A) * Parameter;
     }
 
-    Interval GetNormalizedInterval(const double T0, const double T1) const
+    NurbsInterval GetNormalizedInterval(const double T0, const double T1) const
     {
         double t0Normalized = GetNormalizedAt(T0);
         double t1Normalized = GetNormalizedAt(T1);
 
-        return Interval(t0Normalized, t1Normalized);
+        return NurbsInterval(t0Normalized, t1Normalized);
     }
 
-    Interval GetNormalizedInterval(const Interval Bounds) const
+    NurbsInterval GetNormalizedInterval(const NurbsInterval Bounds) const
     {
         return GetNormalizedInterval(Bounds.mT0, Bounds.mT1);
     }
@@ -162,18 +162,14 @@ private:
     ///@name Member Variables
     ///@{
 
-    /*
-    * @brief Lower bound of the Interval.
-    */
+    /// @brief Lower bound of the NurbsInterval
     double mT0;
 
-    /*
-    * @brief Upper bound of the Interval.
-    */
+    /// @brief Upper bound of the NurbsInterval
     double mT1;
 
     ///@}
-}; // Interval
+}; // NurbsInterval
 
 } // namespace Kratos
 

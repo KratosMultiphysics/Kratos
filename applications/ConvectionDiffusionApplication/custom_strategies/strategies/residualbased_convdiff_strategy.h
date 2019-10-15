@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -283,6 +283,9 @@ public:
         {
             (i)->InitializeSolutionStep(rCurrentProcessInfo);
         }
+
+        BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(rProjectionVariable);
+        BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(NODAL_AREA);
 
         //solve nodally for the velocity
         for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ;

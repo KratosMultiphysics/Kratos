@@ -263,9 +263,9 @@ public:
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
-    Interval DomainIntervalU() const
+    NurbsInterval DomainIntervalU() const
     {
-        return Interval(
+        return NurbsInterval(
             mKnotsU[mPolynomialDegreeU - 1],
             mKnotsU[NumberOfKnotsU() - mPolynomialDegreeU]);
     }
@@ -273,9 +273,9 @@ public:
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
-    Interval DomainIntervalV() const
+    NurbsInterval DomainIntervalV() const
     {
-        return Interval(
+        return NurbsInterval(
             mKnotsV[mPolynomialDegreeV - 1],
             mKnotsV[NumberOfKnotsV() - mPolynomialDegreeV]);
     }
@@ -283,20 +283,20 @@ public:
     /* Provides all knot span intervals of the surface in u-direction.
     @return vector of knot span intervals.
     */
-    std::vector<Interval> KnotSpanIntervalsU() const
+    std::vector<NurbsInterval> KnotSpanIntervalsU() const
     {
         const SizeType first_span = mPolynomialDegreeU - 1;
         const SizeType last_span = NumberOfKnotsU() - mPolynomialDegreeU - 1;
 
         const SizeType number_of_spans = last_span - first_span + 1;
 
-        std::vector<Interval> result(number_of_spans);
+        std::vector<NurbsInterval> result(number_of_spans);
 
         for (int i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsU[first_span + i];
             const double t1 = mKnotsU[first_span + i + 1];
 
-            result[i] = Interval(t0, t1);
+            result[i] = NurbsInterval(t0, t1);
         }
 
         return result;
@@ -305,20 +305,20 @@ public:
     /* Provides all knot span intervals of the surface in u-direction.
     @return vector of knot span intervals.
     */
-    std::vector<Interval> KnotSpanIntervalsV() const
+    std::vector<NurbsInterval> KnotSpanIntervalsV() const
     {
         const SizeType first_span = mPolynomialDegreeV - 1;
         const SizeType last_span = NumberOfKnotsV() - mPolynomialDegreeV - 1;
 
         const SizeType number_of_spans = last_span - first_span + 1;
 
-        std::vector<Interval> result(number_of_spans);
+        std::vector<NurbsInterval> result(number_of_spans);
 
         for (int i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsV[first_span + i];
             const double t1 = mKnotsV[first_span + i + 1];
 
-            result[i] = Interval(t0, t1);
+            result[i] = NurbsInterval(t0, t1);
         }
 
         return result;
@@ -327,54 +327,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /** This method maps from local space to working space and computes the
-    * number of derivatives at the local space parameter in the dimension of the object.
-    * @param LocalCoordinates The local coordinates in dimension space
-    * @param Derivative Number of computed derivatives
-    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
-    * @see PointLocalCoordinates
-    */
-    std::vector<CoordinatesArrayType> GlobalDerivatives(
-        const CoordinatesArrayType& rCoordinates,
-        const SizeType DerivativeOrder) const
-    {
-        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, DerivativeOrder);
-
-        if (IsRational()) {
-            shape_function_container.ComputeNurbsShapeFunctionValues(
-                mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
-        }
-        else {
-            shape_function_container.ComputeBSplineShapeFunctionValues(
-                mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
-        }
-
-        std::vector<CoordinatesArrayType> derivatives(shape_function_container.NumberOfShapeFunctionRows());
-
-        for (IndexType shape_function_row_i = 0;
-            shape_function_row_i < shape_function_container.NumberOfShapeFunctionRows();
-            shape_function_row_i++) {
-            for (IndexType u = 0; u <= PolynomialDegreeU(); u++) {
-                for (IndexType v = 0; v <= PolynomialDegreeV(); v++) {
-                    IndexType cp_index_u = shape_function_container.GetFirstNonzeroControlPointU() + u;
-                    IndexType cp_index_v = shape_function_container.GetFirstNonzeroControlPointV() + v;
-
-                    const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
-                        NumberOfControlPointsU(), NumberOfControlPointsV(), cp_index_u, cp_index_v);
-
-                    if (u == 0 && v==0)
-                        derivatives[shape_function_row_i] =
-                        (*this)[index] * shape_function_container(u, v, shape_function_row_i);
-                    else
-                        derivatives[shape_function_row_i] +=
-                        (*this)[index] * shape_function_container(u, v, shape_function_row_i);
-                }
-            }
-        }
-
-        return derivatives;
-    }
 
     /** This method maps from dimension space to working space.
     * @param rResult array_1d<double, 3> with the coordinates in working space
@@ -413,6 +365,55 @@ public:
         }
 
         return rResult;
+    }
+
+    /** This method maps from local space to working space and computes the
+    *   number of derivatives at the local space parameter in the dimension of the object.
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @param Derivative Number of computed derivatives
+    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+    * @see PointLocalCoordinates
+    */
+    void GlobalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const override
+    {
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, DerivativeOrder);
+
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(
+                mKnotsU, mKnotsV, mWeights, rLocalCoordinates[0], rLocalCoordinates[1]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(
+                mKnotsU, mKnotsV, rLocalCoordinates[0], rLocalCoordinates[1]);
+        }
+
+        if (rGlobalSpaceDerivatives.size() != shape_function_container.NumberOfShapeFunctionRows()) {
+            rGlobalSpaceDerivatives.resize(shape_function_container.NumberOfShapeFunctionRows());
+        }
+
+        for (IndexType shape_function_row_i = 0;
+            shape_function_row_i < shape_function_container.NumberOfShapeFunctionRows();
+            shape_function_row_i++) {
+            for (IndexType u = 0; u <= PolynomialDegreeU(); u++) {
+                for (IndexType v = 0; v <= PolynomialDegreeV(); v++) {
+                    IndexType cp_index_u = shape_function_container.GetFirstNonzeroControlPointU() + u;
+                    IndexType cp_index_v = shape_function_container.GetFirstNonzeroControlPointV() + v;
+
+                    const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+                        NumberOfControlPointsU(), NumberOfControlPointsV(), cp_index_u, cp_index_v);
+
+                    if (u == 0 && v==0)
+                        rGlobalSpaceDerivatives[shape_function_row_i] =
+                        (*this)[index] * shape_function_container(u, v, shape_function_row_i);
+                    else
+                        rGlobalSpaceDerivatives[shape_function_row_i] +=
+                        (*this)[index] * shape_function_container(u, v, shape_function_row_i);
+                }
+            }
+        }
     }
 
     ///@}
@@ -472,7 +473,7 @@ public:
     ///@{
     std::string Info() const override
     {
-        return TWorkingSpaceDimension + " dimensional nurbs surface.";
+        return std::to_string(TWorkingSpaceDimension) + " dimensional nurbs surface.";
     }
 
     void PrintInfo(std::ostream& rOStream) const override
