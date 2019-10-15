@@ -136,8 +136,8 @@ public:
     {
         BaseType::operator=( rOther );
         mpNurbsSurface = rOther.mpNurbsSurface;
-        mOuterLoopArray = rOther.mOuterLoopArray;
-        mInnerLoopArray = rOther.mInnerLoopArray;
+        mpNurbsCurve = rOther.mpNurbsCurve;
+        mCurveNurbsInterval = rOther.mCurveNurbsInterval;
         return *this;
     }
 
@@ -157,8 +157,8 @@ public:
     {
         BaseType::operator=( rOther );
         mpNurbsSurface = rOther.mpNurbsSurface;
-        mOuterLoopArray = rOther.mOuterLoopArray;
-        mInnerLoopArray = rOther.mInnerLoopArray;
+        mpNurbsCurve = rOther.mpNurbsCurve;
+        mCurveNurbsInterval = rOther.mCurveNurbsInterval;
         return *this;
     }
 
