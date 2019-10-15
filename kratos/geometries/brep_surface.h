@@ -109,7 +109,8 @@ public:
     }
 
     /// Copy constructor from a geometry with different point type.
-    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType> explicit BrepSurface(
+    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
+    explicit BrepSurface(
         BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
         , mpNurbsSurface(rOther.mpNurbsSurface)
@@ -179,14 +180,13 @@ public:
     ///@name Information
     ///@{
 
-
     /*
     * @brief checks if the Brep Face has any boundary trim information
     * @return true if face has no boundary trimming curves
     */
     bool IsTrimmed() const
     {
-        if (mOuterLoopArray.size() == 0)
+        if (mOuterLoopArray.size() == 0 && mInnerLoopArray.size() == 0)
             return false;
     }
 
