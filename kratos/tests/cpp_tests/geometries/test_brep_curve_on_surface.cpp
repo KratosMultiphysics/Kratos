@@ -28,7 +28,7 @@ namespace Testing {
 
     typedef Node<3> NodeType;
 
-    NurbsSurfaceGeometry<3, NodeType>::Pointer GenerateReferenceNodeSurfacePointer() {
+    NurbsSurfaceGeometry<3, PointerVector<NodeType>>::Pointer GenerateReferenceNodeSurfacePointer() {
         Geometry<NodeType>::PointsArrayType points;
 
         points.push_back(NodeType::Pointer(new NodeType(1, 0, 5, 0)));
@@ -50,12 +50,12 @@ namespace Testing {
         int p = 2;
         int q = 1;
 
-        return Kratos::make_shared < NurbsSurfaceGeometry<3, NodeType >>(points, p, q, knot_u, knot_v);
+        return Kratos::make_shared < NurbsSurfaceGeometry<3, PointerVector<NodeType> >>(points, p, q, knot_u, knot_v);
     }
 
-    NurbsCurveGeometry<2, Point>::Pointer GenerateReferenceCurve2dPointer()
+    NurbsCurveGeometry<2, PointerVector<Point>>::Pointer GenerateReferenceCurve2dPointer()
     {
-        NurbsCurveGeometry<2, Point>::PointsArrayType points;
+        NurbsCurveGeometry<2, PointerVector<Point>>::PointsArrayType points;
 
         points.push_back(Point::Pointer(new Point(0, 0)));
         points.push_back(Point::Pointer(new Point(3.3333333333333335, 1.6666666666666667)));
@@ -72,7 +72,7 @@ namespace Testing {
 
         int p = 3;
 
-        return Kratos::make_shared<NurbsCurveGeometry<2, Point>>(points, p, knot_vector);
+        return Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(points, p, knot_vector);
     }
 
     ///// Tests
@@ -80,7 +80,7 @@ namespace Testing {
         auto p_surface = GenerateReferenceNodeSurfacePointer();
         auto p_curve = GenerateReferenceCurve2dPointer();
 
-        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, Point>(
+        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(
             p_surface, p_curve);
 
         // Check general information, input to ouput
