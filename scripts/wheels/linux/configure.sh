@@ -1,0 +1,27 @@
+${CMAKE} ..                                                                         \
+-DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc                            \
+-DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++                          \
+-DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                              \
+-DCMAKE_C_FLAGS="-msse3"                                                            \
+-DBOOST_ROOT="/workspace/boost/boost_1_71_0"                                        \
+-DPYTHON_EXECUTABLE=$1                                                              \
+-DLAPACK_LIBRARIES="/usr/lib64/liblapack.so.3"                                      \
+-DBLAS_LIBRARIES="/usr/lib64/libblas.so.3"                                          \
+-DCMAKE_BUILD_TYPE=Release                                                          \
+-DMESHING_APPLICATION=OFF                                                           \
+-DEXTERNAL_SOLVERS_APPLICATION=OFF                                                  \
+-DSTRUCTURAL_MECHANICS_APPLICATION=ON                                               \
+-DCONVECTION_DIFFUSION_APPLICATION=OFF                                              \
+-DSOLID_MECHANICS_APPLICATION=OFF                                                   \
+-DCONSTITUTIVE_MODELS_APPLICATION=OFF                                               \
+-DFLUID_DYNAMICS_APPLICATION=ON                                                     \
+-DMESH_MOVING_APPLICATION=OFF                                                       \
+-DFSI_APPLICATION=OFF                                                               \
+-DDEM_APPLICATION=ON                                                                \
+-DSWIMMING_DEM_APPLICATION=OFF                                                      \
+-DMIXED_ELEMENT_APPLICATION=OFF                                                     \
+-DSHAPE_OPTIMIZATION_APPLICATION=OFF                                                \
+-DTOPOLOGY_OPTIMIZATION_APPLICATION=OFF                                             \
+-DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                       \
+-DINSTALL_EMBEDDED_PYTHON=OFF
+

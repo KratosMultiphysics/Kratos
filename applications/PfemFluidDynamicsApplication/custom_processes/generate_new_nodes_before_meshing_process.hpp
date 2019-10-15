@@ -103,6 +103,16 @@ public:
 		const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 		double currentTime = rCurrentProcessInfo[TIME];
 		double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+
+		double initialTimeRefiningBox = mrRemesh.RefiningBoxInitialTime;
+		double finalTimeRefiningBox = mrRemesh.RefiningBoxFinalTime;
+		bool refiningBox = mrRemesh.UseRefiningBox;
+
+		if (!(refiningBox == true && currentTime > initialTimeRefiningBox && currentTime < finalTimeRefiningBox))
+		{
+			refiningBox = false;
+		}
+
 		if (currentTime < 2 * timeInterval)
 		{
 			mrRemesh.Info->RemovedNodes = 0;
@@ -116,8 +126,72 @@ public:
 		if (ElementsToRefine > 0 && mEchoLevel > 1)
 			std::cout << " I will look for " << ElementsToRefine << " new nodes" << std::endl;
 
-		if (ElementsToRefine > 0)
+		if (refiningBox == false)
 		{
+
+			if (ElementsToRefine > 0)
+			{
+				std::vector<array_1d<double, 3>> NewPositions;
+				std::vector<double> BiggestVolumes;
+				std::vector<array_1d<unsigned int, 4>> NodesIDToInterpolate;
+				std::vector<Node<3>::DofsContainerType> NewDofs;
+
+				int CountNodes = 0;
+
+				NewPositions.resize(ElementsToRefine);
+				BiggestVolumes.resize(ElementsToRefine);
+				NodesIDToInterpolate.resize(ElementsToRefine);
+				NewDofs.resize(ElementsToRefine);
+
+				for (int nn = 0; nn < ElementsToRefine; nn++)
+				{
+					BiggestVolumes[nn] = -1.0;
+				}
+
+				ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
+				// const unsigned int nds = element_begin->GetGeometry().size();
+				for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
+				{
+
+					const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
+
+					//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
+					if (dimension == 2)
+					{
+						SelectEdgeToRefine2D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+					}
+					else if (dimension == 3)
+					{
+						SelectEdgeToRefine3D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+					}
+
+				} // elements loop
+
+				mrRemesh.Info->RemovedNodes -= ElementsToRefine;
+				if (CountNodes < ElementsToRefine)
+				{
+					mrRemesh.Info->RemovedNodes += ElementsToRefine - CountNodes;
+					NewPositions.resize(CountNodes);
+					BiggestVolumes.resize(CountNodes);
+					NodesIDToInterpolate.resize(CountNodes);
+					NewDofs.resize(CountNodes);
+				}
+
+				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, NewDofs, ElementsToRefine);
+
+			} //if ElementsToRefine>0
+		}
+		else
+		{
+
+			if (ElementsToRefine < 10)
+			{
+				ElementsToRefine = 10;
+			}
+			else
+			{
+				ElementsToRefine *= 3;
+			}
 			std::vector<array_1d<double, 3>> NewPositions;
 			std::vector<double> BiggestVolumes;
 			std::vector<array_1d<unsigned int, 4>> NodesIDToInterpolate;
@@ -145,11 +219,11 @@ public:
 				//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
 				if (dimension == 2)
 				{
-					SelectEdgeToRefine2D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+					SelectEdgeToRefine2DWithRefinement(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
 				}
 				else if (dimension == 3)
 				{
-					SelectEdgeToRefine3D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
+					SelectEdgeToRefine3DWithRefinement(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, NewDofs, CountNodes, ElementsToRefine);
 				}
 
 			} // elements loop
@@ -165,8 +239,7 @@ public:
 			}
 
 			CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, NewDofs, ElementsToRefine);
-
-		} //if ElementsToRefine>0
+		}
 
 		mrRemesh.InputInitializedFlag = false;
 
@@ -691,6 +764,651 @@ private:
 
 						break;
 					}
+				}
+			}
+		}
+
+		KRATOS_CATCH("")
+	}
+
+	void SelectEdgeToRefine2DWithRefinement(Element::GeometryType &Element,
+											std::vector<array_1d<double, 3>> &NewPositions,
+											std::vector<double> &BiggestVolumes,
+											std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+											std::vector<Node<3>::DofsContainerType> &NewDofs,
+											int &CountNodes,
+											int ElementsToRefine)
+	{
+		KRATOS_TRY
+
+		const unsigned int nds = Element.size();
+
+		unsigned int rigidNodes = 0;
+		unsigned int freesurfaceNodes = 0;
+		unsigned int inletNodes = 0;
+		bool toEraseNodeFound = false;
+
+		double meanMeshSize = mrRemesh.Refine->CriticalRadius;
+		const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+		double currentTime = rCurrentProcessInfo[TIME];
+		double initialTime = mrRemesh.RefiningBoxInitialTime;
+		double finalTime = mrRemesh.RefiningBoxFinalTime;
+		bool refiningBox = mrRemesh.UseRefiningBox;
+		double distance = 2.0 * meanMeshSize;
+		bool penalizationRigid = false;
+		double seperation  = 0;
+		double coefficient = 0;
+		if (!(refiningBox == true && currentTime > initialTime && currentTime < finalTime))
+		{
+			refiningBox = false;
+		}
+
+		for (unsigned int pn = 0; pn < nds; pn++)
+		{
+			if (Element[pn].Is(RIGID))
+			{
+				rigidNodes++;
+			}
+			if (Element[pn].Is(TO_ERASE))
+			{
+				toEraseNodeFound = true;
+			}
+			if (Element[pn].Is(FREE_SURFACE))
+			{
+				freesurfaceNodes++;
+			}
+			if (Element[pn].Is(INLET))
+			{
+				inletNodes++;
+			}
+
+			if (refiningBox == true)
+			{
+
+				array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
+				array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
+				array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
+				array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
+				array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
+				array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
+				if (mrRemesh.Refine->CriticalRadius > mrRemesh.RefiningBoxMeshSize)
+				{
+					if (Element[pn].X() > RefiningBoxMinimumPoint[0] && Element[pn].Y() > RefiningBoxMinimumPoint[1] &&
+						Element[pn].X() < RefiningBoxMaximumPoint[0] && Element[pn].Y() < RefiningBoxMaximumPoint[1])
+					{
+						meanMeshSize = mrRemesh.RefiningBoxMeshSize;
+					}
+					else if ((Element[pn].X() < RefiningBoxMinimumPoint[0] && Element[pn].X() > (minExternalPoint[0] - distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
+					{
+						seperation = Element[pn].X() - RefiningBoxMinimumPoint[0];
+						coefficient = fabs(seperation) / (distance + meanMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Y() < RefiningBoxMinimumPoint[1] && Element[pn].Y() > (minExternalPoint[1] - distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0]))
+					{
+						seperation = Element[pn].Y() - RefiningBoxMinimumPoint[1];
+						coefficient = fabs(seperation) / (distance + meanMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].X() > RefiningBoxMaximumPoint[0] && Element[pn].X() < (maxExternalPoint[0] + distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
+					{
+						seperation = Element[pn].X() - RefiningBoxMaximumPoint[0];
+						coefficient = fabs(seperation) / (distance + meanMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Y() > RefiningBoxMaximumPoint[1] && Element[pn].Y() < (maxExternalPoint[1] + distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0]))
+					{
+						seperation = Element[pn].Y() - RefiningBoxMaximumPoint[1];
+						coefficient = fabs(seperation) / (distance + meanMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						penalizationRigid = true;
+					}
+				}
+				else
+				{
+					distance = 2.0 * mrRemesh.RefiningBoxMeshSize;
+					if (Element[pn].X() > (minInternalPoint[0] + distance) && Element[pn].X() < (maxInternalPoint[0] - distance) &&
+						Element[pn].Y() > (minInternalPoint[1] + distance) && Element[pn].Y() < (maxInternalPoint[1] - distance))
+					{
+						meanMeshSize = mrRemesh.RefiningBoxMeshSize; // in the internal domain the size is the one given by the user
+					}
+					else if ((Element[pn].X() > RefiningBoxMinimumPoint[0] && Element[pn].X() < (minInternalPoint[0] + distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
+					{
+						seperation = (minInternalPoint[0] + distance) - Element[pn].X();
+						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						if (meanMeshSize < 0)
+						{
+							meanMeshSize = mrRemesh.Refine->CriticalRadius;
+						}
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Y() > RefiningBoxMinimumPoint[1] && Element[pn].Y() < (minInternalPoint[1] + distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0]))
+					{
+						seperation = (minInternalPoint[1] + distance) - Element[pn].Y();
+						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						if (meanMeshSize < 0)
+						{
+							meanMeshSize = mrRemesh.Refine->CriticalRadius;
+						}
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].X() < RefiningBoxMaximumPoint[0] && Element[pn].X() > (maxInternalPoint[0] - distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
+					{
+						seperation = (maxInternalPoint[0] - distance) - Element[pn].X();
+						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						if (meanMeshSize < 0)
+						{
+							meanMeshSize = mrRemesh.Refine->CriticalRadius;
+						}
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Y() < RefiningBoxMaximumPoint[1] && Element[pn].Y() > (maxInternalPoint[1] - distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0]))
+					{
+						seperation = (maxInternalPoint[1] - distance) - Element[pn].Y();
+						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						if (meanMeshSize < 0)
+						{
+							meanMeshSize = mrRemesh.Refine->CriticalRadius;
+						}
+						penalizationRigid = true;
+					}
+				}
+			}
+		}
+
+		double penalization = 1.0;
+		if (refiningBox == true)
+		{
+			if (freesurfaceNodes > 0)
+			{
+				penalization = 1.2; //to avoid to gain too much volume during remeshing step
+			}
+
+			if (rigidNodes > 0 && penalizationRigid == true)
+			{
+				penalization = 1.2;
+			}
+		}
+
+		double limitEdgeLength = 1.9 * meanMeshSize * penalization;
+		double safetyCoefficient2D = 1.5;
+
+		double ElementalVolume = Element.Area();
+
+		array_1d<double, 3> Edges(3, 0.0);
+		array_1d<unsigned int, 3> FirstEdgeNode(3, 0);
+		array_1d<unsigned int, 3> SecondEdgeNode(3, 0);
+		double WallCharacteristicDistance = 0;
+		array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+		// array_1d<double,3> CoorDifference(3,0.0);
+		// noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+		// CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+		double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
+		Edges[0] = sqrt(SquaredLength);
+		FirstEdgeNode[0] = 0;
+		SecondEdgeNode[0] = 1;
+		if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
+		{
+			WallCharacteristicDistance = Edges[0];
+		}
+		unsigned int Counter = 0;
+		for (unsigned int i = 2; i < nds; i++)
+		{
+			for (unsigned int j = 0; j < i; j++)
+			{
+				noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
+				// CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
+				SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
+				Counter += 1;
+				Edges[Counter] = sqrt(SquaredLength);
+				FirstEdgeNode[Counter] = j;
+				SecondEdgeNode[Counter] = i;
+				if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
+				{
+					WallCharacteristicDistance = Edges[Counter];
+				}
+			}
+		}
+
+		bool dangerousElement = false;
+		if (rigidNodes > 1)
+		{
+			for (unsigned int i = 0; i < 3; i++)
+			{
+				if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient2D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
+					(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
+				{
+					Edges[i] = 0;
+				}
+				// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
+				//   Edges[i]=0;
+				//   // Edges[i]*=penalizationFreeSurface;
+				// }
+				if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
+					(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
+				{
+					Edges[i] = 0;
+				}
+			}
+		}
+		if ((Edges[0] == 0 && Edges[1] == 0 && Edges[2] == 0) || rigidNodes == 3)
+		{
+			dangerousElement = true;
+		}
+
+		if (dangerousElement == false && toEraseNodeFound == false)
+		{
+
+			// array_1d<double,3> NewPosition(3,0.0);
+			unsigned int maxCount = 3;
+			double LargestEdge = 0;
+
+			for (unsigned int i = 0; i < 3; i++)
+			{
+				if (Edges[i] > LargestEdge)
+				{
+					maxCount = i;
+					LargestEdge = Edges[i];
+				}
+			}
+
+			if (CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength)
+			{
+
+				bool newNode = true;
+				for (unsigned int i = 0; i < unsigned(CountNodes); i++)
+				{
+					if ((NodesIDToInterpolate[i][0] == Element[FirstEdgeNode[maxCount]].GetId() && NodesIDToInterpolate[i][1] == Element[SecondEdgeNode[maxCount]].GetId()) ||
+						(NodesIDToInterpolate[i][1] == Element[FirstEdgeNode[maxCount]].GetId() && NodesIDToInterpolate[i][0] == Element[SecondEdgeNode[maxCount]].GetId()))
+					{
+						newNode = false;
+					}
+				}
+				if (newNode == true)
+				{
+					array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
+					// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+					// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+					NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
+					NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
+					if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
+					{
+						CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+					}
+					else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
+					{
+						CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+					}
+					else
+					{
+						std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
+					}
+
+					BiggestVolumes[CountNodes] = ElementalVolume;
+					NewPositions[CountNodes] = NewPosition;
+					CountNodes++;
+				}
+			}
+		}
+
+		KRATOS_CATCH("")
+	}
+
+	void SelectEdgeToRefine3DWithRefinement(Element::GeometryType &Element,
+											std::vector<array_1d<double, 3>> &NewPositions,
+											std::vector<double> &BiggestVolumes,
+											std::vector<array_1d<unsigned int, 4>> &NodesIDToInterpolate,
+											std::vector<Node<3>::DofsContainerType> &NewDofs,
+											int &CountNodes,
+											int ElementsToRefine)
+	{
+		KRATOS_TRY
+
+		const unsigned int nds = Element.size();
+
+		unsigned int rigidNodes = 0;
+		unsigned int freesurfaceNodes = 0;
+		unsigned int inletNodes = 0;
+		bool toEraseNodeFound = false;
+
+		double meanMeshSize = mrRemesh.Refine->CriticalRadius;
+		const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+		double currentTime = rCurrentProcessInfo[TIME];
+		double initialTime = mrRemesh.RefiningBoxInitialTime;
+		double finalTime = mrRemesh.RefiningBoxFinalTime;
+		bool refiningBox = mrRemesh.UseRefiningBox;
+		double distance = 2.0 * meanMeshSize;
+		bool penalizationRigid = false;
+		double seperation  = 0;
+		double coefficient = 0;
+		if (!(refiningBox == true && currentTime > initialTime && currentTime < finalTime))
+		{
+			refiningBox = false;
+		}
+
+		for (unsigned int pn = 0; pn < nds; pn++)
+		{
+			if (Element[pn].Is(RIGID))
+			{
+				rigidNodes++;
+			}
+			if (Element[pn].Is(TO_ERASE))
+			{
+				toEraseNodeFound = true;
+			}
+			if (Element[pn].Is(FREE_SURFACE))
+			{
+				freesurfaceNodes++;
+			}
+			if (Element[pn].Is(INLET))
+			{
+				inletNodes++;
+			}
+
+			if (refiningBox == true)
+			{
+
+				array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
+				array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
+				array_1d<double, 3> minExternalPoint = mrRemesh.RefiningBoxMinExternalPoint;
+				array_1d<double, 3> minInternalPoint = mrRemesh.RefiningBoxMinInternalPoint;
+				array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
+				array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
+				if (mrRemesh.Refine->CriticalRadius > mrRemesh.RefiningBoxMeshSize)
+				{
+					if (Element[pn].X() > RefiningBoxMinimumPoint[0] && Element[pn].X() < RefiningBoxMaximumPoint[0] &&
+						Element[pn].Y() > RefiningBoxMinimumPoint[1] && Element[pn].Y() < RefiningBoxMaximumPoint[1] &&
+						Element[pn].Z() < RefiningBoxMinimumPoint[2] && Element[pn].Z() < RefiningBoxMaximumPoint[2])
+					{
+						meanMeshSize = mrRemesh.RefiningBoxMeshSize;
+					}
+					else if ((Element[pn].X() < RefiningBoxMinimumPoint[0] && Element[pn].X() > (minExternalPoint[0] - distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
+					{
+						seperation = Element[pn].X() - RefiningBoxMinimumPoint[0];
+						coefficient = fabs(seperation) / (distance + meanMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Y() < RefiningBoxMinimumPoint[1] && Element[pn].Y() > (minExternalPoint[1] - distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
+					{
+						seperation = Element[pn].Y() - RefiningBoxMinimumPoint[1];
+						coefficient = fabs(seperation) / (distance + meanMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Z() < RefiningBoxMinimumPoint[2] && Element[pn].Z() > (minExternalPoint[2] - distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0] && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
+					{
+						seperation = Element[pn].Z() - RefiningBoxMinimumPoint[2];
+						coefficient = fabs(seperation) / (distance + meanMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].X() > RefiningBoxMaximumPoint[0] && Element[pn].X() < (maxExternalPoint[0] + distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
+					{
+						seperation = Element[pn].X() - RefiningBoxMaximumPoint[0];
+						coefficient = fabs(seperation) / (distance + meanMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Y() > RefiningBoxMaximumPoint[1] && Element[pn].Y() < (maxExternalPoint[1] + distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
+					{
+						seperation = Element[pn].Y() - RefiningBoxMaximumPoint[1];
+						coefficient = fabs(seperation) / (distance + meanMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Z() > RefiningBoxMaximumPoint[2] && Element[pn].Z() < (maxExternalPoint[2] + distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0] && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
+					{
+						seperation = Element[pn].Z() - RefiningBoxMaximumPoint[2];
+						coefficient = fabs(seperation) / (distance + meanMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						penalizationRigid = true;
+					}
+				}
+				else
+				{
+					distance = 2.0 * mrRemesh.RefiningBoxMeshSize;
+					if (Element[pn].X() > (minInternalPoint[0] + distance) && Element[pn].X() < (maxInternalPoint[0] - distance) &&
+						Element[pn].Y() > (minInternalPoint[1] + distance) && Element[pn].Y() < (maxInternalPoint[1] - distance) &&
+						Element[pn].Z() > (minInternalPoint[2] + distance) && Element[pn].Z() < (maxInternalPoint[2] - distance))
+					{
+						meanMeshSize = mrRemesh.RefiningBoxMeshSize; // in the internal domain the size is the one given by the user
+					}
+					else if ((Element[pn].X() > RefiningBoxMinimumPoint[0] && Element[pn].X() < (minInternalPoint[0] + distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
+					{
+						seperation = (minInternalPoint[0] + distance) - Element[pn].X();
+						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						if (meanMeshSize < 0)
+						{
+							meanMeshSize = mrRemesh.Refine->CriticalRadius;
+						}
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Y() > RefiningBoxMinimumPoint[1] && Element[pn].Y() < (minInternalPoint[1] + distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
+					{
+						seperation = (minInternalPoint[1] + distance) - Element[pn].Y();
+						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						if (meanMeshSize < 0)
+						{
+							meanMeshSize = mrRemesh.Refine->CriticalRadius;
+						}
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Z() > RefiningBoxMinimumPoint[2] && Element[pn].Z() < (minInternalPoint[2] + distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0] && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
+					{
+						seperation = (minInternalPoint[2] + distance) - Element[pn].Z();
+						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						if (meanMeshSize < 0)
+						{
+							meanMeshSize = mrRemesh.Refine->CriticalRadius;
+						}
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].X() < RefiningBoxMaximumPoint[0] && Element[pn].X() > (maxInternalPoint[0] - distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
+					{
+						seperation = (maxInternalPoint[0] - distance) - Element[pn].X();
+						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						if (meanMeshSize < 0)
+						{
+							meanMeshSize = mrRemesh.Refine->CriticalRadius;
+						}
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Y() < RefiningBoxMaximumPoint[1] && Element[pn].Y() > (maxInternalPoint[1] - distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
+					{
+						seperation = (maxInternalPoint[1] - distance) - Element[pn].Y();
+						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						if (meanMeshSize < 0)
+						{
+							meanMeshSize = mrRemesh.Refine->CriticalRadius;
+						}
+						penalizationRigid = true;
+					}
+					else if ((Element[pn].Z() < RefiningBoxMaximumPoint[2] && Element[pn].Z() > (maxInternalPoint[2] - distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0] && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
+					{
+						seperation = (maxInternalPoint[2] - distance) - Element[pn].Z();
+						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
+						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
+						if (meanMeshSize < 0)
+						{
+							meanMeshSize = mrRemesh.Refine->CriticalRadius;
+						}
+						penalizationRigid = true;
+					}
+				}
+			}
+		}
+		double penalization = 1.0;
+		if (refiningBox == true)
+		{
+			if (freesurfaceNodes > 0)
+			{
+				penalization = 1.2; //to avoid to gain too much volume during remeshing step
+			}
+
+			if (rigidNodes > 0 && penalizationRigid == true)
+			{
+				penalization = 1.15;
+			}
+		}
+
+		double limitEdgeLength = 1.6 * meanMeshSize * penalization;
+		double safetyCoefficient3D = 1.6;
+
+		double ElementalVolume = Element.Volume();
+
+		array_1d<double, 6> Edges(6, 0.0);
+		array_1d<unsigned int, 6> FirstEdgeNode(6, 0);
+		array_1d<unsigned int, 6> SecondEdgeNode(6, 0);
+		double WallCharacteristicDistance = 0;
+		array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+		// array_1d<double,3> CoorDifference(3,0.0);
+		// noalias(CoorDifference) = Element[1].Coordinates() - Element[0].Coordinates();
+		// CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
+		double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+		Edges[0] = sqrt(SquaredLength);
+		FirstEdgeNode[0] = 0;
+		SecondEdgeNode[0] = 1;
+		if (Element[0].Is(RIGID) && Element[1].Is(RIGID))
+		{
+			WallCharacteristicDistance = Edges[0];
+		}
+		unsigned int Counter = 0;
+		for (unsigned int i = 2; i < nds; i++)
+		{
+			for (unsigned int j = 0; j < i; j++)
+			{
+				noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
+				// CoorDifference = Element[i].Coordinates() - Element[j].Coordinates();
+				SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
+				Counter += 1;
+				Edges[Counter] = sqrt(SquaredLength);
+				FirstEdgeNode[Counter] = j;
+				SecondEdgeNode[Counter] = i;
+				if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
+				{
+					WallCharacteristicDistance = Edges[Counter];
+				}
+			}
+		}
+		//Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
+		bool dangerousElement = false;
+		if (rigidNodes > 1)
+		{
+			for (unsigned int i = 0; i < 6; i++)
+			{
+				if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient3D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
+					(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
+				{
+					Edges[i] = 0;
+				}
+				// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
+				//   Edges[i]=0;
+				// }
+				if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
+					(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
+				{
+					Edges[i] = 0;
+				}
+			}
+		}
+		else if (rigidNodes == 1)
+		{
+			if (Element[0].Is(RIGID))
+			{
+				Edges[0] = 0;
+				Edges[1] = 0;
+				Edges[3] = 0;
+			}
+			if (Element[1].Is(RIGID))
+			{
+				Edges[0] = 0;
+				Edges[2] = 0;
+				Edges[4] = 0;
+			}
+			if (Element[2].Is(RIGID))
+			{
+				Edges[1] = 0;
+				Edges[2] = 0;
+				Edges[5] = 0;
+			}
+			if (Element[3].Is(RIGID))
+			{
+				Edges[3] = 0;
+				Edges[4] = 0;
+				Edges[5] = 0;
+			}
+		}
+
+		if ((Edges[0] == 0 && Edges[1] == 0 && Edges[2] == 0 && Edges[3] == 0 && Edges[4] == 0 && Edges[5] == 0) || rigidNodes > 2)
+		{
+			dangerousElement = true;
+		}
+
+		//just to fill the vector
+		if (dangerousElement == false && toEraseNodeFound == false)
+		{
+
+			// array_1d<double,3> NewPosition(3,0.0);
+			unsigned int maxCount = 6;
+			double LargestEdge = 0;
+
+			for (unsigned int i = 0; i < 6; i++)
+			{
+				if (Edges[i] > LargestEdge)
+				{
+					maxCount = i;
+					LargestEdge = Edges[i];
+				}
+			}
+
+			if (CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength)
+			{
+
+				bool newNode = true;
+				for (unsigned int i = 0; i < unsigned(CountNodes); i++)
+				{
+					if ((NodesIDToInterpolate[i][0] == Element[FirstEdgeNode[maxCount]].GetId() && NodesIDToInterpolate[i][1] == Element[SecondEdgeNode[maxCount]].GetId()) ||
+						(NodesIDToInterpolate[i][1] == Element[FirstEdgeNode[maxCount]].GetId() && NodesIDToInterpolate[i][0] == Element[SecondEdgeNode[maxCount]].GetId()))
+					{
+						newNode = false;
+					}
+				}
+				if (newNode == true)
+				{
+					array_1d<double, 3> NewPosition = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
+					// noalias(NewPosition)=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+					// NewPosition=    (Element[FirstEdgeNode[maxCount]].Coordinates()+Element[SecondEdgeNode[maxCount]].Coordinates())*0.5;
+					NodesIDToInterpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
+					NodesIDToInterpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
+					if (Element[SecondEdgeNode[maxCount]].IsNot(RIGID))
+					{
+						CopyDofs(Element[SecondEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+					}
+					else if (Element[FirstEdgeNode[maxCount]].IsNot(RIGID))
+					{
+						CopyDofs(Element[FirstEdgeNode[maxCount]].GetDofs(), NewDofs[CountNodes]);
+					}
+					else
+					{
+						std::cout << "CAUTION! THIS IS A WALL EDGE" << std::endl;
+					}
+
+					BiggestVolumes[CountNodes] = ElementalVolume;
+					NewPositions[CountNodes] = NewPosition;
+					CountNodes++;
 				}
 			}
 		}
