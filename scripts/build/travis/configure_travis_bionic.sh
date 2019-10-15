@@ -134,7 +134,7 @@ CMAKE_APPLICATION=(
 
 CMAKE_BUILD=(
   # compiling the MPI-Core (required for e.g. TrilinosApp)
-  -DMPI_NEEDED=ON
+  -DMPI_NEEDED=OFF
 
    # CMake C compiler
   -DCMAKE_C_COMPILER=${C_COMPILER}
@@ -170,7 +170,7 @@ CMAKE_EXTRA=(
   -DINSTALL_EMBEDDED_PYTHON=ON
 
   # Metis
-  -DMETIS_APPLICATION=ON
+  -DMETIS_APPLICATION=OFF
 
   # Trillinos
   -DTRILINOS_APPLICATION=OFF
