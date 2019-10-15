@@ -35,41 +35,41 @@ namespace Kratos {
 		Triangle3D3<Point> triangle_1(p_point_1, p_point_2, p_point_3);
 		Triangle3D3<Point> triangle_2(p_point_1, p_point_3, p_point_4);
 
-		Kratos::Internals::CartesianRay ray_1(0, Point(0.00, 0.50, 0.50), Point(1.00, 0.50, 0.50));
-		Kratos::Internals::CartesianRay ray_2(0, Point(0.00, 0.00, 0.00), Point(1.00, 0.00, 0.00));
-		Kratos::Internals::CartesianRay ray_3(0, Point(0.00, 0.20, 0.70), Point(1.00, 0.20, 0.70));
+		Kratos::Internals::CartesianRay<Geometry<Point>> ray_1(0, Point(0.00, 0.50, 0.50), Point(1.00, 0.50, 0.50));
+		Kratos::Internals::CartesianRay<Geometry<Point>> ray_2(0, Point(0.00, 0.00, 0.00), Point(1.00, 0.00, 0.00));
+		Kratos::Internals::CartesianRay<Geometry<Point>> ray_3(0, Point(0.00, 0.20, 0.70), Point(1.00, 0.20, 0.70));
 
 		ray_1.AddIntersection(triangle_1, 1e-9);
 		ray_2.AddIntersection(triangle_1, 1e-9);
 		ray_3.AddIntersection(triangle_1, 1e-9);
 
-		KRATOS_CHECK_EQUAL(ray_1.GetIntersectionPoints().size(), 1);
-		KRATOS_CHECK_EQUAL(ray_2.GetIntersectionPoints().size(), 1);
-		KRATOS_CHECK_EQUAL(ray_3.GetIntersectionPoints().size(), 0);
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections().size(), 1);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections().size(), 1);
+		KRATOS_CHECK_EQUAL(ray_3.GetIntersections().size(), 0);
 
-		KRATOS_CHECK_EQUAL(ray_1.GetIntersectionPoints()[0], .4);
-		KRATOS_CHECK_EQUAL(ray_2.GetIntersectionPoints()[0], .4);
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections()[0].first, .4);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections()[0].first, .4);
 
 		ray_1.AddIntersection(triangle_2, 1e-9);
 		ray_2.AddIntersection(triangle_2, 1e-9);
 		ray_3.AddIntersection(triangle_2, 1e-9);
 
-		KRATOS_CHECK_EQUAL(ray_1.GetIntersectionPoints().size(), 2);
-		KRATOS_CHECK_EQUAL(ray_2.GetIntersectionPoints().size(), 2);
-		KRATOS_CHECK_EQUAL(ray_3.GetIntersectionPoints().size(), 1);
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections().size(), 2);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections().size(), 2);
+		KRATOS_CHECK_EQUAL(ray_3.GetIntersections().size(), 1);
 
-		KRATOS_CHECK_EQUAL(ray_1.GetIntersectionPoints()[1], .4);
-		KRATOS_CHECK_EQUAL(ray_2.GetIntersectionPoints()[1], .4);
-		KRATOS_CHECK_EQUAL(ray_3.GetIntersectionPoints()[0], .4);
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections()[1].first, .4);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections()[1].first, .4);
+		KRATOS_CHECK_EQUAL(ray_3.GetIntersections()[0].first, .4);
 
-		ray_1.CollapseIntersectionPoints(1e-9);
-		ray_2.CollapseIntersectionPoints(1e-9);
+		ray_1.CollapseIntersectionPoints(1e-6);
+		ray_2.CollapseIntersectionPoints(1e-6);
 
-		KRATOS_CHECK_EQUAL(ray_1.GetIntersectionPoints().size(), 1);
-		KRATOS_CHECK_EQUAL(ray_2.GetIntersectionPoints().size(), 1);
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections().size(), 1);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections().size(), 0);
 		
-		KRATOS_CHECK_EQUAL(ray_1.GetIntersectionPoints()[0], .4);
-		KRATOS_CHECK_EQUAL(ray_2.GetIntersectionPoints()[0], .4);
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections()[0].first, .4);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections()[0].first, .4);
 	}
 
 	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessNodesPositions, KratosCoreFastSuite)
