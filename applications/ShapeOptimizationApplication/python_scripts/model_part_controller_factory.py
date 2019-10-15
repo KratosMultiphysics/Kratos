@@ -144,24 +144,26 @@ class ModelPartController:
         nameOfDesignSurface = self.model_settings["design_surface_sub_model_part_name"].GetString()
         if self.optimization_model_part.HasSubModelPart(nameOfDesignSurface):
             self.design_surface = self.optimization_model_part.GetSubModelPart(nameOfDesignSurface)
-            print("\n> The following design surface was defined:\n\n",self.design_surface)
+            KM.Logger.Print("")
+            KM.Logger.PrintInfo("ShapeOpt", "The following design surface was defined:\n\n",self.design_surface)
         else:
             raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesignSurface)
 
     # --------------------------------------------------------------------------
     def __IdentifyDampingRegions(self):
-        print("\n> The following damping regions are defined: \n")
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "The following damping regions are defined: \n")
         if self.model_settings["damping"]["apply_damping"].GetBool():
             if self.model_settings["damping"].Has("damping_regions"):
                 for regionNumber in range(self.model_settings["damping"]["damping_regions"].size()):
                     regionName = self.model_settings["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
                     if self.optimization_model_part.HasSubModelPart(regionName):
-                        print(regionName)
+                        KM.Logger.Print(regionName)
                         self.damping_regions[regionName] = self.optimization_model_part.GetSubModelPart(regionName)
                     else:
                         raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)
             else:
                 raise ValueError("Definition of damping regions required but not availabe!")
-        print("")
+        KM.Logger.Print("")
 
 # ==============================================================================

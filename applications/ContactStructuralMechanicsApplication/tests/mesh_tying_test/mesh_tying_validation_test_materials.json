@@ -1,0 +1,31 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Solid_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "HyperElastic3DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 2.0e8,
+                "POISSON_RATIO" : 0.35
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Solid_Auto2",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "HyperElastic3DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 2.0e8,
+                "POISSON_RATIO" : 0.35
+            },
+            "Tables"           : {}
+        }
+    }]
+}
