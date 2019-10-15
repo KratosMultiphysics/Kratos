@@ -301,7 +301,7 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
             const bool parent_has_materials = std::find(model_part_names.begin(), model_part_names.end(),
                 parent_model_part_name) != model_part_names.end();
 
-            KRATOS_ERROR_IF(parent_has_materials) << "Materials for ModelPart \""
+            KRATOS_WARNING_IF(parent_has_materials) << "Materials for ModelPart \""
                 << model_part_names[i] << "\" are specified multiple times!\n"
                 << "Overdefined due to also specifying the materials for Parent-ModelPart \""
                 << parent_model_part_name << "\"!" << std::endl;
