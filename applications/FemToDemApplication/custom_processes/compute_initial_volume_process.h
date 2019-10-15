@@ -40,11 +40,18 @@ class ComputeInitialVolumeProcess : public Process
 
   void Execute() override;
 
+  int GetPressureIdSubModel(const std::string &rSubModelName);
+
+  double ComputeInitialVolumeSubModel(const ModelPart &rSubModel);
+
+  void AssignInitialVolumeToNodes(const ModelPart &rSubModel, const double InitialVolume);
+
 protected:
 
   // Member Variables
   ModelPart& mrModelPart;
   std::size_t mDimension;
+  std::string mPressureName;
 
 };  // Class
 

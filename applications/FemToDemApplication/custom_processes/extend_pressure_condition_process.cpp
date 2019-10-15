@@ -342,7 +342,7 @@ void ExtendPressureConditionProcess<TDim>::SavePreviousProperties()
         if (submodel_parts_names[i].substr(0, 8) == mPressureName.substr(0, 8)) {
             auto& r_sub_model_part = mrModelPart.GetSubModelPart(submodel_parts_names[i]);
             const int pressure_id = this->GetPressureIdSubModel(submodel_parts_names[i]);
-            ModelPart::ConditionIterator it_cond = r_sub_model_part.ConditionsBegin();
+            const auto& it_cond = r_sub_model_part.ConditionsBegin();
 
             ModelPart::PropertiesType::Pointer p_properties;
             if (r_sub_model_part.Conditions().size() > 0)

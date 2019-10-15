@@ -89,8 +89,11 @@ class MainCoupledFemDem_Solution:
             self.PressureLoad = False
         else:
             self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
+
         if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
+            KratosFemDem.ComputeInitialVolumeProcess(self.FEM_Solution.main_model_part).Execute()
+
         if self.FEM_Solution.ProjectParameters.Has("tangent_operator") == True:
             # 0 -> Elastic , 1 -> Secant , 2 -> Tangent , 3 -> Tangent 2nd Order
             tangent_type = self.FEM_Solution.ProjectParameters["tangent_operator"].GetInt()
