@@ -120,10 +120,10 @@ namespace Kratos
 																					 << " Please set the entities_to_generate to 'elements' or set coloring entities to 'nodes'" << std::endl;
 			std::string model_part_name = item["model_part_name"].GetString();
 			if(model_part_name == mrSkinPart.Name())
-				VoxelMeshColoringProcess(mColors, min_point, max_point, number_of_divisions, mrVolumePart, mrSkinPart, item).Execute();
+				VoxelMeshColoringProcess(mColors, number_of_divisions, mrVolumePart, mrSkinPart, item).Execute();
 			else {
 				ModelPart& skin_part = mrSkinPart.GetSubModelPart(model_part_name);
-				VoxelMeshColoringProcess(mColors, min_point, max_point, number_of_divisions, mrVolumePart, skin_part, item).Execute();
+				VoxelMeshColoringProcess(mColors, number_of_divisions, mrVolumePart, skin_part, item).Execute();
 			}
 		}
 		Timer::Stop("Voxel Mesh Coloring");
@@ -159,17 +159,17 @@ namespace Kratos
 			std::vector<double> y_key_planes(1,mMinPoint[1]);
 			std::vector<double> z_key_planes(1,mMinPoint[2]);
 
-			for(int i = 0 ; i < mNumberOfDivisions[0]; i++){
+			for(std::size_t i = 0 ; i < mNumberOfDivisions[0]; i++){
 				if(x_cell_coarse[i])
 					x_key_planes.push_back(i*mCellSizes[0]+mMinPoint[0]);
 			}
 
-			for(int i = 0 ; i < mNumberOfDivisions[1]; i++){
+			for(std::size_t i = 0 ; i < mNumberOfDivisions[1]; i++){
 				if(y_cell_coarse[i])
 					y_key_planes.push_back(i*mCellSizes[1]+mMinPoint[1]);
 			}
 
-			for(int i = 0 ; i < mNumberOfDivisions[2]; i++){
+			for(std::size_t i = 0 ; i < mNumberOfDivisions[2]; i++){
 				if(z_cell_coarse[i])
 					z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
 			}
@@ -272,7 +272,7 @@ namespace Kratos
 				coordinates[i][j] = j*mCellSizes[i] + min_coordinate_i;
 		}
 		
-		mColors.SetCoordinates(std::move(coordinates));
+		mColors.SetCoordinates(coordinates);
 	}
 
 	void VoxelMeshGeneratorProcess::GenerateCenterOfElements(Point const& rMinPoint, Point const& rMaxPoint) {
@@ -305,7 +305,7 @@ namespace Kratos
 				coordinates[i][j] = (j + 0.5) * mCellSizes[i] + min_coordinate_i;
 		}
 		
-		mColors.SetCoordinates(std::move(coordinates));
+		mColors.SetCoordinates(coordinates);
 	}
 
 	Node<3>::Pointer VoxelMeshGeneratorProcess::pGetNode(std::size_t I, std::size_t J, std::size_t K) {
