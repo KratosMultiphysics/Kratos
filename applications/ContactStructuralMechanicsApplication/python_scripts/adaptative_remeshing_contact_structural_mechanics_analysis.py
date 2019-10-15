@@ -8,7 +8,7 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 import sys
 
 # Import the base structural analysis
-from KratosMultiphysics.ContactStructuralMechanicsApplication.contact_structural_mechanics_analysis import ContactStructuralMechanicsAnalysis as BaseClass
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
 # Import solver wrapper
 from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_adaptative_remeshing_structural
