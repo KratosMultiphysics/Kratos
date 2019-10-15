@@ -46,20 +46,19 @@ public:
     {
         KRATOS_TRY;
                 
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
-        
-        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
         if(nnodes != 0) {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i < nnodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                if(mis_fixed) {
+                if(mIsFixed) {
                     it->Fix(var);
                 }
-                it->FastGetSolutionStepValue(var) = minitial_value;
+                it->FastGetSolutionStepValue(var) = mInitialValue;
             }
         }
         KRATOS_CATCH("");
@@ -70,20 +69,20 @@ public:
     {
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
+        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
         
         double time;
         if (mTimeUnitConverter != 0) {
-            time = mr_model_part.GetProcessInfo()[TIME] / mTimeUnitConverter;
+            time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
         } else {
-            time = mr_model_part.GetProcessInfo()[TIME];
+            time = mrModelPart.GetProcessInfo()[TIME];
         }
-        double value = mpTable->GetValue(time);
+        const double value = mpTable->GetValue(time);
         
-        const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
+        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
 
         if(nnodes != 0) {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i < nnodes; i++) {
