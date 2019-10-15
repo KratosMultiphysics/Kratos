@@ -101,6 +101,37 @@ namespace Kratos
         mIntersections.resize(new_size);
       }
 
+      void CalculateColor(DenseVector<double> const& Coordinates, int InsideColor, int OutsideColor, DenseVector<double> ResultingColors){
+        bool is_inside=false;
+
+        if(ResultingColors.size() != Coordinates.size())
+        ResultingColors.resize(Coordinates.size());
+    
+        std::size_t current_index=0;
+        const std::size_t size = Coordinates.size();
+
+        for(auto& i_intersection : mIntersections){
+            while(current_index < size){
+                if(Coordinates[current_index] < i_intersection.first){
+                    ResultingColors[current_index++] = (is_inside) ? InsideColor : OutsideColor;
+                }
+                else{
+                    current_index++;
+                    break;
+                }
+            }
+            is_inside = (is_inside) ? false:true;
+        }
+        // now coloring the points after the last intersection as outside
+        while(current_index < size){
+            ResultingColors[current_index++] = OutsideColor;
+        }
+      }
+
+      std::vector<std::pair<double, const TGeometryType*>> const& GetIntersections() const {return mIntersections;}
+
+    private:
+
       bool CheckPassingThroughByExtraRays(typename std::vector<std::pair<double, const TGeometryType*>>::iterator Begin, typename std::vector<std::pair<double, const TGeometryType*>>::iterator End, double Tolerance, double Delta){
         std::array<double, 8> delta_u{Delta, Delta, 0.00, -Delta, -Delta, -Delta, 0.00, Delta};
         std::array<double, 8> delta_v{0.00, Delta, Delta, Delta, 0.00, -Delta, -Delta, -Delta};
@@ -138,18 +169,17 @@ namespace Kratos
         }
         return true;
       }
-
-      std::vector<std::pair<double, const TGeometryType*>> const& GetIntersections() const {return mIntersections;}
     };
 
     class CartesianMeshColors{
+      double mTolerance;
       array_1d<DenseVector<double>, 3> mCoordinates;
       DenseVector<array_1d<double,3>> mColors;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mXYRays;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mXZRays;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mYZRays;
      public:
-      CartesianMeshColors(){}
+      CartesianMeshColors(): mTolerance(1e-6){}
       DenseVector<double> const& GetCoordinates(int Index) const {return mCoordinates[Index];}
       void SetCoordinates(array_1d<DenseVector<double>, 3>& TheCoordinates){
         mCoordinates = TheCoordinates;
@@ -198,20 +228,40 @@ namespace Kratos
                 CalculateMinMaxCellsPositions(rGeometry, min_position, max_position);
                 for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
                     for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
-                        mXYRays(i,j).AddIntersection(rGeometry, 1e-6);
+                        mXYRays(i,j).AddIntersection(rGeometry, mTolerance);
                     }
                 }
                 for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
                     for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
-                        mXZRays(i,k).AddIntersection(rGeometry, 1e-6);
+                        mXZRays(i,k).AddIntersection(rGeometry, mTolerance);
                     }
                 }
                 for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
                     for(std::size_t k = min_position[2] ; k < max_position[2] ; k++){
-                        mYZRays(j,k).AddIntersection(rGeometry, 1e-6);
+                        mYZRays(j,k).AddIntersection(rGeometry, mTolerance);
                     }
                 }
         
+        }
+
+        void CalculateColors(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, int InsideColor, int OutsideColor){
+            DenseVector<double> colors;
+            for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+                for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
+                    mXYRays(i,j).CollapseIntersectionPoints(mTolerance);
+                    mXYRays(i,j).CalculateColor(mCoordinates[2], InsideColor, OutsideColor, colors);
+                }
+            }
+            for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+                for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
+                    mXZRays(i,k).CollapseIntersectionPoints(mTolerance);
+                }
+            }
+            for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
+                for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
+                    mYZRays(j,k).CollapseIntersectionPoints(mTolerance);
+                }
+            }
         }
 
         template<typename TPointsContainerType>

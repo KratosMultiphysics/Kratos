@@ -148,6 +148,8 @@ namespace Kratos
 
 		InitializeRays(min_position, max_position);
 
+		mColors.CalculateColors(min_position, max_position, TheColor, mOutsideColor);
+
         #pragma omp parallel for
 		for (int k = min_position[2]; k < static_cast<int>(max_position[2]); k++) {
 			for (std::size_t j = min_position[1]; j < max_position[1]; j++) {
