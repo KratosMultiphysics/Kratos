@@ -85,8 +85,8 @@ public:
     /// Constructor for trimmed patch
     BrepSurface(
         typename NurbsSurfaceType::Pointer pSurface,
-        BrepFaceCurveLoopArrayType& BrepOuterLoopArray,
-        BrepFaceCurveLoopArrayType& BrepInnerLoopArray)
+        BrepCurveOnSurfaceLoopType& BrepOuterLoopArray,
+        BrepCurveOnSurfaceLoopType& BrepInnerLoopArray)
         : BaseType(PointsArrayType(), &msGeometryData)
         , mpNurbsSurface(pSurface)
         , mOuterLoopArray(BrepOuterLoopArray)
