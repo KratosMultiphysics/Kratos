@@ -37,6 +37,7 @@
 #include "custom_processes/remove_alone_DEM_elements_process.h"
 #include "custom_processes/update_flag_no_remesh_femdem_boundary_process.h"
 #include "custom_processes/compute_initial_volume_process.h"
+#include "custom_processes/update_pressure_volume_process.h"
 
 
 namespace Kratos
@@ -141,6 +142,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
     class_<ComputeInitialVolumeProcess, ComputeInitialVolumeProcess::Pointer, Process>(m, "ComputeInitialVolumeProcess")
         .def(init<ModelPart &>())
         .def("Execute", &ComputeInitialVolumeProcess::Execute);
+
+    class_<UpdatePressureVolumeProcess, UpdatePressureVolumeProcess::Pointer, Process>(m, "UpdatePressureVolumeProcess")
+        .def(init<ModelPart &>())
+        .def("Execute", &UpdatePressureVolumeProcess::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos
