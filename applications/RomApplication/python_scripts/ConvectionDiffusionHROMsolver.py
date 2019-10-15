@@ -45,19 +45,19 @@ class HROMSolver(ConvectionDiffusionROMsolver.ROMSolver):
         return builder_and_solver
 
     
-    # def PrepareModelPart(self):
-    #     if not self.is_restarted():
-    #         # Check and prepare computing model part and import constitutive laws.
-    #         self._execute_after_reading()
+    def PrepareModelPart(self):
+        if not self.is_restarted():
+            # Check and prepare computing model part and import constitutive laws.
+            self._execute_after_reading()
 
-    #         throw_errors = False
-    #         #KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
+            throw_errors = False
+            #KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
 
-    #         KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
 
-    #         self._set_and_fill_buffer()
+            self._set_and_fill_buffer()
 
-    #     if (self.settings["echo_level"].GetInt() > 0):
-    #         KratosMultiphysics.Logger.PrintInfo(self.model)
+        if (self.settings["echo_level"].GetInt() > 0):
+            KratosMultiphysics.Logger.PrintInfo(self.model)
 
-    #     KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
