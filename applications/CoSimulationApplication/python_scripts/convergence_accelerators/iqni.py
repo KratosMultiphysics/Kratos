@@ -1,5 +1,4 @@
 import numpy as np
-import copy
 from scipy.linalg import qr, solve_triangular
 
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
@@ -54,7 +53,7 @@ class ConvergenceAcceleratorIQNI(CoSimulationComponent):
                 dx = self.omega * r
             else:
                 raise RuntimeError("No information to predict")
-        dx_out = copy.deepcopy(r_in)
+        dx_out = r_in.deepcopy()
         dx_out.SetNumpyArray(dx)
         return dx_out
 

@@ -1,3 +1,4 @@
+import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import ImportDataStructure
@@ -14,10 +15,10 @@ class TestPredictorLinear(KratosUnittest.TestCase):
         a1 = 1.5
         a2 = 2.0
         a3 = 2.5
-        interface_settings = {"wall": "AREA"}
+        interface_settings = cs_data_structure.Parameters('{"wall": "AREA"}')
 
         # Create interface
-        variable = "AREA"
+        variable = vars(KM)["AREA"]
         model = cs_data_structure.Model()
         model_part = model.CreateModelPart("wall")
         model_part.AddNodalSolutionStepVariable(variable)

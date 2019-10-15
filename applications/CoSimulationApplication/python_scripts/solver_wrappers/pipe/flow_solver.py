@@ -3,6 +3,7 @@ import math as m
 import os.path as path
 from scipy.linalg import solve_banded
 
+import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
 from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
@@ -27,7 +28,7 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         input_file = self.settings["input_file"].GetString()
         settings_file_name = path.join(working_directory, input_file)
         with open(settings_file_name, 'r') as settings_file:
-            self.settings.AddParameters(cs_data_structure.Parameters(settings_file.read()))
+            self.settings.AddMissingParameters(cs_data_structure.Parameters(settings_file.read()))
 
         # Settings
         l = self.settings["l"].GetDouble()  # Length
@@ -63,8 +64,8 @@ class SolverWrapperPipeFlow(CoSimulationComponent):
         self.an = np.ones(self.m + 2) * m.pi * self.d ** 2 / 4.0  # Previous area of cross section
 
         # ModelParts
-        self.variable_area = "AREA"
-        self.variable_pres = "PRESSURE"
+        self.variable_area = vars(KM)["AREA"]
+        self.variable_pres = vars(KM)["PRESSURE"]
         self.model = cs_data_structure.Model()
         self.model_part = self.model.CreateModelPart("wall")
         self.model_part.AddNodalSolutionStepVariable(self.variable_area)

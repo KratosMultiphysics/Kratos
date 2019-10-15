@@ -10,12 +10,15 @@ from mappers.test_linear import TestMapperLinear
 from predictors.test_linear import TestPredictorLinear
 from solver_wrappers.pipe.test_flow_solver import TestSolverWrapperPipeFlowSolver
 from solver_wrappers.pipe.test_structure_solver import TestSolverWrapperPipeStructureSolver
+from pykratos.test_parameters_class import TestPyKratosParameters
+from pykratos.test_variables import TestPyKratosVariables
+from pykratos.test_cosimulation_interface import TestCoSimulationInterface
 
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
+    Populates the test suites to run. At least, it should populate the suites:
     "small", "nightly" and "all"
 
     Return
@@ -38,6 +41,9 @@ def AssembleTestSuites():
     smallSuite.addTest(TestPredictorLinear("test_predictor_linear"))
     smallSuite.addTest(TestSolverWrapperPipeFlowSolver("test_solver_wrapper_pipe_flow_solver"))
     smallSuite.addTest(TestSolverWrapperPipeStructureSolver("test_solver_wrapper_pipe_structure_solver"))
+    smallSuite.addTest(TestPyKratosParameters("test_pykratos_parameters"))
+    smallSuite.addTest(TestPyKratosVariables("test_pykratos_variables"))
+    smallSuite.addTest(TestCoSimulationInterface("test_cosimulation_interface"))
 
     nightlySuite = suites['nightly']  # These tests are executed in the nightly build
     nightlySuite.addTests(smallSuite)

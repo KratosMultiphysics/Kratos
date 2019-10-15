@@ -1,3 +1,4 @@
+import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import ImportDataStructure
@@ -14,10 +15,16 @@ class TestConvergenceCriterionAbsoluteNorm(KratosUnittest.TestCase):
         a0 = 10.0
         a1 = 1.0e-4
         a2 = 1.0e-7
-        interface_settings = {"wall": "AREA"}
+
+        # Make Parameters object from JSON string
+        interface_settings = cs_data_structure.Parameters('{"wall": "AREA"}')
 
         # Create interface
-        variable = "AREA"
+        variable = vars(KM)["AREA"]
+        # only names defined in Variables.py are allowed, otherwise they are not global
+        #   so just add whatever names you like! :D
+        #   (that seems like the easiest fix...)
+        # *** TODO: actually, I found a way to do this, adapt code...
         model = cs_data_structure.Model()
         model_part = model.CreateModelPart("wall")
         model_part.AddNodalSolutionStepVariable(variable)

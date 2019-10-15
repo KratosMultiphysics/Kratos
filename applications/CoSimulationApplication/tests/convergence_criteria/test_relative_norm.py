@@ -1,3 +1,4 @@
+import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import ImportDataStructure
@@ -14,10 +15,10 @@ class TestConvergenceCriterionRelativeNorm(KratosUnittest.TestCase):
         a0 = 10.0
         a1 = 1.0e-4
         a2 = 1.0e-6
-        interface_settings = {"wall": "AREA"}
+        interface_settings = cs_data_structure.Parameters('{"wall": "AREA"}')
 
         # Create interface
-        variable = "AREA"
+        variable = vars(KM)["AREA"]
         model = cs_data_structure.Model()
         model_part = model.CreateModelPart("wall")
         model_part.AddNodalSolutionStepVariable(variable)

@@ -2,6 +2,7 @@ import numpy as np
 import math as m
 import os.path as path
 
+import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.co_simulation_component import CoSimulationComponent
 from KratosMultiphysics.CoSimulationApplication.co_simulation_interface import CoSimulationInterface
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
@@ -23,7 +24,7 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         input_file = self.settings["input_file"].GetString()
         settings_file_name = path.join(working_directory, input_file)
         with open(settings_file_name, 'r') as settings_file:
-            self.settings.AddParameters(cs_data_structure.Parameters(settings_file.read()))
+            self.settings.AddMissingParameters(cs_data_structure.Parameters(settings_file.read()))
 
         # Settings
         l = self.settings["l"].GetDouble()  # Length
@@ -48,8 +49,8 @@ class SolverWrapperPipeStructure(CoSimulationComponent):
         self.c02 = self.cmk2 - self.p0 / 2.0  # Wave speed squared with reference pressure
 
         # ModelParts
-        self.variable_pres = "PRESSURE"
-        self.variable_area = "AREA"
+        self.variable_pres = vars(KM)["PRESSURE"]
+        self.variable_area = vars(KM)["AREA"]
         self.model = cs_data_structure.Model()
         self.model_part = self.model.CreateModelPart("wall")
         self.model_part.AddNodalSolutionStepVariable(self.variable_pres)

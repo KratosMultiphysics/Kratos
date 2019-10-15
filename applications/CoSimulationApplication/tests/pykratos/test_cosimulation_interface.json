@@ -1,0 +1,12 @@
+{
+    "interface_a":
+    {
+        "mp_1": ["PRESSURE", "FORCE"],
+        "mp_2": "DENSITY"
+    },
+    "interface_b":
+    {
+        "mp_1": ["TEMPERATURE"],
+        "mp_3": "DISPLACEMENT"
+    }
+}
