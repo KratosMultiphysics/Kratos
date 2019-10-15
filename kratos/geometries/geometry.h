@@ -1393,7 +1393,7 @@ public:
     {
         PointLocalCoordinates(
             rResult,
-            rPoint);
+            rPointGlobalCoordinates);
 
         return IsInsideLocalSpace(rResult, Tolerance);
     }
