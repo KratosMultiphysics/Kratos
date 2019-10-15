@@ -635,6 +635,14 @@ public:
     );
 
     /**
+     * @brief This method prints the interface data for the parallel communicator
+     * @param[in,out] rModelPart The model part with the kratos communicator.
+     */
+    void PrintParallelInterfaces(
+        ModelPart& rModelPart   
+    );
+
+    /**
      * @brief This method generates the maps of reference for conditions and elements
      * @param[in] rModelPart The model part of interest to study
      * @param[in] rColorMapCondition Auxiliar color map for conditions
@@ -785,6 +793,9 @@ private:
     SizeType mEchoLevel = 0;                                               /// The echo level of the utilities
     bool mRemoveRegions = false;                                           /// Cuttig-out specified regions during surface remeshing
     DiscretizationOption mDiscretization = DiscretizationOption::STANDARD; /// Discretization The discretization type
+    std::map<int, int> local_node_id;
+    std::map<int, int> local_elem_id;
+    std::map<int, int> local_cond_id;
 
     ///@}
     ///@name Private Operators

@@ -485,8 +485,8 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
             it_node->Set(TO_ERASE, true);
         }
     }
-    r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
-    mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+    // r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
+    // mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
     auto& r_conditions_array = mrThisModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
@@ -500,8 +500,8 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
             it_cond->Set(TO_ERASE, true);
         }
     }
-    r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
-    mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+    // r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
+    // mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
     auto& r_elements_array = mrThisModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
@@ -515,8 +515,8 @@ void ParMmgProcess<TPMMGLibrary>::ExecuteRemeshing()
             it_elem->Set(TO_ERASE, true);
         }
     }
-    r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
-    mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+    // r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
+    // mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // Writing the new mesh data on the model part
     mPMmmgUtilities.WriteMeshDataToModelPart(mrThisModelPart, mColors, mDofs, mmg_mesh_info, mpRefCondition, mpRefElement);
