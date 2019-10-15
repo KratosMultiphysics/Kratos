@@ -1138,11 +1138,11 @@ private:
 				eElement[0].Y() > mrRemesh.RefiningBoxMinimumPoint[1] && eElement[0].Y() < mrRemesh.RefiningBoxMinimumPoint[1] && 
 				eElement[0].Z() > mrRemesh.RefiningBoxMinimumPoint[2] && eElement[0].Z() < mrRemesh.RefiningBoxMinimumPoint[2])
 			{
-				criticalVolume = 0.01 * (pow(mrRemesh.RefiningBoxMeshSize, 3)  / (6.0*sqrt(2)) ) / 4.0;
+				criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.RefiningBoxMeshSize, 3)  / (6.0*sqrt(2)) ); //mean Volume per node with 0.025 of penalization
 			}
 			else
 			{
-				criticalVolume = 0.01 * (pow(mrRemesh.Refine->CriticalRadius, 3) /(6.0*sqrt(2)) )/ 4.0;
+				criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.Refine->CriticalRadius, 3) /(6.0*sqrt(2)) );
 			}
 		}
 

@@ -162,7 +162,8 @@ public:
               meanNodalSize += i_node->FastGetSolutionStepValue(NODAL_H);
             }
           }
-          else{
+          else
+          {
             if (i_node->Is(FLUID))
             {
               refinedFluidNodes += 1.0;
@@ -178,13 +179,14 @@ public:
     mrRemesh.Refine->CriticalRadius = meanNodalSize;
     mrRemesh.Refine->InitialRadius = meanNodalSize;
 
-    if (dimension == 3){
-      mrRemesh.RefiningBoxMeshSize*=0.8;
+    if (dimension == 3)
+    {
+      mrRemesh.RefiningBoxMeshSize *= 0.8;
     }
 
-    std::cout<<fluidNodes<<"                     mrRemesh.Refine->CriticalRadius "<<mrRemesh.Refine->CriticalRadius <<std::endl;
-    std::cout<<refinedFluidNodes<<"                     mrRemesh.RefiningBoxMeshSize "<< mrRemesh.RefiningBoxMeshSize<<std::endl;
-        std::cout<<"                  othermeanNodalSize "<< refinedMeanNodalSize<<std::endl;
+    // std::cout << fluidNodes << " mrRemesh.Refine->CriticalRadius " << mrRemesh.Refine->CriticalRadius << std::endl;
+    // std::cout << refinedFluidNodes << " mrRemesh.RefiningBoxMeshSize " << mrRemesh.RefiningBoxMeshSize << std::endl;
+    // std::cout << " othermeanNodalSize " << refinedMeanNodalSize << std::endl;
 
     double smallSize = meanNodalSize;
 
@@ -200,7 +202,7 @@ public:
       RefiningBoxMaximumPoint[1] += -0.01 * smallSize;
       RefiningBoxMaximumPoint[2] += -0.01 * smallSize;
     }
-    else // the mesh is finer in the RefininBox
+    else // the mesh is finer in the RefiningBox
     {
       RefiningBoxMinimumPoint[0] += -0.01 * smallSize; //the finest nodes at the frontier should not be erased
       RefiningBoxMinimumPoint[1] += -0.01 * smallSize;

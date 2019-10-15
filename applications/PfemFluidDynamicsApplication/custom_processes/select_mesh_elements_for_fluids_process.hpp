@@ -282,7 +282,12 @@ public:
 
                     if (dimension == 3)
                     {
-                        Alpha *= 1.1;
+                        if (numfreesurf == 0 && numrigid > 0 && numisolated == 0)
+                        {
+                            Alpha *= 1.3;
+                        }else{
+                            Alpha *= 1.1;
+                        }
                     }
                 }
 
@@ -594,8 +599,8 @@ private:
         array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
         array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
         double distance = 2.0 * mrRemesh.Refine->CriticalRadius;
-		double seperation = 0;
-		double coefficient =0;
+        double seperation = 0;
+        double coefficient = 0;
         if (coorX > RefiningBoxMinimumPoint[0] && coorY > RefiningBoxMinimumPoint[1] &&
             coorX < RefiningBoxMaximumPoint[0] && coorY < RefiningBoxMaximumPoint[1])
         {
@@ -644,8 +649,8 @@ private:
         array_1d<double, 3> maxExternalPoint = mrRemesh.RefiningBoxMaxExternalPoint;
         array_1d<double, 3> maxInternalPoint = mrRemesh.RefiningBoxMaxInternalPoint;
         double distance = 2.0 * mrRemesh.Refine->CriticalRadius;
-		double seperation = 0;
-		double coefficient =0;
+        double seperation = 0;
+        double coefficient = 0;
 
         if (coorX > RefiningBoxMinimumPoint[0] && coorX < RefiningBoxMaximumPoint[0] &&
             coorY > RefiningBoxMinimumPoint[1] && coorY < RefiningBoxMaximumPoint[1] &&

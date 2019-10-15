@@ -899,7 +899,7 @@ private:
 					}
 					else if ((Element[pn].X() < RefiningBoxMaximumPoint[0] && Element[pn].X() > (maxInternalPoint[0] - distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
 					{
-						seperation = (minInternalPoint[0] + distance) - Element[pn].X();
+						seperation = (maxInternalPoint[0] - distance) - Element[pn].X();
 						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
 						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
 						if (meanMeshSize < 0)
@@ -910,7 +910,7 @@ private:
 					}
 					else if ((Element[pn].Y() < RefiningBoxMaximumPoint[1] && Element[pn].Y() > (maxInternalPoint[1] - distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0]))
 					{
-						seperation = (minInternalPoint[1] + distance) - Element[pn].Y();
+						seperation = (maxInternalPoint[1] - distance) - Element[pn].Y();
 						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
 						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
 						if (meanMeshSize < 0)
@@ -1216,7 +1216,7 @@ private:
 					}
 					else if ((Element[pn].X() < RefiningBoxMaximumPoint[0] && Element[pn].X() > (maxInternalPoint[0] - distance) && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
 					{
-						seperation = (minInternalPoint[0] + distance) - Element[pn].X();
+						seperation = (maxInternalPoint[0] - distance) - Element[pn].X();
 						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
 						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
 						if (meanMeshSize < 0)
@@ -1227,7 +1227,7 @@ private:
 					}
 					else if ((Element[pn].Y() < RefiningBoxMaximumPoint[1] && Element[pn].Y() > (maxInternalPoint[1] - distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0] && Element[pn].Z() > minExternalPoint[2] && Element[pn].Z() < maxExternalPoint[2]))
 					{
-						seperation = (minInternalPoint[1] + distance) - Element[pn].Y();
+						seperation = (maxInternalPoint[1] - distance) - Element[pn].Y();
 						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
 						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
 						if (meanMeshSize < 0)
@@ -1238,7 +1238,7 @@ private:
 					}
 					else if ((Element[pn].Z() < RefiningBoxMaximumPoint[2] && Element[pn].Z() > (maxInternalPoint[2] - distance) && Element[pn].X() > minExternalPoint[0] && Element[pn].X() < maxExternalPoint[0] && Element[pn].Y() > minExternalPoint[1] && Element[pn].Y() < maxExternalPoint[1]))
 					{
-						seperation = (minInternalPoint[2] + distance) - Element[pn].Z();
+						seperation = (maxInternalPoint[2] - distance) - Element[pn].Z();
 						coefficient = fabs(seperation) / (distance + mrRemesh.RefiningBoxMeshSize);
 						meanMeshSize = (1 - coefficient) * mrRemesh.RefiningBoxMeshSize + coefficient * mrRemesh.Refine->CriticalRadius;
 						if (meanMeshSize < 0)
