@@ -99,35 +99,22 @@ public:
     {
     }
 
-    /**
-     * Copy constructor.
-     * Construct this geometry as a copy of given geometry.
-     *
-     * @note This copy constructor does not copy the points and new
-     * geometry shares points with given source geometry. It is
-     * obvious that any change to this new geometry's point affect
-     * source geometry's points too.
-     */
+    /// Copy constructor.
     BrepSurface( BrepSurface const& rOther )
         : BaseType( rOther )
+        , mpNurbsSurface(rOther.mpNurbsSurface)
+        , mOuterLoopArray(rOther.mOuterLoopArray)
+        , mInnerLoopArray(rOther.mInnerLoopArray)
     {
     }
 
-    /**
-     * Copy constructor from a geometry with other point type.
-     * Construct this geometry as a copy of given geometry which
-     * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
-     * geometry PointType.
-     *
-     * @note This copy constructor does not copy the points and new
-     * geometry shares points with given source geometry. It is
-     * obvious that any change to this new geometry's point affect
-     * source geometry's points too.
-     */
+    /// Copy constructor from a geometry with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType> explicit BrepSurface(
         BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const& rOther )
         : BaseType( rOther )
+        , mpNurbsSurface(rOther.mpNurbsSurface)
+        , mOuterLoopArray(rOther.mOuterLoopArray)
+        , mInnerLoopArray(rOther.mInnerLoopArray)
     {
     }
 
@@ -152,6 +139,9 @@ public:
     BrepSurface& operator=( const BrepSurface& rOther )
     {
         BaseType::operator=( rOther );
+        mpNurbsSurface = rOther.mpNurbsSurface;
+        mOuterLoopArray = rOther.mOuterLoopArray;
+        mInnerLoopArray = rOther.mInnerLoopArray;
         return *this;
     }
 
@@ -170,6 +160,9 @@ public:
     BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
+        mpNurbsSurface = rOther.mpNurbsSurface;
+        mOuterLoopArray = rOther.mOuterLoopArray;
+        mInnerLoopArray = rOther.mInnerLoopArray;
         return *this;
     }
 
@@ -251,13 +244,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "Brep face curve";
+        return "Brep surface";
     }
 
     /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "Brep face curve";
+        rOStream << "Brep surface";
     }
 
     /// Print object's data.
@@ -265,12 +258,10 @@ public:
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        rOStream << "    Brep face curve : " << std::endl;
+        rOStream << "    Brep surface " << std::endl;
     }
 
     ///@}
-
-protected:
 
 private:
     ///@name Static Member Variables
