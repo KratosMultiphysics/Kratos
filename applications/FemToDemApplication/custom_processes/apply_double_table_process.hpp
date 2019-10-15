@@ -47,13 +47,13 @@ public:
         KRATOS_TRY;
                 
         Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
-        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+        const int number_nodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if(nnodes != 0) {
+        if(number_nodes != 0) {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
             #pragma omp parallel for
-            for(int i = 0; i < nnodes; i++) {
+            for(int i = 0; i < number_nodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 if(mIsFixed) {
                     it->Fix(var);
@@ -79,13 +79,13 @@ public:
         }
         const double value = mpTable->GetValue(time);
         
-        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+        const int number_nodes = static_cast<int>(mrModelPart.Nodes().size());
 
-        if(nnodes != 0) {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+        if(number_nodes != 0) {
+            const auto& it_begin = mrModelPart.NodesBegin();
 
             #pragma omp parallel for
-            for(int i = 0; i < nnodes; i++) {
+            for(int i = 0; i < number_nodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->FastGetSolutionStepValue(var) = value;
             }
