@@ -303,6 +303,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
         rSerializer.save("NurbsSurface", mpNurbsSurface);
         rSerializer.save("NurbsCurve", mpNurbsCurve);
+        rSerializer.save("NurbsInterval", mpNurbsInterval);
     }
 
     void load( Serializer& rSerializer ) override
@@ -310,6 +311,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load("NurbsSurface", mpNurbsSurface);
         rSerializer.load("NurbsCurve", mpNurbsCurve);
+        rSerializer.load("NurbsInterval", mpNurbsInterval);
     }
 
     BrepCurveOnSurface()
