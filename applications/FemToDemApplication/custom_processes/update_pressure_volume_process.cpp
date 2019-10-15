@@ -43,7 +43,12 @@ void UpdatePressureVolumeProcess::Execute()
             condition_is_active = it_elem->Is(ACTIVE);
         }
         if (!condition_is_active) { // if the elem is removed, we add its vol to the nodes of the submodel
-            const double elem_vol = it_elem->GetGeometry().Volume();
+            double elem_vol;
+            if (mDimension == 2)
+                elem_vol = it_elem->GetGeometry().Area();
+            else
+                elem_vol = it_elem->GetGeometry().Volume();
+                
             const int pressure_id = this->GetPressureId(it_elem);
             if (pressure_id != 0) {
                 std::string sub_model_name;

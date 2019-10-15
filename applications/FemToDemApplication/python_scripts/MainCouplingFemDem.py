@@ -811,7 +811,8 @@ class MainCoupledFemDem_Solution:
 #============================================================================================================================
     def ExecuteBeforeGeneratingDEM(self): 
         """Here the erased are labeled as INACTIVE so you can access to them. After calling
-           GenerateDEM they are totally erased"""
+           GenerateDEM they are totally erased """
+        KratosFemDem.UpdatePressureVolumeProcess(self.FEM_Solution.main_model_part).Execute()
         self.ExpandWetNodes()
 
 #============================================================================================================================
