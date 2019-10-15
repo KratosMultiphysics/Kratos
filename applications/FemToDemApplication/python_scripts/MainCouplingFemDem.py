@@ -59,6 +59,10 @@ class MainCoupledFemDem_Solution:
         # Initialize the "flag" RADIUS in all the nodes
         utils.SetNonHistoricalVariable(KratosMultiphysics.RADIUS, 0.0, nodes)
 
+        # Initialize the var to track volume erased for each pressure
+        utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_VOLUME, 0.0, nodes)
+        utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_INITIAL_VOLUME, 0.0, nodes)
+
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
 
