@@ -24,6 +24,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShellKLDiscreteElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mLoadCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -34,6 +36,9 @@ void KratosIgaApplication::Register() {
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
     KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
+
+    // CONDITIONS
+    KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(NURBS_CONTROL_POINT_WEIGHT)
@@ -50,6 +55,10 @@ void KratosIgaApplication::Register() {
 
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_ALPHA)
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)
+
+    KRATOS_REGISTER_VARIABLE(POINT_LOAD)
+    KRATOS_REGISTER_VARIABLE(LINE_LOAD)
+    KRATOS_REGISTER_VARIABLE(SURFACE_LOAD)
 }
 
 }  // namespace Kratos

@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry.h"
-#include "geometries/quadrature_point.h"
+#include "geometries/quadrature_point_geometry.h"
 
 namespace Kratos
 {
@@ -124,28 +124,28 @@ namespace Kratos
                 if (pGeometry->WorkingSpaceDimension() == 1 && pGeometry->LocalSpaceDimension() == 1)
                     geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
-                        QuadraturePoint<TPointType, 1>>(
+                        QuadraturePointGeometry<TPointType, 1>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 if(pGeometry->WorkingSpaceDimension() == 2 && pGeometry->LocalSpaceDimension() == 2)
                     geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
-                        QuadraturePoint<TPointType, 2>>(
+                        QuadraturePointGeometry<TPointType, 2>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 2)
                     geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
-                        QuadraturePoint<TPointType, 3, 2>>(
+                        QuadraturePointGeometry<TPointType, 3, 2>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 3)
                     geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
-                        QuadraturePoint<TPointType, 3>>(
+                        QuadraturePointGeometry<TPointType, 3>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
@@ -182,28 +182,28 @@ namespace Kratos
                 if (pGeometry->WorkingSpaceDimension() == 1 && pGeometry->LocalSpaceDimension() == 1)
                     geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
-                        QuadraturePoint<TPointType, 1>>(
+                        QuadraturePointGeometry<TPointType, 1>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 if (pGeometry->WorkingSpaceDimension() == 2 && pGeometry->LocalSpaceDimension() == 2)
                     geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
-                        QuadraturePoint<TPointType, 2>>(
+                        QuadraturePointGeometry<TPointType, 2>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 2)
                     geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
-                        QuadraturePoint<TPointType, 3, 2>>(
+                        QuadraturePointGeometry<TPointType, 3, 2>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));
                 else if (pGeometry->WorkingSpaceDimension() == 3 && pGeometry->LocalSpaceDimension() == 3)
                     geometry_pointer_vector[i] = typename Geometry<TPointType>::Pointer(
                         Kratos::make_shared<
-                        QuadraturePoint<TPointType, 3>>(
+                        QuadraturePointGeometry<TPointType, 3>>(
                             pGeometry->Points(),
                             data_container,
                             pGeometry.get()));

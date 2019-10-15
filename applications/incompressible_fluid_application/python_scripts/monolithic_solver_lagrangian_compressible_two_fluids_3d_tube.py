@@ -4,7 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEMApplication import *
 from KratosMultiphysics.MeshingApplication import *
-CheckForPreviousImport()
 
 
 def AddVariables(model_part):

@@ -82,7 +82,7 @@ public:
     /// Higher order derivatives
     typedef DenseVector<Matrix>
         ShapeFunctionsDerivativesType;
-    typedef DenseVector<DenseVector<ShapeFunctionsDerivativesType> >
+    typedef DenseVector<ShapeFunctionsDerivativesType >
         ShapeFunctionsDerivativesIntegrationPointArrayType;
     typedef std::array<ShapeFunctionsDerivativesIntegrationPointArrayType, IntegrationMethod::NumberOfIntegrationMethods>
         ShapeFunctionsDerivativesContainerType;
@@ -123,7 +123,7 @@ public:
         mShapeFunctionsLocalGradients[ThisDefaultMethod] = DN_De_array;
     }
 
-    /// Constructor ONLY for single integration point with first derivatives
+    /// Constructor ONLY for single integration point with multiple derivatives
     GeometryShapeFunctionContainer(
         IntegrationMethod ThisDefaultMethod,
         const IntegrationPointType& ThisIntegrationPoint,
@@ -305,10 +305,60 @@ public:
     }
 
     /*
+    * @brief access to the shape function derivatives.
+    * @param DerivativeOrderIndex defines the wanted order of the derivative
+    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @return the shape function or derivative value related to the input parameters
+    *         The matrix is structured: (the corresponding node, derivative direction)
+    *         The derivative direction within the matrix is structured as following:
+    *           [0] - Not possible -> error
+    *           [1] - dN_de: (du, dv, dw)
+    *           [2] - second order vectors:
+    *                       1D: du^2 (size2 = 1)
+    *                       2D: du^2, dudv, dv^2 (size2 = 2)
+    *                       3D: du^2, dudv, dudw, dv^2, dvdw, dw^2 (size2 = 6)
+    *           [3] - third order vectors:
+    *                       1D: du^3 (size2 = 1)
+    *                       2D: du^3, du^2dv, dudv^2, dv^3 (size2 = 4)
+    */
+    const Matrix& ShapeFunctionDerivatives(
+        IndexType IntegrationPointIndex,
+        IndexType DerivativeOrderIndex,
+        IntegrationMethod ThisMethod) const
+    {
+        /* Shape function values are stored within a Matrix, however, only one row
+        should be provided here. Thus, currently it is not possible to provide the 
+        needed source to this object.*/
+        KRATOS_DEBUG_ERROR_IF(DerivativeOrderIndex == 0)
+            << "Shape functions cannot be accessed through ShapeFunctionDerivatives()" << std::endl;
+
+        if (DerivativeOrderIndex == 1)
+        {
+            return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
+        }
+
+        KRATOS_DEBUG_ERROR_IF(mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex].size() > (DerivativeOrderIndex - 2))
+            << "Not enough derivatives within geometry_shape_function_container." << std::endl;
+
+        return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2];
+    }
+
+    /*
     * @brief access each item separateley.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
     * @param DerivativeOrderRowIndex within each derivative the entries can
     *        be accessed differently.
+    *        DerivativeOrderIndex:,
+    *           [0] - N
+    *           [1] - dN_de, DerivativeOrderRowIndex: 
+    *                   [0] du, [1] dv, [2] dw
+    *           [2] - ddN_dde, DerivativeOrderRowIndex:
+    *                   1D: [0] du^2
+    *                   2D: [0] du^2, [1] dudv, [2] dv^2
+    *                   3D: [0] du^2, [1] dudv, [2] dudw, [3] dv^2, [4] dvdw, [5] dw^2
+    *           [3] - third order vectors:
+    *                   1D: [0] du^3
+    *                   2D: [0] du^3, [1] du^2dv, [2] dudv^2, [3] dv^3
     * @return the shape function or derivative value related to the input parameters.
     */
     double& ShapeFunctionDerivativeValue(
@@ -321,9 +371,9 @@ public:
         if (DerivativeOrderIndex == 0)
             return mShapeFunctionsValues[ThisMethod](IntegrationPointIndex, ShapeFunctionIndex);
         if (DerivativeOrderIndex == 1)
-            return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](DerivativeOrderRowIndex, ShapeFunctionIndex);
-        if (DerivativeOrderIndex > 2)
-            return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](DerivativeOrderRowIndex, ShapeFunctionIndex);
+            return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex](ShapeFunctionIndex, DerivativeOrderRowIndex);
+        
+        return mShapeFunctionsDerivatives[ThisMethod][IntegrationPointIndex][DerivativeOrderIndex - 2](ShapeFunctionIndex, DerivativeOrderRowIndex);
     }
 
     ///@}
@@ -379,6 +429,7 @@ private:
 
     virtual void load( Serializer& rSerializer )
     {
+        KRATOS_ERROR << "load function for geometry_shape_function_container not yet implemented." << std::endl;
         rSerializer.load("IntegrationPoints", mIntegrationPoints);
         rSerializer.load("ShapeFunctionsValues", mShapeFunctionsValues);
         rSerializer.load("ShapeFunctionsLocalGradients", mShapeFunctionsLocalGradients);

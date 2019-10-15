@@ -74,10 +74,12 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
             "imposed_direction" : 2,
             "target_stress_table_id" : 1,
             "initial_velocity" : 0.0,
-            "limit_velocity" : 1.0e3,
+            "limit_velocity" : 1.0,
             "velocity_factor" : 1.0,
             "compression_length" : 0.0,
             "young_modulus" : 1.0e7,
+            "stress_increment_tolerance": 1000.0,
+            "update_stiffness": true,
             "start_time" : 0.0,
             "face_area": 1.0
         }  )" );
@@ -126,6 +128,10 @@ ControlModuleFemDemUtilities(ModelPart& rFemModelPart,
     mYoungModulus = rParameters["young_modulus"].GetDouble();
     mStartTime = rParameters["start_time"].GetDouble();
     mFaceArea = rParameters["face_area"].GetDouble();
+    mStressIncrementTolerance = rParameters["stress_increment_tolerance"].GetDouble();
+    mUpdateStiffness = rParameters["update_stiffness"].GetBool();
+    mReactionStressOld = 0.0;
+    mStiffness = mYoungModulus/mCompressionLength;
 
     KRATOS_CATCH("");
 }
@@ -188,8 +194,8 @@ void ExecuteFinalizeSolutionStep()
 
     if(CurrentTime >= mStartTime && mTargetStressTableId > 0)
     {
+        // Calculate ReactionStress
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
-
         ComponentType ReactionVarComponent = KratosComponents< ComponentType >::Get(mReactionVariableName);
         const int NNodes = static_cast<int>(mrFemModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator it_begin = mrFemModelPart.NodesBegin();
@@ -218,12 +224,32 @@ void ExecuteFinalizeSolutionStep()
 
         const double ReactionStress = FaceReaction/mFaceArea;
 
-        TableType::Pointer pTargetStressTable = mrFemModelPart.pGetTable(mTargetStressTableId);
+        // Update K if required
         const double DeltaTime = mrFemModelPart.GetProcessInfo()[DELTA_TIME];
-        const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+DeltaTime);
+        double K_estimated = mStiffness;
+        if(mUpdateStiffness == true) {
+            if(std::abs(mVelocity) > 1.0e-4*std::abs(mLimitVelocity) &&
+                std::abs(ReactionStress-mReactionStressOld) > mStressIncrementTolerance) {
 
-        const double DeltaVelocity = (NextTargetStress - ReactionStress)*mCompressionLength/(mYoungModulus*DeltaTime) - mVelocity;
-        mVelocity += mVelocityFactor * DeltaVelocity;
+                K_estimated = std::abs((ReactionStress-mReactionStressOld)/(mVelocity * DeltaTime));
+            }
+            mReactionStressOld = ReactionStress;
+            mStiffness = K_estimated;
+        }
+
+        // Update velocity
+        TableType::Pointer pTargetStressTable = mrFemModelPart.pGetTable(mTargetStressTableId);
+        const double NextTargetStress = pTargetStressTable->GetValue(CurrentTime+DeltaTime);
+        const double df_target = NextTargetStress - ReactionStress;
+
+        double delta_velocity = df_target/(K_estimated * DeltaTime) - mVelocity;
+
+        if(std::abs(df_target) < mStressIncrementTolerance) {
+
+            delta_velocity = -mVelocity;
+        }
+
+        mVelocity += mVelocityFactor * delta_velocity;
 
         if(std::abs(mVelocity) > std::abs(mLimitVelocity))
         {
@@ -233,7 +259,7 @@ void ExecuteFinalizeSolutionStep()
             }
             else
             {
-                mVelocity = -1.0*std::abs(mLimitVelocity);
+                mVelocity = - std::abs(mLimitVelocity);
             }
         }
 
@@ -252,6 +278,7 @@ void ExecuteFinalizeSolutionStep()
 
             it->FastGetSolutionStepValue(TargetStressVarComponent) = pTargetStressTable->GetValue(CurrentTime);
             it->FastGetSolutionStepValue(ReactionStressVarComponent) = ReactionStress;
+            // it->FastGetSolutionStepValue(ReactionStressVarComponent) = pTargetStressTable->GetValue(CurrentTime)-ReactionStress;
             it->FastGetSolutionStepValue(LoadingVelocityVarComponent) = mVelocity;
         }
     }
@@ -318,6 +345,10 @@ protected:
     double mYoungModulus;
     double mStartTime;
     double mFaceArea;
+    double mReactionStressOld;
+    double mStressIncrementTolerance;
+    double mStiffness;
+    bool mUpdateStiffness;
 
 ///@}
 ///@name Protected member r_variables

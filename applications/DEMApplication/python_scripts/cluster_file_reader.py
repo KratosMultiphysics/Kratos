@@ -1,24 +1,24 @@
 
 def ReadNextLine(f):
-    while True:        
+    while True:
         nextline=next(f)
         if nextline.startswith("//") == False :
             return nextline.split()
-        
+
 def ReadClusterFile(filename):
     import os
-    
+
     f = open(filename, 'r')
     list_of_coordinates = []
     list_of_radii = []
     inertias = []
     volume = []
     size = []
-    
+
     for line in f:
         if line.startswith("//"):
             continue
-        if line.startswith("Name"):            
+        if line.startswith("Name"):
             data = ReadNextLine(f)
             name = data[0]
         if line.startswith("Begin centers_and_radii"):
@@ -27,7 +27,7 @@ def ReadClusterFile(filename):
                 if nextline.startswith("//"):
                     continue
                 if nextline.startswith("End centers_and_radii"):
-                    break            
+                    break
                 data = nextline.split()
                 coordinates = [float(data[0]), float(data[1]), float(data[2])]
                 #print(coordinates)
@@ -36,7 +36,8 @@ def ReadClusterFile(filename):
                 list_of_radii.append(radius)
         if line.startswith("Particle_center_and_diameter"):
             data = ReadNextLine(f)
-        if line.startswith("Size"):            
+            center = [float(data[0]), float(data[1]), float(data[2])]
+        if line.startswith("Size"):
             data = ReadNextLine(f)
             size = [float(data[0])]
         if line.startswith("Volume"):
@@ -49,8 +50,17 @@ def ReadClusterFile(filename):
             IY = float(data[0])
             data = ReadNextLine(f)
             IZ = float(data[0])
-            inertias = [IX, IY, IZ]  
-     
+            inertias = [IX, IY, IZ]
+
+    try:
+        center
+    except NameError:
+        message = "\n\n" + "************  ERROR!   Problems reading cluster file: " + filename + "  The center could not be found ***************\n\n"
+        print(message)
+
+    for i in range(len(list_of_coordinates)):
+        list_of_coordinates[i] = [list_of_coordinates[i][0] - center[0], list_of_coordinates[i][1] - center[1], list_of_coordinates[i][2] - center[2]]
+
     if len(inertias)==0 or len(volume)==0 or len(size)==0 or len(list_of_radii)==0 or len(list_of_coordinates)==0 :
         message = "\n\n" + "************  ERROR!   Problems reading cluster file: " + filename + "   ***************\n\n"
         print(message)
@@ -58,4 +68,4 @@ def ReadClusterFile(filename):
         print("Cluster file "+ filename + " was read correctly")
 
     return [name, list_of_coordinates, list_of_radii, size[0], volume[0], inertias]
-        
+

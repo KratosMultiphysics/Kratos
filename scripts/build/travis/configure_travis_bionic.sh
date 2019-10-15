@@ -73,7 +73,7 @@ CXX_PERF_FLAGS="-O0 -fopenmp"
 #        CXX_WARN_FLAGS="-Wall"
 # --------------------------------------------------------------------------------------------------------------
 C_WARN_FLAGS="-Wall"
-CXX_WARN_FLAGS="-Wall -Werror=suggest-override -Werror=unused-variable \
+CXX_WARN_FLAGS="-Wall -Wignored-qualifiers -Werror=ignored-qualifiers -Werror=suggest-override -Werror=unused-variable \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
 -Werror=unused-local-typedefs -Werror=reorder -Werror=maybe-uninitialized"
@@ -170,13 +170,13 @@ CMAKE_EXTRA=(
   -DINSTALL_EMBEDDED_PYTHON=ON
 
   # Metis
-  -DMETIS_APPLICATION=OFF
-  -DUSE_METIS_5=ON
-  -DMETIS_ROOT_DIR="/home/roigcarlo/CompiledLibs/metis-5.1.0"
+  -DMETIS_APPLICATION=ON
 
   # Trillinos
   -DTRILINOS_APPLICATION=OFF
-  -DTRILINOS_ROOT="/home/youruser/compiled_libraries/trilinos-10.2.0"
+  -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"
+  -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"
+  -DTRILINOS_LIBRARY_PREFIX="trilinos_"
 
   -DUSE_COTIRE=ON
 )

@@ -15,13 +15,9 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     add_definitions( -DTETLIBRARY )
     add_definitions( -DUSE_TETGEN_NONFREE_TPL )
     include_directories(${TETGEN_INCLUDES})
-    #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
-    #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
 ##add subdirectories for compilation of dependent libraries
-#add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
 
 ## generate variables with the sources
@@ -102,6 +98,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 if(USE_COTIRE MATCHES ON)
     ## The MMG is not compatibel with cotire
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    cotire(KratosMeshingCore)
     cotire(KratosMeshingApplication)
 endif(USE_COTIRE MATCHES ON)
 

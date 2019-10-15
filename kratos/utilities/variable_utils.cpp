@@ -419,9 +419,9 @@ bool VariableUtils::CheckDofs(ModelPart& rModelPart)
     KRATOS_TRY
 
     for(auto& node : rModelPart.Nodes()) {
-        for (auto& dof : node.GetDofs()) {
+        for (Kratos::unique_ptr<Dof<double>>& p_dof : node.GetDofs()) {
 //                 KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(dof.GetVariable())) << "Node : " << node << " does not have allocated space for the variable " << dof << std::endl;
-            KRATOS_CHECK_VARIABLE_KEY(dof.GetVariable());
+            KRATOS_CHECK_VARIABLE_KEY(p_dof->GetVariable());
 
         }
     }

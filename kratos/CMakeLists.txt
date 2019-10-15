@@ -36,6 +36,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/containers/nodal_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_linear_solver_factory.cpp;
@@ -268,6 +269,7 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
     PATTERN "*.h" EXCLUDE
     PATTERN "*.cpp" EXCLUDE
     PATTERN "*.hpp" EXCLUDE
+    PATTERN "*.pyc" EXCLUDE
     )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 

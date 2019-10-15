@@ -35,9 +35,7 @@
         "buffer_size"                        : 3,
         "linear_solver_settings"             : {
                 "solver_type": "skyline_lu_factorization"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto2","Parts_Parts_Auto3"],
-        "processes_sub_model_part_list"      : ["Structure","Contact_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -102,7 +100,7 @@
             "Parameters"            : {
                 "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
                 "input_file_name"     : "ALM_frictional_contact_test_2D/perfect_stick_hyper_simple_patch_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 1.0e-3
             }
         }]
@@ -116,7 +114,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictional_contact_test_2D/perfect_stick_hyper_simple_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 1.0e-3
         }
     }
@@ -164,7 +162,7 @@
                 "output_frequency"                   : 1,
                 "file_format"                        : "ascii",
                 "output_precision"                   : 7,
-                "output_sub_model_parts"             : true,
+                "output_sub_model_parts"             : false,
                 "folder_name"                        : "vtk_output",
                 "save_output_files_in_folder"        : true,
                 "nodal_solution_step_data_variables" : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
@@ -174,7 +172,7 @@
                 "element_flags"                      : [],
                 "condition_data_value_variables"     : [],
                 "condition_flags"                    : [],
-                "gauss_point_variables"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                "gauss_point_variables_extrapolated_to_nodes"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
             }
         }]
     }

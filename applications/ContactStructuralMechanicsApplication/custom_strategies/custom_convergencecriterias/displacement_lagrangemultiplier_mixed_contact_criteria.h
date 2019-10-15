@@ -20,6 +20,7 @@
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
+#include "utilities/constraint_utilities.h"
 
 namespace Kratos
 {
@@ -90,6 +91,9 @@ public:
 
     /// The key type definition
     typedef std::size_t                                       KeyType;
+
+    /// The epsilon tolerance definition
+    static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -217,8 +221,9 @@ public:
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
-                if (it_dof->IsFree()) {
-                    dof_id = it_dof->EquationId();
+                dof_id = it_dof->EquationId();
+
+                if (mActiveDofs[dof_id]) {
 
                     const auto curr_var = it_dof->GetVariable();
                     if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
@@ -235,18 +240,18 @@ public:
                 }
             }
 
-            if(lm_increase_norm == 0.0) lm_increase_norm = 1.0;
-            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT) && lm_solution_norm == 0.0) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+            if(lm_increase_norm < Tolerance) lm_increase_norm = 1.0;
+            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             mDispCurrentResidualNorm = disp_residual_solution_norm;
-            const TDataType lm_ratio = std::sqrt(lm_increase_norm/lm_solution_norm);
-            const TDataType lm_abs = std::sqrt(lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
+            const TDataType lm_ratio = lm_solution_norm > Tolerance ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
+            const TDataType lm_abs = std::sqrt(lm_increase_norm)/static_cast<TDataType>(lm_dof_num);
 
             TDataType residual_disp_ratio;
 
             // We initialize the solution
             if (mOptions.IsNot(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET)) {
-                mDispInitialResidualNorm = (disp_residual_solution_norm == 0.0) ? 1.0 : disp_residual_solution_norm;
+                mDispInitialResidualNorm = (disp_residual_solution_norm < Tolerance) ? 1.0 : disp_residual_solution_norm;
                 residual_disp_ratio = 1.0;
                 mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET, true);
             }
@@ -286,7 +291,7 @@ public:
 
             // We check if converged
             const bool disp_converged = (residual_disp_ratio <= mDispRatioTolerance || residual_disp_abs <= mDispAbsTolerance);
-            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT) && lm_solution_norm == 0.0) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
+            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierMixedContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
 
             if ( disp_converged && lm_converged ) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
@@ -368,7 +373,11 @@ public:
         const TSystemVectorType& rb
         ) override
     {
+        // Initialize flag
         mOptions.Set(DisplacementLagrangeMultiplierMixedContactCriteria::INITIAL_RESIDUAL_IS_SET, false);
+
+        // Filling mActiveDofs when MPC exist
+        ConstraintUtilities::ComputeActiveDofs(rModelPart, mActiveDofs, rDofSet);
     }
 
     ///@}
@@ -434,6 +443,8 @@ private:
 
     TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
     TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
+
+    std::vector<bool> mActiveDofs;  /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators

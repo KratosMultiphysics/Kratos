@@ -24,6 +24,7 @@
 #endif /* MMG_INCLUDES defined */
 
 // Project includes
+#include "meshing_application_variables.h"
 #include "containers/model.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "custom_utilities/mmg_utilities.h"
@@ -3283,7 +3284,7 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     if (r_conditions_array.size() > 0) {
         const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
     }
     if (r_elements_array.size() > 0) {
         rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
@@ -3303,7 +3304,7 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // Boundary conditions
         Condition const& r_clone_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
-        rRefCondition[10] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[10] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
 
         // Inside outside elements
         rRefElement[2] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
@@ -3322,23 +3323,46 @@ void MmgUtilities<TMMGLibrary>::GenerateSolDataFromModelPart(ModelPart& rModelPa
     const auto it_node_begin = r_nodes_array.begin();
 
     // Set size of the solution
-    SetSolSizeTensor(r_nodes_array.size());
-
+    /* In case of considering metric tensor */
     const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
+    if (it_node_begin->Has(r_tensor_variable)) {
+        SetSolSizeTensor(r_nodes_array.size());
+    } else {
+        SetSolSizeScalar(r_nodes_array.size());
+    }
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
+    // In case of considering metric tensor
+    if (it_node_begin->Has(r_tensor_variable)) {
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
 
-        const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
-        if (!old_entity) {
-            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
 
-            // We get the metric
-            const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
+                // We get the metric
+                const TensorArrayType& r_metric = it_node->GetValue(r_tensor_variable);
 
-            // We set the metric
-            SetMetricTensor(r_metric, it_node->Id());
+                // We set the metric
+                SetMetricTensor(r_metric, it_node->Id());
+            }
+        }
+    } else {
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
+
+            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            if (!old_entity) {
+                KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(METRIC_SCALAR)) << "METRIC_SCALAR not defined for node " << it_node->Id() << std::endl;
+
+                // We get the metric
+                const double metric = it_node->GetValue(METRIC_SCALAR);
+
+                // We set the metric
+                SetMetricScalar(metric, it_node->Id());
+            }
         }
     }
 }
@@ -3399,8 +3423,8 @@ void MmgUtilities<TMMGLibrary>::WriteMeshDataToModelPart(
         NodeType::Pointer p_node = CreateNode(rModelPart, i_node, ref, is_required);
 
         // Set the DOFs in the nodes
-        for (auto& r_dof : rDofs)
-            p_node->pAddDof(r_dof);
+        for (auto it_dof = rDofs.begin(); it_dof != rDofs.end(); ++it_dof)
+            p_node->pAddDof(**it_dof);
 
         if (ref != 0) color_nodes[static_cast<IndexType>(ref)].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
     }
@@ -3585,17 +3609,33 @@ void MmgUtilities<TMMGLibrary>::WriteSolDataToModelPart(ModelPart& rModelPart)
 
     const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_" + std::to_string(Dimension)+"D");
 
-    // Auxilia metric
-    TensorArrayType metric;
+    // In case of considering metric tensor
+    if (it_node_begin->Has(r_tensor_variable)) {
+        // Auxilia metric
+        TensorArrayType metric;
 
-    #pragma omp parallel for firstprivate(metric)
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = it_node_begin + i;
+        #pragma omp parallel for firstprivate(metric)
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
 
-        // We get the metric
-        GetMetricTensor(metric);
+            // We get the metric
+            GetMetricTensor(metric);
 
-        it_node->SetValue(r_tensor_variable, metric);
+            it_node->SetValue(r_tensor_variable, metric);
+        }
+    } else {
+        // Auxilia metric
+        double metric;
+
+        #pragma omp parallel for firstprivate(metric)
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
+
+            // We get the metric
+            GetMetricScalar(metric);
+
+            it_node->SetValue(METRIC_SCALAR, metric);
+        }
     }
 }
 
@@ -3622,7 +3662,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     for (auto it_param = elem_ref_json.begin(); it_param != elem_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Element const& r_clone_element = KratosComponents<Element>::Get(it_param->GetString());
-        rRefElement[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+        rRefElement[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
     }
 
     /* Conditions */
@@ -3634,7 +3674,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
-        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.GetGeometry(), p_auxiliar_prop);
+        rRefCondition[key] = r_clone_element.Create(0, r_clone_element.pGetGeometry(), p_auxiliar_prop);
     }
 }
 
