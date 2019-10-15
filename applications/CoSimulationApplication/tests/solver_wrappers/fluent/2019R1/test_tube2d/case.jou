@@ -1,0 +1,52 @@
+file set-batch-options n y n
+(enable-dynamic-mesh-node-ids #t)
+file startt "transcript_setup.txt"
+file read-case mesh.msh
+define models axisymmetric y
+grid check
+grid modify-zones zone-name default-interior fluid-interior
+
+define user-defined compiled-functions compile "udf_inlet" y "udf_inlet.c" "" ""
+define user-defined compiled-functions load "udf_inlet"
+
+define models unsteady-1st-order y
+define models viscous laminar y
+define models solver pressure-based y
+define boundary-conditions pressure-outlet in y y y "udf" "pressure_inlet::udf_inlet" n y y n n
+define boundary-conditions pressure-outlet out y n 0 n y y n n
+define boundary-conditions wall beamoutside y motion-bc-stationary y shear-bc-noslip
+define operating-conditions operating-pressure 0
+define operating-conditions gravity n
+
+define dynamic-mesh dynamic-mesh y n n y n
+define dynamic-mesh controls smoothing y
+define dynamic-mesh controls smoothing-parameters smoothing-method spring
+define dynamic-mesh controls smoothing-parameters constant-factor 1
+define dynamic-mesh controls smoothing-parameters bnd-node-relaxation 1
+define dynamic-mesh controls smoothing-parameters bnd-stiffness-factor 1
+define dynamic-mesh controls smoothing-parameters skew-smooth-niter 10
+define dynamic-mesh controls smoothing-parameters skew-smooth-cell-skew-max 0.7
+define dynamic-mesh controls smoothing-parameters max-iter 20
+define dynamic-mesh controls smoothing-parameters spring-on-all-elements y
+define dynamic-mesh controls layering n
+define dynamic-mesh controls remeshing n
+
+solve monitors force monitor-unsteady-iters y
+solve set time-step 0.0001
+
+solve monitors residual check-convergence y y y
+solve monitors residual convergence-criteria 1.0E-6 1.0E-6 1.0E-6
+solve set discretization-scheme mom 1
+solve set discretization-scheme pressure 10
+solve set p-v-coupling 22
+solve set p-v-controls 1 1 y
+solve set gradient-scheme y
+solve set reporting-interval 10
+solve set flow-warnings n
+
+solve initialize set-defaults pressure 0
+solve initialize set-defaults x-velocity 0
+solve initialize set-defaults y-velocity 0
+
+file write-case case.cas
+exit

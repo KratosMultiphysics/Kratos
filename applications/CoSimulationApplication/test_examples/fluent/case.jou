@@ -1,6 +1,6 @@
 file set-batch-options n n n
 (enable-dynamic-mesh-node-ids #t)
-f startt "transcript.txt"
+f startt "transcript_setup.txt"
 
 (define unsteady #t)
 
