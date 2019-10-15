@@ -27,21 +27,13 @@
 
 namespace Kratos
 {
-    VoxelMeshColoringProcess::VoxelMeshColoringProcess(Internals::CartesianMeshColors& MeshColors, Point const& MinPoint, Point const& MaxPoint,  array_1d<std::size_t,3> const& NumberOfDivisions,
+    VoxelMeshColoringProcess::VoxelMeshColoringProcess(Internals::CartesianMeshColors& MeshColors,  array_1d<std::size_t,3> const& NumberOfDivisions,
         ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters)
 		: Process()
 		, mColors(MeshColors)
-        , mGeometry(Point(MinPoint[0], MinPoint[1], MinPoint[2]),
-                    Point( MaxPoint[0], MinPoint[1], MinPoint[2]),
-                    Point( MaxPoint[0],  MaxPoint[1], MinPoint[2]),
-                    Point(MinPoint[0],  MaxPoint[1], MinPoint[2]),
-                    Point(MinPoint[0], MinPoint[1],  MaxPoint[2]),
-                    Point( MaxPoint[0], MinPoint[1],  MaxPoint[2]),
-                    Point( MaxPoint[0],  MaxPoint[1],  MaxPoint[2]),
-                    Point(MinPoint[0],  MaxPoint[1],  MaxPoint[2]))
-		, mMinPoint(MinPoint)
-        , mMaxPoint(MaxPoint)
+        , mMinPoint(MeshColors.GetPoint(0,0,0))
+        , mMaxPoint(MeshColors.GetCoordinates(0)[MeshColors.GetCoordinates(0).size() - 1], MeshColors.GetCoordinates(1)[MeshColors.GetCoordinates(1).size() - 1], MeshColors.GetCoordinates(2)[MeshColors.GetCoordinates(2).size() - 1])
 		, mNumberOfDivisions(NumberOfDivisions)
         , mrVolumePart(rVolumePart), mrSkinPart(rSkinPart), mFindIntersectedObjectsProcess(rVolumePart, rSkinPart) {
 
@@ -102,6 +94,7 @@ namespace Kratos
         this->Initialize();
 
         mCellIsEmpty.resize(mNumberOfDivisions[0]*mNumberOfDivisions[1]*mNumberOfDivisions[2], true);
+
         /// Fill container with objects
         
         for(auto& element : mrSkinPart.Elements())
@@ -152,7 +145,9 @@ namespace Kratos
 		array_1d< std::size_t, 3 > min_position;
 		array_1d< std::size_t, 3 > max_position;
 		CalculateMinMaxCellsPositions(TheSubModelPart.Nodes(), min_position, max_position);
- 
+
+		InitializeRays(min_position, max_position);
+
         #pragma omp parallel for
 		for (int k = min_position[2]; k < static_cast<int>(max_position[2]); k++) {
 			for (std::size_t j = min_position[1]; j < max_position[1]; j++) {
@@ -187,6 +182,18 @@ namespace Kratos
 			}
 		}
 	}
+
+    void VoxelMeshColoringProcess::InitializeRays(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition){
+		mColors.InitializeRays(MinRayPosition, MaxRayPosition);
+       
+        for(auto& element : mrSkinPart.Elements())
+        {
+            Element::GeometryType& r_geometry = element.GetGeometry();
+			mColors.AddGeometry(r_geometry);
+        }
+
+	}
+
 
 	void VoxelMeshColoringProcess::CalculateRayDistances(ModelPart& TheSubModelPart, int TheColor)
 	{

@@ -70,7 +70,7 @@ namespace Kratos
 
       /// Constructors to be used. They take the geometry to be meshed and ModelPart to be filled. The second constructor is
       /// provided for the Python interface.
-      VoxelMeshColoringProcess(Internals::CartesianMeshColors& MeshColors, Point const& MinPoint, Point const& MaxPoint,  array_1d<std::size_t,3> const& NumberOfDivisions, 
+      VoxelMeshColoringProcess(Internals::CartesianMeshColors& MeshColors,  array_1d<std::size_t,3> const& NumberOfDivisions, 
         ModelPart& rVolumePart,
         ModelPart& rSkinPart, Parameters& TheParameters);
 
@@ -137,7 +137,6 @@ namespace Kratos
       ///@name Member Variables
       ///@{
         Internals::CartesianMeshColors& mColors;
-          Hexahedra3D8<Point> mGeometry;
           const Point mMinPoint;
           const Point mMaxPoint;
 		  array_1d<std::size_t,3> mNumberOfDivisions;
@@ -168,6 +167,8 @@ namespace Kratos
       ///@{
 
           void CalculateVoxelsColor(ModelPart& TheSubModelPart, int TheColor);
+
+          void InitializeRays(array_1d< std::size_t, 3 > const& MinCellPosition, array_1d< std::size_t, 3 > const& MaxCellPosition);
 
           void CalculateRayDistances(ModelPart& TheSubModelPart, int TheColor);
 
