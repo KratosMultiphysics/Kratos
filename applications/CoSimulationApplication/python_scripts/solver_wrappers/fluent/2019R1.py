@@ -53,21 +53,19 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         with open(join(path_src, journal), 'r') as infile:
             with open(join(self.dir_cfd, journal), 'w') as outfile:
                 for line in infile:
-                    line = line.replace('|case|', join(self.dir_cfd, self.case_file))
-                    line = line.replace('|thread_names|', thread_names_str)
-                    line = line.replace('|unsteady|', unsteady)
-                    line = line.replace('|hybrid_initialization|', hybrid_initialization)
-                    line = line.replace('|flow_iterations|', str(self.flow_iterations))
+                    line = line.replace('|CASE|', join(self.dir_cfd, self.case_file))
+                    line = line.replace('|THREAD_NAMES|', thread_names_str)
+                    line = line.replace('|UNSTEADY|', unsteady)
+                    line = line.replace('|HYBRID_INITIALIZATION|', hybrid_initialization)
+                    line = line.replace('|FLOW_ITERATIONS|', str(self.flow_iterations))
                     outfile.write(line)
-
-        # *** change names to |NAME| instead of |name|, it's more clear in .jou and .udf...
 
         # prepare Fluent UDF
         udf = '2019R1.c'
         with open(join(path_src, udf), 'r') as infile:
             with open(join(self.dir_cfd, udf), 'w') as outfile:
                 for line in infile:
-                    line = line.replace('|max_nodes_per_face|', str(self.mnpf))
+                    line = line.replace('|MAX_NODES_PER_FACE|', str(self.mnpf))
                     outfile.write(line)
 
         # start Fluent with journal
@@ -219,11 +217,10 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def Initialize(self):
         super().Initialize()
-        # *** should sth happen in here?
-        # I think most of the init already happends in __init__?
+        # TODO I think most of the init already happends in __init__?
         # when using restart, __init__ is called again??
 
-        self.timestep = 0  # time step
+        self.timestep = 0
 
 
     def InitializeSolutionStep(self):

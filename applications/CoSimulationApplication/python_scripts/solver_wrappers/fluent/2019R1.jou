@@ -4,8 +4,8 @@ file set-batch-options n n n
 file start-transcript "transcript.txt"
 (enable-dynamic-mesh-node-ids #t)
 ;file binary-files n
-(define unsteady |unsteady|)
-(define flow_iterations |flow_iterations|)
+(define unsteady |UNSTEADY|)
+(define flow_iterations |FLOW_ITERATIONS|)
 
 ;   FUNCTIONS
 (define (send_message message)
@@ -50,7 +50,7 @@ file start-transcript "transcript.txt"
 (rp-var-define 'udf/iteration 0 'int #f)
 
 ;   READ CASE
-file read-case |case|
+file read-case |CASE|
 solve set expert y n y
 
 ;   SAVE DATA FOR SURFACE IDS
@@ -64,7 +64,7 @@ define user-defined compiled-functions load "2019R1"
 ;   GET_THREAD_IDS IN UDF AND JOURNAL
 (wait_message "thread_ids_written_to_file")
 define user-defined execute-on-demand "get_thread_ids::2019R1"
-(define face_threads (list|thread_names|))
+(define face_threads (list|THREAD_NAMES|))
 
 ;   CREATE DYNAMIC MESH ZONES
 (do ((k 0 (+ k 1))) ((>= k (length face_threads)))
@@ -85,7 +85,7 @@ define user-defined execute-on-demand "store_coordinates_id::2019R1"
 (send_message "nodes_and_faces_stored")
 
 ;   INITIALIZE SOLUTION
-(if |hybrid_initialization|
+(if |HYBRID_INITIALIZATION|
     (ti-menu-load-string "solve initialize hyb-initialization y")
     (ti-menu-load-string "solve initialize initialize-flow y")
 )

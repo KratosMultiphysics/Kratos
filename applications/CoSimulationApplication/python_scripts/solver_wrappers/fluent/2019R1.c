@@ -2,7 +2,7 @@
 #include <math.h>
 
 
-/* dynamic memory allocation */
+/* dynamic memory allocation for 1D and 2D arrays */
 #define DECLARE_MEMORY(name, type) type *name = NULL
 
 #define DECLARE_MEMORY_N(name, type, dim) type *name[dim] = {NULL}
@@ -57,8 +57,8 @@ for (_d = 0; _d < dim; _d++) {                                      \
     PRF_CRECV_REAL(from, name[_d], n, tag);                         \
 }
 
-#define mnpf |max_nodes_per_face|
-
+/* global variables */
+#define mnpf |MAX_NODES_PER_FACE|
 int _d; /* don't use in UDFs! */
 int n_threads;
 DECLARE_MEMORY(thread_ids, int);
@@ -71,8 +71,7 @@ int timestep = 0;
 /*----------------*/
 
 DEFINE_ON_DEMAND(get_thread_ids) {
-    /* read in thread thread ids, should be called early on; */
-    /*** expand this explanation */
+    /* read in thread thread ids, should be called early on */
 
 #if !RP_NODE
     char tmp;
@@ -101,12 +100,7 @@ DEFINE_ON_DEMAND(get_thread_ids) {
 /*----------------------*/
 
 DEFINE_ON_DEMAND(store_coordinates_id) {
-
-    /*** annotate this function after it's finished */
-
-    /*** look which checks Joris built into his UDF, add those later */
-
-    /*** principle faces?? */
+    if (myid == 0) {printf("\n\nStarted UDF store_coordinates_id.\n"); fflush(stdout);}
 
     int thread, n_nodes, n_faces, i_n, i_f, d;
     DECLARE_MEMORY_N(node_coords, real, ND_ND);
@@ -137,8 +131,8 @@ DEFINE_ON_DEMAND(store_coordinates_id) {
     for (thread=0; thread<n_threads; thread++) {
 
 #if !RP_NODE
-        sprintf(file_nodes_name, "nodes_thread%i.dat", thread_ids[thread]); /*** temp name */
-        sprintf(file_faces_name, "faces_thread%i.dat", thread_ids[thread]); /*** temp name */
+        sprintf(file_nodes_name, "nodes_thread%i.dat", thread_ids[thread]);
+        sprintf(file_faces_name, "faces_thread%i.dat", thread_ids[thread]);
 
         if (NULLP(file_nodes = fopen(file_nodes_name, "w"))) {
 			Error("\nUDF-error: Unable to open %s for writing\n", file_nodes_name);
@@ -304,7 +298,7 @@ DEFINE_ON_DEMAND(store_coordinates_id) {
 
     } /* close loop over threads */
 
-    printf("\n\nNode %i: Finished UDF store_coordinates_id", myid); fflush(stdout);
+    if (myid == 0) {printf("\nFinished UDF store_coordinates_id.\n"); fflush(stdout);}
 }
 
 
@@ -314,8 +308,7 @@ DEFINE_ON_DEMAND(store_coordinates_id) {
 
 
 DEFINE_ON_DEMAND(store_pressure_traction) {
-
-    /*** add inviscid option? */
+    if (myid == 0) {printf("\nStarted UDF store_pressure_traction.\n"); fflush(stdout);}
 
     int thread, n, i, d;
     DECLARE_MEMORY_N(array, real, ND_ND + 1);
@@ -469,7 +462,6 @@ DEFINE_ON_DEMAND(store_pressure_traction) {
     } /* close loop over threads */
 
     if (myid == 0) {printf("\nFinished UDF store_pressure_traction.\n"); fflush(stdout);}
-    /*printf("\n\nNode %i: Finished UDF store_pressure_traction", myid); fflush(stdout);*/
 }
 
 
@@ -478,8 +470,6 @@ DEFINE_ON_DEMAND(store_pressure_traction) {
 /*------------*/
 
 DEFINE_GRID_MOTION(move_nodes, domain, dynamic_thread, time, dtime) {
-
-    /*** add checks and stuff from Joris */
 
     char file_name[256];
     Thread *face_thread = DT_THREAD(dynamic_thread);
@@ -502,59 +492,62 @@ DEFINE_GRID_MOTION(move_nodes, domain, dynamic_thread, time, dtime) {
 	host_to_node_int_1(iteration);
 	host_to_node_int_1(timestep);
 
-
-
 #if !RP_NODE
-        sprintf(file_name, "nodes_update_timestep%i_thread%i.dat",
-                timestep, thread_id);
+    sprintf(file_name, "nodes_update_timestep%i_thread%i.dat",
+            timestep, thread_id);
 #else
-        sprintf(file_name, "nodes_update_timestep%i_thread%i.dat",
-                timestep, thread_id);
-        host_to_node_sync_file("/tmp");
+    sprintf(file_name, "nodes_update_timestep%i_thread%i.dat",
+            timestep, thread_id);
+    host_to_node_sync_file("/tmp");
 #endif /* !RP_NODE */
 
 #if RP_HOST
-        host_to_node_sync_file(file_name);
+    host_to_node_sync_file(file_name);
 #endif /* RP_HOST */
 
 #if !RP_HOST
-        if (NULLP(file = fopen(file_name, "r"))) {
-            Error("\nUDF-error: Unable to open %s for reading\n", file_name);
-            exit(1);
+    if (NULLP(file = fopen(file_name, "r"))) {
+        Error("\nUDF-error: Unable to open %s for reading\n", file_name);
+        exit(1);
+    }
+
+    fscanf(file, "%i", &n);
+
+    ASSIGN_MEMORY_N(coords, n, real, ND_ND);
+    ASSIGN_MEMORY(ids, n, int);
+
+    for (i=0; i < n; i++) {
+        for (d = 0; d < ND_ND; d++) {
+            fscanf(file, "%lf", &coords[d][i]);
         }
+        fscanf(file, "%i", &ids[i]);
+    }
 
-        fscanf(file, "%i", &n);
+    fclose(file);
 
-        ASSIGN_MEMORY_N(coords, n, real, ND_ND);
-        ASSIGN_MEMORY(ids, n, int);
-
-        for (i=0; i < n; i++) {
-            for (d = 0; d < ND_ND; d++) {
-                fscanf(file, "%lf", &coords[d][i]);
-            }
-            fscanf(file, "%i", &ids[i]);
-        }
-
-        fclose(file);
-
-        begin_f_loop(face, face_thread) {
-            f_node_loop(face, face_thread, node_number) {
-                node = F_NODE(face, face_thread, node_number);
-                if NODE_POS_NEED_UPDATE(node) {
-                    for (i=0; i < n; i++) {
-                        if (NODE_DM_ID(node) == ids[i]) {
-                            for (d = 0; d < ND_ND; d++) {
-                                NODE_COORD(node)[d] = coords[d][i];
-                            }
-                            NODE_POS_UPDATED(node);
-                            break;
+    begin_f_loop(face, face_thread) {
+        f_node_loop(face, face_thread, node_number) {
+            node = F_NODE(face, face_thread, node_number);
+            if NODE_POS_NEED_UPDATE(node) {
+                for (i=0; i < n; i++) {
+                    if (NODE_DM_ID(node) == ids[i]) {
+                        for (d = 0; d < ND_ND; d++) {
+                            NODE_COORD(node)[d] = coords[d][i];
                         }
+                        NODE_POS_UPDATED(node);
+                        break;
+                    }
+                    if (i == n - 1) {
+                        Error("\nUDF-error: No match for node id %i\n", NODE_DM_ID(node));
+                        exit(1);
                     }
                 }
-            }
-        } end_f_loop(face, face_thread);
-#endif /* !RP_HOST */
-        if (myid == 0) {printf("\nFinished UDF move_nodes.\n"); fflush(stdout);}
 
+            }
+        }
+    } end_f_loop(face, face_thread);
+#endif /* !RP_HOST */
+
+    if (myid == 0) {printf("\nFinished UDF move_nodes.\n"); fflush(stdout);}
 }
 

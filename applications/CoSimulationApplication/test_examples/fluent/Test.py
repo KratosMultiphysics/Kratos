@@ -58,7 +58,7 @@ else:
         f = 0.005 * (-1) ** (timestep + 1)
         f = 0.05
         solver.InitializeSolutionStep()
-        for iteration in range(1, 3):
+        for iteration in range(1, 4):
             solver.SolveSolutionStep(interface_input)
             interface_input = solver.GetInterfaceInput()
             for key in settings['interface_input'].keys():
