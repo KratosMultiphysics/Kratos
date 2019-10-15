@@ -21,6 +21,13 @@ namespace Kratos {
 
 typedef std::size_t SizeType;
 
+/** 
+ * @class ComputeInitialVolumeProcess
+ * @ingroup FemToDemApplication 
+ * @brief Computes the initial volume of the blast circle and
+ * assigns it to the nodes
+ * @author Alejandro Cornejo
+ */
 class ComputeInitialVolumeProcess : public Process 
 {
  public:
@@ -38,12 +45,24 @@ class ComputeInitialVolumeProcess : public Process
 
   void operator()() { Execute(); }
 
+  /**
+   * @brief Computes the initial volume of the blast circle and assigns it to the nodes
+   */
   void Execute() override;
 
+  /**
+   * @brief Gets the pressure id of a SubModelPart
+   */
   int GetPressureIdSubModel(const std::string &rSubModelName);
 
+  /**
+   * @brief Computes the initial volume of the blast circle and assigns it to the nodes
+   */
   double ComputeInitialVolumeSubModel(const ModelPart &rSubModel);
 
+  /**
+   * @brief assigns the initial volume to the nodes -> SetValue(--)
+   */
   void AssignInitialVolumeToNodes(const ModelPart &rSubModel, const double InitialVolume);
 
 protected:

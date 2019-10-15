@@ -81,6 +81,7 @@ void ComputeInitialVolumeProcess::AssignInitialVolumeToNodes(
     for (int i = 0; i < static_cast<int>(rSubModel.Nodes().size()); i++) {
         auto &it_node = it_node_begin + i;
         it_node->SetValue(PRESSURE_INITIAL_VOLUME, InitialVolume);
+        it_node->SetValue(PRESSURE_VOLUME, InitialVolume);
     }
 }
 
