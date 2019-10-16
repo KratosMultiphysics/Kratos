@@ -23,8 +23,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters(r'''{
             "model_part_name": "please specify the model part that contains the surface nodes",
-            "far_field_model_part_name": "please specify the model part that contains the surface nodes",
             "moment_reference_point" : [0.0,0.0,0.0],
+            "far_field_model_part_name": "",
             "trailing_edge_model_part_name": "",
             "is_infinite_wing": false
         }''')
@@ -33,6 +33,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         far_field_model_part_name = settings["far_field_model_part_name"].GetString()
+        self.compute_far_field_forces = False
         if far_field_model_part_name != "":
             self.far_field_model_part = Model[far_field_model_part_name]
             self.compute_far_field_forces = True
