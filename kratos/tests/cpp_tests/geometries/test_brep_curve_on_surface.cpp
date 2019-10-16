@@ -93,6 +93,8 @@ namespace Testing {
         coords[0] = 1.0;
         Vector N;
 
+        auto brep_curve_on_surface_2 = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(brep_curve_on_surface);
+
         //brep_face_curve.ShapeFunctionsValues(N, coords);
         //KRATOS_WATCH(N)
         //Matrix DN_De;
@@ -105,6 +107,21 @@ namespace Testing {
 
         //auto results = p_brep_face_curve.GlobalDerivatives(coords, 3);
         //KRATOS_WATCH(results[0])
+    }
+
+    ///// Test Copy Constructor
+    KRATOS_TEST_CASE_IN_SUITE(BrepCurveOnSurfaceCopy, KratosCoreGeometriesFastSuite) {
+        auto p_surface = GenerateReferenceNodeSurfacePointer();
+        auto p_curve = GenerateReferenceCurve2dPointer();
+
+        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(
+            p_surface, p_curve);
+
+        auto brep_curve_on_surface_2 = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(brep_curve_on_surface);
+
+        KRATOS_CHECK_EQUAL(brep_curve_on_surface.Dimension(), brep_curve_on_surface_2.Dimension());
+        KRATOS_CHECK_EQUAL(brep_curve_on_surface.WorkingSpaceDimension(), brep_curve_on_surface_2.WorkingSpaceDimension());
+        KRATOS_CHECK_EQUAL(brep_curve_on_surface.LocalSpaceDimension(), brep_curve_on_surface_2.LocalSpaceDimension());
     }
 } // namespace Testing.
 } // namespace Kratos.
