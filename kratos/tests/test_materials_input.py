@@ -122,8 +122,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         test_settings["Parameters"]["materials_filename"].SetString(
             GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_3.json")))
-        expected_error_msg =  "Error: Materials for ModelPart \"Main.sub\" are specified multiple times!\n"
-        expected_error_msg += "Overdefined due to also specifying the materials for Parent-ModelPart \"Main\"!"
+        expected_error_msg =  "Error: Materials for SubModelPart \"Main.sub\" is being overrided by Parent Model Part \"Main\"!\n"
 
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
@@ -133,8 +132,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         test_settings["Parameters"]["materials_filename"].SetString(
             GetFilePath(os.path.join("auxiliar_files_for_python_unnitest","materials_files","wrong_materials_input","wrong_materials_4.json")))
-        expected_error_msg =  "Error: Materials for ModelPart \"Main.sub1.subsub\" are specified multiple times!\n"
-        expected_error_msg += "Overdefined due to also specifying the materials for Parent-ModelPart \"Main.sub1\"!"
+        expected_error_msg =  "Error: Materials for SubModelPart \"Main.sub1.subsub\" is being overrided by Parent Model Part \"Main.sub1\"!\n"
 
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
             KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
