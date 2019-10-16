@@ -412,13 +412,7 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
         model_part_names[i] = Materials["properties"].GetArrayItem(i)["model_part_name"].GetString();
     }
 
-    // sort the names
-    std::sort(model_part_names.begin(), model_part_names.end());
-
-    // check if the same name exists multiple times (this requires the sorting)
-    const auto it = std::unique( model_part_names.begin(), model_part_names.end() );
-    KRATOS_ERROR_IF_NOT(it == model_part_names.end()) << "Materials for ModelPart \""
-        << *it << "\" are specified multiple times!" << std::endl;
+    CheckModelPartIsNotRepeated(model_part_names);
 
     // checking if a parent also has a materials definition, i.e. if the assignment is unique
     std::string parent_model_part_name;
@@ -430,18 +424,36 @@ void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
             std::size_t found_pos = parent_model_part_name.find_last_of(".");
             parent_model_part_name = parent_model_part_name.substr(0, found_pos);
 
-            // check if the parent-modelpart-name also has a materials definition
-            const bool parent_has_materials = std::find(model_part_names.begin(), model_part_names.end(),
-                parent_model_part_name) != model_part_names.end();
-
-            KRATOS_ERROR_IF(parent_has_materials) << "Materials for ModelPart \""
-                << model_part_names[i] << "\" are specified multiple times!\n"
-                << "Overdefined due to also specifying the materials for Parent-ModelPart \""
-                << parent_model_part_name << "\"!" << std::endl;
+            for (IndexType j = 0; j < i; ++j) {
+                KRATOS_WARNING_IF("ReadMaterialsUtility", parent_model_part_name == model_part_names[j])
+                    << "Materials for SubModelPart \""
+                    << model_part_names[i] << "\" is overriding Parent-ModelPart \""
+                    << parent_model_part_name << "\"!" << std::endl;
+            }
+            for (IndexType j = i; j < num_props; ++j) {
+                KRATOS_ERROR_IF(parent_model_part_name == model_part_names[j])
+                    << "Materials for SubModelPart \""
+                    << model_part_names[i] << "\" is being overrided by Parent Model Part \""
+                    << parent_model_part_name << "\"!" << std::endl;
+            }
         }
     }
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ReadMaterialsUtility::CheckModelPartIsNotRepeated(std::vector<std::string> ModelPartsNames)
+{
+    // sort the names
+    std::sort(ModelPartsNames.begin(), ModelPartsNames.end());
+
+    // check if the same name exists multiple times (this requires the sorting)
+    const auto it = std::adjacent_find(ModelPartsNames.begin(), ModelPartsNames.end());
+    KRATOS_ERROR_IF_NOT(it == ModelPartsNames.end()) << "Materials for ModelPart \""
+        << *it << "\" are specified multiple times!" << std::endl;
 }
 
 }  // namespace Kratos.

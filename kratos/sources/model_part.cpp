@@ -57,15 +57,6 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
 /// Destructor.
 ModelPart::~ModelPart()
 {
-    if (!IsSubModelPart()){
-
-      for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); i_node++)
-	{
-	  if (i_node->pGetVariablesList() == mpVariablesList)
-	    i_node->ClearSolutionStepsData();
-	}
-    }
-
     mpCommunicator->Clear();
 
     for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
