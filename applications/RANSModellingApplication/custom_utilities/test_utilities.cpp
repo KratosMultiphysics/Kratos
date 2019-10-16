@@ -12,11 +12,11 @@
 //
 
 // System includes
+#include <algorithm>
 #include <cmath>
 #include <functional>
-#include <random>
-#include <algorithm>
 #include <iomanip>
+#include <random>
 #include <sstream>
 
 // External includes
@@ -61,7 +61,8 @@ void CheckNear(const double ValueA, const double ValueB, const double RelTol, co
 {
     if (IsNear(ValueA, ValueB, RelTol, AbsTol))
     {
-        if (IsNear(ValueA, 0.0, 0.0, AbsTol) && IsNear(ValueB, 0.0, 0.0, AbsTol) && ValueA != 0.0 && ValueB != 0.0)
+        if (IsNear(ValueA, 0.0, 0.0, AbsTol) &&
+            IsNear(ValueB, 0.0, 0.0, AbsTol) && ValueA != 0.0 && ValueB != 0.0)
         {
             // Warn if ValueA and ValueB are non-zero but below the absolute tolerance threshold.
             KRATOS_WARNING("CheckNear")
@@ -108,7 +109,8 @@ void CheckNear(const Vector& rA, const Vector& rB, const double RelTol, const do
         CheckNear(rA(i), rB(i), RelTol, AbsTol);
 }
 
-void CalculateResidual(Vector& residual, Element& rElement, ProcessInfo& rProcessInfo)
+template <class TClassType>
+void CalculateResidual(Vector& residual, TClassType& rClassTypeObject, ProcessInfo& rProcessInfo)
 {
     const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
 
@@ -116,69 +118,75 @@ void CalculateResidual(Vector& residual, Element& rElement, ProcessInfo& rProces
         old_nodal_scalar_rate_values;
     Matrix damping_matrix, mass_matrix;
 
-    rElement.CalculateRightHandSide(rhs, rProcessInfo);
-    rElement.CalculateDampingMatrix(damping_matrix, rProcessInfo);
-    rElement.CalculateMassMatrix(mass_matrix, rProcessInfo);
+    rClassTypeObject.CalculateRightHandSide(rhs, rProcessInfo);
+    rClassTypeObject.CalculateDampingMatrix(damping_matrix, rProcessInfo);
+    rClassTypeObject.CalculateMassMatrix(mass_matrix, rProcessInfo);
 
-    rElement.GetFirstDerivativesVector(nodal_scalar_values);
-    rElement.GetSecondDerivativesVector(current_nodal_scalar_rate_values);
-    rElement.GetSecondDerivativesVector(old_nodal_scalar_rate_values, 1);
-
-    noalias(current_nodal_scalar_rate_values) =
-        current_nodal_scalar_rate_values * (1 - bossak_alpha) +
-        old_nodal_scalar_rate_values * bossak_alpha;
-
-    if (residual.size() != rhs.size())
-        residual.resize(rhs.size());
-
-    noalias(residual) = rhs;
-    noalias(residual) -= prod(damping_matrix, nodal_scalar_values);
-    noalias(residual) -= prod(mass_matrix, current_nodal_scalar_rate_values);
-}
-
-void CalculateResidual(Vector& residual, Condition& rCondition, ProcessInfo& rProcessInfo)
-{
-    const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
-
-    Vector rhs, nodal_scalar_values, current_nodal_scalar_rate_values,
-        old_nodal_scalar_rate_values;
-    Matrix damping_matrix, mass_matrix;
-
-    rCondition.CalculateRightHandSide(rhs, rProcessInfo);
-    rCondition.CalculateDampingMatrix(damping_matrix, rProcessInfo);
-    rCondition.CalculateMassMatrix(mass_matrix, rProcessInfo);
-
-    rCondition.GetFirstDerivativesVector(nodal_scalar_values);
-    rCondition.GetSecondDerivativesVector(current_nodal_scalar_rate_values);
-    rCondition.GetSecondDerivativesVector(old_nodal_scalar_rate_values, 1);
+    rClassTypeObject.GetFirstDerivativesVector(nodal_scalar_values);
+    rClassTypeObject.GetSecondDerivativesVector(current_nodal_scalar_rate_values);
+    rClassTypeObject.GetSecondDerivativesVector(old_nodal_scalar_rate_values, 1);
 
     noalias(current_nodal_scalar_rate_values) =
         current_nodal_scalar_rate_values * (1 - bossak_alpha) +
         old_nodal_scalar_rate_values * bossak_alpha;
 
-    if (residual.size() != rhs.size())
-        residual.resize(rhs.size());
+    IndexType residual_equations_size =
+        std::max({rhs.size(), damping_matrix.size1(), mass_matrix.size1(),
+                  nodal_scalar_values.size(), current_nodal_scalar_rate_values.size(),
+                  old_nodal_scalar_rate_values.size()});
 
-    KRATOS_WATCH(rhs);
-    KRATOS_WATCH(damping_matrix);
-    KRATOS_WATCH(mass_matrix);
-    KRATOS_WATCH(nodal_scalar_values);
-    KRATOS_WATCH(current_nodal_scalar_rate_values);
-    KRATOS_WATCH(old_nodal_scalar_rate_values);
+    if (residual.size() != residual_equations_size)
+        residual.resize(residual_equations_size);
+    residual.clear();
 
-    noalias(residual) = rhs;
-    noalias(residual) -= prod(damping_matrix, nodal_scalar_values);
-    noalias(residual) -= prod(mass_matrix, current_nodal_scalar_rate_values);
-}
+    if (rhs.size() != 0)
+    {
+        KRATOS_ERROR_IF(rhs.size() != residual_equations_size)
+            << rClassTypeObject.Info() << "::CalculateRightHandSide RHS vector size doesn't match with max residual_equations_size "
+            << residual_equations_size << " [ RHS_size = " << rhs.size()
+            << " != " << residual_equations_size << " ].\n";
+        noalias(residual) += rhs;
+    }
 
-void GetElementData(Vector& rGaussWeights,
-                    Matrix& rShapeFunctions,
-                    ShapeFunctionDerivativesArrayType& rShapeFunctionDerivatives,
-                    const ElementType& rElement)
-{
-    RansCalculationUtilities().CalculateGeometryData(
-        rElement.GetGeometry(), rElement.GetIntegrationMethod(), rGaussWeights,
-        rShapeFunctions, rShapeFunctionDerivatives);
+    if (damping_matrix.size1() != 0 && nodal_scalar_values.size() != 0)
+    {
+        KRATOS_ERROR_IF(damping_matrix.size1() != residual_equations_size)
+            << rClassTypeObject.Info() << "::CalculateDampingMatrix damping matrix size1 doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ DampingMatrix_size1 = " << damping_matrix.size1()
+            << " != " << residual_equations_size << " ].\n";
+        KRATOS_ERROR_IF(damping_matrix.size1() != residual_equations_size)
+            << rClassTypeObject.Info() << "::CalculateDampingMatrix damping matrix size2 doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ DampingMatrix_size2 = " << damping_matrix.size1()
+            << " != " << residual_equations_size << " ].\n";
+        KRATOS_ERROR_IF(nodal_scalar_values.size() != residual_equations_size)
+            << rClassTypeObject.Info() << "::GetFirstDerivativesVector values vector size doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ Values_size = " << nodal_scalar_values.size()
+            << " != " << residual_equations_size << " ].\n";
+        noalias(residual) -= prod(damping_matrix, nodal_scalar_values);
+    }
+
+    if (mass_matrix.size1() != 0 && current_nodal_scalar_rate_values.size() != 0)
+    {
+        KRATOS_ERROR_IF(mass_matrix.size1() != residual_equations_size)
+            << rClassTypeObject.Info() << "::CalculateMassMatrix damping matrix size1 doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ MassMatrix_size1 = " << mass_matrix.size1()
+            << " != " << residual_equations_size << " ].\n";
+        KRATOS_ERROR_IF(mass_matrix.size1() != residual_equations_size)
+            << rClassTypeObject.Info() << "::CalculateMassMatrix damping matrix size2 doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ MassMatrix_size2 = " << mass_matrix.size1()
+            << " != " << residual_equations_size << " ].\n";
+        KRATOS_ERROR_IF(current_nodal_scalar_rate_values.size() != residual_equations_size)
+            << rClassTypeObject.Info() << "::GetSecondDerivativesVector values vector size doesn't match with max residual_equations_size "
+            << residual_equations_size
+            << " [ Values_size = " << current_nodal_scalar_rate_values.size()
+            << " != " << residual_equations_size << " ].\n";
+        noalias(residual) -= prod(mass_matrix, current_nodal_scalar_rate_values);
+    }
 }
 
 void InitializeVariableWithValues(ModelPart& rModelPart,
@@ -236,130 +244,6 @@ void InitializeVariableWithRandomValues(ModelPart& rModelPart,
             r_vector[1] = distribution(generator);
             r_vector[2] = distribution(generator);
         }
-    }
-}
-
-void RunGaussPointScalarSensitivityTest(
-    ModelPart& rModelPart,
-    Process& rYPlusProcess,
-    Process& rNutProcess,
-    std::function<void(std::vector<double>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculatePrimalQuantities,
-    std::function<void(std::vector<Vector>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculateSensitivities,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<double&(NodeType&)> PerturbVariable,
-    const double Delta,
-    const double Tolerance)
-{
-    const int number_of_elements = rModelPart.NumberOfElements();
-
-    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-
-    rYPlusProcess.Check();
-
-    RansCalculationUtilities rans_calculation_utilities;
-
-    for (int i = 0; i < number_of_elements; ++i)
-    {
-        ElementType& r_element = *(rModelPart.ElementsBegin() + i);
-        GeometryType& r_geometry = r_element.GetGeometry();
-        r_element.Check(r_process_info);
-
-        Vector gauss_weights;
-        Matrix shape_functions;
-        ShapeFunctionDerivativesArrayType shape_function_derivatives;
-        GetElementData(gauss_weights, shape_functions, shape_function_derivatives, r_element);
-
-        const int number_of_gauss_points = gauss_weights.size();
-        const int number_of_nodes = r_geometry.PointsNumber();
-
-        for (int g = 0; g < number_of_gauss_points; ++g)
-        {
-            rYPlusProcess.Execute();
-            UpdateVariablesInModelPart(rModelPart);
-
-            const Vector& gauss_shape_functions = row(shape_functions, g);
-            const Matrix& r_shape_function_derivatives = shape_function_derivatives[g];
-
-            std::vector<Vector> analytical_sensitivities;
-            CalculateSensitivities(analytical_sensitivities, r_element, gauss_shape_functions,
-                                   r_shape_function_derivatives, r_process_info);
-
-            std::vector<double> values_0;
-            CalculatePrimalQuantities(values_0, r_element, gauss_shape_functions,
-                                      r_shape_function_derivatives, r_process_info);
-
-            // calculating finite difference sensitivities
-            for (int i = 0; i < number_of_nodes; ++i)
-            {
-                NodeType& r_node = r_geometry[i];
-                PerturbVariable(r_node) += Delta;
-
-                rYPlusProcess.Execute();
-                UpdateVariablesInModelPart(rModelPart);
-
-                Vector current_gauss_weights;
-                Matrix current_shape_functions;
-                ShapeFunctionDerivativesArrayType current_shape_function_derivatives;
-                GetElementData(current_gauss_weights, current_shape_functions,
-                               current_shape_function_derivatives, r_element);
-
-                std::vector<double> values;
-                CalculatePrimalQuantities(
-                    values, r_element, row(current_shape_functions, g),
-                    current_shape_function_derivatives[g], r_process_info);
-
-                for (int j = 0; j < static_cast<int>(analytical_sensitivities.size()); ++j)
-                {
-                    if (analytical_sensitivities[j].size() > 0)
-                    {
-                        const double fd_sensitivity = ((values[j] - values_0[j]) / Delta);
-                        CheckNear(fd_sensitivity,
-                                  analytical_sensitivities[j][i], Tolerance, 1e-12);
-                    }
-                }
-
-                PerturbVariable(r_node) -= Delta;
-            }
-        }
-    }
-}
-
-void RunGaussPointVectorSensitivityTest(
-    ModelPart& rModelPart,
-    Process& rYPlusProcess,
-    Process& rNutProcess,
-    std::function<void(std::vector<double>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculatePrimalQuantities,
-    std::function<void(std::vector<Matrix>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculateSensitivities,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<double&(NodeType&, const int Dim)> PerturbVariable,
-    const double Delta,
-    const double Tolerance)
-{
-    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-    const int domain_size = r_process_info[DOMAIN_SIZE];
-
-    for (int i_dim = 0; i_dim < domain_size; ++i_dim)
-    {
-        auto calculate_sensitivities = [CalculateSensitivities, i_dim](
-                                           std::vector<Vector>& riDimSensitivities,
-                                           const ElementType& rElement,
-                                           const Vector& rGaussShapeFunctions,
-                                           const Matrix& rGaussShapeFunctionDerivatives,
-                                           const ProcessInfo& rCurrentProcessInfo) {
-            std::vector<Matrix> analytical_sensitivities;
-            CalculateSensitivities(analytical_sensitivities, rElement, rGaussShapeFunctions,
-                                   rGaussShapeFunctionDerivatives, rCurrentProcessInfo);
-            for (std::size_t i_var = 0; i_var < analytical_sensitivities.size(); ++i_var)
-                riDimSensitivities.push_back(column(analytical_sensitivities[i_var], i_dim));
-        };
-
-        auto perturb_variable = [PerturbVariable, i_dim](NodeType& rNode) -> double& {
-            return PerturbVariable(rNode, i_dim);
-        };
-
-        RunGaussPointScalarSensitivityTest(
-            rModelPart, rYPlusProcess, rNutProcess, CalculatePrimalQuantities, calculate_sensitivities,
-            UpdateVariablesInModelPart, perturb_variable, Delta, Tolerance);
     }
 }
 
@@ -630,15 +514,18 @@ void RunConditionResidualScalarSensitivityTest(
 
     for (std::size_t i_condition = 0; i_condition < number_of_conditions; ++i_condition)
     {
-        ConditionType& r_adjoint_condition = *(rAdjointModelPart.ConditionsBegin() + i_condition);
+        ConditionType& r_adjoint_condition =
+            *(rAdjointModelPart.ConditionsBegin() + i_condition);
         r_adjoint_condition.Check(r_adjoint_process_info);
 
         CalculateConditionResidualScalarSensitivity(
-            adjoint_total_condition_residual_sensitivity, r_adjoint_condition, r_adjoint_process_info);
+            adjoint_total_condition_residual_sensitivity, r_adjoint_condition,
+            r_adjoint_process_info);
 
         KRATOS_WATCH(adjoint_total_condition_residual_sensitivity);
 
-        ConditionType& r_primal_condition = *(rPrimalModelPart.ConditionsBegin() + i_condition);
+        ConditionType& r_primal_condition =
+            *(rPrimalModelPart.ConditionsBegin() + i_condition);
         GeometryType& r_primal_geometry = r_primal_condition.GetGeometry();
         r_primal_condition.Check(r_primal_process_info);
 
@@ -749,101 +636,9 @@ void RunConditionResidualVectorSensitivityTest(
     }
 }
 
-void RunNodalScalarSensitivityTest(
-    ModelPart& rModelPart,
-    Process& rYPlusProcess,
-    Process& rNutProcess,
-    std::function<void(std::vector<double>&, const NodeType&, const ProcessInfo&)> CalculatePrimalQuantities,
-    std::function<void(std::vector<Vector>&, const ElementType&, const ProcessInfo&)> CalculateSensitivities,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<double&(NodeType&)> PerturbVariable,
-    const double Delta,
-    const double Tolerance)
-{
-    const int number_of_elements = rModelPart.NumberOfElements();
+// method instantiation
+template void CalculateResidual(Vector&, ElementType&, ProcessInfo&);
+template void CalculateResidual(Vector&, ConditionType&, ProcessInfo&);
 
-    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-
-    rYPlusProcess.Check();
-
-    RansCalculationUtilities rans_calculation_utilities;
-
-    for (int i = 0; i < number_of_elements; ++i)
-    {
-        ElementType& r_element = *(rModelPart.ElementsBegin() + i);
-        GeometryType& r_geometry = r_element.GetGeometry();
-        r_element.Check(r_process_info);
-
-        const int number_of_nodes = r_geometry.PointsNumber();
-
-        rYPlusProcess.Execute();
-        UpdateVariablesInModelPart(rModelPart);
-
-        std::vector<Vector> analytical_sensitivities;
-        CalculateSensitivities(analytical_sensitivities, r_element, r_process_info);
-
-        // calculating finite difference sensitivities
-        for (int i = 0; i < number_of_nodes; ++i)
-        {
-            NodeType& r_node = r_geometry[i];
-
-            std::vector<double> values_0;
-            CalculatePrimalQuantities(values_0, r_node, r_process_info);
-
-            PerturbVariable(r_node) += Delta;
-
-            rYPlusProcess.Execute();
-            UpdateVariablesInModelPart(rModelPart);
-
-            std::vector<double> values;
-            CalculatePrimalQuantities(values, r_node, r_process_info);
-
-            for (int j = 0; j < static_cast<int>(analytical_sensitivities.size()); ++j)
-            {
-                const double fd_sensitivity = ((values[j] - values_0[j]) / Delta);
-                CheckNear(fd_sensitivity, analytical_sensitivities[j][i], Tolerance, 1e-12);
-            }
-
-            PerturbVariable(r_node) -= Delta;
-        }
-    }
-}
-
-void RunNodalVectorSensitivityTest(
-    ModelPart& rModelPart,
-    Process& rYPlusProcess,
-    Process& rNutProcess,
-    std::function<void(std::vector<double>&, const NodeType&, const ProcessInfo&)> CalculatePrimalQuantities,
-    std::function<void(std::vector<Matrix>&, const ElementType&, const ProcessInfo&)> CalculateSensitivities,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<double&(NodeType&, const int Dim)> PerturbVariable,
-    const double Delta,
-    const double Tolerance)
-{
-    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-    const int domain_size = r_process_info[DOMAIN_SIZE];
-
-    for (int i_dim = 0; i_dim < domain_size; ++i_dim)
-    {
-        auto calculate_sensitivities = [CalculateSensitivities, i_dim](
-                                           std::vector<Vector>& riDimSensitivities,
-                                           const ElementType& rElement,
-                                           const ProcessInfo& rCurrentProcessInfo) {
-            std::vector<Matrix> analytical_sensitivities;
-            CalculateSensitivities(analytical_sensitivities, rElement, rCurrentProcessInfo);
-            for (std::size_t i_var = 0; i_var < analytical_sensitivities.size(); ++i_var)
-                riDimSensitivities.push_back(column(analytical_sensitivities[i_var], i_dim));
-        };
-
-        auto perturb_variable = [PerturbVariable, i_dim](NodeType& rNode) -> double& {
-            return PerturbVariable(rNode, i_dim);
-        };
-
-        RunNodalScalarSensitivityTest(
-            rModelPart, rYPlusProcess, rNutProcess, CalculatePrimalQuantities,
-            calculate_sensitivities, UpdateVariablesInModelPart,
-            perturb_variable, Delta, Tolerance);
-    }
-}
 } // namespace RansModellingApplicationTestUtilities
 } // namespace Kratos

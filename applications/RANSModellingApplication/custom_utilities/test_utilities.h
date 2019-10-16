@@ -32,6 +32,7 @@ typedef ModelPart::ElementType ElementType;
 typedef ModelPart::ConditionType ConditionType;
 typedef Geometry<NodeType> GeometryType;
 typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+typedef std::size_t IndexType;
 
 bool IsNear(double ValueA, double ValueB, double RelTol = 1e-09, double AbsTol = 1e-12);
 
@@ -41,15 +42,8 @@ void CheckNear(const Matrix& rA, const Matrix& rB, double RelTol = 1e-09, double
 
 void CheckNear(const Vector& rA, const Vector& rB, double RelTol = 1e-09, double AbsTol = 1e-12);
 
-
-void CalculateResidual(Vector& residual, Element& rElement, ProcessInfo& rProcessInfo);
-
-void CalculateResidual(Vector& residual, Condition& rCondition, ProcessInfo& rProcessInfo);
-
-void GetElementData(Vector& rGaussWeights,
-                    Matrix& rShapeFunctions,
-                    ShapeFunctionDerivativesArrayType& rShapeFunctionDerivatives,
-                    const ElementType& rElement);
+template <class TClassType>
+void CalculateResidual(Vector& residual, TClassType& rClassTypeObject, ProcessInfo& rProcessInfo);
 
 void InitializeVariableWithValues(ModelPart& rModelPart,
                                   const Variable<double>& rVariable,
@@ -67,28 +61,6 @@ void InitializeVariableWithRandomValues(ModelPart& rModelPart,
                                         const double MinValue,
                                         const double MaxValue,
                                         const std::size_t TimeSteps);
-
-void RunGaussPointScalarSensitivityTest(
-    ModelPart& rModelPart,
-    Process& rYPlusProcess,
-    Process& rNutProcess,
-    std::function<void(std::vector<double>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculatePrimalQuantities,
-    std::function<void(std::vector<Vector>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculateSensitivities,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<double&(NodeType&)> PerturbVariable,
-    const double Delta,
-    const double Tolerance);
-
-void RunGaussPointVectorSensitivityTest(
-    ModelPart& rModelPart,
-    Process& rYPlusProcess,
-    Process& rNutProcess,
-    std::function<void(std::vector<double>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculatePrimalQuantities,
-    std::function<void(std::vector<Matrix>&, const ElementType&, const Vector&, const Matrix&, const ProcessInfo&)> CalculateSensitivities,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<double&(NodeType&, const int Dim)> PerturbVariable,
-    const double Delta,
-    const double Tolerance);
 
 void RunElementResidualScalarSensitivityTest(
     ModelPart& rPrimalModelPart,
@@ -158,25 +130,6 @@ void RunConditionResidualVectorSensitivityTest(
     const int DerivativesOffset = 0,
     const int EquationOffset = 0);
 
-void RunNodalScalarSensitivityTest(
-    ModelPart& rModelPart,
-    Process& rYPlusProcess,
-    std::function<void(std::vector<double>&, const NodeType&, const ProcessInfo&)> CalculatePrimalQuantities,
-    std::function<void(std::vector<Vector>&, const ElementType&, const ProcessInfo&)> CalculateSensitivities,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<double&(NodeType&)> PerturbVariable,
-    const double Delta,
-    const double Tolerance);
-
-void RunNodalVectorSensitivityTest(
-    ModelPart& rModelPart,
-    Process& rYPlusProcess,
-    std::function<void(std::vector<double>&, const NodeType&, const ProcessInfo&)> CalculatePrimalQuantities,
-    std::function<void(std::vector<Matrix>&, const ElementType&, const ProcessInfo&)> CalculateSensitivities,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<double&(NodeType&, const int Dim)> PerturbVariable,
-    const double Delta,
-    const double Tolerance);
 } // namespace RansModellingApplicationTestUtilities
 } // namespace Kratos
 
