@@ -1985,7 +1985,7 @@ public:
 
     /**
     * @brief Computes the distance between a given location and
-    *        the cloest point of this geometry.
+    *        the closest point of this geometry.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param Tolerance accepted orthogonal error.
