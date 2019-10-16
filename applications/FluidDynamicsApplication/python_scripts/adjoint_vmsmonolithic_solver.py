@@ -6,7 +6,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-from adjoint_fluid_solver import AdjointFluidSolver
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_solver import AdjointFluidSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return AdjointVMSMonolithicSolver(main_model_part, custom_settings)
@@ -31,6 +31,9 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
+            },
+            "material_import_settings": {
+                "materials_filename": ""
             },
             "linear_solver_settings" : {
                 "solver_type" : "amgcl"
@@ -59,6 +62,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             self.condition_name = "LineCondition"
         elif self.settings["domain_size"].GetInt() == 3:
             self.condition_name = "SurfaceCondition"
+        self.element_has_nodal_properties = True
 
         # construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
@@ -84,25 +88,11 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver variables added correctly.")
 
-    def PrepareModelPart(self):
-        self._set_physical_properties()
-        super(AdjointVMSMonolithicSolver, self).PrepareModelPart()
-
     def Initialize(self):
 
         self.computing_model_part = self.GetComputingModelPart()
 
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-
-        if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
-            if (domain_size == 2):
-                self.response_function = KratosCFD.DragResponseFunction2D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
-            elif (domain_size == 3):
-                self.response_function = KratosCFD.DragResponseFunction3D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
-            else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
-        else:
-            raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
+        self.response_function = self.GetResponseFunction()
 
         self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
 
@@ -149,3 +139,16 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+
+    def GetResponseFunction(self):
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
+            if (domain_size == 2):
+                return KratosCFD.DragResponseFunction2D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
+            elif (domain_size == 3):
+                return KratosCFD.DragResponseFunction3D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
+            else:
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
+        else:
+            raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())

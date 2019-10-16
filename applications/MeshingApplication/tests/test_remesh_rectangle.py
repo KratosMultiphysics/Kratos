@@ -9,6 +9,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os
 
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
+
 class TestRemeshMMG2D(KratosUnittest.TestCase):
 
     def test_remesh_rectangle_hessian(self):
@@ -153,7 +155,6 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         MetricParameters = KratosMultiphysics.Parameters("""
         {
             "hessian_strategy_parameters"              :{
-                "metric_variable"                  : ["DISTANCE"],
                 "estimate_interpolation_error"     : false,
                 "interpolation_error"              : 1.0e-6,
                 "mesh_dependent_constant"          : 0.28125
@@ -162,7 +163,6 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
             "maximal_size"                     : 0.5,
             "sizing_parameters":
             {
-                "reference_variable_name"              : "DISTANCE",
                 "boundary_layer_max_distance"          : 1.0,
                 "interpolation"                        : "constant"
             },
@@ -217,7 +217,6 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         #gid_output.ExecuteFinalize()
 
         # We check the solution
-        from compare_two_files_check_process import CompareTwoFilesCheckProcess
         check_parameters = KratosMultiphysics.Parameters("""
         {
             "reference_file_name"   : "mmg_lagrangian_test/remesh_rectangle_result.sol",

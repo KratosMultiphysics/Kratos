@@ -75,7 +75,7 @@ class ApplyEmbeddedSkinVisualizationProcess(KratosMultiphysics.Process):
 
         # Set the output variables and build the GiD output process
         if (settings["parallel_type"].GetString() == "OpenMP"):
-            from gid_output_process import GiDOutputProcess
+            from KratosMultiphysics.gid_output_process import GiDOutputProcess
             self.gid_output = GiDOutputProcess(self.visualization_model_part, settings["visualization_model_part_name"].GetString(), settings["output_configuration"])
         elif (settings["parallel_type"].GetString() == "MPI"):
             from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess

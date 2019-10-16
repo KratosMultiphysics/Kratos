@@ -10,13 +10,13 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import serial two fluid solver
-import navier_stokes_two_fluids_solver
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver import NavierStokesTwoFluidsSolver
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(model, custom_settings):
     return NavierStokesMPITwoFluidsSolver(model, custom_settings)
 
-class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver):
+class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
 
     @classmethod
     def GetDefaultSettings(cls):
@@ -29,6 +29,9 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
                 "reorder": false
+            },
+            "material_import_settings": {
+                "materials_filename": ""
             },
             "distance_reading_settings"    : {
                 "import_mode"         : "from_mdpa",
@@ -74,10 +77,11 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
     def __init__(self, model, custom_settings):
         self._validate_settings_in_baseclass=True # To be removed eventually
         # the constructor of the "grand-parent" (jumping constructor of parent) is called to avoid conflicts in attribute settings
-        super(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver, self).__init__(model,custom_settings)
+        super(NavierStokesTwoFluidsSolver, self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
+        self.element_has_nodal_properties = True
         self.min_buffer_size = 3
 
         if (self.settings["solver_type"].GetString() == "TwoFluids"):
@@ -135,6 +139,13 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
+        # Set the time discretization utility to compute the BDF coefficients
+        time_order = self.settings["time_order"].GetInt()
+        if time_order == 2:
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        else:
+            raise Exception("Only \"time_order\" equal to 2 is supported. Provided \"time_order\": " + str(time_order))
+
         ## Creating the Trilinos convergence criteria
         self.conv_criteria = KratosTrilinos.TrilinosUPCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
                                                                self.settings["absolute_velocity_tolerance"].GetDouble(),
@@ -142,9 +153,6 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
                                                                self.settings["absolute_pressure_tolerance"].GetDouble())
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        ## Constructing the BDF process (time coefficients update)
-        self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,self.settings["time_order"].GetInt())
 
         #### ADDING NEW PROCESSES : level-set-convection and variational-distance-process
         self.level_set_convection_process = self._set_level_set_convection_process()

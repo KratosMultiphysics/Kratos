@@ -419,9 +419,9 @@ bool VariableUtils::CheckDofs(ModelPart& rModelPart)
     KRATOS_TRY
 
     for(auto& node : rModelPart.Nodes()) {
-        for (auto& dof : node.GetDofs()) {
+        for (Kratos::unique_ptr<Dof<double>>& p_dof : node.GetDofs()) {
 //                 KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(dof.GetVariable())) << "Node : " << node << " does not have allocated space for the variable " << dof << std::endl;
-            KRATOS_CHECK_VARIABLE_KEY(dof.GetVariable());
+            KRATOS_CHECK_VARIABLE_KEY(p_dof->GetVariable());
 
         }
     }
@@ -437,12 +437,12 @@ bool VariableUtils::CheckDofs(ModelPart& rModelPart)
 void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    const int num_nodes = rNodes.size();
-    const auto nodes_begin = rNodes.begin();
+    const int num_nodes = static_cast<int>(rNodes.size());
+    const auto it_node_begin = rNodes.begin();
 
     #pragma omp parallel for
     for (int i=0; i<num_nodes; i++) {
-        const auto it_node  = nodes_begin + i;
+        const auto it_node  = it_node_begin + i;
         noalias(it_node->Coordinates()) = it_node->GetInitialPosition();
     }
 
@@ -455,31 +455,36 @@ void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesCo
 void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    const int num_nodes = rNodes.size();
-    const auto nodes_begin = rNodes.begin();
+    const int num_nodes = static_cast<int>(rNodes.size());
+    const auto it_node_begin = rNodes.begin();
 
     #pragma omp parallel for
     for (int i=0; i<num_nodes; i++) {
-        const auto it_node  = nodes_begin + i;
+        const auto it_node  = it_node_begin + i;
         noalias(it_node->GetInitialPosition().Coordinates()) = it_node->Coordinates();
     }
 
     KRATOS_CATCH("");
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void VariableUtils::UpdateCurrentPosition(
     const ModelPart::NodesContainerType &rNodes,
-    const ArrayVarType &rUpdateVariable)
+    const ArrayVarType &rUpdateVariable,
+    const IndexType BufferPosition
+    )
 {
     KRATOS_TRY;
 
-    const int num_nodes = rNodes.size();
-    const auto nodes_begin = rNodes.begin();
+    const int num_nodes = static_cast<int>(rNodes.size());
+    const auto it_node_begin = rNodes.begin();
 
-    #pragma omp parallel for firstprivate(nodes_begin)
+    #pragma omp parallel for
     for (int i_node = 0; i_node < num_nodes; ++i_node) {
-        const auto it_node  = nodes_begin + i_node;
-        const auto &r_update_coords = it_node->FastGetSolutionStepValue(rUpdateVariable);
+        const auto it_node  = it_node_begin + i_node;
+        const auto& r_update_coords = it_node->FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
         noalias(it_node->Coordinates()) = (it_node->GetInitialPosition()).Coordinates() + r_update_coords;
     }
 

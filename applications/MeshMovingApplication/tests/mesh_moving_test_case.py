@@ -82,8 +82,8 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
                                           "MESH_VELOCITY_X",
                                           "MESH_VELOCITY_Y",
                                           "MESH_VELOCITY_Z"],
-                    "output_file_name" : \""""+result_file_name+"""\",
-                    "model_part_name"  : "Probe_1",
+                    "output_file_name" : \""""+result_file_name.replace("\\", "\\\\")+"""\",
+                    "model_part_name"  : "MainModelPart.Probe_1",
                     "time_frequency"   : 0.1,
                     "use_node_coordinates" : true
                 }
@@ -100,8 +100,8 @@ class MeshMovingTestCase(KratosUnittest.TestCase):
                                          "MESH_VELOCITY_X",
                                          "MESH_VELOCITY_Y",
                                          "MESH_VELOCITY_Z"],
-                    "input_file_name"  : \""""+result_file_name+"""\",
-                    "model_part_name"  : "Probe_1",
+                    "input_file_name"  : \""""+result_file_name.replace("\\", "\\\\")+"""\",
+                    "model_part_name"  : "MainModelPart.Probe_1",
                     "time_frequency"   : 0.1,
                     "use_node_coordinates" : true
                 }
