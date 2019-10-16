@@ -28,8 +28,13 @@ class convergence_criterion:
             if(convergence_criterion_parameters["rotation_dofs"].GetBool()):
                 rotation_dofs = True
 
+        strain_dofs = False
+        if convergence_criterion_parameters.Has("strain_dofs"):
+            if convergence_criterion_parameters["strain_dofs"].GetBool():
+                strain_dofs = True
+
         # Convergence criteria if there are rotation DOFs in the problem
-        if(rotation_dofs is True):
+        if(rotation_dofs or strain_dofs):
             if(convergence_crit == "displacement_criterion"):
                 self.mechanical_convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(D_RT, D_AT)
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
