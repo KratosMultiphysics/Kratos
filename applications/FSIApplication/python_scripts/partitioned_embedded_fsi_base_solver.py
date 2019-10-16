@@ -163,13 +163,13 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.__UpdateLevelSet()
 
         # Correct the updated level set
-        self.fluid_solver.__GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+        self.fluid_solver._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
         # Fluid solver prediction
         self.fluid_solver.Predict()
 
         # Restore the fluid node fixity to its original status
-        self.fluid_solver.__GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        self.fluid_solver._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'

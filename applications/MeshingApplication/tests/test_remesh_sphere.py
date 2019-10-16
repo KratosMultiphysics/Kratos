@@ -9,6 +9,11 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os
 
+# Import stuff
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
+from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
+
 class TestRemeshMMG3D(KratosUnittest.TestCase):
 
     def test_remesh_sphere(self):
@@ -81,7 +86,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         mmg_process.Execute()
 
         # Finally we export to GiD
-        from gid_output_process import GiDOutputProcess
         gid_output = GiDOutputProcess(main_model_part,
                                     "gid_output",
                                     KratosMultiphysics.Parameters("""
@@ -106,7 +110,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         #gid_output.ExecuteFinalizeSolutionStep()
         #gid_output.ExecuteFinalize()
 
-        from compare_two_files_check_process import CompareTwoFilesCheckProcess
         check_parameters = KratosMultiphysics.Parameters("""
                             {
                                 "reference_file_name"   : "mmg_eulerian_test/coarse_sphere_test_result.sol",
@@ -125,8 +128,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         check_files.ExecuteFinalizeSolutionStep()
         check_files.ExecuteFinalize()
 
-        import from_json_check_result_process
-
         check_parameters = KratosMultiphysics.Parameters("""
         {
             "check_variables"      : ["DISTANCE"],
@@ -137,7 +138,7 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         """)
 
         check_parameters["input_file_name"].SetString(file_path + "/" + check_parameters["input_file_name"].GetString())
-        check = from_json_check_result_process.FromJsonCheckResultProcess(current_model, check_parameters)
+        check = FromJsonCheckResultProcess(current_model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
@@ -213,7 +214,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         mmg_process.Execute()
 
         # Finally we export to GiD
-        from gid_output_process import GiDOutputProcess
         gid_output = GiDOutputProcess(main_model_part,
                                     "gid_output",
                                     KratosMultiphysics.Parameters("""
@@ -238,7 +238,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         #gid_output.ExecuteFinalizeSolutionStep()
         #gid_output.ExecuteFinalize()
 
-        from compare_two_files_check_process import CompareTwoFilesCheckProcess
         check_parameters = KratosMultiphysics.Parameters("""
                             {
                                 "reference_file_name"   : "mmg_eulerian_test/coarse_sphere_skin_test_result.sol",
@@ -257,8 +256,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         check_files.ExecuteFinalizeSolutionStep()
         check_files.ExecuteFinalize()
 
-        import from_json_check_result_process
-
         check_parameters = KratosMultiphysics.Parameters("""
         {
             "check_variables"      : ["DISTANCE"],
@@ -269,7 +266,7 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         """)
 
         check_parameters["input_file_name"].SetString(os.path.join(file_path, check_parameters["input_file_name"].GetString()))
-        check = from_json_check_result_process.FromJsonCheckResultProcess(current_model, check_parameters)
+        check = FromJsonCheckResultProcess(current_model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
@@ -371,7 +368,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         #gid_output.ExecuteFinalizeSolutionStep()
         #gid_output.ExecuteFinalize()
 
-        from compare_two_files_check_process import CompareTwoFilesCheckProcess
         check_parameters = KratosMultiphysics.Parameters("""
                             {
                                 "reference_file_name"   : "mmg_eulerian_test/coarse_sphere_skin_prisms_test_result.sol",
@@ -438,7 +434,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         mmg_process.Execute()
 
         # Finally we export to GiD
-        from gid_output_process import GiDOutputProcess
         gid_output = GiDOutputProcess(main_model_part,
                                     "gid_output",
                                     KratosMultiphysics.Parameters("""
@@ -463,7 +458,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         #gid_output.ExecuteFinalizeSolutionStep()
         #gid_output.ExecuteFinalize()
 
-        from compare_two_files_check_process import CompareTwoFilesCheckProcess
         check_parameters = KratosMultiphysics.Parameters("""
                             {
                                 "reference_file_name"   : "mmg_eulerian_test/test_sphere_isosurface_result.sol",

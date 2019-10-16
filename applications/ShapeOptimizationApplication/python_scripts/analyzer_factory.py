@@ -59,9 +59,9 @@ def _IdentifyInternalResponsesRecursively(responses):
             if response_i["is_combined"].GetBool():
                 internal_responses += _IdentifyInternalResponsesRecursively(response_i["combined_responses"])
 
-        if response_i["use_kratos"].GetBool():
+        if response_i["analyzer"].GetString() == "kratos":
             identifier = response_i["identifier"].GetString()
-            kratos_settings = response_i["kratos_response_settings"]
+            kratos_settings = response_i["response_settings"]
             internal_responses.append([identifier, kratos_settings])
 
     return internal_responses

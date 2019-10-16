@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "custom_utilities/element_framework.h"
 
 namespace Kratos
 {
@@ -39,8 +40,6 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
-enum ElementFramework {Eulerian = 0, PFEM2 = 1};
 
 ///@}
 ///@name  Functions

@@ -520,7 +520,17 @@ public:
         return *mpVariablesList;
     }
 
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    {
+        return mpVariablesList;
+    }
+
     void SetNodalSolutionStepVariablesList();
+
+    void SetNodalSolutionStepVariablesList(VariablesList::Pointer pNewVariablesList)
+    {
+        mpVariablesList = pNewVariablesList;
+    }
 
     SizeType GetNodalSolutionStepDataSize()
     {
