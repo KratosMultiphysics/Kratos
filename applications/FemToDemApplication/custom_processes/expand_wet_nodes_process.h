@@ -85,6 +85,7 @@ public:
 protected:
     // Member Variables
     ModelPart& mrModelPart;
+    std::string mPressureName;
 };
 }
 #endif /* KRATOS_EXPAND_WET_NODES_PROCESS defined */
