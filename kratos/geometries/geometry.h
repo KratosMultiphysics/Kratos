@@ -1395,7 +1395,10 @@ public:
             rResult,
             rPointGlobalCoordinates);
 
-        return IsInsideLocalSpace(rResult, Tolerance);
+        if (IsInsideLocalSpace(rResult, Tolerance) == 0) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -1405,9 +1408,11 @@ public:
     *        which shall be checked if it lays within
     *        the boundaries.
     * @param Tolerance the tolerance to the boundary.
-    * @return true if the point is inside, false otherwise
+    * @return 0 -> outside
+    *         1 -> inside
+    *         2 -> on the boundary
     */
-    virtual bool IsInsideLocalSpace(
+    virtual int IsInsideLocalSpace(
         const CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
