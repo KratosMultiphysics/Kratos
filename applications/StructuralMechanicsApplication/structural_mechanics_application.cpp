@@ -291,6 +291,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( PRESTRESS_AXIS_2 )
     KRATOS_REGISTER_VARIABLE( PROJECTION_TYPE_COMBO )
 
+    // Mixed formulations generalized variables
+    KRATOS_REGISTER_VARIABLE( REACTION_STRAIN )
+
     // Formfinding
     KRATOS_REGISTER_VARIABLE(LAMBDA_MAX)
     KRATOS_REGISTER_VARIABLE(IS_FORMFINDING)
