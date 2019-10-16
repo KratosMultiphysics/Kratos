@@ -1420,7 +1420,7 @@ public:
         KRATOS_ERROR << "Calling IsInsideLocalSpace from base class."
             << " Please check the definition of derived class. "
             << *this << std::endl;
-        return false;
+        return 0;
     }
 
     ///@}
