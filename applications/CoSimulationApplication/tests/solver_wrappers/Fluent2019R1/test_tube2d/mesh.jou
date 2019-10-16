@@ -1,10 +1,11 @@
+/TUBE 2D
     /PARAMETERS
 $length = 0.050
 $radius = 0.005
 $boxtopintervals = 100
 $boxrightintervals = 10
     /CODE
-save name "mesh.dbs"
+save name "mesh_tube2d.dbs"
 solver select "FLUENT 5/6"
 vertex create "BoxLeftTop" coordinates (-$length/2) $radius 0
 vertex create "BoxLeftBottom" coordinates (-$length/2) 0 0
@@ -25,6 +26,6 @@ physics create "Out" btype "PRESSURE_OUTLET" edge "BoxRight"
 physics create "Box" btype "AXIS" edge "BoxBottom"
 physics create "BeamOutside" btype "WALL" edge "BoxTop"
 physics create "Fluid" ctype "FLUID" face "FluidInternal"
-export fluent5 "mesh.msh" nozval
+export fluent5 "mesh_tube2d.msh" nozval
 save
 end

@@ -1,8 +1,8 @@
 file set-batch-options n y n
 (enable-dynamic-mesh-node-ids #t)
 file startt "transcript_setup.txt"
-file read-case mesh_tube2d.msh
-define models axisymmetric y
+file read-case mesh_tube3d.msh
+
 grid check
 grid modify-zones zone-name default-interior fluid-interior
 
@@ -14,9 +14,9 @@ define materials change-create air fluid y constant 1000.0 n n y constant 0.003 
 define models unsteady-1st-order y
 define models viscous laminar y
 define models solver pressure-based y
-define boundary-conditions pressure-outlet in y y y "udf" "pressure_inlet::udf_inlet" n y y n n
-define boundary-conditions pressure-outlet out y n 0 n y y n n
-define boundary-conditions wall beamoutside y motion-bc-stationary y shear-bc-noslip
+define boundary-conditions pressure-outlet in y y y "udf" "pressure_inlet::udf_inlet" n y y n n n
+define boundary-conditions pressure-outlet out y n 0 n y y n n n
+define boundary-conditions wall wall y motion-bc-stationary y shear-bc-noslip
 define operating-conditions operating-pressure 0
 define operating-conditions gravity n
 
@@ -33,8 +33,11 @@ define dynamic-mesh controls smoothing-parameters spring-on-all-elements y
 define dynamic-mesh controls layering n
 define dynamic-mesh controls remeshing n
 
-solve monitors residual check-convergence y y y
-solve monitors residual convergence-criteria 1.0E-12 1.0E-12 1.0E-12
+define dynamic-mesh zones create in deforming faceted n y n n 0 0 1 n
+define dynamic-mesh zones create out deforming faceted n y n n 0 0 1 n
+
+solve monitors residual check-convergence y y y y
+solve monitors residual convergence-criteria 1.0E-12 1.0E-12 1.0E-12 1.0E-12
 solve monitors force monitor-unsteady-iters y
 solve set time-step 0.0001
 
@@ -49,6 +52,7 @@ solve set flow-warnings n
 solve initialize set-defaults pressure 0
 solve initialize set-defaults x-velocity 0
 solve initialize set-defaults y-velocity 0
+solve initialize set-defaults z-velocity 0
 
-file write-case case_tube2d.cas
+file write-case case_tube3d.cas
 exit

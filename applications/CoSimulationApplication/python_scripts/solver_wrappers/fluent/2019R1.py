@@ -87,11 +87,15 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
         # start Fluent with journal
         log = join(self.dir_cfd, 'fluent.log')
+        cmd1 = f'fluent {self.dimensions}ddp '
+        cmd2 = f'-t{self.cores} -i {journal}'
+
         if self.settings['fluent_gui'].GetBool():
-            cmd = f'fluent 2ddp -t{self.cores} -i {journal}'
+            cmd = cmd1 + cmd2
         else:
-            cmd = f'fluent 2ddp -gu -t{self.cores} -i {journal} >> {log} 2>&1'
-            # cmd = f'fluent 2ddp -gu -t{self.cores} -i {journal} 2> >(tee -a {log}) 1>> {log}'
+            cmd = cmd1 + '-gu ' + cmd2 + f' >> {log} 2>&1'
+            # cmd = cmd1 + '-gu ' + cmd2 + f' 2> >(tee -a {log}) 1>> {log}'
+        print(cmd)
         self.fluent_process = subprocess.Popen(cmd, executable='/bin/bash',
                                                shell=True, cwd=self.dir_cfd)
 

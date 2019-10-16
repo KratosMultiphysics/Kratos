@@ -11,6 +11,7 @@ from predictors.test_linear import TestPredictorLinear
 from solver_wrappers.pipe.test_flow_solver import TestSolverWrapperPipeFlowSolver
 from solver_wrappers.pipe.test_structure_solver import TestSolverWrapperPipeStructureSolver
 from solver_wrappers.Fluent2019R1.test_tube2d.test_solver_wrapper import TestSolverWrapperFluent2019R1Tube2D
+from solver_wrappers.Fluent2019R1.test_tube3d.test_solver_wrapper import TestSolverWrapperFluent2019R1Tube3D
 from pykratos.test_parameters_class import TestPyKratosParameters
 from pykratos.test_variables import TestPyKratosVariables
 from pykratos.test_cosimulation_interface import TestCoSimulationInterface
@@ -45,8 +46,9 @@ def AssembleTestSuites():
     smallSuite.addTest(TestPyKratosVariables("test_pykratos_variables"))
     smallSuite.addTest(TestCoSimulationInterface("test_cosimulation_interface"))
 
-    # ANSYS Fluent 2019R1 must be available for this test (duration ~200s)
-    smallSuite.addTest(TestSolverWrapperFluent2019R1Tube2D("test_solver_wrapper"))
+    # ANSYS Fluent 2019R1 must be available for these test
+    smallSuite.addTest(TestSolverWrapperFluent2019R1Tube2D("test_solver_wrapper"))  # duration ~200s
+    smallSuite.addTest(TestSolverWrapperFluent2019R1Tube3D("test_solver_wrapper"))  # duration ~250s
 
     nightlySuite = suites['nightly']  # These tests are executed in the nightly build
     nightlySuite.addTests(smallSuite)
