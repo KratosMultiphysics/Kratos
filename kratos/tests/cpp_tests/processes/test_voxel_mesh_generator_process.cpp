@@ -72,6 +72,87 @@ namespace Kratos {
 		KRATOS_CHECK_EQUAL(ray_2.GetIntersections()[0].first, .4);
 	}
 
+	KRATOS_TEST_CASE_IN_SUITE(CartesianMeshColorsSetCoordinates, KratosCoreFastSuite)
+	{
+		Kratos::Internals::CartesianMeshColors mesh_colors;
+		
+		array_1d<std::vector<double>, 3> coordinates;
+		for(std::size_t i = 0 ; i < 3 ; i++){
+			coordinates[i].resize(6);
+		}
+
+		Point min_point(1.00, 2.00, 3.00);
+		for(std::size_t i = 0 ; i < coordinates.size() ; i++){
+			const double min_coordinate_i = min_point[i];
+			for(std::size_t j = 0 ; j < coordinates[i].size() ; j++)
+				coordinates[i][j] = j * 2.0 + min_coordinate_i;
+		}
+		
+		mesh_colors.SetCoordinates(coordinates);
+
+		for (std::size_t k = 0; k <= 5; k++) {
+			for (std::size_t j = 0; j <= 5; j++) {
+				for (std::size_t i = 0; i <= 5; i++) {
+					double x = 2.00*i + 1.00;
+					double y = 2.00*j + 2.00;
+					double z = 2.00*k + 3.00;
+					Point point = mesh_colors.GetPoint(i,j,k);
+                	KRATOS_CHECK_NEAR(point.X(), x, 1e-6);
+                	KRATOS_CHECK_NEAR(point.Y(), y, 1e-6);
+                	KRATOS_CHECK_NEAR(point.Z(), z, 1e-6);
+				}
+            }
+		}
+	}
+
+	KRATOS_TEST_CASE_IN_SUITE(CartesianMeshColorsInitialRays, KratosCoreFastSuite)
+	{
+		std::size_t size = 4;
+		Kratos::Internals::CartesianMeshColors mesh_colors;
+		
+		array_1d<std::vector<double>, 3> coordinates;
+		for(std::size_t i = 0 ; i < 3 ; i++){
+			coordinates[i].resize(size);
+		}
+
+		Point min_point(1.00, 2.00, 3.00);
+		for(std::size_t i = 0 ; i <  3 ; i++){
+			const double min_coordinate_i = min_point[i];
+			for(std::size_t j = 0 ; j < size ; j++)
+				coordinates[i][j] = j * 2.0 + min_coordinate_i;
+		}
+		
+		mesh_colors.SetCoordinates(coordinates);
+
+		array_1d<std::size_t, 3> min_position;
+		array_1d<std::size_t, 3> max_position;
+
+		for(std::size_t i = 0 ; i < 3 ; i++){
+			min_position[i] = 0;
+			max_position[i] = size;
+		}
+
+		mesh_colors.InitializeRays(min_position, max_position);
+
+		for (std::size_t i = 0; i < size; i++) {
+			for (std::size_t j = 0; j < size; j++) {
+				double x = 2.00*i + 1.00;
+				double y = 2.00*j + 2.00;
+				double z = 2.00*(size - 1.00) + 3.00;
+				auto& ray = mesh_colors.GetXYRay(i,j);
+				Point& point = ray.GetPoint1();
+				KRATOS_CHECK_NEAR(point.X(), x, 1e-6);
+				KRATOS_CHECK_NEAR(point.Y(), y, 1e-6);
+				KRATOS_CHECK_NEAR(point.Z(), min_point.Z(), 1e-6);
+ 				
+				point = ray.GetPoint2();
+				KRATOS_CHECK_NEAR(point.X(), x, 1e-6);
+				KRATOS_CHECK_NEAR(point.Y(), y, 1e-6);
+				KRATOS_CHECK_NEAR(point.Z(), z, 1e-6);
+           }
+		}
+	}
+
 	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessNodesPositions, KratosCoreFastSuite)
 	{
 		Parameters mesher_parameters(R"(
@@ -146,7 +227,7 @@ namespace Kratos {
 	{
 		Parameters mesher_parameters(R"(
 		{
-			"number_of_divisions":   [10,10,10],
+			"number_of_divisions":   [3,3,3],
 			"element_name":     "Element3D4N",
 			"coloring_settings_list": [
 				{
