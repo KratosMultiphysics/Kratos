@@ -72,7 +72,7 @@ namespace Kratos
  * $k$ is the turbulent kinetic energy, $\epsilon$ is the turbulent energy dissipation rate
  * $u_x$, $u_y$, $u_z$, $P$ are velocity componenets and pressure.
  *
- * RANS_NUT_PARTIAL_DERIVATIVES vector variable is filled with partial derivatives of each node in following order
+ * RANS_NUT_SCALAR_PARTIAL_DERIVATIVES vector variable is filled with partial derivatives of each node in following order
  *      Index 0: partial derivative of \nu_t w.r.t. $k$
  *      Index 1: partial derivative of \nu_t w.r.t. $\epsilon$
  *
@@ -184,7 +184,7 @@ public:
             nut_partial_derivatives[0] = 2.0 * mCmu * tke / epsilon;
             nut_partial_derivatives[1] = -1.0 * mCmu * std::pow(tke / epsilon, 2);
 
-            r_node.SetValue(RANS_NUT_PARTIAL_DERIVATIVES, nut_partial_derivatives);
+            r_node.SetValue(RANS_NUT_SCALAR_PARTIAL_DERIVATIVES, nut_partial_derivatives);
         }
 
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)

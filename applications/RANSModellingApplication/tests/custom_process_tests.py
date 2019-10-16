@@ -487,7 +487,7 @@ class CustomProcessTest(UnitTest.TestCase):
             KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE
         ]
         check_variable = Kratos.TURBULENT_VISCOSITY
-        sensitivity_variable = KratosRANS.RANS_NUT_PARTIAL_DERIVATIVES
+        sensitivity_variable = KratosRANS.RANS_NUT_SCALAR_PARTIAL_DERIVATIVES
 
         for node in self.model_part.Nodes:
             for (variable, index) in zip(variable_list,

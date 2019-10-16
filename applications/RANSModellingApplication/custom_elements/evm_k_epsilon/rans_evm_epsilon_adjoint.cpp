@@ -379,7 +379,7 @@ void RansEvmEpsilonAdjoint<TDim, TNumNodes>::CalculateElementData(
     {
         const NodeType& r_node = this->GetGeometry()[i_node];
         const Vector& turbulent_kinematic_viscosity_sensitivities =
-            r_node.GetValue(RANS_NUT_PARTIAL_DERIVATIVES);
+            r_node.GetValue(RANS_NUT_SCALAR_PARTIAL_DERIVATIVES);
         rData.TurbulentKinematicViscositySensitivitiesK[i_node] =
             turbulent_kinematic_viscosity_sensitivities[0];
         rData.TurbulentKinematicViscositySensitivitiesEpsilon[i_node] =
