@@ -46,6 +46,17 @@ namespace Kratos
 
       CartesianRay(int Direction, Point const& Point1, Point const& Point2): mDirection(Direction), mPoint1(Point1), mPoint2(Point2) {}
 
+      CartesianRay(CartesianRay const& Other): mDirection(Other.mDirection), mPoint1(Other.mPoint1), mPoint2(Other.mPoint2), mIntersections(Other.mIntersections) {}
+
+      CartesianRay& operator=(CartesianRay const& Other){
+          mDirection=Other.mDirection;
+          mPoint1 = Other.mPoint1;
+          mPoint2 = Other.mPoint2;
+          mIntersections = Other.mIntersections;
+
+          return *this;
+      }
+
       void AddIntersection(TGeometryType const& rGeometry, double Tolerance){
         // Call the line - triangle intersection util
         array_1d<double,3> intersection_point = ZeroVector(3);
@@ -101,7 +112,7 @@ namespace Kratos
         mIntersections.resize(new_size);
       }
 
-      void CalculateColor(DenseVector<double> const& Coordinates, int InsideColor, int OutsideColor, DenseVector<double> ResultingColors){
+      void CalculateColor(std::vector<double> const& Coordinates, int InsideColor, int OutsideColor, std::vector<double>& ResultingColors){
         bool is_inside=false;
 
         if(ResultingColors.size() != Coordinates.size())
@@ -129,6 +140,10 @@ namespace Kratos
       }
 
       std::vector<std::pair<double, const TGeometryType*>> const& GetIntersections() const {return mIntersections;}
+
+      Point& GetPoint1(){return mPoint1;}
+
+      Point& GetPoint2(){return mPoint2;}
 
     private:
 
@@ -173,15 +188,17 @@ namespace Kratos
 
     class CartesianMeshColors{
       double mTolerance;
-      array_1d<DenseVector<double>, 3> mCoordinates;
-      DenseVector<array_1d<double,3>> mColors;
+      array_1d<std::vector<double>, 3> mCoordinates;
+      std::vector<array_1d<double,3>> mColors;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mXYRays;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mXZRays;
       DenseMatrix<Internals::CartesianRay<Element::GeometryType>> mYZRays;
      public:
       CartesianMeshColors(): mTolerance(1e-6){}
-      DenseVector<double> const& GetCoordinates(int Index) const {return mCoordinates[Index];}
-      void SetCoordinates(array_1d<DenseVector<double>, 3>& TheCoordinates){
+
+      std::vector<double> const& GetCoordinates(int Index) const {return mCoordinates[Index];}
+
+      void SetCoordinates(array_1d<std::vector<double>, 3>& TheCoordinates){
         mCoordinates = TheCoordinates;
 
         mXYRays.resize(mCoordinates[0].size(),mCoordinates[1].size(),false);
@@ -189,6 +206,10 @@ namespace Kratos
         mYZRays.resize(mCoordinates[1].size(),mCoordinates[2].size(),false); 
 
         mColors.resize(mCoordinates[0].size()*mCoordinates[1].size()*mCoordinates[2].size());
+
+        for(auto& i_color : mColors){
+            i_color = ScalarVector(3,0.00);
+        }
       }
 
       array_1d<double, 3>& GetColor(std::size_t I, std::size_t J, std::size_t K){
@@ -199,6 +220,10 @@ namespace Kratos
       Point GetPoint(std::size_t I, std::size_t J, std::size_t K){
         return Point(mCoordinates[0][I], mCoordinates[1][J], mCoordinates[2][K]);
       }
+      
+      CartesianRay<Element::GeometryType>& GetXYRay(std::size_t I, std::size_t J){
+          return mXYRays(I,J);
+      }
 
         void InitializeRays(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition){
 
@@ -207,17 +232,17 @@ namespace Kratos
 
         for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
             for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
-            mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, GetPoint(i,j,MinRayPosition[2]), GetPoint(i,j,MaxRayPosition[2]));
+            mXYRays(i,j) = Internals::CartesianRay<Element::GeometryType>(2, GetPoint(i,j,MinRayPosition[2]), GetPoint(i,j,MaxRayPosition[2] - 1));
             }
         }
         for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
             for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
-            mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1, GetPoint(i,MinRayPosition[1], k), GetPoint(i,MaxRayPosition[1],k));
+            mXZRays(i,k) = Internals::CartesianRay<Element::GeometryType>(1, GetPoint(i,MinRayPosition[1], k), GetPoint(i,MaxRayPosition[1] - 1,k));
             }
         }
         for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
             for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
-            mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0, GetPoint(MinRayPosition[0],j,k), GetPoint(MaxRayPosition[0],j,k));
+            mYZRays(j,k) = Internals::CartesianRay<Element::GeometryType>(0, GetPoint(MinRayPosition[0],j,k), GetPoint(MaxRayPosition[0] - 1,j,k));
             }
         }
         }
@@ -245,21 +270,41 @@ namespace Kratos
         }
 
         void CalculateColors(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, int InsideColor, int OutsideColor){
-            DenseVector<double> colors;
+            std::vector<double> colors;
             for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     mXYRays(i,j).CollapseIntersectionPoints(mTolerance);
                     mXYRays(i,j).CalculateColor(mCoordinates[2], InsideColor, OutsideColor, colors);
+                    for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
+                        if(colors[k] == InsideColor){
+                            auto& color=GetColor(i,j,k)[0];
+                            GetColor(i,j,k)[0] = colors[k];
+                            KRATOS_WATCH(color);
+                        }
+                    }
                 }
             }
             for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     mXZRays(i,k).CollapseIntersectionPoints(mTolerance);
+                    mXZRays(i,k).CalculateColor(mCoordinates[1], InsideColor, OutsideColor, colors);
+                    for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
+                        if(colors[k] == InsideColor){
+                            GetColor(i,j,k)[1] = colors[j];
+                        }
+                    }
                 }
             }
             for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     mYZRays(j,k).CollapseIntersectionPoints(mTolerance);
+                    mYZRays(j,k).CalculateColor(mCoordinates[0], InsideColor, OutsideColor, colors);
+                    for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
+                        if(colors[k] == InsideColor){
+                            GetColor(i,j,k)[2] = colors[i];
+                            KRATOS_WATCH(GetColor(i,j,k)[2]);
+                        }
+                    }
                 }
             }
         }
@@ -294,6 +339,52 @@ namespace Kratos
             return coordinates.size() - 1;
 
             return std::distance(coordinates.begin(), i_min);
+        }
+
+        
+
+        void WriteParaViewVTS(std::string const& Filename) {
+            std::ofstream output_file(Filename + ".vtr");
+
+            output_file << "<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">" << std::endl;
+            output_file << "<RectilinearGrid WholeExtent=\"0 " << mCoordinates[0].size() - 1  << " 0 " << mCoordinates[1].size() - 1 
+                        << " 0 " << mCoordinates[2].size() - 1 << "\">" << std::endl;
+            output_file << "<Piece Extent=\"0 " << mCoordinates[0].size()  - 1 << " 0 " << mCoordinates[1].size() - 1 
+                        << " 0 " <<  mCoordinates[2].size() - 1 << "\">" << std::endl;
+            output_file << "<Coordinates> " << std::endl;
+            output_file << "<DataArray type=\"Float64\" Name=\"coordinates\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
+            for (auto i_x : mCoordinates[0]) {
+                output_file << i_x << " ";
+            }
+            output_file << "</DataArray> " << std::endl;
+            output_file << "<DataArray type=\"Float64\" Name=\"coordinates\" NumberOfComponents=\"1\" format=\"ascii\">"
+                        << std::endl;
+            for (auto i_y : mCoordinates[1]) {
+                output_file << i_y << " ";
+            }
+            output_file << "</DataArray> " << std::endl;
+            output_file << "<DataArray type=\"Float64\" Name=\"coordinates\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
+            for (auto i_z : mCoordinates[2]) {
+                output_file << i_z << " ";
+            }
+            output_file << "</DataArray> " << std::endl;
+            output_file << "</Coordinates> " << std::endl;
+
+            for(int i = 0 ; i < 3 ; i++){
+                output_file << "<PointData Scalars=\"" << "Color" << i << "\">" << std::endl;
+                output_file << "<DataArray type=\"Float64\" Name=\"" << "Color" << i << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
+                
+                for (auto& color: mColors) {
+                    output_file << color[i] << std::endl;
+                }
+                    
+                output_file << "</DataArray> " << std::endl;
+                output_file << "</PointData> " << std::endl;
+            }
+
+            output_file << "</Piece>" << std::endl;
+            output_file << "</RectilinearGrid>" << std::endl;
+            output_file << "</VTKFile>" << std::endl;
         }
 
     };
