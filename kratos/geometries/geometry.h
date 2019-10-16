@@ -1914,9 +1914,9 @@ public:
     * @brief Returns the local coordinates of a given arbitrary point
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
-    * @param rResultGlobalCoordinates the location of the
+    * @param rClosestPointGlobalCoordinates the location of the
     *        closest point in global coordinates.
-    * @param rResultLocalCoordinates the location of the
+    * @param rClosestPointLocalCoordinates the location of the
     *        closest point in local coordinates.
     *        The variable can also be used as initial guess.
     * @param Tolerance accepted orthogonal error.
@@ -1924,8 +1924,8 @@ public:
     */
     virtual bool ClosestPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rResultGlobalCoordinates,
-        CoordinatesArrayType& rResultLocalCoordinates,
+        CoordinatesArrayType& rClosestPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
@@ -1935,8 +1935,57 @@ public:
     }
 
     /**
+    * @brief Returns the local coordinates of a given arbitrary point
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param rClosestPointGlobalCoordinates the location of the
+    *        closest point in global coordinates.
+    * @param Tolerance accepted orthogonal error.
+    * @return true if solution converged, false if not.
+    */
+    virtual bool ClosestPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        CoordinatesArrayType local_coordinates(ZeroVector(3));
+
+        return ClosestPoint(
+            rPointGlobalCoordinates,
+            rClosestPointGlobalCoordinates,
+            local_coordinates,
+            Tolerance);
+    }
+
+    /**
+    * @brief Returns the local coordinates of a given arbitrary point
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param rClosestPointLocalCoordinates the location of the
+    *        closest point in local coordinates.
+    *        The variable can also be used as initial guess.
+    * @param Tolerance accepted orthogonal error.
+    * @return true if solution converged, false if not.
+    */
+    virtual bool ClosestPointLocalCoordinates(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        CoordinatesArrayType global_coordinates(ZeroVector(3));
+
+        return ClosestPoint(
+            rPointGlobalCoordinates,
+            global_coordinates,
+            rClosestPointLocalCoordinates,
+            Tolerance);
+    }
+
+    /**
     * @brief Computes the distance between a given location and
-    *        the geometry.
+    *        the cloest point of this geometry.
     * @param rPointGlobalCoordinates the point to which the
     *        closest point has to be found.
     * @param Tolerance accepted orthogonal error.
@@ -1948,12 +1997,10 @@ public:
     ) const
     {
         CoordinatesArrayType global_coordinates(ZeroVector(3));
-        CoordinatesArrayType local_coordinates(ZeroVector(3));
 
         ClosestPoint(
             rPointGlobalCoordinates,
             global_coordinates,
-            local_coordinates,
             Tolerance);
 
         return norm_2(rPointGlobalCoordinates - global_coordinates);
