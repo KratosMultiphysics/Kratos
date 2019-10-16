@@ -35,11 +35,11 @@ namespace Kratos
 {
 namespace Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_EquationIdVector, RANSEvModelsKEpsilonElementMethods)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_EquationIdVector, RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_adjoint_model_part, "RansEvmEpsilonAdjoint2D3N");
 
     for (auto& element : r_adjoint_model_part.Elements())
@@ -58,11 +58,11 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_EquationIdVector, RANSEv
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_GetDofList, RANSEvModelsKEpsilonElementMethods)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_GetDofList, RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_adjoint_model_part, "RansEvmEpsilonAdjoint2D3N");
 
     for (auto& element : r_adjoint_model_part.Elements())
@@ -80,13 +80,13 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_GetDofList, RANSEvModels
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_GetValuesVector,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_GetValuesVector,
                           RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part =
         adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_adjoint_model_part, "RansEvmEpsilonAdjoint2D3N");
 
     for (IndexType i_element = 0;
@@ -111,13 +111,13 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_GetValuesVector,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_GetFirstDerivativesVector,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_GetFirstDerivativesVector,
                           RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part =
         adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_adjoint_model_part, "RansEvmEpsilonAdjoint2D3N");
 
     for (IndexType i_element = 0;
@@ -134,13 +134,13 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_GetFirstDerivativesVecto
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_GetSecondDerivativesVector,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_GetSecondDerivativesVector,
                           RANSEvModelsKEpsilonElementMethods)
 {
     Model adjoint_model;
     ModelPart& r_adjoint_model_part =
         adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_adjoint_model_part, "RansEvmEpsilonAdjoint2D3N");
 
     for (IndexType i_element = 0;
@@ -166,17 +166,17 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_GetSecondDerivativesVect
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_CalculateFirstDerivativesLHS,
-                          RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateFirstDerivativesLHS,
+                          RANSModellingApplicationElementInterfaces)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_adjoint_model_part, "RansEvmEpsilonAdjoint2D3N");
 
     Parameters empty_y_plus_parameters = Parameters(R"({
@@ -214,17 +214,17 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_CalculateFirstDerivative
         calculate_sensitivity_matrix, perturb_variable, 1e-7, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_Calculate_RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
-                          RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_Calculate_RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE,
+                          RANSModellingApplicationElementInterfaces)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_adjoint_model_part, "RansEvmEpsilonAdjoint2D3N");
 
     Parameters empty_y_plus_parameters = Parameters(R"({
@@ -263,17 +263,17 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_Calculate_RANS_TURBULENT
         calculate_sensitivity_matrix, perturb_variable, 1e-8, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_CalculateSecondDerivativesLHS,
-                          RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateSecondDerivativesLHS,
+                          RANSModellingApplicationElementInterfaces)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_adjoint_model_part, "RansEvmEpsilonAdjoint2D3N");
 
     Parameters empty_y_plus_parameters = Parameters(R"({
@@ -313,17 +313,17 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_CalculateSecondDerivativ
         calculate_sensitivity_matrix, perturb_variable, 1e-6, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_CalculateSensitivityMatrix,
-                          RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_CalculateSensitivityMatrix,
+                          RANSModellingApplicationElementInterfaces)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_adjoint_model_part, "RansEvmEpsilonAdjoint2D3N");
 
     Parameters empty_y_plus_parameters = Parameters(R"({
@@ -362,17 +362,17 @@ KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_CalculateSensitivityMatr
         calculate_sensitivity_matrix, perturb_variable, 1e-7, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansRansEvmEpsilonAdjoint2D3N_Calculate_RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,
-                          RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonAdjoint2D3N_Calculate_RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE,
+                          RANSModellingApplicationElementInterfaces)
 {
     Model primal_model;
     ModelPart& r_primal_model_part = primal_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_primal_model_part, "RansEvmEpsilon2D3N");
 
     Model adjoint_model;
     ModelPart& r_adjoint_model_part = adjoint_model.CreateModelPart("test");
-    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonTestModelPart(
+    RansEvmKEpsilonModel::GenerateRansEvmKEpsilonElementTestModelPart(
         r_adjoint_model_part, "RansEvmEpsilonAdjoint2D3N");
 
     Parameters empty_y_plus_parameters = Parameters(R"({

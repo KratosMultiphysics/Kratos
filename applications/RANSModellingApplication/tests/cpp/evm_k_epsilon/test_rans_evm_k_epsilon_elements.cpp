@@ -460,7 +460,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_GetDofList, RANSEvModelsKEpsilonEl
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateLocalSystem, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateLocalSystem, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -483,7 +483,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateLocalSystem, RANSModellin
             KRATOS_CHECK_EQUAL(LHS(i, j), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateRightHandSide, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateRightHandSide, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -500,7 +500,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateRightHandSide, RANSModell
     KRATOS_CHECK_NEAR(RHS(2), 3.24946053021652, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateLocalVelocityContribution, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateLocalVelocityContribution, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -524,7 +524,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateLocalVelocityContribution
     KRATOS_CHECK_NEAR(residual(2), 17.26466653284805, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateMassMatrix, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateMassMatrix, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -543,7 +543,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateMassMatrix, RANSModelling
     KRATOS_CHECK_NEAR(M(2, 1), -0.002696120305636151, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateDampingMatrix, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmKElement2D3N_CalculateDampingMatrix, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -597,7 +597,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_GetDofList, RANSEvModelsKEps
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateLocalSystem, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateLocalSystem, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -620,7 +620,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateLocalSystem, RANSMo
             KRATOS_CHECK_EQUAL(LHS(i, j), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateRightHandSide, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateRightHandSide, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -637,7 +637,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateRightHandSide, RANS
     KRATOS_CHECK_NEAR(RHS(2), 4.712758721178501, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateLocalVelocityContribution, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateLocalVelocityContribution, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -661,7 +661,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateLocalVelocityContri
     KRATOS_CHECK_NEAR(residual(2), 17.43249290638806, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateMassMatrix, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateMassMatrix, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -680,7 +680,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateMassMatrix, RANSMod
     KRATOS_CHECK_NEAR(M(2, 1), 0.01028818435474877, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateDampingMatrix, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmEpsilonElement2D3N_CalculateDampingMatrix, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -734,7 +734,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_GetDofList, RANSEvModelsKEpsi
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateLocalSystem, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateLocalSystem, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -757,7 +757,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateLocalSystem, RANSMod
             KRATOS_CHECK_EQUAL(LHS(i, j), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateRightHandSide, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateRightHandSide, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -774,7 +774,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateRightHandSide, RANSM
     KRATOS_CHECK_NEAR(RHS(2), 2.641938862593186, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateLocalVelocityContribution, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateLocalVelocityContribution, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -798,7 +798,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateLocalVelocityContrib
     KRATOS_CHECK_NEAR(residual(2), 15.70892686764402, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateMassMatrix, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateMassMatrix, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -817,7 +817,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateMassMatrix, RANSMode
     KRATOS_CHECK_NEAR(M(2, 1), -0.009531438219569609, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateDampingMatrix, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReKElement2D3N_CalculateDampingMatrix, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -871,7 +871,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_GetDofList, RANSEvModel
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateLocalSystem, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateLocalSystem, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -894,7 +894,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateLocalSystem, R
             KRATOS_CHECK_EQUAL(LHS(i, j), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateRightHandSide, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateRightHandSide, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -912,7 +912,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateRightHandSide,
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateLocalVelocityContribution,
-                          RANSModellingApplicationInterfaces)
+                          RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -936,7 +936,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateLocalVelocityC
     KRATOS_CHECK_NEAR(residual(2), 13.64919472880242, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateMassMatrix, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateMassMatrix, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;
@@ -955,7 +955,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateMassMatrix, RA
     KRATOS_CHECK_NEAR(M(2, 1), -0.01381400849385327, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateDampingMatrix, RANSModellingApplicationInterfaces)
+KRATOS_TEST_CASE_IN_SUITE(RansEvmLowReEpsilonElement2D3N_CalculateDampingMatrix, RANSModellingApplicationElementInterfaces)
 {
     // Setup:
     Model model;

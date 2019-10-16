@@ -65,20 +65,19 @@ KratosRANSModellingApplication::KratosRANSModellingApplication()
           0,
           Element::GeometryType::Pointer(
               new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-      mRansEvmEpsilonAdjoint2D3N(
-          0,
-          Element::GeometryType::Pointer(
-              new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmEpsilonAdjoint2D3N(0,
+                                 Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
+                                     Element::GeometryType::PointsArrayType(3)))),
       mRansEvmEpsilonAdjoint3D4N(
           0,
           Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
               Element::GeometryType::PointsArrayType(4)))),
       mRansEvmKAdjoint2D3N(0,
-                              Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
-                                  Element::GeometryType::PointsArrayType(3)))),
+                           Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(
+                               Element::GeometryType::PointsArrayType(3)))),
       mRansEvmKAdjoint3D4N(0,
-                              Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
-                                  Element::GeometryType::PointsArrayType(4)))),
+                           Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+                               Element::GeometryType::PointsArrayType(4)))),
       mRansEvmKEpsilonVMSAdjoint2D3N(
           0,
           Element::GeometryType::Pointer(
@@ -93,8 +92,24 @@ KratosRANSModellingApplication::KratosRANSModellingApplication()
               new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansEvmMonolithicKEpsilonVMSAdjoint3D4N(
           0,
+          Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(
+              Element::GeometryType::PointsArrayType(4)))),
+      mRansEvmEpsilonAdjointWallCondition2D2N(
+          0,
           Element::GeometryType::Pointer(
-              new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4))))
+              new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+      mRansEvmEpsilonAdjointWallCondition3D3N(
+          0,
+          Element::GeometryType::Pointer(
+              new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansEvmVmsMonolithicAdjointWallCondition2D2N(
+          0,
+          Element::GeometryType::Pointer(
+              new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+      mRansEvmVmsMonolithicAdjointWallCondition3D3N(
+          0,
+          Element::GeometryType::Pointer(
+              new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3))))
 {
 }
 
@@ -126,7 +141,7 @@ void KratosRANSModellingApplication::Register()
     KRATOS_REGISTER_VARIABLE(NUMBER_OF_NEIGHBOUR_CONDITIONS)
 
     // Register adjoint variables
-    KRATOS_REGISTER_VARIABLE(RANS_NUT_PARTIAL_DERIVATIVES)
+    KRATOS_REGISTER_VARIABLE(RANS_NUT_SCALAR_PARTIAL_DERIVATIVES)
     KRATOS_REGISTER_VARIABLE(RANS_Y_PLUS_VELOCITY_DERIVATIVES)
     KRATOS_REGISTER_VARIABLE(RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE)
     KRATOS_REGISTER_VARIABLE(RANS_PRESSURE_PARTIAL_DERIVATIVE)
@@ -179,5 +194,16 @@ void KratosRANSModellingApplication::Register()
                             mRansEvmMonolithicKEpsilonVMSAdjoint2D3N);
     KRATOS_REGISTER_ELEMENT("RansEvmMonolithicKEpsilonVMSAdjoint3D4N",
                             mRansEvmMonolithicKEpsilonVMSAdjoint3D4N);
+
+    // Registering adjoint conditions
+    KRATOS_REGISTER_CONDITION("RansEvmEpsilonAdjointWallCondition2D2N",
+                              mRansEvmEpsilonAdjointWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmEpsilonAdjointWallCondition3D3N",
+                              mRansEvmEpsilonAdjointWallCondition3D3N);
+
+    KRATOS_REGISTER_CONDITION("RansEvmVmsMonolithicAdjointWallCondition2D2N",
+                              mRansEvmVmsMonolithicAdjointWallCondition2D2N);
+    KRATOS_REGISTER_CONDITION("RansEvmVmsMonolithicAdjointWallCondition3D3N",
+                              mRansEvmVmsMonolithicAdjointWallCondition3D3N);
 }
 } // namespace Kratos.

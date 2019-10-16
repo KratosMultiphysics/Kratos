@@ -56,6 +56,7 @@ void AddVariablesToModelPart(ModelPart& rModelPart)
     // Variables addition
     rModelPart.AddNodalSolutionStepVariable(DISTANCE);
     rModelPart.AddNodalSolutionStepVariable(PRESSURE);
+    rModelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
     rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
     rModelPart.AddNodalSolutionStepVariable(DENSITY);
@@ -147,6 +148,26 @@ void CreateModelPartElements(ModelPart& rModelPart, std::string ElementName)
                                 elem_nodes, p_elem_prop);
 }
 
+void CreateModelPartConditions(ModelPart& rModelPart, std::string ConditionName)
+{
+    Properties::Pointer p_cond_prop = rModelPart.pGetProperties(0);
+
+    std::vector<ModelPart::IndexType> cond_nodes_1{1, 2};
+    rModelPart.CreateNewCondition(
+        ConditionName, rModelPart.GetRootModelPart().NumberOfConditions() + 1,
+        cond_nodes_1, p_cond_prop)->Set(SLIP, true);
+
+    std::vector<ModelPart::IndexType> cond_nodes_2{2, 3};
+    rModelPart.CreateNewCondition(
+        ConditionName, rModelPart.GetRootModelPart().NumberOfConditions() + 1,
+        cond_nodes_2, p_cond_prop)->Set(SLIP, true);
+
+    std::vector<ModelPart::IndexType> cond_nodes_3{3, 1};
+    rModelPart.CreateNewCondition(
+        ConditionName, rModelPart.GetRootModelPart().NumberOfConditions() + 1,
+        cond_nodes_3, p_cond_prop);
+}
+
 void InitializeNodalVariables(ModelPart& rModelPart)
 {
     using namespace RansModellingApplicationTestUtilities;
@@ -162,6 +183,7 @@ void InitializeNodalVariables(ModelPart& rModelPart)
     InitializeVariableWithRandomValues(rModelPart, VELOCITY, 5.0, 10.0, 2);
 
     InitializeVariableWithRandomValues(rModelPart, PRESSURE, 5.0, 10.0, 2);
+    InitializeVariableWithRandomValues(rModelPart, EXTERNAL_PRESSURE, 5.0, 10.0, 2);
     InitializeVariableWithRandomValues(rModelPart, ACCELERATION, 2.0, 3.0, 2);
 
     InitializeVariableWithValues(rModelPart, KINEMATIC_VISCOSITY, 3e-2);
@@ -197,12 +219,22 @@ void CreateEquationIds(ModelPart& rModelPart)
     }
 }
 
-void GenerateRansEvmKEpsilonTestModelPart(ModelPart& rModelPart, std::string ElementName)
+void GenerateRansEvmKEpsilonElementTestModelPart(ModelPart& rModelPart, std::string ElementName)
 {
     AddVariablesToModelPart(rModelPart);
     InitializeProcessInfo(rModelPart);
     CreateModelPartNodes(rModelPart);
     CreateModelPartElements(rModelPart, ElementName);
+    CreateEquationIds(rModelPart);
+    InitializeNodalVariables(rModelPart);
+}
+
+void GenerateRansEvmKEpsilonConditionTestModelPart(ModelPart& rModelPart, std::string ConditionName)
+{
+    AddVariablesToModelPart(rModelPart);
+    InitializeProcessInfo(rModelPart);
+    CreateModelPartNodes(rModelPart);
+    CreateModelPartConditions(rModelPart, ConditionName);
     CreateEquationIds(rModelPart);
     InitializeNodalVariables(rModelPart);
 }

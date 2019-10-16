@@ -33,6 +33,8 @@ typedef ModelPart::NodeType NodeType;
 
 typedef ModelPart::ElementType ElementType;
 
+typedef ModelPart::ConditionType ConditionType;
+
 typedef Geometry<NodeType> GeometryType;
 
 typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
@@ -54,7 +56,10 @@ void CreateEquationIds(ModelPart& rModelPart);
 
 void InitializeNodalVariables(ModelPart& rModelPart);
 
-void GenerateRansEvmKEpsilonTestModelPart(ModelPart& rModelPart, std::string ElementName);
+void GenerateRansEvmKEpsilonElementTestModelPart(ModelPart& rModelPart, std::string ElementName);
+
+void GenerateRansEvmKEpsilonConditionTestModelPart(ModelPart& rModelPart,
+                                                   std::string ConditionName);
 
 void UpdateVariablesInModelPart(ModelPart& rModelPart);
 
