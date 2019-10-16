@@ -36,6 +36,7 @@ def dyn controls smoothing-par diffusion-coeff-function boundary-distance
 def dyn controls smoothing-par diffusion-coeff-parameter 1.5
 
 solve initialize compute-defaults velocity-inlet ,
+solve monitors residual check-convergence n n n
 
 f wc "case.cas"
 e y

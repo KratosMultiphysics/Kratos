@@ -92,13 +92,9 @@ define user-defined execute-on-demand "store_coordinates_id::2019R1"
     )
 )
 ;
-solve monitors residual check-convergence n n n
-;
 ;   FSI LOOP
 (do ((j 0 j)) ((= j 1))
-    (if (check_message "stop")
-        (set! j 1)
-    )
+    (system "sleep 0.1")
     (if (check_message "save")
         (begin
             (ti-menu-load-string (format #f
@@ -146,6 +142,11 @@ solve monitors residual check-convergence n n n
             (send_message "continue_ready")
         )
     )
-    (system "sleep 0.1")
+    (if (check_message "stop")
+        (begin
+            (set! j 1)
+            (send_message "stop_ready")
+        )
+    )
 )
 exit y

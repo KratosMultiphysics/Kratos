@@ -7,27 +7,25 @@
         {
             "type": "solver_wrappers.fluent.2019R1",
             "settings": {
-                "working_directory" : "CFD",
+                "working_directory" : "solver_wrappers/Fluent2019R1/test_tube2d/CFD",
                 "case_file": "case.cas",
                 "dimensions": 2,
                 "unsteady": true,
-                "timestep_start": 2,
-                "thread_names": ["wall_top", "wall_bottom"],
+                "timestep_start": 0,
+                "thread_names": ["beamoutside"],
                 "interface_input":
                 {
-                    "wall_top_nodes": "DISPLACEMENT",
-                    "wall_bottom_nodes": ["DISPLACEMENT"]
+                    "beamoutside_nodes": "DISPLACEMENT"
                 },
                 "interface_output":
                 {
-                    "wall_top_faces": ["PRESSURE", "TRACTION"],
-                    "wall_bottom_faces": ["PRESSURE", "TRACTION"]
+                    "beamoutside_faces": ["PRESSURE", "TRACTION"]
                 },
-                "cores": 2,
-                "fluent_gui": true,
+                "cores": 4,
+                "fluent_gui": false,
                 "max_nodes_per_face": 4,
-                "hybrid_initialization": true,
-                "flow_iterations": 10,
+                "hybrid_initialization": false,
+                "flow_iterations": 200,
                 "save_iterations": 1
             }
         }

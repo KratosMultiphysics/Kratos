@@ -22,6 +22,18 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         super().__init__()
 
         # settings
+        """
+        settings of solver_wrappers.fluent.2019R1:
+        
+            working_directory       absolute path to working directory
+                                    or relative path w.r.t current directory
+            case_file               name of the case file; it must be present
+                                    in the above defined working_directory
+            flow_iterations         number of Fluent iterations per coupling 
+                                    iteration
+            save_iterations         number of timesteps between consecutive
+                                    saves of the Fluent case and data files
+        """
         self.settings = parameters['settings']
         self.dir_cfd = join(os.getcwd(), self.settings['working_directory'].GetString())  # *** alternative for getcwd?
         path_src = os.path.realpath(os.path.dirname(__file__))
@@ -29,7 +41,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.remove_all_messages()
 
         self.cores = self.settings['cores'].GetInt()
-        self.case_file = self.settings['case_file'].GetString()
+        self.case_file = self.settings['case_file'].GetString()  # file must be in self.dir_cfd
         self.mnpf = self.settings['max_nodes_per_face'].GetInt()
         self.dimensions = self.settings['dimensions'].GetInt()
         self.unsteady = self.settings['unsteady'].GetBool()
@@ -40,6 +52,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.thread_names = [_.GetString() for _ in self.settings['thread_names'].list()]
         self.n_threads = len(self.thread_names)
         self.thread_ids = [None] * self.n_threads
+        self.fluent_process = None
 
         # prepare Fluent journal
         journal = '2019R1.jou'
@@ -73,15 +86,17 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                         outfile.write(line)
 
         # start Fluent with journal
-        fluent_gui = self.settings['fluent_gui'].GetBool()
-        gui = ''
-        if not fluent_gui:
-            gui = ' -gu'
-        subprocess.Popen(f'fluent 2ddp{gui} -t{self.cores} -i {journal}',  # *** ON/OFF
-                             shell=True, executable='/bin/bash', cwd=self.dir_cfd)  # *** ON/OFF
+        log = join(self.dir_cfd, 'fluent.log')
+        if self.settings['fluent_gui'].GetBool():
+            cmd = f'fluent 2ddp -t{self.cores} -i {journal}'
+        else:
+            cmd = f'fluent 2ddp -gu -t{self.cores} -i {journal} >> {log} 2>&1'
+            # cmd = f'fluent 2ddp -gu -t{self.cores} -i {journal} 2> >(tee -a {log}) 1>> {log}'
+        self.fluent_process = subprocess.Popen(cmd, executable='/bin/bash',
+                                               shell=True, cwd=self.dir_cfd)
 
         # get general simulation info from report.sum
-        self.wait_message('case_info_exported')  # *** ON/OFF
+        self.wait_message('case_info_exported')
         report = join(self.dir_cfd, 'report.sum')
         check = 0
         with open(report, 'r') as file:
@@ -94,7 +109,8 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
                     break
                 if check == 1 and 'Space' in line:
                     if str(self.dimensions) not in line:
-                        raise ValueError(f'dimension in JSON does not match Fluent')
+                        if not (self.dimensions == 2 and 'Axisymmetric' in line):
+                            raise ValueError(f'dimension in JSON does not match Fluent')
                     check = 2
                 if 'Model' in line and 'Settings' in line:
                     check = 1
@@ -124,7 +140,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
         self.send_message('thread_ids_written_to_file')
 
         # import node and face information
-        self.wait_message('nodes_and_faces_stored')  # *** ON/OFF
+        self.wait_message('nodes_and_faces_stored')
 
         # create Model
         self.model = cs_data_structure.Model()
@@ -212,7 +228,7 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
     def Initialize(self):
         super().Initialize()
-
+        print('\nInitialize')
         self.timestep = self.timestep_start
 
     def InitializeSolutionStep(self):
@@ -220,14 +236,14 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
 
         self.iteration = 0
         self.timestep += 1
-        print(f'Timestep {self.timestep}')
+        print(f'\tTimestep {self.timestep}')
 
         self.send_message('next')
         self.wait_message('next_ready')
 
     def SolveSolutionStep(self, interface_input):
         self.iteration += 1
-        print(f'\tIteration {self.iteration}')
+        print(f'\t\tIteration {self.iteration}')
 
         # store incoming displacements
         self.interface_input.SetPythonList(interface_input.GetPythonList())
@@ -294,6 +310,9 @@ class SolverWrapperFluent2019R1(CoSimulationComponent):
     def Finalize(self):
         super().Finalize()
         self.send_message('stop')
+        self.wait_message('stop_ready')
+        self.fluent_process.wait()
+        print('Finalize')
 
     def GetInterfaceInput(self):
         return self.interface_input.deepcopy()

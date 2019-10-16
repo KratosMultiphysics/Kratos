@@ -35,7 +35,7 @@ solve monitors force monitor-unsteady-iters y
 solve set time-step 0.0001
 
 solve monitors residual check-convergence y y y
-solve monitors residual convergence-criteria 1.0E-6 1.0E-6 1.0E-6
+solve monitors residual convergence-criteria 1.0E-12 1.0E-12 1.0E-12
 solve set discretization-scheme mom 1
 solve set discretization-scheme pressure 10
 solve set p-v-coupling 22
