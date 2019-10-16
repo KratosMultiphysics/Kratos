@@ -42,13 +42,13 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
     def _check_results(self):
         #test if the element properties are assigned correctly to the elements and conditions
-        for elem in self.current_model["Inlets"].Elements:
+        for elem in self.current_model["Main.Inlets"].Elements:
             self.assertEqual(elem.Properties.Id, 1)
-        for cond in self.current_model["Inlets"].Conditions:
+        for cond in self.current_model["Main.Inlets"].Conditions:
             self.assertEqual(cond.Properties.Id, 1)
-        for elem in self.current_model["Outlet"].Elements:
+        for elem in self.current_model["Main.Outlet"].Elements:
             self.assertEqual(elem.Properties.Id, 2)
-        for cond in self.current_model["Outlet"].Conditions:
+        for cond in self.current_model["Main.Outlet"].Conditions:
             self.assertEqual(cond.Properties.Id, 2)
 
         #test that the properties are read correctly
@@ -130,13 +130,13 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("auxiliar_files_for_python_unnitest/materials_files/material_without_tables_and_variables.json"))
 
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
-        for elem in self.current_model["Inlets"].Elements:
+        for elem in self.current_model["Main.Inlets"].Elements:
             self.assertEqual(elem.Properties.Id, 1)
-        for cond in self.current_model["Inlets"].Conditions:
+        for cond in self.current_model["Main.Inlets"].Conditions:
             self.assertEqual(cond.Properties.Id, 1)
-        for elem in self.current_model["Outlet"].Elements:
+        for elem in self.current_model["Main.Outlet"].Elements:
             self.assertEqual(elem.Properties.Id, 2)
-        for cond in self.current_model["Outlet"].Conditions:
+        for cond in self.current_model["Main.Outlet"].Conditions:
             self.assertEqual(cond.Properties.Id, 2)
 
 
