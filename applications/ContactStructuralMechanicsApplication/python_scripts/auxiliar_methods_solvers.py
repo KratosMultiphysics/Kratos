@@ -250,30 +250,36 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
             KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
             name_mixed_solver = contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
             if name_mixed_solver == "mixed_ulm_linear_solver":
-                linear_solver_name = settings["linear_solver_settings"]["solver_type"].GetString()
-                if linear_solver_name == "amgcl" or linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver":
-                    amgcl_param = KM.Parameters("""
-                    {
-                        "solver_type"                    : "amgcl",
-                        "smoother_type"                  : "ilu0",
-                        "krylov_type"                    : "lgmres",
-                        "coarsening_type"                : "aggregation",
-                        "max_iteration"                  : 100,
-                        "provide_coordinates"            : false,
-                        "gmres_krylov_space_dimension"   : 100,
-                        "verbosity"                      : 1,
-                        "tolerance"                      : 1e-6,
-                        "scaling"                        : false,
-                        "block_size"                     : 3,
-                        "use_block_matrices_if_possible" : true,
-                        "coarse_enough"                  : 500
-                    }
-                    """)
-                    amgcl_param["block_size"].SetInt(main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
-                    linear_solver_settings.RecursivelyValidateAndAssignDefaults(amgcl_param)
-                    linear_solver = KM.AMGCLSolver(linear_solver_settings)
-                mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
-                return mixed_ulm_solver
+                if settings.Has("linear_solver_settings"):
+                    if settings["linear_solver_settings"].Has("solver_type"):
+                        linear_solver_name = settings["linear_solver_settings"]["solver_type"].GetString()
+                        if linear_solver_name == "amgcl" or linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver":
+                            amgcl_param = KM.Parameters("""
+                            {
+                                "solver_type"                    : "amgcl",
+                                "smoother_type"                  : "ilu0",
+                                "krylov_type"                    : "lgmres",
+                                "coarsening_type"                : "aggregation",
+                                "max_iteration"                  : 100,
+                                "provide_coordinates"            : false,
+                                "gmres_krylov_space_dimension"   : 100,
+                                "verbosity"                      : 1,
+                                "tolerance"                      : 1e-6,
+                                "scaling"                        : false,
+                                "block_size"                     : 3,
+                                "use_block_matrices_if_possible" : true,
+                                "coarse_enough"                  : 500
+                            }
+                            """)
+                            amgcl_param["block_size"].SetInt(main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
+                            linear_solver_settings.RecursivelyValidateAndAssignDefaults(amgcl_param)
+                            linear_solver = KM.AMGCLSolver(linear_solver_settings)
+                        mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
+                        return mixed_ulm_solver
+                    else:
+                        return linear_solver
+                else:
+                    return linear_solver
             else:
                 KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Mixed solver not available: " + name_mixed_solver + ". Using not mixed linear solver")
                 return linear_solver
