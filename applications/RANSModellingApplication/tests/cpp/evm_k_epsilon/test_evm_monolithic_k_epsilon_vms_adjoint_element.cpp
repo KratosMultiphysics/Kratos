@@ -93,27 +93,27 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateFirst
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart, calculate_sensitivity_matrix,
         perturb_variable_velocity, delta, tolerance, 0, 0);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart, calculate_sensitivity_matrix,
         perturb_variable_pressure, delta, tolerance, 2, 0);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable_tke, delta, tolerance, 3, 0);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
@@ -178,27 +178,27 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateFirst
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart, calculate_sensitivity_matrix,
         perturb_variable_velocity, delta, tolerance, 0, 3);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart, calculate_sensitivity_matrix,
         perturb_variable_pressure, delta, tolerance, 2, 3);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable_tke, delta, tolerance, 3, 3);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
@@ -263,27 +263,27 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateFirst
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart, calculate_sensitivity_matrix,
         perturb_variable_velocity, delta, tolerance, 0, 4);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart, calculate_sensitivity_matrix,
         perturb_variable_pressure, delta, tolerance, 2, 4);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable_tke, delta, tolerance, 3, 4);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
@@ -349,20 +349,20 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSecon
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart, calculate_sensitivity_matrix,
         perturb_variable_velocity, delta, tolerance, 0, 0);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable_tke, delta, tolerance, 3, 0);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
@@ -428,20 +428,20 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSecon
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart, calculate_sensitivity_matrix,
         perturb_variable_velocity, delta, tolerance, 0, 3);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable_tke, delta, tolerance, 3, 3);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
@@ -507,20 +507,20 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSecon
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
         RansEvmKEpsilonModel::UpdateVariablesInModelPart, calculate_sensitivity_matrix,
         perturb_variable_velocity, delta, tolerance, 0, 4);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
         calculate_sensitivity_matrix, perturb_variable_tke, delta, tolerance, 3, 4);
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process,
         primal_nut_process, adjoint_y_plus_process, adjoint_nut_process,
         y_plus_sensitivities_process, nut_sensitivities_process,
@@ -573,7 +573,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSensi
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
@@ -626,7 +626,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSensi
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
@@ -678,7 +678,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSensi
     const double delta = 1e-5;
     const double tolerance = 1e-3;
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,

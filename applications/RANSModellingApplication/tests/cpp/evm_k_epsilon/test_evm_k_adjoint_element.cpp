@@ -207,7 +207,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_CalculateFirstDerivativesLHS,
         rElement.CalculateFirstDerivativesLHS(rOutput, rProcessInfo);
     };
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
@@ -256,7 +256,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_Calculate_RANS_TURBULENT_ENERGY_DI
                            rOutput, rProcessInfo);
     };
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
@@ -306,7 +306,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_CalculateSecondDerivativesLHS,
         noalias(rOutput) = rOutput * (1.0 - bossak_alpha);
     };
 
-    RansModellingApplicationTestUtilities::RunElementResidualScalarSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualScalarSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
@@ -355,7 +355,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_Calculate_RANS_VELOCITY_PRESSURE_P
         rElement.Calculate(RANS_VELOCITY_PRESSURE_PARTIAL_DERIVATIVE, rOutput, rProcessInfo);
     };
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,
@@ -404,7 +404,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmKAdjoint2D3N_CalculateSensitivityMatrix,
         rElement.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rOutput, rProcessInfo);
     };
 
-    RansModellingApplicationTestUtilities::RunElementResidualVectorSensitivityTest(
+    RansModellingApplicationTestUtilities::RunResidualVectorSensitivityTest(
         r_primal_model_part, r_adjoint_model_part, primal_y_plus_process, primal_nut_process,
         adjoint_y_plus_process, adjoint_nut_process, y_plus_sensitivities_process,
         nut_sensitivities_process, RansEvmKEpsilonModel::UpdateVariablesInModelPart,

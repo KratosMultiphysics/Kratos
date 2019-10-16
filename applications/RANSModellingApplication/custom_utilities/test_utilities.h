@@ -62,7 +62,7 @@ void InitializeVariableWithRandomValues(ModelPart& rModelPart,
                                         const double MaxValue,
                                         const std::size_t TimeSteps);
 
-void RunElementResidualScalarSensitivityTest(
+void RunResidualScalarSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     Process& rPrimalYPlusProcess,
@@ -79,24 +79,7 @@ void RunElementResidualScalarSensitivityTest(
     const int DerivativesOffset = 0,
     const int EquationOffset = 0);
 
-void RunElementResidualVectorSensitivityTest(
-    ModelPart& rPrimalModelPart,
-    ModelPart& rAdjointModelPart,
-    Process& rPrimalYPlusProcess,
-    Process& rPrimalNutProcess,
-    Process& rAdjointYPlusProcess,
-    Process& rAdjointNutProcess,
-    Process& rYPlusSensitivitiesProcess,
-    Process& rNutSensitivitiesProcess,
-    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
-    std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualVectorSensitivity,
-    std::function<double&(NodeType&, const int)> PerturbVariable,
-    const double Delta,
-    const double Tolerance,
-    const int DerivativesOffset = 0,
-    const int EquationOffset = 0);
-
-void RunConditionResidualScalarSensitivityTest(
+void RunResidualScalarSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     Process& rPrimalYPlusProcess,
@@ -113,7 +96,24 @@ void RunConditionResidualScalarSensitivityTest(
     const int DerivativesOffset = 0,
     const int EquationOffset = 0);
 
-void RunConditionResidualVectorSensitivityTest(
+void RunResidualVectorSensitivityTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
+    Process& rPrimalYPlusProcess,
+    Process& rPrimalNutProcess,
+    Process& rAdjointYPlusProcess,
+    Process& rAdjointNutProcess,
+    Process& rYPlusSensitivitiesProcess,
+    Process& rNutSensitivitiesProcess,
+    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
+    std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualVectorSensitivity,
+    std::function<double&(NodeType&, const int)> PerturbVariable,
+    const double Delta,
+    const double Tolerance,
+    const int DerivativesOffset = 0,
+    const int EquationOffset = 0);
+
+void RunResidualVectorSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     Process& rPrimalYPlusProcess,

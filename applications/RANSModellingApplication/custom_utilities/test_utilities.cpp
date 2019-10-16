@@ -268,7 +268,7 @@ void InitializeVariableWithRandomValues(ModelPart& rModelPart,
  * @param DerivativesOffset
  * @param EquationOffset
  */
-void RunElementResidualScalarSensitivityTest(
+void RunResidualScalarSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     Process& rPrimalYPlusProcess,
@@ -384,7 +384,7 @@ void RunElementResidualScalarSensitivityTest(
     }
 }
 
-void RunElementResidualVectorSensitivityTest(
+void RunResidualVectorSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     Process& rPrimalYPlusProcess,
@@ -430,7 +430,7 @@ void RunElementResidualVectorSensitivityTest(
             return PerturbVariable(rNode, i_dim);
         };
 
-        RunElementResidualScalarSensitivityTest(
+        RunResidualScalarSensitivityTest(
             rPrimalModelPart, rAdjointModelPart, rPrimalYPlusProcess, rPrimalNutProcess,
             rAdjointYPlusProcess, rAdjointNutProcess, rYPlusSensitivitiesProcess,
             rNutSensitivitiesProcess, UpdateVariablesInModelPart, calculate_sensitivities,
@@ -459,7 +459,7 @@ void RunElementResidualVectorSensitivityTest(
  * @param DerivativesOffset
  * @param EquationOffset
  */
-void RunConditionResidualScalarSensitivityTest(
+void RunResidualScalarSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     Process& rPrimalYPlusProcess,
@@ -582,7 +582,7 @@ void RunConditionResidualScalarSensitivityTest(
     }
 }
 
-void RunConditionResidualVectorSensitivityTest(
+void RunResidualVectorSensitivityTest(
     ModelPart& rPrimalModelPart,
     ModelPart& rAdjointModelPart,
     Process& rPrimalYPlusProcess,
@@ -628,7 +628,7 @@ void RunConditionResidualVectorSensitivityTest(
             return PerturbVariable(rNode, i_dim);
         };
 
-        RunConditionResidualScalarSensitivityTest(
+        RunResidualScalarSensitivityTest(
             rPrimalModelPart, rAdjointModelPart, rPrimalYPlusProcess, rPrimalNutProcess,
             rAdjointYPlusProcess, rAdjointNutProcess, rYPlusSensitivitiesProcess,
             rNutSensitivitiesProcess, UpdateVariablesInModelPart, calculate_sensitivities,
