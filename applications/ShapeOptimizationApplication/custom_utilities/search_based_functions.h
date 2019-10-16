@@ -137,7 +137,7 @@ public:
 
                 if(number_of_neighbors >= mMaxNeighborNodes)
                 {
-                    KRATOS_WARNING("> SearchBasedFunctions Info: ") << "For node " << node_i.Id() << " maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) is reached! Increasing maximum number by factor 2. " << std::endl;
+                    KRATOS_WARNING("ShapeOpt::FlagNodesInRadius") << "For node " << node_i.Id() << " maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) is reached! Increasing maximum number by factor 2. " << std::endl;
                     is_max_number_too_small = true;
                     break;
                 }

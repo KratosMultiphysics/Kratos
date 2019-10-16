@@ -1,0 +1,192 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "element_tests/Cavity_2D_test/Cavity_2D_test",
+        "start_time"    : 0.0,
+        "end_time"      : 1.0,        
+        "echo_level"    : 1,
+        "parallel_type":        "OpenMP",
+        "number_of_threads":    8
+    },
+    "restart_options"  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"  : {
+        "solver_type"             : "coupled_fluid_transport_solver",
+        "domain_size"             : 2,
+        "echo_level"              : 0,
+        "fluid_solver_settings"   : {
+            "model_part_name"             : "FluidModelPart",
+            "domain_size"                 : 2,
+            "solver_type"                 : "Monolithic",
+            "model_import_settings"       : {
+                "input_type"     : "mdpa",
+                "input_filename" : "element_tests/Cavity_2D_test/Cavity_2D_test"
+            },
+            "echo_level"                  : 0,
+            "compute_reactions"           : true,
+            "maximum_iterations"          : 10,
+            "relative_velocity_tolerance" : 0.001,
+            "absolute_velocity_tolerance" : 1e-5,
+            "relative_pressure_tolerance" : 0.001,
+            "absolute_pressure_tolerance" : 1e-5,
+            "volume_model_part_name"      : "Parts_air",
+            "skin_parts"                  : ["Outlet2D_Outlet_pressure_Auto1","NoSlip2D_No_Slip_Auto1"],
+            "no_skin_parts"               : ["VelocityConstraints2D_Velocity_Auto1"],
+            "time_stepping"               : {
+                "automatic_time_step" : false,
+                "time_step"           : 0.1
+            },
+            "material_import_settings": {
+                "materials_filename": "element_tests/Cavity_2D_test/FluidMaterials.json"
+            },
+            "formulation"                 : {
+                "element_type"             : "vms",
+                "use_orthogonal_subscales" : false,
+                "dynamic_tau"              : 1.0
+            }
+        },
+        "thermal_solver_settings" : {
+            "solver_type"                        : "fluid_transport_replace_solver",
+            "model_part_name"                    : "ThermalModelPart",
+            "domain_size"                        : 2,
+            "start_time":                         0.0,
+            "time_step"                          : 0.1,
+            "model_import_settings"              : {
+                "input_type"     : "mdpa",
+                "input_filename" : "element_tests/Cavity_2D_test/Cavity_2D_test"
+            },
+            "buffer_size":                        3,
+            "echo_level"                         : 1,
+            "clear_storage":                      false,
+            "compute_reactions":                  false,
+            "move_mesh_flag":                     false,
+            "block_builder":                      true,
+            "solution_type"                      : "Transient",
+            "scheme_type"                        : "Implicit",
+            "newmark_theta"                      : 0.5,
+            "strategy_type"                      : "Linear",
+            "convergence_criterion"              : "And_criterion",
+            "displacement_relative_tolerance":    1.0E-4,
+            "displacement_absolute_tolerance":    1.0E-9,
+            "residual_relative_tolerance":        1.0E-4,
+            "residual_absolute_tolerance":        1.0E-9,
+            "max_iteration"                      : 15,
+            "linear_solver_settings":             {
+                "solver_type":   "ExternalSolversApplication.super_lu"
+            },
+            "material_import_settings": {
+                "materials_filename": "element_tests/Cavity_2D_test/ThermalMaterials.json"
+            },
+            "problem_domain_sub_model_part_list" : ["Parts_air"],
+            "processes_sub_model_part_list"      : ["TEMPERATURE_Temperature_Auto2","ImposedTemperature2D_Temperature_Auto1"],
+	    "pfem2_convection_settings"    : {
+	        "use_pfem2_convection"         : false,
+	        "use_mesh_velocity"            : false,
+	        "reset_boundary_conditions"    : false
+	    }
+        }
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "apply_outlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.Outlet2D_Outlet_pressure_Auto1",
+                "variable_name"      : "PRESSURE",
+                "constrained"        : true,
+                "value"              : 0.0,
+                "hydrostatic_outlet" : false,
+                "h_top"              : 0.0
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip2D_No_Slip_Auto1"
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.VelocityConstraints2D_Velocity_Auto1",
+                "variable_name"   : "VELOCITY",
+                "constrained"     : [true,true,true],
+                "value"           : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.FluidTransportApplication",
+        "Parameters":    {
+            "model_part_name":      "ThermalModelPart.TEMPERATURE_Temperature_Auto2",
+            "variable_name":        "PHI_THETA",
+            "is_fixed":             false,
+            "value":                300.0,
+            "table":                0
+            }
+        },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.FluidTransportApplication",
+        "Parameters":    {
+            "model_part_name":      "ThermalModelPart.TEMPERATURE_Temperature_Auto2",
+            "variable_name":        "TEMPERATURE",
+            "value":                300.0,
+            "table":                0
+            }
+        },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.FluidTransportApplication",
+        "Parameters":    {
+            "model_part_name":      "ThermalModelPart.ImposedTemperature2D_Temperature_Auto1",
+            "variable_name":        "PHI_THETA",
+            "is_fixed":             true,
+            "value":                310.0,
+            "table":                0
+            }
+        },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.FluidTransportApplication",
+        "Parameters":    {
+            "model_part_name":      "ThermalModelPart.ImposedTemperature2D_Temperature_Auto1",
+            "variable_name":        "TEMPERATURE",
+            "value":                310.0,
+            "table":                0
+            }
+        },{
+            "python_module" : "apply_boussinesq_force_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyBoussinesqForceProcess",
+            "Parameters"    : {
+                "model_part_name"     : "ThermalModelPart.Boussinesq__Boussinesq_hidden_",
+                "gravity"             : [0.0,0.0,0.0],
+                "ambient_temperature" : 300
+            }
+        }],
+        "auxiliar_process_list" : [{
+            "python_module" : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "FromJsonCheckResultProcess",
+            "Parameters"    : {
+                "check_variables"     : ["TEMPERATURE"],
+                "input_file_name"     : "element_tests/Cavity_2D_test/Cavity_2D_test_results.json",
+                "model_part_name"      : "FluidModelPart.Parts_air",
+                "time_frequency"       : 0.1
+            }
+        }]
+    },
+    "_json_output_process"  : [{
+        "python_module" : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters"    : {
+            "output_variables"     : ["TEMPERATURE"],
+            "output_file_name"     : "element_tests/Cavity_2D_test/Cavity_2D_test_results.json",
+            "model_part_name"      : "FluidModelPart.Parts_air",
+            "time_frequency"       : 0.1
+        }
+    }]
+   
+}
