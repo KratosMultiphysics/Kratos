@@ -33,15 +33,13 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         self.body_model_part = Model[settings["model_part_name"].GetString()]
         far_field_model_part_name = settings["far_field_model_part_name"].GetString()
-        self.compute_far_field_forces = False
-        if far_field_model_part_name != "":
+        self.compute_far_field_forces = far_field_model_part_name != ""
+        if self.compute_far_field_forces :
             self.far_field_model_part = Model[far_field_model_part_name]
-            self.compute_far_field_forces = True
-        self.compute_lift_from_jump_3d = False
         trailing_edge_model_part_name = settings["trailing_edge_model_part_name"].GetString()
-        if(trailing_edge_model_part_name != ""):
+        self.compute_lift_from_jump_3d = trailing_edge_model_part_name != ""
+        if self.compute_lift_from_jump_3d:
             self.trailing_edge_model_part = Model[trailing_edge_model_part_name]
-            self.compute_lift_from_jump_3d = True
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
         self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
