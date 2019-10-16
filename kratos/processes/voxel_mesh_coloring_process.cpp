@@ -206,6 +206,10 @@ namespace Kratos
 		array_1d< std::size_t, 3 > min_position;
 		array_1d< std::size_t, 3 > max_position;
 		CalculateMinMaxCellsPositions(TheSubModelPart.Nodes(), min_position, max_position);
+
+		InitializeRays(min_position, max_position);
+
+		mColors.CalculateColors(min_position, max_position, TheColor, mOutsideColor);
  
         #pragma omp parallel for
 		for (int k = min_position[2]; k < static_cast<int>(max_position[2]); k++) {
