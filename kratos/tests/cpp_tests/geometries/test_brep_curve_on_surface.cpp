@@ -87,26 +87,6 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.Dimension(), 1);
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(brep_curve_on_surface.LocalSpaceDimension(), 2);
-
-
-        array_1d<double, 3> coords(3, 0.0);
-        coords[0] = 1.0;
-        Vector N;
-
-        auto brep_curve_on_surface_2 = BrepCurveOnSurface< PointerVector<NodeType>, PointerVector<Point>>(brep_curve_on_surface);
-
-        //brep_face_curve.ShapeFunctionsValues(N, coords);
-        //KRATOS_WATCH(N)
-        //Matrix DN_De;
-        //brep_face_curve.ShapeFunctionsLocalGradients(DN_De, coords);
-        //KRATOS_WATCH(DN_De)
-
-        //array_1d<double, 3> result(3, 0.0);
-        //brep_face_curve.GlobalCoordinates(result, coords);
-        //KRATOS_WATCH(result)
-
-        //auto results = p_brep_face_curve.GlobalDerivatives(coords, 3);
-        //KRATOS_WATCH(results[0])
     }
 
     ///// Test Copy Constructor
