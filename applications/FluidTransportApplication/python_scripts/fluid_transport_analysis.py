@@ -15,7 +15,7 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from importlib import import_module
 
 class FluidTransportAnalysis(AnalysisStage):
-    '''Main script for fluid + fluid transport simulations.'''
+    '''Main script for poromechanics simulations.'''
 
     def __init__(self,model,parameters):
         # Time monitoring
@@ -52,6 +52,10 @@ class FluidTransportAnalysis(AnalysisStage):
                 "constraints_process_list",
                 "loads_process_list",
                 "auxiliar_process_list"]
+
+    def ApplyBoundaryConditions(self):
+
+        super(FluidTransportAnalysis,self).ApplyBoundaryConditions()
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
