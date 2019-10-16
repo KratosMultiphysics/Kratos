@@ -1956,7 +1956,7 @@ public:
             local_coordinates,
             Tolerance);
 
-        return norm(rPointGlobalCoordinates - global_coordinates);
+        return norm_2(rPointGlobalCoordinates - global_coordinates);
     }
 
     ///@}
