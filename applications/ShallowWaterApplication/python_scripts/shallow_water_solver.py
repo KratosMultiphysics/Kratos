@@ -44,7 +44,15 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
     def GetDefaultSettings(cls):
         default_settings = KM.Parameters("""
         {
-            "advection_epsilon" : 1e-2
+            "advection_epsilon" : 1e-2,
+            "permeability"      : 1e-4
         }""")
         default_settings.AddMissingParameters(super(ShallowWaterSolver,cls).GetDefaultSettings())
         return default_settings
+
+    def PrepareModelPart(self):
+        super(ShallowWaterSolver, self).PrepareModelPart()
+        permeability = self.settings["permeability"].GetDouble()
+        if permeability == 0.0:
+            KM.Logger.PrintWarning("::[ShallowWaterSolver]::", "Detected permeability == 0.0, set to 1.0")
+        self.main_model_part.ProcessInfo.SetValue(SW.PERMEABILITY, permeability)
