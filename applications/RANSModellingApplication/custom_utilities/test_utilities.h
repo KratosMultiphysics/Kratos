@@ -29,6 +29,7 @@ namespace RansModellingApplicationTestUtilities
 {
 typedef ModelPart::NodeType NodeType;
 typedef ModelPart::ElementType ElementType;
+typedef ModelPart::ConditionType ConditionType;
 typedef Geometry<NodeType> GeometryType;
 typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
@@ -42,6 +43,8 @@ void CheckNear(const Vector& rA, const Vector& rB, double RelTol = 1e-09, double
 
 
 void CalculateResidual(Vector& residual, Element& rElement, ProcessInfo& rProcessInfo);
+
+void CalculateResidual(Vector& residual, Condition& rCondition, ProcessInfo& rProcessInfo);
 
 void GetElementData(Vector& rGaussWeights,
                     Matrix& rShapeFunctions,
@@ -115,6 +118,40 @@ void RunElementResidualVectorSensitivityTest(
     Process& rNutSensitivitiesProcess,
     std::function<void(ModelPart&)> UpdateVariablesInModelPart,
     std::function<void(Matrix&, ElementType&, ProcessInfo&)> CalculateElementResidualVectorSensitivity,
+    std::function<double&(NodeType&, const int)> PerturbVariable,
+    const double Delta,
+    const double Tolerance,
+    const int DerivativesOffset = 0,
+    const int EquationOffset = 0);
+
+void RunConditionResidualScalarSensitivityTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
+    Process& rPrimalYPlusProcess,
+    Process& rPrimalNutProcess,
+    Process& rAdjointYPlusProcess,
+    Process& rAdjointNutProcess,
+    Process& rYPlusSensitivitiesProcess,
+    Process& rNutSensitivitiesProcess,
+    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
+    std::function<void(Matrix&, ConditionType&, ProcessInfo&)> CalculateConditionResidualScalarSensitivity,
+    std::function<double&(NodeType&)> PerturbVariable,
+    const double Delta,
+    const double Tolerance,
+    const int DerivativesOffset = 0,
+    const int EquationOffset = 0);
+
+void RunConditionResidualVectorSensitivityTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
+    Process& rPrimalYPlusProcess,
+    Process& rPrimalNutProcess,
+    Process& rAdjointYPlusProcess,
+    Process& rAdjointNutProcess,
+    Process& rYPlusSensitivitiesProcess,
+    Process& rNutSensitivitiesProcess,
+    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
+    std::function<void(Matrix&, ConditionType&, ProcessInfo&)> CalculateConditionResidualVectorSensitivity,
     std::function<double&(NodeType&, const int)> PerturbVariable,
     const double Delta,
     const double Tolerance,

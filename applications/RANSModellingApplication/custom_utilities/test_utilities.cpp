@@ -136,6 +136,41 @@ void CalculateResidual(Vector& residual, Element& rElement, ProcessInfo& rProces
     noalias(residual) -= prod(mass_matrix, current_nodal_scalar_rate_values);
 }
 
+void CalculateResidual(Vector& residual, Condition& rCondition, ProcessInfo& rProcessInfo)
+{
+    const double bossak_alpha = rProcessInfo[BOSSAK_ALPHA];
+
+    Vector rhs, nodal_scalar_values, current_nodal_scalar_rate_values,
+        old_nodal_scalar_rate_values;
+    Matrix damping_matrix, mass_matrix;
+
+    rCondition.CalculateRightHandSide(rhs, rProcessInfo);
+    rCondition.CalculateDampingMatrix(damping_matrix, rProcessInfo);
+    rCondition.CalculateMassMatrix(mass_matrix, rProcessInfo);
+
+    rCondition.GetFirstDerivativesVector(nodal_scalar_values);
+    rCondition.GetSecondDerivativesVector(current_nodal_scalar_rate_values);
+    rCondition.GetSecondDerivativesVector(old_nodal_scalar_rate_values, 1);
+
+    noalias(current_nodal_scalar_rate_values) =
+        current_nodal_scalar_rate_values * (1 - bossak_alpha) +
+        old_nodal_scalar_rate_values * bossak_alpha;
+
+    if (residual.size() != rhs.size())
+        residual.resize(rhs.size());
+
+    KRATOS_WATCH(rhs);
+    KRATOS_WATCH(damping_matrix);
+    KRATOS_WATCH(mass_matrix);
+    KRATOS_WATCH(nodal_scalar_values);
+    KRATOS_WATCH(current_nodal_scalar_rate_values);
+    KRATOS_WATCH(old_nodal_scalar_rate_values);
+
+    noalias(residual) = rhs;
+    noalias(residual) -= prod(damping_matrix, nodal_scalar_values);
+    noalias(residual) -= prod(mass_matrix, current_nodal_scalar_rate_values);
+}
+
 void GetElementData(Vector& rGaussWeights,
                     Matrix& rShapeFunctions,
                     ShapeFunctionDerivativesArrayType& rShapeFunctionDerivatives,
@@ -415,6 +450,10 @@ void RunElementResidualScalarSensitivityTest(
         r_primal_element.Check(r_primal_process_info);
 
         Vector residual, residual_0, residual_sensitivity;
+
+        rPrimalYPlusProcess.Execute();
+        rPrimalNutProcess.Execute();
+        UpdateVariablesInModelPart(rPrimalModelPart);
         CalculateResidual(residual_0, r_primal_element, r_primal_process_info);
 
         const std::size_t number_of_nodes = r_primal_geometry.PointsNumber();
@@ -508,6 +547,201 @@ void RunElementResidualVectorSensitivityTest(
         };
 
         RunElementResidualScalarSensitivityTest(
+            rPrimalModelPart, rAdjointModelPart, rPrimalYPlusProcess, rPrimalNutProcess,
+            rAdjointYPlusProcess, rAdjointNutProcess, rYPlusSensitivitiesProcess,
+            rNutSensitivitiesProcess, UpdateVariablesInModelPart, calculate_sensitivities,
+            perturb_variable, Delta, Tolerance, DerivativesOffset, EquationOffset);
+    }
+}
+
+/**
+ * @brief Calculate adjoint and finite difference sensitivities of the condition residual
+ *
+ * This method calculates condition residuals sensitivity w.r.t. scalar variable, and it is
+ * compared against adjoint sensitivities of the same. Due to high computational cost,
+ * the DISTANCE parameter is not updated after each perturbation, since calculating derivatives
+ * w.r.t. shape parameters for DISTANCE values comes with higher computational cost.
+ *
+ * @param rPrimalModelPart
+ * @param rAdjointModelPart
+ * @param rPrimalYPlusProcess
+ * @param rAdjointYPlusProcess
+ * @param rYPlusSensitivitiesProcess
+ * @param UpdateVariablesInModelPart
+ * @param CalculateElementResidualScalarSensitivity
+ * @param PerturbVariable
+ * @param Delta
+ * @param Tolerance
+ * @param DerivativesOffset
+ * @param EquationOffset
+ */
+void RunConditionResidualScalarSensitivityTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
+    Process& rPrimalYPlusProcess,
+    Process& rPrimalNutProcess,
+    Process& rAdjointYPlusProcess,
+    Process& rAdjointNutProcess,
+    Process& rYPlusSensitivitiesProcess,
+    Process& rNutSensitivitiesProcess,
+    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
+    std::function<void(Matrix&, ConditionType&, ProcessInfo&)> CalculateConditionResidualScalarSensitivity,
+    std::function<double&(NodeType&)> PerturbVariable,
+    const double Delta,
+    const double Tolerance,
+    const int DerivativesOffset,
+    const int EquationOffset)
+{
+    std::size_t number_of_conditions = rPrimalModelPart.NumberOfConditions();
+
+    KRATOS_ERROR_IF(number_of_conditions != rAdjointModelPart.NumberOfConditions())
+        << "Number of conditions mismatch.";
+
+    rAdjointModelPart.GetProcessInfo()[DELTA_TIME] =
+        -1.0 * rPrimalModelPart.GetProcessInfo()[DELTA_TIME];
+
+    // Calculate initial y_plus values
+    rPrimalYPlusProcess.Check();
+    rPrimalNutProcess.Check();
+    rPrimalYPlusProcess.Execute();
+    rPrimalNutProcess.Execute();
+    UpdateVariablesInModelPart(rPrimalModelPart);
+
+    rAdjointYPlusProcess.Check();
+    rAdjointNutProcess.Check();
+    rAdjointYPlusProcess.Execute();
+    rAdjointNutProcess.Execute();
+    UpdateVariablesInModelPart(rAdjointModelPart);
+
+    // Calculate adjoint values
+    rYPlusSensitivitiesProcess.Check();
+    rNutSensitivitiesProcess.Check();
+    rYPlusSensitivitiesProcess.Execute();
+    rNutSensitivitiesProcess.Execute();
+
+    ProcessInfo& r_primal_process_info = rPrimalModelPart.GetProcessInfo();
+    ProcessInfo& r_adjoint_process_info = rAdjointModelPart.GetProcessInfo();
+
+    const int domain_size = r_primal_process_info[DOMAIN_SIZE];
+    KRATOS_ERROR_IF(domain_size != r_adjoint_process_info[DOMAIN_SIZE])
+        << "Domain size mismatch.";
+
+    Matrix adjoint_total_condition_residual_sensitivity, damping_matrix, mass_matrix;
+
+    for (std::size_t i_condition = 0; i_condition < number_of_conditions; ++i_condition)
+    {
+        ConditionType& r_adjoint_condition = *(rAdjointModelPart.ConditionsBegin() + i_condition);
+        r_adjoint_condition.Check(r_adjoint_process_info);
+
+        CalculateConditionResidualScalarSensitivity(
+            adjoint_total_condition_residual_sensitivity, r_adjoint_condition, r_adjoint_process_info);
+
+        KRATOS_WATCH(adjoint_total_condition_residual_sensitivity);
+
+        ConditionType& r_primal_condition = *(rPrimalModelPart.ConditionsBegin() + i_condition);
+        GeometryType& r_primal_geometry = r_primal_condition.GetGeometry();
+        r_primal_condition.Check(r_primal_process_info);
+
+        Vector residual, residual_0, residual_sensitivity;
+
+        rPrimalYPlusProcess.Execute();
+        rPrimalNutProcess.Execute();
+        UpdateVariablesInModelPart(rPrimalModelPart);
+        CalculateResidual(residual_0, r_primal_condition, r_primal_process_info);
+
+        const std::size_t number_of_nodes = r_primal_geometry.PointsNumber();
+        const std::size_t number_of_equations = residual_0.size();
+        const std::size_t residual_equation_size = number_of_equations / number_of_nodes;
+        const int local_derivative_size =
+            adjoint_total_condition_residual_sensitivity.size1() / number_of_nodes;
+        const int local_equation_size =
+            adjoint_total_condition_residual_sensitivity.size2() / number_of_nodes;
+
+        residual.resize(number_of_equations);
+        residual_sensitivity.resize(number_of_equations);
+
+        for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
+        {
+            NodeType& r_node = r_primal_geometry[i_node];
+            PerturbVariable(r_node) += Delta;
+
+            rPrimalYPlusProcess.Execute();
+            rPrimalNutProcess.Execute();
+            UpdateVariablesInModelPart(rPrimalModelPart);
+
+            CalculateResidual(residual, r_primal_condition, r_primal_process_info);
+
+            noalias(residual_sensitivity) = (residual - residual_0) / Delta;
+
+            KRATOS_WATCH(residual_sensitivity);
+
+            for (std::size_t i_check_equation = 0;
+                 i_check_equation < number_of_equations; ++i_check_equation)
+            {
+                const std::size_t i_check_eq_node = i_check_equation / residual_equation_size;
+                const std::size_t i_check_eq_dim = i_check_equation % residual_equation_size;
+
+                const double current_adjoint_shape_sensitivity =
+                    adjoint_total_condition_residual_sensitivity(
+                        i_node * local_derivative_size + DerivativesOffset,
+                        i_check_eq_node * local_equation_size + EquationOffset + i_check_eq_dim);
+
+                CheckNear(residual_sensitivity[i_check_equation],
+                          current_adjoint_shape_sensitivity, Tolerance, 1e-12);
+            }
+
+            PerturbVariable(r_node) -= Delta;
+        }
+    }
+}
+
+void RunConditionResidualVectorSensitivityTest(
+    ModelPart& rPrimalModelPart,
+    ModelPart& rAdjointModelPart,
+    Process& rPrimalYPlusProcess,
+    Process& rPrimalNutProcess,
+    Process& rAdjointYPlusProcess,
+    Process& rAdjointNutProcess,
+    Process& rYPlusSensitivitiesProcess,
+    Process& rNutSensitivitiesProcess,
+    std::function<void(ModelPart&)> UpdateVariablesInModelPart,
+    std::function<void(Matrix&, ConditionType&, ProcessInfo&)> CalculateConditionResidualVectorSensitivity,
+    std::function<double&(NodeType&, const int)> PerturbVariable,
+    const double Delta,
+    const double Tolerance,
+    const int DerivativesOffset,
+    const int EquationOffset)
+{
+    ProcessInfo& r_primal_process_info = rPrimalModelPart.GetProcessInfo();
+
+    const int domain_size = r_primal_process_info[DOMAIN_SIZE];
+
+    for (int i_dim = 0; i_dim < domain_size; ++i_dim)
+    {
+        auto calculate_sensitivities =
+            [CalculateConditionResidualVectorSensitivity, i_dim, domain_size,
+             DerivativesOffset](Matrix& rDimSensitivities, ConditionType& rCondition,
+                                ProcessInfo& rCurrentProcessInfo) {
+                Matrix sensitivities;
+                CalculateConditionResidualVectorSensitivity(
+                    sensitivities, rCondition, rCurrentProcessInfo);
+
+                const int number_of_equations = sensitivities.size2();
+                const int number_of_nodes = rCondition.GetGeometry().PointsNumber();
+                const int local_size = sensitivities.size1() / number_of_nodes;
+                rDimSensitivities.resize(number_of_nodes, number_of_equations);
+
+                for (int i = 0; i < number_of_nodes; ++i)
+                    for (int j = 0; j < number_of_equations; ++j)
+                        rDimSensitivities(i, j) = sensitivities(
+                            i * local_size + i_dim + DerivativesOffset, j);
+            };
+
+        auto perturb_variable = [PerturbVariable, i_dim](NodeType& rNode) -> double& {
+            return PerturbVariable(rNode, i_dim);
+        };
+
+        RunConditionResidualScalarSensitivityTest(
             rPrimalModelPart, rAdjointModelPart, rPrimalYPlusProcess, rPrimalNutProcess,
             rAdjointYPlusProcess, rAdjointNutProcess, rYPlusSensitivitiesProcess,
             rNutSensitivitiesProcess, UpdateVariablesInModelPart, calculate_sensitivities,
