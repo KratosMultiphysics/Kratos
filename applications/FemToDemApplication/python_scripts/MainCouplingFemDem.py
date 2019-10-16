@@ -63,9 +63,6 @@ class MainCoupledFemDem_Solution:
         utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_VOLUME, 0.0, nodes)
         utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_INITIAL_VOLUME, 0.0, nodes)
 
-        # Initialize IP variables to zero
-        self.InitializeIntegrationPointsVariables()
-
         self.SpheresModelPart = self.DEM_Solution.spheres_model_part
         self.DEMParameters = self.DEM_Solution.DEM_parameters
         self.DEMProperties = self.SpheresModelPart.GetProperties()[1]
@@ -90,6 +87,9 @@ class MainCoupledFemDem_Solution:
         else:
             self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
 
+        # Initialize IP variables to zero
+        self.InitializeIntegrationPointsVariables()
+
         if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
             KratosFemDem.ComputeInitialVolumeProcess(self.FEM_Solution.main_model_part).Execute()
@@ -107,6 +107,7 @@ class MainCoupledFemDem_Solution:
             "name_auxiliar_condition"  : "Condition",
             "echo_level"               : 0
         }""")
+
 
         # for the dem contact forces coupling
         self.InitializeDummyNodalForces()
@@ -243,6 +244,7 @@ class MainCoupledFemDem_Solution:
     def InitializeIntegrationPointsVariables(self):
         utils = KratosMultiphysics.VariableUtils()
         elements = self.FEM_Solution.main_model_part.Elements
+        nodes = self.FEM_Solution.main_model_part.Nodes
         if self.domain_size == 3:
             utils.SetNonHistoricalVariable(KratosFemDem.VOLUME_COUNTED, False, elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_THRESHOLD, 0.0, elements)
@@ -263,7 +265,10 @@ class MainCoupledFemDem_Solution:
             utils.SetNonHistoricalVariable(KratosFemDem.SMOOTHING, 0, elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0], elements)
             utils.SetNonHistoricalVariable(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0], elements)
-            utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0,0.0,0.0], elements)
+            utils.SetNonHistoricalVariable(KratosFemDem.STRESS_VECTOR_INTEGRATED, [0.0, 0.0, 0.0], elements)
+        
+        if self.PressureLoad:
+            utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_ID, 0, nodes)
 
 #============================================================================================================================
     def InitializeMMGvariables(self):
@@ -812,8 +817,10 @@ class MainCoupledFemDem_Solution:
     def ExecuteBeforeGeneratingDEM(self): 
         """Here the erased are labeled as INACTIVE so you can access to them. After calling
            GenerateDEM they are totally erased """
-        KratosFemDem.UpdatePressureVolumeProcess(self.FEM_Solution.main_model_part).Execute()
-        self.ExpandWetNodes()
+        if self.PressureLoad:
+            self.ExpandWetNodes()
+            KratosFemDem.UpdatePressureVolumeProcess(self.FEM_Solution.main_model_part).Execute()
+            self.ExpandWetNodes()
 
 #============================================================================================================================
     def ExecuteAfterGeneratingDEM(self):
