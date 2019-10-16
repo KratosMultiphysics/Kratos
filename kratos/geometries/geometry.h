@@ -1907,6 +1907,59 @@ public:
     }
 
     ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Returns the local coordinates of a given arbitrary point
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param rResultGlobalCoordinates the location of the
+    *        closest point in global coordinates.
+    * @param rResultLocalCoordinates the location of the
+    *        closest point in local coordinates.
+    *        The variable can also be used as initial guess.
+    * @param Tolerance accepted orthogonal error.
+    * @return true if solution converged, false if not.
+    */
+    virtual bool ClosestPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rResultGlobalCoordinates,
+        CoordinatesArrayType& rResultLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ClosestPoint within geometry base class."
+            << " Please check the definition within derived class. "
+            << *this << std::endl;
+    }
+
+    /**
+    * @brief Computes the distance between a given location and
+    *        the geometry.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return true if solution converged, false if not.
+    */
+    virtual double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        CoordinatesArrayType global_coordinates(ZeroVector(3));
+        CoordinatesArrayType local_coordinates(ZeroVector(3));
+
+        ClosestPoint(
+            rPointGlobalCoordinates,
+            global_coordinates,
+            local_coordinates,
+            Tolerance);
+
+        return norm(rPointGlobalCoordinates - global_coordinates);
+    }
+
+    ///@}
     ///@name Jacobian
     ///@{
 
