@@ -59,7 +59,8 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    void BFECCconvect(ModelPart& rModelPart, const Variable< double >& rVar, const Variable<array_1d<double,3> >& conv_var, const double substeps)
+    template<class TVarType, class TType>
+    void BFECCconvect(ModelPart& rModelPart, const TVarType& rVar, const Variable<array_1d<double,3> >& conv_var, const double substeps)
     {
         KRATOS_TRY
         const double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
@@ -99,7 +100,7 @@ public:
                 Ns[i] = N;
 
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
-                double phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
+                TType phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
                 }
@@ -113,7 +114,7 @@ public:
                 Ns[i] = N_valid;
 
                 Geometry< Node < 3 > >& geom = pelement_valid->GetGeometry();
-                double phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
+                TType phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N_valid[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
                 }
@@ -140,19 +141,19 @@ public:
 
             if(is_found) {
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
-                double phi_old = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
+                TType phi_old = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
 
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi_old  += N[k] * ( geom[k].FastGetSolutionStepValue(rVar) );
                 }
 
                 //store correction
-                iparticle->GetValue(rVar) = 1.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5 * phi_old;
+                iparticle->SetValue(rVar, 1.5*iparticle->FastGetSolutionStepValue(rVar,1) - 0.5 * phi_old);
 //                 iparticle->FastGetSolutionStepValue(rVar) = iparticle->GetValue(rVar) - 0.5 * (phi2 - iparticle->FastGetSolutionStepValue(rVar,1));
             }
             else
             {
-                iparticle->GetValue(rVar) = iparticle->FastGetSolutionStepValue(rVar,1);
+                iparticle->SetValue(rVar, iparticle->FastGetSolutionStepValue(rVar,1));
             }
         }
 
@@ -164,7 +165,7 @@ public:
             if(is_found) {
                 Vector N = Ns[i];
                 Geometry< Node < 3 > >& geom = elem_backward[i].GetGeometry();
-                double phi1 = N[0] * ( geom[0].GetValue(rVar));
+                TType phi1 = N[0] * ( geom[0].GetValue(rVar));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].GetValue(rVar) );
                 }
@@ -240,8 +241,8 @@ public:
                     Geometry< Node < 3 > >& geom = pelement->GetGeometry();
 
                     //this factors get inverted from the other case
-                   const double old_step_factor = static_cast<double>(substep)/subdivisions;
-                   const double new_step_factor = (1.0 - old_step_factor);
+                    const double old_step_factor = static_cast<double>(substep)/subdivisions;
+                    const double new_step_factor = (1.0 - old_step_factor);
 
                     noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[0].FastGetSolutionStepValue(conv_var,1));
                     for (unsigned int k = 1; k < geom.size(); k++)
@@ -255,49 +256,47 @@ public:
 
 
                 }
-             else
-                 break;
+            else
+                break;
             }
         }
-
-                return is_found;
-
+        return is_found;
     }
 
 
-        void ResetBoundaryConditions(ModelPart& rModelPart, const Variable< double >& rVar)
+    template<class TVarType>
+    void ResetBoundaryConditions(ModelPart& rModelPart, const TVarType& rVar)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
         {
-                KRATOS_TRY
-
-                ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
-                vector<unsigned int> node_partition;
-                #ifdef _OPENMP
-                    int number_of_threads = omp_get_max_threads();
-                #else
-                    int number_of_threads = 1;
-                #endif
-                OpenMPUtils::CreatePartition(number_of_threads, rModelPart.Nodes().size(), node_partition);
-
-                #pragma omp parallel for
-                for(int kkk=0; kkk<number_of_threads; kkk++)
-                {
-                    for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-                    {
-                            ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-
-                            if (inode->IsFixed(rVar))
-                            {
-                                inode->FastGetSolutionStepValue(rVar)=inode->GetSolutionStepValue(rVar,1);
-                            }
-                    }
-                }
-
-                KRATOS_CATCH("")
+            auto it_node = rModelPart.NodesBegin() + i;
+            if (it_node->IsFixed(rVar))
+            {
+                it_node->FastGetSolutionStepValue(rVar) = it_node->FastGetSolutionStepValue(rVar,1);
+            }
         }
+    }
+
+
+    template<class TVarType>
+    void CopyVariableToPreviousTimeStep(ModelPart& rModelPart, const TVarType& rVar)
+    {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rModelPart.NumberOfNodes()); ++i)
+        {
+            auto it_node = rModelPart.NodesBegin() + i;
+            it_node->FastGetSolutionStepValue(rVar,1) = it_node->FastGetSolutionStepValue(rVar);
+        }
+    }
+
 
         void CopyScalarVarToPreviousTimeStep(ModelPart& rModelPart, const Variable< double >& rVar)
         {
             KRATOS_TRY
+            KRATOS_WARNING("BFECCConvection")
+            << "Using deprecated method BFECCConvection::CopyScalarVarToPreviousTimeStep" << std::endl
+            << "Please, use BFECCConvection::CopyVariableToPreviousTimeStep instead." << std::endl;
             ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
             vector<unsigned int> node_partition;
             #ifdef _OPENMP
@@ -328,5 +327,3 @@ private:
 } // namespace Kratos.
 
 #endif // KRATOS_BFECC_CONVECTION_INCLUDED  defined
-
-
