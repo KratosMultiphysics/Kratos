@@ -140,7 +140,7 @@ namespace Kratos {
                                     double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor, SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) override;
 
-        virtual void AdjustEquivalentYoung(double& equiv_young, SphericContinuumParticle* element, SphericContinuumParticle* neighbor);
+        virtual void AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor);
 
     protected:
 

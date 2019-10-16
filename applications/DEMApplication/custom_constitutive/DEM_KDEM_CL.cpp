@@ -539,6 +539,6 @@ namespace Kratos {
         }
     }
 
-    void DEM_KDEM::AdjustEquivalentYoung(double& equiv_young, SphericContinuumParticle* element, SphericContinuumParticle* neighbor) {}
+    void DEM_KDEM::AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor) {}
 
 } // namespace Kratos

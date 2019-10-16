@@ -573,12 +573,13 @@ namespace Kratos {
         return u1;
     }
 
-    void DEM_KDEM_with_damage_parallel_bond::AdjustEquivalentYoung(double& equiv_young, SphericContinuumParticle* element, SphericContinuumParticle* neighbor) {
+    void DEM_KDEM_with_damage_parallel_bond::AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor) {
 
         KRATOS_TRY
 
-        //TODO: Sometimes we do not compute mean values this way. Sometimes we use 2xy/(x+y)
-        const double unbonded_equivalent_young = 0.5 * (element->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS] + neighbor->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS]);
+        const double unbonded_young_element = element->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS];
+        const double unbonded_young_neigbor = neighbor->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS];
+        const double unbonded_equivalent_young = 2.0 * unbonded_young_element * unbonded_young_neigbor / (unbonded_young_element + unbonded_young_neigbor);
 
         equiv_young -= unbonded_equivalent_young;
 
