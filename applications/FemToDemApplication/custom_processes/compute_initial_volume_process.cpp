@@ -55,7 +55,7 @@ double ComputeInitialVolumeProcess::ComputeInitialVolumeSubModel(
     if (mDimension == 2) {
         // #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rSubModel.Nodes().size()); i++) {
-            auto &it_node = it_node_begin + i;
+            auto it_node = it_node_begin + i;
             const auto dist_increment = it_node->GetInitialPosition() - 
                 it_node_begin->GetInitialPosition();
             distance = inner_prod(dist_increment, dist_increment);
@@ -79,7 +79,7 @@ void ComputeInitialVolumeProcess::AssignInitialVolumeToNodes(
     const auto& it_node_begin = rSubModel.NodesBegin();
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(rSubModel.Nodes().size()); i++) {
-        auto &it_node = it_node_begin + i;
+        auto it_node = it_node_begin + i;
         it_node->SetValue(PRESSURE_INITIAL_VOLUME, InitialVolume);
         it_node->SetValue(PRESSURE_VOLUME, InitialVolume);
     }
