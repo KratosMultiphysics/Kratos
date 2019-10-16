@@ -91,7 +91,6 @@ public:
                 if (it_node->GetValue(PRESSURE_INITIAL_VOLUME) != 0.0) {
                     reduction_factor_pressure = it_node->GetValue(PRESSURE_INITIAL_VOLUME) / it_node->GetValue(PRESSURE_VOLUME);
                 }
-
                 it_node->FastGetSolutionStepValue(var) = reduction_factor_pressure * value;
             }
         }

@@ -48,18 +48,19 @@ void UpdatePressureVolumeProcess::Execute()
                 elem_vol = it_elem->GetGeometry().Area();
             else
                 elem_vol = it_elem->GetGeometry().Volume();
-                
+
             const int pressure_id = this->GetPressureId(it_elem);
             if (pressure_id != 0) {
                 std::string sub_model_name;
                 sub_model_name = mPressureName + "-auto-" + std::to_string(pressure_id);
                 auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
                 const auto it_node_begin = r_sub_model_part.NodesBegin();
+                #pragma omp parallel for
                 for (int j = 0; j < static_cast<int>(r_sub_model_part.Nodes().size()); j++) {
                     auto it_node = it_node_begin + j;
-                    double& previous_volume = it_node->GetValue(PRESSURE_VOLUME);
-                    previous_volume += elem_vol;
-                    KRATOS_WATCH(it_elem->Id())
+                    const double previous_volume = it_node->GetValue(PRESSURE_VOLUME);
+                    const double new_volume = elem_vol + previous_volume;
+                    it_node->SetValue(PRESSURE_VOLUME, new_volume);
                 }
             }
         }

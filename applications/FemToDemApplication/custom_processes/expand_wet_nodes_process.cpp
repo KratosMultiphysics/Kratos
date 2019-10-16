@@ -277,8 +277,6 @@ void ExpandWetNodesProcess::ExpandWetNodesWithLatestPressureId()
                    const int reference_pressure_id = pressure_id;
                    node_pressure_id = r_node.GetValue(PRESSURE_ID);
 
-
-
                     if (node_pressure_id != 0 && 
                         node_pressure_id < reference_pressure_id && 
                         number_of_wet_nodes < r_geometry.PointsNumber()) {
