@@ -243,6 +243,7 @@ void ExpandWetNodesProcess::ExpandWetNodesWithLatestPressureId()
     int expanded_elements = 1;
     auto& r_process_info = mrModelPart.GetProcessInfo();
     const std::size_t dimension = r_process_info[DOMAIN_SIZE];
+    bool volumes_updated = false;
 
     while (expanded_elements > 0) {
 
@@ -284,7 +285,6 @@ void ExpandWetNodesProcess::ExpandWetNodesWithLatestPressureId()
                         node_pressure_id < reference_pressure_id && 
                         number_of_wet_nodes < r_geometry.PointsNumber()) {
 
-
                         std::string old_blast_sub_model_name, new_blast_sub_model_name;
                         old_blast_sub_model_name = mPressureName + "-auto-" + std::to_string(node_pressure_id);
                         new_blast_sub_model_name = mPressureName + "-auto-" + std::to_string(reference_pressure_id);
@@ -296,17 +296,22 @@ void ExpandWetNodesProcess::ExpandWetNodesWithLatestPressureId()
 
                         const double old_pressure_volume = it_old_blast_node_begin->GetValue(PRESSURE_VOLUME);
                         const double new_pressure_volume = it_new_blast_node_begin->GetValue(PRESSURE_VOLUME);
+
+                        const double new_pressure_volume_initial = it_new_blast_node_begin->GetValue(PRESSURE_INITIAL_VOLUME);
                         
-                        #pragma omp parallel for // We update the volume as the sum of the 2 (merging volumes)
-                        for (int j = 0; j < static_cast<int>(r_new_blast_sub_model_part.Nodes().size()); j++) {
-                            auto it_node = it_new_blast_node_begin + j;
-                            it_node->SetValue(PRESSURE_VOLUME, old_pressure_volume + new_pressure_volume);
+                        if (!volumes_updated) {
+                            const auto it_node_begin = mrModelPart.NodesBegin();
+                            #pragma omp parallel for // We update the volume as the sum of the 2 (merging volumes)
+                            for (int j = 0; j < static_cast<int>(mrModelPart.Nodes().size()); j++) {
+                                auto it_node = it_node_begin + j;
+                                if (it_node->GetValue(PRESSURE_ID) == node_pressure_id ||
+                                    it_node->GetValue(PRESSURE_ID) == reference_pressure_id) {
+                                        // it_node->SetValue(PRESSURE_VOLUME, old_pressure_volume + new_pressure_volume);
+                                        // it_node->SetValue(PRESSURE_INITIAL_VOLUME, new_pressure_volume_initial);
+                                }
+                            }
                         }
-                        #pragma omp parallel for // We update the volume as the sum of the 2 (merging volumes)
-                        for (int j = 0; j < static_cast<int>(r_old_blast_sub_model_part.Nodes().size()); j++) {
-                            auto it_node = it_old_blast_node_begin + j;
-                            it_node->SetValue(PRESSURE_VOLUME, old_pressure_volume + new_pressure_volume);
-                        }
+
 
                         r_node.SetValue(PRESSURE_ID, reference_pressure_id);
                         expanded_elements++;
