@@ -639,6 +639,8 @@ private:
         }
     }
 
+    double ComputeElementSize(const Matrix &rDN_DX) const;
+
     // /**
     //  * @brief This method computes directly in the CL
     //  * @details Avoids code repetition

@@ -368,6 +368,60 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
                 rLeftHandSideMatrix(aux_i, aux_j) += w_gauss * rN[i] * rN[j];
             }
         }
+
+        // Calculate stabilization constants
+        const double h = ComputeElementSize(DN_DX_container[i_gauss]);
+        const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO]));
+        const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
+        const double tau_2 = 0.15;
+
+        // Add the volumetric strain momentum stabilization term - term 1
+        const double aux_1 = w_gauss * bulk_modulus * tau_2;
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int d1 = 0; d1 < dim; ++d1) {
+                for (unsigned int j = 0; j < n_nodes; ++j) {
+                    for (unsigned int d2 = 0; d2 < dim; ++d2) {
+                        rLeftHandSideMatrix(i * block_size + d1, j * block_size + d2) += aux_1 * DN_DX_container[i_gauss](i, d1) * DN_DX_container[i_gauss](j, d2);
+                    }
+                }
+            }
+        }
+
+        // Add the volumetric strain momentum stabilization term - term 2
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int d = 0; d < dim; ++d) {
+                for (unsigned int j = 0; j < n_nodes; ++j) {
+                    rLeftHandSideMatrix(i * block_size + d, j * block_size + dim) += aux_1 * DN_DX_container[i_gauss](i,d) * rN(j);
+                }
+            }
+        }
+
+        // Add the volumetric strain mass stabilization term - term 2
+        const double aux_2 = w_gauss * tau_1 * bulk_modulus;
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                for (unsigned int d = 0; d < dim; ++d) {
+                    rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim) += aux_2 * DN_DX_container[i_gauss](i, d) * DN_DX_container[i_gauss](j, d);
+                }
+            }
+        }
+
+        // Add the divergence mass stabilization term
+        const double aux_3 = w_gauss * tau_2;
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                for (unsigned int d = 0; d < dim; ++d) {
+                    rLeftHandSideMatrix(i * block_size + dim, j * block_size + d) -= aux_3 * rN(i) * DN_DX_container[i_gauss](j,d);
+                }
+            }
+        }
+
+        // Add the volumetric strain stabilization term
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                rLeftHandSideMatrix(i * block_size + dim, j * block_size + dim) -= aux_3 * rN(i) * rN(j);
+            }
+        }
     }
 }
 
@@ -486,6 +540,79 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
             for (unsigned int j = 0; j < n_nodes; ++j) {
                 const double &r_vol_strain = r_geometry[j].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
                 rRightHandSideVector(i * block_size + dim) -= w_gauss * rN[i] * rN[j] * r_vol_strain;
+            }
+        }
+
+        // Calculate stabilization constants
+        double hyd_stress = 0.0;
+        for (unsigned int d = 0; d < dim; ++d) {
+            hyd_stress += cons_law_values.GetStressVector()[d];
+        }
+        hyd_stress /= 3.0;
+        const double bulk_modulus = vol_strain > 1.0e-12 ? hyd_stress * vol_strain / std::pow(vol_strain, 2) : 1.0e+12;
+        const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO]));
+
+        const double h = ComputeElementSize(DN_DX_container[i_gauss]);
+        const double tau_1 = 2.0 * std::pow(h, 2) / (2.0 * shear_modulus);
+        const double tau_2 = 0.15;
+
+        // Add the volumetric strain momentum stabilization term - term 1
+        const double aux_1 = w_gauss * bulk_modulus * tau_2;
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int d1 = 0; d1 < dim; ++d1) {
+                for (unsigned int j = 0; j < n_nodes; ++j) {
+                    const auto &r_disp = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT);
+                    for (unsigned int d2 = 0; d2 < dim; ++d2) {
+                        rRightHandSideVector(i * block_size + d1) += aux_1 * DN_DX_container[i_gauss](i,d1) * DN_DX_container[i_gauss](j,d2) * r_disp(d2);
+                    }
+                }
+            }
+        }
+
+        // Add the volumetric strain momentum stabilization term - term 2
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int d = 0; d < dim; ++d) {
+                for (unsigned int j = 0; j < n_nodes; ++j) {
+                    const double &r_vol_strain = r_geometry[j].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+                    rRightHandSideVector(i * block_size + d) -= aux_1 * DN_DX_container[i_gauss](i,d) * rN(j) * r_vol_strain;
+                }
+            }
+        }
+
+        // Add the volumetric strain mass stabilization term - term 1
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int d = 0; d < dim; ++d) {
+                rRightHandSideVector(i * block_size + dim) += w_gauss * tau_1 * DN_DX_container[i_gauss](i,d) * body_force[d];
+            }
+        }
+
+        // Add the volumetric strain mass stabilization term - term 2
+        const double aux_2 = w_gauss * tau_1 * bulk_modulus;
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                const double &r_vol_strain = r_geometry[j].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+                for (unsigned int d = 0; d < dim; ++d) {
+                    rRightHandSideVector(i * block_size + dim) += aux_2 * DN_DX_container[i_gauss](i, d) * DN_DX_container[i_gauss](j, d) * r_vol_strain;
+                }
+            }
+        }
+
+        // Add the divergence mass stabilization term
+        const double aux_3 = w_gauss * tau_2;
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                const auto &r_disp = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT);
+                for (unsigned int d = 0; d < dim; ++d) {
+                    rRightHandSideVector(i * block_size + dim) += aux_3 * rN(i) * DN_DX_container[i_gauss](j,d) * r_disp(d);
+                }
+            }
+        }
+
+        // Add the volumetric strain stabilization term
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                const double &r_vol_strain = r_geometry[j].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+                rRightHandSideVector(i * block_size + dim) += aux_3 * rN(i) * rN(j) * r_vol_strain;
             }
         }
     }
@@ -803,6 +930,23 @@ void SmallDisplacementMixedStrainElement::CalculateDeviatoricStrainOperator(Matr
     }
 
     KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double SmallDisplacementMixedStrainElement::ComputeElementSize(const Matrix &rDN_DX) const
+{
+    double h = 0.0;
+    for (unsigned int i_node = 0; i_node < GetGeometry().PointsNumber(); ++i_node) {
+        double h_inv = 0.0;
+        for (unsigned int d = 0; d < GetGeometry().WorkingSpaceDimension(); ++d) {
+            h_inv += rDN_DX(i_node, d) * rDN_DX(i_node, d);
+        }
+        h += 1.0 / h_inv;
+    }
+    h = sqrt(h) / static_cast<double>(GetGeometry().PointsNumber());
+    return h;
 }
 
 /***********************************************************************************/

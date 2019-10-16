@@ -72,8 +72,8 @@ namespace Testing
 
         // Check RHS and LHS results
         const double tolerance = 1.0e-5;
-        const std::vector<double> expected_RHS({-47008.5,-47008.5,0.00208333,38461.5,8547.01,0.00208333,8547.01,38461.5,0.0025});
-        const std::vector<double> expected_LHS_row_0({-876068,-106838,854701,384615,-277778,854701,491453,384615,854701});
+        const std::vector<double> expected_RHS({-49572.6,-49572.6,0.00640046,38461.5,11111.1,0.00177083,11111.1,38461.5,-0.00250463});
+        const std::vector<double> expected_LHS_row_0({-1.06838e+06,-299145,918803,384615,-85470.1,918803,683761,384615,918803});
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(RHS, expected_RHS, tolerance)
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(row(LHS,0), expected_LHS_row_0, tolerance)
     }
