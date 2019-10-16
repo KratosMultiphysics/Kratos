@@ -151,9 +151,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIterat
 
         // Compute material reponse
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
+        this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
+        this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
     }
-    this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
-    this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
+
 
     KRATOS_CATCH("")
 }
@@ -243,10 +244,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
             // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
             Vector average_strain_edge(VoigtSize);
-            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
+                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
  
@@ -258,15 +259,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
                                                      is_damaging);
             } // Loop over edges
         }
-
         // Calculate the elemental Damage...
-        double damage_element;
-        if (CalculateResidualVectorFlag)
-            damage_element = this->CalculateElementalDamage(damages_edges);
-        else
-            damage_element = this->CalculateElementalDamage(this->mDamages);
+        const double damage_element = this->CalculateElementalDamage(damages_edges);
 
-        const Vector  r_strain_vector = this_constitutive_variables.StrainVector;
+        const Vector& r_strain_vector = this_constitutive_variables.StrainVector;
         const Vector& r_stress_vector = this_constitutive_variables.StressVector;
         const Vector& r_integrated_stress_vector = (1.0 - damage_element)*r_stress_vector;
 
@@ -274,10 +270,18 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateAll(
             // Contributions to stiffness matrix calculated on the reference config
             if (is_damaging == true && norm_2(r_strain_vector) > tolerance) {
                 Matrix tangent_tensor;
-                this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_constitutive_variables.D, cl_values);
-                noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(this_kinematic_variables.B), Matrix(prod(tangent_tensor, this_kinematic_variables.B)));
+                if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 0) {
+                    tangent_tensor = this_constitutive_variables.D;
+                } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 1) {
+                    tangent_tensor = (1.0 - damage_element) * this_constitutive_variables.D;
+                } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 2) {
+                    this->CalculateTangentTensor(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_constitutive_variables.D, cl_values);
+                } else if (rCurrentProcessInfo[TANGENT_CONSTITUTIVE_TENSOR] == 3) {
+                    this->CalculateTangentTensorSecondOrder(tangent_tensor, r_strain_vector, r_integrated_stress_vector, this_constitutive_variables.D, cl_values);
+                }
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, tangent_tensor, int_to_reference_weight);
             } else {
-                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0 - damage_element)*this_constitutive_variables.D, int_to_reference_weight);
+                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, (1.0-damage_element)*this_constitutive_variables.D, int_to_reference_weight);
             }
         }
         if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
@@ -353,10 +357,10 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
             // Loop over edges of the element...
             Vector average_stress_edge(VoigtSize);
             Vector average_strain_edge(VoigtSize);
-            noalias(average_stress_edge) = this->GetValue(STRESS_VECTOR);
-            noalias(average_strain_edge) = this->GetValue(STRAIN_VECTOR);
 
             for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
+                noalias(average_stress_edge) = this_constitutive_variables.StressVector;
+                noalias(average_strain_edge) = this_constitutive_variables.StrainVector;
                 this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
                 this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
                 
@@ -403,6 +407,43 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensor(
         this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix, rValues);
         const Vector& r_delta_stress = perturbed_stress - rStressVectorGP;
         this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, perturbation, component);
+    }
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TyieldSurf>
+void  GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateTangentTensorSecondOrder(
+    Matrix& rTangentTensor,
+    const Vector& rStrainVectorGP,
+    const Vector& rStressVectorGP,
+    const Matrix& rElasticMatrix,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const double number_components = rStrainVectorGP.size();
+    rTangentTensor.resize(number_components, number_components);
+    Vector perturbed_stress_plus, perturbed_strain_plus;
+    Vector perturbed_stress_minus, perturbed_strain_minus;
+    perturbed_strain_minus.resize(number_components);
+    perturbed_strain_plus.resize(number_components);
+    perturbed_stress_minus.resize(number_components);
+    perturbed_stress_plus.resize(number_components);
+
+    for (unsigned int component = 0; component < number_components; component++) {
+        double perturbation;
+        this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
+
+        this->PerturbateStrainVector(perturbed_strain_plus, rStrainVectorGP, perturbation, component);
+        this->IntegratePerturbedStrain(perturbed_stress_plus, perturbed_strain_plus, rElasticMatrix, rValues);
+
+        this->PerturbateStrainVector(perturbed_strain_minus, rStrainVectorGP, -perturbation, component);
+        this->IntegratePerturbedStrain(perturbed_stress_minus, perturbed_strain_minus, rElasticMatrix, rValues);
+
+        const Vector& r_delta_stress = perturbed_stress_plus - perturbed_stress_minus;
+        this->AssignComponentsToTangentTensor(rTangentTensor, r_delta_stress, 2.0*perturbation, component);
     }
 }
 

@@ -331,7 +331,7 @@ void AddUtilitiesToPython(pybind11::module &m)
     InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
     DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
 
-    py::class_<ConditionNumberUtility>(m,"ConditionNumberUtility")
+    py::class_<ConditionNumberUtility,ConditionNumberUtility::Pointer>(m,"ConditionNumberUtility")
         .def(py::init<>())
         .def(py::init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
         .def("GetConditionNumber", ThisGetConditionNumber)
