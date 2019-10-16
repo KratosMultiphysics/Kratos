@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//					 Kratos default license:
+//  License:         BSD License
+//                     Kratos default license:
 //kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
@@ -50,6 +50,9 @@ void AssignPressureIdProcess::Execute()
         }
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void AssignPressureIdProcess::AssignPressureIdToNodes(
     std::string rSubModelPartName, 

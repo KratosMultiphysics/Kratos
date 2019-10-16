@@ -299,7 +299,7 @@ private:
                         ModelPart::NodeType& rDest)
     {
         for (auto itDof = rOrigin.GetDofs().begin(); itDof != rOrigin.GetDofs().end(); itDof++)
-            rDest.pGetDof( itDof->GetVariable() )->SetEquationId( itDof->EquationId() );
+            rDest.pGetDof( (*itDof)->GetVariable() )->SetEquationId( (*itDof)->EquationId() );
     }
 
     /*@} */

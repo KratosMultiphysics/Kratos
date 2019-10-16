@@ -1,0 +1,104 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    1        0.00000        0.00000        0.00000
+    2        1.00000        0.00000        0.00000
+    3        1.00000        1.00000        0.00000
+    4        0.00000        1.00000        0.00000
+    5        0.00000        1.00100        0.00000
+    6        1.00000        1.00100        0.00000
+    7        1.00000        2.00000        0.00000
+    8        0.00000        2.00000        0.00000
+End Nodes
+
+
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Parts Auto2
+         1          0         1         2         3         4
+End Elements
+
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Parts Auto3
+         2          0         5         6         7         8
+End Elements
+
+Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
+    Begin SubModelPartNodes
+        5
+        6
+        7
+        8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin Conditions LineCondition2D2N// GUI group identifier: Parts Auto2
+         1          0          3          4
+         2          0          5          6
+End Conditions
+
+Begin SubModelPart Contact_Part_Slave
+    Begin SubModelPartNodes
+        3
+        4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+        1
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Contact_Part_Master
+    Begin SubModelPartNodes
+        5
+        6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+        2
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+         2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DISPLACEMENT_Displacement_Auto2 // Group Displacement Auto2 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        7
+        8
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

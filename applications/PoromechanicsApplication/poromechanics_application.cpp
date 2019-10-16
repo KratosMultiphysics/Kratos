@@ -199,6 +199,10 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamagePlaneStrain2DLaw",mModifiedMisesNonlocalDamagePlaneStrain2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamagePlaneStress2DLaw",mModifiedMisesNonlocalDamagePlaneStress2DLaw);
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElastic3DLaw",mHistoryLinearElastic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElasticPlaneStrain2DLaw",mHistoryLinearElasticPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElasticPlaneStress2DLaw",mHistoryLinearElasticPlaneStress2DLaw);
+
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_PRESSURE_COEFFICIENT )
@@ -230,6 +234,8 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( IS_CONVERGED )
 
     KRATOS_REGISTER_VARIABLE( TOTAL_STRESS_TENSOR )
+
+    KRATOS_REGISTER_VARIABLE( INITIAL_STRESS_TENSOR )
 
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE )
     KRATOS_REGISTER_VARIABLE( ARC_LENGTH_LAMBDA )

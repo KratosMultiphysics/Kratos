@@ -6,6 +6,8 @@ import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplicati
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
+
 from math import sqrt
 from cmath import phase
 import os
@@ -210,7 +212,6 @@ class HarmonicAnalysisTestsWithHDF5(KratosUnittest.TestCase):
         if not kratos_utils.CheckIfApplicationsAvailable("HDF5Application"):
             self.skipTest("HDF5Application not found: Skipping harmonic analysis mdpa test")
 
-        import structural_mechanics_analysis
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             #run simulation and write to hdf5 file
             model = KratosMultiphysics.Model()

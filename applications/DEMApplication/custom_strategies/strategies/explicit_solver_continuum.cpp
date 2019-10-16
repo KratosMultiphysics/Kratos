@@ -138,7 +138,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }// Initialize()
 
-    double ContinuumExplicitSolverStrategy::Solve() {
+    double ContinuumExplicitSolverStrategy::SolveSolutionStep() {
 
         KRATOS_TRY
 
@@ -149,18 +149,16 @@ namespace Kratos {
         VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
         if (r_modelpart_nodal_variables_list.Has(PARTITION_INDEX)) has_mpi = true;
 
-        InitializeSolutionStep();
         SearchDEMOperations(r_model_part, has_mpi);
         SearchFEMOperations(r_model_part, has_mpi);
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
-        FinalizeSolutionStep();
 
         KRATOS_CATCH("")
 
         return 0.0;
 
-    }//Solve()
+    }//SolveSolutionStep()
 
     void ContinuumExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();

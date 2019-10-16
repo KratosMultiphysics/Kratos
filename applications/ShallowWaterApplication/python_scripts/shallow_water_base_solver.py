@@ -15,9 +15,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         self._validate_settings_in_baseclass = True
         super(ShallowWaterBaseSolver, self).__init__(model, settings)
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
         ## Set the element and condition names for the replace settings
         ## These should be defined in derived classes
         self.element_name = None
@@ -55,6 +52,10 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.EQUIVALENT_MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
         self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.POROSITY)
+        # Projection variables
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_SCALAR1)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.PROJECTED_VECTOR1)
         # Auxiliary variables
         self.main_model_part.AddNodalSolutionStepVariable(KM.IS_STRUCTURE)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
@@ -73,6 +74,7 @@ class ShallowWaterBaseSolver(PythonSolver):
     def PrepareModelPart(self):
         # Defining the variables
         gravity = self.settings["gravity"].GetDouble()
+        dry_height = self.settings["dry_height_threshold"].GetDouble()
         time_scale = self.settings["time_scale"].GetString()
         water_height_scale = self.settings["water_height_scale"].GetString()
 
@@ -99,6 +101,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
         self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, gravity * time_unit_converter**2)
+        self.main_model_part.ProcessInfo.SetValue(SW.DRY_HEIGHT, dry_height)
         self.main_model_part.ProcessInfo.SetValue(SW.TIME_UNIT_CONVERTER, time_unit_converter)
         self.main_model_part.ProcessInfo.SetValue(SW.WATER_HEIGHT_UNIT_CONVERTER, water_height_unit_converter)
 
@@ -191,9 +194,6 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     #### Specific internal functions ####
 
-    def _IsPrintingRank(self):
-        return self._is_printing_rank
-
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input), but the wetting model should modify this extra step
         return self.main_model_part.ProcessInfo[KM.STEP] >= self.GetMinimumBufferSize()
@@ -223,6 +223,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             "echo_level"               : 0,
             "buffer_size"              : 2,
             "dynamic_tau"              : 0.005,
+            "dry_height_threshold"      : 1e-3,
             "relative_tolerance"       : 1e-6,
             "absolute_tolerance"       : 1e-9,
             "maximum_iterations"       : 20,
@@ -231,9 +232,8 @@ class ShallowWaterBaseSolver(PythonSolver):
             "calculate_norm_dx"        : true,
             "move_mesh_flag"           : false,
             "wetting_drying_model"     : {
-                "model_name"               : "rough_porous_layer",
-                "layer_thickness"          : 1.0,
-                "roughness_factor"         : 0.1
+                "model_name"               : "negative_height",
+                "beta"                     : 1e4
             },
             "linear_solver_settings"   : {
                 "solver_type"              : "amgcl"
@@ -284,9 +284,9 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def _GetConditionNumNodes(self):
         if self.main_model_part.NumberOfConditions() != 0:
-                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
+            condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes()) # python3 syntax
         else:
-            condition_num_nodes = 0
+            condition_num_nodes = 2
 
         condition_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes
