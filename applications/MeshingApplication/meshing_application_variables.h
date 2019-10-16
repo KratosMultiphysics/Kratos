@@ -50,6 +50,7 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, ANISOTROPIC_RATIO);                            // The anisotropic aspect ratio
     KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, Vector3, AUXILIAR_GRADIENT);                           // An auxiliar gradient needed to compute the metric
     KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, Vector,  AUXILIAR_HESSIAN);                            // An auxiliar hessian needed to compute the metric
+    KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, METRIC_SCALAR);                                // A single scalar metric
     KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(MESHING_APPLICATION, METRIC_TENSOR_2D); // A 2D metric vector
     KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(MESHING_APPLICATION, METRIC_TENSOR_3D); // A 3D metric vector
 

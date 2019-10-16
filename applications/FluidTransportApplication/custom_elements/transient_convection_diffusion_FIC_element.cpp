@@ -433,7 +433,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     {
 
         // TODO: S'ha de posar OmegaV = 0 si v = 0??
-        rVariables.OmegaV = rVariables.TransientAbsorption * rVariables.lv * rVariables.lv / conductivity;
+        rVariables.OmegaV = rVariables.TransientAbsorption * rVariables.lv * rVariables.lv * rVariables.rho_dot_c / conductivity;
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.HighTolerance);
 
@@ -450,7 +450,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
             rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
         }
 
-        rVariables.OmegaV = rVariables.TransientAbsorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion;
+        rVariables.OmegaV = rVariables.TransientAbsorption * rVariables.lv * rVariables.lv * rVariables.rho_dot_c / rVariables.AuxDiffusion;
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
 
@@ -546,7 +546,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     {
 
         // TODO: S'ha de posar OmegaV = 0 si v = 0??
-        rVariables.OmegaV = previous_absorption * rVariables.lv * rVariables.lv / conductivity;
+        rVariables.OmegaV = previous_absorption * rVariables.lv * rVariables.lv * rVariables.rho_dot_c / conductivity;
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.HighTolerance);
 
@@ -554,7 +554,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     else
     {
 
-        rVariables.OmegaV = previous_absorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion;
+        rVariables.OmegaV = previous_absorption * rVariables.lv * rVariables.lv * rVariables.rho_dot_c / rVariables.AuxDiffusion;
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
 

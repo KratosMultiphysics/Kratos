@@ -29,10 +29,19 @@ def _CheckIfTypeIsDeprecated(config):
         KM.Logger.PrintWarning("Trilinos-Linear-Solver-Factory", depr_msg)
         config["solver_type"].SetString(new_name)
 
+def _CheckIfSolverIsCompiled(solver_type):
+    if solver_type in ["aztec", "cg", "bicgstab", "gmres"] and not hasattr(KratosTrilinos, 'AztecSolver'):
+        raise Exception('Trying to use Aztec-solver, which was disabled at compile time with "TRILINOS_EXCLUDE_AZTEC_SOLVER"!')
+    if solver_type in ["amesos", "klu", "super_lu_dist", "mumps"] and not hasattr(KratosTrilinos, 'AmesosSolver'):
+        raise Exception('Trying to use Amesos-solver, which was disabled at compile time with "TRILINOS_EXCLUDE_AMESOS_SOLVER"!')
+    if solver_type in ["multi_level"] and not hasattr(KratosTrilinos, 'MultiLevelSolver'):
+        raise Exception('Trying to use MultiLevelSolver-solver, which was diasbled at compile time with "TRILINOS_EXCLUDE_ML_SOLVER"!')
+
 def ConstructSolver(configuration):
     if not isinstance(configuration, KM.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     _CheckIfTypeIsDeprecated(configuration) # for backwards-compatibility
+    _CheckIfSolverIsCompiled(configuration["solver_type"].GetString())
 
     return KratosTrilinos.TrilinosLinearSolverFactory().Create(configuration)

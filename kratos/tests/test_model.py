@@ -10,7 +10,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 # Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
 pickle_message = ""
 try:
-    import cickle as pickle
+    import cPickle as pickle
     have_pickle_module = True
 except ImportError:
     if sys.version_info > (3, 0):

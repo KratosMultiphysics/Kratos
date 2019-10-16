@@ -105,6 +105,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                 domain.Initialize()
                 if(domain.Active()):
                     domain.ComputeInitialAverageMeshParameters()
+                    domain.SetTimeDataOnProcessInfo()     
 
 
     def InitializeDomains(self):
