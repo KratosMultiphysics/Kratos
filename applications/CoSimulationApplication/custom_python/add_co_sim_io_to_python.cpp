@@ -322,22 +322,22 @@ void  AddCoSimIOToPython(pybind11::module& m)
         .value("ModelPart", CoSimIO_Wrappers::DataLocation::ModelPart)
         ;
 
-    py::enum_<CoSim::Internals::ControlSignals>(m,"ControlSignals")
-        .value("Dummy", CoSim::Internals::ControlSignals::Dummy)
-        .value("BreakSolutionLoop", CoSim::Internals::ControlSignals::BreakSolutionLoop)
-        .value("ConvergenceAchieved", CoSim::Internals::ControlSignals::ConvergenceAchieved)
+    py::enum_<CoSim::Internals::ControlSignal>(m,"ControlSignal")
+        .value("Dummy", CoSim::Internals::ControlSignal::Dummy)
+        .value("BreakSolutionLoop", CoSim::Internals::ControlSignal::BreakSolutionLoop)
+        .value("ConvergenceAchieved", CoSim::Internals::ControlSignal::ConvergenceAchieved)
 
-        .value("AdvanceInTime", CoSim::Internals::ControlSignals::AdvanceInTime)
-        .value("InitializeSolutionStep", CoSim::Internals::ControlSignals::InitializeSolutionStep)
-        .value("SolveSolutionStep", CoSim::Internals::ControlSignals::SolveSolutionStep)
-        .value("FinalizeSolutionStep", CoSim::Internals::ControlSignals::FinalizeSolutionStep)
+        .value("AdvanceInTime", CoSim::Internals::ControlSignal::AdvanceInTime)
+        .value("InitializeSolutionStep", CoSim::Internals::ControlSignal::InitializeSolutionStep)
+        .value("SolveSolutionStep", CoSim::Internals::ControlSignal::SolveSolutionStep)
+        .value("FinalizeSolutionStep", CoSim::Internals::ControlSignal::FinalizeSolutionStep)
 
-        .value("ImportGeometry", CoSim::Internals::ControlSignals::ImportGeometry)
-        .value("ExportGeometry", CoSim::Internals::ControlSignals::ExportGeometry)
-        .value("ImportMesh", CoSim::Internals::ControlSignals::ImportMesh)
-        .value("ExportMesh", CoSim::Internals::ControlSignals::ExportMesh)
-        .value("ImportData", CoSim::Internals::ControlSignals::ImportData)
-        .value("ExportData", CoSim::Internals::ControlSignals::ExportData)
+        .value("ImportGeometry", CoSim::Internals::ControlSignal::ImportGeometry)
+        .value("ExportGeometry", CoSim::Internals::ControlSignal::ExportGeometry)
+        .value("ImportMesh", CoSim::Internals::ControlSignal::ImportMesh)
+        .value("ExportMesh", CoSim::Internals::ControlSignal::ExportMesh)
+        .value("ImportData", CoSim::Internals::ControlSignal::ImportData)
+        .value("ExportData", CoSim::Internals::ControlSignal::ExportData)
         ;
 }
 

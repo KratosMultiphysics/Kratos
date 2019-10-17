@@ -48,7 +48,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
     def AdvanceInTime(self, current_time):
         # self.__CheckExternalSolverProcess() # TODO check why this is blocking
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignals.AdvanceInTime)
+            self.__SendControlSignal(KratosCoSim.ControlSignal.AdvanceInTime)
             # TODO this requires more, then delete the next line!
             return 0.0
         else:
@@ -57,36 +57,36 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
     def InitializeSolutionStep(self):
         super(DummySolverWrapper, self).InitializeSolutionStep()
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignals.InitializeSolutionStep)
+            self.__SendControlSignal(KratosCoSim.ControlSignal.InitializeSolutionStep)
 
     def SolveSolutionStep(self):
         super(DummySolverWrapper, self).SolveSolutionStep()
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignals.SolveSolutionStep)
+            self.__SendControlSignal(KratosCoSim.ControlSignal.SolveSolutionStep)
 
     def FinalizeSolutionStep(self):
         super(DummySolverWrapper, self).FinalizeSolutionStep()
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignals.FinalizeSolutionStep)
+            self.__SendControlSignal(KratosCoSim.ControlSignal.FinalizeSolutionStep)
 
     def Finalize(self):
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignals.BreakSolutionLoop)
+            self.__SendControlSignal(KratosCoSim.ControlSignal.BreakSolutionLoop)
         super(DummySolverWrapper, self).Finalize() # this also does the disconnect
 
     def ImportCouplingInterface(self, interface_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignals.ExportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
+            self.__SendControlSignal(KratosCoSim.ControlSignal.ExportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
         super(DummySolverWrapper, self).ImportCouplingInterface(interface_config)
 
     def ExportCouplingInterface(self, interface_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignals.ImportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
+            self.__SendControlSignal(KratosCoSim.ControlSignal.ImportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
         super(DummySolverWrapper, self).ExportCouplingInterface(interface_config)
 
     def ImportData(self, data_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal(KratosCoSim.ControlSignals.ExportData, data_config["interface_data"].name)
+            self.__SendControlSignal(KratosCoSim.ControlSignal.ExportData, data_config["interface_data"].name)
         super(DummySolverWrapper, self).ImportData(data_config)
 
     def ExportData(self, data_config):
@@ -94,7 +94,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
             if data_config["type"] == "convergence_signal":
                 # we control the ext solver, no need for sending a convergence signal
                 return
-            self.__SendControlSignal(KratosCoSim.ControlSignals.ImportData, data_config["interface_data"].name)
+            self.__SendControlSignal(KratosCoSim.ControlSignal.ImportData, data_config["interface_data"].name)
         super(DummySolverWrapper, self).ExportData(data_config)
 
     def PrintInfo(self):

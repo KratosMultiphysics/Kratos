@@ -26,7 +26,7 @@
 namespace CoSim {
 namespace Internals {
 
-enum class ControlSignals
+enum class ControlSignal
 {
     Dummy,
     BreakSolutionLoop,
