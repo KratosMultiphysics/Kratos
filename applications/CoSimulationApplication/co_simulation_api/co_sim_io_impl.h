@@ -55,12 +55,12 @@ inline bool CoSimIO::Disconnect()
 }
 
 
-inline void CoSimIO::SendControlSignal(const int rSignal, const std::string& rIdentifier)
+inline void CoSimIO::SendControlSignal(const Internals::ControlSignal Signal, const std::string& rIdentifier)
 {
-    mpComm->SendControlSignal(rSignal, rIdentifier);
+    mpComm->SendControlSignal(Signal, rIdentifier);
 
 }
-inline int CoSimIO::RecvControlSignal(std::string& rIdentifier)
+inline Internals::ControlSignal CoSimIO::RecvControlSignal(std::string& rIdentifier)
 {
     return mpComm->RecvControlSignal(rIdentifier);
 }

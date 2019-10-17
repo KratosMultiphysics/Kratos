@@ -265,7 +265,7 @@ private:
         return true;
     }
 
-    void SendControlSignalDetail(const int rSignal, const std::string& rIdentifier) override
+    void SendControlSignalDetail(Internals::ControlSignal Signal, const std::string& rIdentifier) override
     {
         const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetName() + ".dat"));
 
@@ -277,7 +277,7 @@ private:
         output_file.open(GetTempFileName(file_name));
         CheckStream(output_file, file_name);
 
-        output_file << rSignal << " " << rIdentifier;
+        output_file << static_cast<int>(Signal) << " " << rIdentifier;
 
         output_file.close();
         MakeFileVisible(file_name);
@@ -285,7 +285,7 @@ private:
         CS_LOG_IF(GetEchoLevel()>1) << "Finished sending control signal" << std::endl;
     }
 
-    int RecvControlSignalDetail(std::string& rIdentifier) override
+    Internals::ControlSignal RecvControlSignalDetail(std::string& rIdentifier) override
     {
         const std::string file_name(GetFullPath("CoSimIO_control_signal_" + GetName() + ".dat"));
 
@@ -304,7 +304,7 @@ private:
 
         CS_LOG_IF(GetEchoLevel()>1) << "Finished receiving control signal" << std::endl;
 
-        return control_signal;
+        return static_cast<Internals::ControlSignal>(control_signal);
     }
 
 

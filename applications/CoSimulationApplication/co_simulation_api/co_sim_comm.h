@@ -93,11 +93,11 @@ public:
         return true;
     }
 
-    void SendControlSignal(const int rSignal, const std::string& rIdentifier)
+    void SendControlSignal(Internals::ControlSignal Signal, const std::string& rIdentifier)
     {
-        CheckConnection(); return SendControlSignalDetail(rSignal, rIdentifier);
+        CheckConnection(); return SendControlSignalDetail(Signal, rIdentifier);
     }
-    int RecvControlSignal(std::string& rIdentifier)
+    Internals::ControlSignal RecvControlSignal(std::string& rIdentifier)
     {
         CheckConnection(); return RecvControlSignalDetail(rIdentifier);
     }
@@ -125,11 +125,11 @@ private:
     virtual bool ConnectDetail() = 0;
     virtual bool DisconnectDetail() = 0;
 
-    virtual void SendControlSignalDetail(const int rSignal, const std::string& rIdentifier)
+    virtual void SendControlSignalDetail(Internals::ControlSignal Signal, const std::string& rIdentifier)
     {
         throw std::runtime_error("SendControlSignalDetail not implemented for this comm-type");
     }
-    virtual int RecvControlSignalDetail(std::string& rIdentifier)
+    virtual Internals::ControlSignal RecvControlSignalDetail(std::string& rIdentifier)
     {
         throw std::runtime_error("RecvControlSignalDetail not implemented for this comm-type");
     }

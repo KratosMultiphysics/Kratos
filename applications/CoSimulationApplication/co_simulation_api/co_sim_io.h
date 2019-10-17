@@ -44,8 +44,8 @@ public:
     bool Connect();
     bool Disconnect();
 
-    void SendControlSignal(const int rSignal, const std::string& rIdentifier);
-    int RecvControlSignal(std::string& rIdentifier);
+    void SendControlSignal(const Internals::ControlSignal Signal, const std::string& rIdentifier);
+    Internals::ControlSignal RecvControlSignal(std::string& rIdentifier);
 
     template<class DataContainer>
     bool Import(DataContainer& rDataContainer, const std::string& rIdentifier);

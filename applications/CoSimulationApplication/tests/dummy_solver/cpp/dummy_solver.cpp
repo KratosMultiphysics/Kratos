@@ -181,7 +181,7 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
     co_sim_io.Connect();
     ExportMesh(co_sim_io, rMesh, "interface"); // send the coupling-interface mesh to be used for e.g. mapping
 
-    int control_signal;
+    CoSim::Internals::ControlSignal control_signal;
     std::string identifier;
 
     double current_time = 0.0;
@@ -195,7 +195,7 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
             SolveSolutionStep();
             ExportData(co_sim_io, rDataField, "interface_pressure");
             control_signal = co_sim_io.RecvControlSignal(identifier);
-            if (control_signal == 51) { // convergence achieved
+            if (control_signal == CoSim::Internals::ControlSignal::ConvergenceAchieved) { // convergence achieved
                 break;
             }
         }
@@ -214,16 +214,16 @@ void RunSolutionCoSimulationOrchestrated(MeshType& rMesh, DataFieldType& rDataFi
 
     co_sim_io.Connect();
 
-    int control_signal;
+    CoSim::Internals::ControlSignal control_signal;
     std::string identifier;
     while(true) {
         // receive control signal to decide what to do
         // the signals are defined in KratosMultiphysics/applications/CoSimulationApplication/python_scripts/co_simulation_tools.py
         control_signal = co_sim_io.RecvControlSignal(identifier);
-        if (control_signal == 1) {
+        if (control_signal == CoSim::Internals::ControlSignal::BreakSolutionLoop) {
             break; // coupled simulation is done
         }
-        else if (control_signal == 11) {
+        else if (control_signal == CoSim::Internals::ControlSignal::AdvanceInTime) {
             std::vector<double> time_vec(1);
             // co_sim_io.Import(/*data*/); // import current time
             const double current_time = time_vec[0];
@@ -231,36 +231,36 @@ void RunSolutionCoSimulationOrchestrated(MeshType& rMesh, DataFieldType& rDataFi
             time_vec[0] = new_time;
             // co_sim_io.Export(/*data*/); // export new time
         }
-        else if (control_signal == 12) {
+        else if (control_signal == CoSim::Internals::ControlSignal::InitializeSolutionStep) {
             InitializeSolutionStep();
             Predict();
         }
-        else if (control_signal == 13) {
+        else if (control_signal == CoSim::Internals::ControlSignal::SolveSolutionStep) {
             SolveSolutionStep();
         }
-        else if (control_signal == 14) {
+        else if (control_signal == CoSim::Internals::ControlSignal::FinalizeSolutionStep) {
             FinalizeSolutionStep();
             OutputSolutionStep();
         }
-        else if (control_signal == 21) {
+        else if (control_signal == CoSim::Internals::ControlSignal::ImportGeometry) {
             ImportGeometry(co_sim_io, identifier);
         }
-        else if (control_signal == 22) {
+        else if (control_signal == CoSim::Internals::ControlSignal::ExportGeometry) {
             ExportGeometry(co_sim_io, identifier);
         }
-        else if (control_signal == 31) {
+        else if (control_signal == CoSim::Internals::ControlSignal::ImportMesh) {
             ImportMesh(co_sim_io, rMesh, identifier);
         }
-        else if (control_signal == 32) {
+        else if (control_signal == CoSim::Internals::ControlSignal::ExportMesh) {
             ExportMesh(co_sim_io, rMesh, identifier);
         }
-        else if (control_signal == 41) {
+        else if (control_signal == CoSim::Internals::ControlSignal::ImportData) {
             ImportData(co_sim_io, rDataField, identifier);
         }
-        else if (control_signal == 42) {
+        else if (control_signal == CoSim::Internals::ControlSignal::ExportData) {
             ExportData(co_sim_io, rDataField, identifier);
         } else {
-            throw std::runtime_error("Unknown control signal: " + std::to_string(control_signal));
+            throw std::runtime_error("Unknown control signal: " + std::to_string(static_cast<int>(control_signal)));
         }
     }
 
