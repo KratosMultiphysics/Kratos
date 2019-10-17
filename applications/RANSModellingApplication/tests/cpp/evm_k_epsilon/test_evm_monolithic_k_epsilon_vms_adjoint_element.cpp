@@ -206,7 +206,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateFirst
         perturb_variable_epsilon, delta, tolerance, 4, 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateFirstDerivativesLHS_EVMEpsilonElement2D3N,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateFirstDerivativesLHS_RansEvmEpsilonElement2D3N,
                           RANSModellingApplicationElementInterfaces)
 {
     Model primal_model;
@@ -449,7 +449,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSecon
         perturb_variable_epsilon, delta, tolerance, 4, 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSecondDerivativesLHS_EVMEpsilonElement2D3N,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSecondDerivativesLHS_RansEvmEpsilonElement2D3N,
                           RANSModellingApplicationElementInterfaces)
 {
     Model primal_model;
@@ -633,7 +633,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSensi
         calculate_sensitivity_matrix_tke, perturb_variable, delta, tolerance, 0, 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSensitivityMatrix_EVMEpsilonElement2D3N,
+KRATOS_TEST_CASE_IN_SUITE(RansEvmMonolithicKEpsilonVMSAdjoint2D3N_CalculateSensitivityMatrix_RansEvmEpsilonElement2D3N,
                           RANSModellingApplicationElementInterfaces)
 {
     Model primal_model;
