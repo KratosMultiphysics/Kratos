@@ -9,8 +9,8 @@
 //  Main authors:    Philipp Bucher
 //
 
-#ifndef KRATOS_CO_SIM_API_TOOLS_H_INCLUDED
-#define KRATOS_CO_SIM_API_TOOLS_H_INCLUDED
+#ifndef KRATOS_CO_SIM_API_INTERNALS_H_INCLUDED
+#define KRATOS_CO_SIM_API_INTERNALS_H_INCLUDED
 
 // System includes
 #include <iostream>
@@ -24,7 +24,7 @@
 #include "co_sim_io_define.h"
 
 namespace CoSim {
-namespace Tools {
+namespace Internals {
 
 #define CS_LOG std::cout << "[CoSimIO] "
 #define CS_LOG_IF(condition) if(condition) CS_LOG
@@ -57,7 +57,7 @@ inline SettingsType ReadSettingsFile(const std::string& rSettingsFileName)
     return settings;
 }
 
-} // namespace Tools
+} // namespace Internals
 } // namespace CoSim
 
-#endif /* KRATOS_CO_SIM_API_TOOLS_H_INCLUDED */
+#endif /* KRATOS_CO_SIM_API_INTERNALS_H_INCLUDED */

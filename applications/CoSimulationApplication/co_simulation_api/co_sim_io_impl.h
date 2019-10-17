@@ -37,7 +37,7 @@
 namespace CoSim {
 
 inline CoSimIO::CoSimIO(const std::string& rName, const std::string& rSettingsFileName, const bool IsConnectionMaster)
-    : CoSimIO::CoSimIO(rName, Tools::ReadSettingsFile(rSettingsFileName), IsConnectionMaster) { } // forwarding constructor call
+    : CoSimIO::CoSimIO(rName, Internals::ReadSettingsFile(rSettingsFileName), IsConnectionMaster) { } // forwarding constructor call
 
 inline CoSimIO::CoSimIO(const std::string& rName, SettingsType rSettings, const bool IsConnectionMaster)
 {

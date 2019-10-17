@@ -88,7 +88,7 @@ public:
         const SettingsType default_settings = {
             {"use_folder_for_communication" , "0"}
         };
-        Tools::AddMissingSettings(default_settings, mrSettings);
+        Internals::AddMissingSettings(default_settings, mrSettings);
 
         mCommFolder = ".CoSimIOFileComm_"+rName;
         // mCommInFolder = (mrSettings.at("use_folder_for_communication") == "1"); // this is not yet supported

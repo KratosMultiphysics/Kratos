@@ -19,7 +19,7 @@
 
 // Project includes
 #include "co_sim_data_containers.h"
-#include "co_sim_api_tools.h"
+#include "co_sim_api_internals.h"
 
 namespace CoSim {
 
@@ -38,7 +38,7 @@ namespace CoSim {
 class CoSimComm
 {
 public:
-    typedef Tools::SettingsType SettingsType;
+    typedef Internals::SettingsType SettingsType;
 
     explicit CoSimComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster) : mrSettings(rSettings),mName(rName), mIsConnectionMaster(IsConnectionMaster)
     {
@@ -46,7 +46,7 @@ public:
             {"echo_level",   "1"},
             {"print_timing", "0"}
         };
-        Tools::AddMissingSettings(default_settings, mrSettings);
+        Internals::AddMissingSettings(default_settings, mrSettings);
 
         mEchoLevel = std::stoi(mrSettings.at("echo_level"));
         mPrintTiming = (mrSettings.at("print_timing") == "1");
