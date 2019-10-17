@@ -20,6 +20,9 @@
 #include <string>
 #include <unordered_map>
 
+// Project includes
+#include "co_sim_io_define.h"
+
 namespace CoSim {
 namespace Tools {
 

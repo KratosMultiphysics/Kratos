@@ -27,6 +27,7 @@ support for sockets and MPI can optionally be enabled
 #include <memory>
 
 // Project includes
+#include "co_sim_io_define.h"
 #include "co_sim_comm.h"
 
 namespace CoSim {
