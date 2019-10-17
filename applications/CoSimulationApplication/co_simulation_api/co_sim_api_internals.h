@@ -26,6 +26,25 @@
 namespace CoSim {
 namespace Internals {
 
+enum class ControlSignals
+{
+    Dummy,
+    BreakSolutionLoop,
+    ConvergenceAchieved,
+
+    AdvanceInTime,
+    InitializeSolutionStep,
+    SolveSolutionStep,
+    FinalizeSolutionStep,
+
+    ImportGeometry,
+    ExportGeometry,
+    ImportMesh,
+    ExportMesh,
+    ImportData,
+    ExportData,
+};
+
 #define CS_LOG std::cout << "[CoSimIO] "
 #define CS_LOG_IF(condition) if(condition) CS_LOG
 
