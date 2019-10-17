@@ -66,8 +66,22 @@ class TestCase(TestCase):
         msg = self._formatMessage(msg, standardMsg)
         raise self.failureException(msg)
 
+    def failUnlessVectorEqualWithTolerance(vector1, vector2, prec=7):
+        self.assertEqual(matrix1.Size1(), matrix2.Size1())
+        for i in range(matrix1.Size1()):
+            self.assertAlmostEqual(vector1[i], vector2[i], prec)
+
+    def failUnlessMatrixEqualWithTolerance(matrix1, matrix2, prec=7):
+        self.assertEqual(matrix1.Size1(), matrix2.Size1())
+        self.assertEqual(matrix1.Size2(), matrix2.Size2())
+        for i in range(matrix1.Size1()):
+            for j in range(matrix1.Size2()):
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
+
 
     assertEqualTolerance = failUnlessEqualWithTolerance
+    assertVectorAlmostEqual = failUnlessVectorEqualWithTolerance
+    assertMatrixAlmostEqual = failUnlessMatrixEqualWithTolerance
 
 @contextmanager
 def SupressConsoleOutput():
