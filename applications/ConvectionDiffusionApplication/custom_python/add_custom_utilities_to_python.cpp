@@ -94,24 +94,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     py::class_<BFECCConvection<2> > (m,"BFECCConvection2D").def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
-    .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect<Variable<double>, double>)
-    .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect<Variable<array_1d<double,3>>, array_1d<double,3>>)
-    .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions<Variable<double>>)
-    .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions<Variable<array_1d<double,3>>>)
-    .def("CopyVariableToPreviousTimeStep", &BFECCConvection<2>::CopyVariableToPreviousTimeStep<Variable<double>>)
-    .def("CopyVariableToPreviousTimeStep", &BFECCConvection<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
-    .def("CopyVariableToPreviousTimeStep", &BFECCConvection<2>::CopyVariableToPreviousTimeStep<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
+    .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
+    .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<2>::CopyScalarVarToPreviousTimeStep)
     ;
 
     py::class_<BFECCConvection<3> > (m,"BFECCConvection3D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
-    .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect<Variable<double>, double>)
-    .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect<Variable<array_1d<double,3>>, array_1d<double,3>>)
-    .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions<Variable<double>>)
-    .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
-    .def("CopyVariableToPreviousTimeStep", &BFECCConvection<3>::CopyVariableToPreviousTimeStep<Variable<double>>)
-    .def("CopyVariableToPreviousTimeStep", &BFECCConvection<3>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
-    .def("CopyVariableToPreviousTimeStep", &BFECCConvection<3>::CopyVariableToPreviousTimeStep<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
+    .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
+    .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<3>::CopyScalarVarToPreviousTimeStep)
     ;
 
