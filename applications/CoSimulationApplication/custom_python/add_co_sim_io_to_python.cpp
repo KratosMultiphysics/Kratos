@@ -315,13 +315,30 @@ void  AddCoSimIOToPython(pybind11::module& m)
         ;
 
     py::enum_<CoSimIO_Wrappers::DataLocation>(m,"DataLocation")
-    .value("NodeHistorical", CoSimIO_Wrappers::DataLocation::NodeHistorical)
-    .value("NodeNonHistorical", CoSimIO_Wrappers::DataLocation::NodeNonHistorical)
-    .value("Element", CoSimIO_Wrappers::DataLocation::Element)
-    .value("Condition", CoSimIO_Wrappers::DataLocation::Condition)
-    .value("ModelPart", CoSimIO_Wrappers::DataLocation::ModelPart)
-    ;
+        .value("NodeHistorical", CoSimIO_Wrappers::DataLocation::NodeHistorical)
+        .value("NodeNonHistorical", CoSimIO_Wrappers::DataLocation::NodeNonHistorical)
+        .value("Element", CoSimIO_Wrappers::DataLocation::Element)
+        .value("Condition", CoSimIO_Wrappers::DataLocation::Condition)
+        .value("ModelPart", CoSimIO_Wrappers::DataLocation::ModelPart)
+        ;
 
+    py::enum_<CoSim::Internals::ControlSignals>(m,"ControlSignals")
+        .value("Dummy", CoSim::Internals::ControlSignals::Dummy)
+        .value("BreakSolutionLoop", CoSim::Internals::ControlSignals::BreakSolutionLoop)
+        .value("ConvergenceAchieved", CoSim::Internals::ControlSignals::ConvergenceAchieved)
+
+        .value("AdvanceInTime", CoSim::Internals::ControlSignals::AdvanceInTime)
+        .value("InitializeSolutionStep", CoSim::Internals::ControlSignals::InitializeSolutionStep)
+        .value("SolveSolutionStep", CoSim::Internals::ControlSignals::SolveSolutionStep)
+        .value("FinalizeSolutionStep", CoSim::Internals::ControlSignals::FinalizeSolutionStep)
+
+        .value("ImportGeometry", CoSim::Internals::ControlSignals::ImportGeometry)
+        .value("ExportGeometry", CoSim::Internals::ControlSignals::ExportGeometry)
+        .value("ImportMesh", CoSim::Internals::ControlSignals::ImportMesh)
+        .value("ExportMesh", CoSim::Internals::ControlSignals::ExportMesh)
+        .value("ImportData", CoSim::Internals::ControlSignals::ImportData)
+        .value("ExportData", CoSim::Internals::ControlSignals::ExportData)
+        ;
 }
 
 }  // namespace Python.
