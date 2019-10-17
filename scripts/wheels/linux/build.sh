@@ -91,6 +91,7 @@ build () {
 
 for PYTHON in  "${PYTHONS[@]}"
 do
+    export PYTHON=$PYTHON
     echo starting build for python${PYTHON}
 	PYTHON_LOCATION=/opt/python/cp${PYTHON}-cp${PYTHON}m/bin/python
     build $PYTHON_LOCATION $1
