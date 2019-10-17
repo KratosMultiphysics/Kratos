@@ -103,6 +103,7 @@ void InitializeProcessInfo(ModelPart& rModelPart)
     rModelPart.GetProcessInfo().SetValue(WALL_SMOOTHNESS_BETA, 5.2);
     rModelPart.GetProcessInfo().SetValue(WALL_VON_KARMAN, 0.41);
     rModelPart.GetProcessInfo().SetValue(OSS_SWITCH, 0);
+    rModelPart.GetProcessInfo().SetValue(IS_CO_SOLVING_PROCESS_ACTIVE, true);
 
     // Set the element properties
     Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
@@ -165,7 +166,7 @@ void CreateModelPartConditions(ModelPart& rModelPart, std::string ConditionName)
     std::vector<ModelPart::IndexType> cond_nodes_3{3, 1};
     rModelPart.CreateNewCondition(
         ConditionName, rModelPart.GetRootModelPart().NumberOfConditions() + 1,
-        cond_nodes_3, p_cond_prop);
+        cond_nodes_3, p_cond_prop)->Set(SLIP, false);
 }
 
 void InitializeNodalVariables(ModelPart& rModelPart)
@@ -183,8 +184,9 @@ void InitializeNodalVariables(ModelPart& rModelPart)
     InitializeVariableWithRandomValues(rModelPart, VELOCITY, 5.0, 10.0, 2);
 
     InitializeVariableWithRandomValues(rModelPart, PRESSURE, 5.0, 10.0, 2);
-    InitializeVariableWithRandomValues(rModelPart, EXTERNAL_PRESSURE, 5.0, 10.0, 2);
+    InitializeVariableWithRandomValues(rModelPart, EXTERNAL_PRESSURE, 50.0, 100.0, 2);
     InitializeVariableWithRandomValues(rModelPart, ACCELERATION, 2.0, 3.0, 2);
+    InitializeYPlus(rModelPart);
 
     InitializeVariableWithValues(rModelPart, KINEMATIC_VISCOSITY, 3e-2);
     InitializeVariableWithValues(rModelPart, DENSITY, 200.0);
@@ -205,6 +207,28 @@ void InitializeNodalVariables(ModelPart& rModelPart)
                                        25.0, 30.0, 2);
     InitializeVariableWithRandomValues(rModelPart, RANS_AUX_ADJOINT_SCALAR_2,
                                        25.0, 30.0, 2);
+}
+
+void InitializeYPlus(ModelPart& rModelPart)
+{
+    const int number_of_nodes = rModelPart.NumberOfNodes();
+
+    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const double c_mu_25 = std::pow(r_process_info[TURBULENCE_RANS_C_MU], 0.25);
+    const double von_karman = r_process_info[WALL_VON_KARMAN];
+    const double beta = r_process_info[WALL_SMOOTHNESS_BETA];
+
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        NodeType& r_node = *(rModelPart.NodesBegin() + i_node);
+        const array_1d<double, 3>& r_velocity = r_node.FastGetSolutionStepValue(VELOCITY);
+        const double velocity_magnitude = norm_2(r_velocity);
+        const double tke = r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY);
+
+        double& y_plus = r_node.FastGetSolutionStepValue(RANS_Y_PLUS);
+
+        y_plus = std::exp(von_karman * (velocity_magnitude / (c_mu_25 * std::sqrt(tke)) - beta)) * std::pow(-1, i_node) * 1.1;
+    }
 }
 
 void CreateEquationIds(ModelPart& rModelPart)

@@ -78,6 +78,8 @@ void ReadNodalDataFromElement(Vector& rYPlus,
                               Vector& rFmu,
                               const Element& rElement);
 
+void InitializeYPlus(ModelPart& rModelPart);
+
 } // namespace RansEvmKEpsilonModel
 } // namespace Testing
 } // namespace Kratos
