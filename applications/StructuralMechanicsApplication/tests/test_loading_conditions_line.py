@@ -40,7 +40,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         rhs = KratosMultiphysics.Vector(0)
 
         #first we apply a constant LINE_LOAD to theh condition
-        Line_Load_i = 10000.00/math.sqrt(2) #apply a 45° load
+        Line_Load_i = 10000.00/math.sqrt(2) #apply a 45 degrees load
 
         load_on_cond = KratosMultiphysics.Vector(3)
         load_on_cond[0] = 0.00
