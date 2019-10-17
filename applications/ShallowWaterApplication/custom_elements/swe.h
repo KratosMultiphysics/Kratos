@@ -220,7 +220,6 @@ protected:
         LocalVectorType rain;
         LocalVectorType unknown;
         LocalVectorType prev_unk;
-        LocalVectorType proj_unk;
 
         // Shape functions and derivatives
         BoundedMatrix<double, 2, LocalSize> N_q;

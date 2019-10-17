@@ -37,8 +37,6 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(MOMENTUM)
     KRATOS_CHECK_VARIABLE_KEY(FREE_SURFACE_ELEVATION)
-    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_SCALAR1)
-    KRATOS_CHECK_VARIABLE_KEY(PROJECTED_VECTOR1)
     KRATOS_CHECK_VARIABLE_KEY(TOPOGRAPHY)
     KRATOS_CHECK_VARIABLE_KEY(RAIN)
     KRATOS_CHECK_VARIABLE_KEY(MANNING)
@@ -55,8 +53,6 @@ int SWE<TNumNodes, TFramework>::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FREE_SURFACE_ELEVATION, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TOPOGRAPHY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
 
@@ -213,6 +209,9 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.manning2 = std::pow(rVariables.manning2, 2);
 
     rVariables.porosity *= rVariables.lumping_factor;
+    if (rVariables.porosity < 1.0) {
+        rVariables.porosity = 0.0;
+    }
 }
 
 
@@ -242,24 +241,17 @@ void SWE<TNumNodes, TFramework>::GetNodalValues(ElementVariables& rVariables)
         rVariables.rain[counter]  = 0;
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X);
         rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(MOMENTUM_X, 1);
-        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_X);
         counter++;
 
         rVariables.rain[counter]  = 0;
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y);
         rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y, 1);
-        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1_Y);
         counter++;
 
         rVariables.rain[counter]  = rGeom[i].FastGetSolutionStepValue(RAIN);
         rVariables.unknown[counter]  = rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
         rVariables.prev_unk[counter] = rGeom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1);
-        rVariables.proj_unk[counter] = rGeom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1);
         counter++;
-    }
-    if (TFramework == PFEM2)
-    {
-        rVariables.prev_unk = rVariables.proj_unk;
     }
 }
 
@@ -292,7 +284,7 @@ void SWE<TNumNodes, TFramework>::CalculateElementValues(
         rVariables.momentum_div += rDN_DX(i,1) * rGeom[i].FastGetSolutionStepValue(MOMENTUM_Y);
         rVariables.velocity_div += rDN_DX(i,0) * rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
         rVariables.velocity_div += rDN_DX(i,1) * rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
-        rVariables.projected_momentum += rGeom[i].FastGetSolutionStepValue(PROJECTED_VECTOR1);
+        rVariables.projected_momentum += rGeom[i].FastGetSolutionStepValue(MOMENTUM, 1);
     }
 
     rVariables.velocity *= rVariables.lumping_factor;
@@ -460,8 +452,8 @@ void SWE<TNumNodes, TFramework>::AddStabilizationTerms(
     LocalMatrixType vector_diffusion = outer_prod(rVariables.DN_DX_q, rVariables.DN_DX_q);
     LocalMatrixType scalar_diffusion = prod(trans(rVariables.DN_DX_h), rVariables.DN_DX_h);
     const double p = rVariables.porosity;
-    rLeftHandSideMatrix += p * tau_f * vector_diffusion;
-    rLeftHandSideMatrix += p * tau_u * rVariables.wave_vel_2 * scalar_diffusion;
+    rLeftHandSideMatrix += p * tau_u * rVariables.wave_vel_2 * vector_diffusion;
+    rLeftHandSideMatrix += p * tau_f * scalar_diffusion;
     rLeftHandSideMatrix += (1 - p) * rVariables.permeability * scalar_diffusion;
 }
 
