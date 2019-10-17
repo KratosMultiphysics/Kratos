@@ -35,7 +35,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 ###############################################################################
 if(USE_COTIRE MATCHES ON)
-  cotire(KratosFluidDynamicsTrilinosExtension)
+    cotire(KratosFluidDynamicsTrilinosExtension)
 endif(USE_COTIRE MATCHES ON)
 
 ###############################################################################
