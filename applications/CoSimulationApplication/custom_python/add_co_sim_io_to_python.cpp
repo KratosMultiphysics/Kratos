@@ -23,6 +23,9 @@
 // Note that this has to be done BEFORE including the header the first time
 #define KRATOS_CO_SIM_INFO KRATOS_INFO
 #define KRATOS_CO_SIM_INFO_IF KRATOS_INFO_IF
+#define KRATOS_CO_SIM_ERROR KRATOS_ERROR
+#define KRATOS_CO_SIM_ERROR_IF KRATOS_ERROR_IF
+#define KRATOS_CO_SIM_ERROR_IF_NOT KRATOS_ERROR_IF_NOT
 #include "co_simulation_api/co_sim_io.h"
 
 namespace Kratos {
