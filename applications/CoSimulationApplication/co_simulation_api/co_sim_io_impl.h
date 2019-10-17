@@ -65,6 +65,125 @@ inline Internals::ControlSignal CoSimIO::RecvControlSignal(std::string& rIdentif
     return mpComm->RecvControlSignal(rIdentifier);
 }
 
+
+inline void CoSimIO::RegisterAdvanceInTime(double (*pFuncPtr)(double))
+{
+    mpAdvInTime = pFuncPtr;
+}
+
+inline void CoSimIO::RegisterInitializeSolutionStep(void (*pFuncPtr)())
+{
+    mpInitSolStep = pFuncPtr;
+}
+
+inline void CoSimIO::RegisterSolveSolutionStep(void (*pFuncPtr)())
+{
+    mpSolSolStep = pFuncPtr;
+}
+
+inline void CoSimIO::RegisterFinalizeSolutionStep(void (*pFuncPtr)())
+{
+    mpFinSolStep = pFuncPtr;
+}
+
+inline void CoSimIO::RegisterImportGeometry(void (*pFuncPtr)(const std::string&))
+{
+    mpImportGeom = pFuncPtr;
+}
+
+inline void CoSimIO::RegisterExportGeometry(void (*pFuncPtr)(const std::string&))
+{
+    mpExportGeom = pFuncPtr;
+}
+
+inline void CoSimIO::RegisterImportMesh(void (*pFuncPtr)(const std::string&))
+{
+    mpImportMesh = pFuncPtr;
+}
+
+inline void CoSimIO::RegisterExportMesh(void (*pFuncPtr)(const std::string&))
+{
+    mpExportMesh = pFuncPtr;
+}
+
+inline void CoSimIO::RegisterImportData(void (*pFuncPtr)(const std::string&))
+{
+    mpImportData = pFuncPtr;
+}
+
+inline void CoSimIO::RegisterExportData(void (*pFuncPtr)(const std::string&))
+{
+    mpExportData = pFuncPtr;
+}
+
+
+inline void CoSimIO::Run()
+{
+    CoSim::Internals::ControlSignal control_signal;
+    std::string identifier;
+    while(true) {
+        control_signal = RecvControlSignal(identifier);
+        if (control_signal == CoSim::Internals::ControlSignal::BreakSolutionLoop) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: BreakSolutionLoop" << std::endl;
+            break; // coupled simulation is done
+        } else if (control_signal == CoSim::Internals::ControlSignal::AdvanceInTime) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: AdvanceInTime" << std::endl;
+            KRATOS_CO_SIM_ERROR_IF_NOT(mpAdvInTime) << "No function was registered for \"AdvanceInTime\"!" << std::endl;
+
+            std::vector<double> time_vec(1);
+            DataContainers::Data time_data = {time_vec};
+            Import(time_data, "time_from_co_sim");
+            time_vec[0] = mpAdvInTime(time_vec[0]);
+            Export(time_data, "time_to_co_sim");
+        } else if (control_signal == CoSim::Internals::ControlSignal::InitializeSolutionStep) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: InitializeSolutionStep" << std::endl;
+            KRATOS_CO_SIM_ERROR_IF_NOT(mpInitSolStep) << "No function was registered for \"InitializeSolutionStep\"!" << std::endl;
+            mpInitSolStep();
+
+        } else if (control_signal == CoSim::Internals::ControlSignal::SolveSolutionStep) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: SolveSolutionStep" << std::endl;
+            KRATOS_CO_SIM_ERROR_IF_NOT(mpSolSolStep) << "No function was registered for \"SolveSolutionStep\"!" << std::endl;
+            mpSolSolStep();
+        } else if (control_signal == CoSim::Internals::ControlSignal::FinalizeSolutionStep) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: FinalizeSolutionStep" << std::endl;
+            KRATOS_CO_SIM_ERROR_IF_NOT(mpFinSolStep) << "No function was registered for \"FinalizeSolutionStep\"!" << std::endl;
+            mpFinSolStep();
+        } else if (control_signal == CoSim::Internals::ControlSignal::ImportGeometry) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: ImportGeometry" << std::endl;
+            KRATOS_CO_SIM_ERROR_IF_NOT(mpImportGeom) << "No function was registered for \"ImportGeometry\"!" << std::endl;
+            mpImportGeom(identifier);
+        } else if (control_signal == CoSim::Internals::ControlSignal::ExportGeometry) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: ExportGeometry" << std::endl;
+            KRATOS_CO_SIM_ERROR_IF_NOT(mpExportGeom) << "No function was registered for \"ExportGeometry\"!" << std::endl;
+            mpExportGeom(identifier);
+        } else if (control_signal == CoSim::Internals::ControlSignal::ImportMesh) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: ImportMesh" << std::endl;
+            KRATOS_CO_SIM_ERROR_IF_NOT(mpImportMesh) << "No function was registered for \"ImportMesh\"!" << std::endl;
+            mpImportMesh(identifier);
+        } else if (control_signal == CoSim::Internals::ControlSignal::ExportMesh) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: ExportMesh" << std::endl;
+            KRATOS_CO_SIM_ERROR_IF_NOT(mpExportMesh) << "No function was registered for \"ExportMesh\"!" << std::endl;
+            mpExportMesh(identifier);
+        } else if (control_signal == CoSim::Internals::ControlSignal::ImportData) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: ImportData" << std::endl;
+            KRATOS_CO_SIM_ERROR_IF_NOT(mpImportData) << "No function was registered for \"ImportData\"!" << std::endl;
+            mpImportData(identifier);
+        } else if (control_signal == CoSim::Internals::ControlSignal::ExportData) {
+            KRATOS_CO_SIM_INFO("CoSimIO") << "Received control-signal for: ExportData" << std::endl;
+            KRATOS_CO_SIM_ERROR_IF_NOT(mpExportData) << "No function was registered for \"ExportData\"!" << std::endl;
+            mpExportData(identifier);
+        } else {
+            KRATOS_CO_SIM_ERROR << "Unknown control signal received: " << static_cast<int>(control_signal) << std::endl;;
+        }
+    }
+}
+
+inline bool CoSimIO::IsConverged()
+{
+    std::string dummy("");
+    return RecvControlSignal(dummy) == CoSim::Internals::ControlSignal::ConvergenceAchieved;
+}
+
 template<class DataContainer>
 bool CoSimIO::Import(DataContainer& rContainer, const std::string& rIdentifier)
 {

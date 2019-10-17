@@ -45,7 +45,21 @@ public:
     bool Disconnect();
 
     void SendControlSignal(const Internals::ControlSignal Signal, const std::string& rIdentifier);
-    Internals::ControlSignal RecvControlSignal(std::string& rIdentifier);
+    bool IsConverged();
+
+    void RegisterAdvanceInTime(double (*pFuncPtr)(double));
+    void RegisterInitializeSolutionStep(void (*pFuncPtr)());
+    void RegisterSolveSolutionStep(void (*pFuncPtr)());
+    void RegisterFinalizeSolutionStep(void (*pFuncPtr)());
+
+    void RegisterImportGeometry(void (*pFuncPtr)(const std::string&));
+    void RegisterExportGeometry(void (*pFuncPtr)(const std::string&));
+    void RegisterImportMesh(void (*pFuncPtr)(const std::string&));
+    void RegisterExportMesh(void (*pFuncPtr)(const std::string&));
+    void RegisterImportData(void (*pFuncPtr)(const std::string&));
+    void RegisterExportData(void (*pFuncPtr)(const std::string&));
+
+    void Run();
 
     template<class DataContainer>
     bool Import(DataContainer& rDataContainer, const std::string& rIdentifier);
@@ -56,7 +70,22 @@ public:
 private:
     std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
 
+    double (*mpAdvInTime)(double) = nullptr;
+    void (*mpInitSolStep)() = nullptr;
+    void (*mpSolSolStep)() = nullptr;
+    void (*mpFinSolStep)() = nullptr;
+
+    void (*mpImportGeom)(const std::string&) = nullptr;
+    void (*mpExportGeom)(const std::string&) = nullptr;
+
+    void (*mpImportMesh)(const std::string&) = nullptr;
+    void (*mpExportMesh)(const std::string&) = nullptr;
+
+    void (*mpImportData)(const std::string&) = nullptr;
+    void (*mpExportData)(const std::string&) = nullptr;
+
     void Initialize(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster);
+    Internals::ControlSignal RecvControlSignal(std::string& rIdentifier);
 
 }; // class CoSimIO
 
