@@ -23,6 +23,7 @@
 #include "custom_utilities/replicate_model_part_utility.h"
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/post_process_utilities.h"
+#include "custom_utilities/bfecc_convection_utility.h"
 
 
 namespace Kratos
@@ -96,6 +97,18 @@ namespace Python
         .def("DefineAuxiliaryProperties", &PostProcessUtilities::DefineAuxiliaryProperties)
         .def("AssignDryWetProperties", &PostProcessUtilities::AssignDryWetProperties)
         .def("RestoreDryWetProperties", &PostProcessUtilities::RestoreDryWetProperties)
+        ;
+
+    py::class_< BFECCConvectionUtility<2> > (m, "BFECCConvectionUtility")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Convect", &BFECCConvectionUtility<2>::Convect<Variable<double>,double>)
+        .def("Convect", &BFECCConvectionUtility<2>::Convect<Variable<array_1d<double,3>>,array_1d<double,3>>)
+        .def("UpdateSearchDatabase", &BFECCConvectionUtility<2>::UpdateSearchDatabase)
+        .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<Variable<double>>)
+        .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
+        .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<double>>)
+        .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
         ;
 
   }
