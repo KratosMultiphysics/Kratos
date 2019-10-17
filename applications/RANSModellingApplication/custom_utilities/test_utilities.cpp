@@ -522,8 +522,6 @@ void RunResidualScalarSensitivityTest(
             adjoint_total_condition_residual_sensitivity, r_adjoint_condition,
             r_adjoint_process_info);
 
-        KRATOS_WATCH(adjoint_total_condition_residual_sensitivity);
-
         ConditionType& r_primal_condition =
             *(rPrimalModelPart.ConditionsBegin() + i_condition);
         GeometryType& r_primal_geometry = r_primal_condition.GetGeometry();
@@ -559,8 +557,6 @@ void RunResidualScalarSensitivityTest(
             CalculateResidual(residual, r_primal_condition, r_primal_process_info);
 
             noalias(residual_sensitivity) = (residual - residual_0) / Delta;
-
-            KRATOS_WATCH(residual_sensitivity);
 
             for (std::size_t i_check_equation = 0;
                  i_check_equation < number_of_equations; ++i_check_equation)
