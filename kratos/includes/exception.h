@@ -152,11 +152,11 @@ namespace Kratos
   ///@name Kratos Macros
   ///@{
 
-#define KRATOS_ERROR throw Exception("Error: ", KRATOS_CODE_LOCATION)
+#define KRATOS_ERROR throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
 
-#define KRATOS_ERROR_IF(conditional) if(conditional) throw Exception("Error: ", KRATOS_CODE_LOCATION)
+#define KRATOS_ERROR_IF(conditional) if(conditional) throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
 
-#define KRATOS_ERROR_IF_NOT(conditional) if(!(conditional)) throw Exception("Error: ", KRATOS_CODE_LOCATION)
+#define KRATOS_ERROR_IF_NOT(conditional) if(!(conditional)) throw Kratos::Exception("Error: ", KRATOS_CODE_LOCATION)
 
 #ifdef KRATOS_DEBUG
 #define KRATOS_DEBUG_ERROR KRATOS_ERROR
