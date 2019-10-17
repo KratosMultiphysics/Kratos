@@ -50,7 +50,7 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
 
         execution_options.Set(KratosDelaunay.MesherUtilities.SELECT_TESSELLATION_ELEMENTS, True)
         execution_options.Set(KratosDelaunay.MesherUtilities.KEEP_ISOLATED_NODES, True)
-
+        execution_options.Set(KratosDelaunay.MesherUtilities.REFINE_WALL_CORNER, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
 

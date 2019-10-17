@@ -282,12 +282,7 @@ public:
 
                     if (dimension == 3)
                     {
-                        if (numfreesurf == 0 && numrigid > 0 && numisolated == 0)
-                        {
-                            Alpha *= 1.3;
-                        }else{
-                            Alpha *= 1.1;
-                        }
+                        Alpha *= 1.1;
                     }
                 }
 

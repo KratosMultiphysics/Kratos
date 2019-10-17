@@ -931,7 +931,7 @@ private:
 		double meshSize = mrRemesh.Refine->CriticalRadius;
 		double distance = 2 * meshSize;
 		double seperation = 0;
-		double coefficient =0;
+		double coefficient = 0;
 		if (meshSize > mrRemesh.RefiningBoxMeshSize)
 		{
 			if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[0] < RefiningBoxMaximumPoint[0] &&
@@ -1018,7 +1018,7 @@ private:
 		double meshSize = mrRemesh.Refine->CriticalRadius;
 		double distance = 2.0 * meshSize;
 		double seperation = 0;
-		double coefficient =0;
+		double coefficient = 0;
 		if (meshSize > mrRemesh.RefiningBoxMeshSize)
 		{
 			if (NodeCoordinates[0] > RefiningBoxMinimumPoint[0] && NodeCoordinates[0] < RefiningBoxMaximumPoint[0] &&
@@ -1121,7 +1121,6 @@ private:
 	{
 
 		KRATOS_TRY
-
 		double safetyCoefficient3D = 0.6;
 		// double safetyCoefficient3D=0.7;
 
@@ -1134,15 +1133,15 @@ private:
 		{
 			array_1d<double, 3> RefiningBoxMinimumPoint = mrRemesh.RefiningBoxMinimumPoint;
 			array_1d<double, 3> RefiningBoxMaximumPoint = mrRemesh.RefiningBoxMaximumPoint;
-			if (eElement[0].X() > mrRemesh.RefiningBoxMinimumPoint[0] && eElement[0].X() < mrRemesh.RefiningBoxMinimumPoint[0] && 
-				eElement[0].Y() > mrRemesh.RefiningBoxMinimumPoint[1] && eElement[0].Y() < mrRemesh.RefiningBoxMinimumPoint[1] && 
+			if (eElement[0].X() > mrRemesh.RefiningBoxMinimumPoint[0] && eElement[0].X() < mrRemesh.RefiningBoxMinimumPoint[0] &&
+				eElement[0].Y() > mrRemesh.RefiningBoxMinimumPoint[1] && eElement[0].Y() < mrRemesh.RefiningBoxMinimumPoint[1] &&
 				eElement[0].Z() > mrRemesh.RefiningBoxMinimumPoint[2] && eElement[0].Z() < mrRemesh.RefiningBoxMinimumPoint[2])
 			{
-				criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.RefiningBoxMeshSize, 3)  / (6.0*sqrt(2)) ); //mean Volume per node with 0.025 of penalization
+				criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.RefiningBoxMeshSize, 3) / (6.0 * sqrt(2))); //mean Volume per node with 0.025 of penalization
 			}
 			else
 			{
-				criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.Refine->CriticalRadius, 3) /(6.0*sqrt(2)) );
+				criticalVolume = 0.25 * 0.1 * (pow(mrRemesh.Refine->CriticalRadius, 3) / (6.0 * sqrt(2)));
 			}
 		}
 
@@ -1354,6 +1353,21 @@ private:
 		// ////////  to compare the non-wall length to wall edge length /////////
 		for (unsigned int i = 0; i < Edges.size(); i++)
 		{
+
+			if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
+			{
+				const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+				double currentTime = rCurrentProcessInfo[TIME];
+				double deltaTime = rCurrentProcessInfo[DELTA_TIME];
+				if (freeSurfaceNodes == 0 && currentTime > 2.0 * deltaTime)
+				{
+					safetyCoefficient3D *= 0.3;
+				}
+				if (currentTime < 2.0 * deltaTime)
+				{
+					safetyCoefficient3D *= 1.05;
+				}
+			}
 			if (((eElement[FirstEdgeNode[i]].Is(RIGID) && eElement[SecondEdgeNode[i]].IsNot(RIGID)) ||
 				 (eElement[SecondEdgeNode[i]].Is(RIGID) && eElement[FirstEdgeNode[i]].IsNot(RIGID))) &&
 				eElement[FirstEdgeNode[i]].IsNot(TO_ERASE) &&
