@@ -78,6 +78,7 @@
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 #include "custom_conditions/point_moment_condition_3d.h"
+#include "custom_conditions/displacement_control_condition.h"
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
@@ -455,6 +456,9 @@ private:
     // Adjoint Conditions
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition2D1N;
     const AdjointSemiAnalyticPointLoadCondition<PointLoadCondition> mAdjointSemiAnalyticPointLoadCondition3D1N;
+
+    // Displacement-Control Conditions
+    const DisplacementControlCondition mDisplacementControlCondition3D1N;
 
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
