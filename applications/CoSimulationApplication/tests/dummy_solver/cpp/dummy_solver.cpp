@@ -21,7 +21,7 @@ into the CoSimulation framework works
 #include <stdexcept>
 
 // CoSimulation includes
-#include "co_simulation_api/co_sim_io.h"
+#include "co_simulation_api/co_sim_io_cpp.h"
 
 typedef std::vector<std::vector<std::array<double, 2>>> MeshType;
 typedef std::vector<double> DataFieldType;

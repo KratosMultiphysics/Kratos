@@ -45,6 +45,7 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     set_target_properties(KratosCoSimulationApplication PROPERTIES PREFIX "")
     install(TARGETS KratosCoSimulationApplication DESTINATION libs )
 
+    add_library(CoSimIO SHARED ${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_api/co_sim_io.cpp )
     # creating the auxiliary executables
     set(KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_ping_pong_solvers/cpp_test_solver_ping/cpp_test_solver_ping.cpp)
     set(KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_ping_pong_solvers/cpp_test_solver_pong/cpp_test_solver_pong.cpp)
@@ -52,9 +53,12 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     add_executable (ping ${KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES})
     add_executable (pong ${KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES})
     add_executable (dummy_solver_cpp ${KRATOS_CO_SIMULATION_TESTING_CPP_DUMMY_SOLVER_SOURCES})
+    target_link_libraries(dummy_solver_cpp CoSimIO)
     install(TARGETS ping DESTINATION libs )
     install(TARGETS pong DESTINATION libs )
     install(TARGETS dummy_solver_cpp DESTINATION libs )
+    install(TARGETS CoSimIO DESTINATION libs)
+
 
     include(CMakeAddFortranSubdirectory)
     cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests/dummy_solver/fortran NO_EXTERNAL_INSTALL)
