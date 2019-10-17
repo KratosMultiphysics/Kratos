@@ -135,6 +135,7 @@ CMAKE_APPLICATION=(
 CMAKE_BUILD=(
   # compiling the MPI-Core (required for e.g. TrilinosApp)
   -DMPI_NEEDED=ON
+  -DCOTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES="-j2"
 
    # CMake C compiler
   -DCMAKE_C_COMPILER=${C_COMPILER}
