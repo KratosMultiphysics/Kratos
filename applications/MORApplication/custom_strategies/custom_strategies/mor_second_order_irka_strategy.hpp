@@ -28,13 +28,8 @@
 //default builder and solver
 #include "custom_strategies/custom_builder_and_solvers/system_matrix_builder_and_solver.hpp"
 
-//test include eigen matrix
-#include <Eigen/Dense>
-
 namespace Kratos
 {
-
-    using complex = std::complex<double>;
 
 ///@name Kratos Globals
 ///@{
@@ -60,14 +55,12 @@ namespace Kratos
  * @class MorSecondOrderIRKAStrategy
  * @ingroup KratosCore
  * @brief This is the Iterative Rational Krylov Algorithm
- * @details This strategy builds the K and M matrices and outputs them
- * @author Matthias Ebert, based on code of Aditya Ghantasala and Quirin Aumann
+ * @details This strategy builds the reduced K and M matrices and outputs them
+ * @author Matthias Ebert, based on code of Quirin Aumann
  */
 template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-          //class TLinearSolver  // feast? TODO: check if this is necessary
-          //class TTrilLinearSolver
           >
 class MorSecondOrderIRKAStrategy
     // : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -114,11 +107,6 @@ class MorSecondOrderIRKAStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef TUblasSparseSpace<complex> ComplexSparseSpaceType;
-    typedef TUblasDenseSpace<complex> ComplexDenseSpaceType;
-
-    typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
-
     ///@}
     ///@name Life Cycle
 
@@ -134,11 +122,10 @@ class MorSecondOrderIRKAStrategy
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
-        typename TLinearSolver::Pointer pNewLinearEigSolver,
-        typename ComplexLinearSolverType::Pointer pNewcomplexLinearSolver,
+        typename TLinearSolver::Pointer pNewLinearEigenSolver,
         vector< double > samplingPoints,
         bool MoveMeshFlag = false)
-        : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)  //hier evtl. direkt LU solver //TODO:  
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)
     {
         KRATOS_TRY;
 
@@ -153,7 +140,7 @@ class MorSecondOrderIRKAStrategy
         // Saving the linear solver        
         this->SetLinearSolver(pNewLinearSolver);
 
-        // Set flags to correctly start the calculations
+        // Set flags to start correctly the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -172,9 +159,7 @@ class MorSecondOrderIRKAStrategy
 
         mSamplingPoints = samplingPoints;
 
-        mpNewLinearEigSolver = pNewLinearEigSolver;
-
-        mpComplexLinearSolver = pNewcomplexLinearSolver;
+        mpNewLinearEigenSolver = pNewLinearEigenSolver;
 
         KRATOS_CATCH("");
     }
@@ -201,340 +186,223 @@ class MorSecondOrderIRKAStrategy
         KRATOS_TRY;
         std::cout << "hello! this is where the second order IRKA MOR magic happens" << std::endl;
         typename TSchemeType::Pointer p_scheme = this->GetScheme();
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver(); // LU
-        //TODO: write functions to clear
-        typename TBuilderAndSolverType::Pointer p_builder_and_solver_feast = typename TBuilderAndSolverType::Pointer(new TBuilderAndSolverType(mpNewLinearEigSolver)); // FEAST
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
+        //TODO: clear new insance at the end
+        // is there any shorter way do define this?
+        typename TBuilderAndSolverType::Pointer p_eigensolver = typename TBuilderAndSolverType::Pointer(new TBuilderAndSolverType(mpNewLinearEigenSolver));
         
-        TSystemMatrixType& r_K_size_n = this->GetSystemMatrix();  // n x n
-        TSystemMatrixType& r_M_size_n = this->GetMassMatrix();  // n x n
-        TSystemMatrixType& r_D_size_n = this->GetDampingMatrix();  // n x n
-        TSystemVectorType& r_b_size_n = this->GetSystemVector();  // n x 1
+        TSystemMatrixType& r_K = this->GetSystemMatrix();
+        TSystemMatrixType& r_M = this->GetMassMatrix();
+        TSystemMatrixType& r_D = this->GetDampingMatrix();
+        TSystemVectorType& r_b = this->GetSystemVector();  // originally RHS, check if results are bad
 
-        TSystemVectorType tmp(r_K_size_n.size1(), 0.0);
+        TSystemVectorType tmp(r_K.size1(), 0.0);
 
-        p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_b_size_n);
+        p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_b);
 
-        p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K_size_n, tmp);
-        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), r_K_size_n, tmp, r_b_size_n);  
+        p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K, tmp);
+        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), r_K, tmp, r_b);  
 
-        p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), r_M_size_n, tmp);
-        p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), r_M_size_n);
+        p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), r_M, tmp);
+        p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), r_M);
 
-        p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D_size_n, tmp);
-        p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D_size_n);
+        p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D, tmp);
+        p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D);
 
+
+        // DEBUG: print matrix information 
         // EchoInfo(0);
-        const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize();
+
+
+        const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize(); // n
         //sampling points
         KRATOS_WATCH(mSamplingPoints)
-        const std::size_t n_sampling_points = mSamplingPoints.size();
-        const std::size_t reduced_system_size = n_sampling_points; //number of sampling points
+        const std::size_t n_sampling_points = mSamplingPoints.size(); // number of sampling points
+        const std::size_t reduced_system_size = n_sampling_points; // r
 
-        KRATOS_WATCH(system_size) // n
-        KRATOS_WATCH(reduced_system_size) // r
 
-        // print all nxn matrices for DEBUG
-        //TODO: print directly, too big for output
+        //TODO: allow for complex sampling points, cplxpair
+        // store the sampling points for error calculations in the convergence loop for convergence check
+        auto samplingPoints_old = mSamplingPoints;
+
+
         
-        //KRATOS_WATCH(r_M_size_n)
-        //KRATOS_WATCH(r_K_size_n)
-        //KRATOS_WATCH(r_D_size_n) // G
-        KRATOS_WATCH(r_b_size_n)
+        // initialize V (=W, due to symmetry in FEM applications)
+        auto  Vr_ptr = DenseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_Vr   = *Vr_ptr;
+        DenseSpaceType::Resize(r_Vr, system_size, reduced_system_size); // n x r
+        //DenseSpaceType::Set(r_Vr, 0.0); // only works with vectors, matrices are automatically set to zero        
         
 
-        std::cout<<"r_D_size_n:\n";
-        for (unsigned int i=0; i<system_size; i++){
-            for(unsigned int j=0; j<system_size; j++){
-                if(std::abs(r_D_size_n(i,j))>1e-11){
-                std::cout<< r_D_size_n(i,j) << " (" << i <<","<< j << ")" << std::endl;
-                }
-            }
-        }
+        // initialize helper variables for V
+        auto  tmp_Vn_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_tmp_Vn   = *tmp_Vn_ptr;
+        SparseSpaceType::Resize(r_tmp_Vn, system_size, system_size); // n x n
+        
+        auto  tmp_Vr_col_ptr = DenseSpaceType::CreateEmptyVectorPointer();
+        auto& r_tmp_Vr_col   = *tmp_Vr_col_ptr;
+        DenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
+        DenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
 
 
-        // initialize V (=W, due to symmetry in FEM application)
-        auto Vrp_col = DenseSpaceType::CreateEmptyVectorPointer();
-        auto& r_Vr_col = *Vrp_col;
-        DenseSpaceType::Resize(r_Vr_col, system_size);  // n x 1
-        DenseSpaceType::Set(r_Vr_col,0.0);
+        // mit dem hier, angelehnt an den Matlab-Code, klappt es nicht...
 
-        auto Vrp = DenseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_Vr = *Vrp;
-        DenseSpaceType::Resize(r_Vr,system_size, reduced_system_size);  // n x r
-        //SparseSpaceType::Set(Vr,0.0);  // only works with vectors
+        // for(size_t i=0; i < n_sampling_points/2; ++i)
+        // {
+        //     KRATOS_WATCH(mSamplingPoints(i)) // ok
+        //     r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
+        //     //KRATOS_WATCH(r_tmp_Vn) // ok
+        //     p_builder_and_solver->GetLinearSystemSolver()->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
+        //     //KRATOS_WATCH(r_tmp_Vr_col);  // alles 0 ???
+        //     column(r_Vr, 2*i) = real(r_tmp_Vr_col) ;
+        //     column(r_Vr, 2*i+1) = imag(r_tmp_Vr_col) ;
+        // }
+
+        // TODO: very big entries in r_Vr, check if results are wrong
+        // works for n=50 (306), but not for n=5 (36)
+        //KRATOS_WATCH(r_Vr)
 
 
-        // temporal helper
-        auto V_h = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_V_h = *V_h;
-        SparseSpaceType::Resize(r_V_h, system_size, system_size); // n x n
-
-
-        // step 2 as described in Wyatt 2012, Alg. 5.3.2     
-        // TODO: maybe put this in a function, since this also present in the while loop   
-        for( size_t i = 0; i < n_sampling_points; ++i )
+        for(size_t i=0; i < n_sampling_points; ++i)
         {
-            KRATOS_WATCH( mSamplingPoints(i) )
-            r_V_h = std::pow( mSamplingPoints(i), 2.0 ) * r_M_size_n + mSamplingPoints(i) * r_D_size_n + r_K_size_n;
-            
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_V_h, r_Vr_col, r_b_size_n );
-            // multiply here with tangential direction b1, ..., br? Or postpone to QR later?
-            // initial tangent directions unit vectors?
-            column(r_Vr, i) = r_Vr_col;
-
+            r_tmp_Vn = std::pow( mSamplingPoints(i), 2.0 ) * r_M + mSamplingPoints(i) * r_D + r_K;
+            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b);
+            column(r_Vr, i) = r_tmp_Vr_col;
         }
 
+
+
+
+        //orthogonalize
+        // TODO: if time left, replace by some orthogonlization method
         mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr)(0,0) );
         mQR_decomposition.compute_q();
 
-        
-        for( size_t i = 0; i < system_size; ++i )
+        for(size_t i=0; i < system_size; ++i)
         {
-            for( size_t j = 0; j < reduced_system_size; ++j )
+            for(size_t j=0; j < reduced_system_size; ++j)
             {
                 r_Vr(i,j) = mQR_decomposition.Q(i,j);
-                
+
             }
         }
-        // step 2 finished
 
 
-
-        // step 4 as described in Wyatt 2012, Alg. 5.3.2  
-        // iterative projection onto the Krylov subspace
-        auto& r_b_reduced = this->GetRHSr(); // r x 1
-        auto& r_K_reduced = this->GetKr(); // r x r
-        auto& r_M_reduced = this->GetMr(); // r x r
-        auto& r_D_reduced = this->GetDr(); // r x r
-        TSystemMatrixType T; // temp
-        vector<double> mSamplingPoints_old; // for convergence check; TODO: make complex (also in offline_strategy)
+        // here only 0 entries...
+        //KRATOS_WATCH(r_Vr)
 
 
 
 
-        // initialize eig output
-        TDenseVectorType Eigenvalues;
-        TDenseMatrixType Eigenvectors;
+        // initialize reduced matrices and vectors
+        auto& r_b_reduced = this->GetRHSr();
+        auto& r_K_reduced = this->GetKr();
+        auto& r_M_reduced = this->GetMr();
+        auto& r_D_reduced = this->GetDr();
+
+        // helper for auxiliary products
+        TSystemMatrixType T;
 
         // initialize linearization matrices
-        auto L1 = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_L1 = *L1;
+        auto L1_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_L1 = *L1_ptr;
         SparseSpaceType::Resize(r_L1, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
 
-        auto L2 = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_L2 = *L2;
+        auto L2_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_L2 = *L2_ptr;
         SparseSpaceType::Resize(r_L2, 2*reduced_system_size, 2*reduced_system_size); // 2r x 2r
 
+        // identity matrix of size r x r
+        identity_matrix<double> id_r (reduced_system_size); 
+
+        // initialize output for Eigensolver
+        TDenseVectorType Eigenvalues;
+        TDenseMatrixType Eigenvectors;
 
 
 
 
         int iter = 4;
-        int err  = 1;
-        // TODO: adapt max iter and tol; additional parameters, settings?
-        while(iter<5 && err > 1e-4){
-
-            mSamplingPoints_old = mSamplingPoints;
-
-            // step 4 a)
-            // B_r, reduced right hand side
-            r_b_reduced = prod( trans(r_Vr), r_b_size_n );
-
-            // K_r, reduced stiffness matrix
-            T = prod( trans( r_Vr ), r_K_size_n );
-            r_K_reduced = prod( T, r_Vr );
-            
-            // M_r, reduced mass matrix
-            T = prod( trans( r_Vr ), r_M_size_n );
+        int err = 1;
+        while(iter < 5 && err > 1e-4)
+        {
+            // projections
+            T = prod( trans(r_Vr), r_M );
             r_M_reduced = prod( T, r_Vr );
 
-            // D_r, reduced damping matrix
-            T = prod( trans( r_Vr ), r_D_size_n );
+            T = prod( trans(r_Vr), r_D );
             r_D_reduced = prod( T, r_Vr );
-            // step 4 a) finished
+
+            T = prod( trans(r_Vr), r_K );
+            r_K_reduced = prod( T, r_Vr );
+
+            //KRATOS_WATCH(r_M_reduced)  //hm, ok...
+            //KRATOS_WATCH(r_D_reduced)  // rest not so ok
+            //KRATOS_WATCH(r_K_reduced)
+
+            subrange(r_L1, 0, reduced_system_size, 0, reduced_system_size) = r_D_reduced;
+            subrange(r_L1, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_K_reduced;
+            subrange(r_L1, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*id_r;
+
+            subrange(r_L2, 0, reduced_system_size, 0, reduced_system_size) = r_M_reduced;
+            subrange(r_L2, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_r;
 
 
-            // step 4 c) polyeig from Matlab
-            // generalized or FEAST solver? no special quadratic solver in KRATOS as it seems
-            // use linearization and eig solver --> actuall step 4 b) then
-
-
-
-            //subrange(L1, (size_t) 0, reduced_system_size-1, (size_t) 0, reduced_system_size-1) = r_M_reduced;
-            subrange(r_L1, 0, reduced_system_size, 0, reduced_system_size) = r_M_reduced;
-
-            // "bad alloc" or memory corruption when running the python file...
-            // for(size_t i = reduced_system_size; i < 2*reduced_system_size; ++i){
-            //     r_L1(i,i) = 1.0;
-            // }
-
-            identity_matrix<double> id_m (reduced_system_size);
-
-            subrange(r_L1, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_m;
-
-
-            subrange(r_L2, 0, reduced_system_size, 0, reduced_system_size) = r_D_reduced;
-            subrange(r_L2, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_K_reduced;            
-
-            // for(size_t i = 0; i < reduced_system_size; ++i){
-            //     r_L2(reduced_system_size+i,i) = -1;
-            // }    
-
-            subrange(r_L2, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*id_m;
-
-            
-//TODO: hier #ev setzen GetlinearSystemsolver->setnumev
-            p_builder_and_solver_feast->GetLinearSystemSolver()->Solve(
-                r_L2,
+            p_eigensolver->GetLinearSystemSolver()->Solve(
                 r_L1,
+                r_L2,
                 Eigenvalues,
-                Eigenvectors);
+                Eigenvectors
+            );
 
-                KRATOS_WATCH(Eigenvalues);
-                KRATOS_WATCH(Eigenvectors);
-                
+            KRATOS_WATCH(Eigenvalues)
+
+            this->test_fun();
+
+            // test sorting
+            // does not work, maybe build own one if no boost/ublas function available
+
+            // // vector<double> ev_real;
+            // // vector<double> ev_imag;
+            // // ev_real.resize(reduced_system_size*2);
+            // // ev_imag.resize(reduced_system_size*2);
+
+            // // std::vector<std::pair<double,double>> test_pair( std::piecewise_construct, std::forward_as_tuple(ev_real), std::forward_as_tuple(ev_imag));
+
+            // // for(int i = 0; i < 2*reduced_system_size; i++)
+            // // {
+            // //     ev_real(i) = Eigenvalues(2*i);
+            // //     ev_imag(i) = Eigenvalues(2*i+1);
+            // // }
+
+            // // // KRATOS_WATCH(ev_real)
+            // // // KRATOS_WATCH(ev_imag)
+            
+            // // // does not work, invalid use; maybe because compareFunc is protected
+            // // std::sort(test_pair.begin(), test_pair.end(), this->compareFunc);
+
+            // // // KRATOS_WATCH(ev_real)
+            // // // KRATOS_WATCH(ev_imag)
 
 
 
-
-        // print all rxr matrices for DEBUG
-        /*
-        KRATOS_WATCH(r_L1);
-        KRATOS_WATCH(r_L2);
-        KRATOS_WATCH(r_M_reduced)
-        KRATOS_WATCH(r_K_reduced)
-        KRATOS_WATCH(r_D_reduced)
-        KRATOS_WATCH(r_b_reduced)
-*/
-    
-
-
-            // step 4 d) shift selection step
-            // first r eigenvalues
-            mSamplingPoints = subrange(Eigenvalues, 0, reduced_system_size*2);
-            KRATOS_WATCH(mSamplingPoints)
-
-        //auto Vrp_col = DenseSpaceType::CreateEmptyVectorPointer();
-        //auto& r_Vr_col = *Vrp_col;
-        //DenseSpaceType::Resize(r_Vr_col, system_size);  // n x 1
-        //DenseSpaceType::Set(r_Vr_col,0.0);
-
-        // *********** complex tests ************** // 
-        /*
-
-        auto test_mat = ComplexDenseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_test_mat = *test_mat;
-        ComplexDenseSpaceType::Resize(r_test_mat, 4,4); 
-        r_test_mat(1,1) = 1.2;
-        r_test_mat(0,3) = 5.7;
-
-        auto test_mat_sp = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_test_mat_sp = *test_mat_sp;
-        ComplexSparseSpaceType::Resize(r_test_mat_sp, 4, 4); // n x n
-        r_test_mat_sp(1,1) = 1.2;
-        r_test_mat_sp(0,3) = 5.7;
-
-        KRATOS_WATCH(r_test_mat);
-        KRATOS_WATCH(r_test_mat_sp);
-
-        complex ev_1(Eigenvalues(0), Eigenvalues(1));
-        KRATOS_WATCH(ev_1);
-
-        identity_matrix<complex> id_m_complex(4);
-        KRATOS_WATCH(id_m_complex); 
-        KRATOS_WATCH(real(id_m_complex)); 
-        KRATOS_WATCH(imag(id_m_complex)); 
-
-        KRATOS_WATCH(ev_1*id_m_complex); 
-        KRATOS_WATCH(real(ev_1*id_m_complex)); 
-        KRATOS_WATCH(imag(ev_1*id_m_complex)); 
-
-        auto comp_col = ComplexDenseSpaceType::CreateEmptyVectorPointer();
-        auto& r_comp_col = *comp_col;
-        ComplexDenseSpaceType::Resize(r_comp_col, 4);  // n x 1
-        ComplexDenseSpaceType::Set(r_comp_col,0.0);
-
-        auto V_h_comp_test = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_V_h_comp_test = *V_h_comp_test;
-        ComplexSparseSpaceType::Resize(r_V_h_comp_test, 4, 4); // n x n
-        
-        auto b_comp = ComplexSparseSpaceType::CreateEmptyVectorPointer();
-        auto& r_b_comp = *b_comp;
-        ComplexSparseSpaceType::Resize(r_b_comp, 4); // n x 1
-        r_b_comp(2) = 1;
-        //r_bsize nx1
-
-        KRATOS_WATCH(r_comp_col);
-
-        // solver here not build for complex input...
-        //p_builder_and_solver->GetLinearSystemSolver()->Solve( r_V_h_comp_test, r_comp_col, r_b_comp );
-        //mpComplexLinearSolver->Initialize( r_V_h_comp_test, r_comp_col, r_b_comp);
-        //mpComplexLinearSolver->Solve( r_V_h_comp_test, r_comp_col, r_b_comp );
-
-        KRATOS_WATCH(r_comp_col);
-
-        */
-
+            // here we need the complex solver
 
 
             
 
-            // step 4 e) as described in Wyatt 2012, Alg. 5.3.2     
-            // TODO: put this in a function, since this the same as step 2
-            for( size_t i = 0; i < n_sampling_points; ++i )
-            //for( size_t i = 0; i < n_sampling_points*2; i+=4 )
-            {
-                //KRATOS_WATCH( mSamplingPoints(i) )
-                r_V_h = std::pow( mSamplingPoints(i), 2.0 ) * r_M_size_n + mSamplingPoints(i) * r_D_size_n + r_K_size_n;
-
-                //complex current_ev(Eigenvalues(i), Eigenvalues(i+1))
-                //KRATOS_WATCH(current_ev);
-
-                //r_V_h = std::pow( current_ev, 2.0 ) * r_M_size_n + current_ev * r_D_size_n + r_K_size_n;
-                
-                p_builder_and_solver->GetLinearSystemSolver()->Solve( r_V_h, r_Vr_col, r_b_size_n );
-                // multiply here with tangential direction b1, ..., br? Or postpone to QR later?
-                column(r_Vr, i) = r_Vr_col;
-
-            }
-
-            mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr)(0,0) );
-            mQR_decomposition.compute_q();
-
-            
-            for( size_t i = 0; i < system_size; ++i )
-            {
-                for( size_t j = 0; j < reduced_system_size; ++j )
-                {
-                    r_Vr(i,j) = mQR_decomposition.Q(i,j);
-                    
-                }
-            }
-            // step 4 e) finished
 
 
-            // check convergence
-            // TODO: uncomment; leave it out for the moment, until eigensolver works (i.e. new sampling points are calculated)
-            // err = norm_2(mSamplingPoints - mSamplingPoints_old)/norm_2(mSamplingPoints_old);
-            // KRATOS_WATCH(iter)
-            // KRATOS_WATCH(err)
 
             iter++;
+
+
         }
 
+        r_b_reduced = prod( trans(r_Vr), r_b);
 
         
-        
-        // print all rxr matrices for DEBUG
-                // KRATOS_WATCH(r_M_reduced)
-                // KRATOS_WATCH(r_K_reduced)
-                // KRATOS_WATCH(r_D_reduced)
-                // KRATOS_WATCH(r_b_reduced)
-        
-        
-
-
-
+        // KRATOS_WATCH(r_mass_matrix_reduced)
 
         std::cout << "MOR offline solve finished" << std::endl;
         
@@ -615,9 +483,7 @@ class MorSecondOrderIRKAStrategy
 
     vector< double > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
-    typename TLinearSolver::Pointer mpNewLinearEigSolver;
-
-    ComplexLinearSolverType::Pointer mpComplexLinearSolver;
+    typename TLinearSolver::Pointer mpNewLinearEigenSolver;
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each
@@ -650,6 +516,18 @@ class MorSecondOrderIRKAStrategy
 
     ///@}
     ///@name Un accessible methods
+
+        void test_fun(){
+            std::cout<<"test worked \n";
+        }
+
+        //TODO: adapt this example of stackoverflow
+        bool compareFunc(std::pair<double,double> &a, std::pair<double,double> &b){
+            return a.second > b.second;
+        }
+
+
+
     ///@{
 
     /**

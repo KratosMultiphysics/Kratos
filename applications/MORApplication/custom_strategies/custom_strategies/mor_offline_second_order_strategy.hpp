@@ -104,8 +104,8 @@ class MorOfflineSecondOrderStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef TUblasSparseSpace<std::complex<double>> ComplexSparseSpaceType;
-    typedef TUblasDenseSpace<std::complex<double>> ComplexDenseSpaceType;
+    //typedef TUblasSparseSpace<std::complex<double>> ComplexSparseSpaceType;
+    //typedef TUblasDenseSpace<std::complex<double>> ComplexDenseSpaceType;
 
    // typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
 
