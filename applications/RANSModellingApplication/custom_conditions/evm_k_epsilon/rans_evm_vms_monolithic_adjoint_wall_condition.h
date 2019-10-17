@@ -277,7 +277,7 @@ public:
 
     // Calculates epsilon wall condition derivative w.r.t. epsilon variable
     void CalculateFirstDerivativesLHS(BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rLeftHandSideMatrix,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      const ProcessInfo& rCurrentProcessInfo);
 
     void Calculate(const Variable<Matrix>& rVariable,
                    Matrix& rOutput,
@@ -391,6 +391,32 @@ protected:
     double EvaluateInPoint(const Variable<double>& rVariable,
                            const Vector& rShapeFunction,
                            const int Step = 0) const;
+
+    array_1d<double, 3> EvaluateInPoint(const Variable<array_1d<double, 3>>& rVariable,
+                                        const Vector& rShapeFunction,
+                                        const int Step = 0) const;
+
+    void CalculateNormal(array_1d<double, 3>& An);
+
+    void CalculateUnitNormalShapeSensitivities(BoundedMatrix<double, TCoordLocalSize, TDim>& rOutput);
+
+    void ApplyRansBasedWallLawFirstDerivatives(
+        BoundedMatrix<double, TFluidLocalSize, TFluidLocalSize>& rLocalMatrix,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void ApplyRansBasedWallLawTurbulentKineticEnergyDerivatives(
+        BoundedMatrix<double, TNumNodes, TFluidLocalSize>& rLocalMatrix,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void ApplyRansBasedWallLawTurbulentEnergyDissipationRateDerivatives(
+        BoundedMatrix<double, TNumNodes, TFluidLocalSize>& rLocalMatrix,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateVelocityMagnitudeVelocityDerivative(
+        BoundedMatrix<double, TNumNodes, TDim>& rOutput,
+        const double VelocityMagnitude,
+        const array_1d<double, 3>& rVelocity,
+        const Vector& rGaussShapeFunctions) const;
 
     ///@}
     ///@name Protected  Access
