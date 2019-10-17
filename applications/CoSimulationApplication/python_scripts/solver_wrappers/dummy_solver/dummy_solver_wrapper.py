@@ -49,8 +49,13 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
         # self.__CheckExternalSolverProcess() # TODO check why this is blocking
         if self.controlling_external_solver:
             self.__SendControlSignal(KratosCoSim.ControlSignal.AdvanceInTime)
-            # TODO this requires more, then delete the next line!
-            return 0.0
+            data_config = {
+                "type"       : "time",
+                "time"     : current_time
+            }
+            self.ExportData(data_config)
+            self.ImportData(data_config)
+            return data_config["time"]
         else:
             return 0.0
 
@@ -85,16 +90,18 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
         super(DummySolverWrapper, self).ExportCouplingInterface(interface_config)
 
     def ImportData(self, data_config):
-        if self.controlling_external_solver:
+        if self.controlling_external_solver and data_config["type"] == "coupling_interface_data":
+            # CoSim imports, the external solver exports
             self.__SendControlSignal(KratosCoSim.ControlSignal.ExportData, data_config["interface_data"].name)
         super(DummySolverWrapper, self).ImportData(data_config)
 
     def ExportData(self, data_config):
-        if not data_config["type"] == "control_signal" and self.controlling_external_solver:
-            if data_config["type"] == "convergence_signal":
-                # we control the ext solver, no need for sending a convergence signal
-                return
-            self.__SendControlSignal(KratosCoSim.ControlSignal.ImportData, data_config["interface_data"].name)
+        if self.controlling_external_solver:
+            if data_config["type"] == "coupling_interface_data":
+                # CoSim exports, the external solver imports
+                self.__SendControlSignal(KratosCoSim.ControlSignal.ImportData, data_config["interface_data"].name)
+            elif data_config["type"] == "convergence_signal":
+                return # we control the ext solver, no need for sending a convergence signal
         super(DummySolverWrapper, self).ExportData(data_config)
 
     def PrintInfo(self):

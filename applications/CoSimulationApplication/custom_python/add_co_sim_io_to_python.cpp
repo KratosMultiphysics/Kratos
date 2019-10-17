@@ -286,6 +286,27 @@ void ImportData_Vector(CoSim::CoSimIO& rCoSimIO, ModelPart& rModelPart, const Va
     }
 }
 
+
+void ImportData_PyList(CoSim::CoSimIO& rCoSimIO, pybind11::list& PyList, const std::string& rIdentifier)
+{
+    std::vector<double> data_vals;
+    CoSim::DataContainers::Data data_container = {data_vals};
+    rCoSimIO.Import(data_container, rIdentifier);
+
+    KRATOS_ERROR_IF(PyList.size() != data_vals.size()) << "The size of the list has to be specified before, expected size of " << data_vals.size() << ", current size: " << PyList.size() << std::endl;
+
+    // copy back the received values
+    for (std::size_t i=0; i<data_vals.size(); ++i) {
+        PyList[i] = data_vals[i];
+    }
+
+}
+void ExportData_PyList(CoSim::CoSimIO& rCoSimIO, std::vector<double>& rValues, const std::string& rIdentifier)
+{
+    CoSim::DataContainers::Data data_container = {rValues};
+    rCoSimIO.Export(data_container, rIdentifier);
+}
+
 } // helpers namespace
 
 void  AddCoSimIOToPython(pybind11::module& m)
@@ -315,6 +336,8 @@ void  AddCoSimIOToPython(pybind11::module& m)
         .def("ExportData", CoSimIO_Wrappers::ExportData_Scalar)
         .def("ImportData", CoSimIO_Wrappers::ImportData_Vector)
         .def("ExportData", CoSimIO_Wrappers::ExportData_Vector)
+        .def("ImportData", CoSimIO_Wrappers::ImportData_PyList)
+        .def("ExportData", CoSimIO_Wrappers::ExportData_PyList)
         ;
 
     py::enum_<CoSimIO_Wrappers::DataLocation>(m,"DataLocation")

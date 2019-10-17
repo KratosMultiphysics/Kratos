@@ -34,6 +34,11 @@ class DummySolverIO(CoSimulationIO):
         if data_type == "coupling_interface_data":
             interface_data = data_config["interface_data"]
             self.io.ImportData(interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location), interface_data.name)
+
+        elif data_type == "time":
+            time_list = [0.0]
+            self.io.ImportData(time_list, "time_to_co_sim")
+            data_config["time"] = time_list[0]
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
@@ -47,11 +52,16 @@ class DummySolverIO(CoSimulationIO):
             control_signal_key = data_config["signal"]
             self.io.SendControlSignal(control_signal_key, data_config["identifier"])
 
+        elif data_type == "time":
+            current_time = data_config["time"]
+            self.io.ExportData([current_time], "time_from_co_sim")
+
         elif data_type == "convergence_signal":
-            control_signal_key = 0
             if data_config["is_converged"]:
-                control_signal_key = 51
-            self.io.SendControlSignal(control_signal_key, "dummy")
+                control_signal_key = KratosCoSim.ControlSignal.ConvergenceAchieved
+            else:
+                control_signal_key = KratosCoSim.ControlSignal.Dummy
+            self.io.SendControlSignal(control_signal_key, "")
         else:
             raise NotImplementedError('Exporting interface data of type "{}" is not implemented for this IO: "{}"'.format(data_type, self._ClassName()))
 
