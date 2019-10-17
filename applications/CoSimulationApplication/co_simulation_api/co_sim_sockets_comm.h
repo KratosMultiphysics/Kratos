@@ -28,7 +28,7 @@ public:
     explicit SocketsComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
         : CoSimComm(rName, rSettings, IsConnectionMaster)
     {
-        throw std::runtime_error("Sockets Communication is not implemented yet");
+       KRATOS_CO_SIM_ERROR << "Sockets Communication is not implemented yet" << std::endl;
     }
 
 };

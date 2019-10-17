@@ -26,7 +26,7 @@ public:
     explicit MPIComm(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster)
         : CoSimComm(rName, rSettings, IsConnectionMaster)
     {
-        throw std::runtime_error("MPI Communication is not implemented yet");
+       KRATOS_CO_SIM_ERROR << "MPI Communication is not implemented yet" << std::endl;
     }
 
 };

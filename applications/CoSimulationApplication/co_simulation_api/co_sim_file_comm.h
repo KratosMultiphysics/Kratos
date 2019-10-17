@@ -46,11 +46,7 @@ static void RemoveFile(const std::string& rFileName)
 template <typename T>
 static void CheckStream(const T& rStream, const std::string& rFileName)
 {
-    if (!rStream.is_open()) {
-        std::stringstream err_msg;
-        err_msg << rFileName << " could not be opened!";
-        throw std::runtime_error(err_msg.str());
-    }
+    KRATOS_CO_SIM_ERROR_IF_NOT(rStream.is_open()) << rFileName << " could not be opened!" << std::endl;
 }
 
 static int GetNumNodesForVtkCellType(const int VtkCellType)
@@ -72,7 +68,8 @@ static int GetNumNodesForVtkCellType(const int VtkCellType)
     if (vtk_cell_type_map.count(VtkCellType) > 0) {
         return vtk_cell_type_map.at(VtkCellType);
     } else {
-        throw std::runtime_error("Unsupported cell type: "+std::to_string(VtkCellType));
+        KRATOS_CO_SIM_ERROR << "Unsupported cell type: " << VtkCellType << std::endl;
+        return 0;
     }
 }
 
@@ -141,7 +138,7 @@ private:
         while (std::getline(input_file, current_line)) {
             // reading nodes
             if (current_line.find("POINTS") != std::string::npos) {
-                if (nodes_read) throw std::runtime_error("The nodes were read already!");
+                KRATOS_CO_SIM_ERROR_IF(nodes_read) << "The nodes were read already!" << std::endl;
                 nodes_read = true;
 
                 int num_nodes;
@@ -160,9 +157,9 @@ private:
 
             // reading cells
             if (current_line.find("CELLS") != std::string::npos) {
-                if (!nodes_read) throw std::runtime_error("The nodes were not yet read!");
+                KRATOS_CO_SIM_ERROR_IF_NOT(nodes_read) << "The nodes were not yet read!" << std::endl;
 
-                int num_nodes_per_cell, num_cells, node_id, cell_list_size;
+                int /*num_nodes_per_cell,*/ num_cells, /*node_id,*/ cell_list_size;
                 current_line = current_line.substr(current_line.find("CELLS") + 6); // removing "CELLS"
                 std::istringstream line_stream(current_line);
                 line_stream >> num_cells;

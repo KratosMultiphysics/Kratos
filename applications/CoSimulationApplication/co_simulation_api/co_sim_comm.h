@@ -18,8 +18,8 @@
 #include <stdexcept>
 
 // Project includes
-#include "co_sim_data_containers.h"
 #include "co_sim_api_internals.h"
+#include "co_sim_data_containers.h"
 
 namespace CoSim {
 
@@ -31,9 +31,9 @@ namespace CoSim {
 
 #define CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainerType)                       \
     virtual bool ImportDetail(DataContainerType& rDataContainer, const std::string& rIdentifier) \
-        { throw std::runtime_error("Type of data not yet supported"); }                          \
+        { KRATOS_CO_SIM_ERROR << "Type of data not yet supported" << std::endl; return false;}   \
     virtual bool ExportDetail(const DataContainerType& rDataContainer, const std::string& rIdentifier) \
-        { throw std::runtime_error("Type of data not yet supported"); }                          \
+        { KRATOS_CO_SIM_ERROR << "Type of data not yet supported" << std::endl; return false;}   \
 
 class CoSimComm
 {
@@ -58,15 +58,11 @@ public:
     {
         CS_LOG << "Connecting \"" << mName << "\" as Connection-" << (mIsConnectionMaster ? "MASTER" : "SLAVE") << " ..." << std::endl;
 
-        if (mIsConnected) {
-            throw std::runtime_error("A connection was already established!");
-        }
+        KRATOS_CO_SIM_ERROR_IF(mIsConnected) << "A connection was already established!" << std::endl;
 
         mIsConnected = ConnectDetail();
 
-        if (!mIsConnected) {
-            throw std::runtime_error("Connection was not successful!");
-        }
+        KRATOS_CO_SIM_ERROR_IF_NOT(mIsConnected) << "Connection was not successful!" << std::endl;
 
         CS_LOG << "Connection established" << std::endl;
 
@@ -127,11 +123,12 @@ private:
 
     virtual void SendControlSignalDetail(Internals::ControlSignal Signal, const std::string& rIdentifier)
     {
-        throw std::runtime_error("SendControlSignalDetail not implemented for this comm-type");
+        KRATOS_CO_SIM_ERROR << "SendControlSignalDetail not implemented for this comm-type" << std::endl;
     }
     virtual Internals::ControlSignal RecvControlSignalDetail(std::string& rIdentifier)
     {
-        throw std::runtime_error("RecvControlSignalDetail not implemented for this comm-type");
+        KRATOS_CO_SIM_ERROR << "RecvControlSignalDetail not implemented for this comm-type" << std::endl;
+        return Internals::ControlSignal::Dummy;
     }
 
     CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Geometry);
@@ -140,9 +137,7 @@ private:
 
     void CheckConnection()
     {
-        if (!mIsConnected) {
-            throw std::runtime_error("No active connection exists!");
-        }
+        KRATOS_CO_SIM_ERROR_IF_NOT(mIsConnected) << "No active connection exists!" << std::endl;;
     }
 
 };
