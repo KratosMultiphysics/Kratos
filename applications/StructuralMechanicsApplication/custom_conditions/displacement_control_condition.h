@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/condition.h"
-// #include "containers/variable.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -46,7 +45,8 @@ namespace Kratos
 /**
  * @class DisplacementControlCondition
  * @ingroup StructuralMechanicsApplication
- * @brief
+ * @brief This class is to add contributions to LHS and RHS of the displacement control condition
+ * @details Currently it works for one node
  * @author Mahmoud Zidan
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  DisplacementControlCondition
@@ -65,7 +65,7 @@ public:
     typedef BaseType::GeometryType   GeometryType;
     typedef BaseType::NodesArrayType NodesArrayType;
 
-    // Counted pointer of BaseLoadCondition
+    // Counted pointer of DisplacementControlCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( DisplacementControlCondition );
 
     ///@}
@@ -166,28 +166,6 @@ public:
         int Step = 0
         ) override;
 
-    void Initialize() override;
-
-    /**
-     * @brief Sets on rValues the nodal velocities
-     * @param rValues The values of velocities
-     * @param Step The step to be computed
-     */
-    // void GetFirstDerivativesVector(
-    //     Vector& rValues,
-    //     int Step = 0
-    //     ) override;
-
-    /**
-     * @brief Sets on rValues the nodal accelerations
-     * @param rValues The values of accelerations
-     * @param Step The step to be computed
-     */
-    // void GetSecondDerivativesVector(
-    //     Vector& rValues,
-    //     int Step = 0
-    //     ) override;
-
     /**
      * @brief This function provides a more general interface to the element.
      * @details It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
@@ -232,19 +210,6 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
-     /**
-      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable.
-      * @param rRHSVector input variable containing the RHS vector to be assembled
-      * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-      * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
-      * @param rCurrentProcessInfo The current process info instance
-     */
-    // void AddExplicitContribution(const VectorType& rRHS,
-    //     const Variable<VectorType>& rRHSVariable,
-    //     Variable<array_1d<double,3> >& rDestinationVariable,
-    //     const ProcessInfo& rCurrentProcessInfo
-    //     ) override;
-
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
@@ -253,31 +218,11 @@ public:
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
-     * @brief Check if Rotational Dof existant
-     * @return Trues if exists, false otherwise
-     */
-    // virtual bool HasRotDof() const
-    // {
-    //     return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
-    // }
-
-    /**
      * @brief This method computes the DoF block size
      * @return The size of the DoF block
      */
     unsigned int GetBlockSize() const
     {
-        // unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        // if( HasRotDof() ) { // if it has rotations
-        //     if(dim == 2)
-        //         return 3;
-        //     else if(dim == 3)
-        //         return 6;
-        //     else
-        //         KRATOS_ERROR << "The conditions only works for 2D and 3D elements";
-        // } else {
-        //     return dim;
-        // }
         return 2;
     }
 
@@ -351,18 +296,6 @@ protected:
         const bool CalculateResidualVectorFlag
         );
 
-    /**
-     * This functions computes the integration weight to consider
-     * @param IntegrationPoints: The array containing the integration points
-     * @param PointNumber: The id of the integration point considered
-     * @param detJ: The determinant of the jacobian of the element
-     */
-    // virtual double GetIntegrationWeight(
-    //     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    //     const SizeType PointNumber,
-    //     const double detJ
-    //     ) const;
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -406,9 +339,7 @@ private:
     ///@{
 
     friend class Serializer;
-
     void save( Serializer& rSerializer ) const override;
-
     void load( Serializer& rSerializer ) override;
 
 }; // class BaseLoadCondition.
@@ -424,4 +355,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined
+#endif // KRATOS_DISPLACEMENT_CONTROL_CONDITION_H_INCLUDED  defined

@@ -6,8 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Mahmoud Zidan
 //
 
 // System includes
@@ -21,25 +20,32 @@
 namespace Kratos
 {
 
+// Constructor void
 DisplacementControlCondition::DisplacementControlCondition(IndexType NewId)
     : Condition(NewId) {}
 
+// Constructor using an array of nodes
 DisplacementControlCondition::DisplacementControlCondition(IndexType NewId, const NodesArrayType& rThisNodes)
     : Condition(NewId, rThisNodes) {}
+
 DisplacementControlCondition::DisplacementControlCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry) {}
 
+// Constructor using an array of nodes with properties
 DisplacementControlCondition::DisplacementControlCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties) {}
 
+///Copy constructor
 DisplacementControlCondition::DisplacementControlCondition(DisplacementControlCondition const& rOther)
     : Condition(rOther) {}
 
+// Destructor
 DisplacementControlCondition::~DisplacementControlCondition() {}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+/// Assignment operator.
 DisplacementControlCondition& DisplacementControlCondition::operator=(DisplacementControlCondition const& rOther)
 {
     //ALL MEMBER VARIABLES THAT MUST BE KEPT IN AN "=" OPERATION NEEDS TO BE COPIED HERE
@@ -59,9 +65,7 @@ Condition::Pointer DisplacementControlCondition::Create(
     ) const
 {
     KRATOS_TRY
-    // this function is called from ModelPartIO.ReadConditionsBlock
     return Kratos::make_intrusive<DisplacementControlCondition>(NewId, GetGeometry().Create(rThisNodes), pProperties);
-    // and it calls the constructor with ID, pointer to the geometry, and pointer to the properties!
     KRATOS_CATCH("");
 }
 
@@ -115,11 +119,11 @@ void DisplacementControlCondition::EquationIdVector(
 
     for (SizeType i = 0; i < number_of_nodes; ++i) {
         int index = i * 2;
-        if (GetValue(POINT_LOAD_X) != 0.0)
+        if (GetValue(POINT_LOAD_X) != 0.0) // prescribed displacement in x direction
             rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-        else if (GetValue(POINT_LOAD_Y) != 0.0)
+        else if (GetValue(POINT_LOAD_Y) != 0.0) // prescribed displacement in y direction
             rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-        else if (GetValue(POINT_LOAD_Z) != 0.0)
+        else if (GetValue(POINT_LOAD_Z) != 0.0) // prescribed displacement in z direction
             rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
         rResult[index + 1] = GetGeometry()[i].GetDof(LOAD_FACTOR).EquationId();
     }
@@ -129,6 +133,7 @@ void DisplacementControlCondition::EquationIdVector(
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 void DisplacementControlCondition::GetDofList(
     DofsVectorType& rConditionlDofList,
     ProcessInfo& rCurrentProcessInfo
@@ -145,11 +150,11 @@ void DisplacementControlCondition::GetDofList(
 
     for (SizeType i = 0; i < number_of_nodes; ++i) {
         SizeType index = i * block_size;
-        if (GetValue(POINT_LOAD_X) != 0.0)
+        if (GetValue(POINT_LOAD_X) != 0.0) // prescribed displacement in x direction
             rConditionlDofList[index] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-        else if (GetValue(POINT_LOAD_Y) != 0.0)
+        else if (GetValue(POINT_LOAD_Y) != 0.0) // prescribed displacement in y direction
             rConditionlDofList[index] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-        else if (GetValue(POINT_LOAD_Z) != 0.0)
+        else if (GetValue(POINT_LOAD_Z) != 0.0) // prescribed displacement in z direction
             rConditionlDofList[index] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
         rConditionlDofList[index + 1] = GetGeometry()[i].pGetDof(LOAD_FACTOR);
     }
@@ -165,7 +170,7 @@ void DisplacementControlCondition::GetValuesVector(
     )
 {
     const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType mat_size = number_of_nodes * 2;
+    const SizeType mat_size = number_of_nodes * GetBlockSize();
 
     if (rValues.size() != mat_size) {
         rValues.resize(mat_size, false);
@@ -173,11 +178,11 @@ void DisplacementControlCondition::GetValuesVector(
 
     for (SizeType i = 0; i < number_of_nodes; ++i) {
         SizeType index = i * GetBlockSize();
-        if (GetValue(POINT_LOAD_X) != 0.0)
+        if (GetValue(POINT_LOAD_X) != 0.0) // prescribed displacement in x direction
             rValues[index] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
-        else if (GetValue(POINT_LOAD_Y) != 0.0)
+        else if (GetValue(POINT_LOAD_Y) != 0.0) // prescribed displacement in y direction
             rValues[index] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
-        else if (GetValue(POINT_LOAD_Z) != 0.0)
+        else if (GetValue(POINT_LOAD_Z) != 0.0) // prescribed displacement in z direction
             rValues[index] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
         rValues[index] = GetGeometry()[i].FastGetSolutionStepValue(LOAD_FACTOR, Step);
     }
@@ -243,10 +248,6 @@ void DisplacementControlCondition::CalculateDampingMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DisplacementControlCondition::Initialize()
-{
-}
-
 void DisplacementControlCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -256,7 +257,8 @@ void DisplacementControlCondition::CalculateAll(
 {
     KRATOS_TRY
 
-    SizeType number_of_nodes = 1; // FIXME: what if number of nodes is more than one?!
+    // currently only works for one node
+    SizeType number_of_nodes = 1;
     SizeType mat_size = number_of_nodes * GetBlockSize();
 
     if ( CalculateStiffnessMatrixFlag == true )
@@ -266,11 +268,11 @@ void DisplacementControlCondition::CalculateAll(
             rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         }
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-        if (GetValue(POINT_LOAD_X) != 0.0)
+        if (GetValue(POINT_LOAD_X) != 0.0) // prescribed displacement in x direction
             rLeftHandSideMatrix(0, 1) -= GetValue(POINT_LOAD_X);
-        else if (GetValue(POINT_LOAD_Y) != 0.0)
+        else if (GetValue(POINT_LOAD_Y) != 0.0) // prescribed displacement in y direction
             rLeftHandSideMatrix(0, 1) -= GetValue(POINT_LOAD_Y);
-        else if (GetValue(POINT_LOAD_Z) != 0.0)
+        else if (GetValue(POINT_LOAD_Z) != 0.0) // prescribed displacement in z direction
             rLeftHandSideMatrix(0, 1) -= GetValue(POINT_LOAD_Z);
         rLeftHandSideMatrix(1, 0) += 1.0;
     }
@@ -282,15 +284,24 @@ void DisplacementControlCondition::CalculateAll(
             rRightHandSideVector.resize(mat_size, false);
         }
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
+
         rRightHandSideVector(0) += GetGeometry()[0].FastGetSolutionStepValue(LOAD_FACTOR);
-        rRightHandSideVector(1) +=
-            GetValue(PRESCRIBED_DISPLACEMENT) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-        if (GetValue(POINT_LOAD_X) != 0.0)
+        rRightHandSideVector(1) += GetValue(PRESCRIBED_DISPLACEMENT);
+        if (GetValue(POINT_LOAD_X) != 0.0) // prescribed displacement in x direction
+        {
             rRightHandSideVector(0) *= GetValue(POINT_LOAD_X);
-        else if (GetValue(POINT_LOAD_Y) != 0.0)
+            rRightHandSideVector(1) -= GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+        }
+        else if (GetValue(POINT_LOAD_Y) != 0.0) // prescribed displacement in y direction
+        {
             rRightHandSideVector(0) *= GetValue(POINT_LOAD_Y);
-        else if (GetValue(POINT_LOAD_Z) != 0.0)
+            rRightHandSideVector(1) -= GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        }
+        else if (GetValue(POINT_LOAD_Z) != 0.0) // prescribed displacement in z direction
+        {
             rRightHandSideVector(0) *= GetValue(POINT_LOAD_Z);
+            rRightHandSideVector(1) -= GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
+        }
     }
 
     KRATOS_CATCH("")
@@ -314,48 +325,6 @@ int DisplacementControlCondition::Check( const ProcessInfo& rCurrentProcessInfo 
 
     return 0;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-// double DisplacementControlCondition::GetIntegrationWeight(
-//     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-//     const SizeType PointNumber,
-//     const double detJ
-//     ) const
-// {
-//     return IntegrationPoints[PointNumber].Weight() * detJ;
-// }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-// void DisplacementControlCondition::AddExplicitContribution(
-//     const VectorType& rRHS,
-//     const Variable<VectorType>& rRHSVariable,
-//     Variable<array_1d<double,3> >& rDestinationVariable,
-//     const ProcessInfo& rCurrentProcessInfo
-//     )
-// {
-//     KRATOS_TRY;
-
-//     const SizeType number_of_nodes = GetGeometry().PointsNumber();
-//     const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
-
-//     if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL ) {
-//         for(SizeType i=0; i< number_of_nodes; ++i) {
-//             SizeType index = dimension * i;
-
-//             array_1d<double, 3 >& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-//             for(SizeType j=0; j<dimension; ++j) {
-//                 #pragma omp atomic
-//                 r_force_residual[j] += rRHS[index + j];
-//             }
-//         }
-//     }
-
-//     KRATOS_CATCH( "" )
-// }
 
 /***********************************************************************************/
 /***********************************************************************************/

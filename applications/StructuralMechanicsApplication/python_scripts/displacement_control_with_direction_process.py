@@ -12,7 +12,8 @@ from KratosMultiphysics import assign_scalar_variable_to_entities_process as asv
 ## All the processes python should be derived from "Process"
 class AssignDisplacementControlProcess(asvtep.AssignScalarVariableToEntitiesProcess):
     """This process assigns given POINT_LOAD and PRESCRIBED_DISPLACEMENT values
-    (scalar) to the DisplacementControl belonging a certain submodelpart
+    (scalar) to the DisplacementControl belonging a certain submodelpart.
+    Currently, it is restricted to one node and one global direction.
 
     Only the member variables listed below should be accessed directly.
 
