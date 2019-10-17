@@ -30,6 +30,7 @@ set( KRATOS_RANS_MODELLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/evm_k_epsilon/rans_evm_low_re_epsilon_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/evm_k_epsilon/rans_evm_epsilon_adjoint_wall_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/evm_k_epsilon/rans_evm_vms_monolithic_adjoint_wall_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/evm_k_epsilon/rans_evm_k_adjoint_wall_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/relaxed_dof_updater.cpp
 )
 

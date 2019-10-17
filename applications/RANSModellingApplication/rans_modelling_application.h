@@ -39,6 +39,7 @@
 // Adjoint condition includes
 #include "custom_conditions/evm_k_epsilon/rans_evm_epsilon_adjoint_wall_condition.h"
 #include "custom_conditions/evm_k_epsilon/rans_evm_vms_monolithic_adjoint_wall_condition.h"
+#include "custom_conditions/evm_k_epsilon/rans_evm_monolithic_k_epsilon_vms_adjoint_wall_condition.h"
 
 namespace Kratos
 {
@@ -221,6 +222,9 @@ private:
 
     const RansEvmVmsMonolithicAdjointWallCondition<2> mRansEvmVmsMonolithicAdjointWallCondition2D2N;
     const RansEvmVmsMonolithicAdjointWallCondition<3> mRansEvmVmsMonolithicAdjointWallCondition3D3N;
+
+    const RansEvmMonolithicKEpsilonVMSAdjointWallCondition<2> mRansEvmMonolithicKEpsilonVMSAdjointWallCondition2D2N;
+    const RansEvmMonolithicKEpsilonVMSAdjointWallCondition<3> mRansEvmMonolithicKEpsilonVMSAdjointWallCondition3D3N;
     ///@}
     ///@name Private Operators
     ///@{
