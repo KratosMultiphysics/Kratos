@@ -35,19 +35,19 @@ class TestCase(TestCase):
         super(TestCase,self).run(result)
 
     def failUnlessEqualWithTolerance(self, first, second, tolerance, msg=None):
-        ''' fails if first and second have a difference greater than
+        ''' Fails if first and second have a difference greater than
         tolerance '''
 
         if first < (second - tolerance) or first > (second + tolerance):
             raise self.failureException(msg or '%r != %r within %r places' % (first, second, tolerance))
 
     def failUnlessAbsAndRelDifference(self, first, second, rel_tol=None, abs_tol=None, msg=None):
-        """Fail if the two objects are unequal as determined by their
-           absolute and relative difference
+        ''' Fails if the two objects are unequal as determined by their
+        absolute and relative difference
 
-           If the two objects compare equal then they will automatically
-           compare relative almost equal.
-        """
+        If the two objects compare equal then they will automatically
+        compare relative almost equal. ''' 
+
         if first == second:
             # shortcut
             return
@@ -210,10 +210,9 @@ KratosSuites = {
 
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
-    '''Same implementation as math.isclose
+    ''' Same implementation as math.isclose
     self-implemented bcs math.isclose was only introduced in python3.5
-    see https://www.python.org/dev/peps/pep-0485/
-    '''
+    see https://www.python.org/dev/peps/pep-0485/ '''
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
