@@ -36,10 +36,6 @@ class ShallowWaterSolver(ShallowWaterBaseSolver):
         SW.ShallowWaterUtilities().UpdatePrimitiveVariables(self.main_model_part, epsilon)
         SW.ShallowWaterUtilities().ComputeAccelerations(self.main_model_part)
 
-    def InitializeSolutionStep(self):
-        KM.VariableUtils().CopyVectorVar(KM.MOMENTUM, SW.PROJECTED_VECTOR1, self.main_model_part.Nodes)
-        super(ShallowWaterSolver, self).InitializeSolutionStep()
-
     @classmethod
     def GetDefaultSettings(cls):
         default_settings = KM.Parameters("""
