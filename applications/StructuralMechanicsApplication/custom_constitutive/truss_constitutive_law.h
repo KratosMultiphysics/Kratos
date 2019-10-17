@@ -129,10 +129,7 @@ public:
 
     //empty because called in the element and this base class throws an error
     //if this is not overriden
-    void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
-                    const GeometryType& rElementGeometry,
-                    const Vector& rShapeFunctionsValues,
-                    const ProcessInfo& rCurrentProcessInfo) override {} ;
+
 
     //this functions calculates the current stress based on an element given (set)
     //strain
