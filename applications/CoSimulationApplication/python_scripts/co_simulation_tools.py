@@ -27,29 +27,6 @@ def UsingPyKratos():
     return False
 
 
-control_signal_map = {
-    "Finalize"               : 1,
-
-    "AdvanceInTime"          : 11,
-    "InitializeSolutionStep" : 12,
-    "SolveSolutionStep"      : 13,
-    "FinalizeSolutionStep"   : 14,
-
-    "ImportGeometry"         : 21,
-    "ExportGeometry"         : 22,
-
-    "ImportMesh"             : 31,
-    "ExportMesh"             : 32,
-
-    "ImportData"             : 41,
-    "ExportData"             : 42,
-
-    "ConvergenceAchieved"    : 51,
-}
-if len(control_signal_map.keys()) != len(set(control_signal_map.values())):
-    raise Exception("The ControlSignals have to be unique!")
-
-
 def SettingsTypeCheck(settings):
     if not isinstance(settings, KM.Parameters):
         raise TypeError("Expected input shall be a Parameters object, encapsulating a json string")

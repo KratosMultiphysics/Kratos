@@ -5,7 +5,6 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io im
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 # Other imports
 import os
@@ -45,7 +44,7 @@ class DummySolverIO(CoSimulationIO):
             self.io.ExportData(interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location), interface_data.name)
 
         elif data_type == "control_signal":
-            control_signal_key = cs_tools.control_signal_map[data_config["signal"]]
+            control_signal_key = data_config["signal"]
             self.io.SendControlSignal(control_signal_key, data_config["identifier"])
 
         elif data_type == "convergence_signal":

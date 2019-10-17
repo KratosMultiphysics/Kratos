@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-# Importing the Kratos Library
-import KratosMultiphysics as KM
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication as KratosCoSim
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
@@ -48,7 +48,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
     def AdvanceInTime(self, current_time):
         # self.__CheckExternalSolverProcess() # TODO check why this is blocking
         if self.controlling_external_solver:
-            self.__SendControlSignal("AdvanceInTime")
+            self.__SendControlSignal(KratosCoSim.ControlSignals.AdvanceInTime)
             # TODO this requires more, then delete the next line!
             return 0.0
         else:
@@ -57,36 +57,36 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
     def InitializeSolutionStep(self):
         super(DummySolverWrapper, self).InitializeSolutionStep()
         if self.controlling_external_solver:
-            self.__SendControlSignal("InitializeSolutionStep")
+            self.__SendControlSignal(KratosCoSim.ControlSignals.InitializeSolutionStep)
 
     def SolveSolutionStep(self):
         super(DummySolverWrapper, self).SolveSolutionStep()
         if self.controlling_external_solver:
-            self.__SendControlSignal("SolveSolutionStep")
+            self.__SendControlSignal(KratosCoSim.ControlSignals.SolveSolutionStep)
 
     def FinalizeSolutionStep(self):
         super(DummySolverWrapper, self).FinalizeSolutionStep()
         if self.controlling_external_solver:
-            self.__SendControlSignal("FinalizeSolutionStep")
+            self.__SendControlSignal(KratosCoSim.ControlSignals.FinalizeSolutionStep)
 
     def Finalize(self):
         if self.controlling_external_solver:
-            self.__SendControlSignal("Finalize")
+            self.__SendControlSignal(KratosCoSim.ControlSignals.BreakSolutionLoop)
         super(DummySolverWrapper, self).Finalize() # this also does the disconnect
 
     def ImportCouplingInterface(self, interface_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal("ExportMesh", interface_config["model_part_name"]) # TODO this can also be geometry at some point
+            self.__SendControlSignal(KratosCoSim.ControlSignals.ExportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
         super(DummySolverWrapper, self).ImportCouplingInterface(interface_config)
 
     def ExportCouplingInterface(self, interface_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal("ImportMesh", interface_config["model_part_name"]) # TODO this can also be geometry at some point
+            self.__SendControlSignal(KratosCoSim.ControlSignals.ImportMesh, interface_config["model_part_name"]) # TODO this can also be geometry at some point
         super(DummySolverWrapper, self).ExportCouplingInterface(interface_config)
 
     def ImportData(self, data_config):
         if self.controlling_external_solver:
-            self.__SendControlSignal("ExportData", data_config["interface_data"].name)
+            self.__SendControlSignal(KratosCoSim.ControlSignals.ExportData, data_config["interface_data"].name)
         super(DummySolverWrapper, self).ImportData(data_config)
 
     def ExportData(self, data_config):
@@ -94,7 +94,7 @@ class DummySolverWrapper(CoSimulationSolverWrapper):
             if data_config["type"] == "convergence_signal":
                 # we control the ext solver, no need for sending a convergence signal
                 return
-            self.__SendControlSignal("ImportData", data_config["interface_data"].name)
+            self.__SendControlSignal(KratosCoSim.ControlSignals.ImportData, data_config["interface_data"].name)
         super(DummySolverWrapper, self).ExportData(data_config)
 
     def PrintInfo(self):
