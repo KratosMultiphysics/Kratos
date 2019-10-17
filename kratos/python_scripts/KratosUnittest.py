@@ -34,14 +34,14 @@ class TestCase(TestCase):
     def run(self, result=None):
         super(TestCase,self).run(result)
 
-    def failUnlessEqualWithTolerance(self, first, second, tolerance, msg=None):
+    def assertEqualTolerance(self, first, second, tolerance, msg=None):
         ''' Fails if first and second have a difference greater than
         tolerance '''
 
         if first < (second - tolerance) or first > (second + tolerance):
             raise self.failureException(msg or '%r != %r within %r places' % (first, second, tolerance))
 
-    def failUnlessAbsAndRelDifference(self, first, second, rel_tol=None, abs_tol=None, msg=None):
+    def assertIsClose(self, first, second, rel_tol=None, abs_tol=None, msg=None):
         ''' Fails if the two objects are unequal as determined by their
         absolute and relative difference
 
@@ -66,22 +66,17 @@ class TestCase(TestCase):
         msg = self._formatMessage(msg, standardMsg)
         raise self.failureException(msg)
 
-    def failUnlessVectorEqualWithTolerance(self, vector1, vector2, prec=7):
+    def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
         self.assertEqual(matrix1.Size1(), matrix2.Size1())
         for i in range(matrix1.Size1()):
             self.assertAlmostEqual(vector1[i], vector2[i], prec)
 
-    def failUnlessMatrixEqualWithTolerance(self, matrix1, matrix2, prec=7):
+    def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
         self.assertEqual(matrix1.Size1(), matrix2.Size1())
         self.assertEqual(matrix1.Size2(), matrix2.Size2())
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
-
-    assertEqualTolerance = failUnlessEqualWithTolerance
-    assertIsClose = failUnlessAbsAndRelDifference
-    assertVectorAlmostEqual = failUnlessVectorEqualWithTolerance
-    assertMatrixAlmostEqual = failUnlessMatrixEqualWithTolerance
 
 @contextmanager
 def SupressConsoleOutput():
