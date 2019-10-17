@@ -19,6 +19,10 @@
 #include "custom_python/add_co_sim_io_to_python.h"
 
 // CoSimIO
+// defining the macros that are used within the CoSimIO to point the the Kratos-native macros
+// Note that this has to be done BEFORE including the header the first time
+#define KRATOS_CO_SIM_INFO KRATOS_INFO
+#define KRATOS_CO_SIM_INFO_IF KRATOS_INFO_IF
 #include "co_simulation_api/co_sim_io.h"
 
 namespace Kratos {
