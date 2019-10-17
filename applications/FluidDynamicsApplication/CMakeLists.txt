@@ -149,8 +149,8 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 ###############################################################################
 ## If trilinos is avaliable, switch on the Fluid trilinos extension 
 
-#if((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
-#  message("Enabling trilinos extension for KratosFluidDynamicsApplication")
-#  add_subdirectory(trilinos_extension)
-#endif((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )
+if((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
+  message("Enabling trilinos extension for KratosFluidDynamicsApplication")
+  add_subdirectory(trilinos_extension)
+endif((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )
 
