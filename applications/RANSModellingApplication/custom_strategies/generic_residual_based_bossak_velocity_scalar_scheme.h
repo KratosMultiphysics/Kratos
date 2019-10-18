@@ -99,9 +99,6 @@ public:
 
         int value = BaseType::Check(rModelPart);
 
-        KRATOS_CHECK_VARIABLE_KEY(mrScalarRateVariable);
-        KRATOS_CHECK_VARIABLE_KEY(mrRelaxedScalarRateVariable);
-
         const int number_of_nodes = rModelPart.NumberOfNodes();
 #pragma omp parallel for
         for (int iNode = 0; iNode < number_of_nodes; ++iNode)

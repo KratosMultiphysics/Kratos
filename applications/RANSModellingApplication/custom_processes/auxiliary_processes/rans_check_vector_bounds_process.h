@@ -139,8 +139,6 @@ public:
         const Variable<array_1d<double, 3>> vector_variable =
             KratosComponents<Variable<array_1d<double, 3>>>::Get(mVariableName);
 
-        KRATOS_CHECK_VARIABLE_KEY(vector_variable);
-
         ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();
         int number_of_nodes = r_nodes.size();

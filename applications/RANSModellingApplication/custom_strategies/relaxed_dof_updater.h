@@ -37,8 +37,7 @@ namespace Kratos
  *  This operation is a simple loop in shared memory, but requires additional infrastructure in MPI,
  *  to obtain out-of-process update data. RelaxedDofUpdater takes care of both the operation and the eventual
  *  auxiliary infrastructure.
- *  @see TrilinosRelaxedDofUpdater for the trilinos version.
- */
+  */
 template< class TSparseSpace >
 class RelaxedDofUpdater
 {

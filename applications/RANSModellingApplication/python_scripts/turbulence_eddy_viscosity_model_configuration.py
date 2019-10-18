@@ -288,7 +288,7 @@ class TurbulenceEddyViscosityModelConfiguration(TurbulenceModelSolver):
 
         self.PrepareSolvingStrategy()
 
-        from process_factory import KratosProcessFactory
+        from KratosMultiphysics.process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
         self.auxiliar_process_list = factory.ConstructListOfProcesses(
             self.settings["auxiliar_process_list"])

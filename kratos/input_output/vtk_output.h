@@ -211,6 +211,12 @@ protected:
     void WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream) const;
 
     /**
+     * @brief It checks if the variable is compatible with the VTK format
+     * @param rVariableName name of the result to be written.
+     */
+    bool IsCompatibleVariable(const std::string& rVariableName) const;
+
+    /**
      * @brief Write the results on the nodes.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
@@ -405,7 +411,16 @@ protected:
      * @param rFileStream the file stream to which data is to be written.
      */
     template <typename TData>
-    void WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream) const;
+    void WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream) const
+    {
+        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
+            rFileStream << rData;
+        } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
+            TData data = rData;
+            ForceBigEndian(reinterpret_cast<unsigned char *>(&data));
+            rFileStream.write(reinterpret_cast<char *>(&data), sizeof(TData));
+        }
+    }
 
     /**
      * @brief Write the vector values to the file provided, takes care of binary and ascii formats
@@ -414,7 +429,20 @@ protected:
      * @param rFileStream the file stream to which data is to be written.
      */
     template <typename TData>
-    void WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream) const;
+    void WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream) const
+    {
+        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
+            for (const auto& r_data_comp : rData) {
+                rFileStream << r_data_comp << " ";
+            }
+        } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
+            for (const auto& r_data_comp : rData ) {
+                float data_comp_local = (float)r_data_comp; // should not be const or a reference for enforcing big endian
+                ForceBigEndian(reinterpret_cast<unsigned char *>(&data_comp_local));
+                rFileStream.write(reinterpret_cast<char *>(&data_comp_local), sizeof(float));
+            }
+        }
+    }
 
     /**
      * @brief Only used in the binary format output.
@@ -432,13 +460,27 @@ private:
     /**
      * @brief Prints the Properties Id as an integer variable in each element/condition
      * @tparam TContainerType The type of container of the entity on which the results are to be written
-     * @param rContainer the container which is beging output
+     * @param rContainer the container which is being output
      * @param rFileStream the file stream to which data is to be written.
      */
     template<typename TContainerType>
     void WritePropertiesIdsToFile(
         const TContainerType& rContainer,
         std::ofstream& rFileStream) const;
+
+    /**
+     * @brief Prints the Ids of the container entities as an integer variable in entity (e.g. node, element, condition)
+     * @tparam TContainerType The type of container of the entity on which the results are to be written
+     * @param rContainer the container which is being output
+     * @param DataName name of the data in the vtk file
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType>
+    void WriteIdsToFile(
+        const TContainerType& rContainer,
+        const std::string DataName,
+        std::ofstream& rFileStream) const;
+
 
     /**
      * @brief Print the given rModelPart as VTK file together with the requested results (Only for model parts without nodes)

@@ -102,17 +102,6 @@ RansEvmLowReKElement<TDim, TNumNodes>::~RansEvmLowReKElement()
 ///@name Operators
 ///@{
 
-/// Assignment operator.
-template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmLowReKElement<TDim, TNumNodes>& RansEvmLowReKElement<TDim, TNumNodes>::operator=(
-    RansEvmLowReKElement<TDim, TNumNodes> const& rOther)
-{
-    BaseType::operator=(rOther);
-    Flags::operator=(rOther);
-    // mpProperties = rOther.mpProperties;
-    return *this;
-}
-
 ///@}
 ///@name Operations
 ///@{
@@ -263,16 +252,6 @@ int RansEvmLowReKElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 
     BaseType::Check(rCurrentProcessInfo);
 
-    KRATOS_CHECK_VARIABLE_KEY(TURBULENCE_RANS_C_MU);
-    KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY_SIGMA);
-    KRATOS_CHECK_VARIABLE_KEY(TURBULENT_VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(KINEMATIC_VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
-    KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY_RATE);
-    KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
-    KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
-    KRATOS_CHECK_VARIABLE_KEY(RANS_AUXILIARY_VARIABLE_1);
-
     for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
     {
         NodeType& r_node = this->GetGeometry()[iNode];
@@ -383,7 +362,6 @@ void RansEvmLowReKElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) co
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmLowReKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
     RansEvmLowReKElementData& rData,
-    double& rEffectiveKinematicViscosity,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
@@ -392,7 +370,6 @@ void RansEvmLowReKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReaction
     rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
 
     const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    const double tke_sigma = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
 
     const double nu_t = this->EvaluateInPoint(TURBULENT_VISCOSITY, rShapeFunctions);
     const double tke = this->EvaluateInPoint(TURBULENT_KINETIC_ENERGY, rShapeFunctions);
@@ -407,30 +384,42 @@ void RansEvmLowReKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReaction
     rData.KinematicViscosity = nu;
     rData.WallDistance = wall_distance;
     rData.Gamma = gamma;
-    rEffectiveKinematicViscosity = nu + nu_t / tke_sigma;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmLowReKElement<TDim, TNumNodes>::CalculateConvectionDiffusionReactionData(
+double RansEvmLowReKElement<TDim, TNumNodes>::GetEffectiveKinematicViscosity(
     RansEvmLowReKElementData& rData,
-    double& rEffectiveKinematicViscosity,
-    double& rVariableGradientNorm,
-    double& rVariableRelaxedAcceleration,
     const Vector& rShapeFunctions,
     const Matrix& rShapeFunctionDerivatives,
     const ProcessInfo& rCurrentProcessInfo,
     const int Step) const
 {
-    this->CalculateConvectionDiffusionReactionData(
-        rData, rEffectiveKinematicViscosity, rShapeFunctions,
-        rShapeFunctionDerivatives, rCurrentProcessInfo, Step);
+    const double tke_sigma = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
+    return rData.KinematicViscosity + rData.TurbulentKinematicViscosity / tke_sigma;
+}
 
+template <unsigned int TDim, unsigned int TNumNodes>
+double RansEvmLowReKElement<TDim, TNumNodes>::GetScalarVariableGradientNorm(
+    RansEvmLowReKElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
+{
     array_1d<double, 3> tke_gradient;
     this->CalculateGradient(tke_gradient, TURBULENT_KINETIC_ENERGY, rShapeFunctionDerivatives);
-    rVariableGradientNorm = norm_2(tke_gradient);
+    return norm_2(tke_gradient);
+}
 
-    rVariableRelaxedAcceleration =
-        this->EvaluateInPoint(RANS_AUXILIARY_VARIABLE_1, rShapeFunctions);
+template <unsigned int TDim, unsigned int TNumNodes>
+double RansEvmLowReKElement<TDim, TNumNodes>::GetScalarVariableRelaxedAcceleration(
+    RansEvmLowReKElementData& rData,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeFunctionDerivatives,
+    const ProcessInfo& rCurrentProcessInfo,
+    const int Step) const
+{
+    return this->EvaluateInPoint(RANS_AUXILIARY_VARIABLE_1, rShapeFunctions);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

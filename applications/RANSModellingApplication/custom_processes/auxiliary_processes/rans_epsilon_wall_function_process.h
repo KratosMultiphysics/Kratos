@@ -112,10 +112,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
-        KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
-
         const ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();
         int number_of_nodes = r_nodes.size();

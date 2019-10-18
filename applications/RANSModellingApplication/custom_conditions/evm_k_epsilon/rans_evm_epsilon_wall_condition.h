@@ -265,66 +265,10 @@ public:
         rRightHandSideVector.clear();
         rDampingMatrix.clear();
 
-        const GeometryType& r_geometry = this->GetGeometry();
-
-        if (!this->Is(SLIP))
-            return;
-
-        for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-            if (!r_geometry[i_node].GetDof(TURBULENT_ENERGY_DISSIPATION_RATE).IsFree())
-                return;
-
-        RansCalculationUtilities rans_calculation_utilities;
-
-        // Get Shape function data
-        const GeometryType::IntegrationPointsArrayType& integration_points =
-            r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const IndexType num_gauss_points = integration_points.size();
-        MatrixType shape_functions =
-            r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-        const double area = r_geometry.DomainSize();
-
-        // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
-        double J = (TNumNodes == 2) ? 0.5 * area : 2.0 * area;
-
-        const double epsilon_sigma =
-            rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
-        const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
-        const double eps = std::numeric_limits<double>::epsilon();
-        for (IndexType g = 0; g < num_gauss_points; g++)
+        if (this->Is(SLIP))
         {
-            const Vector& gauss_shape_functions = row(shape_functions, g);
-            const double weight = J * integration_points[g].Weight();
-
-            const double nu = rans_calculation_utilities.EvaluateInPoint(
-                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
-            const double nu_t = rans_calculation_utilities.EvaluateInPoint(
-                r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
-            const double tke = rans_calculation_utilities.EvaluateInPoint(
-                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
-            const double epsilon = rans_calculation_utilities.EvaluateInPoint(
-                r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, gauss_shape_functions);
-            const double y_plus = rans_calculation_utilities.EvaluateInPoint(
-                r_geometry, RANS_Y_PLUS, gauss_shape_functions);
-
-            const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
-
-            if (y_plus > eps)
-            {
-                const double value =
-                    weight * (nu + nu_t / epsilon_sigma) * u_tau / (y_plus * nu);
-
-                for (IndexType a = 0; a < TNumNodes; ++a)
-                {
-                    for (IndexType b = 0; b < TNumNodes; ++b)
-                    {
-                        rDampingMatrix(a, b) -= gauss_shape_functions[a] *
-                                                gauss_shape_functions[b] * value;
-                    }
-                    rRightHandSideVector[a] += value * gauss_shape_functions[a] * epsilon;
-                }
-            }
+            this->AddLocalVelocityContribution(
+                rDampingMatrix, rRightHandSideVector, rCurrentProcessInfo);
         }
 
         KRATOS_CATCH("");
@@ -336,13 +280,6 @@ public:
         KRATOS_TRY;
 
         int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
-
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENCE_RANS_C_MU);
-        KRATOS_CHECK_VARIABLE_KEY(KINEMATIC_VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_ENERGY_DISSIPATION_RATE);
 
         const GeometryType& r_geometry = this->GetGeometry();
 
@@ -490,6 +427,66 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void AddLocalVelocityContribution(MatrixType& rDampingMatrix,
+                                      VectorType& rRightHandSideVector,
+                                      ProcessInfo& rCurrentProcessInfo)
+    {
+        const GeometryType& r_geometry = this->GetGeometry();
+
+        RansCalculationUtilities rans_calculation_utilities;
+
+        // Get Shape function data
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+            r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const IndexType num_gauss_points = integration_points.size();
+        MatrixType shape_functions =
+            r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+        const double area = r_geometry.DomainSize();
+
+        // CAUTION: "Jacobian" is 2.0*A for triangles but 0.5*A for lines
+        double J = (TNumNodes == 2) ? 0.5 * area : 2.0 * area;
+
+        const double epsilon_sigma =
+            rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
+        const double c_mu_25 = std::pow(rCurrentProcessInfo[TURBULENCE_RANS_C_MU], 0.25);
+        const double eps = std::numeric_limits<double>::epsilon();
+        for (IndexType g = 0; g < num_gauss_points; g++)
+        {
+            const Vector& gauss_shape_functions = row(shape_functions, g);
+            const double weight = J * integration_points[g].Weight();
+
+            const double nu = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, KINEMATIC_VISCOSITY, gauss_shape_functions);
+            const double nu_t = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, TURBULENT_VISCOSITY, gauss_shape_functions);
+            const double tke = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, TURBULENT_KINETIC_ENERGY, gauss_shape_functions);
+            const double epsilon = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, TURBULENT_ENERGY_DISSIPATION_RATE, gauss_shape_functions);
+            const double y_plus = rans_calculation_utilities.EvaluateInPoint(
+                r_geometry, RANS_Y_PLUS, gauss_shape_functions);
+
+            const double u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+
+            if (y_plus > eps)
+            {
+                const double value =
+                    weight * (nu + nu_t / epsilon_sigma) * u_tau / (y_plus * nu);
+
+                for (IndexType a = 0; a < TNumNodes; ++a)
+                {
+                    for (IndexType b = 0; b < TNumNodes; ++b)
+                    {
+                        rDampingMatrix(a, b) -= gauss_shape_functions[a] *
+                                                gauss_shape_functions[b] * value;
+                    }
+                    rRightHandSideVector[a] += value * gauss_shape_functions[a] * epsilon;
+                }
+            }
+        }
+    }
 
     ///@}
     ///@name Protected  Access

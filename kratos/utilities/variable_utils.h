@@ -704,6 +704,9 @@ public:
             // First we do a check
             CheckVariableExists(rVar, rNodes);
 
+            // I assume that all the nodes sharing the same varibles list from modelpart
+            rNodes.begin()->pGetVariablesList()->AddDof(&rVar);
+
             if(IsFixed == true) {
                 #pragma omp parallel for
                 for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
@@ -951,6 +954,8 @@ public:
         if(rModelPart.NumberOfNodes() != 0)
             KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Solution step data ";
 
+        rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar);
+
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
             auto it_node = rModelPart.NodesBegin() + k;
@@ -988,6 +993,8 @@ public:
         CheckVariableExists(rVar, rModelPart.Nodes());
         CheckVariableExists(rReactionVar, rModelPart.Nodes());
     #endif
+
+        rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar, &rReactionVar);
 
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {

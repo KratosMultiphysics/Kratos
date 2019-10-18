@@ -123,9 +123,6 @@ public:
 
     virtual int Check() override
     {
-        KRATOS_CHECK_VARIABLE_KEY(IS_CO_SOLVING_PROCESS_ACTIVE);
-        KRATOS_CHECK_VARIABLE_KEY(this->mrConvergenceVariable);
-
         KRATOS_CHECK_IS_FALSE(!mrModelPart.HasNodalSolutionStepVariable(this->mrConvergenceVariable));
 
         for (auto strategy : mrSolvingStrategiesList)

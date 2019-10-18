@@ -34,6 +34,9 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
             },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
             "linear_solver_settings" : {
                 "solver_type" : "amgcl"
             },

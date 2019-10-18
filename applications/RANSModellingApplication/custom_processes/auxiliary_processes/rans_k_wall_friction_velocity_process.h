@@ -151,10 +151,6 @@ public:
 
     int Check() override
     {
-        // Checking variable definitions
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-        KRATOS_CHECK_VARIABLE_KEY(TURBULENT_KINETIC_ENERGY);
-
         ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();
         int number_of_nodes = r_nodes.size();

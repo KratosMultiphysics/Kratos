@@ -146,16 +146,6 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
-    StabilizedConvectionDiffusionReactionElement& operator=(
-        StabilizedConvectionDiffusionReactionElement const& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator=(rOther);
-        // mpProperties = rOther.mpProperties;
-        return *this;
-    }
-
     ///@}
     ///@name Operations
     ///@{
@@ -212,9 +202,11 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
-        KRATOS_TRY
-        return Kratos::make_intrusive<StabilizedConvectionDiffusionReactionElement>(
-            NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        KRATOS_TRY;
+        KRATOS_ERROR
+            << "Attempting to Clone base "
+               "StabilizedConvectionDiffusionReactionElement instances."
+            << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -282,17 +274,6 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix only
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override
-    {
-    }
-
-    /**
-     * this is called during the assembling process in order
      * to calculate the elemental right hand side vector only
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
@@ -337,10 +318,10 @@ public:
                 this->EvaluateInPoint(VELOCITY, gauss_shape_functions);
 
             TConvectionDiffusionReactionData r_current_data;
-            double effective_kinematic_viscosity;
             this->CalculateConvectionDiffusionReactionData(
-                r_current_data, effective_kinematic_viscosity,
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double effective_kinematic_viscosity = this->GetEffectiveKinematicViscosity(
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
             const double reaction =
                 this->CalculateReactionTerm(r_current_data, rCurrentProcessInfo);
@@ -394,49 +375,6 @@ public:
     }
 
     /**
-     * this is called during the assembling process in order
-     * to calculate the first derivatives contributions for the LHS and RHS
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                                                VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-            rLeftHandSideMatrix.resize(0, 0, false);
-        if (rRightHandSideVector.size() != 0)
-            rRightHandSideVector.resize(0, false);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the first derivatives constributions
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                      ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-            rLeftHandSideMatrix.resize(0, 0, false);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the first derivatives constributions
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rRightHandSideVector.size() != 0)
-            rRightHandSideVector.resize(0, false);
-    }
-
-    /**
      * ELEMENTS inherited from this class must implement this methods
      * if they need to add dynamic element contributions
      * note: second derivatives means the accelerations if the displacements are the dof of the analysis
@@ -444,49 +382,6 @@ public:
      * CalculateSecondDerivativesContributions,
      * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
      */
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the second derivative contributions for the LHS and RHS
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                                                 VectorType& rRightHandSideVector,
-                                                 ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-            rLeftHandSideMatrix.resize(0, 0, false);
-        if (rRightHandSideVector.size() != 0)
-            rRightHandSideVector.resize(0, false);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side matrix for the second derivatives constributions
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rLeftHandSideMatrix.size1() != 0)
-            rLeftHandSideMatrix.resize(0, 0, false);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector for the second derivatives constributions
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-                                       ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rRightHandSideVector.size() != 0)
-            rRightHandSideVector.resize(0, false);
-    }
 
     /**
      * this is called during the assembling process in order
@@ -538,10 +433,10 @@ public:
             this->GetConvectionOperator(velocity_convective_terms, velocity, r_shape_derivatives);
 
             TConvectionDiffusionReactionData r_current_data;
-            double effective_kinematic_viscosity;
             this->CalculateConvectionDiffusionReactionData(
-                r_current_data, effective_kinematic_viscosity,
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double effective_kinematic_viscosity = this->GetEffectiveKinematicViscosity(
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
             const double reaction =
                 this->CalculateReactionTerm(r_current_data, rCurrentProcessInfo);
@@ -614,12 +509,14 @@ public:
             const double velocity_magnitude = norm_2(velocity);
 
             TConvectionDiffusionReactionData r_current_data;
-            double effective_kinematic_viscosity, variable_gradient_norm,
-                relaxed_variable_acceleration;
             this->CalculateConvectionDiffusionReactionData(
-                r_current_data, effective_kinematic_viscosity,
-                variable_gradient_norm, relaxed_variable_acceleration,
-                gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double effective_kinematic_viscosity = this->GetEffectiveKinematicViscosity(
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double variable_gradient_norm = this->GetScalarVariableGradientNorm(
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
+            const double relaxed_variable_acceleration = this->GetScalarVariableRelaxedAcceleration(
+                r_current_data, gauss_shape_functions, r_shape_derivatives, rCurrentProcessInfo);
 
             const double reaction =
                 this->CalculateReactionTerm(r_current_data, rCurrentProcessInfo);
@@ -717,25 +614,14 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(this->Id() < 1)
-            << "StabilizedConvectionDiffusionReactionElement found with Id 0 "
-               "or negative"
-            << std::endl;
-
-        KRATOS_ERROR_IF(this->GetGeometry().Area() <= 0)
-            << "On StabilizedConvectionDiffusionReactionElement -> " << this->Id()
-            << "; Area cannot be less than or equal to 0" << std::endl;
-
-        KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
-        KRATOS_CHECK_VARIABLE_KEY(BOSSAK_ALPHA);
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+        int check = BaseType::Check(rCurrentProcessInfo);
 
         for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
         {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, this->GetGeometry()[iNode]);
         }
 
-        return 0;
+        return check;
 
         KRATOS_CATCH("");
     }
@@ -776,13 +662,11 @@ public:
         return value;
     }
 
-    virtual void CalculateConvectionDiffusionReactionData(
-        TConvectionDiffusionReactionData& rData,
-        double& rEffectiveKinematicViscosity,
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo,
-        const int Step = 0) const
+    virtual void CalculateConvectionDiffusionReactionData(TConvectionDiffusionReactionData& rData,
+                                                          const Vector& rShapeFunctions,
+                                                          const Matrix& rShapeFunctionDerivatives,
+                                                          const ProcessInfo& rCurrentProcessInfo,
+                                                          const int Step = 0) const
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to call base "
@@ -793,20 +677,46 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual void CalculateConvectionDiffusionReactionData(
-        TConvectionDiffusionReactionData& rData,
-        double& rEffectiveKinematicViscosity,
-        double& rVariableGradientNorm,
-        double& rVariableRelaxedAcceleration,
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives,
-        const ProcessInfo& rCurrentProcessInfo,
-        const int Step = 0) const
+    virtual double GetEffectiveKinematicViscosity(TConvectionDiffusionReactionData& rData,
+                                                  const Vector& rShapeFunctions,
+                                                  const Matrix& rShapeFunctionDerivatives,
+                                                  const ProcessInfo& rCurrentProcessInfo,
+                                                  const int Step = 0) const
     {
         KRATOS_TRY;
         KRATOS_ERROR << "Attempting to call base "
                         "StabilizedConvectionDiffusionReactionElement "
-                        "CalculateConvectionDiffusionReactionData method. "
+                        "GetEffectiveKinematicViscosity method. "
+                        "Please implement it in the derrived class."
+                     << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    virtual double GetScalarVariableGradientNorm(TConvectionDiffusionReactionData& rData,
+                                                 const Vector& rShapeFunctions,
+                                                 const Matrix& rShapeFunctionDerivatives,
+                                                 const ProcessInfo& rCurrentProcessInfo,
+                                                 const int Step = 0) const
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Attempting to call base "
+                        "StabilizedConvectionDiffusionReactionElement "
+                        "GetScalarVariableGradientNorm method. "
+                        "Please implement it in the derrived class."
+                     << std::endl;
+        KRATOS_CATCH("");
+    }
+
+    virtual double GetScalarVariableRelaxedAcceleration(TConvectionDiffusionReactionData& rData,
+                                                        const Vector& rShapeFunctions,
+                                                        const Matrix& rShapeFunctionDerivatives,
+                                                        const ProcessInfo& rCurrentProcessInfo,
+                                                        const int Step = 0) const
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR << "Attempting to call base "
+                        "StabilizedConvectionDiffusionReactionElement "
+                        "GetScalarVariableRelaxedAcceleration method. "
                         "Please implement it in the derrived class."
                      << std::endl;
         KRATOS_CATCH("");
@@ -989,14 +899,7 @@ private:
 
     double GetDeltaTime(const ProcessInfo& rProcessInfo) const
     {
-        // if (this->Has(DELTA_TIME))
-        // {
-        //     return this->GetValue(DELTA_TIME);
-        // }
-        // else
-        // {
         return rProcessInfo[DELTA_TIME];
-        // }
     }
 
     ///@}

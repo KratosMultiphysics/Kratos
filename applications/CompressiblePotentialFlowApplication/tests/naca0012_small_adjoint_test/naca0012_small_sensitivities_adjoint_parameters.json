@@ -19,7 +19,7 @@
         "compute_reactions"			   : false,
         "response_function_settings" : {
                 "response_type"     : "adjoint_lift_jump_coordinates",
-                "use_kratos"        : true,
+                "analyzer"          : "kratos",
                 "gradient_mode"     : "semi_analytic",
                 "step_size"         : 1e-9
             },

@@ -144,11 +144,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-        KRATOS_CHECK_VARIABLE_KEY(DISTANCE);
-        KRATOS_CHECK_VARIABLE_KEY(KINEMATIC_VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(RANS_Y_PLUS);
-
         RansCheckUtilities rans_check_utilities;
 
         rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);

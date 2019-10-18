@@ -140,9 +140,6 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
-    RansEvmLowReKElement& operator=(RansEvmLowReKElement const& rOther);
-
     ///@}
     ///@name Operations
     ///@{
@@ -295,20 +292,28 @@ private:
     ///@{
 
     void CalculateConvectionDiffusionReactionData(RansEvmLowReKElementData& rData,
-                                                  double& rEffectiveKinematicViscosity,
                                                   const Vector& rShapeFunctions,
                                                   const Matrix& rShapeFunctionDerivatives,
                                                   const ProcessInfo& rCurrentProcessInfo,
                                                   const int Step = 0) const override;
 
-    void CalculateConvectionDiffusionReactionData(RansEvmLowReKElementData& rData,
-                                                  double& rEffectiveKinematicViscosity,
-                                                  double& rVariableGradientNorm,
-                                                  double& rVariableRelaxedAcceleration,
-                                                  const Vector& rShapeFunctions,
-                                                  const Matrix& rShapeFunctionDerivatives,
-                                                  const ProcessInfo& rCurrentProcessInfo,
-                                                  const int Step = 0) const override;
+    double GetEffectiveKinematicViscosity(RansEvmLowReKElementData& rData,
+                                          const Vector& rShapeFunctions,
+                                          const Matrix& rShapeFunctionDerivatives,
+                                          const ProcessInfo& rCurrentProcessInfo,
+                                          const int Step = 0) const override;
+
+    double GetScalarVariableGradientNorm(RansEvmLowReKElementData& rData,
+                                         const Vector& rShapeFunctions,
+                                         const Matrix& rShapeFunctionDerivatives,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const int Step = 0) const override;
+
+    double GetScalarVariableRelaxedAcceleration(RansEvmLowReKElementData& rData,
+                                                const Vector& rShapeFunctions,
+                                                const Matrix& rShapeFunctionDerivatives,
+                                                const ProcessInfo& rCurrentProcessInfo,
+                                                const int Step = 0) const override;
 
     double CalculateReactionTerm(const RansEvmLowReKElementData& rData,
                                  const ProcessInfo& rCurrentProcessInfo,

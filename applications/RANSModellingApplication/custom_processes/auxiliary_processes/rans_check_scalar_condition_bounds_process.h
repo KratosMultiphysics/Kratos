@@ -118,7 +118,6 @@ public:
         const Variable<double> scalar_variable =
             KratosComponents<Variable<double>>::Get(mVariableName);
 
-        KRATOS_CHECK_VARIABLE_KEY(scalar_variable);
 
         ModelPart::NodesContainerType& r_nodes =
             mrModel.GetModelPart(mModelPartName).Nodes();

@@ -54,6 +54,7 @@ struct RansEvmKElementData
 
     double TurbulentKineticEnergy;
     double TurbulentKinematicViscosity;
+    double KinematicViscosity;
     double VelocityDivergence;
 
     Matrix ShapeFunctionDerivatives;
@@ -67,7 +68,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmKElementData>;
+    using BaseType =
+        StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmKElementData>;
 
     /// Node type (default is: Node<3>)
     using NodeType = Node<3>;
@@ -137,9 +139,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
-    /// Assignment operator.
-    RansEvmKElement& operator=(RansEvmKElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -293,20 +292,28 @@ private:
     ///@{
 
     void CalculateConvectionDiffusionReactionData(RansEvmKElementData& rData,
-                                                  double& rEffectiveKinematicViscosity,
                                                   const Vector& rShapeFunctions,
                                                   const Matrix& rShapeFunctionDerivatives,
                                                   const ProcessInfo& rCurrentProcessInfo,
                                                   const int Step = 0) const override;
 
-    void CalculateConvectionDiffusionReactionData(RansEvmKElementData& rData,
-                                                  double& rEffectiveKinematicViscosity,
-                                                  double& rVariableGradientNorm,
-                                                  double& rVariableRelaxedAcceleration,
-                                                  const Vector& rShapeFunctions,
-                                                  const Matrix& rShapeFunctionDerivatives,
-                                                  const ProcessInfo& rCurrentProcessInfo,
-                                                  const int Step = 0) const override;
+    double GetEffectiveKinematicViscosity(RansEvmKElementData& rData,
+                                          const Vector& rShapeFunctions,
+                                          const Matrix& rShapeFunctionDerivatives,
+                                          const ProcessInfo& rCurrentProcessInfo,
+                                          const int Step = 0) const override;
+
+    double GetScalarVariableGradientNorm(RansEvmKElementData& rData,
+                                         const Vector& rShapeFunctions,
+                                         const Matrix& rShapeFunctionDerivatives,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const int Step = 0) const override;
+
+    double GetScalarVariableRelaxedAcceleration(RansEvmKElementData& rData,
+                                                const Vector& rShapeFunctions,
+                                                const Matrix& rShapeFunctionDerivatives,
+                                                const ProcessInfo& rCurrentProcessInfo,
+                                                const int Step = 0) const override;
 
     double CalculateReactionTerm(const RansEvmKElementData& rData,
                                  const ProcessInfo& rCurrentProcessInfo,

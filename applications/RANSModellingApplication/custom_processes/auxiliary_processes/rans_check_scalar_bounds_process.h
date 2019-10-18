@@ -115,8 +115,6 @@ public:
         const Variable<double>& r_scalar_variable =
             KratosComponents<Variable<double>>::Get(mVariableName);
 
-        KRATOS_CHECK_VARIABLE_KEY(r_scalar_variable);
-
         RansCheckUtilities rans_check_utilities;
 
         rans_check_utilities.CheckIfModelPartExists(mrModel, mModelPartName);

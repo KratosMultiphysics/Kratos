@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
-from process_factory import KratosProcessFactory
+from KratosMultiphysics.process_factory import KratosProcessFactory
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -22,7 +22,7 @@ class CustomProcessTest(UnitTest.TestCase):
                     "echo_level"                     : 0,
                     "flag_variable_name"             : "STRUCTURE",
                     "flag_variable_value"            : true,
-                    "apply_to_model_part_conditions" : "all"
+                    "apply_to_model_part_conditions" : ["ALL_MODEL_PARTS"]
                 }
             },
             {
@@ -34,7 +34,7 @@ class CustomProcessTest(UnitTest.TestCase):
                     "echo_level"                     : 0,
                     "flag_variable_name"             : "INLET",
                     "flag_variable_value"            : true,
-                    "apply_to_model_part_conditions" : "all"
+                    "apply_to_model_part_conditions" : ["ALL_MODEL_PARTS"]
                 }
             }
         ]''')
@@ -297,7 +297,7 @@ class CustomProcessTest(UnitTest.TestCase):
                     "echo_level"                     : 0,
                     "flag_variable_name"             : "STRUCTURE",
                     "flag_variable_value"            : true,
-                    "apply_to_model_part_conditions" : "all"
+                    "apply_to_model_part_conditions" : ["ALL_MODEL_PARTS"]
                 }
             },
             {

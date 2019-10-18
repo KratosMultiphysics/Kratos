@@ -71,7 +71,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData>;
+    using BaseType =
+        StabilizedConvectionDiffusionReactionElement<TDim, TNumNodes, RansEvmLowReEpsilonElementData>;
 
     /// Node type (default is: Node<3>)
     using NodeType = Node<3>;
@@ -125,8 +126,8 @@ public:
      * Constructor using Properties
      */
     RansEvmLowReEpsilonElement(IndexType NewId,
-                           GeometryType::Pointer pGeometry,
-                           PropertiesType::Pointer pProperties);
+                               GeometryType::Pointer pGeometry,
+                               PropertiesType::Pointer pProperties);
 
     /**
      * Copy Constructor
@@ -141,9 +142,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
-    /// Assignment operator.
-    RansEvmLowReEpsilonElement& operator=(RansEvmLowReEpsilonElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -297,20 +295,28 @@ private:
     ///@{
 
     void CalculateConvectionDiffusionReactionData(RansEvmLowReEpsilonElementData& rData,
-                                                  double& rEffectiveKinematicViscosity,
                                                   const Vector& rShapeFunctions,
                                                   const Matrix& rShapeFunctionDerivatives,
                                                   const ProcessInfo& rCurrentProcessInfo,
                                                   const int Step = 0) const override;
 
-    void CalculateConvectionDiffusionReactionData(RansEvmLowReEpsilonElementData& rData,
-                                                  double& rEffectiveKinematicViscosity,
-                                                  double& rVariableGradientNorm,
-                                                  double& rVariableRelaxedAcceleration,
-                                                  const Vector& rShapeFunctions,
-                                                  const Matrix& rShapeFunctionDerivatives,
-                                                  const ProcessInfo& rCurrentProcessInfo,
-                                                  const int Step = 0) const override;
+    double GetEffectiveKinematicViscosity(RansEvmLowReEpsilonElementData& rData,
+                                          const Vector& rShapeFunctions,
+                                          const Matrix& rShapeFunctionDerivatives,
+                                          const ProcessInfo& rCurrentProcessInfo,
+                                          const int Step = 0) const override;
+
+    double GetScalarVariableGradientNorm(RansEvmLowReEpsilonElementData& rData,
+                                         const Vector& rShapeFunctions,
+                                         const Matrix& rShapeFunctionDerivatives,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const int Step = 0) const override;
+
+    double GetScalarVariableRelaxedAcceleration(RansEvmLowReEpsilonElementData& rData,
+                                                const Vector& rShapeFunctions,
+                                                const Matrix& rShapeFunctionDerivatives,
+                                                const ProcessInfo& rCurrentProcessInfo,
+                                                const int Step = 0) const override;
 
     double CalculateReactionTerm(const RansEvmLowReEpsilonElementData& rData,
                                  const ProcessInfo& rCurrentProcessInfo,
