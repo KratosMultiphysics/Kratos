@@ -1,0 +1,29 @@
+
+%CMAKE% .. -G "Visual Studio 16 2019"                                     ^
+-DCMAKE_CXX_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 	                    ^
+-DCMAKE_C_FLAGS="/D EXCLUDE_EMBEDDED_PYTHON_DEBUG /Z7" 		                    ^
+-DBOOST_ROOT=%BOOST%                                                            ^
+-DLAPACK_LIBRARIES=%LAPACK%                                                     ^
+-DBLAS_LIBRARIES=%BLAS%                                                         ^
+-DPYTHON_EXECUTABLE=%1                          		 	                ^
+-DCMAKE_BUILD_TYPE="Release"  							                        ^
+-DDEM_APPLICATION=ON                                                            ^
+-DEXTERNAL_SOLVERS_APPLICATION=OFF                                               ^
+-DFLUID_DYNAMICS_APPLICATION=ON                                                 ^
+-DSTRUCTURAL_MECHANICS_APPLICATION=ON                                           ^
+-DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                  ^
+-DSWIMMING_DEM_APPLICATION=OFF                                                   ^
+-DMESH_MOVING_APPLICATION=OFF                                                    ^
+-DSOLID_MECHANICS_APPLICATION=OFF                                                ^
+-DCONSTITUTIVE_MODELS_APPLICATION=OFF                                            ^
+-DDELAUNAY_MESHING_APPLICATION=OFF                                               ^
+-DCONTACT_MECHANICS_APPLICATION=OFF                                              ^
+-DPFEM_APPLICATION=OFF                                                           ^
+-DPFEM_SOLID_MECHANICS_APPLICATION=OFF                                           ^
+-DPFEM_FLUID_DYNAMICS_APPLICATION=OFF                                            ^
+-DMETIS_APPLICATION=OFF                                                         ^
+-DPARMETIS_ROOT_DIR="UNSET"                                                     ^
+-DTRILINOS_APPLICATION=OFF                                                      ^
+-DTRILINOS_ROOT="UNSET"                                                         ^
+-DINSTALL_EMBEDDED_PYTHON=OFF                                                    ^
+-DINCLUDE_FEAST=OFF                                                             

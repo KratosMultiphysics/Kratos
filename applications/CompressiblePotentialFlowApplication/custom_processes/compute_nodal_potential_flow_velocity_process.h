@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_COMPUTE_NODAL_POTENTIAL_FLOW_VELOCITY_PROCESS_INCLUDED )
-#define  KRATOS_COMPUTE_NODAL_POTENTIAL_FLOW_VELOCITY_INCLUDED
+#if !defined(KRATOS_COMPUTE_NODAL_POTENTIAL_FLOW_VELOCITY_PROCESS_INCLUDED)
+#define  KRATOS_COMPUTE_NODAL_POTENTIAL_FLOW_VELOCITY_PROCESS_INCLUDED
 
 // System includes
 
@@ -45,7 +45,7 @@ namespace Kratos
 ///@{
 
 
-class KRATOS_API(CompressiblePotentialFlowApplication) ComputeNodalPotentialFlowVelocityProcess
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputeNodalPotentialFlowVelocityProcess
     : public Process
 {
 public:
