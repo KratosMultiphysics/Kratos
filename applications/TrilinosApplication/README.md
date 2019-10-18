@@ -16,6 +16,7 @@ Kratos Multiphysics uses several components of the [Trilinos project](https://tr
 The Trilinos application also provides __MPI versions of most of the core classes of Kratos__, adapted to work with Epetra distributed matrices where necessary. Hence it provide its own version of the following Kratos (and application) interface elements:
 
 #### Builder and solvers
+- TrilinosResidualBasedBuilderAndSolver
 - TrilinosEliminationBuilderAndSolver
 - TrilinosBlockBuilderAndSolver
 - TrilinosBlockBuilderAndSolverPeriodic
