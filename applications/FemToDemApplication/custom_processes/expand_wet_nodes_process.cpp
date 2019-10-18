@@ -65,9 +65,8 @@ void ExpandWetNodesProcess::Execute()
 
     if (dimension == 2) {
         this->ExpandWetNodesIfTheyAreSkin();
-        this->ExpandWetNodesWithLatestPressureId();
+        // this->ExpandWetNodesWithLatestPressureId();
     }
-
 }
 
 /***********************************************************************************/
