@@ -53,7 +53,7 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
     add_executable (ping ${KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES})
     add_executable (pong ${KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES})
     add_executable (dummy_solver_cpp ${KRATOS_CO_SIMULATION_TESTING_CPP_DUMMY_SOLVER_SOURCES})
-    target_link_libraries(dummy_solver_cpp CoSimIO)
+    # target_link_libraries(dummy_solver_cpp CoSimIO)
     install(TARGETS ping DESTINATION libs )
     install(TARGETS pong DESTINATION libs )
     install(TARGETS dummy_solver_cpp DESTINATION libs )
@@ -65,6 +65,13 @@ else(${CO_SIMULATION_APPLICATION_PYTHON} MATCHES ON)
 
     install(
         FILES ${CMAKE_CURRENT_BINARY_DIR}/tests/dummy_solver/fortran/dummy_solver_fortran
+        DESTINATION libs
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
+
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests/dummy_solver/c)
+
+    install(
+        FILES ${CMAKE_CURRENT_BINARY_DIR}/tests/dummy_solver/c/dummy_solver_c
         DESTINATION libs
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ) # required to preseve execute-permissions
 
