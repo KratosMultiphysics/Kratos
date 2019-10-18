@@ -39,7 +39,7 @@ namespace CoSim {
 inline CoSimIO::CoSimIO(const std::string& rName, const std::string& rSettingsFileName, const bool IsConnectionMaster)
     : CoSimIO::CoSimIO(rName, Internals::ReadSettingsFile(rSettingsFileName), IsConnectionMaster) { } // forwarding constructor call
 
-inline CoSimIO::CoSimIO(const std::string& rName, SettingsType rSettings, const bool IsConnectionMaster)
+inline CoSimIO::CoSimIO(const std::string& rName, SettingsType rSettings, const bool IsConnectionMaster) : mIsConnectionMaster(IsConnectionMaster)
 {
     Initialize(rName, rSettings, IsConnectionMaster);
 }
@@ -57,17 +57,19 @@ inline bool CoSimIO::Disconnect()
 
 inline void CoSimIO::SendControlSignal(const Internals::ControlSignal Signal, const std::string& rIdentifier)
 {
+    KRATOS_CO_SIM_ERROR_IF_NOT(mIsConnectionMaster) << "This function can only be called as the Connection-Master!" << std::endl;
     mpComm->SendControlSignal(Signal, rIdentifier);
-
 }
 inline Internals::ControlSignal CoSimIO::RecvControlSignal(std::string& rIdentifier)
 {
+    KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
     return mpComm->RecvControlSignal(rIdentifier);
 }
 
 
 inline void CoSimIO::RegisterDataExchange(DataExchangeFunctionType pFuncPtr, const std::string& rName)
 {
+    KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
     KRATOS_CO_SIM_ERROR_IF(mDataExchangeFunctions.count(rName) > 0) << "Function already registered for \"" << rName << "\"!" << std::endl;
     mDataExchangeFunctions[rName] = pFuncPtr;
 }
@@ -75,26 +77,32 @@ inline void CoSimIO::RegisterDataExchange(DataExchangeFunctionType pFuncPtr, con
 
 inline void CoSimIO::RegisterAdvanceInTime(double (*pFuncPtr)(double))
 {
+    KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
     mpAdvInTime = pFuncPtr;
 }
 
 inline void CoSimIO::RegisterInitializeSolutionStep(void (*pFuncPtr)())
 {
+    KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
     mpInitSolStep = pFuncPtr;
 }
 
 inline void CoSimIO::RegisterSolveSolutionStep(void (*pFuncPtr)())
 {
+    KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
     mpSolSolStep = pFuncPtr;
 }
 
 inline void CoSimIO::RegisterFinalizeSolutionStep(void (*pFuncPtr)())
 {
+    KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
     mpFinSolStep = pFuncPtr;
 }
 
 inline void CoSimIO::Run()
 {
+    KRATOS_CO_SIM_ERROR_IF(mIsConnectionMaster) << "This function can only be called as the Connection-Slave!" << std::endl;
+
     const std::map<const CoSim::Internals::ControlSignal, const std::string> signal_to_name = {
         {CoSim::Internals::ControlSignal::ImportGeometry, "ImportGeometry"},
         {CoSim::Internals::ControlSignal::ExportGeometry, "ExportGeometry"},

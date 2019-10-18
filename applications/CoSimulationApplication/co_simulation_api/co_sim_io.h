@@ -70,6 +70,8 @@ public:
 private:
     std::unique_ptr<CoSimComm> mpComm; // handles communication (File, Sockets, MPI, ...)
 
+    bool mIsConnectionMaster = false;
+
     double (*mpAdvInTime)(double) = nullptr;
     void (*mpInitSolStep)() = nullptr;
     void (*mpSolSolStep)() = nullptr;
