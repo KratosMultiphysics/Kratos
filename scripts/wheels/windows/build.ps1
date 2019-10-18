@@ -46,6 +46,7 @@ function create_application_wheel ($pythonPath, $app) {
 
 foreach ($python in $pythons){
     echo "Begining build for python $($python)"
+    $env:python = $python
 
 
     #mkdir c:\wheel
