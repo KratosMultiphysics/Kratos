@@ -16,7 +16,7 @@ function build ($python, $pythonPath) {
 function  setup_wheel_dir {
     cd $kratosRoot
     mkdir c:\wheel
-    cp scripts\wheels\windows\setup.py c:\wheel\setup.py
+    cp scripts\wheels\setup.py c:\wheel\setup.py
     mkdir c:\wheel\KratosMultiphysics
     mkdir c:\wheel\KratosMultiphysics\.libs
 }
@@ -61,7 +61,7 @@ foreach ($python in $pythons){
 
     create_core_wheel $pythonPath
 
-    $applications = Get-ChildItem "c:\workspace\cimne\Kratos\scripts\wheels\windows\applications"
+    $applications = Get-ChildItem "$($kratosRoot)\scripts\wheels\windows\applications"
 
     foreach($app in $applications) {
         create_application_wheel $pythonPath $app
