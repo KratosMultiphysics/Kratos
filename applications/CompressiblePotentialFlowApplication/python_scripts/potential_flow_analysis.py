@@ -45,6 +45,9 @@ class PotentialFlowAnalysis(AnalysisStage):
         elif self.project_parameters["solver_settings"]["solver_type"].GetString()=="adjoint_potential_flow":
             import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_adjoint_solver as adjoint_solver
             return adjoint_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        elif self.project_parameters["solver_settings"]["solver_type"].GetString()=="stochastic_adjoint_potential_flow":
+            import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_stochastic_adjoint_solver as adjoint_solver
+            return adjoint_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
         else:
             raise Exception("Solver type '"+str(self.project_parameters["solver_settings"]["solver_type"].GetString())+"' not added. Please specify an available solver")
 
