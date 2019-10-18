@@ -23,17 +23,11 @@
 
 namespace CoSim {
 
-#define CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainerType)                              \
-    bool Import(DataContainerType& rDataContainer, const std::string& rIdentifier)               \
-        { CheckConnection(); return ImportDetail(rDataContainer, rIdentifier); }                 \
-    bool Export(const DataContainerType& rDataContainer, const std::string& rIdentifier)         \
-        { CheckConnection(); return ExportDetail(rDataContainer, rIdentifier); }                 \
-
-#define CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainerType)                       \
-    virtual bool ImportDetail(DataContainerType& rDataContainer, const std::string& rIdentifier) \
-        { KRATOS_CO_SIM_ERROR << "Type of data not yet supported" << std::endl; return false;}   \
+#define CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainerType)                                    \
+    virtual bool ImportDetail(DataContainerType& rDataContainer, const std::string& rIdentifier)       \
+        { KRATOS_CO_SIM_ERROR << "Type of data not yet supported" << std::endl; return false;}         \
     virtual bool ExportDetail(const DataContainerType& rDataContainer, const std::string& rIdentifier) \
-        { KRATOS_CO_SIM_ERROR << "Type of data not yet supported" << std::endl; return false;}   \
+        { KRATOS_CO_SIM_ERROR << "Type of data not yet supported" << std::endl; return false;}         \
 
 class CoSimComm
 {
@@ -98,9 +92,13 @@ public:
         CheckConnection(); return RecvControlSignalDetail(rIdentifier);
     }
 
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Geometry);
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Mesh);
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Data);
+    template<class DataContainer>
+    bool Import(DataContainer& rDataContainer, const std::string& rIdentifier)
+        { CheckConnection(); return ImportDetail(rDataContainer, rIdentifier); }
+
+    template<class DataContainer>
+    bool Export(const DataContainer& rDataContainer, const std::string& rIdentifier)
+        { CheckConnection(); return ExportDetail(rDataContainer, rIdentifier); }
 
 protected:
     SettingsType& mrSettings;
@@ -131,9 +129,9 @@ private:
         return Internals::ControlSignal::Dummy;
     }
 
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Geometry);
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Mesh);
-    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL(DataContainers::Data);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Geometry);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Mesh);
+    CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE(DataContainers::Data);
 
     void CheckConnection()
     {
@@ -143,7 +141,6 @@ private:
 };
 
 #undef CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE // this macro should only be used for this class
-#undef CO_SIM_COMM_REGISTER_DATA_CONTAINER_TYPE_DETAIL // this macro should only be used for this class
 
 } // namespace CoSim
 
