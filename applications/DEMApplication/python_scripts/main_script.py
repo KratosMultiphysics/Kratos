@@ -436,6 +436,8 @@ class Solution(object):
 
             self.InitializeSolutionStep()
 
+            self.solver.Predict()
+
             self.SolverSolve()
 
             self.FinalizeSolutionStep()
