@@ -143,6 +143,14 @@ public:
             rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
     }
 
+    void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+                                           const Matrix& rResidualGradient,
+                                           Vector& rResponseGradient,
+                                           const ProcessInfo& rProcessInfo) override
+    {
+        rResponseGradient.clear();
+    }
+
     void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
                                             const Matrix& rResidualGradient,
                                             Vector& rResponseGradient,

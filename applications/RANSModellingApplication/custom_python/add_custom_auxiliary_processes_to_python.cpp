@@ -46,6 +46,7 @@
 // RANS sensitivity processes
 #include "custom_processes/auxiliary_processes/rans_logarithmic_y_plus_velocity_sensitivities_process.h"
 #include "custom_processes/auxiliary_processes/rans_nut_k_epsilon_high_re_sensitivities_process.h"
+#include "custom_processes/auxiliary_processes/rans_nut_y_plus_wall_function_sensitivities_process.h"
 
 namespace Kratos
 {
@@ -182,6 +183,11 @@ void AddCustomAuxiliaryProcessesToPython(pybind11::module& m)
     using RansNutKEpsilonHighReSensitivitiesProcessType = RansNutKEpsilonHighReSensitivitiesProcess;
     py::class_<RansNutKEpsilonHighReSensitivitiesProcessType, RansNutKEpsilonHighReSensitivitiesProcessType::Pointer, Process>(
         m, "RansNutKEpsilonHighReSensitivitiesProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    using RansNutYPlusWallFunctionSensitivitiesProcessType = RansNutYPlusWallFunctionSensitivitiesProcess;
+    py::class_<RansNutYPlusWallFunctionSensitivitiesProcessType, RansNutYPlusWallFunctionSensitivitiesProcessType::Pointer, Process>(
+        m, "RansNutYPlusWallFunctionSensitivitiesProcess")
         .def(py::init<Model&, Parameters&>());
 }
 

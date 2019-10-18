@@ -65,6 +65,9 @@ struct RansEvmKAdjointData
     Vector NodalFmu;
     Vector NodalYPlus;
     Matrix NodalVelocity;
+
+    Vector TurbulentKinematicViscositySensitivitiesK;
+    Vector TurbulentKinematicViscositySensitivitiesEpsilon;
 };
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -145,8 +148,8 @@ public:
      * Constructor using Properties
      */
     RansEvmKAdjoint(IndexType NewId,
-                       GeometryType::Pointer pGeometry,
-                       PropertiesType::Pointer pProperties);
+                    GeometryType::Pointer pGeometry,
+                    PropertiesType::Pointer pProperties);
 
     /**
      * Copy Constructor

@@ -58,7 +58,7 @@ RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(IndexType NewId)
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(IndexType NewId,
-                                                                    const NodesArrayType& ThisNodes)
+                                                              const NodesArrayType& ThisNodes)
     : BaseType(NewId, ThisNodes)
 {
 }
@@ -68,7 +68,7 @@ RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(IndexType NewId,
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(IndexType NewId,
-                                                                    GeometryType::Pointer pGeometry)
+                                                              GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
 {
 }
@@ -77,8 +77,9 @@ RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(IndexType NewId,
  * Constructor using Properties
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(
-    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+RansEvmEpsilonAdjoint<TDim, TNumNodes>::RansEvmEpsilonAdjoint(IndexType NewId,
+                                                              GeometryType::Pointer pGeometry,
+                                                              PropertiesType::Pointer pProperties)
     : BaseType(NewId, pGeometry, pProperties)
 {
 }
@@ -167,7 +168,7 @@ Element::Pointer RansEvmEpsilonAdjoint<TDim, TNumNodes>::Create(
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer RansEvmEpsilonAdjoint<TDim, TNumNodes>::Clone(IndexType NewId,
-                                                                  NodesArrayType const& ThisNodes) const
+                                                               NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmEpsilonAdjoint>(
@@ -380,6 +381,12 @@ void RansEvmEpsilonAdjoint<TDim, TNumNodes>::CalculateElementData(
         const NodeType& r_node = this->GetGeometry()[i_node];
         const Vector& turbulent_kinematic_viscosity_sensitivities =
             r_node.GetValue(RANS_NUT_SCALAR_PARTIAL_DERIVATIVES);
+
+        KRATOS_ERROR_IF(turbulent_kinematic_viscosity_sensitivities.size() != 2) << "RANS_NUT_SCALAR_PARTIAL_DERIVATIVES variable is not specified for node "
+                                                                                 << r_node
+                                                                                        .Info()
+                                                                                 << "\n Please use available NutKEpsilonHighReSensitivitiesProcess to calculate RANS_NUT_SCALAR_PARTIAL_DERIVATIVES.\n";
+
         rData.TurbulentKinematicViscositySensitivitiesK[i_node] =
             turbulent_kinematic_viscosity_sensitivities[0];
         rData.TurbulentKinematicViscositySensitivitiesEpsilon[i_node] =
@@ -621,8 +628,8 @@ void RansEvmEpsilonAdjoint<TDim, TNumNodes>::CalculateSourceTermScalarDerivative
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmEpsilonAdjoint<TDim, TNumNodes>::Calculate(const Variable<Matrix>& rVariable,
-                                                          Matrix& rOutput,
-                                                          const ProcessInfo& rCurrentProcessInfo)
+                                                       Matrix& rOutput,
+                                                       const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -647,18 +654,14 @@ void RansEvmEpsilonAdjoint<TDim, TNumNodes>::Calculate(const Variable<Matrix>& r
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmEpsilonAdjoint<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityVelocityDerivatives(
-    Matrix& rOutput,
-    const RansEvmEpsilonAdjointData& rCurrentData,
-    const ProcessInfo& rCurrentProcessInfo) const
+    Matrix& rOutput, const RansEvmEpsilonAdjointData& rCurrentData, const ProcessInfo& rCurrentProcessInfo) const
 {
     rOutput.clear();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmEpsilonAdjoint<TDim, TNumNodes>::CalculateReactionTermVelocityDerivatives(
-    Matrix& rOutput,
-    const RansEvmEpsilonAdjointData& rCurrentData,
-    const ProcessInfo& rCurrentProcessInfo) const
+    Matrix& rOutput, const RansEvmEpsilonAdjointData& rCurrentData, const ProcessInfo& rCurrentProcessInfo) const
 {
     noalias(rOutput) =
         rCurrentData.ShapeFunctionDerivatives * ((2.0 / 3.0) * rCurrentData.C1);
@@ -666,9 +669,7 @@ void RansEvmEpsilonAdjoint<TDim, TNumNodes>::CalculateReactionTermVelocityDeriva
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmEpsilonAdjoint<TDim, TNumNodes>::CalculateSourceTermVelocityDerivatives(
-    Matrix& rOutput,
-    const RansEvmEpsilonAdjointData& rCurrentData,
-    const ProcessInfo& rCurrentProcessInfo) const
+    Matrix& rOutput, const RansEvmEpsilonAdjointData& rCurrentData, const ProcessInfo& rCurrentProcessInfo) const
 {
     const double c1 = rCurrentData.C1;
 

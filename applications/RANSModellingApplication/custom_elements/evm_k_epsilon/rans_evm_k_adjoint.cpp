@@ -57,8 +57,7 @@ RansEvmKAdjoint<TDim, TNumNodes>::RansEvmKAdjoint(IndexType NewId)
  * Constructor using an array of nodes
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKAdjoint<TDim, TNumNodes>::RansEvmKAdjoint(IndexType NewId,
-                                                        const NodesArrayType& ThisNodes)
+RansEvmKAdjoint<TDim, TNumNodes>::RansEvmKAdjoint(IndexType NewId, const NodesArrayType& ThisNodes)
     : BaseType(NewId, ThisNodes)
 {
 }
@@ -67,8 +66,7 @@ RansEvmKAdjoint<TDim, TNumNodes>::RansEvmKAdjoint(IndexType NewId,
  * Constructor using Geometry
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKAdjoint<TDim, TNumNodes>::RansEvmKAdjoint(IndexType NewId,
-                                                        GeometryType::Pointer pGeometry)
+RansEvmKAdjoint<TDim, TNumNodes>::RansEvmKAdjoint(IndexType NewId, GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
 {
 }
@@ -78,8 +76,8 @@ RansEvmKAdjoint<TDim, TNumNodes>::RansEvmKAdjoint(IndexType NewId,
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 RansEvmKAdjoint<TDim, TNumNodes>::RansEvmKAdjoint(IndexType NewId,
-                                                        GeometryType::Pointer pGeometry,
-                                                        PropertiesType::Pointer pProperties)
+                                                  GeometryType::Pointer pGeometry,
+                                                  PropertiesType::Pointer pProperties)
     : BaseType(NewId, pGeometry, pProperties)
 {
 }
@@ -134,8 +132,8 @@ RansEvmKAdjoint<TDim, TNumNodes>& RansEvmKAdjoint<TDim, TNumNodes>::operator=(
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer RansEvmKAdjoint<TDim, TNumNodes>::Create(IndexType NewId,
-                                                             NodesArrayType const& ThisNodes,
-                                                             PropertiesType::Pointer pProperties) const
+                                                          NodesArrayType const& ThisNodes,
+                                                          PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmKAdjoint>(
@@ -152,8 +150,8 @@ Element::Pointer RansEvmKAdjoint<TDim, TNumNodes>::Create(IndexType NewId,
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer RansEvmKAdjoint<TDim, TNumNodes>::Create(IndexType NewId,
-                                                             GeometryType::Pointer pGeom,
-                                                             PropertiesType::Pointer pProperties) const
+                                                          GeometryType::Pointer pGeom,
+                                                          PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmKAdjoint>(NewId, pGeom, pProperties);
@@ -169,7 +167,7 @@ Element::Pointer RansEvmKAdjoint<TDim, TNumNodes>::Create(IndexType NewId,
  */
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer RansEvmKAdjoint<TDim, TNumNodes>::Clone(IndexType NewId,
-                                                            NodesArrayType const& ThisNodes) const
+                                                         NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmKAdjoint>(
@@ -358,11 +356,10 @@ const Variable<double>& RansEvmKAdjoint<TDim, TNumNodes>::GetAdjointSecondVariab
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKAdjoint<TDim, TNumNodes>::CalculateElementData(
-    RansEvmKAdjointData& rData,
-    const Vector& rShapeFunctions,
-    const Matrix& rShapeFunctionDerivatives,
-    const ProcessInfo& rCurrentProcessInfo) const
+void RansEvmKAdjoint<TDim, TNumNodes>::CalculateElementData(RansEvmKAdjointData& rData,
+                                                            const Vector& rShapeFunctions,
+                                                            const Matrix& rShapeFunctionDerivatives,
+                                                            const ProcessInfo& rCurrentProcessInfo) const
 {
     rData.ShapeFunctionDerivatives = rShapeFunctionDerivatives;
     rData.ShapeFunctions = rShapeFunctions;
@@ -375,6 +372,26 @@ void RansEvmKAdjoint<TDim, TNumNodes>::CalculateElementData(
     const double& nu = this->EvaluateInPoint(KINEMATIC_VISCOSITY, rShapeFunctions);
     const double& wall_distance = this->EvaluateInPoint(DISTANCE, rShapeFunctions);
     const double& gamma = EvmKepsilonModelUtilities::CalculateGamma(c_mu, 1.0, tke, nu_t);
+
+    rData.TurbulentKinematicViscositySensitivitiesK.resize(TNumNodes);
+    rData.TurbulentKinematicViscositySensitivitiesEpsilon.resize(TNumNodes);
+
+    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+    {
+        const NodeType& r_node = this->GetGeometry()[i_node];
+        const Vector& turbulent_kinematic_viscosity_sensitivities =
+            r_node.GetValue(RANS_NUT_SCALAR_PARTIAL_DERIVATIVES);
+
+        KRATOS_ERROR_IF(turbulent_kinematic_viscosity_sensitivities.size() != 2) << "RANS_NUT_SCALAR_PARTIAL_DERIVATIVES variable is not specified for node "
+                                                                                 << r_node
+                                                                                        .Info()
+                                                                                 << "\n Please use available NutKEpsilonHighReSensitivitiesProcess to calculate RANS_NUT_SCALAR_PARTIAL_DERIVATIVES.\n";
+
+        rData.TurbulentKinematicViscositySensitivitiesK[i_node] =
+            turbulent_kinematic_viscosity_sensitivities[0];
+        rData.TurbulentKinematicViscositySensitivitiesEpsilon[i_node] =
+            turbulent_kinematic_viscosity_sensitivities[1];
+    }
 
     rData.TurbulentKinematicViscosity = nu_t;
     rData.TurbulentKineticEnergy = tke;
@@ -452,26 +469,20 @@ void RansEvmKAdjoint<TDim, TNumNodes>::CalculateEffectiveKinematicViscosityScala
     if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY)
     {
         const double tke_sigma = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
-        const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
 
-        EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityTKESensitivities(
-            rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-            rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rOutput, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK,
+            rCurrentData.ShapeFunctions);
 
         noalias(rOutput) = rOutput / tke_sigma;
     }
     else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE)
     {
         const double tke_sigma = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
-        const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
 
-        EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityEpsilonSensitivities(
-            rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-            rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rOutput, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon,
+            rCurrentData.ShapeFunctions);
 
         noalias(rOutput) = rOutput / tke_sigma;
     }
@@ -582,8 +593,8 @@ void RansEvmKAdjoint<TDim, TNumNodes>::CalculateSourceTermScalarDerivatives(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmKAdjoint<TDim, TNumNodes>::Calculate(const Variable<Matrix>& rVariable,
-                                                    Matrix& rOutput,
-                                                    const ProcessInfo& rCurrentProcessInfo)
+                                                 Matrix& rOutput,
+                                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

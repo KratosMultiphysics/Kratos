@@ -57,8 +57,8 @@ RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmKEpsilonVMSAdjoint(IndexType 
  * Constructor using Geometry
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmKEpsilonVMSAdjoint(
-    IndexType NewId, GeometryType::Pointer pGeometry)
+RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::RansEvmKEpsilonVMSAdjoint(IndexType NewId,
+                                                                      GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
 {
 }
@@ -135,8 +135,8 @@ Element::Pointer RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Create(
  * @return a Pointer to the new element
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Clone(
-    IndexType NewId, NodesArrayType const& ThisNodes) const
+Element::Pointer RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Clone(IndexType NewId,
+                                                                   NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
     return Kratos::make_intrusive<RansEvmKEpsilonVMSAdjoint>(
@@ -154,8 +154,7 @@ Element::Pointer RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Clone(
  * this method is: MANDATORY
  */
 template <unsigned int TDim, unsigned int TNumNodes>
-int RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+int RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -209,8 +208,7 @@ std::string RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Info() const
 /// Print information about this object.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::PrintInfo(
-    std::ostream& rOStream) const
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "RansEvmKEpsilonVMSAdjoint #" << Element::Id();
 }
@@ -218,8 +216,7 @@ void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::PrintInfo(
 /// Print object's data.
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::PrintData(
-    std::ostream& rOStream) const
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
 {
     Element::pGetGeometry()->PrintData(rOStream);
 }
@@ -292,6 +289,11 @@ void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateElementData(
         const NodeType& r_node = this->GetGeometry()[i_node];
         const Vector& turbulent_kinematic_viscosity_sensitivities =
             r_node.GetValue(RANS_NUT_SCALAR_PARTIAL_DERIVATIVES);
+        KRATOS_ERROR_IF(turbulent_kinematic_viscosity_sensitivities.size() != 2) << "RANS_NUT_SCALAR_PARTIAL_DERIVATIVES variable is not specified for node "
+                                                                                 << r_node
+                                                                                        .Info()
+                                                                                 << "\n Please use available NutKEpsilonHighReSensitivitiesProcess to calculate RANS_NUT_SCALAR_PARTIAL_DERIVATIVES.\n";
+
         rData.TurbulentKinematicViscositySensitivitiesK[i_node] =
             turbulent_kinematic_viscosity_sensitivities[0];
         rData.TurbulentKinematicViscositySensitivitiesEpsilon[i_node] =
@@ -313,8 +315,7 @@ void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateElementData(
 
     for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
     {
-        rData.NodalFmu[i_node] =
-            1.0;
+        rData.NodalFmu[i_node] = 1.0;
     }
 }
 
@@ -330,12 +331,14 @@ void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateTurbulentKinematicVisc
     if (rDerivativeVariable == TURBULENT_KINETIC_ENERGY)
     {
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK,
+            rCurrentData.ShapeFunctions);
     }
     else if (rDerivativeVariable == TURBULENT_ENERGY_DISSIPATION_RATE)
     {
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon, rCurrentData.ShapeFunctions);
+            rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon,
+            rCurrentData.ShapeFunctions);
     }
     else
     {
@@ -347,8 +350,9 @@ void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateTurbulentKinematicVisc
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Calculate(
-    const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Calculate(const Variable<Matrix>& rVariable,
+                                                           Matrix& rOutput,
+                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -360,8 +364,8 @@ void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Calculate(
     }
     else if (rVariable == RANS_TURBULENT_KINETIC_ENERGY_PARTIAL_DERIVATIVE)
     {
-        this->CalculateResidualScalarDerivatives(
-            TURBULENT_KINETIC_ENERGY, LHS, rCurrentProcessInfo);
+        this->CalculateResidualScalarDerivatives(TURBULENT_KINETIC_ENERGY, LHS,
+                                                 rCurrentProcessInfo);
     }
     else
     {
@@ -376,9 +380,7 @@ void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::Calculate(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::CalculateTurbulentKinematicViscosityVelocityDerivatives(
-    Matrix& rOutput,
-    const RANSEvmVMSAdjointData& rCurrentData,
-    const ProcessInfo& rCurrentProcessInfo) const
+    Matrix& rOutput, const RANSEvmVMSAdjointData& rCurrentData, const ProcessInfo& rCurrentProcessInfo) const
 {
     rOutput.clear();
 }
@@ -428,9 +430,8 @@ void RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>::load(Serializer& rSerializer)
 /// input stream function
 
 template <unsigned int TDim, unsigned int TNumNodes>
-inline std::istream& operator>>(
-    std::istream& rIStream,
-    RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>& rThis);
+inline std::istream& operator>>(std::istream& rIStream,
+                                RansEvmKEpsilonVMSAdjoint<TDim, TNumNodes>& rThis);
 
 /// output stream function
 

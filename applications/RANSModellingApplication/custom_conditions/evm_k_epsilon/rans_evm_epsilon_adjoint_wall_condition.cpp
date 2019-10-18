@@ -407,8 +407,14 @@ void RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::CalculateConditionResi
     for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
     {
         const NodeType& r_node = this->GetGeometry()[i_node];
+
         const Vector& turbulent_kinematic_viscosity_sensitivities =
             r_node.GetValue(RANS_NUT_SCALAR_PARTIAL_DERIVATIVES);
+
+        KRATOS_ERROR_IF(turbulent_kinematic_viscosity_sensitivities.size() != 2) << "RANS_NUT_SCALAR_PARTIAL_DERIVATIVES variable is not specified for node "
+                                                                                 << r_node
+                                                                                        .Info()
+                                                                                 << "\n Please use available NutKEpsilonHighReSensitivitiesProcess to calculate RANS_NUT_SCALAR_PARTIAL_DERIVATIVES.\n";
 
         turbulent_kinematic_viscosity_tke_nodal_sensitivities[i_node] =
             turbulent_kinematic_viscosity_sensitivities[0] / epsilon_sigma;
@@ -500,6 +506,11 @@ void RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::CalculateConditionResi
         const NodeType& r_node = this->GetGeometry()[i_node];
         const Vector& turbulent_kinematic_viscosity_sensitivities =
             r_node.GetValue(RANS_NUT_SCALAR_PARTIAL_DERIVATIVES);
+
+        KRATOS_ERROR_IF(turbulent_kinematic_viscosity_sensitivities.size() != 2) << "RANS_NUT_SCALAR_PARTIAL_DERIVATIVES variable is not specified for node "
+                                                                                 << r_node
+                                                                                        .Info()
+                                                                                 << "\n Please use available NutKEpsilonHighReSensitivitiesProcess to calculate RANS_NUT_SCALAR_PARTIAL_DERIVATIVES.\n";
 
         turbulent_kinematic_viscosity_epsilon_nodal_sensitivities[i_node] =
             turbulent_kinematic_viscosity_sensitivities[1] / epsilon_sigma;

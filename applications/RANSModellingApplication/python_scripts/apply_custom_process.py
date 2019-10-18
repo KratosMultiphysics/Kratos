@@ -90,6 +90,10 @@ def Factory(settings, Model):
         [
             "LineOutputProcess",
             KratosRANS.RansLineOutputProcess
+        ],
+        [
+            "NutYPlusWallFunctionSensitivitiesProcess",
+            KratosRANS.RansNutYPlusWallFunctionSensitivitiesProcess
         ]
     ]
 

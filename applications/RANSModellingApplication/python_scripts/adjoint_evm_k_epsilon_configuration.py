@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSModellingApplication as KratosRANS
-from adjoint_turbulence_eddy_viscosity_model_configuration import AdjointTurbulenceEddyViscosityModelConfiguration
+from KratosMultiphysics.RANSModellingApplication.adjoint_turbulence_eddy_viscosity_model_configuration import AdjointTurbulenceEddyViscosityModelConfiguration
 
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 if CheckIfApplicationsAvailable("FluidDynamicsApplication"):
@@ -85,7 +85,6 @@ class AdjointTurbulenceKEpsilonConfiguration(
                                 "DOFs added successfully.")
 
     def Initialize(self):
-        super(AdjointTurbulenceKEpsilonConfiguration, self).Initialize()
         self.InitializeModelConstants()
 
     def GetAdjointElementName(self):
@@ -93,3 +92,12 @@ class AdjointTurbulenceKEpsilonConfiguration(
 
     def GetAdjointConditionName(self):
         return self.condition_name
+
+    def Check(self):
+        pass
+
+    def InitializeSolutionStep(self):
+        pass
+
+    def FinalizeSolutionStep(self):
+        pass
