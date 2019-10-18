@@ -132,46 +132,6 @@ void CalculateNodalTurbulentViscosityVectorSensitivities(
     }
 }
 
-void CalculateNodalTurbulentViscosityTKESensitivities(Vector& rTurbulentViscosityNodalSensitivities,
-                                                      const double c_mu,
-                                                      const Vector& nodal_turbulent_kinetic_energy,
-                                                      const Vector& nodal_turbulent_energy_dissipation_rate,
-                                                      const Vector& nodal_f_mu)
-{
-    const std::size_t number_of_nodes = nodal_f_mu.size();
-
-    if (rTurbulentViscosityNodalSensitivities.size() != number_of_nodes)
-        rTurbulentViscosityNodalSensitivities.resize(number_of_nodes);
-
-    for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        rTurbulentViscosityNodalSensitivities[i_node] =
-            2 * c_mu * nodal_f_mu[i_node] * nodal_turbulent_kinetic_energy[i_node] /
-            nodal_turbulent_energy_dissipation_rate[i_node];
-    }
-}
-
-void CalculateNodalTurbulentViscosityEpsilonSensitivities(
-    Vector& rTurbulentViscosityNodalSensitivities,
-    const double c_mu,
-    const Vector& nodal_turbulent_kinetic_energy,
-    const Vector& nodal_turbulent_energy_dissipation_rate,
-    const Vector& nodal_f_mu)
-{
-    const std::size_t number_of_nodes = nodal_f_mu.size();
-
-    if (rTurbulentViscosityNodalSensitivities.size() != number_of_nodes)
-        rTurbulentViscosityNodalSensitivities.resize(number_of_nodes);
-
-    for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        rTurbulentViscosityNodalSensitivities[i_node] =
-            -1.0 * c_mu * nodal_f_mu[i_node] *
-            std::pow(nodal_turbulent_kinetic_energy[i_node] /
-                         nodal_turbulent_energy_dissipation_rate[i_node],
-                     2);
-    }
-}
 template <unsigned int TDim>
 void CalculateProductionVelocitySensitivities(Matrix& rOutput,
                                               const double NuT,

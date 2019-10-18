@@ -62,19 +62,6 @@ void CalculateNodalTurbulentViscosityVectorSensitivities(
     const Vector& nodal_turbulent_energy_dissipation_rate,
     const Matrix& rFmuNodalSensitivities);
 
-void CalculateNodalTurbulentViscosityTKESensitivities(Vector& rTurbulentViscosityNodalSensitivities,
-                                                      const double c_mu,
-                                                      const Vector& nodal_turbulent_kinetic_energy,
-                                                      const Vector& nodal_turbulent_energy_dissipation_rate,
-                                                      const Vector& nodal_f_mu);
-
-void CalculateNodalTurbulentViscosityEpsilonSensitivities(
-    Vector& rTurbulentViscosityNodalSensitivities,
-    const double c_mu,
-    const Vector& nodal_turbulent_kinetic_energy,
-    const Vector& nodal_turbulent_energy_dissipation_rate,
-    const Vector& nodal_f_mu);
-
 template <unsigned int TDim>
 void CalculateProductionVelocitySensitivities(Matrix& rOutput,
                                               const double NuT,

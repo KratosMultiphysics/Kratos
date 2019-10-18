@@ -475,9 +475,7 @@ void RansEvmEpsilonAdjoint<TDim, TNumNodes>::CalculateEffectiveKinematicViscosit
     {
         const double epsilon_sigma =
             rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
-        // EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityTKESensitivities(
-        //     rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-        //     rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
+
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
             rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesK,
             rCurrentData.ShapeFunctions);
@@ -488,11 +486,7 @@ void RansEvmEpsilonAdjoint<TDim, TNumNodes>::CalculateEffectiveKinematicViscosit
     {
         const double epsilon_sigma =
             rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
-        // const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
 
-        // EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityEpsilonSensitivities(
-        //     rOutput, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-        //     rCurrentData.NodalTurbulentEnergyDissipationRate, rCurrentData.NodalFmu);
         EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
             rOutput, rCurrentData.TurbulentKinematicViscositySensitivitiesEpsilon,
             rCurrentData.ShapeFunctions);
