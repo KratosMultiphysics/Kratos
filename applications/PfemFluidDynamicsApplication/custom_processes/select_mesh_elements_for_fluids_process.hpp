@@ -361,6 +361,10 @@ public:
                         {
                             Alpha *= 1.1;
                         }
+                        if (numrigid == 2 && numfreesurf == 0 && numisolated == 0)
+                        {
+                            Alpha *= 1.05;
+                        }
                     }
                 }
                 if (firstMesh == true)
