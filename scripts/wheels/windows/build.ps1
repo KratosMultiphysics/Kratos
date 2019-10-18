@@ -1,20 +1,20 @@
 $pythons = "37","36","35"
 
 $kratosRoot = "c:\kratos\kratos"
-$env:kratosRoot = $kratosRoot
+$env:kratos_root = $kratosRoot
 $wheelRoot = "c:\wheel"
 $wheelOutDir = "c:\out"
 
 function build ($python, $pythonPath) {
     cd $kratosRoot
     cd cmake_build
-    cp $($kratosRoot)\scripts\wheels\windows\configure.bat .\configure.bat
+    cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
     cmd.exe /c "call configure.bat $($pythonPath)"
     MSBuild.exe /m INSTALL.vcxproj /p:Configuration=Custom /p:Platform="x64"
 }
 
 function  setup_wheel_dir {
-    cd $env:kratos_root
+    cd $kratosRoot
     mkdir c:\wheel
     cp scripts\wheels\windows\setup.py c:\wheel\setup.py
     mkdir c:\wheel\KratosMultiphysics
@@ -24,22 +24,22 @@ function  setup_wheel_dir {
 function create_core_wheel ($pythonPath) {
     setup_wheel_dir
     cd $kratosRoot
-    cp KratosMultiphysics\* $($wheelRoot)\KratosMultiphysics
-    cp scripts\wheels\windows\KratosMultiphysics.json $($wheelRoot)\wheel.json
-    cp scripts\wheels\__init__.py $($wheelRoot)\KratosMultiphysics\__init__.py
+    cp KratosMultiphysics\* "$($wheelRoot)\KratosMultiphysics"
+    cp scripts\wheels\windows\KratosMultiphysics.json "$($wheelRoot)\wheel.json"
+    cp scripts\wheels\__init__.py "$($wheelRoot)\KratosMultiphysics\__init__.py"
     cd $wheelRoot
     & $pythonPath setup.py bdist_wheel
-    cp $($wheelRoot)\dist\* $wheelOutDir
+    cp "$($wheelRoot)\dist\*" $wheelOutDir
     cd c:\
     rm -r $wheelRoot
 }
 
 function create_application_wheel ($pythonPath, $app) {
     setup_wheel_dir
-    cp $($kratosRoot)\scripts\wheels\windows\applications\$app c:\wheel\wheel.json
+    cp "$($kratosRoot)\scripts\wheels\windows\applications\$($app)" c:\wheel\wheel.json
     cd $wheelRoot
     & $pythonPath setup.py bdist_wheel #pythonpath
-    cp $($wheelRoot)\dist\* $wheelOutDir
+    cp "$($wheelRoot)\dist\*" $wheelOutDir
     cd c:\
     rm -r $wheelRoot
 }
@@ -54,7 +54,7 @@ foreach ($python in $pythons){
     $env:hash=$(git show -s --format=%h) #used in version number
     $pythonPath = "$($env:pythonRoot)\$($python)\python.exe"
 
-    build $python
+    build $python $pythonPath
 
     echo "Finished build"
     echo "Begining wheel construction for python $($python)"
