@@ -174,6 +174,18 @@ public:
         KRATOS_CATCH("");
     }
 
+    void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                     const Variable<array_1d<double, 3>>& rVariable,
+                                     const Matrix& rSensitivityMatrix,
+                                     Vector& rSensitivityGradient,
+                                     const ProcessInfo& rProcessInfo) override
+    {
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
+            rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
+
+        rSensitivityGradient.clear();
+    }
+
     double CalculateValue(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
