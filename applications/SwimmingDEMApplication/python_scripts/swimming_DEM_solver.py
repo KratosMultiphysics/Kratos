@@ -212,6 +212,7 @@ class SwimmingDEMSolver(PythonSolver):
     def Predict(self):
         if self.CannotIgnoreFluidNow():
             self.fluid_solver.Predict()
+        self.dem_solver.Predict()
 
     def ApplyForwardCoupling(self, alpha='None'):
         self._GetProjectionModule().ApplyForwardCoupling(alpha)
