@@ -282,12 +282,7 @@ public:
 
                     if (dimension == 3)
                     {
-                        if (numfreesurf == 0 && numrigid > 0 && numisolated == 0)
-                        {
-                            Alpha *= 1.3;
-                        }else{
-                            Alpha *= 1.1;
-                        }
+                        Alpha *= 1.1;
                     }
                 }
 
@@ -359,6 +354,17 @@ public:
                     if (numrigid == nds)
                     {
                         Alpha *= 0.95;
+                    }
+                    if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
+                    {
+                        if (numrigid == 3 && numfreesurf == 0 && numisolated == 0)
+                        {
+                            Alpha *= 1.1;
+                        }
+                        if (numrigid == 2 && numfreesurf == 0 && numisolated == 0)
+                        {
+                            Alpha *= 1.05;
+                        }
                     }
                 }
                 if (firstMesh == true)
