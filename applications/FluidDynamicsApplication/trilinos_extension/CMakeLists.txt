@@ -23,7 +23,7 @@ if(USE_COTIRE MATCHES ON)
   set_target_properties(KratosFluidDynamicsTrilinosExtension PROPERTIES COTIRE_UNITY_LINK_LIBRARIES_INIT "COPY_UNITY")
   cotire(KratosFluidDynamicsTrilinosExtension)
 endif(USE_COTIRE MATCHES ON)
-target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosCore KratosMPICore)
+target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES})
 set_target_properties( KratosFluidDynamicsTrilinosExtension PROPERTIES PREFIX "")
 
 ###############################################################################
