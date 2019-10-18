@@ -47,6 +47,7 @@
 #include "custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.h"
 
 //---element
+#include "custom_elements/updated_lagrangian_element.h"
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
 #include "custom_elements/updated_lagrangian_quadrilateral.hpp"
@@ -227,6 +228,7 @@ private:
     ///@{
 
     // Elements
+    const UpdatedLagrangianElement mUpdatedLagrangianElement;
     const UpdatedLagrangian mUpdatedLagrangian2D3N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
     const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;

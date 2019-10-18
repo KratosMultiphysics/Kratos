@@ -22,7 +22,7 @@
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 
 // Quadrature point imports
-#include "geometries/quadrature_point.h"
+#include "geometries/quadrature_point_geometry.h"
 #include "utilities/quadrature_points_utility.h"
 
 namespace Kratos
@@ -119,34 +119,41 @@ namespace MPMParticleGeneratorUtility
                     const unsigned int integration_point_per_elements = integration_points.size();
 
                     //CAN WE DO THIS ON THE ELEMENT?
+
+                    const double density = i->GetProperties()[DENSITY];
                     //// Evaluation of element area/volume
-                    //const double area = r_geometry.Area();
-                    //if(domain_size == 2 && i->GetProperties().Has( THICKNESS )){
-                    //    const double thickness = i->GetProperties()[THICKNESS];
-                    //    mp_mass = area * thickness * density / integration_point_per_elements;
-                    //}
-                    //else {
-                    //    mp_mass = area * density / integration_point_per_elements;
-                    //}
-                    //mp_volume = area / integration_point_per_elements;
+                    const double area = r_geometry.Area();
+                    if(domain_size == 2 && i->GetProperties().Has( THICKNESS )){
+                        const double thickness = i->GetProperties()[THICKNESS];
+                        mp_mass = area * thickness * density / integration_point_per_elements;
+                    }
+                    else {
+                        mp_mass = area * density / integration_point_per_elements;
+                    }
+                    mp_volume = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
                     unsigned int new_element_id = 0;
                     for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
                     {
+                        array_1d<double, 3> coords;
+                        r_geometry.GlobalCoordinates(coords, integration_points[PointNumber]);
                         auto p_new_geometry = CreateQuadraturePointsUtility<NodeType>::CreateFromCoordinates(
                             rBackgroundGridModelPart.ElementsBegin()->pGetGeometry(),
-                            integration_points[PointNumber]);
+                            coords,
+                            integration_points[PointNumber].Weight());
+
+                        const Element& new_element = KratosComponents<Element>::Get("UpdatedLagrangianElement");
 
                         // Create new material point element
                         new_element_id = last_element_id + PointNumber;
-                        Element::Pointer p_element = Kratos::make_shared<UpdatedLagrangian>(
-                            UpdatedLagrangian(
+                        Element::Pointer p_element = new_element.Create(
                                 new_element_id,
                                 p_new_geometry,
-                                p_properties));
+                                p_properties);
 
                         // Setting particle element's initial condition
+                        p_element->SetValue(MP_MASS, mp_mass);
                         p_element->SetValue(MP_DISPLACEMENT, mp_displacement);
                         p_element->SetValue(MP_VELOCITY, mp_velocity);
                         p_element->SetValue(MP_ACCELERATION, mp_acceleration);
