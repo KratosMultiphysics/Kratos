@@ -314,15 +314,12 @@ Vector SlidingCableElement3D::GetInternalForces()
 {
   const int points_number = GetGeometry().PointsNumber();
   const int dimension = 3;
-  //const SizeType local_size = dimension*points_number;
   const int segments_number = points_number-1;
   const int points_int_number = points_number-2;
 
-  //const double strain_gl      = this->CalculateGreenLagrangeStrain();
   const double current_length = this->GetCurrentLength();
   const double prestress     = this->GetPK2PrestressValue();
   const double area           = this->GetProperties()[CROSS_AREA];
-  //const double youngs_mod     = this->GetProperties()[YOUNG_MODULUS];
   const double ref_length     = this->GetRefLength();
 
 
@@ -447,7 +444,7 @@ Matrix SlidingCableElement3D::ElasticStiffnessMatrix(const ProcessInfo& rCurrent
   const int dimension = 3;
   const SizeType local_size = dimension*points_number;
 
-  double youngs_mod = ReturnTangentModulus1D(rCurrentProcessInfo);
+  const double youngs_mod = ReturnTangentModulus1D(rCurrentProcessInfo);
 
 
   const double prestress     = this->GetPK2PrestressValue();
@@ -474,7 +471,7 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix(const ProcessInfo& rCurre
   const double area           = this->GetProperties()[CROSS_AREA];
 
 
-  double youngs_mod = ReturnTangentModulus1D(rCurrentProcessInfo);
+  const double youngs_mod = ReturnTangentModulus1D(rCurrentProcessInfo);
 
 
   const double ref_length     = this->GetRefLength();
