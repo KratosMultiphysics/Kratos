@@ -171,11 +171,7 @@ public:
 				std::vector<array_1d<unsigned int, 4>> CornerWallNodesIDToInterpolate;
 				std::vector<Node<3>::DofsContainerType> CornerWallNewDofs;
 				int cornerWallNewNodes = 0;
-				int maxOfNewWallNodes = 100;
-				if (dimension == 3)
-				{
-					maxOfNewWallNodes = 5000;
-				}
+				int maxOfNewWallNodes = toleredExtraNodes;
 				if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
 				{
 					CornerWallNewPositions.resize(maxOfNewWallNodes);
@@ -392,6 +388,7 @@ private:
 				freesurfaceNodes++;
 			}
 		}
+		double cosTolerance = 0.01;
 
 		if (rigidNodes == 2 && freesurfaceNodes == 0)
 		{
@@ -404,7 +401,7 @@ private:
 				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[1].FastGetSolutionStepValue(NORMAL);
 				cosAngle = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1];
-				if (cosAngle < 0.01)
+				if (cosAngle < cosTolerance && cosAngle > -cosTolerance)
 				{
 					array_1d<double, 3> NewPosition = (Element[0].Coordinates() + Element[1].Coordinates()) * 0.5;
 					NodesIDToInterpolate[CountNodes][0] = Element[0].GetId();
@@ -428,7 +425,7 @@ private:
 				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
 				cosAngle = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1];
-				if (cosAngle < 0.01)
+				if (cosAngle < cosTolerance && cosAngle > -cosTolerance)
 				{
 					array_1d<double, 3> NewPosition = (Element[0].Coordinates() + Element[1].Coordinates()) * 0.5;
 					NodesIDToInterpolate[CountNodes][0] = Element[0].GetId();
@@ -452,7 +449,7 @@ private:
 				NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
 				cosAngle = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1];
-				if (cosAngle < 0.01)
+				if (cosAngle < cosTolerance && cosAngle > -cosTolerance)
 				{
 					array_1d<double, 3> NewPosition = (Element[2].Coordinates() + Element[1].Coordinates()) * 0.5;
 					NodesIDToInterpolate[CountNodes][0] = Element[2].GetId();
@@ -510,17 +507,21 @@ private:
 		{
 			array_1d<double, 3> NormalA(3, 0.0);
 			array_1d<double, 3> NormalB(3, 0.0);
+			double normNormalA=0;
+			double normNormalB=0;
 			double cos = 1.0;
 			double minCos = 1.0;
-			array_1d<unsigned int, 2> idsWallNodes;
+			array_1d<unsigned int, 2> idsWallNodes(2, 0);
 			unsigned int idFreeNode = 0;
-
+			double cosTolerance = 0.1;
 			if (Element[0].IsNot(RIGID))
 			{
 				NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 1;
@@ -530,8 +531,10 @@ private:
 
 				NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 1;
@@ -541,8 +544,10 @@ private:
 
 				NormalA = Element[2].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 2;
@@ -552,11 +557,12 @@ private:
 			}
 			else if (Element[1].IsNot(RIGID))
 			{
-
 				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 0;
@@ -566,8 +572,10 @@ private:
 
 				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 0;
@@ -577,8 +585,10 @@ private:
 
 				NormalA = Element[2].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 2;
@@ -591,8 +601,10 @@ private:
 
 				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[1].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 0;
@@ -602,8 +614,10 @@ private:
 
 				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 0;
@@ -613,8 +627,10 @@ private:
 
 				NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[3].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 1;
@@ -627,8 +643,10 @@ private:
 
 				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[1].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 0;
@@ -638,8 +656,10 @@ private:
 
 				NormalA = Element[0].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 0;
@@ -649,8 +669,10 @@ private:
 
 				NormalA = Element[1].FastGetSolutionStepValue(NORMAL);
 				NormalB = Element[2].FastGetSolutionStepValue(NORMAL);
+				normNormalA=NormalA[0] * NormalA[0] + NormalA[1] * NormalA[1] + NormalA[2] * NormalA[2];
+				normNormalB=NormalB[0] * NormalB[0] + NormalB[1] * NormalB[1] + NormalB[2] * NormalB[2];
 				cos = NormalA[0] * NormalB[0] + NormalA[1] * NormalB[1] + NormalA[2] * NormalB[2];
-				if (cos < minCos && cos < 0.005)
+				if (cos < minCos && (cos < cosTolerance && cos > -cosTolerance) && (normNormalA>0.99 && normNormalA<1.01) && (normNormalB>0.99 && normNormalB<1.01))
 				{
 					minCos = cos;
 					idsWallNodes[0] = 1;
@@ -659,13 +681,13 @@ private:
 				}
 			}
 
-			if (minCos < 0.0001)
+			if (minCos < cosTolerance && minCos> -cosTolerance)
 			{
 
 				bool alreadyAddedNode = false;
 				unsigned int idA = Element[idsWallNodes[0]].GetId();
 				unsigned int idB = Element[idsWallNodes[1]].GetId();
-				double minimumDistanceToInstert = 1.2 * mrRemesh.Refine->CriticalRadius;
+				double minimumDistanceToInstert = 1.3 * mrRemesh.Refine->CriticalRadius;
 				array_1d<double, 3> CoorDifference = Element[idsWallNodes[0]].Coordinates() - Element[idsWallNodes[1]].Coordinates();
 				double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
 				double separation = sqrt(SquaredLength);

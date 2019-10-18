@@ -1361,7 +1361,7 @@ private:
 				double deltaTime = rCurrentProcessInfo[DELTA_TIME];
 				if (freeSurfaceNodes == 0 && currentTime > 2.0 * deltaTime)
 				{
-					safetyCoefficient3D *= 0.3;
+					safetyCoefficient3D *= 0.7;
 				}
 				if (currentTime < 2.0 * deltaTime)
 				{

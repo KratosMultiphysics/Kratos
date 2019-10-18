@@ -355,6 +355,13 @@ public:
                     {
                         Alpha *= 0.95;
                     }
+                    if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
+                    {
+                        if (numrigid == 3 && numfreesurf == 0 && numisolated == 0)
+                        {
+                            Alpha *= 1.1;
+                        }
+                    }
                 }
                 if (firstMesh == true)
                 {
