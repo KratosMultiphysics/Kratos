@@ -19,6 +19,7 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     # utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/iga_flags.cpp
     # elements
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_3p_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
