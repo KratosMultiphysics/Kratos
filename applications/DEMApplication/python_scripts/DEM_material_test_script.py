@@ -64,16 +64,28 @@ class MaterialTest(object):
       self.new_strain = 0.0
 
       # for the graph plotting
-      self.height = self.parameters["SpecimenLength"].GetDouble()
-      self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
-      self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
-      self.test_type = self.parameters["TestType"].GetString()
-      self.problem_name = self.parameters["problem_name"].GetString()
-      self.LoadingVelocity = self.parameters["LoadingVelocity"].GetDouble()
-      self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
-      self.MeshType = self.parameters["MeshType"].GetString()
-      self.MeshPath = self.parameters["MeshPath"].GetString()
+      if "material_test_settings" in DEM_parameters.keys():
+        self.height = self.parameters["material_test_settings"]["SpecimenLength"].GetDouble()
+        self.diameter = self.parameters["material_test_settings"]["SpecimenDiameter"].GetDouble()
+        self.ConfinementPressure = self.parameters["material_test_settings"]["ConfinementPressure"].GetDouble()
+        self.test_type = self.parameters["material_test_settings"]["TestType"].GetString()
+        self.LoadingVelocity = self.parameters["material_test_settings"]["LoadingVelocity"].GetDouble()
+        self.MeasuringSurface = self.parameters["material_test_settings"]["MeasuringSurface"].GetDouble()
+        self.MeshType = self.parameters["material_test_settings"]["MeshType"].GetString()
+        #self.MeshPath = self.parameters["material_test_settings"]["MeshPath"].GetString()
 
+      else:
+        self.height = self.parameters["SpecimenLength"].GetDouble()
+        self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
+        self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
+        self.test_type = self.parameters["TestType"].GetString()
+        self.LoadingVelocity = self.parameters["LoadingVelocity"].GetDouble()
+        self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
+        self.MeshType = self.parameters["MeshType"].GetString()
+        self.MeshPath = self.parameters["MeshPath"].GetString()
+
+
+      self.problem_name = self.parameters["problem_name"].GetString()
       self.initial_time = datetime.datetime.now()
 
       # self.energy_plot = open(energy_plot, 'w')
