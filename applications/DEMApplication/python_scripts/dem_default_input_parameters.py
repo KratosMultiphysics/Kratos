@@ -112,6 +112,8 @@ def GetDefaultInputParameters():
             },
             "output_processes"                 :{},
 
+
+            "material_test_settings" : {},
             "ConfinementPressure"              : 0.0,
             "LoadingVelocity"                  : -0.10,
             "MeshType"                         : "1",
