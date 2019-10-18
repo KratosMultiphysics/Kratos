@@ -30,7 +30,9 @@ class PotentialFlowStochasticAdjointSolver(PotentialFlowAdjointSolver):
         objective_function = - self.response_function.CalculateValue(self.main_model_part)
         ################### SWITCHING TO NEGATIVE ##########################################
 
-        if not (objective_function < cvar_t):
+
+        ##USING ABS
+        if abs(objective_function) >= abs(cvar_t):
             multiplier = 1.0 / (1.0-cvar_beta)
         else:
             multiplier = 0.0
