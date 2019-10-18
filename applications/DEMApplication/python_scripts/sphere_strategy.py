@@ -389,8 +389,6 @@ class ExplicitStrategy(object):
         self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
 
-
-
     def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
         cluster_model_part = self.all_model_parts.Get("ClusterPart")
