@@ -15,6 +15,7 @@
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/checks.h"
 #include "custom_elements/cr_beam_element_linear_3D2N.hpp"
+#include "custom_elements/cr_beam_element_3D2N.hpp"
 
 
 namespace Kratos
@@ -99,6 +100,7 @@ void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::load(Serializer& rSer
 }
 
 template class AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N>;
+template class AdjointFiniteDifferenceCrBeamElement<CrBeamElement3D2N>;
 
 } // namespace Kratos.
 

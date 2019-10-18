@@ -23,6 +23,7 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
+#include "custom_elements/cr_beam_element_3D2N.hpp"
 
 namespace Kratos
 {
@@ -44,6 +45,14 @@ namespace Kratos
             if (current_name == "AdjointFiniteDifferencingShellThinElement3D3N")
             {
                 auto p_adjoint_element = dynamic_pointer_cast<AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>>(*it.base());
+                if (p_adjoint_element.get() != nullptr)
+                {
+                    p_adjoint_element->SetPrimalElement(p_it_loaded_element);
+                }
+            }
+            else if (current_name == "AdjointFiniteDifferenceCrBeamElement3D2N")
+            {
+                auto p_adjoint_element = dynamic_pointer_cast<AdjointFiniteDifferencingBaseElement<CrBeamElement3D2N>>(*it.base());
                 if (p_adjoint_element.get() != nullptr)
                 {
                     p_adjoint_element->SetPrimalElement(p_it_loaded_element);

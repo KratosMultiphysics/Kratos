@@ -54,6 +54,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                 {
                     "ShellThinElement3D3N"           : "AdjointFiniteDifferencingShellThinElement3D3N",
                     "CrLinearBeamElement3D2N"        : "AdjointFiniteDifferenceCrBeamElementLinear3D2N",
+                    "CrBeamElement3D2N"              : "AdjointFiniteDifferenceCrBeamElement3D2N",
                     "TrussLinearElement3D2N"         : "AdjointFiniteDifferenceTrussLinearElement3D2N",
                     "TrussElement3D2N"               : "AdjointFiniteDifferenceTrussElement3D2N",
                     "TotalLagrangianElement2D3N"     : "TotalLagrangianAdjointElement2D3N",
