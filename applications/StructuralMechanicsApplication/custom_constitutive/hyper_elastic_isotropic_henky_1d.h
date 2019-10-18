@@ -9,8 +9,8 @@
 //  Main authors:    Klaus B. Sautter
 //
 
-#if !defined (KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED)
-#define  KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED
+#if !defined (KRATOS_HYPER_ELASTIC_ISOTROPIC_HENKY_1D_LAW_H_INCLUDED)
+#define  KRATOS_HYPER_ELASTIC_ISOTROPIC_HENKY_1D_LAW_H_INCLUDED
 
 // System includes
 
@@ -23,15 +23,15 @@ namespace Kratos
 {
 
 /**
- * @namespace TrussConstitutiveLaw
+ * @namespace HyperElasticIsotropicHenky1D
  *
- * @brief This constitutive law represents a linear elastic 1D law
+ * @brief This constitutive law represents the hyper-elastic henky 1D law
  *
  * @author Klaus B Sautter
  */
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussConstitutiveLaw : public ConstitutiveLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicHenky1D : public ConstitutiveLaw
 {
 public:
     /**
@@ -41,10 +41,10 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
-     * Counted pointer of TrussConstitutiveLaw
+     * Counted pointer of HyperElasticIsotropicHenky1D
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( TrussConstitutiveLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicHenky1D );
 
     /**
      * Life Cycle
@@ -53,20 +53,20 @@ public:
     /**
      * Default constructor.
      */
-    TrussConstitutiveLaw();
+    HyperElasticIsotropicHenky1D();
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
      */
-    TrussConstitutiveLaw (const TrussConstitutiveLaw& rOther);
+    HyperElasticIsotropicHenky1D (const HyperElasticIsotropicHenky1D& rOther);
 
 
     /**
      * Destructor.
      */
-    ~TrussConstitutiveLaw() override;
+    ~HyperElasticIsotropicHenky1D() override;
 
     /**
      * Operators
@@ -126,10 +126,6 @@ public:
     {
         // plasticity law needs this function, so it is called in the truss element
     };
-
-    //empty because called in the element and this base class throws an error
-    //if this is not overriden
-
 
     //this functions calculates the current stress based on an element given (set)
     //strain
@@ -192,6 +188,6 @@ private:
     }
 
 
-}; // Class TrussConstitutiveLaw
+}; // Class HyperElasticIsotropicHenky1D
 }  // namespace Kratos.
-#endif // KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED  defined
+#endif // KRATOS_HYPER_ELASTIC_ISOTROPIC_HENKY_1D_LAW_H_INCLUDED  defined

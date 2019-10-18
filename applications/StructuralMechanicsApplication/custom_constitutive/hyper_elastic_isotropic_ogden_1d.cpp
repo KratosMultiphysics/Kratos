@@ -13,8 +13,9 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/properties.h"
-#include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/hyper_elastic_isotropic_ogden_1d.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -23,7 +24,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-TrussConstitutiveLaw::TrussConstitutiveLaw()
+HyperElasticIsotropicOgden1D::HyperElasticIsotropicOgden1D()
     : ConstitutiveLaw()
 {
 }
@@ -31,7 +32,7 @@ TrussConstitutiveLaw::TrussConstitutiveLaw()
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-TrussConstitutiveLaw::TrussConstitutiveLaw(const TrussConstitutiveLaw& rOther)
+HyperElasticIsotropicOgden1D::HyperElasticIsotropicOgden1D(const HyperElasticIsotropicOgden1D& rOther)
     : ConstitutiveLaw(rOther)
 {
 }
@@ -39,15 +40,15 @@ TrussConstitutiveLaw::TrussConstitutiveLaw(const TrussConstitutiveLaw& rOther)
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer TrussConstitutiveLaw::Clone() const
+ConstitutiveLaw::Pointer HyperElasticIsotropicOgden1D::Clone() const
 {
-    return Kratos::make_shared<TrussConstitutiveLaw>(*this);
+    return Kratos::make_shared<HyperElasticIsotropicOgden1D>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-TrussConstitutiveLaw::~TrussConstitutiveLaw()
+HyperElasticIsotropicOgden1D::~HyperElasticIsotropicOgden1D()
 {
     // TODO: Add if necessary
 }
@@ -55,7 +56,7 @@ TrussConstitutiveLaw::~TrussConstitutiveLaw()
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
-void TrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
+void HyperElasticIsotropicOgden1D::GetLawFeatures(Features& rFeatures)
 {
     //Set the strain size
     rFeatures.mStrainSize = 1;
@@ -66,7 +67,7 @@ void TrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-array_1d<double, 3 > & TrussConstitutiveLaw::GetValue(
+array_1d<double, 3 > & HyperElasticIsotropicOgden1D::GetValue(
     const Variable<array_1d<double, 3 > >& rThisVariable,
     array_1d<double, 3 > & rValue)
 {
@@ -77,12 +78,26 @@ array_1d<double, 3 > & TrussConstitutiveLaw::GetValue(
 //************************************************************************************
 //************************************************************************************
 
-double& TrussConstitutiveLaw::CalculateValue(
+double& HyperElasticIsotropicOgden1D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue)
 {
-    if(rThisVariable == TANGENT_MODULUS) rValue = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS];
+    if(rThisVariable == TANGENT_MODULUS)
+    {
+        const double E(rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]);
+        const double beta_1(rParameterValues.GetMaterialProperties()[OGDEN_BETA_1]);
+        const double beta_2(rParameterValues.GetMaterialProperties()[OGDEN_BETA_2]);
+
+        Vector current_strain = ZeroVector(1);
+        rParameterValues.GetStrainVector(current_strain);
+        const double E_11(current_strain[0]);
+
+        rValue = E*(1.0*beta_1*std::pow(2.0*E_11 + 1.0, (1.0/2.0)*beta_1)/std::pow(2.0*E_11 + 1.0, 2) -
+         1.0*beta_2*std::pow(2.0*E_11 + 1.0, (1.0/2.0)*beta_2)/std::pow(2.0*E_11 + 1.0, 2) -
+         2.0*std::pow(2.0*E_11 + 1.0, (1.0/2.0)*beta_1)/std::pow(2.0*E_11 + 1.0, 2) +
+         2.0*std::pow(2.0*E_11 + 1.0, (1.0/2.0)*beta_2)/std::pow(2.0*E_11 + 1.0, 2))/(beta_1 - beta_2);
+    }
     else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
     return rValue;
 }
@@ -90,7 +105,7 @@ double& TrussConstitutiveLaw::CalculateValue(
 //************************************************************************************
 //************************************************************************************
 
-Vector& TrussConstitutiveLaw::CalculateValue(
+Vector& HyperElasticIsotropicOgden1D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
@@ -110,7 +125,7 @@ Vector& TrussConstitutiveLaw::CalculateValue(
 //************************************************************************************
 //************************************************************************************
 
-array_1d<double, 3 > & TrussConstitutiveLaw::CalculateValue(
+array_1d<double, 3 > & HyperElasticIsotropicOgden1D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<array_1d<double, 3 > >& rVariable,
 	array_1d<double, 3 > & rValue)
@@ -119,7 +134,6 @@ array_1d<double, 3 > & TrussConstitutiveLaw::CalculateValue(
         {
             constexpr SizeType dimension = 3;
             rValue = ZeroVector(dimension);
-            //rValue[0] = this->mStressState;
             rValue[0] = this->CalculateStressElastic(rParameterValues);
             rValue[1] = 0.0;
             rValue[2] = 0.0;
@@ -130,7 +144,7 @@ array_1d<double, 3 > & TrussConstitutiveLaw::CalculateValue(
 
 //************************************************************************************
 //************************************************************************************
-void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+void HyperElasticIsotropicOgden1D::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     Vector& stress_vector = rValues.GetStressVector();
     if (stress_vector.size() != 1) stress_vector.resize(1, false);
@@ -139,21 +153,27 @@ void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-double TrussConstitutiveLaw::CalculateStressElastic(
+double HyperElasticIsotropicOgden1D::CalculateStressElastic(
     ConstitutiveLaw::Parameters& rParameterValues) const
 {
+    const double E(rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]);
+    const double beta_1(rParameterValues.GetMaterialProperties()[OGDEN_BETA_1]);
+    const double beta_2(rParameterValues.GetMaterialProperties()[OGDEN_BETA_2]);
+
     Vector current_strain = ZeroVector(1);
     rParameterValues.GetStrainVector(current_strain);
+    const double E_11(current_strain[0]);
 
-    const double current_stress =
-     rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]*current_strain[0];
+    const double current_stress = E*(1.0*std::pow(2.0*E_11 + 1.0, (1.0/2.0)*beta_1)/(2.0*E_11 + 1.0) -
+     1.0*std::pow(2.0*E_11 + 1.0, (1.0/2.0)*beta_2)/(2.0*E_11 + 1.0))/(beta_1 - beta_2);
+
     return current_stress;
 }
 
 //************************************************************************************
 //************************************************************************************
 
-int TrussConstitutiveLaw::Check(
+int HyperElasticIsotropicOgden1D::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -161,6 +181,14 @@ int TrussConstitutiveLaw::Check(
 {
     KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
      << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
+
+    KRATOS_CHECK_VARIABLE_KEY(OGDEN_BETA_1);
+    KRATOS_CHECK(rMaterialProperties.Has(OGDEN_BETA_1));
+
+    KRATOS_CHECK_VARIABLE_KEY(OGDEN_BETA_2);
+    KRATOS_CHECK(rMaterialProperties.Has(OGDEN_BETA_2));
+
+    KRATOS_ERROR_IF(rMaterialProperties[OGDEN_BETA_1]==rMaterialProperties[OGDEN_BETA_2]) << "ogden parameters must not be the same" << std::endl;
 
     KRATOS_ERROR_IF(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.00)
      << "DENSITY has Key zero or invalid value " << std::endl;
