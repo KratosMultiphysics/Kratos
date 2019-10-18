@@ -65,6 +65,8 @@ public:
     typedef BaseType::GeometryType   GeometryType;
     typedef BaseType::NodesArrayType NodesArrayType;
 
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> Array1DComponentType;
+
     // Counted pointer of DisplacementControlCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( DisplacementControlCondition );
 
@@ -324,6 +326,8 @@ private:
     ///@name Private Operations
     ///@{
 
+    Array1DComponentType* GetDisplacementInDirection();
+    Array1DComponentType* GetPointLoadInDirection();
 
     ///@}
     ///@name Private  Access

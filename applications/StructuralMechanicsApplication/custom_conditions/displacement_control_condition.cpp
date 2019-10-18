@@ -104,6 +104,45 @@ Condition::Pointer DisplacementControlCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
+DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetDisplacementInDirection()
+{
+    double numerical_limit = std::numeric_limits<double>::epsilon();
+    array_1d<double, 3 > point_load = ZeroVector(3);
+    if( this->Has( POINT_LOAD ) )
+        noalias(point_load) = this->GetValue( POINT_LOAD );
+
+    if (abs(point_load(0)) > numerical_limit) // prescribed displacement in x direction
+        return &DISPLACEMENT_X;
+    else if (abs(point_load(1)) > numerical_limit) // prescribed displacement in y direction
+        return &DISPLACEMENT_Y;
+    else if (abs(point_load(2)) > numerical_limit) // prescribed displacement in z direction
+        return &DISPLACEMENT_Z;
+    else
+        KRATOS_ERROR << "POINT_LOAD in Displacement control condition (ID: " << Id()
+        << ") is a zero vector. No direction could be determined.\n";
+}
+
+DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetPointLoadInDirection()
+{
+    double numerical_limit = std::numeric_limits<double>::epsilon();
+    array_1d<double, 3 > point_load = ZeroVector(3);
+    if( this->Has( POINT_LOAD ) )
+        noalias(point_load) = this->GetValue( POINT_LOAD );
+
+    if (abs(point_load(0)) > numerical_limit) // prescribed displacement in x direction
+        return &POINT_LOAD_X;
+    else if (abs(point_load(1)) > numerical_limit) // prescribed displacement in y direction
+        return &POINT_LOAD_Y;
+    else if (abs(point_load(2)) > numerical_limit) // prescribed displacement in z direction
+        return &POINT_LOAD_Z;
+    else
+        KRATOS_ERROR << "POINT_LOAD in Displacement control condition (ID: " << Id()
+        << ") is a zero vector. No direction could be determined.\n";
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void DisplacementControlCondition::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo
@@ -117,14 +156,11 @@ void DisplacementControlCondition::EquationIdVector(
         rResult.resize(number_of_nodes * block_size, false);
     }
 
+    auto p_disp = GetDisplacementInDirection();
+
     for (SizeType i = 0; i < number_of_nodes; ++i) {
         int index = i * 2;
-        if (GetValue(POINT_LOAD_X) != 0.0) // prescribed displacement in x direction
-            rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-        else if (GetValue(POINT_LOAD_Y) != 0.0) // prescribed displacement in y direction
-            rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-        else if (GetValue(POINT_LOAD_Z) != 0.0) // prescribed displacement in z direction
-            rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+        rResult[index] = GetGeometry()[i].GetDof(*p_disp).EquationId();
         rResult[index + 1] = GetGeometry()[i].GetDof(LOAD_FACTOR).EquationId();
     }
 
@@ -148,14 +184,11 @@ void DisplacementControlCondition::GetDofList(
         rConditionlDofList.resize(number_of_nodes * block_size);
     }
 
+    auto p_disp = GetDisplacementInDirection();
+
     for (SizeType i = 0; i < number_of_nodes; ++i) {
         SizeType index = i * block_size;
-        if (GetValue(POINT_LOAD_X) != 0.0) // prescribed displacement in x direction
-            rConditionlDofList[index] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-        else if (GetValue(POINT_LOAD_Y) != 0.0) // prescribed displacement in y direction
-            rConditionlDofList[index] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-        else if (GetValue(POINT_LOAD_Z) != 0.0) // prescribed displacement in z direction
-            rConditionlDofList[index] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
+        rConditionlDofList[index] = GetGeometry()[i].pGetDof(*p_disp);
         rConditionlDofList[index + 1] = GetGeometry()[i].pGetDof(LOAD_FACTOR);
     }
     KRATOS_CATCH("")
@@ -176,14 +209,11 @@ void DisplacementControlCondition::GetValuesVector(
         rValues.resize(mat_size, false);
     }
 
+    auto p_disp = GetDisplacementInDirection();
+
     for (SizeType i = 0; i < number_of_nodes; ++i) {
         SizeType index = i * GetBlockSize();
-        if (GetValue(POINT_LOAD_X) != 0.0) // prescribed displacement in x direction
-            rValues[index] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
-        else if (GetValue(POINT_LOAD_Y) != 0.0) // prescribed displacement in y direction
-            rValues[index] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
-        else if (GetValue(POINT_LOAD_Z) != 0.0) // prescribed displacement in z direction
-            rValues[index] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
+        rValues[index] = GetGeometry()[i].FastGetSolutionStepValue(*p_disp, Step);
         rValues[index] = GetGeometry()[i].FastGetSolutionStepValue(LOAD_FACTOR, Step);
     }
 }
@@ -261,6 +291,9 @@ void DisplacementControlCondition::CalculateAll(
     SizeType number_of_nodes = 1;
     SizeType mat_size = number_of_nodes * GetBlockSize();
 
+    auto p_load = GetPointLoadInDirection();
+    auto p_disp = GetDisplacementInDirection();
+
     if ( CalculateStiffnessMatrixFlag == true )
     {
         if ( rLeftHandSideMatrix.size1() != mat_size)
@@ -268,12 +301,7 @@ void DisplacementControlCondition::CalculateAll(
             rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         }
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-        if (GetValue(POINT_LOAD_X) != 0.0) // prescribed displacement in x direction
-            rLeftHandSideMatrix(0, 1) -= GetValue(POINT_LOAD_X);
-        else if (GetValue(POINT_LOAD_Y) != 0.0) // prescribed displacement in y direction
-            rLeftHandSideMatrix(0, 1) -= GetValue(POINT_LOAD_Y);
-        else if (GetValue(POINT_LOAD_Z) != 0.0) // prescribed displacement in z direction
-            rLeftHandSideMatrix(0, 1) -= GetValue(POINT_LOAD_Z);
+        rLeftHandSideMatrix(0, 1) -= GetValue(*p_load);
         rLeftHandSideMatrix(1, 0) += 1.0;
     }
 
@@ -285,23 +313,9 @@ void DisplacementControlCondition::CalculateAll(
         }
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
-        rRightHandSideVector(0) += GetGeometry()[0].FastGetSolutionStepValue(LOAD_FACTOR);
-        rRightHandSideVector(1) += GetValue(PRESCRIBED_DISPLACEMENT);
-        if (GetValue(POINT_LOAD_X) != 0.0) // prescribed displacement in x direction
-        {
-            rRightHandSideVector(0) *= GetValue(POINT_LOAD_X);
-            rRightHandSideVector(1) -= GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-        }
-        else if (GetValue(POINT_LOAD_Y) != 0.0) // prescribed displacement in y direction
-        {
-            rRightHandSideVector(0) *= GetValue(POINT_LOAD_Y);
-            rRightHandSideVector(1) -= GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-        }
-        else if (GetValue(POINT_LOAD_Z) != 0.0) // prescribed displacement in z direction
-        {
-            rRightHandSideVector(0) *= GetValue(POINT_LOAD_Z);
-            rRightHandSideVector(1) -= GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-        }
+        rRightHandSideVector(0) += GetGeometry()[0].FastGetSolutionStepValue(LOAD_FACTOR) * GetValue(*p_load);
+        rRightHandSideVector(1) +=
+            GetValue(PRESCRIBED_DISPLACEMENT) - GetGeometry()[0].FastGetSolutionStepValue(*p_disp);
     }
 
     KRATOS_CATCH("")
