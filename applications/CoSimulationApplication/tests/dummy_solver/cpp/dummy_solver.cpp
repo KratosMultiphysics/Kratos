@@ -21,7 +21,7 @@ into the CoSimulation framework works
 #include <stdexcept>
 
 // CoSimulation includes
-#include "co_simulation_api/co_sim_io_cpp.h"
+#include "co_simulation_api/co_sim_io.h"
 
 typedef std::vector<std::vector<std::array<double, 2>>> MeshType;
 typedef std::vector<double> DataFieldType;
@@ -68,10 +68,10 @@ void InitializeSolutionStep()
 {
     std::cout << "  >>> InitializeSolutionStep" << std::endl;
 }
-void Predict()
-{
-    std::cout << "  >>> Predict" << std::endl;
-}
+// void Predict()
+// {
+//     std::cout << "  >>> Predict" << std::endl;
+// }
 void SolveSolutionStep()
 {
     std::cout << "  >>> SolveSolutionStep" << std::endl;
@@ -80,10 +80,10 @@ void FinalizeSolutionStep()
 {
     std::cout << "  >>> FinalizeSolutionStep" << std::endl;
 }
-void OutputSolutionStep()
-{
-    std::cout << "  >>> OutputSolutionStep" << std::endl;
-}
+// void OutputSolutionStep()
+// {
+//     std::cout << "  >>> OutputSolutionStep" << std::endl;
+// }
 
 void ImportGeometry(const std::string& rIdentifier)
 {
@@ -183,10 +183,8 @@ void RunSolutionLoop(MeshType& rMesh, DataFieldType& rDataField)
     while (current_time<end_time) {
         current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
-        Predict();
         SolveSolutionStep();
         FinalizeSolutionStep();
-        OutputSolutionStep();
         std::cout << std::endl;
     }
 }
@@ -198,21 +196,19 @@ void RunSolutionLoopWithWeakCoupling(MeshType& rMesh, DataFieldType& rDataField)
     CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
     co_sim_io.Connect();
-    ExportMesh2(co_sim_io, rMesh, "interface"); // send the coupling-interface mesh to be used for e.g. mapping
+    ExportMesh2(co_sim_io, rMesh, "interface");
 
     double current_time = 0.0;
     const double end_time = 0.49;
     while (current_time<end_time) {
         current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
-        Predict();
 
         ImportData2(co_sim_io, rDataField, "interface_temp");
         SolveSolutionStep();
         ExportData2(co_sim_io, rDataField, "interface_pressure");
 
         FinalizeSolutionStep();
-        OutputSolutionStep();
         std::cout << std::endl;
     }
 
@@ -226,14 +222,13 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
     CoSim::CoSimIO co_sim_io("dummy_solver_cpp", "dummy_solver_io_settings");
 
     co_sim_io.Connect();
-    ExportMesh2(co_sim_io, rMesh, "interface"); // send the coupling-interface mesh to be used for e.g. mapping
+    ExportMesh2(co_sim_io, rMesh, "interface");
 
     double current_time = 0.0;
     const double end_time = 0.49;
     while (current_time<end_time) {
         current_time = AdvanceInTime(current_time);
         InitializeSolutionStep();
-        Predict();
         while(true) {
             ImportData2(co_sim_io, rDataField, "interface_temp");
             SolveSolutionStep();
@@ -244,7 +239,6 @@ void RunSolutionLoopWithStrongCoupling(MeshType& rMesh, DataFieldType& rDataFiel
         }
 
         FinalizeSolutionStep();
-        OutputSolutionStep();
         std::cout << std::endl;
     }
 
@@ -262,12 +256,12 @@ void RunSolutionCoSimulationOrchestrated(MeshType& rMesh, DataFieldType& rDataFi
     p_co_sim_io->RegisterSolveSolutionStep(&SolveSolutionStep);
     p_co_sim_io->RegisterFinalizeSolutionStep(&FinalizeSolutionStep);
 
-    p_co_sim_io->RegisterImportGeometry(&ImportGeometry);
-    p_co_sim_io->RegisterExportGeometry(&ExportGeometry);
-    p_co_sim_io->RegisterImportMesh(&ImportMesh);
-    p_co_sim_io->RegisterExportMesh(&ExportMesh);
-    p_co_sim_io->RegisterImportData(&ImportData);
-    p_co_sim_io->RegisterExportData(&ExportData);
+    p_co_sim_io->RegisterDataExchange(&ImportGeometry, "ImportGeometry");
+    p_co_sim_io->RegisterDataExchange(&ExportGeometry, "ExportGeometry");
+    p_co_sim_io->RegisterDataExchange(&ImportMesh, "ImportMesh");
+    p_co_sim_io->RegisterDataExchange(&ExportMesh, "ExportMesh");
+    p_co_sim_io->RegisterDataExchange(&ImportData, "ImportData");
+    p_co_sim_io->RegisterDataExchange(&ExportData, "ExportData");
 
     p_co_sim_io->Run();
 

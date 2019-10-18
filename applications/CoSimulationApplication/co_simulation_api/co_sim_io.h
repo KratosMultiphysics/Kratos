@@ -24,6 +24,7 @@ support for sockets and MPI can optionally be enabled
 
 // System includes
 #include <string>
+#include <map>
 #include <memory>
 
 // Project includes
@@ -38,29 +39,28 @@ class CoSimIO
 public:
     typedef CoSimComm::SettingsType SettingsType;
 
+    typedef void (*DataExchangeFunctionType)(const std::string&);
+
     explicit CoSimIO(const std::string& rName, const std::string& rSettingsFileName, const bool IsConnectionMaster=false);
     explicit CoSimIO(const std::string& rName, SettingsType rSettings, const bool IsConnectionMaster=false);
 
     bool Connect();
     bool Disconnect();
 
-    void SendControlSignal(const Internals::ControlSignal Signal, const std::string& rIdentifier);
+    // Required for "old style" strong coupling
     bool IsConverged();
 
+    // Functions related to fully controlled CoSimulation
+    void Run();
+    void SendControlSignal(const Internals::ControlSignal Signal, const std::string& rIdentifier);
     void RegisterAdvanceInTime(double (*pFuncPtr)(double));
     void RegisterInitializeSolutionStep(void (*pFuncPtr)());
     void RegisterSolveSolutionStep(void (*pFuncPtr)());
     void RegisterFinalizeSolutionStep(void (*pFuncPtr)());
 
-    void RegisterImportGeometry(void (*pFuncPtr)(const std::string&));
-    void RegisterExportGeometry(void (*pFuncPtr)(const std::string&));
-    void RegisterImportMesh(void (*pFuncPtr)(const std::string&));
-    void RegisterExportMesh(void (*pFuncPtr)(const std::string&));
-    void RegisterImportData(void (*pFuncPtr)(const std::string&));
-    void RegisterExportData(void (*pFuncPtr)(const std::string&));
+    void RegisterDataExchange(DataExchangeFunctionType pFuncPtr, const std::string& rName);
 
-    void Run();
-
+    // Generic functions for data exchange
     template<class DataContainer>
     bool Import(DataContainer& rDataContainer, const std::string& rIdentifier);
 
@@ -75,14 +75,7 @@ private:
     void (*mpSolSolStep)() = nullptr;
     void (*mpFinSolStep)() = nullptr;
 
-    void (*mpImportGeom)(const std::string&) = nullptr;
-    void (*mpExportGeom)(const std::string&) = nullptr;
-
-    void (*mpImportMesh)(const std::string&) = nullptr;
-    void (*mpExportMesh)(const std::string&) = nullptr;
-
-    void (*mpImportData)(const std::string&) = nullptr;
-    void (*mpExportData)(const std::string&) = nullptr;
+    std::map<const std::string, DataExchangeFunctionType> mDataExchangeFunctions;
 
     void Initialize(const std::string& rName, SettingsType& rSettings, const bool IsConnectionMaster);
     Internals::ControlSignal RecvControlSignal(std::string& rIdentifier);
