@@ -1,10 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# Mpi
-if(${MPI_NEEDED} MATCHES ON )
-  add_subdirectory(mpi)
-endif(${MPI_NEEDED} MATCHES ON )
-
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
 
 if(DELAUNATORCPP_INCLUDE_DIR)
@@ -289,3 +284,10 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
     get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/ FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+
+# Mpi
+if(${MPI_NEEDED} MATCHES ON )
+  add_subdirectory(mpi)
+endif(${MPI_NEEDED} MATCHES ON )
+

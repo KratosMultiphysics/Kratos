@@ -123,14 +123,7 @@ class ContactConvergenceCriteriaFactory:
                     "max_iteration"           : 10000,
                     "tolerance"               : 1e-9,
                     "required_eigen_number"   : 1,
-                    "verbosity"               : 0,
-                    "linear_solver_settings"  : {
-                        "solver_type"             : "SuperLUSolver",
-                        "max_iteration"           : 500,
-                        "tolerance"               : 1e-9,
-                        "scaling"                 : false,
-                        "verbosity"               : 0
-                    }
+                    "verbosity"               : 0
                 }
                 """)
                 eigen_solver_max = eigen_solver_factory.ConstructSolver(settings_max)
@@ -140,14 +133,7 @@ class ContactConvergenceCriteriaFactory:
                     "max_iteration"           : 10000,
                     "tolerance"               : 1e-9,
                     "required_eigen_number"   : 1,
-                    "verbosity"               : 0,
-                    "linear_solver_settings"  : {
-                        "solver_type"             : "SuperLUSolver",
-                        "max_iteration"           : 500,
-                        "tolerance"               : 1e-9,
-                        "scaling"                 : false,
-                        "verbosity"               : 0
-                    }
+                    "verbosity"               : 0
                 }
                 """)
                 eigen_solver_min = eigen_solver_factory.ConstructSolver(settings_min)

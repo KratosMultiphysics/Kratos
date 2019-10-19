@@ -97,10 +97,10 @@ private:
     ///@{
 
     std::string GetLabel(const int NumberOfEigenValue,
-                         const double EigenValueSolution);
+                         const double EigenValueSolution) const;
 
     void GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
-                      std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults);
+                      std::vector<Variable<array_1d<double,3>>>& rRequestedVectorResults) const;
 
     ///@}
 

@@ -225,7 +225,7 @@ namespace Kratos
         /**
          * @brief This function calculates the current Green-Lagrange strain
          */
-        double CalculateGreenLagrangeStrain();
+        double CalculateGreenLagrangeStrain()const;
 
         /**
          * @brief This function calculates self-weight forces
@@ -255,6 +255,7 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
+        double ReturnTangentModulus1D(ProcessInfo& rCurrentProcessInfo);
 
         void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 

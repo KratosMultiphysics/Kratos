@@ -1,5 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+import KratosMultiphysics as KM
+
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -16,7 +18,7 @@ has_mesh_moving_app = kratos_utilities.CheckIfApplicationsAvailable("MeshMovingA
 class ShapeOptimizationTestFactory(kratos_unittest.TestCase):
     # --------------------------------------------------------------------------
     def setUp(self):
-        pass
+        KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
     # --------------------------------------------------------------------------
     def test_execution(self):

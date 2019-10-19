@@ -7,9 +7,9 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
 from KratosMultiphysics.ShapeOptimizationApplication.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 import time
 from decimal import Decimal
-from gid_output_process import GiDOutputProcess
 
 # ==============================================================================
 # User defined parameters

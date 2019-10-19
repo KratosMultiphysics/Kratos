@@ -134,6 +134,7 @@ private:
 
     ModelPart& mrModelPart;
     double mBeta;
+    double mDryHeight;
 
     ///@}
     ///@name Member Variables
