@@ -11,7 +11,7 @@
 #define  KRATOS_PROJECTION
 
 // /* External includes */
-// #include "boost/smart_ptr.hpp"
+#include <boost/timer.hpp>
 
 // System includes
 #include <string>
@@ -24,7 +24,6 @@
 #include "includes/model_part.h"
 #include "includes/deprecated_variables.h"
 #include "geometries/triangle_2d_3.h"
-#include "utilities/timer.h"
 
 // #include "geometries/tetrahedra_3d_4.h"
 

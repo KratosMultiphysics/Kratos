@@ -12,6 +12,7 @@
 #include "custom_utilities/interpolate_structural_solution_for_dem_utility.h"
 #include "custom_utilities/control_module_fem_dem_utilities.hpp"
 #include "custom_utilities/stress_failure_check_utilities.hpp"
+#include "custom_utilities/post_process_utilities.hpp"
 
 namespace Kratos {
 
@@ -56,6 +57,13 @@ namespace Kratos {
                 .def(init<ModelPart&,Parameters&>())
                 .def("ExecuteFinalizeSolutionStep", &StressFailureCheckUtilities::ExecuteFinalizeSolutionStep)
             ;
+
+            class_<PostProcessUtilities, PostProcessUtilities::Pointer>(m, "PostProcessUtilities")
+                .def(init<ModelPart&>())
+                .def("GetStickyStatus", &PostProcessUtilities::GetStickyStatus)
+                .def("GetInitialContinuumBonds", &PostProcessUtilities::GetInitialContinuumBonds)
+                .def("GetCurrentContinuumBonds", &PostProcessUtilities::GetCurrentContinuumBonds)
+                ;
 
         }
     }  // namespace Python

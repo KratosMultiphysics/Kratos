@@ -10,7 +10,7 @@ from glob import glob
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import DEM_material_test_script
+import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 def Flush(a):
     a.flush()
@@ -371,7 +371,7 @@ class Procedures(object):
             translational_scheme = SymplecticEulerScheme()
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme':
             translational_scheme = TaylorScheme()
-        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+        elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             translational_scheme = VelocityVerletScheme()
         else:
             self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')

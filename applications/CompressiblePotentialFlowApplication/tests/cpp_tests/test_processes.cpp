@@ -14,8 +14,12 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
+#include "compressible_potential_flow_application_variables.h"
 #include "custom_processes/move_model_part_process.h"
+#include "custom_processes/compute_embedded_lift_process.h"
 #include "custom_processes/define_2d_wake_process.h"
+#include "custom_processes/apply_far_field_process.h"
+#include "custom_processes/compute_nodal_potential_flow_velocity_process.h"
 
 namespace Kratos {
   namespace Testing {
@@ -57,12 +61,67 @@ namespace Kratos {
       }
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(ComputeEmbeddedLiftProcess, CompressiblePotentialApplicationFastSuite)
+    {
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      model_part.AddNodalSolutionStepVariable(GEOMETRY_DISTANCE);
+      model_part.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+      model_part.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
+
+      array_1d<double, 3> free_stream_velocity;
+      free_stream_velocity[0] = 1.0; free_stream_velocity[1] = 0.0; free_stream_velocity[2] = 0.0;
+      model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
+      // Set the element properties
+      model_part.CreateNewProperties(0);
+      Properties::Pointer pElemProp = model_part.pGetProperties(0);
+
+      // Geometry creation
+      model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+      model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+      model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+      std::vector<std::size_t> elemNodes{ 1, 2, 3 };
+      model_part.CreateNewElement("EmbeddedIncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
+
+      Element::Pointer pElement = model_part.pGetElement(1);
+      pElement -> Set(ACTIVE);
+
+      // Define the nodal values
+      std::array<double,3> potential;
+      potential[0] = 1.0;
+      potential[1] = 2.0;
+      potential[2] = 3.0;
+
+      std::array<double,3> distances;
+      distances[0] = -1.0;
+      distances[1] = -1.0;
+      distances[2] = 1.0;
+
+
+      for (unsigned int i = 0; i < 3; i++)
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+
+      for (unsigned int i = 0; i < 3; i++)
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i];
+
+      Vector resultant_force(3);
+      ComputeEmbeddedLiftProcess<2,3>(model_part, resultant_force).Execute();
+
+      std::array<double,3> reference({0.0, 0.5, 0.0});
+      KRATOS_WATCH(resultant_force)
+
+      for (unsigned int i = 0; i < 3; i++) {
+        KRATOS_CHECK_NEAR(resultant_force(i), reference[i], 1e-6);
+      }
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(Define2DWakeProcessProcess, CompressiblePotentialApplicationFastSuite)
     {
       // Create model_part
       Model this_model;
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-      model_part.AddNodalSolutionStepVariable(DISTANCE);
 
       // Set model_part properties
       BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
@@ -95,6 +154,128 @@ namespace Kratos {
 
       const int wake = pElement->GetValue(WAKE);
       KRATOS_CHECK_NEAR(wake, 1, 1e-6);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ApplyFarFieldProcess, CompressiblePotentialApplicationFastSuite)
+    {
+      // Create model_part
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+      // Variables addition
+      model_part.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+      model_part.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
+
+      // Set model_part properties
+      BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
+      free_stream_velocity(0) = 10.0;
+      model_part.GetProcessInfo()[FREE_STREAM_VELOCITY] = free_stream_velocity;
+
+      // Create nodes
+      model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+      model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+      model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+      model_part.CreateNewNode(4, 1.0, 1.0, 0.0);
+
+      for (auto& r_node : model_part.Nodes()) {
+        r_node.AddDof(VELOCITY_POTENTIAL);
+      }
+
+      model_part.CreateNewProperties(0);
+      Properties::Pointer pProp = model_part.pGetProperties(0);
+
+      std::vector<ModelPart::IndexType> cond1{1, 2};
+      std::vector<ModelPart::IndexType> cond2{2, 4};
+      std::vector<ModelPart::IndexType> cond3{4, 3};
+      std::vector<ModelPart::IndexType> cond4{3, 1};
+
+      model_part.CreateNewCondition("Condition2D2N", 1, cond1, pProp);
+      model_part.CreateNewCondition("Condition2D2N", 2, cond2, pProp);
+      model_part.CreateNewCondition("Condition2D2N", 3, cond3, pProp);
+      model_part.CreateNewCondition("Condition2D2N", 4, cond4, pProp);
+
+
+      // Set initial potential
+      const double initial_potential = 1.0;
+      const bool initialize_flow_field = true;
+
+      // Construct the ApplyFarFieldProcess
+      ApplyFarFieldProcess ApplyFarFieldProcess(model_part, initial_potential, initialize_flow_field);
+
+      // Execute the ApplyFarFieldProcess
+      ApplyFarFieldProcess.Execute();
+
+      for (auto& r_node : model_part.Nodes()) {
+        if (r_node.Id() == 1 || r_node.Id() == 3) {
+          KRATOS_CHECK(r_node.IsFixed(VELOCITY_POTENTIAL));
+          KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_POTENTIAL), initial_potential, 1e-6);
+        }
+        else {
+          KRATOS_CHECK_IS_FALSE(r_node.IsFixed(VELOCITY_POTENTIAL));
+          KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(VELOCITY_POTENTIAL), 11.0, 1e-6);
+        }
+      }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ComputeNodalPotentialFlowVelocityProcess, CompressiblePotentialApplicationFastSuite)
+    {
+      // Create model_part
+      Model this_model;
+      ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+      model_part.GetProcessInfo()[DOMAIN_SIZE] = 2;
+
+      // Variables addition
+      model_part.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+      model_part.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
+
+      // Set the element properties
+      model_part.CreateNewProperties(0);
+      Properties::Pointer pElemProp = model_part.pGetProperties(0);
+
+      // Geometry creation
+      model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+      model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+      model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+      std::vector<ModelPart::IndexType> elemNodes_1{ 1, 2, 3 };
+      model_part.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes_1, pElemProp);
+
+      auto r_element = model_part.GetElement(1);
+
+      r_element.GetValue(WAKE) = 1;
+      Vector wake_elemental_distances(3);
+      wake_elemental_distances(0) = 1.0;
+      wake_elemental_distances(1) = 1.0;
+      wake_elemental_distances(2) = -1.0;
+      r_element.GetValue(WAKE_ELEMENTAL_DISTANCES) = wake_elemental_distances;
+
+      // Define the nodal values
+      Vector potential(3);
+      potential(0) = 1.0;
+      potential(1) = 2.0;
+      potential(2) = 3.0;
+
+      for (unsigned int i = 0; i < 3; i++){
+        if (wake_elemental_distances(i) > 0.0)
+          r_element.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
+        else
+          r_element.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i);
+      }
+      for (unsigned int i = 0; i < 3; i++){
+        if (wake_elemental_distances(i) < 0.0)
+          r_element.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i)+1;
+        else
+          r_element.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential(i)+1;
+      }
+      // Construct the ComputeNodalPotentialFlowVelocityProcess
+      ComputeNodalPotentialFlowVelocityProcess ComputeNodalPotentialFlowVelocityProcess(model_part);
+
+      // Execute the ComputeNodalPotentialFlowVelocityProcess
+      ComputeNodalPotentialFlowVelocityProcess.Execute();
+      for (auto& r_node : model_part.Nodes()) {
+        auto nodal_velocity = r_node.GetValue(VELOCITY);
+        KRATOS_CHECK_NEAR(nodal_velocity[0], 1, 1e-6);
+        KRATOS_CHECK_NEAR(nodal_velocity[1], 2, 1e-6);
+      }
     }
   } // namespace Testing
 }  // namespace Kratos.

@@ -38,7 +38,7 @@
         ],
         "data_transfer_operators" : {
             "mapper" : {
-                "type" : "mapping",
+                "type" : "kratos_mapping",
                 "mapper_settings" : {
                     "mapper_type" : "nearest_neighbor"
                 }
@@ -77,7 +77,7 @@
             "fluid":
             {
                 "type" : "solver_wrappers.kratos.fluid_dynamics_wrapper",
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "input_file"  : "fsi_mok/ProjectParametersCFD"
                 },
                 "data" : {
@@ -101,7 +101,7 @@
             "structure" :
             {
                 "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
-                "settings" : {
+                "solver_wrapper_settings" : {
                     "input_file"  : "fsi_mok/ProjectParametersCSM"
                 },
                 "data" : {
@@ -114,11 +114,6 @@
                         "model_part_name"   : "Structure.GENERIC_FSI",
                         "dimension" : 2,
                         "variable_name" : "POINT_LOAD"
-                    },
-                    "velocity" : {
-                        "model_part_name"   : "Structure.GENERIC_FSI",
-                        "dimension" : 2,
-                        "variable_name" : "VELOCITY"
                     }
                 }
             }

@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 ## @module iqnils
-# This module contains the class MVQN
+# This module contains the class MVQNConvergenceAccelerator
 # Author: Wei He
 # Date: Feb. 20, 2017
 
@@ -21,17 +21,17 @@ from collections import deque
 
 def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return MVQN(settings, solver_wrapper)
+    return MVQNConvergenceAccelerator(settings, solver_wrapper)
 
-## Class MVQN.
+## Class MVQNConvergenceAccelerator.
 # This class contains the implementation of the MVQN method and helper functions.
 # Reference: A.E.J. Bogaers et al. "Quasi-Newton methods for implicit black-box FSI coupling", Computational methods in applied mechanics and engineering. 279(2014) 113-132.
-class MVQN(CoSimulationConvergenceAccelerator):
+class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
     def __init__( self, settings, solver_wrapper):
-        super(MVQN, self).__init__(settings, solver_wrapper)
+        super(MVQNConvergenceAccelerator, self).__init__(settings, solver_wrapper)
 
         horizon = self.settings["horizon"].GetInt()
         self.alpha = self.settings["alpha"].GetDouble()
@@ -41,18 +41,18 @@ class MVQN(CoSimulationConvergenceAccelerator):
         self.J = [] # size will be determined when first time get the input vector
         self.J_hat = []
 
-    ## ComputeUpdate(r, x)
+    ## UpdateSolution(r, x)
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
-    def ComputeUpdate( self, r, x ):
+    def UpdateSolution( self, r, x ):
         self.R.appendleft( deepcopy(r) )
         self.X.appendleft( deepcopy(x) )
         col = len(self.R) - 1
         row = len(r)
         k = col
         if self.echo_level > 3:
-            cs_tools.cs_print_info(self._Name(), "Number of new modes: ", col )
+            cs_tools.cs_print_info(self._ClassName(), "Number of new modes: ", col )
 
         ## For the first iteration
         if k == 0:
@@ -101,7 +101,7 @@ class MVQN(CoSimulationConvergenceAccelerator):
             for j in range(0, col):
                 self.J[i][j] = self.J_hat[i][j]
         if self.echo_level > 3:
-            cs_tools.cs_print_info(self._Name(), "Jacobian matrix updated!")
+            cs_tools.cs_print_info(self._ClassName(), "Jacobian matrix updated!")
         ## Clear the buffer
         if self.R and self.X:
             self.R.clear()
@@ -113,5 +113,5 @@ class MVQN(CoSimulationConvergenceAccelerator):
             "horizon" : 15,
             "alpha"   : 0.125
         }""")
-        this_defaults.AddMissingParameters(super(MVQN, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MVQNConvergenceAccelerator, cls)._GetDefaultSettings())
         return this_defaults

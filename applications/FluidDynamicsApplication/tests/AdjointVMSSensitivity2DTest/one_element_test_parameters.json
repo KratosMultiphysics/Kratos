@@ -63,6 +63,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/one_element_test"
         },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/one_element_test_materials.json"
+        },
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : 1.0
@@ -133,15 +136,15 @@
             }
         },{
             "python_module" : "compute_body_fitted_drag_process",
-                "kratos_module" : "KratosMultiphysics",
-                "process_name"  : "ComputeBodyFittedDragProcess",
-                "Parameters" : {
-                    "model_part_name"           : "Structure",
-                    "interval"                  : [0.0, 1e30],
-                    "write_drag_output_file"    : true,
-                    "print_drag_to_screen"      : false,
-                    "print_format"              : "22.15e"
-                }
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ComputeBodyFittedDragProcess",
+            "Parameters" : {
+                "model_part_name"           : "Structure",
+                "interval"                  : [0.0, 1e30],
+                "write_drag_output_file"    : true,
+                "print_drag_to_screen"      : false,
+                "print_format"              : "22.15e"
+            }
         }]
     }
 }

@@ -254,16 +254,5 @@
                     }
                 }
             ]
-    },
-    "python_module" : "hdf5_output_process",
-                        "kratos_module" : "KratosMultiphysics.HDF5Application",
-                        "process_name"  : "",
-                        "Parameters"    : {
-                            "model_part_name"                    : "FluidModelPart",
-                            "create_xdmf_file_level"             : 2,
-                            "save_h5_files_in_folder"            : true,
-                            "output_control_type"                : "step",
-                            "output_frequency"                   : 1,
-                            "nodal_solution_step_data_variables" : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"]
-                        }
+    }
 }

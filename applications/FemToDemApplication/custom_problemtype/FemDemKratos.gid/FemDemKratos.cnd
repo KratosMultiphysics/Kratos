@@ -4,7 +4,7 @@ CONDITION: Body_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces 
-QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,SimoJu,Rankine,DruckerPrager,VonMises,Tresca,Elastic)
+QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,MohrCoulomb,SimoJu,Rankine,DruckerPrager,VonMises,Tresca,Elastic)
 VALUE: ModifiedMohrCoulomb
 QUESTION: Young_Modulus
 VALUE: 35.00e9

@@ -96,7 +96,7 @@ public:
     // Name Operations
     Condition::Pointer Create(
         IndexType NewId,
-        GeometryType::Pointer pGeom,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         ) const override;
 
@@ -158,11 +158,11 @@ protected:
         ) override;
 
     void CalculateAndSubKp(
-        Matrix& K,
-        const array_1d<double, 3>& ge,
-        const array_1d<double, 3>& gn,
-        const Matrix& DN_De,
-        const RowMatrix& N,
+        Matrix& rK,
+        const array_1d<double, 3>& rge,
+        const array_1d<double, 3>& rgn,
+        const Matrix& rDN_De,
+        const RowMatrix& rN,
         const double Pressure,
         const double Weight );
 

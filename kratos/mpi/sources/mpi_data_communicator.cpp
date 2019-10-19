@@ -11,6 +11,7 @@
 //
 
 #include "mpi/includes/mpi_data_communicator.h"
+#include "mpi/includes/mpi_message.h"
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(type)                                 \
@@ -99,6 +100,12 @@ void MPIDataCommunicator::ScanSum(                                              
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(type)           \
+type MPIDataCommunicator::SendRecvImpl(                                                 \
+    const type SendValue,                                                               \
+    const int SendDestination, const int SendTag,                                       \
+    const int RecvSource, const int RecvTag) const {                                    \
+    return SendRecvDetail(SendValue, SendDestination, SendTag, RecvSource, RecvTag);    \
+}                                                                                       \
 std::vector<type> MPIDataCommunicator::SendRecvImpl(                                    \
     const std::vector<type>& rSendValues,                                               \
     const int SendDestination, const int SendTag,                                       \
@@ -109,6 +116,11 @@ void MPIDataCommunicator::SendRecvImpl(                                         
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag, \
     std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const {    \
     SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag); \
+}                                                                                       \
+void MPIDataCommunicator::SendRecvImpl(                                                 \
+    const type SendValue, const int SendDestination, const int SendTag,                 \
+    type& rRecvValue, const int RecvSource, const int RecvTag) const {                  \
+    SendRecvDetail(SendValue,SendDestination,SendTag,rRecvValue,RecvSource,RecvTag);    \
 }                                                                                       \
 void MPIDataCommunicator::SendImpl(const std::vector<type>& rSendValues,                \
     const int SendDestination, const int SendTag) const {                               \
@@ -598,6 +610,16 @@ template<class TDataType> void MPIDataCommunicator::SendRecvDetail(
     CheckMPIErrorCode(ierr, "MPI_Sendrecv");
 }
 
+template<class TDataType> TDataType MPIDataCommunicator::SendRecvDetail(
+    const TDataType& rSendMessage,
+    const int SendDestination, const int SendTag,
+    const int RecvSource, const int RecvTag) const
+{
+    TDataType recv_values;
+    SendRecvDetail(rSendMessage,SendDestination, SendTag ,recv_values,RecvSource, RecvTag);
+    return recv_values;
+}
+
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDetail(
     const std::vector<TDataType>& rSendMessage,
     const int SendDestination, const int SendTag,
@@ -1068,242 +1090,27 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervReturn(
     }
 }
 
-// MPI_Datatype wrappers
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const int&) const
+// MPI_Datatype wrapper
+template<class TValue> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const TValue&) const
 {
-    return MPI_INT;
-}
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const unsigned int&) const
-{
-    return MPI_UNSIGNED;
-}
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const long unsigned int&) const
-{
-    return MPI_UNSIGNED_LONG;
-}
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const double&) const
-{
-    return MPI_DOUBLE;
-}
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const array_1d<double,3>&) const
-{
-    return MPI_DOUBLE;
-}
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::vector<int>&) const
-{
-    return MPI_INT;
-}
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::vector<unsigned int>&) const
-{
-    return MPI_UNSIGNED;
-}
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::vector<long unsigned int>&) const
-{
-    return MPI_UNSIGNED_LONG;
-}
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::vector<double>&) const
-{
-    return MPI_DOUBLE;
-}
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const std::string&) const
-{
-    return MPI_CHAR;
-}
-
-template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const Flags::BlockType&) const
-{
-    return MPI_INT64_T;
+    return MPIMessage<TValue>::DataType();
 }
 
 // Buffer argument deduction
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(int& rValues) const
+template<class TContainer> inline void* MPIDataCommunicator::MPIBuffer(TContainer& rValues) const
 {
-    return &rValues;
+    return MPIMessage<TContainer>::Buffer(rValues);
 }
 
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const int& rValues) const
+template<class TContainer> inline const void* MPIDataCommunicator::MPIBuffer(const TContainer& rValues) const
 {
-    return &rValues;
-}
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(unsigned int& rValues) const
-{
-    return &rValues;
-}
-
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const unsigned int& rValues) const
-{
-    return &rValues;
-}
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(long unsigned int& rValues) const
-{
-    return &rValues;
-}
-
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const long unsigned int& rValues) const
-{
-    return &rValues;
-}
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(double& rValues) const
-{
-    return &rValues;
-}
-
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const double& rValues) const
-{
-    return &rValues;
-}
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(array_1d<double,3>& rValues) const
-{
-    #ifdef KRATOS_USE_AMATRIX
-    return rValues.data();
-    #else
-    return rValues.data().data();
-    #endif
-}
-
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const array_1d<double,3>& rValues) const
-{
-    #ifdef KRATOS_USE_AMATRIX
-    return rValues.data();
-    #else
-    return rValues.data().data();
-    #endif
-}
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(std::vector<int>& rValues) const
-{
-    return rValues.data();
-}
-
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<int>& rValues) const
-{
-    return rValues.data();
-}
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(std::vector<unsigned int>& rValues) const
-{
-    return rValues.data();
-}
-
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<unsigned int>& rValues) const
-{
-    return rValues.data();
-}
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(std::vector<long unsigned int>& rValues) const
-{
-    return rValues.data();
-}
-
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<long unsigned int>& rValues) const
-{
-    return rValues.data();
-}
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(std::vector<double>& rValues) const
-{
-    return rValues.data();
-}
-
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<double>& rValues) const
-{
-    return rValues.data();
-}
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(std::string& rValues) const
-{
-    // Note: this uses the fact that the C++11 standard defines std::strings to
-    // be contiguous in memory to perform MPI communication (based on char*) in place.
-    // In older C++, this cannot be expected to be always the case, so a copy of the
-    // string would be required.
-    return const_cast<char *>(rValues.data());
-}
-
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::string& rValues) const
-{
-    return rValues.data();
-}
-
-template<> inline void* MPIDataCommunicator::MPIBuffer(Flags::BlockType& rValues) const
-{
-    return &rValues;
-}
-
-template<> inline const void* MPIDataCommunicator::MPIBuffer(const Flags::BlockType& rValues) const
-{
-    return &rValues;
+    return MPIMessage<TContainer>::Buffer(rValues);
 }
 
 // MPI message size deduction
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const int& rValues) const
+template<class TContainer> inline int MPIDataCommunicator::MPIMessageSize(const TContainer& rValues) const
 {
-    return 1;
-}
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const unsigned int& rValues) const
-{
-    return 1;
-}
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const long unsigned int& rValues) const
-{
-    return 1;
-}
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const double& rValues) const
-{
-    return 1;
-}
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const array_1d<double,3>& rValues) const
-{
-    return 3;
-}
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<int>& rValues) const
-{
-    return rValues.size();
-}
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<unsigned int>& rValues) const
-{
-    return rValues.size();
-}
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<long unsigned int>& rValues) const
-{
-    return rValues.size();
-}
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<double>& rValues) const
-{
-    return rValues.size();
-}
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const std::string& rValues) const
-{
-    return rValues.size();
-}
-
-template<> inline int MPIDataCommunicator::MPIMessageSize(const Flags::BlockType& rValues) const
-{
-    return 1;
+    return MPIMessage<TContainer>::Size(rValues);
 }
 
 }

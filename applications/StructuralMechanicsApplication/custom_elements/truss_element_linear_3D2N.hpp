@@ -129,8 +129,7 @@ public:
      * @param rSaveInternalVariables Boolean to save internal constit. law variables
      */
     BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-        const ProcessInfo& rCurrentProcessInfo,
-        const bool rSaveInternalVariables) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
 private:

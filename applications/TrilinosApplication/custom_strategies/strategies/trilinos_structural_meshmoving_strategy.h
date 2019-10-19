@@ -25,10 +25,10 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-#include "custom_utilities/parallel_fill_communicator.h"
 
 namespace Kratos
 {

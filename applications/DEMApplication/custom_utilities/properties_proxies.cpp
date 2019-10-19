@@ -123,30 +123,9 @@ namespace Kratos {
     }
 
     void PropertiesProxy::save(Serializer& rSerializer) const {
-
-        rSerializer.save("mId",mId);
-        /*rSerializer.save("mYoung",mYoung);
-        rSerializer.save("mPoisson",mPoisson);
-        rSerializer.save("mRollingFriction",mRollingFriction);
-        rSerializer.save("mTgOfFrictionAngle",mTgOfFrictionAngle);
-        rSerializer.save("mLnOfRestitCoeff",mLnOfRestitCoeff);
-        rSerializer.save("mDensity",mDensity);
-        rSerializer.save("mParticleMaterial",mParticleMaterial);*/
-        rSerializer.save("mParticleCohesion",mParticleCohesion);
     }
 
     void PropertiesProxy::load(Serializer& rSerializer) {
-
-        rSerializer.load("mId",mId);
-        /*rSerializer.load("mYoung",mYoung);
-        rSerializer.load("mPoisson",mPoisson);
-        rSerializer.load("mRollingFriction",mRollingFriction);
-        rSerializer.load("mTgOfFrictionAngle",mTgOfFrictionAngle);
-        rSerializer.load("mLnOfRestitCoeff",mLnOfRestitCoeff);
-        rSerializer.load("mDensity",mDensity);
-        rSerializer.load("mParticleMaterial",mParticleMaterial);
-        rSerializer.load("mParticleCohesion",mParticleCohesion);
-        rSerializer.load("mParticleMaterial",mParticleMaterial);*/
     }
 
     void PropertiesProxiesManager::AddPropertiesProxiesFromModelPartProperties(std::vector<PropertiesProxy>& vector_of_proxies,

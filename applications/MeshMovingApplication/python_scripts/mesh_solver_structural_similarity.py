@@ -17,7 +17,7 @@ def CreateSolver(model, custom_settings):
 class MeshSolverStructuralSimilarity(MeshSolverBase):
     def __init__(self, model, custom_settings):
         super(MeshSolverStructuralSimilarity, self).__init__(model, custom_settings)
-        print("::[MeshSolverStructuralSimilarity]:: Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[MeshSolverStructuralSimilarity]:: Construction finished")
 
     def _create_mesh_motion_solving_strategy(self):
         linear_solver = self.get_linear_solver()

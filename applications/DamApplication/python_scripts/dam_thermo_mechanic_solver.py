@@ -364,11 +364,11 @@ class DamThermoMechanicSolver(object):
         aux_params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
 
         # CheckAndPrepareModelProcessDamMechanical creates the solid_computational_model_part
-        import check_and_prepare_model_process_dam_thermal
+        from KratosMultiphysics.DamApplication import check_and_prepare_model_process_dam_thermal
         check_and_prepare_model_process_dam_thermal.CheckAndPrepareModelProcessDamThermal(self.main_model_part, aux_params).Execute()
 
         # Constitutive law import
-        import dam_constitutive_law_utility
+        from KratosMultiphysics.DamApplication import dam_constitutive_law_utility
         dam_constitutive_law_utility.SetConstitutiveLaw(self.main_model_part)
 
         self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )

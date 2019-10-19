@@ -96,9 +96,9 @@ namespace Kratos
 
             // Creating the ray
             double ray[3] = {r_coords[0], r_coords[1], r_coords[2]};
-			auto pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
-            pOctree->NormalizeCoordinates(ray);
-            ray[i_direction] = 0; // Starting from the lower extreme
+			auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+			rp_octree->NormalizeCoordinates(ray);
+			ray[i_direction] = 0; // Starting from the lower extreme
 
             this->GetRayIntersections(ray, i_direction, intersections);
 
@@ -154,7 +154,7 @@ namespace Kratos
 		this->GetExtraRayOrigins(rCoords, extra_ray_origs);
 
 		// Get the pointer to the base Octree binary
-		auto p_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+		auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
 
 		// Loop the extra rays to compute its color
 		unsigned int n_ray_pos = 0; // Positive rays counter
@@ -165,7 +165,7 @@ namespace Kratos
 				// Creating the ray
 				const auto aux_ray = extra_ray_origs[i_ray];
 				double ray[3] = {aux_ray[0], aux_ray[1], aux_ray[2]};
-				p_octree->NormalizeCoordinates(ray);
+				rp_octree->NormalizeCoordinates(ray);
 				ray[i_direction] = 0; // Starting from the lower extreme
 				this->CorrectExtraRayOrigin(ray); // Avoid extra ray normalized coordinates to be larger than 1 or 0
 				this->GetRayIntersections(ray, i_direction, intersections);
@@ -280,14 +280,14 @@ namespace Kratos
         rIntersections.clear();
 
 		// Get the octree from the parent discontinuous distance process
-        auto pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+        auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
 
 		// Compute the normalized ray key
-        OctreeType::key_type ray_key[3] = {pOctree->CalcKeyNormalized(ray[0]), pOctree->CalcKeyNormalized(ray[1]), pOctree->CalcKeyNormalized(ray[2])};
+		OctreeType::key_type ray_key[3] = {rp_octree->CalcKeyNormalized(ray[0]), rp_octree->CalcKeyNormalized(ray[1]), rp_octree->CalcKeyNormalized(ray[2])};
 
-        // Getting the entrance cell from lower extreme
+		// Getting the entrance cell from lower extreme
         OctreeType::key_type cell_key[3];
-        auto cell = pOctree->pGetCell(ray_key);
+        auto cell = rp_octree->pGetCell(ray_key);
         while (cell) {
 			// Get the current cell intersections
             const int cell_int = this->GetCellIntersections(cell, ray, ray_key, direction, rIntersections);
@@ -296,7 +296,7 @@ namespace Kratos
 			// And if it exists, go to the next cell
             if (cell->GetNeighbourKey(1 + direction * 2, cell_key)) {
                 ray_key[direction] = cell_key[direction];
-                cell = pOctree->pGetCell(ray_key);
+                cell = rp_octree->pGetCell(ray_key);
                 ray_key[direction] -= 1 ; // The key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding cell get in pGetCell is the right one.
             } else {
                 cell = NULL;
@@ -343,12 +343,12 @@ namespace Kratos
 		double ray_point2[3] = {ray[0], ray[1], ray[2]};
 		double normalized_coordinate;
 
-		auto pOctree = mpFindIntersectedObjectsProcess->GetOctreePointer();
-		pOctree->CalculateCoordinateNormalized(ray_key[direction], normalized_coordinate);
+		auto &rp_octree = mpFindIntersectedObjectsProcess->GetOctreePointer();
+		rp_octree->CalculateCoordinateNormalized(ray_key[direction], normalized_coordinate);
 		ray_point1[direction] = normalized_coordinate;
-		ray_point2[direction] = ray_point1[direction] + pOctree->CalcSizeNormalized(cell);
-		pOctree->ScaleBackToOriginalCoordinate(ray_point1);
-		pOctree->ScaleBackToOriginalCoordinate(ray_point2);
+		ray_point2[direction] = ray_point1[direction] + rp_octree->CalcSizeNormalized(cell);
+		rp_octree->ScaleBackToOriginalCoordinate(ray_point1);
+		rp_octree->ScaleBackToOriginalCoordinate(ray_point2);
 
 		// This is a workaround to avoid the z-component in 2D
 		if (TDim == 2){

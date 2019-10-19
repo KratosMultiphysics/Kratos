@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics import assign_scalar_variable_to_entities_process
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -63,7 +64,6 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
 
         self.aux_processes = []
 
-        import assign_scalar_variable_to_entities_process
 
         for i_dir, var_string in enumerate(["_X", "_Y", "_Z"]):
             if not settings["value"][i_dir].IsNull():

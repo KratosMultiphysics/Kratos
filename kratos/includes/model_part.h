@@ -520,7 +520,17 @@ public:
         return *mpVariablesList;
     }
 
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    {
+        return mpVariablesList;
+    }
+
     void SetNodalSolutionStepVariablesList();
+
+    void SetNodalSolutionStepVariablesList(VariablesList::Pointer pNewVariablesList)
+    {
+        mpVariablesList = pNewVariablesList;
+    }
 
     SizeType GetNodalSolutionStepDataSize()
     {
@@ -1552,8 +1562,6 @@ private:
     ProcessInfo::Pointer mpProcessInfo; /// The process info instance
 
     TablesContainerType mTables; /// The tables contained on the model part
-
-    std::vector<IndexType> mIndices; /// The list of indices /// NOTE: This looks unused, only appears on the constructor @pooyan_dadvand
 
     MeshesContainerType mMeshes; /// The container of all meshes
 

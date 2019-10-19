@@ -44,14 +44,18 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
 
     // Get NODAL_AREA from MPC_Area
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const double & r_mpc_area = this->GetIntegrationWeight();
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * r_mpc_area;
-        rGeom[i].UnSetLock();
+        if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * r_mpc_area;
+            r_geometry[i].UnSetLock();
+        }
+        else break;
     }
 
 }
@@ -77,6 +81,33 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurr
 
     // Reset value of incremental displacement
     delta_xg_c.clear();
+
+    KRATOS_CATCH( "" )
+}
+
+
+Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
+{
+    KRATOS_TRY
+
+    rResult = MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult, rPoint);
+
+    // Additional check to modify zero shape function values
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+    double denominator = 1.0;
+    const unsigned int small_cut_instability_tolerance = 0.01;
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (rResult[i] < small_cut_instability_tolerance){
+            rResult[i] = small_cut_instability_tolerance;
+            denominator += rResult[i];
+        }
+    }
+
+    rResult = rResult/denominator;
+
+    return rResult;
 
     KRATOS_CATCH( "" )
 }

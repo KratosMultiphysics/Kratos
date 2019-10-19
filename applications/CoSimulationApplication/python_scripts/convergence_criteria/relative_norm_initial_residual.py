@@ -16,11 +16,11 @@ from numpy import linalg as la
 
 def Create(settings, solver_wrapper):
     cs_tools.SettingsTypeCheck(settings)
-    return RelativeNormInitialResidual(settings, solver_wrapper)
+    return RelativeNormInitialResidualConvergenceCriteria(settings, solver_wrapper)
 
-class RelativeNormInitialResidual(CoSimulationConvergenceCriteria):
+class RelativeNormInitialResidualConvergenceCriteria(CoSimulationConvergenceCriteria):
     def __init__(self, settings, solver_wrapper):
-        super(RelativeNormInitialResidual, self).__init__( settings, solver_wrapper)
+        super(RelativeNormInitialResidualConvergenceCriteria, self).__init__( settings, solver_wrapper)
 
         self.abs_tolerance = self.settings["abs_tolerance"].GetDouble()
         self.rel_tolerance = self.settings["rel_tolerance"].GetDouble()
@@ -28,7 +28,7 @@ class RelativeNormInitialResidual(CoSimulationConvergenceCriteria):
     def InitializeSolutionStep(self):
         self.initial_iteration = True
 
-    def InitializeCouplingIteration(self):
+    def InitializeNonLinearIteration(self):
         # Saving the previous data (at beginning of iteration) for the computation of the residual
         self.prev_data = self.interface_data.GetData()
 
@@ -53,13 +53,13 @@ class RelativeNormInitialResidual(CoSimulationConvergenceCriteria):
                 info_msg += colors.green("ACHIEVED")
             else:
                 info_msg += colors.red("NOT ACHIEVED")
-            cs_tools.cs_print_info(self._Name(), info_msg)
+            cs_tools.cs_print_info(self._ClassName(), info_msg)
         if self.echo_level > 2:
             info_msg  = colors.bold("abs_norm") + " = " + str(abs_norm) + " | "
             info_msg += colors.bold("abs_tol")  + " = " + str(self.abs_tolerance) + " || "
             info_msg += colors.bold("rel_norm") + " = " + str(rel_norm) + " | "
             info_msg += colors.bold("rel_tol")  + " = " + str(self.rel_tolerance)
-            cs_tools.cs_print_info(self._Name(), info_msg)
+            cs_tools.cs_print_info(self._ClassName(), info_msg)
 
         return is_converged
 
@@ -69,6 +69,6 @@ class RelativeNormInitialResidual(CoSimulationConvergenceCriteria):
             "abs_tolerance" : 1e-5,
             "rel_tolerance" : 1e-5
         }""")
-        this_defaults.AddMissingParameters(super(RelativeNormInitialResidual, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(RelativeNormInitialResidualConvergenceCriteria, cls)._GetDefaultSettings())
         return this_defaults
 

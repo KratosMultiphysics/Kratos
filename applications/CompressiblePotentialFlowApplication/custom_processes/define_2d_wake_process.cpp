@@ -13,6 +13,7 @@
 // Project includes
 #include "define_2d_wake_process.h"
 #include "utilities/variable_utils.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos {
 
@@ -78,7 +79,7 @@ void Define2DWakeProcess::InitializeWakeSubModelpart() const
 
         for (auto& r_element : wake_sub_model_part.Elements()){
             r_element.SetValue(WAKE, false);
-            r_element.SetValue(ELEMENTAL_DISTANCES, ZeroVector(3));
+            r_element.SetValue(WAKE_ELEMENTAL_DISTANCES, ZeroVector(3));
             r_element.Set(TO_ERASE, true);
         }
         wake_sub_model_part.RemoveElements(TO_ERASE);
@@ -118,16 +119,20 @@ void Define2DWakeProcess::SetWakeDirectionAndNormal()
 // This function finds and saves the trailing edge for further computations
 void Define2DWakeProcess::SaveTrailingEdgeNode()
 {
+    KRATOS_ERROR_IF(mrBodyModelPart.NumberOfNodes() == 0) << "There are no nodes in the body_model_part!"<< std::endl;
+
     double max_x_coordinate = std::numeric_limits<double>::lowest();
-    NodeType* trailing_edge_node;
+    auto p_trailing_edge_node = &*mrBodyModelPart.NodesBegin();
+
     for (auto& r_node : mrBodyModelPart.Nodes()) {
         if (r_node.X() > max_x_coordinate) {
             max_x_coordinate = r_node.X();
-            trailing_edge_node = &r_node;
+            p_trailing_edge_node = &r_node;
         }
     }
-    trailing_edge_node->SetValue(TRAILING_EDGE, true);
-    mpTrailingEdgeNode = trailing_edge_node;
+
+    p_trailing_edge_node->SetValue(TRAILING_EDGE, true);
+    mpTrailingEdgeNode = p_trailing_edge_node;
 }
 
 // This function checks which elements are cut by the wake and marks them as
@@ -152,12 +157,12 @@ void Define2DWakeProcess::MarkWakeElements()
             BoundedVector<double, 3> nodal_distances_to_wake = ComputeNodalDistancesToWake(*it_elem);
 
             // Selecting the cut (wake) elements
-            bool is_wake_element = CheckIfWakeElement(nodal_distances_to_wake);
+            const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(nodal_distances_to_wake);;
 
             // Mark wake element and save their nodal distances to the wake
             if (is_wake_element) {
                 it_elem->SetValue(WAKE, true);
-                it_elem->SetValue(ELEMENTAL_DISTANCES, nodal_distances_to_wake);
+                it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
                 #pragma omp critical
                 {
                     wake_elements_ordered_ids.push_back(it_elem->Id());
@@ -165,7 +170,7 @@ void Define2DWakeProcess::MarkWakeElements()
                 auto r_geometry = it_elem->GetGeometry();
                 for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();
-                    r_geometry[i].FastGetSolutionStepValue(DISTANCE) = nodal_distances_to_wake(i);
+                    r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
                     r_geometry[i].UnSetLock();
                 }
             }
@@ -226,28 +231,6 @@ const BoundedVector<double, 3> Define2DWakeProcess::ComputeNodalDistancesToWake(
     return nodal_distances_to_wake;
 }
 
-// This function checks whether the element is cut by the wake
-const bool Define2DWakeProcess::CheckIfWakeElement(const BoundedVector<double, 3>& rNodalDistancesToWake) const
-{
-    // Initialize counters
-    unsigned int number_of_nodes_with_positive_distance = 0;
-    unsigned int number_of_nodes_with_negative_distance = 0;
-
-    // Count how many element nodes are above and below the wake
-    for (unsigned int i = 0; i < rNodalDistancesToWake.size(); i++) {
-        if (rNodalDistancesToWake(i) < 0.0) {
-            number_of_nodes_with_negative_distance += 1;
-        }
-        else {
-            number_of_nodes_with_positive_distance += 1;
-        }
-    }
-
-    // Elements with nodes above and below the wake are wake elements
-    return number_of_nodes_with_negative_distance > 0 &&
-           number_of_nodes_with_positive_distance > 0;
-}
-
 // This function adds the trailing edge elements in the
 // trailing_edge_sub_model_part
 void Define2DWakeProcess::AddTrailingEdgeAndWakeElements(std::vector<std::size_t>& rWakeElementsOrderedIds)
@@ -295,6 +278,8 @@ void Define2DWakeProcess::MarkWakeTrailingEdgeElement() const
     ModelPart& trailing_edge_sub_model_part =
         root_model_part.GetSubModelPart("trailing_edge_sub_model_part");
 
+    ModelPart& wake_sub_model_part = root_model_part.GetSubModelPart("wake_sub_model_part");
+
     for (auto& r_element : trailing_edge_sub_model_part.Elements()) {
         if(r_element.GetValue(WAKE)){
             // Trailing edge wake element
@@ -305,6 +290,7 @@ void Define2DWakeProcess::MarkWakeTrailingEdgeElement() const
             //Rest of elements touching the trailing edge but not part of the wake
             else{
                 r_element.SetValue(WAKE, false);
+                wake_sub_model_part.RemoveElement(r_element.Id());
             }
         }
     }
@@ -316,7 +302,7 @@ const bool Define2DWakeProcess::CheckIfTrailingEdgeElementIsCutByWake(const Elem
     unsigned int number_of_nodes_with_negative_distance = 0;
     // REMINDER: In 3D the elemental_distances may not be match with the nodal
     // distances if CalculateDistanceToSkinProcess is used.
-    const auto nodal_distances_to_wake = rElement.GetValue(ELEMENTAL_DISTANCES);
+    const auto nodal_distances_to_wake = rElement.GetValue(WAKE_ELEMENTAL_DISTANCES);
 
     // Count how many element nodes are above and below the wake
     for (unsigned int i = 0; i < nodal_distances_to_wake.size(); i++) {

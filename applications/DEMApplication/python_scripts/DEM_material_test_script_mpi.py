@@ -9,7 +9,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.mpi import *
 
-import DEM_material_test_script
+import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 
 class MaterialTest(DEM_material_test_script.MaterialTest):
 

@@ -4,8 +4,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.mpi import *
 
-import DEM_procedures
-import DEM_procedures_mpi
+import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
+import KratosMultiphysics.DEMApplication.DEM_procedures_mpi as DEM_procedures_mpi
 
 PostUtils = DEM_procedures.PostUtils
 

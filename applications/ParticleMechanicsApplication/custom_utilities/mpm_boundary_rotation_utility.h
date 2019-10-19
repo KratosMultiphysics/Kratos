@@ -326,6 +326,12 @@ public:
 		return is_penalty;
 	}
 
+	/// Same functionalities as RotateVelocities, just to have a clear function naming
+	virtual	void RotateDisplacements(ModelPart& rModelPart) const
+	{
+		this->RotateVelocities(rModelPart);
+	}
+
 	/// Transform nodal displacement to the rotated coordinates (aligned with each node's normal)
 	/// The name is kept to be Rotate Velocities, since it is currently a derived class of coordinate_transformation_utilities in the core
 	void RotateVelocities(ModelPart& rModelPart) const override
@@ -363,6 +369,12 @@ public:
 				}
 			}
 		}
+	}
+
+	/// Same functionalities as RecoverVelocities, just to have a clear function naming
+	virtual void RecoverDisplacements(ModelPart& rModelPart) const
+	{
+		this->RecoverVelocities(rModelPart);
 	}
 
 	/// Transform nodal displacement from the rotated system to the original configuration

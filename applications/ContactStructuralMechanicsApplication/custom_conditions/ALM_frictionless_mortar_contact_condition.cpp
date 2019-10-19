@@ -28,7 +28,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -40,7 +40,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -53,7 +53,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessMortarContactCondition<T
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pMasterGeom) const
 {
-    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties, pMasterGeom );
+    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -64,10 +64,6 @@ AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes, TNor
 = default;
 
 /***************************** BEGIN AD REPLACEMENT ********************************/
-/***********************************************************************************/
-
-
-/***********************************************************************************/
 /***********************************************************************************/
 
 template<>
@@ -85,23 +81,23 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 2, 2>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
@@ -109,10 +105,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
     const array_1d<BoundedMatrix<double, 2, 2>, 8>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 2, 2>, 8>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(8,8)+=std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double clhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
@@ -232,7 +228,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         const double clhs114 =     clhs107*clhs77 - clhs13*clhs75;
         const double clhs115 =     clhs107*clhs83 - clhs13*clhs81;
         const double clhs116 =     ScaleFactor*clhs5;
-    
+
         rLocalLHS(0,0)+=clhs25*clhs26;
         rLocalLHS(0,1)+=clhs26*clhs37;
         rLocalLHS(0,2)+=clhs26*clhs49;
@@ -313,10 +309,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         rLocalLHS(8,5)+=ScaleFactor*clhs71;
         rLocalLHS(8,6)+=ScaleFactor*clhs77;
         rLocalLHS(8,7)+=ScaleFactor*clhs83;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(9,9)+=std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double clhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
@@ -436,7 +432,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         const double clhs114 =     clhs107*clhs77 - clhs13*clhs75;
         const double clhs115 =     clhs107*clhs83 - clhs13*clhs81;
         const double clhs116 =     ScaleFactor*clhs5;
-    
+
         rLocalLHS(0,0)+=clhs25*clhs26;
         rLocalLHS(0,1)+=clhs26*clhs37;
         rLocalLHS(0,2)+=clhs26*clhs49;
@@ -538,23 +534,23 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
@@ -562,10 +558,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
     const array_1d<BoundedMatrix<double, 3, 3>, 18>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 3, 3>, 18>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(18,18)+=std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double clhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -908,7 +904,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         const double clhs337 =     -clhs224*clhs25 + clhs227*clhs320;
         const double clhs338 =     -clhs232*clhs25 + clhs235*clhs320;
         const double clhs339 =     ScaleFactor*clhs7;
-    
+
         rLocalLHS(0,0)+=clhs41*clhs42;
         rLocalLHS(0,1)+=clhs42*clhs57;
         rLocalLHS(0,2)+=clhs42*clhs72;
@@ -1269,10 +1265,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalLHS(18,15)+=ScaleFactor*clhs219;
         rLocalLHS(18,16)+=ScaleFactor*clhs227;
         rLocalLHS(18,17)+=ScaleFactor*clhs235;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(19,19)+=std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double clhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -1615,7 +1611,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         const double clhs337 =     -clhs224*clhs25 + clhs227*clhs320;
         const double clhs338 =     -clhs232*clhs25 + clhs235*clhs320;
         const double clhs339 =     ScaleFactor*clhs7;
-    
+
         rLocalLHS(0,0)+=clhs41*clhs42;
         rLocalLHS(0,1)+=clhs42*clhs57;
         rLocalLHS(0,2)+=clhs42*clhs72;
@@ -1976,10 +1972,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalLHS(19,15)+=ScaleFactor*clhs219;
         rLocalLHS(19,16)+=ScaleFactor*clhs227;
         rLocalLHS(19,17)+=ScaleFactor*clhs235;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(20,20)+=std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double clhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -2322,7 +2318,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         const double clhs337 =     -clhs224*clhs25 + clhs227*clhs320;
         const double clhs338 =     -clhs232*clhs25 + clhs235*clhs320;
         const double clhs339 =     ScaleFactor*clhs7;
-    
+
         rLocalLHS(0,0)+=clhs41*clhs42;
         rLocalLHS(0,1)+=clhs42*clhs57;
         rLocalLHS(0,2)+=clhs42*clhs72;
@@ -2704,23 +2700,23 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
@@ -2728,10 +2724,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
     const array_1d<BoundedMatrix<double, 4, 4>, 24>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 4, 4>, 24>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(24,24)+=std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double clhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -3306,7 +3302,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         const double clhs569 =     -clhs33*clhs371 + clhs375*clhs546;
         const double clhs570 =     -clhs33*clhs381 + clhs385*clhs546;
         const double clhs571 =     ScaleFactor*clhs9;
-    
+
         rLocalLHS(0,0)+=clhs53*clhs54;
         rLocalLHS(0,1)+=clhs54*clhs73;
         rLocalLHS(0,2)+=clhs54*clhs92;
@@ -3931,10 +3927,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalLHS(24,21)+=ScaleFactor*clhs365;
         rLocalLHS(24,22)+=ScaleFactor*clhs375;
         rLocalLHS(24,23)+=ScaleFactor*clhs385;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(25,25)+=std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double clhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -4509,7 +4505,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         const double clhs569 =     -clhs33*clhs371 + clhs375*clhs546;
         const double clhs570 =     -clhs33*clhs381 + clhs385*clhs546;
         const double clhs571 =     ScaleFactor*clhs9;
-    
+
         rLocalLHS(0,0)+=clhs53*clhs54;
         rLocalLHS(0,1)+=clhs54*clhs73;
         rLocalLHS(0,2)+=clhs54*clhs92;
@@ -5134,10 +5130,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalLHS(25,21)+=ScaleFactor*clhs365;
         rLocalLHS(25,22)+=ScaleFactor*clhs375;
         rLocalLHS(25,23)+=ScaleFactor*clhs385;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(26,26)+=std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double clhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -5712,7 +5708,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         const double clhs569 =     -clhs33*clhs371 + clhs375*clhs546;
         const double clhs570 =     -clhs33*clhs381 + clhs385*clhs546;
         const double clhs571 =     ScaleFactor*clhs9;
-    
+
         rLocalLHS(0,0)+=clhs53*clhs54;
         rLocalLHS(0,1)+=clhs54*clhs73;
         rLocalLHS(0,2)+=clhs54*clhs92;
@@ -6337,10 +6333,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalLHS(26,21)+=ScaleFactor*clhs365;
         rLocalLHS(26,22)+=ScaleFactor*clhs375;
         rLocalLHS(26,23)+=ScaleFactor*clhs385;
-    }    
+    }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(27,27)+=std::pow(ScaleFactor, 2)/PenaltyParameter[3];
     } else { // ACTIVE
         const double clhs0 =      MOperator(3,0); // MOPERATOR(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -6915,7 +6911,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         const double clhs569 =     -clhs33*clhs371 + clhs375*clhs546;
         const double clhs570 =     -clhs33*clhs381 + clhs385*clhs546;
         const double clhs571 =     ScaleFactor*clhs9;
-    
+
         rLocalLHS(0,0)+=clhs53*clhs54;
         rLocalLHS(0,1)+=clhs54*clhs73;
         rLocalLHS(0,2)+=clhs54*clhs92;
@@ -7561,23 +7557,23 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
@@ -7585,10 +7581,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
     const array_1d<BoundedMatrix<double, 3, 4>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 3, 3>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(21,21)+=std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double clhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -8052,7 +8048,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         const double clhs458 =     -clhs29*clhs305 + clhs309*clhs438;
         const double clhs459 =     -clhs29*clhs314 + clhs318*clhs438;
         const double clhs460 =     ScaleFactor*clhs7;
-    
+
         rLocalLHS(0,0)+=clhs47*clhs48;
         rLocalLHS(0,1)+=clhs48*clhs65;
         rLocalLHS(0,2)+=clhs48*clhs82;
@@ -8536,10 +8532,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalLHS(21,18)+=ScaleFactor*clhs300;
         rLocalLHS(21,19)+=ScaleFactor*clhs309;
         rLocalLHS(21,20)+=ScaleFactor*clhs318;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(22,22)+=std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double clhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -9003,7 +8999,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         const double clhs458 =     -clhs29*clhs305 + clhs309*clhs438;
         const double clhs459 =     -clhs29*clhs314 + clhs318*clhs438;
         const double clhs460 =     ScaleFactor*clhs7;
-    
+
         rLocalLHS(0,0)+=clhs47*clhs48;
         rLocalLHS(0,1)+=clhs48*clhs65;
         rLocalLHS(0,2)+=clhs48*clhs82;
@@ -9487,10 +9483,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalLHS(22,18)+=ScaleFactor*clhs300;
         rLocalLHS(22,19)+=ScaleFactor*clhs309;
         rLocalLHS(22,20)+=ScaleFactor*clhs318;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(23,23)+=std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double clhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -9954,7 +9950,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         const double clhs458 =     -clhs29*clhs305 + clhs309*clhs438;
         const double clhs459 =     -clhs29*clhs314 + clhs318*clhs438;
         const double clhs460 =     ScaleFactor*clhs7;
-    
+
         rLocalLHS(0,0)+=clhs47*clhs48;
         rLocalLHS(0,1)+=clhs48*clhs65;
         rLocalLHS(0,2)+=clhs48*clhs82;
@@ -10459,23 +10455,23 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
@@ -10483,10 +10479,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
     const array_1d<BoundedMatrix<double, 4, 3>, 21>& DeltaMOperator = rMortarConditionMatrices.DeltaMOperator;
     const array_1d<BoundedMatrix<double, 4, 4>, 21>& DeltaDOperator = rMortarConditionMatrices.DeltaDOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(21,21)+=std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double clhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -10853,7 +10849,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         const double clhs361 =     -clhs209*clhs29 + clhs212*clhs341;
         const double clhs362 =     -clhs218*clhs29 + clhs221*clhs341;
         const double clhs363 =     ScaleFactor*clhs9;
-    
+
         rLocalLHS(0,0)+=clhs39*clhs40;
         rLocalLHS(0,1)+=clhs40*clhs49;
         rLocalLHS(0,2)+=clhs40*clhs58;
@@ -11337,10 +11333,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalLHS(21,18)+=ScaleFactor*clhs203;
         rLocalLHS(21,19)+=ScaleFactor*clhs212;
         rLocalLHS(21,20)+=ScaleFactor*clhs221;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(22,22)+=std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double clhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -11707,7 +11703,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         const double clhs361 =     -clhs209*clhs29 + clhs212*clhs341;
         const double clhs362 =     -clhs218*clhs29 + clhs221*clhs341;
         const double clhs363 =     ScaleFactor*clhs9;
-    
+
         rLocalLHS(0,0)+=clhs39*clhs40;
         rLocalLHS(0,1)+=clhs40*clhs49;
         rLocalLHS(0,2)+=clhs40*clhs58;
@@ -12191,10 +12187,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalLHS(22,18)+=ScaleFactor*clhs203;
         rLocalLHS(22,19)+=ScaleFactor*clhs212;
         rLocalLHS(22,20)+=ScaleFactor*clhs221;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(23,23)+=std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double clhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -12561,7 +12557,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         const double clhs361 =     -clhs209*clhs29 + clhs212*clhs341;
         const double clhs362 =     -clhs218*clhs29 + clhs221*clhs341;
         const double clhs363 =     ScaleFactor*clhs9;
-    
+
         rLocalLHS(0,0)+=clhs39*clhs40;
         rLocalLHS(0,1)+=clhs40*clhs49;
         rLocalLHS(0,2)+=clhs40*clhs58;
@@ -13045,10 +13041,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalLHS(23,18)+=ScaleFactor*clhs203;
         rLocalLHS(23,19)+=ScaleFactor*clhs212;
         rLocalLHS(23,20)+=ScaleFactor*clhs221;
-    }    
+    }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(24,24)+=std::pow(ScaleFactor, 2)/PenaltyParameter[3];
     } else { // ACTIVE
         const double clhs0 =      MOperator(3,0); // MOPERATOR(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -13415,7 +13411,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         const double clhs361 =     -clhs209*clhs29 + clhs212*clhs341;
         const double clhs362 =     -clhs218*clhs29 + clhs221*clhs341;
         const double clhs363 =     ScaleFactor*clhs9;
-    
+
         rLocalLHS(0,0)+=clhs39*clhs40;
         rLocalLHS(0,1)+=clhs40*clhs49;
         rLocalLHS(0,2)+=clhs40*clhs58;
@@ -13920,23 +13916,23 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 2, 2>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
@@ -13946,10 +13942,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
 
     const array_1d<BoundedMatrix<double, 2, 2>, 4>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(8,8)+=std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double clhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
@@ -14079,7 +14075,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         const double clhs124 =     clhs118*clhs2;
         const double clhs125 =     ScaleFactor*clhs6;
         const double clhs126 =     clhs11*clhs118;
-    
+
         rLocalLHS(0,0)+=clhs29*clhs30;
         rLocalLHS(0,1)+=clhs30*clhs41;
         rLocalLHS(0,2)+=clhs30*clhs53;
@@ -14160,10 +14156,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         rLocalLHS(8,5)+=ScaleFactor*clhs81;
         rLocalLHS(8,6)+=ScaleFactor*clhs88;
         rLocalLHS(8,7)+=ScaleFactor*clhs95;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(9,9)+=std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double clhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
@@ -14293,7 +14289,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         const double clhs124 =     clhs118*clhs2;
         const double clhs125 =     ScaleFactor*clhs6;
         const double clhs126 =     clhs11*clhs118;
-    
+
         rLocalLHS(0,0)+=clhs29*clhs30;
         rLocalLHS(0,1)+=clhs30*clhs41;
         rLocalLHS(0,2)+=clhs30*clhs53;
@@ -14395,23 +14391,23 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
@@ -14421,10 +14417,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
 
     const array_1d<BoundedMatrix<double, 3, 3>, 9>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(18,18)+=std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double clhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -14773,7 +14769,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         const double clhs343 =     ScaleFactor*clhs8;
         const double clhs344 =     clhs15*clhs331;
         const double clhs345 =     clhs23*clhs331;
-    
+
         rLocalLHS(0,0)+=clhs47*clhs48;
         rLocalLHS(0,1)+=clhs48*clhs63;
         rLocalLHS(0,2)+=clhs48*clhs78;
@@ -15134,10 +15130,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalLHS(18,15)+=ScaleFactor*clhs243;
         rLocalLHS(18,16)+=ScaleFactor*clhs253;
         rLocalLHS(18,17)+=ScaleFactor*clhs263;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(19,19)+=std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double clhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -15486,7 +15482,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         const double clhs343 =     ScaleFactor*clhs8;
         const double clhs344 =     clhs15*clhs331;
         const double clhs345 =     clhs23*clhs331;
-    
+
         rLocalLHS(0,0)+=clhs47*clhs48;
         rLocalLHS(0,1)+=clhs48*clhs63;
         rLocalLHS(0,2)+=clhs48*clhs78;
@@ -15847,10 +15843,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalLHS(19,15)+=ScaleFactor*clhs243;
         rLocalLHS(19,16)+=ScaleFactor*clhs253;
         rLocalLHS(19,17)+=ScaleFactor*clhs263;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(20,20)+=std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double clhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -16199,7 +16195,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         const double clhs343 =     ScaleFactor*clhs8;
         const double clhs344 =     clhs15*clhs331;
         const double clhs345 =     clhs23*clhs331;
-    
+
         rLocalLHS(0,0)+=clhs47*clhs48;
         rLocalLHS(0,1)+=clhs48*clhs63;
         rLocalLHS(0,2)+=clhs48*clhs78;
@@ -16581,23 +16577,23 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
@@ -16607,10 +16603,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
 
     const array_1d<BoundedMatrix<double, 4, 3>, 12>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(24,24)+=std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double clhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -17166,7 +17162,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         const double clhs550 =     ScaleFactor*clhs10;
         const double clhs551 =     clhs19*clhs535;
         const double clhs552 =     clhs29*clhs535;
-    
+
         rLocalLHS(0,0)+=clhs59*clhs60;
         rLocalLHS(0,1)+=clhs60*clhs79;
         rLocalLHS(0,2)+=clhs60*clhs98;
@@ -17791,10 +17787,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalLHS(24,21)+=ScaleFactor*clhs395;
         rLocalLHS(24,22)+=ScaleFactor*clhs407;
         rLocalLHS(24,23)+=ScaleFactor*clhs419;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(25,25)+=std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double clhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -18350,7 +18346,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         const double clhs550 =     ScaleFactor*clhs10;
         const double clhs551 =     clhs19*clhs535;
         const double clhs552 =     clhs29*clhs535;
-    
+
         rLocalLHS(0,0)+=clhs59*clhs60;
         rLocalLHS(0,1)+=clhs60*clhs79;
         rLocalLHS(0,2)+=clhs60*clhs98;
@@ -18975,10 +18971,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalLHS(25,21)+=ScaleFactor*clhs395;
         rLocalLHS(25,22)+=ScaleFactor*clhs407;
         rLocalLHS(25,23)+=ScaleFactor*clhs419;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(26,26)+=std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double clhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -19534,7 +19530,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         const double clhs550 =     ScaleFactor*clhs10;
         const double clhs551 =     clhs19*clhs535;
         const double clhs552 =     clhs29*clhs535;
-    
+
         rLocalLHS(0,0)+=clhs59*clhs60;
         rLocalLHS(0,1)+=clhs60*clhs79;
         rLocalLHS(0,2)+=clhs60*clhs98;
@@ -20159,10 +20155,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalLHS(26,21)+=ScaleFactor*clhs395;
         rLocalLHS(26,22)+=ScaleFactor*clhs407;
         rLocalLHS(26,23)+=ScaleFactor*clhs419;
-    }    
+    }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(27,27)+=std::pow(ScaleFactor, 2)/PenaltyParameter[3];
     } else { // ACTIVE
         const double clhs0 =      MOperator(3,0); // MOPERATOR(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -20718,7 +20714,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         const double clhs550 =     ScaleFactor*clhs10;
         const double clhs551 =     clhs19*clhs535;
         const double clhs552 =     clhs29*clhs535;
-    
+
         rLocalLHS(0,0)+=clhs59*clhs60;
         rLocalLHS(0,1)+=clhs60*clhs79;
         rLocalLHS(0,2)+=clhs60*clhs98;
@@ -21364,23 +21360,23 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
@@ -21390,10 +21386,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
 
     const array_1d<BoundedMatrix<double, 3, 3>, 9>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(21,21)+=std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double clhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -21884,7 +21880,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         const double clhs485 =     ScaleFactor*clhs11;
         const double clhs486 =     clhs24*clhs470;
         const double clhs487 =     clhs39*clhs470;
-    
+
         rLocalLHS(0,0)+=clhs72*clhs73;
         rLocalLHS(0,1)+=clhs73*clhs90;
         rLocalLHS(0,2)+=clhs107*clhs73;
@@ -22368,10 +22364,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalLHS(21,18)+=-ScaleFactor*clhs347;
         rLocalLHS(21,19)+=-ScaleFactor*clhs358;
         rLocalLHS(21,20)+=-ScaleFactor*clhs369;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(22,22)+=std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double clhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -22862,7 +22858,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         const double clhs485 =     ScaleFactor*clhs11;
         const double clhs486 =     clhs24*clhs470;
         const double clhs487 =     clhs39*clhs470;
-    
+
         rLocalLHS(0,0)+=clhs72*clhs73;
         rLocalLHS(0,1)+=clhs73*clhs90;
         rLocalLHS(0,2)+=clhs107*clhs73;
@@ -23346,10 +23342,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalLHS(22,18)+=-ScaleFactor*clhs347;
         rLocalLHS(22,19)+=-ScaleFactor*clhs358;
         rLocalLHS(22,20)+=-ScaleFactor*clhs369;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(23,23)+=std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double clhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -23840,7 +23836,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         const double clhs485 =     ScaleFactor*clhs11;
         const double clhs486 =     clhs24*clhs470;
         const double clhs487 =     clhs39*clhs470;
-    
+
         rLocalLHS(0,0)+=clhs72*clhs73;
         rLocalLHS(0,1)+=clhs73*clhs90;
         rLocalLHS(0,2)+=clhs107*clhs73;
@@ -24345,23 +24341,23 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
             rLocalLHS(i, j) = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
@@ -24371,10 +24367,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
 
     const array_1d<BoundedMatrix<double, 4, 3>, 12>& DeltaNormalSlave = rDerivativeData.DeltaNormalSlave;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(21,21)+=std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double clhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -24730,7 +24726,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         const double clhs350 =     ScaleFactor*clhs10;
         const double clhs351 =     clhs17*clhs338;
         const double clhs352 =     clhs26*clhs338;
-    
+
         rLocalLHS(0,0)+=clhs45*clhs46;
         rLocalLHS(0,1)+=clhs46*clhs55;
         rLocalLHS(0,2)+=clhs46*clhs64;
@@ -25214,10 +25210,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalLHS(21,18)+=ScaleFactor*clhs233;
         rLocalLHS(21,19)+=ScaleFactor*clhs244;
         rLocalLHS(21,20)+=ScaleFactor*clhs255;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(22,22)+=std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double clhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -25573,7 +25569,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         const double clhs350 =     ScaleFactor*clhs10;
         const double clhs351 =     clhs17*clhs338;
         const double clhs352 =     clhs26*clhs338;
-    
+
         rLocalLHS(0,0)+=clhs45*clhs46;
         rLocalLHS(0,1)+=clhs46*clhs55;
         rLocalLHS(0,2)+=clhs46*clhs64;
@@ -26057,10 +26053,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalLHS(22,18)+=ScaleFactor*clhs233;
         rLocalLHS(22,19)+=ScaleFactor*clhs244;
         rLocalLHS(22,20)+=ScaleFactor*clhs255;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(23,23)+=std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double clhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -26416,7 +26412,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         const double clhs350 =     ScaleFactor*clhs10;
         const double clhs351 =     clhs17*clhs338;
         const double clhs352 =     clhs26*clhs338;
-    
+
         rLocalLHS(0,0)+=clhs45*clhs46;
         rLocalLHS(0,1)+=clhs46*clhs55;
         rLocalLHS(0,2)+=clhs46*clhs64;
@@ -26900,10 +26896,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalLHS(23,18)+=ScaleFactor*clhs233;
         rLocalLHS(23,19)+=ScaleFactor*clhs244;
         rLocalLHS(23,20)+=ScaleFactor*clhs255;
-    }    
+    }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalLHS(24,24)+=std::pow(ScaleFactor, 2)/PenaltyParameter[3];
     } else { // ACTIVE
         const double clhs0 =      MOperator(3,0); // MOPERATOR(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -27259,7 +27255,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         const double clhs350 =     ScaleFactor*clhs10;
         const double clhs351 =     clhs17*clhs338;
         const double clhs352 =     clhs26*clhs338;
-    
+
         rLocalLHS(0,0)+=clhs45*clhs46;
         rLocalLHS(0,1)+=clhs46*clhs55;
         rLocalLHS(0,2)+=clhs46*clhs64;
@@ -27771,31 +27767,31 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 2, 2>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[8]+=-LMNormal[0]*std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double crhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
@@ -27808,7 +27804,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         const double crhs7 =     crhs3*crhs5;
         const double crhs8 =     crhs1*crhs5;
         const double crhs9 =     crhs2*crhs5;
-    
+
         rLocalRHS[0]+=-NormalSlave(0,0)*crhs6;
         rLocalRHS[1]+=-NormalSlave(0,1)*crhs6;
         rLocalRHS[2]+=-NormalSlave(0,0)*crhs7;
@@ -27818,10 +27814,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         rLocalRHS[6]+=NormalSlave(0,0)*crhs9;
         rLocalRHS[7]+=NormalSlave(0,1)*crhs9;
         rLocalRHS[8]+=-ScaleFactor*crhs4;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[9]+=-LMNormal[1]*std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double crhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1), U2(0,0), U2(0,1), U2(1,0), U2(1,1))
@@ -27834,7 +27830,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, false, 2>
         const double crhs7 =     crhs3*crhs5;
         const double crhs8 =     crhs1*crhs5;
         const double crhs9 =     crhs2*crhs5;
-    
+
         rLocalRHS[0]+=-NormalSlave(1,0)*crhs6;
         rLocalRHS[1]+=-NormalSlave(1,1)*crhs6;
         rLocalRHS[2]+=-NormalSlave(1,0)*crhs7;
@@ -27864,31 +27860,31 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[18]+=-LMNormal[0]*std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double crhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -27905,7 +27901,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         const double crhs11 =     crhs1*crhs7;
         const double crhs12 =     crhs2*crhs7;
         const double crhs13 =     crhs3*crhs7;
-    
+
         rLocalRHS[0]+=-NormalSlave(0,0)*crhs8;
         rLocalRHS[1]+=-NormalSlave(0,1)*crhs8;
         rLocalRHS[2]+=-NormalSlave(0,2)*crhs8;
@@ -27925,10 +27921,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalRHS[16]+=NormalSlave(0,1)*crhs13;
         rLocalRHS[17]+=NormalSlave(0,2)*crhs13;
         rLocalRHS[18]+=-ScaleFactor*crhs6;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[19]+=-LMNormal[1]*std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double crhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -27945,7 +27941,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         const double crhs11 =     crhs1*crhs7;
         const double crhs12 =     crhs2*crhs7;
         const double crhs13 =     crhs3*crhs7;
-    
+
         rLocalRHS[0]+=-NormalSlave(1,0)*crhs8;
         rLocalRHS[1]+=-NormalSlave(1,1)*crhs8;
         rLocalRHS[2]+=-NormalSlave(1,2)*crhs8;
@@ -27965,10 +27961,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         rLocalRHS[16]+=NormalSlave(1,1)*crhs13;
         rLocalRHS[17]+=NormalSlave(1,2)*crhs13;
         rLocalRHS[19]+=-ScaleFactor*crhs6;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[20]+=-LMNormal[2]*std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double crhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -27985,7 +27981,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 3>
         const double crhs11 =     crhs1*crhs7;
         const double crhs12 =     crhs2*crhs7;
         const double crhs13 =     crhs3*crhs7;
-    
+
         rLocalRHS[0]+=-NormalSlave(2,0)*crhs8;
         rLocalRHS[1]+=-NormalSlave(2,1)*crhs8;
         rLocalRHS[2]+=-NormalSlave(2,2)*crhs8;
@@ -28025,31 +28021,31 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[24]+=-LMNormal[0]*std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double crhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -28070,7 +28066,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         const double crhs15 =     crhs2*crhs9;
         const double crhs16 =     crhs3*crhs9;
         const double crhs17 =     crhs4*crhs9;
-    
+
         rLocalRHS[0]+=-NormalSlave(0,0)*crhs10;
         rLocalRHS[1]+=-NormalSlave(0,1)*crhs10;
         rLocalRHS[2]+=-NormalSlave(0,2)*crhs10;
@@ -28096,10 +28092,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalRHS[22]+=NormalSlave(0,1)*crhs17;
         rLocalRHS[23]+=NormalSlave(0,2)*crhs17;
         rLocalRHS[24]+=-ScaleFactor*crhs8;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[25]+=-LMNormal[1]*std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double crhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -28120,7 +28116,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         const double crhs15 =     crhs2*crhs9;
         const double crhs16 =     crhs3*crhs9;
         const double crhs17 =     crhs4*crhs9;
-    
+
         rLocalRHS[0]+=-NormalSlave(1,0)*crhs10;
         rLocalRHS[1]+=-NormalSlave(1,1)*crhs10;
         rLocalRHS[2]+=-NormalSlave(1,2)*crhs10;
@@ -28146,10 +28142,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalRHS[22]+=NormalSlave(1,1)*crhs17;
         rLocalRHS[23]+=NormalSlave(1,2)*crhs17;
         rLocalRHS[25]+=-ScaleFactor*crhs8;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[26]+=-LMNormal[2]*std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double crhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -28170,7 +28166,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         const double crhs15 =     crhs2*crhs9;
         const double crhs16 =     crhs3*crhs9;
         const double crhs17 =     crhs4*crhs9;
-    
+
         rLocalRHS[0]+=-NormalSlave(2,0)*crhs10;
         rLocalRHS[1]+=-NormalSlave(2,1)*crhs10;
         rLocalRHS[2]+=-NormalSlave(2,2)*crhs10;
@@ -28196,10 +28192,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         rLocalRHS[22]+=NormalSlave(2,1)*crhs17;
         rLocalRHS[23]+=NormalSlave(2,2)*crhs17;
         rLocalRHS[26]+=-ScaleFactor*crhs8;
-    }    
+    }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[27]+=-LMNormal[3]*std::pow(ScaleFactor, 2)/PenaltyParameter[3];
     } else { // ACTIVE
         const double crhs0 =      MOperator(3,0); // MOPERATOR(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -28220,7 +28216,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 4>
         const double crhs15 =     crhs2*crhs9;
         const double crhs16 =     crhs3*crhs9;
         const double crhs17 =     crhs4*crhs9;
-    
+
         rLocalRHS[0]+=-NormalSlave(3,0)*crhs10;
         rLocalRHS[1]+=-NormalSlave(3,1)*crhs10;
         rLocalRHS[2]+=-NormalSlave(3,2)*crhs10;
@@ -28266,31 +28262,31 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[21]+=-LMNormal[0]*std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double crhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -28309,7 +28305,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         const double crhs13 =     crhs4*crhs8;
         const double crhs14 =     crhs5*crhs8;
         const double crhs15 =     crhs6*crhs8;
-    
+
         rLocalRHS[0]+=-NormalSlave(0,0)*crhs9;
         rLocalRHS[1]+=-NormalSlave(0,1)*crhs9;
         rLocalRHS[2]+=-NormalSlave(0,2)*crhs9;
@@ -28332,10 +28328,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalRHS[19]+=NormalSlave(0,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(0,2)*crhs15;
         rLocalRHS[21]+=ScaleFactor*crhs7;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[22]+=-LMNormal[1]*std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double crhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -28354,7 +28350,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         const double crhs13 =     crhs4*crhs8;
         const double crhs14 =     crhs5*crhs8;
         const double crhs15 =     crhs6*crhs8;
-    
+
         rLocalRHS[0]+=-NormalSlave(1,0)*crhs9;
         rLocalRHS[1]+=-NormalSlave(1,1)*crhs9;
         rLocalRHS[2]+=-NormalSlave(1,2)*crhs9;
@@ -28377,10 +28373,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         rLocalRHS[19]+=NormalSlave(1,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(1,2)*crhs15;
         rLocalRHS[22]+=ScaleFactor*crhs7;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[23]+=-LMNormal[2]*std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double crhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2), U2(3,0), U2(3,1), U2(3,2))
@@ -28399,7 +28395,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, false, 4>
         const double crhs13 =     crhs4*crhs8;
         const double crhs14 =     crhs5*crhs8;
         const double crhs15 =     crhs6*crhs8;
-    
+
         rLocalRHS[0]+=-NormalSlave(2,0)*crhs9;
         rLocalRHS[1]+=-NormalSlave(2,1)*crhs9;
         rLocalRHS[2]+=-NormalSlave(2,2)*crhs9;
@@ -28442,31 +28438,31 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[21]+=-LMNormal[0]*std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double crhs0 =      MOperator(0,0); // MOPERATOR(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -28485,7 +28481,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         const double crhs13 =     crhs2*crhs8;
         const double crhs14 =     crhs3*crhs8;
         const double crhs15 =     crhs4*crhs8;
-    
+
         rLocalRHS[0]+=-NormalSlave(0,0)*crhs9;
         rLocalRHS[1]+=-NormalSlave(0,1)*crhs9;
         rLocalRHS[2]+=-NormalSlave(0,2)*crhs9;
@@ -28508,10 +28504,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalRHS[19]+=NormalSlave(0,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(0,2)*crhs15;
         rLocalRHS[21]+=-ScaleFactor*crhs7;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[22]+=-LMNormal[1]*std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double crhs0 =      MOperator(1,0); // MOPERATOR(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -28530,7 +28526,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         const double crhs13 =     crhs2*crhs8;
         const double crhs14 =     crhs3*crhs8;
         const double crhs15 =     crhs4*crhs8;
-    
+
         rLocalRHS[0]+=-NormalSlave(1,0)*crhs9;
         rLocalRHS[1]+=-NormalSlave(1,1)*crhs9;
         rLocalRHS[2]+=-NormalSlave(1,2)*crhs9;
@@ -28553,10 +28549,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalRHS[19]+=NormalSlave(1,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(1,2)*crhs15;
         rLocalRHS[22]+=-ScaleFactor*crhs7;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[23]+=-LMNormal[2]*std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double crhs0 =      MOperator(2,0); // MOPERATOR(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -28575,7 +28571,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         const double crhs13 =     crhs2*crhs8;
         const double crhs14 =     crhs3*crhs8;
         const double crhs15 =     crhs4*crhs8;
-    
+
         rLocalRHS[0]+=-NormalSlave(2,0)*crhs9;
         rLocalRHS[1]+=-NormalSlave(2,1)*crhs9;
         rLocalRHS[2]+=-NormalSlave(2,2)*crhs9;
@@ -28598,10 +28594,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         rLocalRHS[19]+=NormalSlave(2,1)*crhs15;
         rLocalRHS[20]+=NormalSlave(2,2)*crhs15;
         rLocalRHS[23]+=-ScaleFactor*crhs7;
-    }    
+    }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[24]+=-LMNormal[3]*std::pow(ScaleFactor, 2)/PenaltyParameter[3];
     } else { // ACTIVE
         const double crhs0 =      MOperator(3,0); // MOPERATOR(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2), U2(0,0), U2(0,1), U2(0,2), U2(1,0), U2(1,1), U2(1,2), U2(2,0), U2(2,1), U2(2,2))
@@ -28620,7 +28616,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, false, 3>
         const double crhs13 =     crhs2*crhs8;
         const double crhs14 =     crhs3*crhs8;
         const double crhs15 =     crhs4*crhs8;
-    
+
         rLocalRHS[0]+=-NormalSlave(3,0)*crhs9;
         rLocalRHS[1]+=-NormalSlave(3,1)*crhs9;
         rLocalRHS[2]+=-NormalSlave(3,2)*crhs9;
@@ -28663,31 +28659,31 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 2, 2>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 2, 2>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 2, 2>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 2, 2>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 2> LMNormal = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 2, 2>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 2> DynamicFactor = MortarUtilities::GetVariableVector<2>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 2>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[8]+=-LMNormal[0]*std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(0,0); // NORMALSLAVE(0,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
@@ -28702,7 +28698,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         const double crhs9 =     crhs4*crhs7;
         const double crhs10 =     crhs2*crhs7;
         const double crhs11 =     crhs3*crhs7;
-    
+
         rLocalRHS[0]+=-crhs0*crhs8;
         rLocalRHS[1]+=-crhs5*crhs8;
         rLocalRHS[2]+=-crhs0*crhs9;
@@ -28712,10 +28708,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         rLocalRHS[6]+=crhs0*crhs11;
         rLocalRHS[7]+=crhs11*crhs5;
         rLocalRHS[8]+=-ScaleFactor*crhs6;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[9]+=-LMNormal[1]*std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(1,0); // NORMALSLAVE(1,0)(U1(0,0), U1(0,1), U1(1,0), U1(1,1))
@@ -28730,7 +28726,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, 2, true, 2>:
         const double crhs9 =     crhs4*crhs7;
         const double crhs10 =     crhs2*crhs7;
         const double crhs11 =     crhs3*crhs7;
-    
+
         rLocalRHS[0]+=-crhs0*crhs8;
         rLocalRHS[1]+=-crhs5*crhs8;
         rLocalRHS[2]+=-crhs0*crhs9;
@@ -28760,31 +28756,31 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[18]+=-LMNormal[0]*std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(0,0); // NORMALSLAVE(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
@@ -28804,7 +28800,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         const double crhs14 =     crhs10*crhs2;
         const double crhs15 =     crhs10*crhs3;
         const double crhs16 =     crhs10*crhs4;
-    
+
         rLocalRHS[0]+=-crhs0*crhs11;
         rLocalRHS[1]+=-crhs11*crhs7;
         rLocalRHS[2]+=-crhs11*crhs8;
@@ -28824,10 +28820,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalRHS[16]+=crhs16*crhs7;
         rLocalRHS[17]+=crhs16*crhs8;
         rLocalRHS[18]+=-ScaleFactor*crhs9;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[19]+=-LMNormal[1]*std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(1,0); // NORMALSLAVE(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
@@ -28847,7 +28843,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         const double crhs14 =     crhs10*crhs2;
         const double crhs15 =     crhs10*crhs3;
         const double crhs16 =     crhs10*crhs4;
-    
+
         rLocalRHS[0]+=-crhs0*crhs11;
         rLocalRHS[1]+=-crhs11*crhs7;
         rLocalRHS[2]+=-crhs11*crhs8;
@@ -28867,10 +28863,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         rLocalRHS[16]+=crhs16*crhs7;
         rLocalRHS[17]+=crhs16*crhs8;
         rLocalRHS[19]+=-ScaleFactor*crhs9;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[20]+=-LMNormal[2]*std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(2,0); // NORMALSLAVE(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
@@ -28890,7 +28886,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 3>:
         const double crhs14 =     crhs10*crhs2;
         const double crhs15 =     crhs10*crhs3;
         const double crhs16 =     crhs10*crhs4;
-    
+
         rLocalRHS[0]+=-crhs0*crhs11;
         rLocalRHS[1]+=-crhs11*crhs7;
         rLocalRHS[2]+=-crhs11*crhs8;
@@ -28930,31 +28926,31 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[24]+=-LMNormal[0]*std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(0,0); // NORMALSLAVE(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
@@ -28978,7 +28974,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         const double crhs18 =     crhs12*crhs3;
         const double crhs19 =     crhs12*crhs4;
         const double crhs20 =     crhs12*crhs5;
-    
+
         rLocalRHS[0]+=-crhs0*crhs13;
         rLocalRHS[1]+=-crhs13*crhs9;
         rLocalRHS[2]+=-crhs10*crhs13;
@@ -29004,10 +29000,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalRHS[22]+=crhs20*crhs9;
         rLocalRHS[23]+=crhs10*crhs20;
         rLocalRHS[24]+=-ScaleFactor*crhs11;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[25]+=-LMNormal[1]*std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(1,0); // NORMALSLAVE(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
@@ -29031,7 +29027,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         const double crhs18 =     crhs12*crhs3;
         const double crhs19 =     crhs12*crhs4;
         const double crhs20 =     crhs12*crhs5;
-    
+
         rLocalRHS[0]+=-crhs0*crhs13;
         rLocalRHS[1]+=-crhs13*crhs9;
         rLocalRHS[2]+=-crhs10*crhs13;
@@ -29057,10 +29053,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalRHS[22]+=crhs20*crhs9;
         rLocalRHS[23]+=crhs10*crhs20;
         rLocalRHS[25]+=-ScaleFactor*crhs11;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[26]+=-LMNormal[2]*std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(2,0); // NORMALSLAVE(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
@@ -29084,7 +29080,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         const double crhs18 =     crhs12*crhs3;
         const double crhs19 =     crhs12*crhs4;
         const double crhs20 =     crhs12*crhs5;
-    
+
         rLocalRHS[0]+=-crhs0*crhs13;
         rLocalRHS[1]+=-crhs13*crhs9;
         rLocalRHS[2]+=-crhs10*crhs13;
@@ -29110,10 +29106,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         rLocalRHS[22]+=crhs20*crhs9;
         rLocalRHS[23]+=crhs10*crhs20;
         rLocalRHS[26]+=-ScaleFactor*crhs11;
-    }    
+    }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[27]+=-LMNormal[3]*std::pow(ScaleFactor, 2)/PenaltyParameter[3];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(3,0); // NORMALSLAVE(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
@@ -29137,7 +29133,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 4>:
         const double crhs18 =     crhs12*crhs3;
         const double crhs19 =     crhs12*crhs4;
         const double crhs20 =     crhs12*crhs5;
-    
+
         rLocalRHS[0]+=-crhs0*crhs13;
         rLocalRHS[1]+=-crhs13*crhs9;
         rLocalRHS[2]+=-crhs10*crhs13;
@@ -29183,31 +29179,31 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 3, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 4, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 3, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 4, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 3> LMNormal = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 3, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 3> DynamicFactor = MortarUtilities::GetVariableVector<3>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 3>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[21]+=-LMNormal[0]*std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(0,0); // NORMALSLAVE(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
@@ -29229,7 +29225,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         const double crhs16 =     crhs11*crhs5;
         const double crhs17 =     crhs11*crhs6;
         const double crhs18 =     crhs11*crhs7;
-    
+
         rLocalRHS[0]+=-crhs0*crhs12;
         rLocalRHS[1]+=-crhs12*crhs8;
         rLocalRHS[2]+=-crhs12*crhs9;
@@ -29252,10 +29248,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
         rLocalRHS[21]+=ScaleFactor*crhs10;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[22]+=-LMNormal[1]*std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(1,0); // NORMALSLAVE(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
@@ -29277,7 +29273,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         const double crhs16 =     crhs11*crhs5;
         const double crhs17 =     crhs11*crhs6;
         const double crhs18 =     crhs11*crhs7;
-    
+
         rLocalRHS[0]+=-crhs0*crhs12;
         rLocalRHS[1]+=-crhs12*crhs8;
         rLocalRHS[2]+=-crhs12*crhs9;
@@ -29300,10 +29296,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
         rLocalRHS[22]+=ScaleFactor*crhs10;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[23]+=-LMNormal[2]*std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(2,0); // NORMALSLAVE(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2))
@@ -29325,7 +29321,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 3, true, 4>:
         const double crhs16 =     crhs11*crhs5;
         const double crhs17 =     crhs11*crhs6;
         const double crhs18 =     crhs11*crhs7;
-    
+
         rLocalRHS[0]+=-crhs0*crhs12;
         rLocalRHS[1]+=-crhs12*crhs8;
         rLocalRHS[2]+=-crhs12*crhs9;
@@ -29368,31 +29364,31 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalRHS[i] = 0.0;
 
     // The geometry of the condition
-    const GeometryType& r_geometry = this->GetGeometry();
+    const GeometryType& r_geometry = this->GetParentGeometry();
 
     // Initialize values
     const BoundedMatrix<double, 4, 3>& u1 = rDerivativeData.u1;
     const BoundedMatrix<double, 3, 3>& u2 = rDerivativeData.u2;
     const BoundedMatrix<double, 4, 3>& X1 = rDerivativeData.X1;
     const BoundedMatrix<double, 3, 3>& X2 = rDerivativeData.X2;
-    
-    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
-    
+
+    const array_1d<double, 4> LMNormal = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, 0);
+
     const BoundedMatrix<double, 4, 3>& NormalSlave = rDerivativeData.NormalSlave;
 
     // The ALM parameters
-    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetGeometry(), DYNAMIC_FACTOR);
+    const array_1d<double, 4> DynamicFactor = MortarUtilities::GetVariableVector<4>(this->GetParentGeometry(), DYNAMIC_FACTOR);
     const double ScaleFactor = rDerivativeData.ScaleFactor;
     const array_1d<double, 4>& PenaltyParameter = rDerivativeData.PenaltyParameter;
-    
+
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
 
-    
+
     // NODE 0
     if (r_geometry[0].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[21]+=-LMNormal[0]*std::pow(ScaleFactor, 2)/PenaltyParameter[0];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(0,0); // NORMALSLAVE(0,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
@@ -29414,7 +29410,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         const double crhs16 =     crhs11*crhs3;
         const double crhs17 =     crhs11*crhs4;
         const double crhs18 =     crhs11*crhs5;
-    
+
         rLocalRHS[0]+=-crhs0*crhs12;
         rLocalRHS[1]+=-crhs12*crhs8;
         rLocalRHS[2]+=-crhs12*crhs9;
@@ -29437,10 +29433,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
         rLocalRHS[21]+=-ScaleFactor*crhs10;
-    }    
+    }
     // NODE 1
     if (r_geometry[1].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[22]+=-LMNormal[1]*std::pow(ScaleFactor, 2)/PenaltyParameter[1];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(1,0); // NORMALSLAVE(1,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
@@ -29462,7 +29458,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         const double crhs16 =     crhs11*crhs3;
         const double crhs17 =     crhs11*crhs4;
         const double crhs18 =     crhs11*crhs5;
-    
+
         rLocalRHS[0]+=-crhs0*crhs12;
         rLocalRHS[1]+=-crhs12*crhs8;
         rLocalRHS[2]+=-crhs12*crhs9;
@@ -29485,10 +29481,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
         rLocalRHS[22]+=-ScaleFactor*crhs10;
-    }    
+    }
     // NODE 2
     if (r_geometry[2].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[23]+=-LMNormal[2]*std::pow(ScaleFactor, 2)/PenaltyParameter[2];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(2,0); // NORMALSLAVE(2,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
@@ -29510,7 +29506,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         const double crhs16 =     crhs11*crhs3;
         const double crhs17 =     crhs11*crhs4;
         const double crhs18 =     crhs11*crhs5;
-    
+
         rLocalRHS[0]+=-crhs0*crhs12;
         rLocalRHS[1]+=-crhs12*crhs8;
         rLocalRHS[2]+=-crhs12*crhs9;
@@ -29533,10 +29529,10 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         rLocalRHS[19]+=crhs18*crhs8;
         rLocalRHS[20]+=crhs18*crhs9;
         rLocalRHS[23]+=-ScaleFactor*crhs10;
-    }    
+    }
     // NODE 3
     if (r_geometry[3].IsNot(ACTIVE)) { // INACTIVE
-    
+
         rLocalRHS[24]+=-LMNormal[3]*std::pow(ScaleFactor, 2)/PenaltyParameter[3];
     } else { // ACTIVE
         const double crhs0 =      NormalSlave(3,0); // NORMALSLAVE(3,0)(U1(0,0), U1(0,1), U1(0,2), U1(1,0), U1(1,1), U1(1,2), U1(2,0), U1(2,1), U1(2,2), U1(3,0), U1(3,1), U1(3,2))
@@ -29558,7 +29554,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<3, 4, true, 3>:
         const double crhs16 =     crhs11*crhs3;
         const double crhs17 =     crhs11*crhs4;
         const double crhs18 =     crhs11*crhs5;
-    
+
         rLocalRHS[0]+=-crhs0*crhs12;
         rLocalRHS[1]+=-crhs12*crhs8;
         rLocalRHS[2]+=-crhs12*crhs9;
@@ -29614,7 +29610,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -29622,7 +29618,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 
     // Slave Nodes  Lambda Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE ).EquationId( );
     }
 
@@ -29658,7 +29654,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Y );
         if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Z );
@@ -29666,7 +29662,7 @@ void AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,
 
     // Slave Nodes Lambda Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave )  {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( LAGRANGE_MULTIPLIER_CONTACT_PRESSURE );
     }
 
@@ -29691,7 +29687,7 @@ int AugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumNodes,T
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
-        Node<3> &rnode = this->GetGeometry()[i];
+        Node<3> &rnode = this->GetParentGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE,rnode)
 

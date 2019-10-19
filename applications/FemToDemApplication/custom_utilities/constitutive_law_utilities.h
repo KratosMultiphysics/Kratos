@@ -340,7 +340,10 @@ class ConstitutiveLawUtilities
         array_1d<double, Dimension> principal_stress_vector = ZeroVector(Dimension);
         ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
         // The rEquivalentStress is the maximum principal stress
-        rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
+        if (Dimension == 3) 
+            rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
+        else // 2D
+            rEquivalentStress = std::max(principal_stress_vector[0], principal_stress_vector[1]);
     }
 
     /**
@@ -471,6 +474,22 @@ class ConstitutiveLawUtilities
 
     /**
      * @brief This method returns the initial uniaxial stress threshold
+     * for MohrCoulomb
+     * @param rThreshold The uniaxial stress threshold
+     * @param rValues Parameters of the constitutive law
+     */
+    static void GetInitialUniaxialThresholdMohrCoulomb(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold)
+    {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double cohesion = r_material_properties[COHESION];
+        const double friction_angle = r_material_properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0;
+        rThreshold = cohesion * std::cos(friction_angle);
+    }
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
      * for Rankine
      * @param rThreshold The uniaxial stress threshold
      * @param rValues Parameters of the constitutive law
@@ -578,7 +597,12 @@ class ConstitutiveLawUtilities
         double& rAParameter,
         const double CharacteristicLength)
     {
-        CalculateDamageParameterHuberVonMises(rValues, rAParameter, CharacteristicLength);
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double fracture_energy = r_material_properties[FRAC_ENERGY_T];
+        const double young_modulus = r_material_properties[YOUNG_MODULUS];
+        const double cohesion = r_material_properties[COHESION];
+        rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(cohesion, 2)) - 0.5);
+        KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
     }
 
     /**

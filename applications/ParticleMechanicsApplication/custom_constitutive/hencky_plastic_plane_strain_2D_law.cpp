@@ -142,7 +142,7 @@ Matrix HenckyElasticPlasticPlaneStrain2DLaw::SetConstitutiveMatrixToAppropiateDi
 
 
 void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matrix& rCauchyGreenMatrix,
-        MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
+        ParticleFlowRule::RadialReturnVariables& rReturnMappingVariables,
         Vector& rMainStrain)
 {
     Matrix Auxiliar = ZeroMatrix(3,3);

@@ -29,10 +29,10 @@
             "coarse_enough" : 5000,
             "krylov_type": "lgmres",
             "tolerance": 1e-9,
-            "verbosity": 3,
+            "verbosity": 0,
             "scaling": false
-        }
-
+        },
+        "auxiliary_variables_list" : ["GEOMETRY_DISTANCE","DISTANCE"]
     },
     "processes"            : {
         "initial_conditions_process_list"  : [],
@@ -53,6 +53,7 @@
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
                 "inlet_potential": 1.0,
+                "free_stream_density": 1.225,
                 "initialize_flow_field": false
             }
         }],

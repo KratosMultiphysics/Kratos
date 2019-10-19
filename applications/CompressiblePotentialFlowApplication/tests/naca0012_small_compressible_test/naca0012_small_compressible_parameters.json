@@ -53,7 +53,8 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body"
+                "model_part_name" : "MainModelPart.Body2D_Body",
+                "far_field_model_part_name": "MainModelPart.PotentialWallCondition2D_Far_field_Auto1"
             }
         }],
         "auxiliar_process_list" :[{

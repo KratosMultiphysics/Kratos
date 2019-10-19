@@ -1,7 +1,7 @@
 {
     "properties": [
     {
-            "model_part_name": "Parts_foundation",
+            "model_part_name": "Structure.Parts_foundation",
             "properties_id": 1,
             "Material": {
                     "name": "Material",
@@ -18,7 +18,7 @@
             }
     },
     {
-            "model_part_name": "Parts_punch",
+            "model_part_name": "Structure.Parts_punch",
             "properties_id": 2,
             "Material": {
                     "name": "Material",

@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_MONOLITHIC_PFEM2_3D_ELEM_H_INCLUDED)
-#define  KRATOS_MONOLITHIC_PFEM2_3D_ELEM_H_INCLUDED
+#ifndef KRATOS_MONOLITHIC_PFEM2_3D_ELEM_H_INCLUDED
+#define KRATOS_MONOLITHIC_PFEM2_3D_ELEM_H_INCLUDED
 
 // System includes
 
@@ -25,10 +25,9 @@
 namespace Kratos
 {
 
-  class MonolithicPFEM23D
-	  : public Element
-   {
-   public:
+class MonolithicPFEM23D : public Element
+{
+public:
 
      /// Counted pointer of MonolithicPFEM23D
     KRATOS_CLASS_POINTER_DEFINITION(MonolithicPFEM23D);
@@ -75,22 +74,22 @@ namespace Kratos
     virtual ~ MonolithicPFEM23D() override;
 
 
-     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) const override;
 
-     void AddExplicitContribution(ProcessInfo& CurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(ProcessInfo& CurrentProcessInfo) override;
 
-     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
 
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
 
 protected:
-
 
     void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);
 
@@ -128,8 +127,8 @@ private:
     /// Copy constructor.
     MonolithicPFEM23D(MonolithicPFEM23D const& rOther);
 
-
 }; // Class MonolithicPFEM23D
+
 }  // namespace Kratos.
 
 #endif // KRATOS_MONOLITHIC_PFEM2_3D_ELEM_H_INCLUDED  defined

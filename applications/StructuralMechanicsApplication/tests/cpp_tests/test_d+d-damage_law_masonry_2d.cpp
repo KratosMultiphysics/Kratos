@@ -103,9 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralM
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    for (int comp = 0; comp < 3; comp++) {
-         KRATOS_CHECK_NEAR(test_masonry2d_stress[comp], masonry2d_res[comp], 0.0001e6);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructuralMechanicsFastSuite)
@@ -173,9 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    for (int comp = 0; comp < 3; comp++) {
-        KRATOS_CHECK_NEAR(test_masonry2d_stress[comp], masonry2d_res[comp], 0.0001e6);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralMechanicsFastSuite)
@@ -243,9 +239,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralM
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    for (int comp = 0; comp < 3; comp++) {
-        KRATOS_CHECK_NEAR(test_masonry2d_stress[comp], masonry2d_res[comp], 0.0001e6);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
 
 } // namespace Testing
