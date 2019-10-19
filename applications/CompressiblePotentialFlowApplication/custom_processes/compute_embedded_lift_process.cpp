@@ -42,7 +42,7 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
     double fz = 0.0;
 
     #pragma omp parallel for reduction(+:fx,fy,fz)
-    for(std::size_t i = 0; i < mrModelPart.Elements().size(); ++i) {
+    for(int i = 0; i <  static_cast<int>(mrModelPart.NumberOfElements()); ++i) {
         auto it_elem=mrModelPart.ElementsBegin()+i;
         auto r_geometry = it_elem->GetGeometry();
 
