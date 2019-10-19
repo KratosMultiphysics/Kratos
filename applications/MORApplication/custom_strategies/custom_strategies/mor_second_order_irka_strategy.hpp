@@ -30,6 +30,7 @@
 
 namespace Kratos
 {
+    using complex = std::complex<double>;
 
 ///@name Kratos Globals
 ///@{
@@ -72,6 +73,9 @@ class MorSecondOrderIRKAStrategy
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(MorSecondOrderIRKAStrategy);
 
+    typedef TUblasSparseSpace<complex> ComplexSparseSpaceType;
+    typedef TUblasDenseSpace<complex> ComplexDenseSpaceType;
+
     // typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef MorOfflineSecondOrderStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -107,6 +111,25 @@ class MorSecondOrderIRKAStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+
+    // don't know if this is necessary
+    typedef typename ComplexSparseSpaceType::MatrixType TSolutionMatrixType;
+
+    typedef typename ComplexSparseSpaceType::MatrixPointerType TSolutionMatrixPointerType;
+
+    typedef typename ComplexSparseSpaceType::VectorType TSolutionVectorType;
+
+    typedef typename ComplexSparseSpaceType::VectorPointerType TSolutionVectorPointerType;
+
+    typedef ComplexSparseSpaceType TSolutionSpace;
+
+
+
+
+    typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
+
+
+
     ///@}
     ///@name Life Cycle
 
@@ -122,8 +145,10 @@ class MorSecondOrderIRKAStrategy
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
-        typename TLinearSolver::Pointer pNewLinearEigenSolver,
-        vector< double > samplingPoints,
+        typename ComplexLinearSolverType::Pointer pNewComplexLinearSolver,
+        //typename TLinearSolver::Pointer pNewLinearEigenSolver,
+        vector< double > samplingPoints_real,
+        vector< double > samplingPoints_imag,
         bool MoveMeshFlag = false)
         : BaseType(rModelPart, pScheme, pNewLinearSolver, MoveMeshFlag)
     {
@@ -133,12 +158,18 @@ class MorSecondOrderIRKAStrategy
         this->SetScheme(pScheme);
 
 
+         mpLinearSolver = typename TLinearSolver::Pointer(new TLinearSolver);
+
+
         // Setting up the default builder and solver
         this->SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer(
-            new TBuilderAndSolverType(pNewLinearSolver)));
+            //new TBuilderAndSolverType(pNewLinearSolver)));
+            new TBuilderAndSolverType(mpLinearSolver)));
+            //new TBuilderAndSolverType(pNewComplexLinearSolver)));
 
         // Saving the linear solver        
         this->SetLinearSolver(pNewLinearSolver);
+        //this->SetLinearSolver(pNewComplexLinearSolver);
 
         // Set flags to start correctly the calculations
         mSolutionStepIsInitialized = false;
@@ -157,9 +188,30 @@ class MorSecondOrderIRKAStrategy
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(0);
 
-        mSamplingPoints = samplingPoints;
+        // Set members
+        //TODO: let pybind11 do the conversion
+        mSamplingPoints.resize(samplingPoints_real.size());
+        for(size_t i=0; i<samplingPoints_real.size(); i++)
+        {
+            mSamplingPoints(i) = complex( samplingPoints_real(i), samplingPoints_imag(i) );
+        }
+        //mSamplingPoints = samplingPoints;
 
-        mpNewLinearEigenSolver = pNewLinearEigenSolver;
+        mpComplexLinearSolver = pNewComplexLinearSolver;
+
+
+        //mpNewLinearEigenSolver = pNewLinearEigenSolver;
+
+
+        //mpM = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        mpK = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        //mpD = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        //mpb = ComplexSparseSpaceType::CreateEmptyVectorPointer();
+
+
+
+
+
 
         KRATOS_CATCH("");
     }
@@ -189,15 +241,25 @@ class MorSecondOrderIRKAStrategy
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
         //TODO: clear new insance at the end
         // is there any shorter way do define this?
-        typename TBuilderAndSolverType::Pointer p_eigensolver = typename TBuilderAndSolverType::Pointer(new TBuilderAndSolverType(mpNewLinearEigenSolver));
+        //typename TBuilderAndSolverType::Pointer p_eigensolver = typename TBuilderAndSolverType::Pointer(new TBuilderAndSolverType(mpNewLinearEigenSolver));
         
-        TSystemMatrixType& r_K = this->GetSystemMatrix();
-        TSystemMatrixType& r_M = this->GetMassMatrix();
-        TSystemMatrixType& r_D = this->GetDampingMatrix();
-        TSystemVectorType& r_b = this->GetSystemVector();  // originally RHS, check if results are bad
+        TSystemMatrixType& r_K_tmp = this->GetSystemMatrix();
+        TSystemMatrixType& r_M_tmp = this->GetMassMatrix();
+        TSystemMatrixType& r_D_tmp = this->GetDampingMatrix();
+        TSystemVectorType& r_b_tmp = this->GetSystemVector();  // originally RHS, check if results are bad
 
-        TSystemVectorType tmp(r_K.size1(), 0.0);
+        TSystemVectorType tmp(r_K_tmp.size1(), 0.0);
 
+        TSolutionMatrixType& r_K = *mpK;
+        p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K_tmp, tmp);
+
+        r_K = TSolutionMatrixType(r_K_tmp);
+
+        KRATOS_WATCH(r_K);
+
+        this->EchoInfo(0);
+
+/*
         p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_b);
 
         p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K, tmp);
@@ -211,7 +273,7 @@ class MorSecondOrderIRKAStrategy
 
 
         // DEBUG: print matrix information 
-        // EchoInfo(0);
+        //this->EchoInfo(0);
 
 
         const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize(); // n
@@ -220,6 +282,17 @@ class MorSecondOrderIRKAStrategy
         const std::size_t n_sampling_points = mSamplingPoints.size(); // number of sampling points
         const std::size_t reduced_system_size = n_sampling_points; // r
 
+        KRATOS_WATCH(n_sampling_points)
+
+        // //DBUG sparse MKD matrices
+        // std::cout<<"K:"<<std::endl;
+        // for(size_t i=0; i<system_size; i++){
+        //     for(size_t j=0; j<system_size; j++){
+        //         if(abs(r_K(i,j))>1e-10)
+        //         std::cout<<"("<<i+1<<","<<j+1<<")   "<<r_K(i,j)<<std::endl;
+        //     }
+        // }
+
 
         //TODO: allow for complex sampling points, cplxpair
         // store the sampling points for error calculations in the convergence loop for convergence check
@@ -227,10 +300,13 @@ class MorSecondOrderIRKAStrategy
 
 
         
+
+
+        
         // initialize V (=W, due to symmetry in FEM applications)
-        auto  Vr_ptr = DenseSpaceType::CreateEmptyMatrixPointer();
+        auto  Vr_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
         auto& r_Vr   = *Vr_ptr;
-        DenseSpaceType::Resize(r_Vr, system_size, reduced_system_size); // n x r
+        SparseSpaceType::Resize(r_Vr, system_size, reduced_system_size); // n x r
         //DenseSpaceType::Set(r_Vr, 0.0); // only works with vectors, matrices are automatically set to zero        
         
 
@@ -244,31 +320,126 @@ class MorSecondOrderIRKAStrategy
         DenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
         DenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
 
+        //KRATOS_WATCH(r_tmp_Vr_col)
 
-        // mit dem hier, angelehnt an den Matlab-Code, klappt es nicht...
+        vector<double> test_real_sampling_points(4);
+        test_real_sampling_points(0) = 80;
+        test_real_sampling_points(1) = 500;
+        test_real_sampling_points(2) = 1500;
+        test_real_sampling_points(3) = 3000;
 
-        // for(size_t i=0; i < n_sampling_points/2; ++i)
-        // {
-        //     KRATOS_WATCH(mSamplingPoints(i)) // ok
-        //     r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
-        //     //KRATOS_WATCH(r_tmp_Vn) // ok
-        //     p_builder_and_solver->GetLinearSystemSolver()->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
-        //     //KRATOS_WATCH(r_tmp_Vr_col);  // alles 0 ???
-        //     column(r_Vr, 2*i) = real(r_tmp_Vr_col) ;
-        //     column(r_Vr, 2*i+1) = imag(r_tmp_Vr_col) ;
-        // }
+        KRATOS_WATCH(test_real_sampling_points); 
+
+
+        for(size_t i=0; i < n_sampling_points/2; ++i)
+        {
+            KRATOS_WATCH(test_real_sampling_points(2*i)) // ok
+            r_tmp_Vn = std::pow( test_real_sampling_points(2*i), 2.0 ) * r_M + test_real_sampling_points(2*i) * r_D + r_K;
+            //KRATOS_WATCH(r_tmp_Vn) // ok
+            this->GetLinearSolver()->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
+            KRATOS_WATCH(r_tmp_Vr_col);  // ok, but sometimes needs two runs to work
+            //auto aux_col_real = real(r_tmp_Vr_col);
+            //auto aux_col_imag = imag(r_tmp_Vr_col);
+            column(r_Vr, 2*i) = real(r_tmp_Vr_col) ;
+            column(r_Vr, 2*i+1) = imag(r_tmp_Vr_col) ;
+            //column(r_Vr, 2*i) = aux_col_real;
+            //column(r_Vr, 2*i+1) = aux_col_imag;
+
+            KRATOS_WATCH(column(r_Vr, 2*i));  // not ok, all zero
+            KRATOS_WATCH(column(r_Vr, 2*i+1)); // not ok, all zero
+        }
+*/
+
+/*
+        // complex variant
+        // initialize V (=W, due to symmetry in FEM applications)
+        auto  Vr_ptr = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_Vr   = *Vr_ptr;
+        ComplexSparseSpaceType::Resize(r_Vr, system_size, reduced_system_size); // n x r
+        
+
+        // initialize helper variables for V
+        auto  tmp_Vn_ptr = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_tmp_Vn   = *tmp_Vn_ptr;
+        ComplexSparseSpaceType::Resize(r_tmp_Vn, system_size, system_size); // n x n
+        
+        auto  tmp_Vr_col_ptr = ComplexDenseSpaceType::CreateEmptyVectorPointer();
+        auto& r_tmp_Vr_col   = *tmp_Vr_col_ptr;
+        ComplexDenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
+        ComplexDenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
+
+
+
+        for(size_t i=0; i < n_sampling_points/2; ++i)
+        {
+            KRATOS_WATCH(mSamplingPoints(2*i))
+            r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
+            //KRATOS_WATCH(r_tmp_Vn)
+            mpComplexLinearSolver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
+            //KRATOS_WATCH(r_tmp_Vr_col)
+
+            column(r_Vr, 2*i) = real(r_tmp_Vr_col) ;
+            column(r_Vr, 2*i+1) = imag(r_tmp_Vr_col) ;
+     
+
+            KRATOS_WATCH(column(r_Vr, 2*i)); 
+            KRATOS_WATCH(column(r_Vr, 2*i+1));
+        }
+
+*/
+
+
+/*
+
+
+        //mit dem hier, angelehnt an den Matlab-Code, klappt es nicht...
+
+        for(size_t i=0; i < n_sampling_points/2; ++i)
+        {
+            KRATOS_WATCH(mSamplingPoints(2*i)) // ok
+            r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
+            //KRATOS_WATCH(r_tmp_Vn) // ok
+            this->GetLinearSolver()->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
+            KRATOS_WATCH(r_tmp_Vr_col);  // ok, but sometimes needs two runs to work
+            //auto aux_col_real = real(r_tmp_Vr_col);
+            //auto aux_col_imag = imag(r_tmp_Vr_col);
+            column(r_Vr, 2*i) = real(r_tmp_Vr_col) ;
+            column(r_Vr, 2*i+1) = imag(r_tmp_Vr_col) ;
+            //column(r_Vr, 2*i) = aux_col_real;
+            //column(r_Vr, 2*i+1) = aux_col_imag;
+
+            KRATOS_WATCH(column(r_Vr, 2*i));  // not ok, all zero
+            KRATOS_WATCH(column(r_Vr, 2*i+1)); // not ok, all zero
+        }
+
+
+        // complex tests to better understand whats the problem with real and imag
+        // in minimal examples it works as expected...
+        
+        // //vector<complex> test_vec (2);// = {(1.5, 2.3), (2.7, 5.4)};
+        // //test_vec(0) = complex (1.5, 2.3);
+        // //test_vec(1) = complex (2.7, 5.4);
+        // vector<double> test_vec(2);
+        // test_vec(0) = 1.5;
+        // test_vec(1) = 2.7;
+        // KRATOS_WATCH(test_vec);
+        // //vector<double> test_real = real(test_vec);
+        // //vector<double> test_imag = imag(test_vec);
+        // KRATOS_WATCH(real(test_vec));
+        // KRATOS_WATCH(imag(test_vec));
+
 
         // TODO: very big entries in r_Vr, check if results are wrong
         // works for n=50 (306), but not for n=5 (36)
         //KRATOS_WATCH(r_Vr)
 
 
-        for(size_t i=0; i < n_sampling_points; ++i)
-        {
-            r_tmp_Vn = std::pow( mSamplingPoints(i), 2.0 ) * r_M + mSamplingPoints(i) * r_D + r_K;
-            p_builder_and_solver->GetLinearSystemSolver()->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b);
-            column(r_Vr, i) = r_tmp_Vr_col;
-        }
+        // for(size_t i=0; i < n_sampling_points; ++i)
+        // {
+        //     r_tmp_Vn = std::pow( mSamplingPoints(i), 2.0 ) * r_M + mSamplingPoints(i) * r_D + r_K;
+        //     p_builder_and_solver->GetLinearSystemSolver()->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b);
+        //     column(r_Vr, i) = r_tmp_Vr_col;
+        // }
 
 
 
@@ -291,7 +462,7 @@ class MorSecondOrderIRKAStrategy
         // here only 0 entries...
         //KRATOS_WATCH(r_Vr)
 
-
+    
 
 
         // initialize reduced matrices and vectors
@@ -336,9 +507,9 @@ class MorSecondOrderIRKAStrategy
             T = prod( trans(r_Vr), r_K );
             r_K_reduced = prod( T, r_Vr );
 
-            //KRATOS_WATCH(r_M_reduced)  //hm, ok...
-            //KRATOS_WATCH(r_D_reduced)  // rest not so ok
-            //KRATOS_WATCH(r_K_reduced)
+            KRATOS_WATCH(r_M_reduced)  //hm, ok...
+            KRATOS_WATCH(r_D_reduced)  // rest not so ok
+            KRATOS_WATCH(r_K_reduced)
 
             subrange(r_L1, 0, reduced_system_size, 0, reduced_system_size) = r_D_reduced;
             subrange(r_L1, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_K_reduced;
@@ -400,10 +571,11 @@ class MorSecondOrderIRKAStrategy
         }
 
         r_b_reduced = prod( trans(r_Vr), r_b);
-
         
-        // KRATOS_WATCH(r_mass_matrix_reduced)
-
+        
+        KRATOS_WATCH(r_b_reduced)
+        //KRATOS_WATCH(r_mass_matrix_reduced)
+*/
         std::cout << "MOR offline solve finished" << std::endl;
         
 		return true;
@@ -481,9 +653,23 @@ class MorSecondOrderIRKAStrategy
     ///@name Member Variables
     ///@{
 
-    vector< double > mSamplingPoints;
+    vector< complex > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
-    typename TLinearSolver::Pointer mpNewLinearEigenSolver;
+    //typename TLinearSolver::Pointer mpNewLinearEigenSolver;
+    ComplexLinearSolverType::Pointer mpComplexLinearSolver;
+
+    typename TLinearSolver::Pointer mpLinearSolver;
+
+
+    //TSolutionMatrixPointerType mpM; // mass matrix
+    TSolutionMatrixPointerType mpK; // stiffness matrix
+    //TSolutionMatrixPointerType mpD; // damping matrix
+    //TSolutionVectorPointerType mpb; // RHS vector
+
+
+
+
+
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each
