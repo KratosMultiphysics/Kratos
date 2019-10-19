@@ -43,16 +43,14 @@ class AdjointTurbulenceKEpsilonConfiguration(
     def InitializeModelConstants(self):
         # reading constants
         constants = self.model_settings["constants"]
-        self.fluid_model_part.ProcessInfo[
-            KratosRANS.WALL_SMOOTHNESS_BETA] = constants[
-                "wall_smoothness_beta"].GetDouble()
+        self.fluid_model_part.ProcessInfo[KratosRANS.WALL_SMOOTHNESS_BETA] = constants["wall_smoothness_beta"].GetDouble()
         self.fluid_model_part.ProcessInfo[KratosRANS.WALL_VON_KARMAN] = constants["von_karman"].GetDouble()
         self.fluid_model_part.ProcessInfo[KratosRANS.TURBULENCE_RANS_C_MU] = constants["c_mu"].GetDouble()
         self.fluid_model_part.ProcessInfo[KratosRANS.TURBULENCE_RANS_C1] = constants["c1"].GetDouble()
         self.fluid_model_part.ProcessInfo[KratosRANS.TURBULENCE_RANS_C2] = constants["c2"].GetDouble()
         self.fluid_model_part.ProcessInfo[KratosRANS.TURBULENT_KINETIC_ENERGY_SIGMA] = constants["sigma_k"].GetDouble()
-        self.fluid_model_part.ProcessInfo[KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA] = constants[
-                "sigma_epsilon"].GetDouble()
+        self.fluid_model_part.ProcessInfo[KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA] = constants["sigma_epsilon"].GetDouble()
+        self.fluid_model_part.ProcessInfo[KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] = True
 
         Kratos.Logger.PrintInfo(
             self.__class__.__name__,

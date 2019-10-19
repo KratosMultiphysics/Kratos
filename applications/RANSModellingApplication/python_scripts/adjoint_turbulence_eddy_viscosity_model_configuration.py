@@ -42,14 +42,10 @@ class AdjointTurbulenceEddyViscosityModelConfiguration(
         # adding variables required by rans eddy viscosity models
         self.fluid_model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         self.fluid_model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        self.fluid_model_part.AddNodalSolutionStepVariable(
-            Kratos.KINEMATIC_VISCOSITY)
-        self.fluid_model_part.AddNodalSolutionStepVariable(
-            Kratos.TURBULENT_VISCOSITY)
-        self.fluid_model_part.AddNodalSolutionStepVariable(
-            KratosRANS.RANS_Y_PLUS)
-        self.fluid_model_part.AddNodalSolutionStepVariable(
-            Kratos.RELAXED_ACCELERATION)
+        self.fluid_model_part.AddNodalSolutionStepVariable(Kratos.KINEMATIC_VISCOSITY)
+        self.fluid_model_part.AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
+        self.fluid_model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
+        self.fluid_model_part.AddNodalSolutionStepVariable(Kratos.RELAXED_ACCELERATION)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                 "Successfully added solution step variables.")
