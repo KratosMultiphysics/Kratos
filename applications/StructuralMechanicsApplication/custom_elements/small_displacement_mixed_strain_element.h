@@ -600,7 +600,7 @@ private:
         const GeometryType &rGeometry,
         Vector &rWeightsContainer,
         Matrix &rShapeFunctionsContainer,
-        GeometryType::ShapeFunctionsGradientsType &rDNDXContainer) const;
+        GeometryType::ShapeFunctionsGradientsType &rDNDX0Container) const;
 
     /**
      * Calculation of the Deformation Matrix B
