@@ -320,6 +320,9 @@ class MorSecondOrderIRKAStrategy
         //     }
         // }
 
+        sort_conjugate_pairs(mSamplingPoints);
+        KRATOS_WATCH(mSamplingPoints)
+
 
         //TODO: allow for complex sampling points, cplxpair
         // store the sampling points for error calculations in the convergence loop for convergence check
@@ -374,7 +377,7 @@ class MorSecondOrderIRKAStrategy
         ComplexDenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
 
 
-        //mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
+        mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
 
 
         for(size_t i=0; i < n_sampling_points/2; ++i)
@@ -382,7 +385,7 @@ class MorSecondOrderIRKAStrategy
             KRATOS_WATCH(mSamplingPoints(2*i))
             r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
             //KRATOS_WATCH(r_tmp_Vn) //ok
-            mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
+            //mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
             mpComplexLinearSolver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
             //KRATOS_WATCH(r_tmp_Vr_col) // garbage values
 
@@ -390,8 +393,8 @@ class MorSecondOrderIRKAStrategy
             column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col) ;
      
 
-            //KRATOS_WATCH(column(r_Vr, 2*i)); 
-            //KRATOS_WATCH(column(r_Vr, 2*i+1));
+            //KRATOS_WATCH(column(r_Vr_dense, 2*i)); 
+            //KRATOS_WATCH(column(r_Vr_dense, 2*i+1));
         }
 
 
@@ -766,6 +769,67 @@ class MorSecondOrderIRKAStrategy
         //TODO: adapt this example of stackoverflow
         bool compareFunc(std::pair<double,double> &a, std::pair<double,double> &b){
             return a.second > b.second;
+        }
+
+        // tentative sort function, immitating cplxpair of Matlab
+        // needs to be optimized, but the size of mSamplingPoints, i.e. the reduced system size, is not so large anyway
+        void sort_conjugate_pairs(vector<complex>& v)
+        {
+            vector<complex> tmp_v = v;
+            size_t length_of_v = v.size();
+            double min_real_part = v(0).real();
+            double related_imag_part = v(0).imag();
+            int idx_min_real_part = 0;
+
+            // run through half of the vector for comparison, then it is sorted
+            for(size_t k=0; k<length_of_v/2; k+=2)
+            {
+
+                // find current min real part in v
+                for(size_t i=k; i<length_of_v; i++)
+                {
+                    if(v(i).real() < min_real_part)
+                    {
+                        min_real_part = v(i).real();
+                        idx_min_real_part = i;
+                        related_imag_part = v(i).imag();
+                    }
+                    
+                }
+
+                // swap the complex number with min real part with the first free entry
+                v(k) = v(idx_min_real_part);
+                //
+                v(idx_min_real_part) = tmp_v(k);
+
+                // search for the related imaginary part
+                for(size_t i=k+1; i<length_of_v; i++)
+                {
+                    std::cout<<i<<", "<<v(i)<<std::endl;
+                    double check_val = abs(v(i).imag() + related_imag_part);
+                    KRATOS_WATCH(check_val)
+                    // compare with "+"" since the conjugate has the opposite sign
+                    if(abs(v(i).imag() + related_imag_part)<1e-4)
+                    {
+                        std::cout<<"swap_imag\n"<<std::endl;
+                        // swap with the current first free entry
+                        v(k+1) = v(i);
+                        v(i) = tmp_v(k+1);
+                        break;
+                    }
+
+                    KRATOS_WATCH(v)
+                    
+                }
+
+                // set next
+                idx_min_real_part = k+2;
+                min_real_part = v(idx_min_real_part).real();
+                related_imag_part = v(idx_min_real_part).imag();
+
+            }
+
+
         }
 
 
