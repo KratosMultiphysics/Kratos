@@ -8,6 +8,7 @@ import KratosMultiphysics
 # Importing the base class
 from KratosMultiphysics.ConvectionDiffusionApplication.coupled_fluid_thermal_solver import CoupledFluidThermalSolver
 from KratosMultiphysics.python_solver import PythonSolver
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
 from importlib import import_module
 
@@ -25,7 +26,6 @@ class CoupledFluidTransportSolver(CoupledFluidThermalSolver):
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()
 
-        from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
 
         python_module_name = "KratosMultiphysics.FluidTransportApplication"
@@ -68,26 +68,3 @@ class CoupledFluidTransportSolver(CoupledFluidThermalSolver):
 
         this_defaults.AddMissingParameters(PythonSolver.GetDefaultSettings())
         return this_defaults
-
-    # def ImportModelPart(self):
-    #     # Call the fluid solver to import the model part from the mdpa
-    #     self.fluid_solver.ImportModelPart()
-
-    #     # Save the convection diffusion settings
-    #     convection_diffusion_settings = self.thermal_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
-
-    #     # Here the fluid model part is cloned to be thermal model part so that the nodes are shared
-    #     modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-    #     if self.domain_size == 2:
-    #         modeler.GenerateModelPart(self.fluid_solver.main_model_part,
-    #                                   self.thermal_solver.main_model_part,
-    #                                   "EulerianConvDiff2D",
-    #                                   "ThermalFace2D2N")
-    #     else:
-    #         modeler.GenerateModelPart(self.fluid_solver.main_model_part,
-    #                                   self.thermal_solver.main_model_part,
-    #                                   "EulerianConvDiff3D",
-    #                                   "ThermalFace3D3N")
-
-    #     # Set the saved convection diffusion settings to the new thermal model part
-    #     self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
