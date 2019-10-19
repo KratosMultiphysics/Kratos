@@ -19,6 +19,8 @@
 #include <pybind11/pybind11.h>
 #include "boost/numeric/ublas/vector.hpp"
 
+//#include <pybind11/complex.h>
+
 // Trilinos includes
 //#include "/usr/include/trilinos/Epetra_FEVector.h"
 //include "Epetra_FEVector.h"
@@ -45,6 +47,13 @@
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
+
+// //Test for manuelly converting complex Python lists to complex C++ vectors
+// std::vector<std::complex<double>> foo_convert(std::vector<std::complex<double>>& v)
+// {
+//     return v;
+// }
+
 
 namespace Kratos {
 namespace Python {
@@ -88,6 +97,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Custom builder and solver types
     typedef SystemMatrixBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > SystemMatrixBuilderAndSolverType;
+
+
+    //TODO: make it possible to convert a complex python list into complex C++/Ublas vector
+    // when including pybind11/complex.h, it does not work automatically
+    //m.def("foo_convert", &foo_convert, "converts complex Python list to complex C++ vector");
 
 
     //********************************************************************

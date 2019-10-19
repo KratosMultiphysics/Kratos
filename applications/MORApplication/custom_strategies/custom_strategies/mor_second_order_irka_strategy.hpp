@@ -203,10 +203,10 @@ class MorSecondOrderIRKAStrategy
         //mpNewLinearEigenSolver = pNewLinearEigenSolver;
 
 
-        //mpM = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        mpM = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         mpK = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-        //mpD = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-        //mpb = ComplexSparseSpaceType::CreateEmptyVectorPointer();
+        mpD = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
+        mpb = ComplexSparseSpaceType::CreateEmptyVectorPointer();
 
 
 
@@ -250,31 +250,38 @@ class MorSecondOrderIRKAStrategy
 
         TSystemVectorType tmp(r_K_tmp.size1(), 0.0);
 
+        //define references for the complex matrices
         TSolutionMatrixType& r_K = *mpK;
+        TSolutionMatrixType& r_M = *mpM;
+        TSolutionMatrixType& r_D = *mpD;
+        TSolutionVectorType& r_b = *mpb;
+
+
+        // build the matrices based on the used model
+        p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_b_tmp);
+
         p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K_tmp, tmp);
+        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), r_K_tmp, tmp, r_b_tmp);  
 
+        p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), r_M_tmp, tmp);
+        p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), r_M_tmp);
+
+        p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D_tmp, tmp);
+        p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D_tmp);
+
+
+        // transform the real matrices to complex types
         r_K = TSolutionMatrixType(r_K_tmp);
+        r_M = TSolutionMatrixType(r_M_tmp);
+        r_D = TSolutionMatrixType(r_D_tmp);
+        r_b = TSolutionVectorType(r_b_tmp);
 
-        KRATOS_WATCH(r_K);
-
-        this->EchoInfo(0);
-
-/*
-        p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), r_b);
-
-        p_builder_and_solver->BuildStiffnessMatrix(p_scheme, BaseType::GetModelPart(), r_K, tmp);
-        p_builder_and_solver->ApplyDirichletConditions(p_scheme, BaseType::GetModelPart(), r_K, tmp, r_b);  
-
-        p_builder_and_solver->BuildMassMatrix(p_scheme, BaseType::GetModelPart(), r_M, tmp);
-        p_builder_and_solver->ApplyDirichletConditionsForMassMatrix(p_scheme, BaseType::GetModelPart(), r_M);
-
-        p_builder_and_solver->BuildDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D, tmp);
-        p_builder_and_solver->ApplyDirichletConditionsForDampingMatrix(p_scheme, BaseType::GetModelPart(), r_D);
+        //KRATOS_WATCH(r_K);
 
 
         // DEBUG: print matrix information 
         //this->EchoInfo(0);
-
+/*
 
         const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize(); // n
         //sampling points
@@ -661,10 +668,10 @@ class MorSecondOrderIRKAStrategy
     typename TLinearSolver::Pointer mpLinearSolver;
 
 
-    //TSolutionMatrixPointerType mpM; // mass matrix
+    TSolutionMatrixPointerType mpM; // mass matrix
     TSolutionMatrixPointerType mpK; // stiffness matrix
-    //TSolutionMatrixPointerType mpD; // damping matrix
-    //TSolutionVectorPointerType mpb; // RHS vector
+    TSolutionMatrixPointerType mpD; // damping matrix
+    TSolutionVectorPointerType mpb; // RHS vector
 
 
 
