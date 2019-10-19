@@ -297,10 +297,8 @@ void DisplacementControlCondition::CalculateAll(
     auto p_load = GetPointLoadInDirection();
     auto p_disp = GetDisplacementInDirection();
 
-    if ( CalculateStiffnessMatrixFlag == true )
-    {
-        if ( rLeftHandSideMatrix.size1() != mat_size)
-        {
+    if ( CalculateStiffnessMatrixFlag ) {
+        if ( rLeftHandSideMatrix.size1() != mat_size) {
             rLeftHandSideMatrix.resize(mat_size, mat_size, false);
         }
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
@@ -308,10 +306,8 @@ void DisplacementControlCondition::CalculateAll(
         rLeftHandSideMatrix(1, 0) += 1.0;
     }
 
-    if ( CalculateResidualVectorFlag == true )
-    {
-        if ( rRightHandSideVector.size() != mat_size )
-        {
+    if ( CalculateResidualVectorFlag ) {
+        if ( rRightHandSideVector.size() != mat_size ) {
             rRightHandSideVector.resize(mat_size, false);
         }
         noalias(rRightHandSideVector) = ZeroVector(mat_size);
