@@ -2,6 +2,7 @@ import setuptools
 import os
 import json
 
+kratos_version = "7.0"
 
 with open("wheel.json", "r") as conf_file:
     conf = json.loads(conf_file.read())
@@ -28,7 +29,7 @@ class EmptyListWithLength(list):
 
 setuptools.setup(
     name=conf["wheel_name"],
-    version="7.0+" + os.environ['HASH'],
+    version=kratos_version + "+" + os.environ['HASH'],
     author=conf["author"],
     author_email=conf["author_email"],
     description=conf["description"],
@@ -36,7 +37,7 @@ setuptools.setup(
     packages=setuptools.find_namespace_packages(),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=conf["dependencies"],
+    install_requires=list(map(lambda dependency: dependency.replace("${KRAOTS_VERSION}", kratos_version), conf["dependencies"])),
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",

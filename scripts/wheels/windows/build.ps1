@@ -48,7 +48,6 @@ foreach ($python in $pythons){
     echo "Begining build for python $($python)"
     $env:python = $python
 
-
     #mkdir c:\wheel
     cd $kratosRoot
     git clean -ffxd
