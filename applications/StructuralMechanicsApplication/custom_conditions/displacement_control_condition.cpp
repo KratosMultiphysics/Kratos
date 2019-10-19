@@ -106,38 +106,41 @@ Condition::Pointer DisplacementControlCondition::Clone (
 
 DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetDisplacementInDirection()
 {
-    double numerical_limit = std::numeric_limits<double>::epsilon();
-    array_1d<double, 3 > point_load = ZeroVector(3);
-    if( this->Has( POINT_LOAD ) )
-        noalias(point_load) = this->GetValue( POINT_LOAD );
+    if( this->Has( POINT_LOAD ) ) {
+        const array_1d<double, 3>& r_point_load  = this->GetValue( POINT_LOAD );
 
-    if (abs(point_load(0)) > numerical_limit) // prescribed displacement in x direction
-        return &DISPLACEMENT_X;
-    else if (abs(point_load(1)) > numerical_limit) // prescribed displacement in y direction
-        return &DISPLACEMENT_Y;
-    else if (abs(point_load(2)) > numerical_limit) // prescribed displacement in z direction
-        return &DISPLACEMENT_Z;
-    else
+        if (std::abs(r_point_load[0]) > ZeroTolerance) {        // Prescribed displacement in x direction
+            return &DISPLACEMENT_X;
+        } else if (std::abs(r_point_load[1]) > ZeroTolerance) { // Prescribed displacement in y direction
+            return &DISPLACEMENT_Y;
+        } else if (std::abs(r_point_load[2]) > ZeroTolerance) { // Prescribed displacement in z direction
+            return &DISPLACEMENT_Z;
+        }
+    } else {
         KRATOS_ERROR << "POINT_LOAD in Displacement control condition (ID: " << Id()
-        << ") is a zero vector. No direction could be determined.\n";
+        << ") is a zero vector. No direction could be determined" << std::endl;
+    }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetPointLoadInDirection()
 {
-    double numerical_limit = std::numeric_limits<double>::epsilon();
-    array_1d<double, 3 > point_load = ZeroVector(3);
-    if( this->Has( POINT_LOAD ) )
-        noalias(point_load) = this->GetValue( POINT_LOAD );
+    if( this->Has( POINT_LOAD ) ) {
+        const array_1d<double, 3>& r_point_load  = this->GetValue( POINT_LOAD );
 
-    if (abs(point_load(0)) > numerical_limit) // prescribed displacement in x direction
-        return &POINT_LOAD_X;
-    else if (abs(point_load(1)) > numerical_limit) // prescribed displacement in y direction
-        return &POINT_LOAD_Y;
-    else if (abs(point_load(2)) > numerical_limit) // prescribed displacement in z direction
-        return &POINT_LOAD_Z;
-    else
+        if (std::abs(r_point_load[0]) > ZeroTolerance) {        // Prescribed displacement in x direction
+            return &POINT_LOAD_X;
+        } else if (std::abs(r_point_load[1]) > ZeroTolerance) { // Prescribed displacement in y direction
+            return &POINT_LOAD_Y;
+        } else if (std::abs(r_point_load[2]) > ZeroTolerance) { // Prescribed displacement in z direction
+            return &POINT_LOAD_Z;
+        }
+    } else {
         KRATOS_ERROR << "POINT_LOAD in Displacement control condition (ID: " << Id()
-        << ") is a zero vector. No direction could be determined.\n";
+        << ") is a zero vector. No direction could be determined" << std::endl;
+    }
 }
 
 /***********************************************************************************/
