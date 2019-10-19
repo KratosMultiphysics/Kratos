@@ -13,8 +13,9 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/properties.h"
-#include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/hyper_elastic_isotropic_henky_1d.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -23,7 +24,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-TrussConstitutiveLaw::TrussConstitutiveLaw()
+HyperElasticIsotropicHenky1D::HyperElasticIsotropicHenky1D()
     : ConstitutiveLaw()
 {
 }
@@ -31,7 +32,7 @@ TrussConstitutiveLaw::TrussConstitutiveLaw()
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-TrussConstitutiveLaw::TrussConstitutiveLaw(const TrussConstitutiveLaw& rOther)
+HyperElasticIsotropicHenky1D::HyperElasticIsotropicHenky1D(const HyperElasticIsotropicHenky1D& rOther)
     : ConstitutiveLaw(rOther)
 {
 }
@@ -39,15 +40,15 @@ TrussConstitutiveLaw::TrussConstitutiveLaw(const TrussConstitutiveLaw& rOther)
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer TrussConstitutiveLaw::Clone() const
+ConstitutiveLaw::Pointer HyperElasticIsotropicHenky1D::Clone() const
 {
-    return Kratos::make_shared<TrussConstitutiveLaw>(*this);
+    return Kratos::make_shared<HyperElasticIsotropicHenky1D>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-TrussConstitutiveLaw::~TrussConstitutiveLaw()
+HyperElasticIsotropicHenky1D::~HyperElasticIsotropicHenky1D()
 {
     // TODO: Add if necessary
 }
@@ -55,7 +56,7 @@ TrussConstitutiveLaw::~TrussConstitutiveLaw()
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
-void TrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
+void HyperElasticIsotropicHenky1D::GetLawFeatures(Features& rFeatures)
 {
     //Set the strain size
     rFeatures.mStrainSize = 1;
@@ -66,7 +67,7 @@ void TrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-array_1d<double, 3 > & TrussConstitutiveLaw::GetValue(
+array_1d<double, 3 > & HyperElasticIsotropicHenky1D::GetValue(
     const Variable<array_1d<double, 3 > >& rThisVariable,
     array_1d<double, 3 > & rValue)
 {
@@ -77,12 +78,22 @@ array_1d<double, 3 > & TrussConstitutiveLaw::GetValue(
 //************************************************************************************
 //************************************************************************************
 
-double& TrussConstitutiveLaw::CalculateValue(
+double& HyperElasticIsotropicHenky1D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
     double& rValue)
 {
-    if(rThisVariable == TANGENT_MODULUS) rValue = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS];
+    if(rThisVariable == TANGENT_MODULUS)
+    {
+        const double E(rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]);
+
+        Vector current_strain = ZeroVector(1);
+        rParameterValues.GetStrainVector(current_strain);
+        const double E_11(current_strain[0]);
+
+        rValue = (E-(E*std::log(2.0*E_11 + 1.0)))/std::pow(2.0*E_11 + 1.0, 2);
+;
+    }
     else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
     return rValue;
 }
@@ -90,7 +101,7 @@ double& TrussConstitutiveLaw::CalculateValue(
 //************************************************************************************
 //************************************************************************************
 
-Vector& TrussConstitutiveLaw::CalculateValue(
+Vector& HyperElasticIsotropicHenky1D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
@@ -110,7 +121,7 @@ Vector& TrussConstitutiveLaw::CalculateValue(
 //************************************************************************************
 //************************************************************************************
 
-array_1d<double, 3 > & TrussConstitutiveLaw::CalculateValue(
+array_1d<double, 3 > & HyperElasticIsotropicHenky1D::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<array_1d<double, 3 > >& rVariable,
 	array_1d<double, 3 > & rValue)
@@ -119,7 +130,6 @@ array_1d<double, 3 > & TrussConstitutiveLaw::CalculateValue(
         {
             constexpr SizeType dimension = 3;
             rValue = ZeroVector(dimension);
-            //rValue[0] = this->mStressState;
             rValue[0] = this->CalculateStressElastic(rParameterValues);
             rValue[1] = 0.0;
             rValue[2] = 0.0;
@@ -130,7 +140,7 @@ array_1d<double, 3 > & TrussConstitutiveLaw::CalculateValue(
 
 //************************************************************************************
 //************************************************************************************
-void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+void HyperElasticIsotropicHenky1D::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     Vector& stress_vector = rValues.GetStressVector();
     if (stress_vector.size() != 1) stress_vector.resize(1, false);
@@ -139,21 +149,24 @@ void TrussConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-double TrussConstitutiveLaw::CalculateStressElastic(
+double HyperElasticIsotropicHenky1D::CalculateStressElastic(
     ConstitutiveLaw::Parameters& rParameterValues) const
 {
+    const double E(rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]);
+
     Vector current_strain = ZeroVector(1);
     rParameterValues.GetStrainVector(current_strain);
+    const double E_11(current_strain[0]);
 
-    const double current_stress =
-     rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]*current_strain[0];
+    const double current_stress = 1.0*E*std::log(2.0*E_11 + 1.0)/(4.0*E_11 + 2.0);
+
     return current_stress;
 }
 
 //************************************************************************************
 //************************************************************************************
 
-int TrussConstitutiveLaw::Check(
+int HyperElasticIsotropicHenky1D::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
