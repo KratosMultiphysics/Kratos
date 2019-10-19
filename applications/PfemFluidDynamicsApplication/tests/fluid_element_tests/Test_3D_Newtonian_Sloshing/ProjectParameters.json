@@ -91,6 +91,14 @@
                     "upper_point"      : [100,100,100],
                     "lower_point"      : [-100,-100,-100]
                 },
+                "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
                 "refining_parameters"             : {
                     "critical_size"       : 0.0,
                     "threshold_variable"  : "PLASTIC_STRAIN",
@@ -122,12 +130,6 @@
                         "on_distance"      : false,
                         "on_threshold"     : false,
                         "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
                     }
                 },
                 "elemental_variables_to_transfer" : []
@@ -157,6 +159,14 @@
                     "upper_point"      : [100,100,100],
                     "lower_point"      : [-100,-100,-100]
                 },
+                "spatial_refining_box"            : {
+                    "use_refining_box" : false,
+                    "mesh_size"        : 0.1,
+                    "initial_time"     : 0.0,
+                    "final_time"       : 1,
+                    "upper_point"      : [10,10,10],
+                    "lower_point"      : [-10,-10,-10]
+                },
                 "refining_parameters"             : {
                     "critical_size"       : 0.0,
                     "threshold_variable"  : "PLASTIC_STRAIN",
@@ -188,12 +198,6 @@
                         "on_distance"      : false,
                         "on_threshold"     : false,
                         "on_error"         : false
-                    },
-                    "refining_box"        : {
-                        "refine_in_box_only" : false,
-                        "upper_point"        : [0.0,0.0,0.0],
-                        "lower_point"        : [0.0,0.0,0.0],
-                        "velocity"           : [0.0,0.0,0.0]
                     }
                 },
                 "elemental_variables_to_transfer" : []

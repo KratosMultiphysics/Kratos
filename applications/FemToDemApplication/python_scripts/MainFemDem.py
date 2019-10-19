@@ -9,11 +9,13 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication     as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
-import MainSolidFEM
+import KratosMultiphysics.FemToDemApplication.MainSolidFEM as MainSolidFEM
+import KratosMultiphysics.process_factory as process_factory
+import KratosMultiphysics.gid_output_process as gid_output_process
+
 
 def Wait():
     input("Press Something")
-
 
 class FEM_Solution(MainSolidFEM.Solution):
 
@@ -75,9 +77,13 @@ class FEM_Solution(MainSolidFEM.Solution):
         ### replace this "model" for real one once available in kratos core
         self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
 
-        #construct the solver (main setting methods are located in the solver_module)
-        solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
-        self.solver   = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+        # Construct the solver (main setting methods are located in the solver_module)
+        if self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "FemDemDynamicSolver":
+            import KratosMultiphysics.FemToDemApplication.FemDemDynamicSolver as FemDemDynamicSolver
+            self.solver = FemDemDynamicSolver.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+        elif self.ProjectParameters["solver_settings"]["solver_type"].GetString() == "FemDemStaticSolver":
+            import KratosMultiphysics.FemToDemApplication.FemDemStaticSolver as FemDemStaticSolver
+            self.solver = FemDemStaticSolver.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
 
         #### Output settings start ####
         self.problem_path = os.getcwd()
@@ -88,8 +94,6 @@ class FEM_Solution(MainSolidFEM.Solution):
     def AddMaterials(self):
 
         # Assign material to model_parts (if Materials.json exists)
-        import process_factory
-
         if os.path.isfile("Materials.json"):
             materials_file = open("Materials.json",'r')
             MaterialParameters = KratosMultiphysics.Parameters(materials_file.read())
@@ -131,6 +135,65 @@ class FEM_Solution(MainSolidFEM.Solution):
             process_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
 
         return (KratosMultiphysics.SolidMechanicsApplication.process_handler.ProcessHandler(self.Model, process_parameters))
+
+#============================================================================================================================    
+    def Run(self):
+
+        self.Initialize()
+        self.RunMainTemporalLoop()
+        self.Finalize()    
+#============================================================================================================================        
+    def Initialize(self):
+
+        # Add variables (always before importing the model part)
+        self.solver.AddVariables()
+        
+        # Read model_part (note: the buffer_size is set here) (restart is read here)
+        self.solver.ImportModelPart()
+
+        # Add dofs (always after importing the model part)
+        if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
+            if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
+                self.solver.AddDofs()
+        else:
+            self.solver.AddDofs()
+
+        # Add materials (assign material to model_parts if Materials.json exists)
+        self.AddMaterials()
+        
+        # Add processes
+        self.model_processes = self.AddProcesses()
+        self.model_processes.ExecuteInitialize()
+
+        # Print model_part and properties
+        if(self.echo_level > 1):
+            self.KratosPrintInfo("")
+            self.KratosPrintInfo(self.main_model_part)
+            for properties in self.main_model_part.Properties:
+                self.KratosPrintInfo(properties)
+
+        #### START SOLUTION ####
+        self.computing_model_part = self.solver.GetComputingModelPart()
+
+        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+        self.solver.Initialize()
+        self.solver.SetEchoLevel(self.echo_level)
+
+        # Initialize GiD  I/O (gid outputs, file_lists)
+        self.SetGraphicalOutput()
+        
+        self.GraphicalOutputExecuteInitialize()
+
+        self.model_processes.ExecuteBeforeSolutionLoop()
+
+        self.GraphicalOutputExecuteBeforeSolutionLoop()        
+
+        # Set time settings
+        self.step       = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        self.time       = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        self.end_time   = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
+        self.delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
 
 #============================================================================================================================    
     def Run(self):
@@ -256,9 +319,8 @@ class FEM_Solution(MainSolidFEM.Solution):
 
  #============================================================================================================================       
     def SetGraphicalOutput(self):
-        from gid_output_process import GiDOutputProcess
         self.output_settings = self.ProjectParameters["output_configuration"]
-        self.graphical_output = GiDOutputProcess(self.computing_model_part,
+        self.graphical_output = gid_output_process.GiDOutputProcess(self.computing_model_part,
                                       self.problem_name,
                                       self.output_settings)        
     #============================================================================================================================
@@ -305,6 +367,7 @@ class FEM_Solution(MainSolidFEM.Solution):
             print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
 
     #============================================================================================================================
+
 if __name__ == "__main__": 
     Solution().Run()
 

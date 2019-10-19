@@ -40,6 +40,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "reservoir_2D"
         },
+        "material_import_settings": {
+            "materials_filename": "EmbeddedReservoir2DTestMaterials.json"
+        },
         "echo_level"                   : 0,
         "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
@@ -68,7 +71,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "Outlet2D",
+                "model_part_name" : "MainModelPart.Outlet2D",
                 "variable_name"   : "PRESSURE",
                 "constrained"     : true,
                 "interval"        : [0.0,"End"],
@@ -79,7 +82,7 @@
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ApplyNoSlipProcess",
             "Parameters"    : {
-                "model_part_name" : "NoSlip2D"
+                "model_part_name" : "MainModelPart.NoSlip2D"
             }
         }],
         "gravity"                          : [{
@@ -87,7 +90,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "model_part_name" : "Parts_Fluid",
+                "model_part_name" : "MainModelPart.Parts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 9.8,
                 "constrained"     : false,

@@ -98,6 +98,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 if(USE_COTIRE MATCHES ON)
     ## The MMG is not compatibel with cotire
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    cotire(KratosMeshingCore)
     cotire(KratosMeshingApplication)
 endif(USE_COTIRE MATCHES ON)
 

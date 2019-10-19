@@ -94,6 +94,9 @@ public:
     /// The key type definition
     typedef std::size_t                                       KeyType;
 
+    /// The epsilon tolerance definition
+    static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -364,18 +367,18 @@ public:
                 }
             }
 
-            if(disp_increase_norm == 0.0) disp_increase_norm = 1.0;
-            if(normal_lm_increase_norm == 0.0) normal_lm_increase_norm = 1.0;
-            if(tangent_lm_stick_increase_norm == 0.0) tangent_lm_stick_increase_norm = 1.0;
-            if(tangent_lm_slip_increase_norm == 0.0) tangent_lm_slip_increase_norm = 1.0;
-            if(disp_solution_norm == 0.0) disp_solution_norm = 1.0;
+            if(disp_increase_norm < Tolerance) disp_increase_norm = 1.0;
+            if(normal_lm_increase_norm < Tolerance) normal_lm_increase_norm = 1.0;
+            if(tangent_lm_stick_increase_norm < Tolerance) tangent_lm_stick_increase_norm = 1.0;
+            if(tangent_lm_slip_increase_norm < Tolerance) tangent_lm_slip_increase_norm = 1.0;
+            if(disp_solution_norm < Tolerance) disp_solution_norm = 1.0;
 
-            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm == 0.0) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+            KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm < Tolerance) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             const TDataType disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
-            const TDataType normal_lm_ratio = std::sqrt(normal_lm_increase_norm/normal_lm_solution_norm);
-            const TDataType tangent_lm_stick_ratio = std::sqrt(tangent_lm_stick_increase_norm/tangent_lm_stick_solution_norm);
-            const TDataType tangent_lm_slip_ratio = std::sqrt(tangent_lm_slip_increase_norm/tangent_lm_slip_solution_norm);
+            const TDataType normal_lm_ratio = normal_lm_solution_norm > Tolerance ? std::sqrt(normal_lm_increase_norm/normal_lm_solution_norm) : 0.0;
+            const TDataType tangent_lm_stick_ratio = tangent_lm_stick_solution_norm > Tolerance ? std::sqrt(tangent_lm_stick_increase_norm/tangent_lm_stick_solution_norm) : 0.0;
+            const TDataType tangent_lm_slip_ratio = tangent_lm_slip_solution_norm > Tolerance ? std::sqrt(tangent_lm_slip_increase_norm/tangent_lm_slip_solution_norm) : 0.0;
 
             const TDataType disp_abs = std::sqrt(disp_increase_norm)/ static_cast<TDataType>(disp_dof_num);
             const TDataType normal_lm_abs = std::sqrt(normal_lm_increase_norm)/ static_cast<TDataType>(lm_dof_num);
@@ -412,7 +415,7 @@ public:
 
             // We check if converged
             const bool disp_converged = (disp_ratio <= mDispRatioTolerance || disp_abs <= mDispAbsTolerance);
-            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm == 0.0) ? true : (normal_lm_ratio <= mLMNormalRatioTolerance || normal_lm_abs <= mLMNormalAbsTolerance) && (tangent_lm_stick_ratio <= mLMTangentRatioTolerance || tangent_lm_stick_abs <= mLMTangentAbsTolerance || normal_tangent_stick_ratio <= mNormalTangentRatio) && (tangent_lm_slip_ratio <= mLMTangentRatioTolerance || tangent_lm_slip_abs <= mLMTangentAbsTolerance || normal_tangent_slip_ratio <= mNormalTangentRatio);
+            const bool lm_converged = (mOptions.IsNot(DisplacementLagrangeMultiplierFrictionalContactCriteria::ENSURE_CONTACT) && normal_lm_solution_norm < Tolerance) ? true : (normal_lm_ratio <= mLMNormalRatioTolerance || normal_lm_abs <= mLMNormalAbsTolerance) && (tangent_lm_stick_ratio <= mLMTangentRatioTolerance || tangent_lm_stick_abs <= mLMTangentAbsTolerance || normal_tangent_stick_ratio <= mNormalTangentRatio) && (tangent_lm_slip_ratio <= mLMTangentRatioTolerance || tangent_lm_slip_abs <= mLMTangentAbsTolerance || normal_tangent_slip_ratio <= mNormalTangentRatio);
 
             if (disp_converged && lm_converged) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {

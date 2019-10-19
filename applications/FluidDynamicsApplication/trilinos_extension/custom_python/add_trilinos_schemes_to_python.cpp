@@ -30,6 +30,7 @@
 #include "custom_strategies/strategies/gear_scheme.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
+#include "custom_strategies/strategies/residualbased_simple_steady_scheme.h"
 
 namespace Kratos {
 namespace Python {
@@ -54,6 +55,7 @@ void AddTrilinosSchemesToPython(pybind11::module& m)
     py::class_ < TrilinosVelocityBossakSchemeTurbulent, typename TrilinosVelocityBossakSchemeTurbulent::Pointer,TrilinosBaseScheme >
     (m,"TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent")
     .def(py::init<double, double, unsigned int, Process::Pointer >())
+    .def(py::init<double, double, unsigned int, double, Process::Pointer >())
     .def(py::init<double,double,unsigned int >())
     .def(py::init<double,unsigned int, const Variable<int>&>())
     ;
@@ -63,6 +65,14 @@ void AddTrilinosSchemesToPython(pybind11::module& m)
     (m,"TrilinosResidualBasedPredictorCorrectorBDFScheme")
     .def(py::init<unsigned int, Kratos::Flags& >() )
     ;
+
+    using TrilinosResidualBasedSimpleSteadyScheme = ResidualBasedSimpleSteadyScheme<TrilinosSparseSpace, UblasLocalSpace>;
+    py::class_ < TrilinosResidualBasedSimpleSteadyScheme, typename TrilinosResidualBasedSimpleSteadyScheme::Pointer, TrilinosBaseScheme >
+    (m,"TrilinosResidualBasedSimpleSteadyScheme")
+    .def(py::init<double, double, unsigned int, Process::Pointer >())
+    .def(py::init<double,double,unsigned int >())
+    ;
+
 }
 
 }

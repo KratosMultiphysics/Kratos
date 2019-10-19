@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  #makes KratosM
 import KratosMultiphysics as KM
 import KratosMultiphysics.FemToDemApplication as FEMDEM
 import KratosMultiphysics.PfemFluidDynamicsApplication as PFEM
-import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem    as MainCouplingFemDem
+import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem_for_PFEM_coupling as MainCouplingFemDem_for_PFEM_coupling
 import KratosMultiphysics.FemToDemApplication.MainPFEM_for_coupling as MainPFEM_for_coupling
 
 def Wait():
@@ -20,7 +20,7 @@ class MainCouplingPfemFemDem_Solution:
 
     def __init__(self, Model, PFEMparameters):
         # Initialize solutions of the FEMDEM and PFEM
-        self.FEMDEM_Solution = MainCouplingFemDem.MainCoupledFemDem_Solution(Model)
+        self.FEMDEM_Solution = MainCouplingFemDem_for_PFEM_coupling.MainCoupledFemDem_for_PFEM_coupling_Solution(Model)
         self.FEMDEM_Solution.Initialize()
 
         self.PFEM_Solution = MainPFEM_for_coupling.MainPFEM_for_coupling_solution(Model, 
@@ -57,6 +57,7 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def SolveSolutionStep(self):
+
         # It's necessary to Fix in order to maintain the FEMDEM Kinematics
         self.FixNodesModelPart(self.FEMDEM_Solution.FEM_Solution.main_model_part)
 
@@ -75,6 +76,11 @@ class MainCouplingPfemFemDem_Solution:
                        " ==== SOLVING FEMDEM PART OF THE CALCULATION ====" + "\n" +
                        " ================================================")
         self.SolveSolutionStepFEMDEM()
+        self.PFEM_Solution.main_model_part.RemoveNodes(KM.TO_ERASE)
+
+        # We update the NO_MESH flag in the FEMDEM skin
+        self.UpdateFEMDEMBoundary()
+
 
 #============================================================================================================================
     def SolveSolutionStepPFEM(self):
@@ -125,23 +131,39 @@ class MainCouplingPfemFemDem_Solution:
 
 #============================================================================================================================
     def RegenerateAndUpdatePFEMPressureConditions(self):
-        regenerate_cond_process = FEMDEM.RegeneratePfemPressureConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
-        regenerate_cond_process.Execute()
-        update_cond_process = FEMDEM.UpdatePressureValuePfemConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
-        update_cond_process.Execute()
+        if self.FEMDEM_Solution.domain_size == 2:
+            regenerate_cond_process = FEMDEM.RegeneratePfemPressureConditionsProcess2D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+            update_cond_process     = FEMDEM.UpdatePressureValuePfemConditionsProcess2D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+        else:
+            regenerate_cond_process = FEMDEM.RegeneratePfemPressureConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+            update_cond_process     = FEMDEM.UpdatePressureValuePfemConditionsProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part)
 
+        regenerate_cond_process.Execute()
+        update_cond_process.Execute()
 
 #============================================================================================================================
     def FixNodesModelPart(self, ModelPart):
-        for node in ModelPart.Nodes:
-            node.Fix(KM.VELOCITY_X)
-            node.Fix(KM.VELOCITY_Y)
-            node.Fix(KM.VELOCITY_Z)
+        fix_nodes_model_part = FEMDEM.FixFreeVelocityOnNodesProcess(ModelPart, 0)
+        fix_nodes_model_part.Execute()
 
     def FreeNodesModelPart(self, ModelPart):
-        for node in ModelPart.Nodes:
-            node.Free(KM.VELOCITY_X)
-            node.Free(KM.VELOCITY_Y)
-            node.Free(KM.VELOCITY_Z)
+        free_nodes_model_part = FEMDEM.FixFreeVelocityOnNodesProcess(ModelPart, 1)
+        free_nodes_model_part.Execute()
 
 #============================================================================================================================
+    def ComputeSkinFEMDEMBoundary(self):
+        if self.FEMDEM_Solution.domain_size == 2:
+            skin_detection_process = KM.SkinDetectionProcess2D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
+                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)
+        else: # 3D
+            skin_detection_process = KM.SkinDetectionProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
+                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)    
+        skin_detection_process.Execute()
+
+#============================================================================================================================
+    def UpdateFEMDEMBoundary(self):
+        self.ComputeSkinFEMDEMBoundary()
+        update_process = FEMDEM.UpdateFlagNoRemeshFemDemBoundaryProcess(self.FEMDEM_Solution.FEM_Solution.main_model_part)
+        update_process.Execute()
+
+
