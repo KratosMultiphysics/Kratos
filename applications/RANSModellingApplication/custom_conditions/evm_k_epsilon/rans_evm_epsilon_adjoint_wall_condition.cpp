@@ -382,10 +382,6 @@ void RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::CalculateConditionResi
     if (!this->Is(SLIP))
         return;
 
-    for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        if (!r_geometry[i_node].GetDof(TURBULENT_ENERGY_DISSIPATION_RATE).IsFree())
-            return;
-
     // Get Shape function data
     const GeometryType::IntegrationPointsArrayType& integration_points =
         r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
@@ -478,10 +474,6 @@ void RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::CalculateConditionResi
 
     if (!this->Is(SLIP))
         return;
-
-    for (size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
-        if (!r_geometry[i_node].GetDof(TURBULENT_ENERGY_DISSIPATION_RATE).IsFree())
-            return;
 
     // Get Shape function data
     const GeometryType::IntegrationPointsArrayType& integration_points =
@@ -634,10 +626,6 @@ void RansEvmEpsilonAdjointWallCondition<TNumNodes, TDim>::CalculateResidualShape
 
     if (!this->Is(SLIP))
         return;
-
-    for (size_t i_node = 0; i_node < num_nodes; ++i_node)
-        if (!r_geometry[i_node].GetDof(TURBULENT_ENERGY_DISSIPATION_RATE).IsFree())
-            return;
 
     // Get Shape function data
     const GeometryType::IntegrationPointsArrayType& integration_points =
