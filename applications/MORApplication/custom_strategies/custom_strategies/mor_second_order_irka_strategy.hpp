@@ -158,13 +158,13 @@ class MorSecondOrderIRKAStrategy
         this->SetScheme(pScheme);
 
 
-         mpLinearSolver = typename TLinearSolver::Pointer(new TLinearSolver);
+         //mpLinearSolver = typename TLinearSolver::Pointer(new TLinearSolver);
 
 
         // Setting up the default builder and solver
         this->SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer(
-            //new TBuilderAndSolverType(pNewLinearSolver)));
-            new TBuilderAndSolverType(mpLinearSolver)));
+            new TBuilderAndSolverType(pNewLinearSolver)));
+            //new TBuilderAndSolverType(mpLinearSolver)));
             //new TBuilderAndSolverType(pNewComplexLinearSolver)));
 
         // Saving the linear solver        
@@ -222,7 +222,27 @@ class MorSecondOrderIRKAStrategy
      */
     ~MorSecondOrderIRKAStrategy() override
     {
+        //this->Clear();
+
+
+        // TSolutionSpace::Clear(mpM);
+        // TSolutionSpace::Clear(mpK);
+        // TSolutionSpace::Clear(mpD);
+        // TSolutionSpace::Clear(mpb);
+
+        if (mpM != nullptr)
+            TSolutionSpace::Clear(mpM);
+        if (mpK != nullptr)
+            TSolutionSpace::Clear(mpK);
+        if (mpD != nullptr)
+            TSolutionSpace::Clear(mpD);
+        if (mpb != nullptr)
+            TSolutionSpace::Clear(mpb);
+
+        
         this->Clear();
+
+
     }
 
     
@@ -336,12 +356,13 @@ class MorSecondOrderIRKAStrategy
         auto  Vr_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
         auto& r_Vr   = *Vr_ptr;
         SparseSpaceType::Resize(r_Vr, system_size, reduced_system_size); // n x r
-        
+        TSparseSpace::SetToZero(r_Vr);
 
         // initialize helper variables for V
         auto  tmp_Vn_ptr = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         auto& r_tmp_Vn   = *tmp_Vn_ptr;
         ComplexSparseSpaceType::Resize(r_tmp_Vn, system_size, system_size); // n x n
+        TUblasSparseSpace<complex>::SetToZero(r_tmp_Vn);
         
         auto  tmp_Vr_col_ptr = ComplexDenseSpaceType::CreateEmptyVectorPointer();
         auto& r_tmp_Vr_col   = *tmp_Vr_col_ptr;
@@ -349,21 +370,24 @@ class MorSecondOrderIRKAStrategy
         ComplexDenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
 
 
+        //mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
+
 
         for(size_t i=0; i < n_sampling_points/2; ++i)
         {
             KRATOS_WATCH(mSamplingPoints(2*i))
             r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
-            //KRATOS_WATCH(r_tmp_Vn)
+            //KRATOS_WATCH(r_tmp_Vn) //ok
+            mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
             mpComplexLinearSolver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
-            //KRATOS_WATCH(r_tmp_Vr_col)
+            KRATOS_WATCH(r_tmp_Vr_col) // garbage values
 
             column(r_Vr, 2*i) = real(r_tmp_Vr_col) ;
             column(r_Vr, 2*i+1) = imag(r_tmp_Vr_col) ;
      
 
-            KRATOS_WATCH(column(r_Vr, 2*i)); 
-            KRATOS_WATCH(column(r_Vr, 2*i+1));
+            //KRATOS_WATCH(column(r_Vr, 2*i)); 
+            //KRATOS_WATCH(column(r_Vr, 2*i+1));
         }
 
 
@@ -556,6 +580,17 @@ class MorSecondOrderIRKAStrategy
         KRATOS_WATCH(r_b_reduced)
         //KRATOS_WATCH(r_mass_matrix_reduced)
 */
+
+
+        // TSolutionSpace::Clear(mpM);
+        // TSolutionSpace::Clear(mpK);
+        // TSolutionSpace::Clear(mpD);
+        // TSolutionSpace::Clear(mpb);
+
+
+
+
+
         std::cout << "MOR offline solve finished" << std::endl;
         
 		return true;
@@ -638,7 +673,7 @@ class MorSecondOrderIRKAStrategy
     //typename TLinearSolver::Pointer mpNewLinearEigenSolver;
     ComplexLinearSolverType::Pointer mpComplexLinearSolver;
 
-    typename TLinearSolver::Pointer mpLinearSolver;
+    //typename TLinearSolver::Pointer mpLinearSolver;
 
 
     TSolutionMatrixPointerType mpM; // mass matrix
