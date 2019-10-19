@@ -106,6 +106,8 @@ Condition::Pointer DisplacementControlCondition::Clone (
 
 DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetDisplacementInDirection()
 {
+    KRATOS_TRY
+
     if( this->Has( POINT_LOAD ) ) {
         const array_1d<double, 3>& r_point_load  = this->GetValue( POINT_LOAD );
 
@@ -115,11 +117,16 @@ DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition
             return &DISPLACEMENT_Y;
         } else if (std::abs(r_point_load[2]) > ZeroTolerance) { // Prescribed displacement in z direction
             return &DISPLACEMENT_Z;
+        } else {
+            KRATOS_ERROR << "POINT_LOAD in Displacement control condition (ID: " << Id()
+            << ") is a zero vector. No direction could be determined" << std::endl;
         }
     } else {
         KRATOS_ERROR << "POINT_LOAD in Displacement control condition (ID: " << Id()
         << ") is a zero vector. No direction could be determined" << std::endl;
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -127,6 +134,8 @@ DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition
 
 DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition::GetPointLoadInDirection()
 {
+    KRATOS_TRY
+
     if( this->Has( POINT_LOAD ) ) {
         const array_1d<double, 3>& r_point_load  = this->GetValue( POINT_LOAD );
 
@@ -136,11 +145,16 @@ DisplacementControlCondition::Array1DComponentType* DisplacementControlCondition
             return &POINT_LOAD_Y;
         } else if (std::abs(r_point_load[2]) > ZeroTolerance) { // Prescribed displacement in z direction
             return &POINT_LOAD_Z;
+        } else {
+            KRATOS_ERROR << "POINT_LOAD in Displacement control condition (ID: " << Id()
+            << ") is a zero vector. No direction could be determined" << std::endl;
         }
     } else {
         KRATOS_ERROR << "POINT_LOAD in Displacement control condition (ID: " << Id()
         << ") is a zero vector. No direction could be determined" << std::endl;
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
