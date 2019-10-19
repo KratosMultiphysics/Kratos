@@ -67,6 +67,9 @@ public:
 
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> Array1DComponentType;
 
+    /// The machine precision
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     // Counted pointer of DisplacementControlCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( DisplacementControlCondition );
 
