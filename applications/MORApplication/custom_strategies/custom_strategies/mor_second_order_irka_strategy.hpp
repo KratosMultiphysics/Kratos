@@ -353,10 +353,14 @@ class MorSecondOrderIRKAStrategy
 
         // complex variant
         // initialize V (=W, due to symmetry in FEM applications)
-        auto  Vr_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_Vr   = *Vr_ptr;
-        SparseSpaceType::Resize(r_Vr, system_size, reduced_system_size); // n x r
-        TSparseSpace::SetToZero(r_Vr);
+        auto  Vr_dense_ptr = DenseSpaceType::CreateEmptyMatrixPointer();
+        auto& r_Vr_dense   = *Vr_dense_ptr;
+        DenseSpaceType::Resize(r_Vr_dense, system_size, reduced_system_size); // n x r
+        //TDenseSpace::SetToZero(r_Vr);
+
+        auto& r_Vr_sparse = this->GetBasis();
+        SparseSpaceType::Resize(r_Vr_sparse, system_size, reduced_system_size); // n x r
+        TSparseSpace::SetToZero(r_Vr_sparse);
 
         // initialize helper variables for V
         auto  tmp_Vn_ptr = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
@@ -380,10 +384,10 @@ class MorSecondOrderIRKAStrategy
             //KRATOS_WATCH(r_tmp_Vn) //ok
             mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
             mpComplexLinearSolver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
-            KRATOS_WATCH(r_tmp_Vr_col) // garbage values
+            //KRATOS_WATCH(r_tmp_Vr_col) // garbage values
 
-            column(r_Vr, 2*i) = real(r_tmp_Vr_col) ;
-            column(r_Vr, 2*i+1) = imag(r_tmp_Vr_col) ;
+            column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col) ;
+            column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col) ;
      
 
             //KRATOS_WATCH(column(r_Vr, 2*i)); 
@@ -391,7 +395,44 @@ class MorSecondOrderIRKAStrategy
         }
 
 
+        //orthogonalize
+        // TODO: if time left, replace by some orthogonlization method
+        mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr_dense)(0,0) );
+        mQR_decomposition.compute_q();
 
+        for(size_t i=0; i < system_size; ++i)
+        {
+            for(size_t j=0; j < reduced_system_size; ++j)
+            {
+                r_Vr_sparse(i,j) = mQR_decomposition.Q(i,j);
+
+            }
+        }
+
+
+
+        auto& r_b_reduced = this->GetRHSr();
+        auto& r_K_reduced = this->GetKr();
+        auto& r_M_reduced = this->GetMr();
+        auto& r_D_reduced = this->GetDr();
+
+
+        TSystemMatrixType T;
+
+        // projections
+        T = prod( trans(r_Vr_sparse), r_M_tmp );
+        r_M_reduced = prod( T, r_Vr_sparse );
+
+        T = prod( trans(r_Vr_sparse), r_D_tmp );
+        r_D_reduced = prod( T, r_Vr_sparse );
+
+        T = prod( trans(r_Vr_sparse), r_K_tmp );
+        r_K_reduced = prod( T, r_Vr_sparse );
+
+        r_b_reduced = prod( trans(r_Vr_sparse), r_b_tmp);
+
+        KRATOS_WATCH(r_M_reduced)
+  
 
 /*
 
