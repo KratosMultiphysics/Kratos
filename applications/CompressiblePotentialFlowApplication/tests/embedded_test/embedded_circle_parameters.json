@@ -1,0 +1,106 @@
+{
+    "problem_data"         : {
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1
+    },
+    "solver_settings"      : {
+        "model_part_name"        : "MainModelPart",
+        "domain_size"            : 2,
+        "solver_type"            : "potential_flow",
+        "model_import_settings"  : {
+            "input_type"     : "mdpa",
+            "input_filename" : "embedded_background_test"
+        },
+        "formulation": {
+            "element_type":"embedded_incompressible"
+         },
+        "maximum_iterations"     : 10,
+        "echo_level"             : 0,
+        "volume_model_part_name" : "Parts_Parts_Auto1",
+        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1"],
+        "linear_solver_settings": {
+            "solver_type": "amgcl",
+            "max_iteration": 400,
+            "gmres_krylov_space_dimension": 100,
+            "smoother_type":"ilu0",
+            "coarsening_type":"ruge_stuben",
+            "coarse_enough" : 5000,
+            "krylov_type": "lgmres",
+            "tolerance": 1e-9,
+            "verbosity": 0,
+            "scaling": false
+        },
+        "auxiliary_variables_list" : ["NODAL_H","GEOMETRY_DISTANCE","DISTANCE"]
+
+    },
+    "processes"            : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [
+            {
+            "python_module" : "level_set_remeshing_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "Parameters"    : {
+                    "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
+                    "skin_model_part_name": "circle_05_test",
+                    "remeshing_flag": false
+                }
+            },{
+                "python_module" : "define_embedded_wake_process_2d",
+                "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "Parameters"    : {
+                    "model_part_name" : "MainModelPart.Parts_Parts_Auto1",
+                    "epsilon"         : 1e-9
+                }
+            },{
+            "python_module" : "apply_far_field_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "Parameters"    : {
+                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "angle_of_attack": 0.0,
+                "mach_infinity": 0.02941176471,
+                "inlet_potential": 1.0,
+                "initialize_flow_field": false
+            }
+            },{
+                "python_module" : "compute_embedded_lift_process",
+                "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "Parameters"    : {
+                    "model_part_name" : "MainModelPart.Parts_Parts_Auto1"
+                }
+            }],
+        "list_other_processes" :[{
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_primal_output_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"]
+                },
+                "output_time_settings" :{
+                    "step_frequency": 1
+                }
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["VELOCITY_POTENTIAL"],
+                "input_file_name"  : "embedded_circle_velocity_potential_test_results.json",
+                "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+                "tolerance"            : 1e-9,
+                "relative_tolerance"   : 1e-12,
+                "time_frequency"   : -2
+                }
+        }]
+    }
+}

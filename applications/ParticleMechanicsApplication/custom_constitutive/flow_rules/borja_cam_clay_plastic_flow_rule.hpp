@@ -232,8 +232,6 @@ protected:
 
     void UpdateStateVariables(const BoundedVector<double,3> rPrincipalStress, const double rAlpha = 0.0, const double rConsistencyParameter = 0.0);
 
-    double GetPI();
-
     ///@}
     ///@name Protected  Access
     ///@{

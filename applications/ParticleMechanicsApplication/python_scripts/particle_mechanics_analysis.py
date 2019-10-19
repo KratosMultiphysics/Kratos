@@ -28,33 +28,6 @@ class ParticleMechanicsAnalysis(AnalysisStage):
 
         super(ParticleMechanicsAnalysis, self).__init__(model, project_parameters)
 
-    def RunSolutionLoop(self):
-        """This function executes the solution loop of the AnalysisStage"""
-        import time
-
-        ## Analysis timer start
-        analysis_start_time = time.time()
-
-        while self.KeepAdvancingSolutionLoop():
-            ## Solution loop timer start
-            start_solve_time = time.time()
-
-            self.time = self._GetSolver().AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            is_converged = self._GetSolver().SolveSolutionStep()
-            self._AnalysisStage__CheckIfSolveSolutionStepReturnsAValue(is_converged)
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-
-            ## Stop solution loop timer
-            end_solve_time = time.time()
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "SOLVING TIME: ", end_solve_time - start_solve_time, " s]")
-
-        ## Stop analysis timer
-        analysis_end_time = time.time()
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ANALYSIS TIME: ", analysis_end_time - analysis_start_time, " s]")
-
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
@@ -73,7 +46,7 @@ class ParticleMechanicsAnalysis(AnalysisStage):
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
                 KratosMultiphysics.Logger.PrintWarning("ParticleMechanicsAnalysis", info_msg)
-                from process_factory import KratosProcessFactory
+                from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
@@ -104,7 +77,7 @@ class ParticleMechanicsAnalysis(AnalysisStage):
         '''Initialize a GiD output instance'''
         if self.parallel_type == "OpenMP":
             if parameter_name == "grid_output":
-                from gid_output_process import GiDOutputProcess as OutputProcess
+                from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
                 grid_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Grid"
                 gid_output = OutputProcess(self._GetSolver().GetGridModelPart(), grid_output_file_name,
                                     self.project_parameters["grid_output_configuration"])

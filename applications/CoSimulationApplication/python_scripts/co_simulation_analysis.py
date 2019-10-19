@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # CoSimulation imports
-import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
+import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
@@ -20,13 +20,16 @@ class CoSimulationAnalysis(AnalysisStage):
     def __init__(self, cosim_settings):
         # Note: deliberately NOT calling the base-class constructor since arguments are different
 
+        if not isinstance(cosim_settings, KM.Parameters):
+            raise Exception("Input is expected to be provided as a Kratos Parameters object")
+
         self.cosim_settings = cosim_settings
 
         # this contains only the optional parameters, not the ones that have to be specified
         problem_data_defaults = KM.Parameters("""{
             "problem_name" : "default_co_simulation",
             "print_colors" : false,
-            "echo_level"   : 0
+            "echo_level"   : 1
         }""")
 
         problem_data = cosim_settings["problem_data"]
@@ -55,6 +58,7 @@ class CoSimulationAnalysis(AnalysisStage):
 
     def Initialize(self):
         self._GetSolver().Initialize()
+        self._GetSolver().InitializeCouplingInterfaceData()
         self._GetSolver().Check()
 
         if self.echo_level > 0:
@@ -95,7 +99,7 @@ class CoSimulationAnalysis(AnalysisStage):
         """Create the solver
         """
         problem_name = self.cosim_settings["problem_data"]["problem_name"].GetString()
-        return solvers_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], problem_name)
+        return solver_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], problem_name)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:

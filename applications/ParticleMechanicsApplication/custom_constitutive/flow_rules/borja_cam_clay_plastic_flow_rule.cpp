@@ -751,11 +751,6 @@ void BorjaCamClayPlasticFlowRule::UpdateStateVariables(const BoundedVector<doubl
     mMaterialParameters.ConsistencyParameter = rConsistencyParameter;
 }
 
-double BorjaCamClayPlasticFlowRule::GetPI()
-{
-    return std::atan(1.0)*4.0;
-}
-
 unsigned int BorjaCamClayPlasticFlowRule::GetPlasticRegion()
 {
     return mRegion;

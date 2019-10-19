@@ -137,8 +137,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    double GetPI();
-
     ///@}
     ///@name Protected  Access
     ///@{

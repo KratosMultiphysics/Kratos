@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication.python_solvers_wrapper_structural as structural_solvers
+from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural as structural_solvers
 
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -50,6 +50,43 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
+    def Initialize(self):
+        """ Initializing the Analysis """
+        super(StructuralMechanicsAnalysis, self).Initialize()
+
+        # Detect is a contact problem
+        # NOTE: We have a special treatment for contact problems due to the way the convergence info is printed (in a table). Not doing this will provoque that the table is discontinous (and not fancy and eye-candy)
+        solver_settings = self.project_parameters["solver_settings"]
+        self.contact_problem = solver_settings.Has("contact_settings") or solver_settings.Has("mpc_contact_settings")
+
+        # In case of contact problem
+        if self.contact_problem:
+            self._GetSolver().SetEchoLevel(self.echo_level)
+            # To avoid many prints
+            if self.echo_level == 0:
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
+    def OutputSolutionStep(self):
+        """This function printed / writes output files after the solution of a step
+        """
+
+        # In case of contact problem
+        if self.contact_problem:
+            # First we check if one of the output processes will print output in this step this is done to save computation in case none of them will print
+            is_output_step = False
+            for output_process in self._GetListOfOutputProcesses():
+                if output_process.IsOutputStep():
+                    is_output_step = True
+                    break
+
+            if is_output_step:
+                # Informing the output will be created
+                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "TIME: ", self.time)
+
+        # Creating output
+        super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
+
 
     def Check(self):
         super(StructuralMechanicsAnalysis, self).Check()
@@ -57,6 +94,9 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         # performing some checks if the submodelparts used for the processes and
         # the material-assignments are being added to the ComputingModelPart
         solver_settings = self.project_parameters["solver_settings"]
+        if not solver_settings["use_computing_model_part"].GetBool():
+            return # no computing model part used, hence checks are not necessary
+
         main_model_part_name = solver_settings["model_part_name"].GetString()
 
         # Checking if the material-submodelparts are added to the ComputingModelPart
@@ -168,7 +208,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if self.parallel_type == "OpenMP":
             from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
         elif self.parallel_type == "MPI":
-            from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+            from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess as OutputProcess
 
         gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                    self.project_parameters["problem_data"]["problem_name"].GetString() ,

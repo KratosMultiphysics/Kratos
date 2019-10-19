@@ -340,7 +340,7 @@ CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() const
     const double A = GetProperties()[CROSS_AREA];
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
-    const double J = GetProperties()[TORSIONAL_INERTIA];
+    const double It = GetProperties()[TORSIONAL_INERTIA];
     const double Iy = GetProperties()[I22];
     const double Iz = GetProperties()[I33];
 
@@ -378,7 +378,7 @@ CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() const
 
     local_stiffness_matrix(4, 2) = local_stiffness_matrix(2, 4);
     local_stiffness_matrix(5, 1) = local_stiffness_matrix(1, 5);
-    local_stiffness_matrix(3, 3) = G * J / L;
+    local_stiffness_matrix(3, 3) = G * It / L;
     local_stiffness_matrix(4, 4) = E * Iy * (3.0 * Psi_y + 1.0) / L;
     local_stiffness_matrix(5, 5) = E * Iz * (3.0 * Psi_z + 1.0) / L;
     local_stiffness_matrix(4, 8) = -1.0 * local_stiffness_matrix(4, 2);
@@ -555,7 +555,7 @@ CrBeamElement3D2N::CalculateDeformationStiffness() const
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
-    const double J = GetProperties()[TORSIONAL_INERTIA];
+    const double It = GetProperties()[TORSIONAL_INERTIA];
     const double Iy = GetProperties()[I22];
     const double Iz = GetProperties()[I33];
 
@@ -571,7 +571,7 @@ CrBeamElement3D2N::CalculateDeformationStiffness() const
     const double Psi_y = CalculatePsi(Iy, Az);
     const double Psi_z = CalculatePsi(Iz, Ay);
 
-    Kd(0, 0) = G * J / L;
+    Kd(0, 0) = G * It / L;
     Kd(1, 1) = E * Iy / L;
     Kd(2, 2) = E * Iz / L;
     Kd(3, 3) = E * A / L;
@@ -1395,9 +1395,17 @@ void CrBeamElement3D2N::CalculateConsistentMassMatrix(
     const double A = GetProperties()[CROSS_AREA];
     const double E = GetProperties()[YOUNG_MODULUS];
 
-    const double J = GetProperties()[TORSIONAL_INERTIA];
     const double Iy = GetProperties()[I22];
     const double Iz = GetProperties()[I33];
+
+    double Ip = 0.00;
+    if (GetProperties().Has(MASS_MOMENT_OF_INERTIA)){
+        Ip = GetProperties()[MASS_MOMENT_OF_INERTIA];
+    }
+    else {
+        //This is an approximation for a circular cross section
+        Ip = Iy + Iz;
+    }
     const double G = CalculateShearModulus();
 
     double Ay = 0.00;
@@ -1439,7 +1447,7 @@ void CrBeamElement3D2N::CalculateConsistentMassMatrix(
     // longitudinal forces + torsional moment
     const double M00 = (1.00 / 3.00) * A * rho * L;
     const double M06 = M00 / 2.00;
-    const double M33 = (J * L * rho) / 3.00;
+    const double M33 = (Ip * L * rho) / 3.00;
     const double M39 = M33 / 2.00;
 
     rMassMatrix(0, 0) = M00;

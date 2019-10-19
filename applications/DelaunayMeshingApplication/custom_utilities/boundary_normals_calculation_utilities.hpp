@@ -675,7 +675,13 @@ protected:
           InvJ.clear();
           detJ=0;
           //Calculating the inverse of the jacobian and the parameters needed
-          MathUtils<double>::InvertMatrix( J, InvJ, detJ);
+          if(dimension==2){
+            MathUtils<double>::InvertMatrix2( J, InvJ, detJ);
+          }else if(dimension==3){
+            MathUtils<double>::InvertMatrix3( J, InvJ, detJ);
+          }else{
+            MathUtils<double>::InvertMatrix( J, InvJ, detJ);
+          }
 
 
           //Compute cartesian derivatives for one gauss point

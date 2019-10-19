@@ -63,6 +63,7 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG( DEBUG_OBB );
     KRATOS_DEFINE_LOCAL_FLAG( SEPARATING_AXIS_THEOREM );
+    KRATOS_DEFINE_LOCAL_FLAG( BUILD_OBB_FROM_BB );
 
     /// Definition of the index type
     typedef std::size_t IndexType;
@@ -104,7 +105,7 @@ public:
         ModelPart& rModelPartIntersected,
         ModelPart& rModelPartIntersecting,
         const double BoundingBoxFactor = -1.0,
-        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS|FindIntersectedGeometricalObjectsWithOBBProcess::NOT_DEBUG_OBB|FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM
+        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS|FindIntersectedGeometricalObjectsWithOBBProcess::NOT_DEBUG_OBB|FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM|FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB
         );
 
     /**

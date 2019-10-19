@@ -35,6 +35,7 @@
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
+                "free_stream_density": 1.225,
                 "inlet_potential"         : 1.0
             }
         },{

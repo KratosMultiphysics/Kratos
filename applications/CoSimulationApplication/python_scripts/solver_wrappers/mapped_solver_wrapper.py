@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
-        import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solvers_wrapper_factory
+import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
 
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
@@ -19,7 +19,7 @@ class MappedSolverWrapper(CoSimulationSolverWrapper):
     def __init__(self, settings, solver_name):
         super(MappedSolverWrapper, self).__init__(settings, solver_name)
 
-        self.wrapped_solver = solvers_wrapper_factory.CreateSolverWrapper(self.settings["settings"]["wrapped_solver_settings"], solver_name)
+        self.wrapped_solver = solvers_wrapper_factory.CreateSolverWrapper(self.settings["solver_wrapper_settings"]["wrapped_solver_settings"], solver_name)
         self.input_mapper = None
         self.output_mapper = None
 

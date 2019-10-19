@@ -792,12 +792,6 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
     return true;
 }
 
-
-double MCPlasticFlowRule::GetPI()
-{
-    return std::atan(1.0)*4.0;
-}
-
 unsigned int MCPlasticFlowRule::GetPlasticRegion()
 {
     return mRegion;

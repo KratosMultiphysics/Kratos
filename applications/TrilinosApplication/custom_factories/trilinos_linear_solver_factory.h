@@ -57,7 +57,7 @@ namespace Kratos
  * @tparam TLinearSolverType The linear solver type
  */
 template <typename TSparseSpace, typename TLocalSpace, typename TLinearSolverType>
-class TrilinosLinearSolverFactory
+class KRATOS_API(TRILINOS_APPLICATION) TrilinosLinearSolverFactory
     : public LinearSolverFactory<TSparseSpace,TLocalSpace>
 {
     ///@name Type Definitions
@@ -118,7 +118,7 @@ typedef LinearSolverFactory<TrilinosSparseSpaceType,  TrilinosLocalSpaceType> Tr
 #define KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER(name, reference) ; \
     KratosComponents<TrilinosLinearSolverFactoryType>::Add(name, reference);
 
-extern template class KratosComponents<TrilinosLinearSolverFactoryType>;
+KRATOS_API_EXTERN template class KRATOS_API(TRILINOS_APPLICATION) KratosComponents<TrilinosLinearSolverFactoryType>;
 
 }  // namespace Kratos.
 

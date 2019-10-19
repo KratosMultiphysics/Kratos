@@ -2,7 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 from KratosMultiphysics.ParticleMechanicsApplication.apply_mpm_particle_dirichlet_condition_process import ApplyMPMParticleDirichletConditionProcess
 
-import math
+from math import sqrt
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -47,8 +47,8 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
             self.model.CreateModelPart("MPM_Coupling_Interface")
         self.coupling_model_part = self.model.GetModelPart("MPM_Coupling_Interface").CreateSubModelPart(self.model_part_name)
 
-        # Add variables to the coupling model part
-        self._add_coupling_variables_to_model_part(self.coupling_model_part)
+        # Prepare coupling model part
+        self._prepare_coupling_model_part(self.coupling_model_part)
 
         # Create nodes and fill coupling model part
         for mpc in self.model_part.Conditions:
@@ -59,10 +59,13 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
 
                 ## Set Displacement and Normal
                 normal = mpc.GetValue(KratosParticle.MPC_NORMAL)
-                coupling_node.SetValue(KratosMultiphysics.NORMAL,normal)
+                coupling_node.SetSolutionStepValue(KratosMultiphysics.NORMAL,0,normal)
 
 
     def ExecuteInitializeSolutionStep(self):
+        ### Clone delta time
+        self.coupling_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+
         ### Send displacement from coupling_mp to mp
         for coupling_node in self.coupling_model_part.Nodes:
             coupling_id  = coupling_node.Id
@@ -74,13 +77,13 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
             self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_IMPOSED_DISPLACEMENT,incremental_displacement)
 
             ## ADD VELOCITY
-            current_velocity = coupling_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            current_velocity = coupling_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
             self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_VELOCITY, current_velocity)
 
             ## ADD NORMAL
-            normal = coupling_node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+            normal = coupling_node.GetSolutionStepValue(KratosMultiphysics.NORMAL,0)
             # Check and see whether the normal is not zero
-            norm_normal = math.sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2])
+            norm_normal = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2])
             if norm_normal > 1.e-10:
                 self.model_part.GetCondition(coupling_id).SetValue(KratosParticle.MPC_NORMAL, normal)
 
@@ -91,14 +94,16 @@ class ApplyMPMCouplingInterfaceConditionProcess(ApplyMPMParticleDirichletConditi
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 coupling_id   = mpc.Id
                 contact_force = mpc.GetValue(KratosParticle.MPC_CONTACT_FORCE)
-                self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE,contact_force)
+                self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.CONTACT_FORCE,0,contact_force)
 
 
     # Local functions
-    def _add_coupling_variables_to_model_part(self, coupling_model_part):
+    def _prepare_coupling_model_part(self, coupling_model_part):
+        # Define domain size
         domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         coupling_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = domain_size
 
+        # Add variables
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)

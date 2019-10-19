@@ -204,8 +204,6 @@ class ModifiedCamClayYieldCriterion
         ///@name Private Operations
         ///@{
 
-        double GetPI();
-
         ///@}
         ///@name Private  Access
         ///@{

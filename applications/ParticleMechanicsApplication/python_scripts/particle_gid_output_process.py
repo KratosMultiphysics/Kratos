@@ -7,7 +7,7 @@ import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 # Import time library
-import time
+from time import time
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -237,10 +237,10 @@ class ParticleGiDOutputProcess(KratosMultiphysics.Process):
         self._stop_time_measure(clock_time)
 
     def _start_time_measure(self):
-        return time.time()
+        return time()
 
     def _stop_time_measure(self, time_ip):
-        time_fp = time.time()
+        time_fp = time()
         KratosMultiphysics.Logger.PrintInfo("::[Particle GiD Output Process]:: ", "[Spent time for output = ", time_fp - time_ip, "sec]")
 
     def _is_scalar(self,variable):

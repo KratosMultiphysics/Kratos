@@ -35,17 +35,18 @@ class CoSimulationCouplingOperation(object):
 
 
     def Execute(self):
-        pass
+        raise NotImplementedError('"Execute" is not implemented for {}!'.format(self._ClassName))
 
 
     def PrintInfo(self):
         pass
 
-    def _Name(self):
-        return self.__class__.__name__
-
     def Check(self):
         pass
+
+    @classmethod
+    def _ClassName(cls):
+        return cls.__name__
 
     @classmethod
     def _GetDefaultSettings(cls):

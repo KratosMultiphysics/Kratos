@@ -86,7 +86,10 @@ template <class Matrix, class Vector1, class Vector2, class Vector3>
 struct residual_impl<
     Matrix, Vector1, Vector2, Vector3,
     typename std::enable_if<
-        detail::use_builtin_matrix_ops<Matrix>::value
+        detail::use_builtin_matrix_ops<Matrix>::value &&
+        math::static_rows<typename value_type<Matrix>::type>::value == math::static_rows<typename value_type<Vector1>::type>::value &&
+        math::static_rows<typename value_type<Matrix>::type>::value == math::static_rows<typename value_type<Vector2>::type>::value &&
+        math::static_rows<typename value_type<Matrix>::type>::value == math::static_rows<typename value_type<Vector3>::type>::value
         >::type
     >
 {
@@ -108,6 +111,81 @@ struct residual_impl<
                 sum += a.value() * x[ a.col() ];
             res[i] = rhs[i] - sum;
         }
+    }
+};
+
+/* Allows to do matrix-vector products with mixed scalar/nonscalar types.
+ * Reinterprets pointers to the vectors data into appropriate types.
+ */
+template <class Alpha, class Matrix, class Vector1, class Beta, class Vector2>
+struct spmv_impl<
+    Alpha, Matrix, Vector1, Beta, Vector2,
+    typename std::enable_if<
+            detail::use_builtin_matrix_ops<Matrix>::value && (
+            math::static_rows<typename value_type<Matrix>::type>::value != math::static_rows<typename value_type<Vector1>::type>::value ||
+            math::static_rows<typename value_type<Matrix>::type>::value != math::static_rows<typename value_type<Vector2>::type>::value)
+        >::type
+    >
+{
+    static void apply(
+            Alpha alpha, const Matrix &A, const Vector1 &x, Beta beta, Vector2 &y
+            )
+    {
+        typedef typename value_type<Matrix>::type     val_type;
+        typedef typename math::rhs_of<val_type>::type rhs_type;
+        typedef typename math::replace_scalar<rhs_type, typename math::scalar_of<typename value_type<Vector1>::type>::type>::type x_type;
+        typedef typename math::replace_scalar<rhs_type, typename math::scalar_of<typename value_type<Vector2>::type>::type>::type y_type;
+
+        const size_t n = backend::rows(A);
+        const size_t m = backend::cols(A);
+
+        x_type const * xptr = reinterpret_cast<x_type const *>(&x[0]);
+        y_type       * yptr = reinterpret_cast<y_type       *>(&y[0]);
+
+        iterator_range<x_type const *> xrng(xptr, xptr + m);
+        iterator_range<y_type       *> yrng(yptr, yptr + n);
+
+        spmv(alpha, A, xrng, beta, yrng);
+    }
+};
+
+template <class Matrix, class Vector1, class Vector2, class Vector3>
+struct residual_impl<
+    Matrix, Vector1, Vector2, Vector3,
+    typename std::enable_if<
+            detail::use_builtin_matrix_ops<Matrix>::value && (
+            math::static_rows<typename value_type<Matrix>::type>::value != math::static_rows<typename value_type<Vector1>::type>::value ||
+            math::static_rows<typename value_type<Matrix>::type>::value != math::static_rows<typename value_type<Vector2>::type>::value ||
+            math::static_rows<typename value_type<Matrix>::type>::value != math::static_rows<typename value_type<Vector3>::type>::value)
+        >::type
+    >
+{
+    static void apply(
+            Vector1 const &f,
+            Matrix  const &A,
+            Vector2 const &x,
+            Vector3       &r
+            )
+    {
+        typedef typename value_type<Matrix>::type     val_type;
+        typedef typename math::rhs_of<val_type>::type rhs_type;
+
+        typedef typename math::replace_scalar<rhs_type, typename math::scalar_of<typename value_type<Vector1>::type>::type>::type f_type;
+        typedef typename math::replace_scalar<rhs_type, typename math::scalar_of<typename value_type<Vector2>::type>::type>::type x_type;
+        typedef typename math::replace_scalar<rhs_type, typename math::scalar_of<typename value_type<Vector3>::type>::type>::type r_type;
+
+        const size_t n = backend::rows(A);
+        const size_t m = backend::cols(A);
+
+        x_type const * xptr = reinterpret_cast<x_type const *>(&x[0]);
+        f_type const * fptr = reinterpret_cast<f_type const *>(&f[0]);
+        r_type       * rptr = reinterpret_cast<r_type       *>(&r[0]);
+
+        iterator_range<x_type const *> xrng(xptr, xptr + m);
+        iterator_range<f_type const *> frng(fptr, fptr + n);
+        iterator_range<r_type       *> rrng(rptr, rptr + n);
+
+        residual(frng, A, xrng, rrng);
     }
 };
 

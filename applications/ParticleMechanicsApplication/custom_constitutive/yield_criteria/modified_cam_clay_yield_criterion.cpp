@@ -130,11 +130,6 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const
 
 }
 
-double ModifiedCamClayYieldCriterion::GetPI()
-{
-    return std::atan(1.0)*4.0;
-}
-
 void ModifiedCamClayYieldCriterion::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ParticleYieldCriterion )

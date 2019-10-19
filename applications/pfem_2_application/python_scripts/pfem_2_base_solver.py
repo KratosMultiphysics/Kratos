@@ -36,6 +36,8 @@ class PFEM2BaseSolver(PythonSolver):
         self.domain_size = self.settings["domain_size"].GetInt()
         self.model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, self.domain_size)
 
+        self.get_particles_stage().ExecuteInitialize()
+
     def AddVariables(self):
         self.model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
         self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
@@ -97,7 +99,7 @@ class PFEM2BaseSolver(PythonSolver):
         mesh_strategy.SetEchoLevel(max(0, self.echo_level) - 1)
         mesh_strategy.Initialize()
 
-        # The particles stage is created here
+        # The cpp instance for the particles stage is created here
         self.get_particles_stage().ExecuteBeforeSolutionLoop()
 
         KM.Logger.PrintInfo("::[PFEM2BaseSolver]:", "Finished initialization.")

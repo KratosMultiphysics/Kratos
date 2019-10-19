@@ -4,7 +4,7 @@ from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import DEM_analysis_stage
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -27,7 +27,7 @@ def CreateAndRunStageInOneOpenMPThread(my_obj, model, parameters_file_name):
     if "OMP_NUM_THREADS" in os.environ:
         omp_utils.SetNumThreads(int(initial_number_of_threads))
 
-class AnalyticsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
+class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     @classmethod
     def GetMainPath(self):
@@ -97,7 +97,7 @@ class AnalyticsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
         super(AnalyticsTestSolution, self).Finalize()
 
 
-class GhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
+class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     @classmethod
     def GetMainPath(self):
@@ -132,7 +132,7 @@ class GhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
 
 
 
-class MultiGhostsTestSolution(DEM_analysis_stage.DEMAnalysisStage):
+class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage):
 
     @classmethod
     def GetMainPath(self):

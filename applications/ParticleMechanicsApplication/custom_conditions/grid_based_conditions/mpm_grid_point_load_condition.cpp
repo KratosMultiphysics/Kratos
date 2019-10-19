@@ -103,10 +103,10 @@ void MPMGridPointLoadCondition::CalculateAll(
     }
 
     // Vector with a loading applied to the condition
-    array_1d<double, 3 > PointLoad = ZeroVector(3);
+    array_1d<double, 3 > point_load = ZeroVector(3);
     if( this->Has( POINT_LOAD ) )
     {
-        noalias(PointLoad) = this->GetValue( POINT_LOAD );
+        noalias(point_load) = this->GetValue( POINT_LOAD );
     }
 
     for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
@@ -115,12 +115,12 @@ void MPMGridPointLoadCondition::CalculateAll(
 
         if( GetGeometry()[ii].SolutionStepsDataHas( POINT_LOAD ) )
         {
-            noalias(PointLoad) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
+            noalias(point_load) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
         }
 
         for(unsigned int k = 0; k < dimension; ++k)
         {
-            rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * PointLoad[k];
+            rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * point_load[k];
         }
     }
 

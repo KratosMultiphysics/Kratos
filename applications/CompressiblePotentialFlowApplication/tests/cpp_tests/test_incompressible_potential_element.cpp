@@ -18,6 +18,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
 #include "custom_elements/embedded_incompressible_potential_flow_element.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos {
   namespace Testing {
@@ -194,7 +195,6 @@ namespace Kratos {
       Vector RHS = ZeroVector(3);
       Matrix LHS = ZeroMatrix(3, 3);
 
-      pElement->Set(TO_SPLIT);
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
       // Check the RHS values (the RHS is computed as the LHS x previous_solution,

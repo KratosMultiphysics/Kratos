@@ -14,12 +14,17 @@
 #if !defined(KRATOS_CUTTING_UTILITY)
 #define  KRATOS_CUTTING_UTILITY
 
-
+// System includes
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include <string>
+#include <iostream>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
 
-#include <boost/timer.hpp>
+// External includes
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/banded.hpp>
@@ -28,16 +33,7 @@
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 
-
-// System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
-#include <cmath>
-#include <algorithm>
-
-
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
@@ -54,7 +50,6 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
 #include "spatial_containers/spatial_containers.h"
-
 
 namespace Kratos
 {

@@ -140,10 +140,10 @@ void  AddNodeToPython(pybind11::module& m)
     .def("__str__", PrintObject<IndexedObject>)
     ;
 
-    py::class_<Dof<double>, Dof<double>::Pointer, IndexedObject >(m,"Dof")
+    py::class_<Dof<double>>(m,"Dof")
     ;
 
-    typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, IndexedObject, Flags > NodeBinderType;
+    typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, Flags > NodeBinderType;
     NodeBinderType node_binder(m,"Node");
     node_binder.def(py::init<NodeType::IndexType, double, double, double>());
     node_binder.def(py::init<NodeType::IndexType, const Point& >());
@@ -211,6 +211,7 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def_property("X0", PointGetX0, PointSetX0);
     node_binder.def_property("Y0", PointGetY0, PointSetY0);
     node_binder.def_property("Z0", PointGetZ0, PointSetZ0);
+    node_binder.def_property("Id", &NodeType::GetId, &NodeType::SetId);
 
     PointerVectorSetPythonInterface<MeshType::NodesContainerType>().CreateInterface(m,"NodesArray");
 

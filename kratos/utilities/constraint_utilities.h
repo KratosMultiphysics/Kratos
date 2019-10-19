@@ -56,6 +56,17 @@ namespace ConstraintUtilities
      */
     std::size_t KRATOS_API(KRATOS_CORE) NumberOfActiveConstraints(ModelPart& rModelPart);
 
+     * @brief This method computes the active dofs
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rActiveDofs Vector containing the active dofs
+     * @param rDofSet The whole set of dofs
+     */
+    void KRATOS_API(KRATOS_CORE) ComputeActiveDofs(
+        ModelPart& rModelPart,
+        std::vector<bool>& rActiveDofs,
+        const ModelPart::DofsArrayType& rDofSet
+        );
+
     /**
      * @brief This method resets the values of the slave dofs
      * @param rModelPart The model of the problem to solve

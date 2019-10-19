@@ -7,10 +7,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from co_simulation_solver_test_factory import TestKratosSolver
 from co_simulation_solver_test_factory import TestSDoFSolver
+from co_simulation_solver_test_factory import TestSDoFStaticSolver
 from co_simulation_solver_test_factory import TestMDoFSolver
 from co_simulation_solver_test_factory import TestEmpireSolver
 from co_simulation_test_factory import TestSmallCoSimulationCases
 from co_simulation_test_factory import TestCoSimulationCases
+from co_simulation_test_factory import TestSmallCoSimulationPotentialCase
 
 import os
 if "EMPIRE_API_LIBSO_ON_MACHINE" in os.environ:
@@ -35,11 +37,13 @@ def AssembleTestSuites():
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSDoFSolver]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSDoFStaticSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMDoFSolver]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEmpireSolver]))
 
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationPotentialCase]))
 
     nightSuite.addTests(smallSuite)
 
@@ -47,6 +51,7 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationPotentialCase]))
 
     # If EMPIRE is available then also add the tests involving EMPIRE
     if empire_available:

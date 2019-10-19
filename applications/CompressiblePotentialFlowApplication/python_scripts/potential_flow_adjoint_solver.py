@@ -8,16 +8,25 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_solv
 class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
     def _SetUpIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "incompressible"
+            "element_type": "",
+            "gradient_mode": ""
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
-        self.element_name = "AdjointIncompressiblePotentialFlowElement"
-        self.condition_name = "AdjointPotentialWallCondition"
+        gradient_mode = formulation_settings["gradient_mode"].GetString()
+        if gradient_mode == "semi_analytic":
+            self.element_name = "AdjointIncompressiblePotentialFlowElement"
+            self.condition_name = "AdjointPotentialWallCondition"
+        elif gradient_mode == "analytic":
+            self.element_name = "AdjointAnalyticalIncompressiblePotentialFlowElement"
+            self.condition_name = "AdjointPotentialWallCondition"
+        else:
+            raise RuntimeError("Gradient mode not yet implemented.")
 
     def _SetUpCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "compressible"
+            "element_type": "",
+            "gradient_mode": ""
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -25,8 +34,24 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
         self.condition_name = "AdjointPotentialWallCondition"
 
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
-        raise RuntimeError("Adjoint embedded element currently not implemented")
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "",
+            "gradient_mode": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
 
+        self.element_name = "AdjointEmbeddedIncompressiblePotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
+
+    def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "",
+            "gradient_mode": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "AdjointEmbeddedCompressiblePotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowAdjointSolver(model, custom_settings)
@@ -43,6 +68,8 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         # Setting the reference chord
         self.response_function_settings.AddEmptyValue("reference_chord").SetDouble(self.reference_chord)
 
+        gradient_mode = self.response_function_settings["gradient_mode"].GetString()
+        self.settings["formulation"].AddEmptyValue("gradient_mode").SetString(gradient_mode)
         self.formulation = PotentialFlowAdjointFormulation(self.settings["formulation"])
         self.element_name = self.formulation.element_name
         self.condition_name = self.formulation.condition_name
@@ -54,6 +81,7 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ADJOINT_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
 
         KratosMultiphysics.Logger.PrintInfo("::[PotentialFlowAdjointSolver]:: ", "Variables ADDED")
 
@@ -62,6 +90,8 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.ADJOINT_AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
+        self._ComputeNodalNeighbours()
+
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
             self.response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)

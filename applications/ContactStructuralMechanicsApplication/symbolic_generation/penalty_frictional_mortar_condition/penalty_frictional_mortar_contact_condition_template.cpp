@@ -29,7 +29,7 @@ Condition::Pointer PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_intrusive< PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster > >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -164,8 +164,8 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
         if (this->Is(ACTIVE)) {
             // Getting geometries
-            GeometryType& r_slave_geometry = this->GetGeometry();
-            GeometryType& r_master_geometry = this->GetGeometry();
+            GeometryType& r_slave_geometry = this->GetParentGeometry();
+            GeometryType& r_master_geometry = this->GetParentGeometry();
 
             for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) {
                 NodeType& r_master_node = r_master_geometry[i_master];
@@ -236,7 +236,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
     IndexType index = 0;
 
     /* ORDER - [ MASTER, SLAVE ] */
-    GeometryType& r_slave_geometry = this->GetGeometry();
+    GeometryType& r_slave_geometry = this->GetParentGeometry();
     GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Master Nodes Displacement Equation IDs
@@ -275,7 +275,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
     IndexType index = 0;
 
     /* ORDER - [ MASTER, SLAVE ] */
-    GeometryType& r_slave_geometry = this->GetGeometry();
+    GeometryType& r_slave_geometry = this->GetParentGeometry();
     GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Master Nodes Displacement Equation IDs
@@ -314,7 +314,7 @@ int PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariatio
     KRATOS_CHECK_VARIABLE_KEY(WEIGHTED_SLIP)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    GeometryType& r_slave_geometry = this->GetGeometry();
+    GeometryType& r_slave_geometry = this->GetParentGeometry();
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
         NodeType& r_node = r_slave_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL, r_node)

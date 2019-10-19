@@ -34,7 +34,6 @@ class ParticleJsonOutputProcess(JsonOutputProcess):
                 for i in range(self.params["gauss_points_output_variables"].size()):
                     out = self.params["gauss_points_output_variables"][i]
                     variable_name = out.GetString()
-                    variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
                     variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
                     if (variable_type == "Double" or variable_type == "Component"):

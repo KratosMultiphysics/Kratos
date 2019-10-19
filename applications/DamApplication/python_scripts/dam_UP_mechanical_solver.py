@@ -5,7 +5,7 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 
-import dam_mechanical_solver
+from KratosMultiphysics.DamApplication import dam_mechanical_solver
 
 
 def CreateSolver(main_model_part, custom_settings):

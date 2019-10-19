@@ -38,9 +38,7 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type" : "ExternalSolversApplication.super_lu"
-        },
-        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Nodes1","Parts_Parts_Nodes2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","SurfaceLoad3D_SurfaceLoad","Contact_Part"]
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -50,7 +48,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -62,7 +60,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Parts_Parts_Nodes1",
+                "model_part_name" : "Structure.Parts_Parts_Nodes1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,null],
                 "interval"        : [0.0,"End"]
@@ -74,7 +72,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "Parts_Parts_Nodes2",
+                "model_part_name" : "Structure.Parts_Parts_Nodes2",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,null],
                 "interval"        : [0.0,"End"]
@@ -100,7 +98,7 @@
             "process_name"          : "AssignVectorByDirectionToConditionProcess",
             "Parameters"            : {
                 "mesh_id"         : 0,
-                "model_part_name" : "SurfaceLoad3D_SurfaceLoad",
+                "model_part_name" : "Structure.SurfaceLoad3D_SurfaceLoad",
                 "variable_name"   : "SURFACE_LOAD",
                 "modulus"         : 1.0e9,
                 "direction"       : [0.0,0.0,-1.0],
@@ -117,7 +115,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_Z"],
                 "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test_results.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "time_frequency"       : 1.0
             }
         },{
@@ -128,7 +126,7 @@
             "Parameters"            : {
                 "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
                 "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test_results_LM.json",
-                "model_part_name"      : "Contact_Part",
+                "model_part_name"      : "Structure.Contact_Part",
                 "historical_value"     : false,
                 "relative_tolerance"   : 1e-5,
                 "time_frequency"       : 1.0
@@ -145,7 +143,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Z"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test_results.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "time_frequency"       : 1.0
         }
     },
@@ -157,7 +155,7 @@
         "Parameters"            : {
             "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test_results_LM.json",
-            "model_part_name"      : "Contact_Part",
+            "model_part_name"      : "Structure.Contact_Part",
             "historical_value"     : false,
             "time_frequency"       : 1.0
         }

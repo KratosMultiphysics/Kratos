@@ -95,7 +95,7 @@ namespace Kratos
             DofsArrayType Doftemp;
             Doftemp.reserve(rDoF.size());
             for (auto it= rDoF.begin(); it!= rDoF.end(); ++it) {
-                Doftemp.push_back( it->get() );
+                Doftemp.push_back( *it );
             }
             Doftemp.Sort();
 
