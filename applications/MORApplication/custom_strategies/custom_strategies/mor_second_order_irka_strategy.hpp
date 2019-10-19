@@ -281,7 +281,7 @@ class MorSecondOrderIRKAStrategy
 
         // DEBUG: print matrix information 
         //this->EchoInfo(0);
-/*
+
 
         const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize(); // n
         //sampling points
@@ -310,59 +310,32 @@ class MorSecondOrderIRKAStrategy
 
 
         
+        // // initialize V (=W, due to symmetry in FEM applications)
+        // auto  Vr_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
+        // auto& r_Vr   = *Vr_ptr;
+        // SparseSpaceType::Resize(r_Vr, system_size, reduced_system_size); // n x r
+        // //DenseSpaceType::Set(r_Vr, 0.0); // only works with vectors, matrices are automatically set to zero        
+        
+
+        // // initialize helper variables for V
+        // auto  tmp_Vn_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
+        // auto& r_tmp_Vn   = *tmp_Vn_ptr;
+        // SparseSpaceType::Resize(r_tmp_Vn, system_size, system_size); // n x n
+        
+        // auto  tmp_Vr_col_ptr = DenseSpaceType::CreateEmptyVectorPointer();
+        // auto& r_tmp_Vr_col   = *tmp_Vr_col_ptr;
+        // DenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
+        // DenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
+
+        // //KRATOS_WATCH(r_tmp_Vr_col)
+
+
+
+        // complex variant
         // initialize V (=W, due to symmetry in FEM applications)
         auto  Vr_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
         auto& r_Vr   = *Vr_ptr;
         SparseSpaceType::Resize(r_Vr, system_size, reduced_system_size); // n x r
-        //DenseSpaceType::Set(r_Vr, 0.0); // only works with vectors, matrices are automatically set to zero        
-        
-
-        // initialize helper variables for V
-        auto  tmp_Vn_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_tmp_Vn   = *tmp_Vn_ptr;
-        SparseSpaceType::Resize(r_tmp_Vn, system_size, system_size); // n x n
-        
-        auto  tmp_Vr_col_ptr = DenseSpaceType::CreateEmptyVectorPointer();
-        auto& r_tmp_Vr_col   = *tmp_Vr_col_ptr;
-        DenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
-        DenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
-
-        //KRATOS_WATCH(r_tmp_Vr_col)
-
-        vector<double> test_real_sampling_points(4);
-        test_real_sampling_points(0) = 80;
-        test_real_sampling_points(1) = 500;
-        test_real_sampling_points(2) = 1500;
-        test_real_sampling_points(3) = 3000;
-
-        KRATOS_WATCH(test_real_sampling_points); 
-
-
-        for(size_t i=0; i < n_sampling_points/2; ++i)
-        {
-            KRATOS_WATCH(test_real_sampling_points(2*i)) // ok
-            r_tmp_Vn = std::pow( test_real_sampling_points(2*i), 2.0 ) * r_M + test_real_sampling_points(2*i) * r_D + r_K;
-            //KRATOS_WATCH(r_tmp_Vn) // ok
-            this->GetLinearSolver()->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
-            KRATOS_WATCH(r_tmp_Vr_col);  // ok, but sometimes needs two runs to work
-            //auto aux_col_real = real(r_tmp_Vr_col);
-            //auto aux_col_imag = imag(r_tmp_Vr_col);
-            column(r_Vr, 2*i) = real(r_tmp_Vr_col) ;
-            column(r_Vr, 2*i+1) = imag(r_tmp_Vr_col) ;
-            //column(r_Vr, 2*i) = aux_col_real;
-            //column(r_Vr, 2*i+1) = aux_col_imag;
-
-            KRATOS_WATCH(column(r_Vr, 2*i));  // not ok, all zero
-            KRATOS_WATCH(column(r_Vr, 2*i+1)); // not ok, all zero
-        }
-*/
-
-/*
-        // complex variant
-        // initialize V (=W, due to symmetry in FEM applications)
-        auto  Vr_ptr = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
-        auto& r_Vr   = *Vr_ptr;
-        ComplexSparseSpaceType::Resize(r_Vr, system_size, reduced_system_size); // n x r
         
 
         // initialize helper variables for V
@@ -393,7 +366,7 @@ class MorSecondOrderIRKAStrategy
             KRATOS_WATCH(column(r_Vr, 2*i+1));
         }
 
-*/
+
 
 
 /*
