@@ -159,7 +159,7 @@ void DisplacementControlCondition::EquationIdVector(
         rResult.resize(number_of_nodes * block_size, false);
     }
 
-    auto p_disp = GetDisplacementInDirection();
+    const auto* p_disp = GetDisplacementInDirection();
 
     for (SizeType i = 0; i < number_of_nodes; ++i) {
         int index = i * 2;
@@ -187,7 +187,7 @@ void DisplacementControlCondition::GetDofList(
         rConditionlDofList.resize(number_of_nodes * block_size);
     }
 
-    auto p_disp = GetDisplacementInDirection();
+    const auto* p_disp = GetDisplacementInDirection();
 
     for (SizeType i = 0; i < number_of_nodes; ++i) {
         SizeType index = i * block_size;
@@ -212,7 +212,7 @@ void DisplacementControlCondition::GetValuesVector(
         rValues.resize(mat_size, false);
     }
 
-    auto p_disp = GetDisplacementInDirection();
+    const auto* p_disp = GetDisplacementInDirection();
 
     for (SizeType i = 0; i < number_of_nodes; ++i) {
         SizeType index = i * GetBlockSize();
