@@ -37,7 +37,7 @@ setuptools.setup(
     packages=setuptools.find_namespace_packages(),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=list(map(lambda dependency: dependency.replace("${KRAOTS_VERSION}", kratos_version), conf["dependencies"])),
+    install_requires=list(map(lambda dependency: dependency.replace("${KRATOS_VERSION}", kratos_version), conf["dependencies"])),
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
