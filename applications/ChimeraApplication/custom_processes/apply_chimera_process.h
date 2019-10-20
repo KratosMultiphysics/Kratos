@@ -160,12 +160,6 @@ public:
     virtual void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
-        // const auto &r_process_info = mrMainModelPart.GetProcessInfo();
-        // const double time = r_process_info[TIME];
-        // if(mTime == time)
-        //     return;
-
-        // mTime = time;
         // Actual execution of the functionality of this class
         if(mReformulateEveryStep || !mIsFormulated){
             DoChimeraLoop();
@@ -290,8 +284,8 @@ protected:
                             }
                             KRATOS_INFO_IF("Extraction of boundary mesh took : ", mEchoLevel > 0)<< extraction_time.ElapsedSeconds()<< " seconds"<< std::endl;
                         }
+                        KRATOS_INFO_IF("Formulating Chimera for the combination :: ", mEchoLevel > 0) << "Background" << background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
                         FormulateChimera(background_patch_param, slave_patch_param, is_main_background);
-                        //KRATOS_INFO("Formulating Chimera for the combination :: \n") << "Background" << background_patch_param << "\n Patch::" << slave_patch_param << std::endl;
                         mPointLocatorsMap.erase(background_patch_param["model_part_name"].GetString());
                     }
                 }
@@ -319,17 +313,16 @@ protected:
         Model &current_model = mrMainModelPart.GetModel();
         ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(BackgroundParam["model_part_name"].GetString());
         ModelPart &r_background_boundary_model_part = r_background_model_part.GetSubModelPart("chimera_boundary_mp");
-
-
         ModelPart &r_patch_model_part = mrMainModelPart.GetSubModelPart(PatchParameters["model_part_name"].GetString());
+        const std::string bg_searc_mp_name = BackgroundParam["search_model_part_name"].GetString();
+        auto& r_background_search_model_part = r_background_model_part.HasSubModelPart(bg_searc_mp_name) ? r_background_model_part.GetSubModelPart(bg_searc_mp_name) : r_background_model_part;
 
         const double overlap_bg = BackgroundParam["overlap_distance"].GetDouble();
         const double overlap_pt = PatchParameters["overlap_distance"].GetDouble();
-
         const double over_lap_distance = (overlap_bg > overlap_pt) ? overlap_bg : overlap_pt;
 
         BuiltinTimer search_creation_time;
-        PointLocatorPointerType p_point_locator_on_background = GetPointLocator(r_background_model_part);
+        PointLocatorPointerType p_point_locator_on_background = GetPointLocator(r_background_search_model_part);
         PointLocatorPointerType p_pointer_locator_on_patch = GetPointLocator(r_patch_model_part);
         KRATOS_INFO_IF("Creation of search structures took : ", mEchoLevel > 0)<< search_creation_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
