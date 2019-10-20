@@ -248,6 +248,7 @@ public:
 
             // Getting process info
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+            const bool active_set_reseted = r_process_info[ACTIVE_SET_RESETED];
 
             // Compute the active set
             if (!r_process_info[ACTIVE_SET_COMPUTED]) {
@@ -402,31 +403,35 @@ public:
                 residual_normal_lm_ratio = 1.0;
                 mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_RESIDUAL_IS_SET, true);
             }
-            if (mOptions.IsNot(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_STICK_RESIDUAL_IS_SET) && lm_stick_dof_num > 0) {
-                mLMTangentStickInitialResidualNorm = (tangent_lm_stick_residual_solution_norm == 0.0) ? 1.0 : tangent_lm_stick_residual_solution_norm;
-                residual_tangent_lm_stick_ratio = 1.0;
-                mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_STICK_RESIDUAL_IS_SET, true);
-            }
-            if (mOptions.IsNot(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_SLIP_RESIDUAL_IS_SET) && lm_slip_dof_num > 0) {
-                mLMTangentSlipInitialResidualNorm = (tangent_lm_slip_residual_solution_norm == 0.0) ? 1.0 : tangent_lm_slip_residual_solution_norm;
-                residual_tangent_lm_slip_ratio = 1.0;
-                mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_SLIP_RESIDUAL_IS_SET, true);
-            }
 
             // We calculate the ratio of the displacements
             residual_disp_ratio = mDispCurrentResidualNorm/mDispInitialResidualNorm;
 
-            // We calculate the ratio of the LM
+            // We calculate the ratio of the normal LM
             residual_normal_lm_ratio = mLMNormalCurrentResidualNorm/mLMNormalInitialResidualNorm;
-            if (lm_stick_dof_num > 0) {
-                residual_tangent_lm_stick_ratio = mLMTangentStickCurrentResidualNorm/mLMTangentStickInitialResidualNorm;
-            } else {
-                residual_tangent_lm_stick_ratio = 0.0;
-            }
-            if (lm_slip_dof_num > 0) {
-                residual_tangent_lm_slip_ratio = mLMTangentSlipCurrentResidualNorm/mLMTangentSlipInitialResidualNorm;
-            } else {
-                residual_tangent_lm_slip_ratio = 0.0;
+
+            if (!active_set_reseted) {
+                if (mOptions.IsNot(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_STICK_RESIDUAL_IS_SET) && lm_stick_dof_num > 0) {
+                    mLMTangentStickInitialResidualNorm = (tangent_lm_stick_residual_solution_norm == 0.0) ? 1.0 : tangent_lm_stick_residual_solution_norm;
+                    residual_tangent_lm_stick_ratio = 1.0;
+                    mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_STICK_RESIDUAL_IS_SET, true);
+                }
+                if (mOptions.IsNot(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_SLIP_RESIDUAL_IS_SET) && lm_slip_dof_num > 0) {
+                    mLMTangentSlipInitialResidualNorm = (tangent_lm_slip_residual_solution_norm == 0.0) ? 1.0 : tangent_lm_slip_residual_solution_norm;
+                    residual_tangent_lm_slip_ratio = 1.0;
+                    mOptions.Set(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::INITIAL_SLIP_RESIDUAL_IS_SET, true);
+                }
+
+                if (lm_stick_dof_num > 0) {
+                    residual_tangent_lm_stick_ratio = mLMTangentStickCurrentResidualNorm/mLMTangentStickInitialResidualNorm;
+                } else {
+                    residual_tangent_lm_stick_ratio = 0.0;
+                }
+                if (lm_slip_dof_num > 0) {
+                    residual_tangent_lm_slip_ratio = mLMTangentSlipCurrentResidualNorm/mLMTangentSlipInitialResidualNorm;
+                } else {
+                    residual_tangent_lm_slip_ratio = 0.0;
+                }
             }
 
             KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierResidualFrictionalContactCriteria::ENSURE_CONTACT) && residual_normal_lm_ratio == 0.0) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
@@ -469,6 +474,7 @@ public:
             }
 
             // NOTE: Here we don't include the tangent counter part
+            r_process_info[ACTIVE_SET_RESETED] = false;
             r_process_info[CONVERGENCE_RATIO] = (residual_disp_ratio > residual_normal_lm_ratio) ? residual_disp_ratio : residual_normal_lm_ratio;
             r_process_info[RESIDUAL_NORM] = (residual_normal_lm_abs > mLMNormalAbsTolerance) ? residual_normal_lm_abs : mLMNormalAbsTolerance;
 
@@ -511,8 +517,9 @@ public:
                 }
                 return false;
             }
-        } else // In this case all the displacements are imposed!
+        } else { // In this case all the displacements are imposed!
             return true;
+        }
     }
 
     /**
