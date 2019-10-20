@@ -452,7 +452,9 @@ class MorSecondOrderIRKAStrategy
         TDenseVectorType Eigenvalues;
         TDenseMatrixType Eigenvectors;  //not needed, but need to be set to call the Eigensolver
 
-
+        // initialize vectors for Eigenvalues
+        vector<complex> lam_2r (2*reduced_system_size);
+        vector<complex> lam_r (reduced_system_size);
 
 
         int iter = 4;
@@ -475,18 +477,27 @@ class MorSecondOrderIRKAStrategy
             KRATOS_WATCH(r_D_reduced)  
             KRATOS_WATCH(r_K_reduced)
 
-            subrange(r_L1, 0, reduced_system_size, 0, reduced_system_size) = r_D_reduced;
-            subrange(r_L1, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_K_reduced;
-            subrange(r_L1, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*id_r;
+            // subrange(r_L1, 0, reduced_system_size, 0, reduced_system_size) = r_D_reduced;
+            // subrange(r_L1, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_K_reduced;
+            // subrange(r_L1, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*id_r;
 
-            subrange(r_L2, 0, reduced_system_size, 0, reduced_system_size) = r_M_reduced;
-            subrange(r_L2, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_r;
+            // subrange(r_L2, 0, reduced_system_size, 0, reduced_system_size) = r_M_reduced;
+            // subrange(r_L2, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_r;
+
+            subrange(r_L1, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_r;
+            subrange(r_L1, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*r_K_reduced;
+            subrange(r_L1, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = -1.0*r_D_reduced;
+
+            subrange(r_L2, 0, reduced_system_size, 0, reduced_system_size) = id_r;
+            subrange(r_L2, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_M_reduced;
 
 
             //TODO: hard code settings for the Eigensolver needed for IRKA
             //i.e.: 
             //number_of_eigenvalues = 2*reduced_system_size
             //compute_eigenvectors = false
+
+            // output of this Solver is real (real parts and imaginary parts alternating)
             mpLinearEigenSolver->Solve(
                 r_L1,
                 r_L2,
@@ -496,17 +507,30 @@ class MorSecondOrderIRKAStrategy
 
             KRATOS_WATCH(Eigenvalues)
 
-            vector<complex> lam (2*reduced_system_size);
+            //store the Eigenvalues in a complex vector
             for(size_t ii = 0; ii<2*reduced_system_size; ii++)
             {
-                lam(ii) = complex( Eigenvalues(2*ii), Eigenvalues(2*ii+1) );
+                lam_2r(ii) = complex( Eigenvalues(2*ii), Eigenvalues(2*ii+1) );
             }
 
-            KRATOS_WATCH(lam)
+            KRATOS_WATCH(lam_2r)
 
-            this->sort_conjugate_pairs(lam);
+            // mirror the Eigenvalues and sort them after their real part in increasing order
+            // conjugate pairs stay together, with the minus element being the first
+            lam_2r *= -1;
+            this->sort_conjugate_pairs(lam_2r);
 
-            KRATOS_WATCH(lam) // ok
+            KRATOS_WATCH(lam_2r) // ok
+
+            // reduce to r Eigenvalues so that the dimension of the reduced system does not increase
+            // choose the r Eigenvalues which are closest to the imaginary axis (done by previous sorting)
+            for(size_t ii=0; ii < reduced_system_size; ii++)
+            {
+                lam_r(ii) = lam_2r(ii);
+            }
+
+            KRATOS_WATCH(lam_r)
+
 
             iter++;
         }
