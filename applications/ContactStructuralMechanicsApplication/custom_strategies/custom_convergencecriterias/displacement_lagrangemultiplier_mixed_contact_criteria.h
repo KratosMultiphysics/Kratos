@@ -217,7 +217,7 @@ public:
             TDataType residual_dof_value = 0.0, dof_value = 0.0, dof_incr = 0.0;
 
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_residual_solution_norm,lm_solution_norm,lm_increase_norm,disp_dof_num,lm_dof_num,dof_id,residual_dof_value,dof_value,dof_incr)
+            #pragma omp parallel for firstprivate(dof_id, residual_dof_value, dof_value, dof_incr) reduction(+:disp_residual_solution_norm, lm_solution_norm, lm_increase_norm, disp_dof_num, lm_dof_num)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
