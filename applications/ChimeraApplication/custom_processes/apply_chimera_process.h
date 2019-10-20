@@ -315,7 +315,7 @@ protected:
         ModelPart &r_background_boundary_model_part = r_background_model_part.GetSubModelPart("chimera_boundary_mp");
         ModelPart &r_patch_model_part = mrMainModelPart.GetSubModelPart(PatchParameters["model_part_name"].GetString());
         const std::string bg_searc_mp_name = BackgroundParam["search_model_part_name"].GetString();
-        auto& r_background_search_model_part = r_background_model_part.HasSubModelPart(bg_searc_mp_name) ? r_background_model_part.GetSubModelPart(bg_searc_mp_name) : r_background_model_part;
+        auto& r_background_search_model_part = current_model.HasModelPart(bg_searc_mp_name) ? current_model.GetModelPart(bg_searc_mp_name) : r_background_model_part;
 
         const double overlap_bg = BackgroundParam["overlap_distance"].GetDouble();
         const double overlap_pt = PatchParameters["overlap_distance"].GetDouble();
