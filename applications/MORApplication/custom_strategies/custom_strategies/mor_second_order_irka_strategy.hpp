@@ -23,6 +23,7 @@
 // #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/qr_utility.h"
+#include "utilities/openmp_utils.h"
 #include "custom_strategies/custom_strategies/mor_offline_second_order_strategy.hpp"
 
 //default builder and solver
@@ -258,10 +259,8 @@ class MorSecondOrderIRKAStrategy
         std::cout << "hello! this is where the second order IRKA MOR magic happens" << std::endl;
         typename TSchemeType::Pointer p_scheme = this->GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = this->GetBuilderAndSolver();
-        //TODO: clear new insance at the end
-        // is there any shorter way do define this?
-        //typename TBuilderAndSolverType::Pointer p_eigensolver = typename TBuilderAndSolverType::Pointer(new TBuilderAndSolverType(mpNewLinearEigenSolver));
-        
+
+        // initialize the full system size matrices                
         TSystemMatrixType& r_K_tmp = this->GetSystemMatrix();
         TSystemMatrixType& r_M_tmp = this->GetMassMatrix();
         TSystemMatrixType& r_D_tmp = this->GetDampingMatrix();
@@ -295,70 +294,35 @@ class MorSecondOrderIRKAStrategy
         r_D = TSolutionMatrixType(r_D_tmp);
         r_b = TSolutionVectorType(r_b_tmp);
 
-        //KRATOS_WATCH(r_K);
+
+        // start timer (after building the full system)
+        double start_time = OpenMPUtils::GetCurrentTime();
 
 
         // DEBUG: print matrix information 
         //this->EchoInfo(0);
 
 
+        // set the system sizes
         const unsigned int system_size = p_builder_and_solver->GetEquationSystemSize(); // n
-        //sampling points
-        KRATOS_WATCH(mSamplingPoints)
         const std::size_t n_sampling_points = mSamplingPoints.size(); // number of sampling points
         const std::size_t reduced_system_size = n_sampling_points; // r
 
-        KRATOS_WATCH(n_sampling_points)
-
-        // //DBUG sparse MKD matrices
-        // std::cout<<"K:"<<std::endl;
-        // for(size_t i=0; i<system_size; i++){
-        //     for(size_t j=0; j<system_size; j++){
-        //         if(abs(r_K(i,j))>1e-10)
-        //         std::cout<<"("<<i+1<<","<<j+1<<")   "<<r_K(i,j)<<std::endl;
-        //     }
-        // }
-
+        // sort the sampling points after their real part in increasing order
+        // conjugate pairs stay together, with the minus element being the first
         this->sort_conjugate_pairs(mSamplingPoints);
-        KRATOS_WATCH(mSamplingPoints)
 
 
-        //TODO: allow for complex sampling points, cplxpair
         // store the sampling points for error calculations in the convergence loop for convergence check
         auto samplingPoints_old = mSamplingPoints;
 
 
-        
 
-
-        
-        // // initialize V (=W, due to symmetry in FEM applications)
-        // auto  Vr_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
-        // auto& r_Vr   = *Vr_ptr;
-        // SparseSpaceType::Resize(r_Vr, system_size, reduced_system_size); // n x r
-        // //DenseSpaceType::Set(r_Vr, 0.0); // only works with vectors, matrices are automatically set to zero        
-        
-
-        // // initialize helper variables for V
-        // auto  tmp_Vn_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
-        // auto& r_tmp_Vn   = *tmp_Vn_ptr;
-        // SparseSpaceType::Resize(r_tmp_Vn, system_size, system_size); // n x n
-        
-        // auto  tmp_Vr_col_ptr = DenseSpaceType::CreateEmptyVectorPointer();
-        // auto& r_tmp_Vr_col   = *tmp_Vr_col_ptr;
-        // DenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
-        // DenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
-
-        // //KRATOS_WATCH(r_tmp_Vr_col)
-
-
-
-        // complex variant
         // initialize V (=W, due to symmetry in FEM applications)
         auto  Vr_dense_ptr = DenseSpaceType::CreateEmptyMatrixPointer();
         auto& r_Vr_dense   = *Vr_dense_ptr;
         DenseSpaceType::Resize(r_Vr_dense, system_size, reduced_system_size); // n x r
-        //TDenseSpace::SetToZero(r_Vr);
+        //need to be dense for the QR-solver; if replaced by Gram Schmidt or similar only use sparse version
 
         auto& r_Vr_sparse = this->GetBasis();
         SparseSpaceType::Resize(r_Vr_sparse, system_size, reduced_system_size); // n x r
@@ -375,29 +339,21 @@ class MorSecondOrderIRKAStrategy
         ComplexDenseSpaceType::Resize(r_tmp_Vr_col, system_size); // n x 1
         ComplexDenseSpaceType::Set(r_tmp_Vr_col, 0.0); // set vector to zero
 
-
+        // initialize the complex solver
         mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
 
-
+        // build V
         for(size_t i=0; i < n_sampling_points/2; ++i)
         {
-            KRATOS_WATCH(mSamplingPoints(2*i))
             r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
-            //KRATOS_WATCH(r_tmp_Vn) //ok
-            //mpComplexLinearSolver->Initialize( r_tmp_Vn, r_tmp_Vr_col, r_b);
             mpComplexLinearSolver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
-            //KRATOS_WATCH(r_tmp_Vr_col) // garbage values
 
-            column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col) ;
-            column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col) ;
-     
-
-            //KRATOS_WATCH(column(r_Vr_dense, 2*i)); 
-            //KRATOS_WATCH(column(r_Vr_dense, 2*i+1));
+            column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col);
+            column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col);
         }
 
 
-        //orthogonalize
+        //orthogonalize V
         // TODO: if time left, replace by some orthogonlization method
         mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr_dense)(0,0) );
         mQR_decomposition.compute_q();
@@ -412,7 +368,7 @@ class MorSecondOrderIRKAStrategy
         }
 
 
-
+        // initialize the reduced matrices
         auto& r_b_reduced = this->GetRHSr();
         auto& r_K_reduced = this->GetKr();
         auto& r_M_reduced = this->GetMr();
@@ -420,21 +376,6 @@ class MorSecondOrderIRKAStrategy
 
         // helper for auxiliary products
         TSystemMatrixType T;
-
-        // projections
-        // T = prod( trans(r_Vr_sparse), r_M_tmp );
-        // r_M_reduced = prod( T, r_Vr_sparse );
-
-        // T = prod( trans(r_Vr_sparse), r_D_tmp );
-        // r_D_reduced = prod( T, r_Vr_sparse );
-
-        // T = prod( trans(r_Vr_sparse), r_K_tmp );
-        // r_K_reduced = prod( T, r_Vr_sparse );
-
-        // r_b_reduced = prod( trans(r_Vr_sparse), r_b_tmp);
-
-        // KRATOS_WATCH(r_M_reduced)
-
 
         // initialize linearization matrices
         auto L1_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
@@ -451,17 +392,20 @@ class MorSecondOrderIRKAStrategy
         // initialize output for Eigensolver
         TDenseVectorType Eigenvalues;
         TDenseMatrixType Eigenvectors;  //not needed, but need to be set to call the Eigensolver
-
-        // initialize vectors for Eigenvalues
         vector<complex> lam_2r (2*reduced_system_size);
-        vector<complex> lam_r (reduced_system_size);
+
+        // initialize helpers for the convergence check
+        vector<double> abs_val_old (reduced_system_size);
+        vector<double> abs_val_new (reduced_system_size);
 
 
-        int iter = 4;
-        int err = 1;
-        while(iter < 5 && err > 1e-4)
+        int iter = 1;
+        int max_iter = 100;
+        double err = 100.0;
+        double tol = 1e-8;
+        while(iter < max_iter && err > tol)
         {
-            // projections
+            // projections onto the reduced space
             T = prod( trans(r_Vr_sparse), r_M_tmp );
             r_M_reduced = prod( T, r_Vr_sparse );
 
@@ -471,19 +415,8 @@ class MorSecondOrderIRKAStrategy
             T = prod( trans(r_Vr_sparse), r_K_tmp );
             r_K_reduced = prod( T, r_Vr_sparse );
 
-            r_b_reduced = prod( trans(r_Vr_sparse), r_b_tmp);
 
-            KRATOS_WATCH(r_M_reduced)  
-            KRATOS_WATCH(r_D_reduced)  
-            KRATOS_WATCH(r_K_reduced)
-
-            // subrange(r_L1, 0, reduced_system_size, 0, reduced_system_size) = r_D_reduced;
-            // subrange(r_L1, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = r_K_reduced;
-            // subrange(r_L1, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*id_r;
-
-            // subrange(r_L2, 0, reduced_system_size, 0, reduced_system_size) = r_M_reduced;
-            // subrange(r_L2, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_r;
-
+            // linearization of the quadratic eigenvalue problem to be solved using a GEP solver
             subrange(r_L1, 0, reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_r;
             subrange(r_L1, reduced_system_size, 2*reduced_system_size, 0, reduced_system_size) = -1.0*r_K_reduced;
             subrange(r_L1, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = -1.0*r_D_reduced;
@@ -505,95 +438,87 @@ class MorSecondOrderIRKAStrategy
                 Eigenvectors
             );
 
-            KRATOS_WATCH(Eigenvalues)
-
             //store the Eigenvalues in a complex vector
             for(size_t ii = 0; ii<2*reduced_system_size; ii++)
             {
                 lam_2r(ii) = complex( Eigenvalues(2*ii), Eigenvalues(2*ii+1) );
             }
 
-            KRATOS_WATCH(lam_2r)
-
             // mirror the Eigenvalues and sort them after their real part in increasing order
             // conjugate pairs stay together, with the minus element being the first
             lam_2r *= -1;
             this->sort_conjugate_pairs(lam_2r);
 
-            KRATOS_WATCH(lam_2r) // ok
-
             // reduce to r Eigenvalues so that the dimension of the reduced system does not increase
             // choose the r Eigenvalues which are closest to the imaginary axis (done by previous sorting)
             for(size_t ii=0; ii < reduced_system_size; ii++)
             {
-                lam_r(ii) = lam_2r(ii);
+                mSamplingPoints(ii) = lam_2r(ii);
             }
 
-            KRATOS_WATCH(lam_r)
+
+            // calculate the error between old and new sampling points           
+            for(size_t ii=0 ; ii < reduced_system_size; ii++)
+            {
+                abs_val_old(ii) = abs(samplingPoints_old(ii));
+            }
+         
+            for(size_t ii=0 ; ii < reduced_system_size; ii++)
+            {
+                abs_val_new(ii) = abs(mSamplingPoints(ii));
+            }
+
+            sort(abs_val_old.begin(), abs_val_old.end());
+            sort(abs_val_new.begin(), abs_val_new.end());
+
+            err = norm_2(abs_val_new - abs_val_old) / norm_2(samplingPoints_old);
+
+            // if the tolerance is already met, break here to avoid unnecessary computations
+            if(err < tol) {break;}
+
+            // update the old sampling points
+            samplingPoints_old = mSamplingPoints;
+
+            // update V
+            for(size_t i=0; i < n_sampling_points/2; ++i)
+            {
+                r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
+                mpComplexLinearSolver->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
+
+                column(r_Vr_dense, 2*i) = real(r_tmp_Vr_col) ;
+                column(r_Vr_dense, 2*i+1) = imag(r_tmp_Vr_col) ;
+            }
+
+            // orthogonalize V
+            mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr_dense)(0,0) );
+            mQR_decomposition.compute_q();
+
+            for(size_t i=0; i < system_size; ++i)
+            {
+                for(size_t j=0; j < reduced_system_size; ++j)
+                {
+                    r_Vr_sparse(i,j) = mQR_decomposition.Q(i,j);
+
+                }
+            }
+
 
 
             iter++;
-        }
+        } // - end of loop
+
+        // project the input vector onto the reduced space
+        r_b_reduced = prod( trans(r_Vr_sparse), r_b_tmp);
+
+        double end_time = OpenMPUtils::GetCurrentTime();
+        double duration = end_time - start_time;
+
+        KRATOS_INFO("IRKA") << "Completed in " << duration << " seconds" << " after " << iter << " iterations" << std::endl;
+  
+        KRATOS_INFO_IF("IRKA", iter >= max_iter) << "Maximum number of iterations reached!"  << std::endl;
   
 
-/*
-
-       
-            
-          
-
-      
-            // // vector<double> ev_real;
-            // // vector<double> ev_imag;
-            // // ev_real.resize(reduced_system_size*2);
-            // // ev_imag.resize(reduced_system_size*2);
-
-            // // std::vector<std::pair<double,double>> test_pair( std::piecewise_construct, std::forward_as_tuple(ev_real), std::forward_as_tuple(ev_imag));
-
-            // // for(int i = 0; i < 2*reduced_system_size; i++)
-            // // {
-            // //     ev_real(i) = Eigenvalues(2*i);
-            // //     ev_imag(i) = Eigenvalues(2*i+1);
-            // // }
-
-            // // // KRATOS_WATCH(ev_real)
-            // // // KRATOS_WATCH(ev_imag)
-            
-            // // // does not work, invalid use; maybe because compareFunc is protected
-            // // std::sort(test_pair.begin(), test_pair.end(), this->compareFunc);
-
-            // // // KRATOS_WATCH(ev_real)
-            // // // KRATOS_WATCH(ev_imag)
-
-
-
-            // here we need the complex solver
-
-
-            
-
-
-
-
-            iter++;
-
-
-        }
-
-        r_b_reduced = prod( trans(r_Vr), r_b);
-        
-        
-        KRATOS_WATCH(r_b_reduced)
-        //KRATOS_WATCH(r_mass_matrix_reduced)
-*/
-
-
-        // TSolutionSpace::Clear(mpM);
-        // TSolutionSpace::Clear(mpK);
-        // TSolutionSpace::Clear(mpD);
-        // TSolutionSpace::Clear(mpb);
-
-
+        KRATOS_WATCH(r_M_reduced)
 
 
 
