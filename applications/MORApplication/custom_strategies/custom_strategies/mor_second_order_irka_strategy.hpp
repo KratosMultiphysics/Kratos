@@ -19,8 +19,6 @@
 
 // Project includes
 #include "includes/define.h"
-// #include "solving_strategies/strategies/solving_strategy.h"
-// #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/qr_utility.h"
 #include "utilities/openmp_utils.h"
@@ -65,7 +63,6 @@ template <class TSparseSpace,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
 class MorSecondOrderIRKAStrategy
-    // : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     : public MorOfflineSecondOrderStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
   public:
@@ -77,7 +74,6 @@ class MorSecondOrderIRKAStrategy
     typedef TUblasSparseSpace<complex> ComplexSparseSpaceType;
     typedef TUblasDenseSpace<complex> ComplexDenseSpaceType;
 
-    // typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef MorOfflineSecondOrderStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef SystemMatrixBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > TBuilderAndSolverType;
@@ -113,7 +109,6 @@ class MorSecondOrderIRKAStrategy
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
 
-    // don't know if this is necessary
     typedef typename ComplexSparseSpaceType::MatrixType TSolutionMatrixType;
 
     typedef typename ComplexSparseSpaceType::MatrixPointerType TSolutionMatrixPointerType;
@@ -125,10 +120,7 @@ class MorSecondOrderIRKAStrategy
     typedef ComplexSparseSpaceType TSolutionSpace;
 
 
-
-
     typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
-
 
 
     ///@}
@@ -158,19 +150,12 @@ class MorSecondOrderIRKAStrategy
         // Saving the scheme
         this->SetScheme(pScheme);
 
-
-         //mpLinearSolver = typename TLinearSolver::Pointer(new TLinearSolver);
-
-
         // Setting up the default builder and solver
         this->SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer(
             new TBuilderAndSolverType(pNewLinearSolver)));
-            //new TBuilderAndSolverType(mpLinearSolver)));
-            //new TBuilderAndSolverType(pNewComplexLinearSolver)));
 
         // Saving the linear solver        
         this->SetLinearSolver(pNewLinearSolver);
-        //this->SetLinearSolver(pNewComplexLinearSolver);
 
         // Set flags to start correctly the calculations
         mSolutionStepIsInitialized = false;
@@ -196,21 +181,14 @@ class MorSecondOrderIRKAStrategy
         {
             mSamplingPoints(i) = complex( samplingPoints_real(i), samplingPoints_imag(i) );
         }
-        //mSamplingPoints = samplingPoints;
 
         mpComplexLinearSolver = pNewComplexLinearSolver;
-
         mpLinearEigenSolver = pNewLinearEigenSolver;
-
 
         mpM = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         mpK = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         mpD = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
         mpb = ComplexSparseSpaceType::CreateEmptyVectorPointer();
-
-
-
-
 
 
         KRATOS_CATCH("");
@@ -222,13 +200,6 @@ class MorSecondOrderIRKAStrategy
      */
     ~MorSecondOrderIRKAStrategy() override
     {
-        //this->Clear();
-
-
-        // TSolutionSpace::Clear(mpM);
-        // TSolutionSpace::Clear(mpK);
-        // TSolutionSpace::Clear(mpD);
-        // TSolutionSpace::Clear(mpb);
 
         if (mpM != nullptr)
             TSolutionSpace::Clear(mpM);
@@ -239,10 +210,8 @@ class MorSecondOrderIRKAStrategy
         if (mpb != nullptr)
             TSolutionSpace::Clear(mpb);
 
-        
+
         this->Clear();
-
-
     }
 
     
@@ -604,16 +573,10 @@ class MorSecondOrderIRKAStrategy
     typename TLinearSolver::Pointer mpLinearEigenSolver;
     ComplexLinearSolverType::Pointer mpComplexLinearSolver;
 
-    //typename TLinearSolver::Pointer mpLinearSolver;
-
-
     TSolutionMatrixPointerType mpM; // mass matrix
     TSolutionMatrixPointerType mpK; // stiffness matrix
     TSolutionMatrixPointerType mpD; // damping matrix
     TSolutionVectorPointerType mpb; // RHS vector
-
-
-
 
 
 
@@ -684,7 +647,6 @@ class MorSecondOrderIRKAStrategy
 
                 // swap the complex number of min real part with the first free entry
                 v(k) = v(idx_min_real_part);
-                //
                 v(idx_min_real_part) = tmp_v(k);
                 tmp_v = v;
 
