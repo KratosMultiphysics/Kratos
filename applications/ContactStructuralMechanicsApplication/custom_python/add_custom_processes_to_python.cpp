@@ -34,6 +34,8 @@
 #include "custom_processes/find_intersected_geometrical_objects_with_obb_for_contact_search_process.h"
 #include "custom_processes/normal_gap_process.h"
 #include "custom_processes/normal_check_process.h"
+#include "custom_processes/mpc_contact_search_process.h"
+#include "custom_processes/mpc_contact_search_wrapper_process.h"
 
 namespace Kratos
 {
@@ -216,6 +218,79 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def("ResetContactOperators",&AdvancedContactSearchProcess<3, 4, 3>::ResetContactOperators)
     .def("CheckMortarConditions",&AdvancedContactSearchProcess<3, 4, 3>::CheckMortarConditions)
     .def("InvertSearch",&AdvancedContactSearchProcess<3, 4, 3>::InvertSearch)
+    ;
+
+    // Wrapper contact search
+    py::class_<MPCContactSearchWrapperProcess, typename MPCContactSearchWrapperProcess::Pointer, Process>(m, "MPCContactSearchProcess")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    // MPC contact search
+    py::class_<MPCContactSearchProcess<2, 2>, typename MPCContactSearchProcess<2, 2>::Pointer, Process>(m, "MPCContactSearchProcess2D2N")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def("InitializeMortarConditions",&MPCContactSearchProcess<2, 2>::InitializeMortarConditions)
+    .def("ClearMortarConditions",&MPCContactSearchProcess<2, 2>::ClearMortarConditions)
+    .def("CheckContactModelParts",&MPCContactSearchProcess<2, 2>::CheckContactModelParts)
+    .def("CreatePointListMortar",&MPCContactSearchProcess<2, 2>::CreatePointListMortar)
+    .def("UpdatePointListMortar",&MPCContactSearchProcess<2, 2>::UpdatePointListMortar)
+    .def("UpdateMortarConditions",&MPCContactSearchProcess<2, 2>::UpdateMortarConditions)
+    .def("ResetContactOperators",&MPCContactSearchProcess<2, 2>::ResetContactOperators)
+    .def("CheckMortarConditions",&MPCContactSearchProcess<2, 2>::CheckMortarConditions)
+    .def("InvertSearch",&MPCContactSearchProcess<2, 2>::InvertSearch)
+    ;
+    py::class_<MPCContactSearchProcess<3, 3>, typename MPCContactSearchProcess<3, 3>::Pointer, Process>(m, "MPCContactSearchProcess3D3N")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def("InitializeMortarConditions",&MPCContactSearchProcess<3, 3>::InitializeMortarConditions)
+    .def("ClearMortarConditions",&MPCContactSearchProcess<3, 3>::ClearMortarConditions)
+    .def("CheckContactModelParts",&MPCContactSearchProcess<3, 3>::CheckContactModelParts)
+    .def("CreatePointListMortar",&MPCContactSearchProcess<3, 3>::CreatePointListMortar)
+    .def("UpdatePointListMortar",&MPCContactSearchProcess<3, 3>::UpdatePointListMortar)
+    .def("UpdateMortarConditions",&MPCContactSearchProcess<3, 3>::UpdateMortarConditions)
+    .def("ResetContactOperators",&MPCContactSearchProcess<3, 3>::ResetContactOperators)
+    .def("CheckMortarConditions",&MPCContactSearchProcess<3, 3>::CheckMortarConditions)
+    .def("InvertSearch",&MPCContactSearchProcess<3, 3>::InvertSearch)
+    ;
+    py::class_<MPCContactSearchProcess<3, 4>, typename MPCContactSearchProcess<3, 4>::Pointer, Process>(m, "MPCContactSearchProcess3D4N")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def("InitializeMortarConditions",&MPCContactSearchProcess<3, 4>::InitializeMortarConditions)
+    .def("ClearMortarConditions",&MPCContactSearchProcess<3, 4>::ClearMortarConditions)
+    .def("CheckContactModelParts",&MPCContactSearchProcess<3, 4>::CheckContactModelParts)
+    .def("CreatePointListMortar",&MPCContactSearchProcess<3, 4>::CreatePointListMortar)
+    .def("UpdatePointListMortar",&MPCContactSearchProcess<3, 4>::UpdatePointListMortar)
+    .def("UpdateMortarConditions",&MPCContactSearchProcess<3, 4>::UpdateMortarConditions)
+    .def("ResetContactOperators",&MPCContactSearchProcess<3, 4>::ResetContactOperators)
+    .def("CheckMortarConditions",&MPCContactSearchProcess<3, 4>::CheckMortarConditions)
+    .def("InvertSearch",&MPCContactSearchProcess<3, 4>::InvertSearch)
+    ;
+    py::class_<MPCContactSearchProcess<3, 3, 4>, typename MPCContactSearchProcess<3, 3, 4>::Pointer, Process>(m, "MPCContactSearchProcess3D3N4N")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def("InitializeMortarConditions",&MPCContactSearchProcess<3, 3, 4>::InitializeMortarConditions)
+    .def("ClearMortarConditions",&MPCContactSearchProcess<3, 3, 4>::ClearMortarConditions)
+    .def("CheckContactModelParts",&MPCContactSearchProcess<3, 3, 4>::CheckContactModelParts)
+    .def("CreatePointListMortar",&MPCContactSearchProcess<3, 3, 4>::CreatePointListMortar)
+    .def("UpdatePointListMortar",&MPCContactSearchProcess<3, 3, 4>::UpdatePointListMortar)
+    .def("UpdateMortarConditions",&MPCContactSearchProcess<3, 3, 4>::UpdateMortarConditions)
+    .def("ResetContactOperators",&MPCContactSearchProcess<3, 3, 4>::ResetContactOperators)
+    .def("CheckMortarConditions",&MPCContactSearchProcess<3, 3, 4>::CheckMortarConditions)
+    .def("InvertSearch",&MPCContactSearchProcess<3, 3, 4>::InvertSearch)
+    ;
+    py::class_<MPCContactSearchProcess<3, 4, 3>, typename MPCContactSearchProcess<3, 4, 3>::Pointer, Process>(m, "MPCContactSearchProcess3D4N3N")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def("InitializeMortarConditions",&MPCContactSearchProcess<3, 4, 3>::InitializeMortarConditions)
+    .def("ClearMortarConditions",&MPCContactSearchProcess<3, 4, 3>::ClearMortarConditions)
+    .def("CheckContactModelParts",&MPCContactSearchProcess<3, 4, 3>::CheckContactModelParts)
+    .def("CreatePointListMortar",&MPCContactSearchProcess<3, 4, 3>::CreatePointListMortar)
+    .def("UpdatePointListMortar",&MPCContactSearchProcess<3, 4, 3>::UpdatePointListMortar)
+    .def("UpdateMortarConditions",&MPCContactSearchProcess<3, 4, 3>::UpdateMortarConditions)
+    .def("ResetContactOperators",&MPCContactSearchProcess<3, 4, 3>::ResetContactOperators)
+    .def("CheckMortarConditions",&MPCContactSearchProcess<3, 4, 3>::CheckMortarConditions)
+    .def("InvertSearch",&MPCContactSearchProcess<3, 4, 3>::InvertSearch)
     ;
 
     // Normal gap process

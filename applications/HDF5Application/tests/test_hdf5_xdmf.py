@@ -21,6 +21,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 class TestTryOpenH5File(KratosUnittest.TestCase):
 
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_TryOpenH5File_NormalExecution(self):
         ok = False
         with TryOpenH5File("test.h5", "w", "core", backing_store=False) as f:
@@ -28,10 +29,12 @@ class TestTryOpenH5File(KratosUnittest.TestCase):
             ok = True
         self.assertTrue(ok)
 
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_TryOpenH5File_OSError(self):
         with TryOpenH5File("test.h5", "r", "core") as f:
             self.assertTrue(f == None)
 
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_TryOpenH5File_KeyError(self):
         ok = False
         try:
@@ -81,6 +84,7 @@ class TestXdmfNodalResults(KratosUnittest.TestCase):
         self.assertEqual(results[0].data.dtype, "float64")
         self.assertEqual(results[0].attribute_type, "Vector")
 
+    @KratosUnittest.skipIf(h5py == None, "this test requires h5py")
     def test_XdmfNodalResults2(self):
         with h5py.File("kratos.h5", "a", "core", backing_store=False) as f:
             f.create_dataset(
