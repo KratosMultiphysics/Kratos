@@ -782,9 +782,20 @@ class MorSecondOrderIRKAStrategy
             int idx_min_real_part = 0;
 
             // run through half of the vector for comparison, then it is sorted
-            for(size_t k=0; k<length_of_v/2; k+=2)
+            for(size_t k=0; k<length_of_v-1; k+=2)
             {
 
+                //set the initial values
+                idx_min_real_part = k;
+                min_real_part = v(idx_min_real_part).real();
+                related_imag_part = v(idx_min_real_part).imag();
+                tmp_v = v;
+
+                std::cout<<"looking at k="<<k<<std::endl;
+                KRATOS_WATCH(v)
+                std::cout<<std::endl;
+
+                std::cout<<"find the min real part"<<std::endl;
                 // find current min real part in v
                 for(size_t i=k; i<length_of_v; i++)
                 {
@@ -796,11 +807,20 @@ class MorSecondOrderIRKAStrategy
                     }
                     
                 }
+                std::cout<<"min real part found in i="<<idx_min_real_part<<std::endl;
+                std::cout<<"related imag part: "<<related_imag_part<<std::endl;
+                std::cout<<" do the swap"<<std::endl;
 
                 // swap the complex number with min real part with the first free entry
                 v(k) = v(idx_min_real_part);
                 //
                 v(idx_min_real_part) = tmp_v(k);
+                tmp_v = v;
+
+                KRATOS_WATCH(v)
+
+                std::cout<<std::endl;
+                std::cout<<"look for the other imag part"<<std::endl;
 
                 // search for the related imaginary part
                 for(size_t i=k+1; i<length_of_v; i++)
@@ -815,6 +835,16 @@ class MorSecondOrderIRKAStrategy
                         // swap with the current first free entry
                         v(k+1) = v(i);
                         v(i) = tmp_v(k+1);
+                        KRATOS_WATCH(v)
+
+                        // change sign so that the number with a negative imaginary part comes first in the pair
+                        std::cout<<"change the sign if necessary"<<std::endl;
+                        if(related_imag_part>0)
+                        {
+                            v(k)   = std::conj(v(k));
+                            v(k+1) = std::conj(v(k+1));
+                        }
+                        KRATOS_WATCH(v)
                         break;
                     }
 
@@ -822,13 +852,42 @@ class MorSecondOrderIRKAStrategy
                     
                 }
 
-                // set next
-                idx_min_real_part = k+2;
-                min_real_part = v(idx_min_real_part).real();
-                related_imag_part = v(idx_min_real_part).imag();
+                std::cout<<"end of the imag search"<<std::endl; 
+                std::cout<<std::endl;
+
+                // std::cout<<"set the new values"<<std::endl;
+
+                // // set next
+                // // idx_min_real_part = k+2;
+                // // min_real_part = v(idx_min_real_part).real();
+                // // related_imag_part = v(idx_min_real_part).imag();
+                // // tmp_v = v;
+
+                // KRATOS_WATCH(idx_min_real_part)
+                // KRATOS_WATCH(min_real_part)
+                // KRATOS_WATCH(related_imag_part)
+
+                std::cout<<std::endl;
+                std::cout<<std::endl;
+                std::cout<<std::endl;
 
             }
 
+            // std::cout<<"check the signs of the last half"<<std::endl;
+            // // check the sign of the pairs in the last half
+            // for(size_t k=(length_of_v/2)+1; k<length_of_v; k+=2)
+            // {
+            //     std::cout<<"  looking at k="<<k<<std::endl;
+            //     KRATOS_WATCH(v)
+            //     if(v(k).imag()>0)
+            //     {
+            //         v(k)   = std::conj(v(k));   
+            //         v(k+1) = std::conj(v(k+1));   
+            //     }
+            //     KRATOS_WATCH(v)
+
+            // }
+            // KRATOS_WATCH(v)
 
         }
 
