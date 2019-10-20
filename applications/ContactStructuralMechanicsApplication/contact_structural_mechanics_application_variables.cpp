@@ -44,6 +44,7 @@ KRATOS_CREATE_VARIABLE( double, WEIGHTED_SCALAR_RESIDUAL )                      
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )             // The integrated vector residual
 
 /* For ALM mortar condition */
+KRATOS_CREATE_VARIABLE( bool, ACTIVE_SET_RESETED )                                // To know if the active set has been reseted
 KRATOS_CREATE_VARIABLE( bool, ACTIVE_SET_COMPUTED )                               // To know if the active set has been computed
 KRATOS_CREATE_VARIABLE( bool, ACTIVE_SET_CONVERGED )                              // To know if the active set has converged
 KRATOS_CREATE_VARIABLE( bool, SLIP_SET_CONVERGED )                                // To know if the slip set has converged
