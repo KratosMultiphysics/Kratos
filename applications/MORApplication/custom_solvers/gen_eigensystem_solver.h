@@ -27,8 +27,11 @@
 #include "utilities/openmp_utils.h"
 #include "custom_utilities/ublas_wrapper.h"
 
+//#include "spaces/ublas_space.h"  // needed for TUblasSparseSpace to make it complex
+
 namespace Kratos
 {
+    //using complex = std::complex<double>;
 
 template<
     //class TSolverType,
@@ -49,6 +52,12 @@ class GenEigensystemSolver
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
     typedef typename TSparseSpaceType::VectorType VectorType;
+
+    // typedef TUblasSparseSpace<complex> ComplexSparseSpaceType;
+    // typedef TUblasDenseSpace<complex> ComplexDenseSpaceType;
+
+    // typedef typename ComplexSparseSpaceType::VectorType ComplexVectorType;
+    // typedef typename ComplexSparseSpaceType::VectorType ComplexDenseVectorType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
@@ -83,8 +92,18 @@ class GenEigensystemSolver
         SparseMatrixType& rK,
         SparseMatrixType& rM,
         VectorType& rEigenvalues,
-        DenseMatrixType& rEigenvectors) override
+        DenseMatrixType& rEigenvectors) override      
     {
+    //Problem regarding complex output:
+    // // // when changing the type to complex, the base function cannot be called
+    // // // als when ommitting the override it does not work
+    // // // maybe the linear solver base clase has to be adjusted
+    // //     void Solve(
+    // //     SparseMatrixType& rK,
+    // //     SparseMatrixType& rM,
+    // //     ComplexVectorType& rEigenvalues,
+    // //     DenseMatrixType& rEigenvectors) override      
+    // // {
         using scalar_t = double;
         using vector_t = Eigen::VectorXd;
         using matrix_t = Eigen::MatrixXd;
@@ -98,9 +117,7 @@ class GenEigensystemSolver
         //const int normalization_needed = mParam["normalize_eigenvectors"].GetBool();
         const int eigenvectors_needed = mParam["compute_eigenvectors"].GetBool();
 
-KRATOS_INFO("---this is the new one----"); //TODO: delete before final version
         // --- wrap ublas matrices
-
         UblasWrapper<scalar_t> a_wrapper(rK);
         UblasWrapper<scalar_t> b_wrapper(rM);
 
@@ -136,12 +153,6 @@ KRATOS_INFO("---this is the new one----"); //TODO: delete before final version
             if(eig.info() != Eigen::Success) {
                 KRATOS_WARNING("GenEigensystemSolver") << "Eigen solution was not successful!" << std::endl;
             }
-
-        // debug print, to delete
-        // // KRATOS_WATCH(nroot);
-        // // KRATOS_WATCH(eig.eigenvalues());
-        // // KRATOS_WATCH(eig.eigenvectors());
-        // // KRATOS_WATCH(eig.betas());
 
         // test if some beta is close to zero 
         // could yield a zero division error for right eigenvalues -> left eigenvalue should be build

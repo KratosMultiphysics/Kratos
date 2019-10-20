@@ -146,7 +146,7 @@ class MorSecondOrderIRKAStrategy
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename ComplexLinearSolverType::Pointer pNewComplexLinearSolver,
-        //typename TLinearSolver::Pointer pNewLinearEigenSolver,
+        typename TLinearSolver::Pointer pNewLinearEigenSolver,
         vector< double > samplingPoints_real,
         vector< double > samplingPoints_imag,
         bool MoveMeshFlag = false)
@@ -199,8 +199,7 @@ class MorSecondOrderIRKAStrategy
 
         mpComplexLinearSolver = pNewComplexLinearSolver;
 
-
-        //mpNewLinearEigenSolver = pNewLinearEigenSolver;
+        mpLinearEigenSolver = pNewLinearEigenSolver;
 
 
         mpM = ComplexSparseSpaceType::CreateEmptyMatrixPointer();
@@ -320,7 +319,7 @@ class MorSecondOrderIRKAStrategy
         //     }
         // }
 
-        sort_conjugate_pairs(mSamplingPoints);
+        this->sort_conjugate_pairs(mSamplingPoints);
         KRATOS_WATCH(mSamplingPoints)
 
 
@@ -419,108 +418,23 @@ class MorSecondOrderIRKAStrategy
         auto& r_M_reduced = this->GetMr();
         auto& r_D_reduced = this->GetDr();
 
-
+        // helper for auxiliary products
         TSystemMatrixType T;
 
         // projections
-        T = prod( trans(r_Vr_sparse), r_M_tmp );
-        r_M_reduced = prod( T, r_Vr_sparse );
+        // T = prod( trans(r_Vr_sparse), r_M_tmp );
+        // r_M_reduced = prod( T, r_Vr_sparse );
 
-        T = prod( trans(r_Vr_sparse), r_D_tmp );
-        r_D_reduced = prod( T, r_Vr_sparse );
+        // T = prod( trans(r_Vr_sparse), r_D_tmp );
+        // r_D_reduced = prod( T, r_Vr_sparse );
 
-        T = prod( trans(r_Vr_sparse), r_K_tmp );
-        r_K_reduced = prod( T, r_Vr_sparse );
+        // T = prod( trans(r_Vr_sparse), r_K_tmp );
+        // r_K_reduced = prod( T, r_Vr_sparse );
 
-        r_b_reduced = prod( trans(r_Vr_sparse), r_b_tmp);
+        // r_b_reduced = prod( trans(r_Vr_sparse), r_b_tmp);
 
-        KRATOS_WATCH(r_M_reduced)
-  
+        // KRATOS_WATCH(r_M_reduced)
 
-/*
-
-
-        //mit dem hier, angelehnt an den Matlab-Code, klappt es nicht...
-
-        for(size_t i=0; i < n_sampling_points/2; ++i)
-        {
-            KRATOS_WATCH(mSamplingPoints(2*i)) // ok
-            r_tmp_Vn = std::pow( mSamplingPoints(2*i), 2.0 ) * r_M + mSamplingPoints(2*i) * r_D + r_K;
-            //KRATOS_WATCH(r_tmp_Vn) // ok
-            this->GetLinearSolver()->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b); // Ax = b, solve for x
-            KRATOS_WATCH(r_tmp_Vr_col);  // ok, but sometimes needs two runs to work
-            //auto aux_col_real = real(r_tmp_Vr_col);
-            //auto aux_col_imag = imag(r_tmp_Vr_col);
-            column(r_Vr, 2*i) = real(r_tmp_Vr_col) ;
-            column(r_Vr, 2*i+1) = imag(r_tmp_Vr_col) ;
-            //column(r_Vr, 2*i) = aux_col_real;
-            //column(r_Vr, 2*i+1) = aux_col_imag;
-
-            KRATOS_WATCH(column(r_Vr, 2*i));  // not ok, all zero
-            KRATOS_WATCH(column(r_Vr, 2*i+1)); // not ok, all zero
-        }
-
-
-        // complex tests to better understand whats the problem with real and imag
-        // in minimal examples it works as expected...
-        
-        // //vector<complex> test_vec (2);// = {(1.5, 2.3), (2.7, 5.4)};
-        // //test_vec(0) = complex (1.5, 2.3);
-        // //test_vec(1) = complex (2.7, 5.4);
-        // vector<double> test_vec(2);
-        // test_vec(0) = 1.5;
-        // test_vec(1) = 2.7;
-        // KRATOS_WATCH(test_vec);
-        // //vector<double> test_real = real(test_vec);
-        // //vector<double> test_imag = imag(test_vec);
-        // KRATOS_WATCH(real(test_vec));
-        // KRATOS_WATCH(imag(test_vec));
-
-
-        // TODO: very big entries in r_Vr, check if results are wrong
-        // works for n=50 (306), but not for n=5 (36)
-        //KRATOS_WATCH(r_Vr)
-
-
-        // for(size_t i=0; i < n_sampling_points; ++i)
-        // {
-        //     r_tmp_Vn = std::pow( mSamplingPoints(i), 2.0 ) * r_M + mSamplingPoints(i) * r_D + r_K;
-        //     p_builder_and_solver->GetLinearSystemSolver()->Solve( r_tmp_Vn, r_tmp_Vr_col, r_b);
-        //     column(r_Vr, i) = r_tmp_Vr_col;
-        // }
-
-
-
-
-        //orthogonalize
-        // TODO: if time left, replace by some orthogonlization method
-        mQR_decomposition.compute( system_size, reduced_system_size, &(r_Vr)(0,0) );
-        mQR_decomposition.compute_q();
-
-        for(size_t i=0; i < system_size; ++i)
-        {
-            for(size_t j=0; j < reduced_system_size; ++j)
-            {
-                r_Vr(i,j) = mQR_decomposition.Q(i,j);
-
-            }
-        }
-
-
-        // here only 0 entries...
-        //KRATOS_WATCH(r_Vr)
-
-    
-
-
-        // initialize reduced matrices and vectors
-        auto& r_b_reduced = this->GetRHSr();
-        auto& r_K_reduced = this->GetKr();
-        auto& r_M_reduced = this->GetMr();
-        auto& r_D_reduced = this->GetDr();
-
-        // helper for auxiliary products
-        TSystemMatrixType T;
 
         // initialize linearization matrices
         auto L1_ptr = SparseSpaceType::CreateEmptyMatrixPointer();
@@ -536,7 +450,7 @@ class MorSecondOrderIRKAStrategy
 
         // initialize output for Eigensolver
         TDenseVectorType Eigenvalues;
-        TDenseMatrixType Eigenvectors;
+        TDenseMatrixType Eigenvectors;  //not needed, but need to be set to call the Eigensolver
 
 
 
@@ -546,17 +460,19 @@ class MorSecondOrderIRKAStrategy
         while(iter < 5 && err > 1e-4)
         {
             // projections
-            T = prod( trans(r_Vr), r_M );
-            r_M_reduced = prod( T, r_Vr );
+            T = prod( trans(r_Vr_sparse), r_M_tmp );
+            r_M_reduced = prod( T, r_Vr_sparse );
 
-            T = prod( trans(r_Vr), r_D );
-            r_D_reduced = prod( T, r_Vr );
+            T = prod( trans(r_Vr_sparse), r_D_tmp );
+            r_D_reduced = prod( T, r_Vr_sparse );
 
-            T = prod( trans(r_Vr), r_K );
-            r_K_reduced = prod( T, r_Vr );
+            T = prod( trans(r_Vr_sparse), r_K_tmp );
+            r_K_reduced = prod( T, r_Vr_sparse );
 
-            KRATOS_WATCH(r_M_reduced)  //hm, ok...
-            KRATOS_WATCH(r_D_reduced)  // rest not so ok
+            r_b_reduced = prod( trans(r_Vr_sparse), r_b_tmp);
+
+            KRATOS_WATCH(r_M_reduced)  
+            KRATOS_WATCH(r_D_reduced)  
             KRATOS_WATCH(r_K_reduced)
 
             subrange(r_L1, 0, reduced_system_size, 0, reduced_system_size) = r_D_reduced;
@@ -567,7 +483,11 @@ class MorSecondOrderIRKAStrategy
             subrange(r_L2, reduced_system_size, 2*reduced_system_size, reduced_system_size, 2*reduced_system_size) = id_r;
 
 
-            p_eigensolver->GetLinearSystemSolver()->Solve(
+            //TODO: hard code settings for the Eigensolver needed for IRKA
+            //i.e.: 
+            //number_of_eigenvalues = 2*reduced_system_size
+            //compute_eigenvectors = false
+            mpLinearEigenSolver->Solve(
                 r_L1,
                 r_L2,
                 Eigenvalues,
@@ -576,11 +496,29 @@ class MorSecondOrderIRKAStrategy
 
             KRATOS_WATCH(Eigenvalues)
 
-            this->test_fun();
+            vector<complex> lam (2*reduced_system_size);
+            for(size_t ii = 0; ii<2*reduced_system_size; ii++)
+            {
+                lam(ii) = complex( Eigenvalues(2*ii), Eigenvalues(2*ii+1) );
+            }
 
-            // test sorting
-            // does not work, maybe build own one if no boost/ublas function available
+            KRATOS_WATCH(lam)
 
+            this->sort_conjugate_pairs(lam);
+
+            KRATOS_WATCH(lam) // ok
+
+            iter++;
+        }
+  
+
+/*
+
+       
+            
+          
+
+      
             // // vector<double> ev_real;
             // // vector<double> ev_imag;
             // // ev_real.resize(reduced_system_size*2);
@@ -714,7 +652,7 @@ class MorSecondOrderIRKAStrategy
 
     vector< complex > mSamplingPoints;
     QR<double, row_major> mQR_decomposition;
-    //typename TLinearSolver::Pointer mpNewLinearEigenSolver;
+    typename TLinearSolver::Pointer mpLinearEigenSolver;
     ComplexLinearSolverType::Pointer mpComplexLinearSolver;
 
     //typename TLinearSolver::Pointer mpLinearSolver;
@@ -762,14 +700,6 @@ class MorSecondOrderIRKAStrategy
     ///@}
     ///@name Un accessible methods
 
-        void test_fun(){
-            std::cout<<"test worked \n";
-        }
-
-        //TODO: adapt this example of stackoverflow
-        bool compareFunc(std::pair<double,double> &a, std::pair<double,double> &b){
-            return a.second > b.second;
-        }
 
         // tentative sort function, immitating cplxpair of Matlab
         // needs to be optimized, but the size of mSamplingPoints, i.e. the reduced system size, is not so large anyway
@@ -791,11 +721,7 @@ class MorSecondOrderIRKAStrategy
                 related_imag_part = v(idx_min_real_part).imag();
                 tmp_v = v;
 
-                std::cout<<"looking at k="<<k<<std::endl;
-                KRATOS_WATCH(v)
-                std::cout<<std::endl;
 
-                std::cout<<"find the min real part"<<std::endl;
                 // find current min real part in v
                 for(size_t i=k; i<length_of_v; i++)
                 {
@@ -805,89 +731,36 @@ class MorSecondOrderIRKAStrategy
                         idx_min_real_part = i;
                         related_imag_part = v(i).imag();
                     }
-                    
                 }
-                std::cout<<"min real part found in i="<<idx_min_real_part<<std::endl;
-                std::cout<<"related imag part: "<<related_imag_part<<std::endl;
-                std::cout<<" do the swap"<<std::endl;
 
-                // swap the complex number with min real part with the first free entry
+                // swap the complex number of min real part with the first free entry
                 v(k) = v(idx_min_real_part);
                 //
                 v(idx_min_real_part) = tmp_v(k);
                 tmp_v = v;
 
-                KRATOS_WATCH(v)
-
-                std::cout<<std::endl;
-                std::cout<<"look for the other imag part"<<std::endl;
-
                 // search for the related imaginary part
                 for(size_t i=k+1; i<length_of_v; i++)
                 {
-                    std::cout<<i<<", "<<v(i)<<std::endl;
-                    double check_val = abs(v(i).imag() + related_imag_part);
-                    KRATOS_WATCH(check_val)
                     // compare with "+"" since the conjugate has the opposite sign
                     if(abs(v(i).imag() + related_imag_part)<1e-4)
                     {
-                        std::cout<<"swap_imag\n"<<std::endl;
                         // swap with the current first free entry
                         v(k+1) = v(i);
                         v(i) = tmp_v(k+1);
-                        KRATOS_WATCH(v)
 
                         // change sign so that the number with a negative imaginary part comes first in the pair
-                        std::cout<<"change the sign if necessary"<<std::endl;
                         if(related_imag_part>0)
                         {
                             v(k)   = std::conj(v(k));
                             v(k+1) = std::conj(v(k+1));
                         }
-                        KRATOS_WATCH(v)
                         break;
                     }
-
-                    KRATOS_WATCH(v)
                     
                 }
 
-                std::cout<<"end of the imag search"<<std::endl; 
-                std::cout<<std::endl;
-
-                // std::cout<<"set the new values"<<std::endl;
-
-                // // set next
-                // // idx_min_real_part = k+2;
-                // // min_real_part = v(idx_min_real_part).real();
-                // // related_imag_part = v(idx_min_real_part).imag();
-                // // tmp_v = v;
-
-                // KRATOS_WATCH(idx_min_real_part)
-                // KRATOS_WATCH(min_real_part)
-                // KRATOS_WATCH(related_imag_part)
-
-                std::cout<<std::endl;
-                std::cout<<std::endl;
-                std::cout<<std::endl;
-
             }
-
-            // std::cout<<"check the signs of the last half"<<std::endl;
-            // // check the sign of the pairs in the last half
-            // for(size_t k=(length_of_v/2)+1; k<length_of_v; k+=2)
-            // {
-            //     std::cout<<"  looking at k="<<k<<std::endl;
-            //     KRATOS_WATCH(v)
-            //     if(v(k).imag()>0)
-            //     {
-            //         v(k)   = std::conj(v(k));   
-            //         v(k+1) = std::conj(v(k+1));   
-            //     }
-            //     KRATOS_WATCH(v)
-
-            // }
-            // KRATOS_WATCH(v)
 
         }
 
