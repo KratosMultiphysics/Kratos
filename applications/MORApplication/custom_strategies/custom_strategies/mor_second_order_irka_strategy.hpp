@@ -490,9 +490,72 @@ class MorSecondOrderIRKAStrategy
         KRATOS_WATCH(r_M_reduced)
 
 
-
         std::cout << "MOR offline solve finished" << std::endl;
         
+
+
+
+        // write the matrices into files in order to do post-processing
+        // TODO: this is a quick dirty output; build another function/file for the post-processing step
+
+        // write reduced matrices
+        std::stringstream matrix_market_m_reduced;
+        matrix_market_m_reduced << "M_reduced" << ".mm";
+        TDenseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_m_reduced.str()).c_str(), r_M_reduced, false);
+
+        std::stringstream matrix_market_k_reduced;
+        matrix_market_k_reduced << "K_reduced" << ".mm";
+        TDenseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_k_reduced.str()).c_str(), r_K_reduced, false);
+
+        std::stringstream matrix_market_d_reduced;
+        matrix_market_d_reduced << "D_reduced" << ".mm";
+        TDenseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_d_reduced.str()).c_str(), r_D_reduced, false);
+
+        std::stringstream matrix_market_b_reduced;
+        matrix_market_b_reduced << "b_reduced" << ".mm";
+        TDenseSpace::WriteMatrixMarketVector((char *)(matrix_market_b_reduced.str()).c_str(), r_b_reduced);
+
+
+        // write full system size matrices (double)
+        std::stringstream matrix_market_m_full;
+        matrix_market_m_full << "M_full" << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_m_full.str()).c_str(), r_M_tmp, false);
+
+        std::stringstream matrix_market_k_full;
+        matrix_market_k_full << "K_full" << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_k_full.str()).c_str(), r_K_tmp, false);
+
+        std::stringstream matrix_market_d_full;
+        matrix_market_d_full << "D_full" << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_d_full.str()).c_str(), r_D_tmp, false);
+
+        std::stringstream matrix_market_b_full;
+        matrix_market_b_full << "b_full" << ".mm";
+        TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_b_full.str()).c_str(), r_b_tmp);
+
+
+        // write the transformation matrix
+        std::stringstream matrix_market_vr;
+        matrix_market_vr << "Vr" << ".mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_vr.str()).c_str(), r_Vr_sparse, false);
+
+   
+
+        std::ofstream time_file;
+        time_file.open("times.txt", std::ios::out | std::ios::app);
+        time_file << duration << " seconds\n";
+        time_file.close();
+
+
+
+
+
+
+
+
+
+
+
 		return true;
 
         KRATOS_CATCH("");
