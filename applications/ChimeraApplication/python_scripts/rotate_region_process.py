@@ -1,4 +1,4 @@
-import KratosMultiphysics
+import KratosMultiphysics 
 import KratosMultiphysics.ChimeraApplication as KratosChimera
 import warnings
 

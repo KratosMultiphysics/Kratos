@@ -123,7 +123,8 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(result[1], 0.447214, TOLERANCE);
         KRATOS_CHECK_NEAR(result[2], 0.0, TOLERANCE);
 
-        auto derivatives = curve.GlobalDerivatives(parameter, 5);
+        std::vector<array_1d<double, 3>> derivatives;
+        curve.GlobalSpaceDerivatives(derivatives, parameter, 5);
 
         KRATOS_CHECK_NEAR(derivatives[4][1], 0.0, TOLERANCE);
     }
@@ -165,7 +166,8 @@ typedef Node<3> NodeType;
             array_1d<double, 3> parameter(0.0);
             parameter[0] = 0.0;
 
-            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
+            std::vector<array_1d<double, 3>> derivatives;
+            curve.GlobalSpaceDerivatives(derivatives, parameter, 3);
 
             KRATOS_CHECK_NEAR(derivatives[0][0], 0, TOLERANCE);
             KRATOS_CHECK_NEAR(derivatives[0][1], -25, TOLERANCE);
@@ -202,7 +204,8 @@ typedef Node<3> NodeType;
             array_1d<double, 3> parameter(0.0);
             parameter[0] = 65.9462851997;
 
-            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
+            std::vector<array_1d<double, 3>> derivatives;
+            curve.GlobalSpaceDerivatives(derivatives, parameter, 3);
 
             KRATOS_CHECK_NEAR(derivatives[0][0], 17.372881, TOLERANCE);
             KRATOS_CHECK_NEAR(derivatives[0][1], -10.084746, TOLERANCE);
@@ -239,7 +242,8 @@ typedef Node<3> NodeType;
             array_1d<double, 3> parameter(0.0);
             parameter[0] = 125;
 
-            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
+            std::vector<array_1d<double, 3>> derivatives;
+            curve.GlobalSpaceDerivatives(derivatives, parameter, 3);
 
             KRATOS_CHECK_NEAR(derivatives[0][0], -15.801248, TOLERANCE);
             KRATOS_CHECK_NEAR(derivatives[0][1], 7.432826, TOLERANCE);
@@ -276,7 +280,8 @@ typedef Node<3> NodeType;
             array_1d<double, 3> parameter(0.0);
             parameter[0] = 131.892570399495;
 
-            const auto derivatives = curve.GlobalDerivatives(parameter, 3);
+            std::vector<array_1d<double, 3>> derivatives;
+            curve.GlobalSpaceDerivatives(derivatives, parameter, 3);
 
             KRATOS_CHECK_NEAR(derivatives[0][0], -25, TOLERANCE);
             KRATOS_CHECK_NEAR(derivatives[0][1], 15, TOLERANCE);

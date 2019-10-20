@@ -7,7 +7,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import subprocess
+import os, subprocess
 
 if kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication"):
     has_external_solvers_application = True

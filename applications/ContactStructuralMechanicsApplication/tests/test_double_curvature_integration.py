@@ -6,7 +6,7 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStruct
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Some additional imports
-from gid_output_process import GiDOutputProcess
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 # Some system imports
 import os

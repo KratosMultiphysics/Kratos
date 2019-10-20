@@ -70,8 +70,8 @@ def _ValidateObjectiveSettingsRecursively(objective_settings):
         "identifier"                          : "NO_IDENTIFIER_SPECIFIED",
         "type"                                : "minimization",
         "scaling_factor"                      : 1.0,
-        "use_kratos"                          : false,
-        "kratos_response_settings"            : {},
+        "analyzer"                            : "external",
+        "response_settings"                   : {},
         "is_combined"                         : false,
         "combined_responses"                  : [],
         "weight"                              : 1.0,
@@ -92,8 +92,8 @@ def _ValidateConstraintSettings(constraint_settings):
         "scaling_factor"                      : 1.0,
         "reference"                           : "initial_value",
         "reference_value"                     : 1.0,
-        "use_kratos"                          : false,
-        "kratos_response_settings"            : {},
+        "analyzer"                            : "external",
+        "response_settings"                   : {},
         "project_gradient_on_surface_normals" : false
     }""")
     for itr in range(constraint_settings.size()):

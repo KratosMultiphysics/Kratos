@@ -94,7 +94,7 @@ class RotateStructDispOperation(CoSimulationCouplingOperation):
         Following the answer in :
         https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
         """
-        M = __GetRotationMatrix(theta, axis)
+        M = self.__GetRotationMatrix(theta, axis)
         return np.dot(M,vector)
 
     def __GetRotationMatrix(self, theta, axis):

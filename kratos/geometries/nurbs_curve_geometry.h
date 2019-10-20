@@ -261,45 +261,8 @@ public:
     }
 
     ///@}
-    ///@name Operations
+    ///@name Operation within Global Space
     ///@{
-
-    /** 
-    * @brief This method maps from dimension space to working space and computes the
-    *        number of derivatives at the dimension parameter.
-    * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
-    * @param LocalCoordinates The local coordinates in dimension space
-    * @param Derivative Number of computed derivatives
-    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
-    * @see PointLocalCoordinates
-    */
-    std::vector<CoordinatesArrayType> GlobalDerivatives(
-        const CoordinatesArrayType& rCoordinates,
-        const SizeType DerivativeOrder) const
-    {
-        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, std::min(DerivativeOrder, PolynomialDegree()));
-
-        if (this->IsRational()) {
-            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
-        }
-        else {
-            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
-        }
-
-        std::vector<array_1d<double, 3>> derivatives(DerivativeOrder + 1);
-
-        for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
-            IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
-            derivatives[order] = (*this)[index_0] * shape_function_container(0, order);
-            for (IndexType u = 1; u < shape_function_container.NumberOfNonzeroControlPoints(); u++) {
-                IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + u;
-
-                derivatives[order] += (*this)[index] * shape_function_container(u, order);
-            }
-        }
-
-        return derivatives;
-    }
 
     /*
     * @brief This method maps from dimension space to working space.
@@ -330,6 +293,45 @@ public:
             rResult += (*this)[index] * shape_function_container(i, 0);
         }
         return rResult;
+    }
+
+    /** 
+    * @brief This method maps from dimension space to working space and computes the
+    *        number of derivatives at the dimension parameter.
+    * From Piegl and Tiller, The NURBS Book, Algorithm A3.2/ A4.2
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @param Derivative Number of computed derivatives
+    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+    * @see PointLocalCoordinates
+    */
+    void GlobalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const override
+    {
+        NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, DerivativeOrder);
+
+        if (this->IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rLocalCoordinates[0]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rLocalCoordinates[0]);
+        }
+
+        if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
+            rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
+        }
+
+
+        for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
+            IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
+            rGlobalSpaceDerivatives[order] = (*this)[index_0] * shape_function_container(0, order);
+            for (IndexType u = 1; u < shape_function_container.NumberOfNonzeroControlPoints(); u++) {
+                IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + u;
+
+                rGlobalSpaceDerivatives[order] += (*this)[index] * shape_function_container(u, order);
+            }
+        }
     }
 
     ///@}
