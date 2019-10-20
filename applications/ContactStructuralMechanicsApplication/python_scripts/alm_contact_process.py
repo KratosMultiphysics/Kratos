@@ -192,6 +192,12 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             else:
                 self.pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.main_model_part)
 
+        # We call the process info
+        process_info = self.main_model_part.ProcessInfo
+
+        # We initialize ACTIVE_SET_RESETED
+        process_info[CSMA.ACTIVE_SET_RESETED] = False
+
         # We call to the base process
         super(ALMContactProcess, self).ExecuteInitialize()
 
@@ -478,6 +484,9 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
 
+        # We call the process info
+        process_info = self.main_model_part.ProcessInfo
+
         if self.is_frictional:
             if not self.pure_slip:
                 if self.slip_step_reset_frequency > 0:
@@ -485,3 +494,4 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                     if self.slip_step_reset_counter >= self.slip_step_reset_frequency:
                         KM.VariableUtils().SetFlag(KM.SLIP, False, self._get_process_model_part().Nodes)
                         self.slip_step_reset_counter = 0
+                        process_info[CSMA.ACTIVE_SET_RESETED] = True
