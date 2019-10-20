@@ -152,8 +152,6 @@ class ApplicationGenerator(TemplateRule):
                 self._nameLower + "_application_variables.cpp.in",
             "template_application_variables.h.in":
                 self._nameLower + "_application_variables.h.in",
-            "TemplateApplication.py.in":
-                self._nameCamel + "Application.py.in",
             "tests/test_TemplateApplication.py.in":
                 "tests/test_" + self._nameCamel + "Application.py.in",
             "custom_python/test_python_application.cpp.in":
