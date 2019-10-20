@@ -269,7 +269,7 @@ public:
             TDataType dof_value = 0.0, dof_incr = 0.0;
 
             // Loop over Dofs
-            #pragma omp parallel for reduction(+:disp_solution_norm, normal_lm_solution_norm, tangent_lm_slip_solution_norm, tangent_lm_stick_solution_norm, disp_increase_norm, normal_lm_increase_norm, tangent_lm_slip_increase_norm, tangent_lm_stick_increase_norm, disp_dof_num, lm_dof_num, lm_stick_dof_num, lm_slip_dof_num, dof_id, dof_value, dof_incr)
+            #pragma omp parallel for firstprivate(dof_id, dof_value, dof_incr) reduction(+:disp_solution_norm, normal_lm_solution_norm, tangent_lm_slip_solution_norm, tangent_lm_stick_solution_norm, disp_increase_norm, normal_lm_increase_norm, tangent_lm_slip_increase_norm, tangent_lm_stick_increase_norm, disp_dof_num, lm_dof_num, lm_stick_dof_num, lm_slip_dof_num)
             for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
                 auto it_dof = it_dof_begin + i;
 
@@ -306,7 +306,7 @@ public:
                                 ++lm_stick_dof_num;
                             }
                         }
-                        lm_dof_num++;
+                        ++lm_dof_num;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
                         const auto it_node = r_nodes_array.find(it_dof->Id());
@@ -332,7 +332,7 @@ public:
                                 ++lm_stick_dof_num;
                             }
                         }
-                        lm_dof_num++;
+                        ++lm_dof_num;
                     } else if (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) {
                         // The normal of the node (TODO: how to solve this without accesing all the time to the database?)
                         const auto it_node = r_nodes_array.find(it_dof->Id());
@@ -358,11 +358,11 @@ public:
                                 ++lm_stick_dof_num;
                             }
                         }
-                        lm_dof_num++;
-                    } else {
+                        ++lm_dof_num;
+                    } else { // We will assume is displacement dof
                         disp_solution_norm += dof_value * dof_value;
                         disp_increase_norm += dof_incr * dof_incr;
-                        disp_dof_num++;
+                        ++disp_dof_num;
                     }
                 }
             }
