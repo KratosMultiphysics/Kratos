@@ -71,5 +71,7 @@ endif(USE_COTIRE MATCHES ON)
 install(TARGETS Kratos@{APP_NAME_CAMEL}Core DESTINATION libs )
 install(TARGETS Kratos@{APP_NAME_CAMEL}Application DESTINATION libs )
 
+file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_CAMEL}Application.py" "from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7\nimport KratosMultiphysics as KM\nfrom Kratos@{APP_NAME_CAMEL}Application import *\napplication = Kratos@{APP_NAME_CAMEL}Application()\napplication_name = \"Kratos@{APP_NAME_CAMEL}Application\"\napplication_folder = \"${CMAKE_CURRENT_SOURCE_DIR}\"\n\nKM._ImportApplicationAsModule(application, application_name, application_folder, __path__)")
+
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_CAMEL}Application.py" DESTINATION "KratosMultiphysics/@{APP_NAME_CAMEL}Application" RENAME "__init__.py")
