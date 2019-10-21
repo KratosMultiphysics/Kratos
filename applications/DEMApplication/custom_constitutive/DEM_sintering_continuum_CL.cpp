@@ -14,12 +14,6 @@
 
 namespace Kratos {
 
-	void DEM_sintering_continuum::Initialize() {
-
-		KRATOS_TRY
-			KRATOS_CATCH("")
-	}
-
 	DEMContinuumConstitutiveLaw::Pointer DEM_sintering_continuum::Clone() const {
 		DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_sintering_continuum(*this));
 		return p_clone;
@@ -313,7 +307,7 @@ namespace Kratos {
 
 		InitializeContact(element1, element2, indentation, minimal_radius, kn, sintering_displ);
 
-		mTensionLimit = 0.5 * 1e6 * (element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
+		mTensionLimit = 0.5 * (element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
 		const double limit_force = mTensionLimit * calculation_area;
 		if (indentation <= 0.0) { //COMPRESSION
 			LocalElasticContactForce[2] = - kn * (indentation - sintering_displ) * 0.666666666666666;

@@ -10,12 +10,12 @@ from KratosMultiphysics.DEMApplication import *
 
 class MaterialTest(object):
 
-  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, RigidFace_model_part):
+  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
       self.parameters = DEM_parameters
       self.graphs_path = graphs_path
       self.post_path = post_path
       self.spheres_model_part = spheres_model_part
-      self.RigidFace_model_part = RigidFace_model_part
+      self.rigid_face_model_part = rigid_face_model_part
       self.Procedures = weakref.proxy(procedures)
       self.solver = weakref.proxy(solver)
 
@@ -64,16 +64,28 @@ class MaterialTest(object):
       self.new_strain = 0.0
 
       # for the graph plotting
-      self.height = self.parameters["SpecimenLength"].GetDouble()
-      self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
-      self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
-      self.test_type = self.parameters["TestType"].GetString()
-      self.problem_name = self.parameters["problem_name"].GetString()
-      self.LoadingVelocity = self.parameters["LoadingVelocity"].GetDouble()
-      self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
-      self.MeshType = self.parameters["MeshType"].GetString()
-      self.MeshPath = self.parameters["MeshPath"].GetString()
+      if "material_test_settings" in DEM_parameters.keys():
+        self.height = self.parameters["material_test_settings"]["SpecimenLength"].GetDouble()
+        self.diameter = self.parameters["material_test_settings"]["SpecimenDiameter"].GetDouble()
+        self.ConfinementPressure = self.parameters["material_test_settings"]["ConfinementPressure"].GetDouble()
+        self.test_type = self.parameters["material_test_settings"]["TestType"].GetString()
+        self.LoadingVelocity = self.parameters["material_test_settings"]["LoadingVelocity"].GetDouble()
+        self.MeasuringSurface = self.parameters["material_test_settings"]["MeasuringSurface"].GetDouble()
+        self.MeshType = self.parameters["material_test_settings"]["MeshType"].GetString()
+        #self.MeshPath = self.parameters["material_test_settings"]["MeshPath"].GetString()
 
+      else:
+        self.height = self.parameters["SpecimenLength"].GetDouble()
+        self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
+        self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
+        self.test_type = self.parameters["TestType"].GetString()
+        self.LoadingVelocity = self.parameters["LoadingVelocity"].GetDouble()
+        self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
+        self.MeshType = self.parameters["MeshType"].GetString()
+        self.MeshPath = self.parameters["MeshPath"].GetString()
+
+
+      self.problem_name = self.parameters["problem_name"].GetString()
       self.initial_time = datetime.datetime.now()
 
       # self.energy_plot = open(energy_plot, 'w')
@@ -156,7 +168,7 @@ class MaterialTest(object):
             self.graph_export_volumetric   = open(absolute_path_to_file, 'w')
             #self.graph_export_volumetric = open(self.problem_name+"_graph_VOL.grf",'w')
 
-        self.Procedures.KRATOSprint ('Initial Height of the Model: ' + str(self.height)+'\n')
+        self.Procedures.KratosPrintInfo('Initial Height of the Model: ' + str(self.height)+'\n')
 
         (self.xtop_area,self.xbot_area,self.xlat_area,self.xtopcorner_area,self.xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
 
@@ -286,11 +298,11 @@ class MaterialTest(object):
 
         if(len(self.XLAT)==0):
 
-            self.Procedures.KRATOSprint("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES" + "\n")
+            self.Procedures.KratosPrintWarning("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES" + "\n")
 
         else:
 
-            self.Procedures.KRATOSprint("End "+ str(h) + "x" + str(d) + "Cylinder Skin Determination" + "\n")
+            self.Procedures.KratosPrintInfo("End "+ str(h) + "x" + str(d) + "Cylinder Skin Determination" + "\n")
 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, y_top_total, weight_top, y_bot_total, weight_bot)
 
@@ -322,14 +334,14 @@ class MaterialTest(object):
 
               element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
-      self.Procedures.KRATOSprint("End 30x15 Bts Skin Determination" + "\n")
+      self.Procedures.KratosPrintInfo("End 30x15 Bts Skin Determination" + "\n")
 
   def PrepareDataForGraph(self):
 
     prepare_check = [0,0,0,0]
     self.total_check = 0
 
-    for smp in self.RigidFace_model_part.SubModelParts:
+    for smp in self.rigid_face_model_part.SubModelParts:
         if smp[TOP]:
             self.top_mesh_nodes = smp.Nodes
             prepare_check[0] = 1
@@ -352,7 +364,7 @@ class MaterialTest(object):
 
     if(math.fabs(self.total_check)!=2):
 
-      self.Procedures.KRATOSprint(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
+      self.Procedures.KratosPrintWarning(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
 
   def MeasureForcesAndPressure(self):
 
@@ -369,7 +381,7 @@ class MaterialTest(object):
         force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
         total_force_bts += force_node_y
 
-      self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.height*self.diameter*1e6)
+      self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.height*self.diameter)
       self.strain_bts += -100*2*self.LoadingVelocity*dt/self.diameter
     else:
 
@@ -387,7 +399,7 @@ class MaterialTest(object):
 
         total_force_top += force_node_y
 
-      self.total_stress_top = total_force_top/(self.MeasuringSurface*1000000)
+      self.total_stress_top = total_force_top/(self.MeasuringSurface)
 
       for node in self.bot_mesh_nodes:
 
@@ -395,7 +407,7 @@ class MaterialTest(object):
 
         total_force_bot += force_node_y
 
-      self.total_stress_bot = total_force_bot/(self.MeasuringSurface*1000000)
+      self.total_stress_bot = total_force_bot/(self.MeasuringSurface)
 
       self.total_stress_mean = 0.5*(self.total_stress_bot + self.total_stress_top)
 
@@ -407,17 +419,17 @@ class MaterialTest(object):
 
       if ( ( (self.test_type == "Triaxial") or (self.test_type == "Hydrostatic") ) and (self.ConfinementPressure != 0.0) ):
 
-          self.Pressure = min(self.total_stress_mean*1e6, self.ConfinementPressure * 1e6)
+          self.Pressure = min(self.total_stress_mean, self.ConfinementPressure * 1e6)
 
           if( self.test_type == "Hydrostatic"):
 
-              self.Pressure = self.total_stress_mean*1e6
+              self.Pressure = self.total_stress_mean
 
           self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
 
   def PrintGraph(self, time):
 
-    for smp in self.RigidFace_model_part.SubModelParts:
+    for smp in self.rigid_face_model_part.SubModelParts:
         if smp[TOP]:
             self.mesh_nodes = smp.Nodes
 
@@ -427,20 +439,20 @@ class MaterialTest(object):
 
       if(self.test_type == "BTS"):
 
-        self.bts_export.write(str("%.8g"%time).rjust(12) +"  "+ str("%.6g"%self.total_stress_bts).rjust(13)+'\n')
+        self.bts_export.write(str("%.8g"%time).rjust(12) +"  "+ str("%.6g"%self.total_stress_bts*1e-6).rjust(13)+'\n')
         self.Flush(self.bts_export)
 
       else:
 
-        self.graph_export.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%self.total_stress_mean).rjust(13) +"  "+str("%.8g"%time).rjust(12)+'\n') # + str(coordinateY).rjust(12)+'\n')
-        self.graph_export_1.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%self.total_stress_top).rjust(13)+'\n')
-        self.graph_export_2.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%self.total_stress_bot).rjust(13)+'\n')
+        self.graph_export.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%self.total_stress_mean*1e-6).rjust(13) +"  "+str("%.8g"%time).rjust(12)+'\n') # + str(coordinateY).rjust(12)+'\n')
+        self.graph_export_1.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%self.total_stress_top*1e-6).rjust(13)+'\n')
+        self.graph_export_2.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%self.total_stress_bot*1e-6).rjust(13)+'\n')
         self.Flush(self.graph_export)
         self.Flush(self.graph_export_1)
         self.Flush(self.graph_export_2)
 
         if( self.test_type =="Hydrostatic"):
-          self.graph_export_volumetric.write(str("%.8g"%self.volumetric_strain).rjust(12)+"    "+str("%.6g"%self.total_stress_mean).rjust(13)+'\n')
+          self.graph_export_volumetric.write(str("%.8g"%self.volumetric_strain).rjust(12)+"    "+str("%.6g"%self.total_stress_mean*1e-6).rjust(13)+'\n')
           self.Flush(self.graph_export_volumetric)
 
     self.graph_counter += 1
@@ -463,16 +475,16 @@ class MaterialTest(object):
     self.chart.write( "    DYNFRC = " + (str(self.spheres_model_part.GetProperties()[1][FRICTION]).rjust(3))+"          " +'\n')
     self.chart.write( "    YOUNG  = " + (str(self.spheres_model_part.GetProperties()[1][YOUNG_MODULUS]/1e9).rjust(3))+" GPa"+"     " +'\n')
     self.chart.write( "    POISS  = " + (str(self.spheres_model_part.GetProperties()[1][POISSON_RATIO]).rjust(3))+"           " +'\n')
-    self.chart.write( "    FTS    = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_SIGMA_MIN]).rjust(3))+" Mpa        " +'\n')
-    self.chart.write( "    LCS1   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C1]).rjust(3))+" Mpa       " +'\n')
-    self.chart.write( "    LCS2   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C2]).rjust(3))+" Mpa       " +'\n')
-    self.chart.write( "    LCS3   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C3]).rjust(3))+" Mpa       " +'\n')
+    self.chart.write( "    FTS    = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_SIGMA_MIN]).rjust(3))+" Pa        " +'\n')
+    self.chart.write( "    LCS1   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C1]).rjust(3))+" Pa       " +'\n')
+    self.chart.write( "    LCS2   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C2]).rjust(3))+" Pa       " +'\n')
+    self.chart.write( "    LCS3   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_LIMIT_COEFF_C3]).rjust(3))+" Pa       " +'\n')
     self.chart.write( "    YRC1   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_FRACTION_N1]).rjust(3))+"           " +'\n')
     self.chart.write( "    YRC2   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_FRACTION_N2]).rjust(3))+"           " +'\n')
     self.chart.write( "    YRC3   = " + (str(self.spheres_model_part.GetProperties()[1][SLOPE_FRACTION_N3]).rjust(3))+"           " +'\n')
-    self.chart.write( "    FSS    = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_TAU_ZERO]).rjust(3))+" Mpa       " +'\n')
+    self.chart.write( "    FSS    = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_TAU_ZERO]).rjust(3))+" Pa       " +'\n')
     self.chart.write( "    YEP    = " + (str(self.spheres_model_part.GetProperties()[1][YOUNG_MODULUS_PLASTIC]/1e9).rjust(3))+" GPa"+"     " +'\n')
-    self.chart.write( "    YIELD  = " + (str(self.spheres_model_part.GetProperties()[1][PLASTIC_YIELD_STRESS]).rjust(3))+" Mpa       " +'\n')
+    self.chart.write( "    YIELD  = " + (str(self.spheres_model_part.GetProperties()[1][PLASTIC_YIELD_STRESS]).rjust(3))+" Pa       " +'\n')
     self.chart.write( "    EDR    = " + (str(self.spheres_model_part.GetProperties()[1][DAMAGE_FACTOR]).rjust(3))+"           " +'\n')
     self.chart.write( "    SEC    = " + (str(self.spheres_model_part.GetProperties()[1][SHEAR_ENERGY_COEF]).rjust(3))+"           " +'\n')
     self.chart.write( "                                    " +'\n')
@@ -484,7 +496,7 @@ class MaterialTest(object):
     absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_Parameter_chart.grf")
     data_extract_for_print = open(absolute_path_to_file,"r")
     for line in data_extract_for_print.readlines():
-        self.Procedures.KRATOSprint(line)
+        self.Procedures.KratosPrintInfo(line)
     data_extract_for_print.close()
 
   def FinalizeGraphs(self):
@@ -532,7 +544,7 @@ class MaterialTest(object):
 
         sigma = element.GetValue(CONTACT_SIGMA)
 
-        OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_mean*1e6))+'\n')
+        OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_mean))+'\n')
         counter += 1
 
         if(alpha_deg >= 0.0 and alpha_deg < 5.0):
@@ -644,10 +656,10 @@ class MaterialTest(object):
         self.sigma_rel_std_dev_table[ii] = sigma_rel_std_dev
         self.tau_mean_table[ii] = tau_mean
         self.tau_rel_std_dev_table[ii] = tau_rel_std_dev
-        self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_mean*1e6)
+        self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_mean)
         ii+=1
 
-    self.Procedures.KRATOSprint(self.sigma_ratio_table)
+    self.Procedures.KratosPrintInfo(self.sigma_ratio_table)
     OrientationChart.close()
 
   def ApplyLateralPressure(self, Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
@@ -758,7 +770,7 @@ class MaterialTest(object):
 
 
   def PoissonMeasure(self):
-      self.Procedures.KRATOSprint("Not Working now")
+      self.Procedures.KratosPrintWarning("Not Working now")
 
     #left_nodes = list()
     #right_nodes = list()

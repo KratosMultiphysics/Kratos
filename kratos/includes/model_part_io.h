@@ -82,10 +82,10 @@ public:
     ///@{
 
     /// Constructor with filenames.
-    ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
+    ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER);
 
     /// Constructor with stream.
-    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR);
+    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR|IO::SKIP_TIMER);
 
 
     /// Constructor with filenames.
@@ -108,78 +108,199 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method reads one node
+     * @param rThisNode The node to be read
+     */
     bool ReadNode(NodeType& rThisNode) override;
 
+    /**
+     * @brief This method reads the nodes from an array of nodes
+     * @param rThisNodes The array of nodes to be read
+     */
     bool ReadNodes(NodesContainerType& rThisNodes) override;
 
+    /**
+     * @brief This method reads the number of nodes
+     * @return The number of nodes
+     */
     std::size_t ReadNodesNumber() override;
 
+    /**
+     * @brief This method writes the nodes from an array of nodes
+     * @param rThisNodes The array of nodes to be written
+     */
     void WriteNodes(NodesContainerType const& rThisNodes) override;
 
+    /**
+     * @brief This method reads one Properties
+     * @param rThisProperties The Properties to be read
+     */
     void ReadProperties(Properties& rThisProperties) override;
 
+    /**
+     * @brief This method reads the Properties from an array of Properties
+     * @param rThisProperties The array of Properties to be read
+     */
     void ReadProperties(PropertiesContainerType& rThisProperties) override;
 
-    virtual void WriteProperties(PropertiesContainerType& rThisProperties);
+    /**
+     * @brief This method writes one Properties
+     * @param rThisProperties The Properties to be written
+     */
+    void WriteProperties(PropertiesContainerType const& rThisProperties) override;
 
-    void ReadElement(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, Element::Pointer& pThisElements) override;
+    /**
+     * @brief This method reads one element
+     * @param rThisNodes The nodes constituying the element
+     * @param rThisProperties The Properties of the element
+     * @param pThisElements The pointer to the element
+     */
+    void ReadElement(
+        NodesContainerType& rThisNodes,
+        PropertiesContainerType& rThisProperties,
+        Element::Pointer& pThisElement
+        ) override;
 
-    void ReadElements(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements) override;
+    /**
+     * @brief This method reads an array of elements
+     * @param rThisNodes The nodes constituying the element
+     * @param rThisProperties The Properties of the element
+     * @param rThisElement The array of elements
+     */
+    void ReadElements(
+        NodesContainerType& rThisNodes,
+        PropertiesContainerType& rThisProperties,
+        ElementsContainerType& rThisElements
+        ) override;
 
+    /**
+     * @brief This method reads the elements connectivities
+     * @param rElementsConnectivities The elements connectivities
+     * @return The number of elements
+     */
     std::size_t  ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
 
+    /**
+     * @brief This method writes an array of elements
+     * @param rThisElements The array of elements to be written
+     */
     void WriteElements(ElementsContainerType const& rThisElements) override;
 
-    void ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions) override;
+    /**
+     * @brief This method reads an array of conditions
+     * @param rThisNodes The nodes constituying the condition
+     * @param rThisProperties The Properties of the condition
+     * @param rThisConditions The array of conditions
+     */
+    void ReadConditions(
+        NodesContainerType& rThisNodes,
+        PropertiesContainerType& rThisProperties,
+        ConditionsContainerType& rThisConditions
+        ) override;
 
+    /**
+     * @brief This method reads the conditions connectivities
+     * @param rConditionsConnectivities The conditions connectivities
+     * @return The number of conditions
+     */
     std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
-    virtual void WriteConditions(ConditionsContainerType const& rThisConditions) override;
+    /**
+     * @brief This method writes an array of conditions
+     * @param rThisConditions The array of conditions to be written
+     */
+    void WriteConditions(ConditionsContainerType const& rThisConditions) override;
 
+    /**
+     * @brief This method reads the initial values of the model part
+     * @param rThisModelPart The model part with the initial values to be read
+     */
     void ReadInitialValues(ModelPart& rThisModelPart) override;
 
 //       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
 
+    /**
+     * @brief This method reads the mesh
+     * @param rThisMesh The mesh to be read
+     */
     void ReadMesh(MeshType & rThisMesh) override;
 
-    virtual void WriteMesh(MeshType & rThisMesh);
+    /**
+     * @brief This method writes the mesh
+     * @param rThisMesh The mesh to be written
+     */
+    void WriteMesh(MeshType & rThisMesh) override;
 
+    /**
+     * @brief This method reads the model part
+     * @param rThisModelPart The model part to be read
+     */
     void ReadModelPart(ModelPart & rThisModelPart) override;
 
+    /**
+     * @brief This method writes the model part
+     * @param rThisModelPart The model part to be written
+     */
     void WriteModelPart(ModelPart & rThisModelPart) override;
 
-    /// Read the input file and create the nodal connectivities graph, stored in CSR format.
     /**
-     * This function produces input for Metis' nodal graph partitioning algorithms.
+     * @brief Read the input file and create the nodal connectivities graph, stored in CSR format.
+     * @details This function produces input for Metis' nodal graph partitioning algorithms.
      * The nodal graph is stored as a (compressed) matrix where index (i,j) is non-zero if
      * there is an edge in the mesh joining nodes i and j (note that nodes are numbered from zero here,
      * to make integration with Metis simpler).
-     * @param NodeIndices After call, will point to C array of size NumNodes+1 containing the
-     * first CSR array: entries related to node k are stored between positions (*NodeIndices)[k]
-     * and (*NodeIndices)[k+1] of *NodeConnectivities.
-     * @param NodeConnectivities After call, will point to a C array of size (*NodeIndices)[NumNodes].
+     * After call, will point to C array of size NumNodes+1 containing the first CSR array: entries related to node k are stored between positions (*NodeIndices)[k] and (*NodeIndices)[k+1] of *NodeConnectivities.
+     * @param rAuxConnectivities After call, will point to a C array of size (*NodeIndices)[NumNodes].
      * entries between (*NodeIndices)[k] and (*NodeIndices)[k+1] are a list of all nodes connected
      * to node k (counting from 0).
      * @return Number of nodes.
      */
-    std::size_t ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities) override;
+    std::size_t ReadNodalGraph(ConnectivitiesContainerType& rAuxConnectivities) override;
 
-    void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
-                                         PartitionIndicesType const& NodesPartitions,
-                                         PartitionIndicesType const& ElementsPartitions,
-                                         PartitionIndicesType const& ConditionsPartitions,
-                                         PartitionIndicesContainerType const& NodesAllPartitions,
-                                         PartitionIndicesContainerType const& ElementsAllPartitions,
-                                         PartitionIndicesContainerType const& ConditionsAllPartitions) override;
+    /**
+     * @brief This method divides a model part into partitions
+     * @param NumberOfPartitions The number of partitions
+     * @param rDomainsColoredGraph The colors of the partition graph
+     * @param rNodesPartitions The partitions indices of the nodes
+     * @param rElementsPartitions The partitions indices of the elements
+     * @param rConditionsPartitions The partitions indices of the conditions
+     * @param rNodesAllPartitions The partitions of the nodes
+     * @param rElementsAllPartitions The partitions of the elements
+     * @param rConditionsAllPartitions The partitions of the conditions
+     */
+    void DivideInputToPartitions(SizeType NumberOfPartitions,
+                                GraphType const& rDomainsColoredGraph,
+                                PartitionIndicesType const& rNodesPartitions,
+                                PartitionIndicesType const& rElementsPartitions,
+                                PartitionIndicesType const& rConditionsPartitions,
+                                PartitionIndicesContainerType const& rNodesAllPartitions,
+                                PartitionIndicesContainerType const& rElementsAllPartitions,
+                                PartitionIndicesContainerType const& rConditionsAllPartitions
+                                ) override;
 
-    void DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * Streams,
-                                         SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
-                                         PartitionIndicesType const& NodesPartitions,
-                                         PartitionIndicesType const& ElementsPartitions,
-                                         PartitionIndicesType const& ConditionsPartitions,
-                                         PartitionIndicesContainerType const& NodesAllPartitions,
-                                         PartitionIndicesContainerType const& ElementsAllPartitions,
-                                         PartitionIndicesContainerType const& ConditionsAllPartitions) override;
+    /**
+     * @brief This method divides a model part into partitions
+     * @param pStreams The stream pointer
+     * @param NumberOfPartitions The number of partitions
+     * @param rDomainsColoredGraph The colors of the partition graph
+     * @param rNodesPartitions The partitions indices of the nodes
+     * @param rElementsPartitions The partitions indices of the elements
+     * @param rConditionsPartitions The partitions indices of the conditions
+     * @param rNodesAllPartitions The partitions of the nodes
+     * @param rElementsAllPartitions The partitions of the elements
+     * @param rConditionsAllPartitions The partitions of the conditions
+     */
+    void DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * pStreams,
+                                SizeType NumberOfPartitions,
+                                GraphType const& rDomainsColoredGraph,
+                                PartitionIndicesType const& rNodesPartitions,
+                                PartitionIndicesType const& rElementsPartitions,
+                                PartitionIndicesType const& rConditionsPartitions,
+                                PartitionIndicesContainerType const& rNodesAllPartitions,
+                                PartitionIndicesContainerType const& rElementsAllPartitions,
+                                PartitionIndicesContainerType const& rConditionsAllPartitions
+                                ) override;
 
     void SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream);
 
@@ -198,24 +319,22 @@ public:
     ///@name Input and output
     ///@{
 
-//       /// Turn back information as a string.
-//       virtual std::string Info() const
-//  {
-//    return "ModelPartIO";
-//  }
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ModelPartIO";
+    }
 
-//       /// Print information about this object.
-//       virtual void PrintInfo(std::ostream& rOStream) const
-//  {
-//    rOStream << "ModelPartIO";
-//  }
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "ModelPartIO";
+    }
 
-
-//       /// Print object's data.
-//       virtual void PrintData(std::ostream& rOStream) const
-//  {
-//  }
-
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
 
     ///@}
     ///@name Friends
@@ -550,6 +669,12 @@ private:
 
     inline void CreatePartition(unsigned int NumberOfThreads,const int NumberOfRows, DenseVector<unsigned int>& partitions);
 
+    /// Iterate over a Node block, calling ReorderedNodeId on each node.
+    /** This method allows derived implementations to initalize reordering
+     *  without storing the nodes.
+     */
+    void ScanNodeBlock();
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -558,7 +683,6 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods

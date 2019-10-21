@@ -88,11 +88,11 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         model_part1.CreateNewCondition("Condition2D2N", 2, [2,4], model_part1.GetProperties()[1])
         model_part1.CreateNewCondition("Condition2D2N", 1, [1,2], model_part1.GetProperties()[1])
         sub1.AddConditions([2])
-        
+
         current_model = KratosMultiphysics.Model()
         new_model_part = current_model.CreateModelPart("New1")
         new_model_part2 = current_model.CreateModelPart("New2")
-        
+
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "Condition2D2N")
         self.assertEqual(len(model_part1.Nodes) , len(new_model_part.Nodes))
@@ -150,9 +150,53 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
         self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.VELOCITY))
 
+    def test_element_only_copy(self):
+        current_model = KratosMultiphysics.Model()
+        model_part1 = current_model.CreateModelPart("Main")
+        model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
+        model_part1.CreateNewNode(1,0.0,0.1,0.2)
+        model_part1.CreateNewNode(2,2.0,0.1,0.2)
+        model_part1.CreateNewNode(3,1.0,1.1,0.2)
+        model_part1.CreateNewNode(4,2.0,3.1,10.2)
 
+        sub1 = model_part1.CreateSubModelPart("sub1")
 
+        model_part1.CreateNewElement("Element2D3N", 1, [1,2,3], model_part1.GetProperties()[1])
+        model_part1.CreateNewElement("Element2D3N", 2, [1,2,4], model_part1.GetProperties()[1])
+
+        model_part1.CreateNewCondition("Condition2D2N", 2, [2,4], model_part1.GetProperties()[1])
+        sub1.AddConditions([2])
+
+        element_model_part = current_model.CreateModelPart("ElementCopy")
+
+        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+
+        modeler.GenerateModelPart(model_part1, element_model_part, "Element2D3N")
+
+        self.assertEqual(len(element_model_part.Nodes) , len(model_part1.Nodes))
+        self.assertEqual(len(element_model_part.Elements) , len(model_part1.Elements))
+        self.assertEqual(len(element_model_part.Conditions) , 0)
+
+        element_sub1_copy = element_model_part.GetSubModelPart("sub1")
+
+        self.assertEqual(len(element_sub1_copy.Nodes) , len(sub1.Nodes))
+        self.assertEqual(len(element_sub1_copy.Elements) , len(sub1.Elements))
+        self.assertEqual(len(element_sub1_copy.Conditions) , 0)
+
+        condition_model_part = current_model.CreateModelPart("ConditionCopy")
+
+        modeler.GenerateModelPart(model_part1, condition_model_part, "Condition2D2N")
+
+        self.assertEqual(len(condition_model_part.Nodes) , len(model_part1.Nodes))
+        self.assertEqual(len(condition_model_part.Elements) , 0)
+        self.assertEqual(len(condition_model_part.Conditions) , len(model_part1.Conditions))
+
+        condition_sub1_copy = condition_model_part.GetSubModelPart("sub1")
+
+        self.assertEqual(len(condition_sub1_copy.Nodes) , len(sub1.Nodes))
+        self.assertEqual(len(condition_sub1_copy.Elements) , 0)
+        self.assertEqual(len(condition_sub1_copy.Conditions) , len(sub1.Conditions))
 
 
 if __name__ == '__main__':

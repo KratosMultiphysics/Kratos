@@ -58,7 +58,7 @@ public:
     ///@{
 
     /// Pointer definition of EmbeddedFluidElement
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedFluidElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedFluidElement);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -171,6 +171,11 @@ public:
                             Geometry<NodeType>::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
+    /// Set up the element for solution.
+    /** For EmbeddedFluidElement, this initializes the nodal imposed velocity (EMBEDDED_VELOCITY)
+     */
+    void Initialize() override;
+
     /// Calculates both LHS and RHS contributions
     /**
      * Computes the LHS and RHS elementar matrices. If the element is split
@@ -238,6 +243,24 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    /**
+     * @brief Base element GetValueOnIntegrationPoints
+     * Called to avoid reimplementing the variable types specializations not required
+     */
+    using TBaseElement::GetValueOnIntegrationPoints;
+
+    /**
+     * @brief Get the Value On Integration Points object
+     * Computes the value in the Gauss pts. for a three component array variable
+     * @param rVariable Array variable to be computed
+     * @param rValues Computed gauss point values
+     * @param rCurrentProcessInfo Current process info
+     */
+    void GetValueOnIntegrationPoints(
+        const Variable<array_1d<double, 3>> &rVariable,
+        std::vector<array_1d<double, 3>> &rValues,
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -364,7 +387,7 @@ protected:
         MatrixType& rLHS,
         VectorType& rRHS,
         const EmbeddedElementData& rData) const;
-    
+
     /**
      * This function computes the penalty coefficient for the level set BC imposition
      * @param rLeftHandSideMatrix reference to the LHS matrix

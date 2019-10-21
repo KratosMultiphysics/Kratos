@@ -12,7 +12,7 @@
 
 namespace Kratos {
 
-    void DEM_Dempack::Initialize() {
+    void DEM_Dempack::Initialize(SphericContinuumParticle* owner_sphere) {
 
     KRATOS_TRY
         mHistoryMaxInd              = 0.0; //maximum indentation achieved
@@ -79,10 +79,10 @@ namespace Kratos {
 
         if (&element1_props == &element2_props) {
              mDamageMaxDisplacementFactor = element1_props[DAMAGE_FACTOR];
-             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
+             mTensionLimit = element1_props[CONTACT_SIGMA_MIN];
         } else {
             mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
-            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
+            mTensionLimit = 0.5*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
         }
 
         const double Ntstr_el = mTensionLimit * calculation_area;
@@ -243,25 +243,25 @@ namespace Kratos {
              mN1 = element1_props[SLOPE_FRACTION_N1];
              mN2 = element1_props[SLOPE_FRACTION_N2];
              mN3 = element1_props[SLOPE_FRACTION_N3];
-             mC1 = element1_props[SLOPE_LIMIT_COEFF_C1]*1e6;
-             mC2 = element1_props[SLOPE_LIMIT_COEFF_C2]*1e6;
-             mC3 = element1_props[SLOPE_LIMIT_COEFF_C3]*1e6;
+             mC1 = element1_props[SLOPE_LIMIT_COEFF_C1];
+             mC2 = element1_props[SLOPE_LIMIT_COEFF_C2];
+             mC3 = element1_props[SLOPE_LIMIT_COEFF_C3];
              mYoungPlastic = element1_props[YOUNG_MODULUS_PLASTIC];
-             mPlasticityLimit = element1_props[PLASTIC_YIELD_STRESS]*1e6;
+             mPlasticityLimit = element1_props[PLASTIC_YIELD_STRESS];
              mDamageMaxDisplacementFactor = element1_props[DAMAGE_FACTOR];
-             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6; //N/m2
+             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]; //N/m2
         } else {
 
             mN1 = 0.5*(element1_props[SLOPE_FRACTION_N1] + element2_props[SLOPE_FRACTION_N1] );
             mN2 = 0.5*(element1_props[SLOPE_FRACTION_N2] + element2_props[SLOPE_FRACTION_N2] );
             mN3 = 0.5*(element1_props[SLOPE_FRACTION_N3] + element2_props[SLOPE_FRACTION_N3] );
-            mC1 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C1] + element2_props[SLOPE_LIMIT_COEFF_C1]);
-            mC2 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C2] + element2_props[SLOPE_LIMIT_COEFF_C2]);
-            mC3 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C3] + element2_props[SLOPE_LIMIT_COEFF_C3]);
+            mC1 = 0.5*(element1_props[SLOPE_LIMIT_COEFF_C1] + element2_props[SLOPE_LIMIT_COEFF_C1]);
+            mC2 = 0.5*(element1_props[SLOPE_LIMIT_COEFF_C2] + element2_props[SLOPE_LIMIT_COEFF_C2]);
+            mC3 = 0.5*(element1_props[SLOPE_LIMIT_COEFF_C3] + element2_props[SLOPE_LIMIT_COEFF_C3]);
             mYoungPlastic = 0.5*(element1_props[YOUNG_MODULUS_PLASTIC] + element2_props[YOUNG_MODULUS_PLASTIC]);
-            mPlasticityLimit = 0.5*1e6*(element1_props[PLASTIC_YIELD_STRESS] + element2_props[PLASTIC_YIELD_STRESS]);
+            mPlasticityLimit = 0.5*(element1_props[PLASTIC_YIELD_STRESS] + element2_props[PLASTIC_YIELD_STRESS]);
             mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
-            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
+            mTensionLimit = 0.5*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
         }
 
         const double kn_b = kn_el / mN1;
@@ -410,15 +410,15 @@ namespace Kratos {
 
         if (&element1_props == &element2_props) {
 
-            mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
-            mTauZero = element1_props[CONTACT_TAU_ZERO]*1e6;
+            mTensionLimit = element1_props[CONTACT_SIGMA_MIN];
+            mTauZero = element1_props[CONTACT_TAU_ZERO];
             mInternalFriccion = element1_props[CONTACT_INTERNAL_FRICC];
             mShearEnergyCoef = element1_props[SHEAR_ENERGY_COEF];
         }
         else{
 
-            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
-            mTauZero = 0.5*1e6*(element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
+            mTensionLimit = 0.5*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
+            mTauZero = 0.5*(element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
             mInternalFriccion = 0.5*(element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
             mShearEnergyCoef = 0.5*(element1_props[SHEAR_ENERGY_COEF] + element2_props[SHEAR_ENERGY_COEF]);
         }
@@ -497,79 +497,6 @@ namespace Kratos {
         }
     KRATOS_CATCH("")
     }
-
-//     */
-
-
-    /* void DEM_Dempack::CalculateTangentialForces(double LocalElasticContactForce[3],
-            double LocalCoordSystem[3][3],
-            double LocalDeltDisp[3],
-            const double kt_el,
-            const double equiv_shear,
-            double& contact_sigma,
-            double& contact_tau,
-            double indentation,
-            double calculation_area,
-            double& failure_criterion_state,
-            SphericContinuumParticle* element1,
-            SphericContinuumParticle* element2,
-            int i_neighbour_count,
-            bool& sliding,
-            int search_control,
-            DenseVector<int>& search_control_vector,
-            const ProcessInfo& r_process_info) {
-
-
-
-        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
-
-        LocalElasticContactForce[0] -= kt_el * LocalDeltDisp[0]; // 0: first tangential
-        LocalElasticContactForce[1] -= kt_el * LocalDeltDisp[1]; // 1: second tangential
-
-        double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                  + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-
-
-        if (failure_type == 0) {                                //This means it has not broken
-            Properties& element1_props = element1->GetProperties();
-            Properties& element2_props = element2->GetProperties();
-            const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
-            const double mInternalFriction = 0.5 * (element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
-
-
-            contact_tau = ShearForceNow / calculation_area
-            contact_sigma = LocalElasticContactForce[2] / calculation_area;
-
-            double tau_strength = mTauZero;
-
-            if (contact_sigma >= 0) {
-                tau_strength = mTauZero + mInternalFriction * contact_sigma;
-            }
-
-            if (contact_tau > tau_strength) {
-                failure_type = 2; // shear
-            }
-        }
-        else {
-            const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
-            double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
-
-            if (Frictional_ShearForceMax < 0.0) {
-                Frictional_ShearForceMax = 0.0;
-            }
-
-            if ((ShearForceNow > Frictional_ShearForceMax) && (ShearForceNow != 0.0)) {
-                LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
-                LocalElasticContactForce[1] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[1];
-                sliding = true;
-            }
-        }
-
-
-    }
-*/
-
-
 
     void DEM_Dempack::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,

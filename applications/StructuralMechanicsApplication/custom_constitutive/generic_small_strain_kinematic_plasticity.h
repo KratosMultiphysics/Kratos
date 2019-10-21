@@ -6,8 +6,8 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo 
-//  Collaborator:    
+//  Main authors:    Alejandro Cornejo
+//  Collaborator:
 //
 
 #if !defined(KRATOS_GENERIC_SMALL_STRAIN_KINEMATIC_PLASTICITY_H_INCLUDED)
@@ -32,7 +32,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -51,7 +51,7 @@ namespace Kratos
  * @brief This class is the base class which define all the constitutive laws for kinematic plasticity in small deformation
  * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
- * @author Alejandro Cornejo 
+ * @author Alejandro Cornejo
  */
 template <class TConstLawIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainKinematicPlasticity
@@ -66,16 +66,22 @@ public:
 
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
-    
+
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
+    /// The definition of the Voigt array type
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+
     /// Counted pointer of GenericSmallStrainKinematicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainKinematicPlasticity);
-    
+
     /// The node definition
     typedef Node<3> NodeType;
-    
+
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
 
@@ -103,17 +109,10 @@ public:
     */
     GenericSmallStrainKinematicPlasticity(const GenericSmallStrainKinematicPlasticity &rOther)
         : BaseType(rOther),
-        mPlasticDissipation(rOther.mPlasticDissipation),
-        mThreshold(rOther.mThreshold),
-        mPlasticStrain(rOther.mPlasticStrain),
-        mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation),
-        mNonConvThreshold(rOther.mNonConvThreshold),
-        mNonConvPlasticStrain(rOther.mNonConvPlasticStrain),
-        mUniaxialStress(rOther.mUniaxialStress),
-        mPreviousStressVector(rOther.mPreviousStressVector),
-        mBackStressVector(rOther.mBackStressVector),
-        mNonConvergedBackStressVector(rOther.mNonConvergedBackStressVector),
-        mNonConvergedPreviousStressVector(rOther.mNonConvergedPreviousStressVector)
+          mPlasticDissipation(rOther.mPlasticDissipation),
+          mThreshold(rOther.mThreshold),
+          mPlasticStrain(rOther.mPlasticStrain),
+          mPreviousStressVector(rOther.mPreviousStressVector)
     {
     }
 
@@ -170,21 +169,6 @@ public:
         ) override;
 
     /**
-     * @brief To be called at the end of each solution step
-     * @details (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties &rMaterialProperties,
-        const GeometryType &rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
@@ -220,7 +204,7 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector> &rThisVariable) override;
-    
+
     /**
      * @brief Returns whether this constitutive Law has specified variable (Matrix)
      * @param rThisVariable the variable to be checked for
@@ -309,7 +293,7 @@ public:
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
-        
+
     /**
      * @brief Returns the value of a specified variable (matrix)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -372,28 +356,12 @@ protected:
     double& GetPlasticDissipation() { return mPlasticDissipation; }
     Vector& GetPlasticStrain() { return mPlasticStrain; }
 
-    double& GetNonConvThreshold() { return mNonConvThreshold; }
-    double& GetNonConvPlasticDissipation() { return mNonConvPlasticDissipation; }
-    Vector& GetNonConvPlasticStrain() { return mNonConvPlasticStrain; }
-
     void SetThreshold(const double Threshold) { mThreshold = Threshold; }
     void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
     void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
 
-    void SetNonConvThreshold(const double NonConvThreshold) { mNonConvThreshold = NonConvThreshold; }
-    void SetNonConvPlasticDissipation(const double NonConvPlasticDissipation) { mNonConvPlasticDissipation = NonConvPlasticDissipation; }
-    void SetNonConvPlasticStrain(const array_1d<double, VoigtSize>& rNonConvPlasticStrain) { mNonConvPlasticStrain = rNonConvPlasticStrain; }
-
-    void SetBackStressVector (const Vector& toBS) {mBackStressVector = toBS; }
-    Vector& GetBackStressVector() { return mBackStressVector; }
-    Vector& GetNonConvergedBackStressVector() { return mNonConvergedBackStressVector; }
-    void SetNonConvergedBackStressVector(const Vector& toBack) {mNonConvergedBackStressVector = toBack; }
-
-
     void SetPreviousStressVector (const Vector& toBS) {mPreviousStressVector = toBS; }
     Vector& GetPreviousStressVector() { return mPreviousStressVector;}
-    void SetNonConvergedPreviousStressVector (const Vector& toBS) {mNonConvergedPreviousStressVector = toBS; }
-    Vector GetNonConvergedPreviousStressVector() { return mNonConvergedPreviousStressVector;}
 
     ///@}
     ///@name Protected Operations
@@ -425,19 +393,8 @@ protected:
     double mThreshold = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
 
-    // Non Converged values
-    double mNonConvPlasticDissipation = 0.0;
-    double mNonConvThreshold = 0.0;
-    Vector mNonConvPlasticStrain = ZeroVector(VoigtSize);
-
-    // Auxiliar to print (NOTE: Alejandro do we need this now?)
-    double mUniaxialStress = 0.0;
-
     // Kinematic variables
     Vector mPreviousStressVector = ZeroVector(VoigtSize);
-    Vector mBackStressVector = ZeroVector(VoigtSize);
-    Vector mNonConvergedBackStressVector = ZeroVector(VoigtSize);
-    Vector mNonConvergedPreviousStressVector = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
@@ -475,13 +432,7 @@ protected:
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
         rSerializer.save("Threshold", mThreshold);
         rSerializer.save("PlasticStrain", mPlasticStrain);
-        rSerializer.save("NonConvPlasticDissipation", mNonConvPlasticDissipation);
-        rSerializer.save("NonConvThreshold", mNonConvThreshold);
-        rSerializer.save("NonConvPlasticStrain", mNonConvPlasticStrain);
         rSerializer.save("PreviousStressVector", mPreviousStressVector);
-        rSerializer.save("BackStressVector", mBackStressVector);
-        rSerializer.save("NonConvergedBackStressVector", mNonConvergedBackStressVector);
-        rSerializer.save("NonConvergedPreviousStressVector", mNonConvergedPreviousStressVector);
     }
 
     void load(Serializer &rSerializer) override
@@ -490,13 +441,7 @@ protected:
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
         rSerializer.load("Threshold", mThreshold);
         rSerializer.load("PlasticStrain", mPlasticStrain);
-        rSerializer.load("NonConvPlasticDissipation", mNonConvPlasticDissipation);
-        rSerializer.load("NonConvThreshold", mNonConvThreshold);
-        rSerializer.load("NonConvPlasticStrain", mNonConvPlasticStrain);
         rSerializer.load("PreviousStressVector", mPreviousStressVector);
-        rSerializer.load("BackStressVector", mBackStressVector);
-        rSerializer.load("NonConvergedBackStressVector", mNonConvergedBackStressVector);
-        rSerializer.load("NonConvergedPreviousStressVector", mNonConvergedPreviousStressVector);
     }
 
     ///@}

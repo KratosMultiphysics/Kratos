@@ -2,106 +2,133 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
-//                    
+//                   Philipp Bucher
 //
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
 // Project includes
 #include "processes/replace_elements_and_condition_process.h"
 
-namespace Kratos
+namespace Kratos {
+namespace {
+
+/// Replace entities in a given container if the entity id is present in a list of ids.
+    /*  @param rReferenceEntity New type of entity that will replace old one
+     *  @param rEntityContainer Container of elements susceptible to be replaces
+     *  @param rSetOfIds Set of entities ids we want to replace
+     */
+template <class TEntity, class TEntityContainer>
+void ReplaceEntities(
+    const TEntity& rReferenceEntity,
+    TEntityContainer& rEntityContainer,
+    std::unordered_set<std::size_t>& rSetOfIds)
 {
+    #pragma omp parallel for
+    for (int i=0; i<static_cast<int>(rEntityContainer.size()); ++i) {
+        auto it_entity = rEntityContainer.begin() + i;
+        if (rSetOfIds.find(it_entity->Id()) != rSetOfIds.end()) {
+            auto p_new_entity = rReferenceEntity.Create(it_entity->Id(), it_entity->pGetGeometry(), it_entity->pGetProperties());
+            // Deep copy data and flags
+            p_new_entity->Data() = it_entity->Data();
+            p_new_entity->Set(Flags(*it_entity));
+
+            (*it_entity.base()) = p_new_entity;
+        }
+    }
+}
+
+/// Replace elements in a given submodelpart using the elements from the root model part
+/// if the element id is present in a given set of ids
+    /*  @param rModelPart Model part whose elements we want to replace
+     *  @param rRootModelPart Root model part with the replaced elements
+     *  @param rSetOfElementsIds Set of elements ids we want to replace
+     */
+void UpdateElementsInSubModelPart(
+    ModelPart& rModelPart,
+    ModelPart& rRootModelPart,
+    std::unordered_set<std::size_t>& rSetOfElementsIds)
+{
+    #pragma omp parallel for
+    for(int i=0; i< static_cast<int>(rModelPart.Elements().size()); i++) {
+        auto it_elem = rModelPart.ElementsBegin() + i;
+        if (rSetOfElementsIds.find(it_elem->Id()) != rSetOfElementsIds.end()) {
+            (*it_elem.base()) = rRootModelPart.Elements()(it_elem->Id());
+        }
+    }
+    // Change the submodelparts
+    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+        UpdateElementsInSubModelPart(r_sub_model_part, rRootModelPart, rSetOfElementsIds);
+    }
+}
+
+
+/// Replace conditions in a given submodelpart using the conditions from the root model part
+/// if the condition id is present in a given set of ids
+    /*  @param rModelPart Model part whose conditions we want to replace
+     *  @param rRootModelPart Root model part with the replaced conditions
+     *  @param rSetOfConditions Set of conditions ids we want to replace
+     */
+void UpdateConditionsInSubModelPart(
+    ModelPart& rModelPart,
+    ModelPart& rRootModelPart,
+    std::unordered_set<std::size_t>& rSetOfConditions)
+{
+    #pragma omp parallel for
+    for(int i=0; i< static_cast<int>(rModelPart.Conditions().size()); i++) {
+        auto it_cond = rModelPart.ConditionsBegin() + i;
+        if (rSetOfConditions.find(it_cond->Id()) != rSetOfConditions.end()) {
+            (*it_cond.base()) = rRootModelPart.Conditions()(it_cond->Id());
+        }
+    }
+    // Change the submodelparts
+    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+        UpdateConditionsInSubModelPart(r_sub_model_part, rRootModelPart, rSetOfConditions);
+    }
+}
+
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void ReplaceElementsAndConditionsProcess::Execute()
 {
-    ModelPart& r_root_model_part = ObtainRootModelPart( mrModelPart );
-    
-    const Element& rReferenceElement = KratosComponents<Element>::Get(mSettings["element_name"].GetString());
-    const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mSettings["condition_name"].GetString());
-    
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(r_root_model_part.Elements().size()); i++) {
-        auto it_elem = r_root_model_part.ElementsBegin() + i;
-        
-        auto p_element = rReferenceElement.Create(it_elem->Id(), it_elem->pGetGeometry(), it_elem->pGetProperties());
-        
-        // Deep copy elemental data and flags
-        p_element->Data() = it_elem->Data();
-        p_element->Set(Flags(*it_elem));
-        
-        (*it_elem.base()) = p_element;
+    const std::string element_name = mSettings["element_name"].GetString();
+    const std::string condition_name = mSettings["condition_name"].GetString();
+    ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+
+    if (element_name != "") {
+        std::unordered_set<std::size_t> set_element_ids (mrModelPart.NumberOfElements());
+        for(auto& ielem : mrModelPart.Elements()) {
+            set_element_ids.insert(ielem.Id());
+        }
+        ReplaceEntities(KratosComponents<Element>::Get(element_name), root_model_part.Elements(), set_element_ids);
+        for (auto& r_sub_model_part : root_model_part.SubModelParts()) {
+            UpdateElementsInSubModelPart(r_sub_model_part, root_model_part, set_element_ids);
+        }
     }
-    
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(r_root_model_part.Conditions().size()); i++) {
-        auto it_cond = r_root_model_part.ConditionsBegin() + i;
-        
-        auto p_condition = rReferenceCondition.Create(it_cond->Id(), it_cond->pGetGeometry(), it_cond->pGetProperties());
-        
-        // Deep copy elemental data and flags
-        p_condition->Data() = it_cond->Data();
-        p_condition->Set(Flags(*it_cond));
-        
-        (*it_cond.base()) = p_condition;
 
-    }      
-    
-    // Change the submodelparts
-    for (auto& i_sub_model_part : r_root_model_part.SubModelParts())
-        UpdateSubModelPart( i_sub_model_part, r_root_model_part );
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-ModelPart& ReplaceElementsAndConditionsProcess::ObtainRootModelPart( ModelPart& rModelPart )
-{
-    if (rModelPart.IsSubModelPart())
-        return ObtainRootModelPart(*rModelPart.GetParentModelPart());
-    else
-        return rModelPart;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ReplaceElementsAndConditionsProcess::UpdateSubModelPart(
-    ModelPart& rModelPart, 
-    ModelPart& rRootModelPart
-    )
-{
-    // Change the model part itself
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(rModelPart.Elements().size()); i++) {
-        auto it_elem = rModelPart.ElementsBegin() + i;
-        
-        (*it_elem.base()) = rRootModelPart.Elements()(it_elem->Id());
+    if (condition_name != "") {
+        std::unordered_set<std::size_t> set_conditions_ids (mrModelPart.NumberOfConditions());
+        for(auto& icond : mrModelPart.Conditions()) {
+            set_conditions_ids.insert(icond.Id());
+        }
+        ReplaceEntities(KratosComponents<Condition>::Get(condition_name), root_model_part.Conditions(), set_conditions_ids);
+        for (auto& r_sub_model_part : root_model_part.SubModelParts()) {
+            UpdateConditionsInSubModelPart(r_sub_model_part, root_model_part, set_conditions_ids);
+        }
     }
-    
-    #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(rModelPart.Conditions().size()); i++) {
-        auto it_cond = rModelPart.ConditionsBegin() + i;
-        
-        (*it_cond.base()) = rRootModelPart.Conditions()(it_cond->Id());
-    }
-    
-    // Change the submodelparts
-    for (auto& i_sub_model_part : rModelPart.SubModelParts())
-        UpdateSubModelPart( i_sub_model_part, rRootModelPart );
 
 }
 

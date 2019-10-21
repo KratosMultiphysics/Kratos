@@ -27,21 +27,6 @@ namespace Kratos {
 
         void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
 
-
-    //private:
-
-        // friend class Serializer;
-
-        // virtual void save(Serializer& rSerializer) const override {
-        //     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEM_D_Linear_viscous_Coulomb)
-        //             //rSerializer.save("MyMemberName",myMember);
-        // }
-
-        // virtual void load(Serializer& rSerializer) override {
-        //     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEM_D_Linear_viscous_Coulomb)
-        //             //rSerializer.load("MyMemberName",myMember);
-        // }
-
     };
 
 } /* namespace Kratos.*/

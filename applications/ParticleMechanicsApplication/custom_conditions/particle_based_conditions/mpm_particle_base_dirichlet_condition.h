@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/condition.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
 #include "particle_mechanics_application_variables.h"
 
 namespace Kratos
@@ -46,37 +46,8 @@ namespace Kratos
 ///@{
 
 class MPMParticleBaseDirichletCondition
-    : public Condition
+    : public MPMParticleBaseCondition
 {
-
-protected:
-
-    /**
-     * Parameters to be used in the Conditions as they are. Direct interface to Parameters Struct
-     */
-
-    struct GeneralVariables
-    {
-    public:
-
-        // For axisymmetric use only
-        double  CurrentRadius;
-        double  ReferenceRadius;
-
-        // General variables for large displacement use
-        double  detF0;
-        double  detF;
-        double  detFT;
-        Vector  N;
-        Matrix  F0;
-        Matrix  F;
-        Matrix  FT;
-        Matrix  DN_DX;
-        Matrix  DN_De;
-
-        // Variables including all integration points
-        Matrix  CurrentDisp;
-    };
 
 public:
 
@@ -85,7 +56,7 @@ public:
     ///@{
 
     // Counted pointer of MPMParticleBaseDirichletCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MPMParticleBaseDirichletCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticleBaseDirichletCondition );
 
     ///@}
     ///@name Life Cycle
@@ -96,11 +67,11 @@ public:
     {};
 
     // Constructor using an array of nodes
-    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
+    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry ):MPMParticleBaseCondition(NewId,pGeometry)
     {};
 
     // Constructor using an array of nodes with properties
-    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
+    MPMParticleBaseDirichletCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):MPMParticleBaseCondition(NewId,pGeometry,pProperties)
     {};
 
     // Destructor
@@ -127,133 +98,6 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Sets on rResult the ID's of the element degrees of freedom
-     * @param rResult The vector containing the equation id
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     * @param rElementalDofList The vector containing the dof of the element
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void GetDofList(
-        DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * Sets on rValues the nodal displacements
-     * @param rValues The values of displacements
-     * @param Step The step to be computed
-     */
-    void GetValuesVector(
-        Vector& rValues,
-        int Step = 0
-        ) override;
-
-    /**
-     * Sets on rValues the nodal velocities
-     * @param rValues The values of velocities
-     * @param Step The step to be computed
-     */
-    void GetFirstDerivativesVector(
-        Vector& rValues,
-        int Step = 0
-        ) override;
-
-    /**
-     * Sets on rValues the nodal accelerations
-     * @param rValues The values of accelerations
-     * @param Step The step to be computed
-     */
-    void GetSecondDerivativesVector(
-        Vector& rValues,
-        int Step = 0
-        ) override;
-
-    /**
-     * This function provides a more general interface to the element.
-     * It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
-     * @param rLeftHandSideMatrices container with the output left hand side matrices
-     * @param rLHSVariables paramter describing the expected LHSs
-     * @param rRightHandSideVectors container for the desired RHS output
-     * @param rRHSVariables parameter describing the expected RHSs
-     */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-      * This is called during the assembling process in order to calculate the elemental right hand side vector only
-      * @param rRightHandSideVector the elemental right hand side vector
-      * @param rCurrentProcessInfo the current process info instance
-      */
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-      * This is called during the assembling process in order to calculate the elemental mass matrix
-      * @param rMassMatrix the elemental mass matrix
-      * @param rCurrentProcessInfo The current process info instance
-      */
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-      * This is called during the assembling process in order
-      * to calculate the elemental damping matrix
-      * @param rDampingMatrix the elemental damping matrix
-      * @param rCurrentProcessInfo The current process info instance
-      */
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-
-    /**
-     * Check if Rotational Dof existant
-     */
-    bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
-
-    unsigned int GetBlockSize()
-    {
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        if( HasRotDof() ) // if it has rotations
-        {
-            if(dim == 2)
-                return 3;
-            else if(dim == 3)
-                return 6;
-            else
-                KRATOS_ERROR << "the conditions only works for 2D and 3D elements";
-        }
-        else
-        {
-            return dim;
-        }
-    }
 
     ///@}
     ///@name Access
@@ -291,36 +135,9 @@ protected:
     ///@{
 
     /**
-     * This functions calculates both the RHS and the LHS
-     * @param rLeftHandSideMatrix: The LHS
-     * @param rRightHandSideVector: The RHS
-     * @param rCurrentProcessInfo: The current process info instance
-     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
-     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
-     */
-    virtual void CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-        );
-
-    /**
-     * This functions returns the integration weight to consider, which is the MPC_Area
-     */
-    virtual double GetIntegrationWeight();
-
-    /**
      * Calculate Shape Function Values in a given point
      */
-
-    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
-
-    /**
-     * Calculation of the Current Displacement
-     */
-    Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
+    Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint) override;
 
     ///@}
     ///@name Protected  Access
@@ -371,12 +188,12 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseCondition );
     }
 
 }; // class MPMParticleBaseDirichletCondition.

@@ -2,11 +2,11 @@ import math
 import cmath
 import mpmath
 import matplotlib.pyplot as plt
-from bigfloat import *
 import numpy as np
+import bigfloat
 
 def ExactIntegrationOfSinusKernel(t, a = None, b = None):
-    with precision(300):
+    with bigfloat.precision(300):
         if a == None and b == None:
             return 0.5 * math.pi * math.sqrt(t) * (mpmath.angerj(0.5, t) - mpmath.angerj(-0.5, t))
         if a == None and b != None:

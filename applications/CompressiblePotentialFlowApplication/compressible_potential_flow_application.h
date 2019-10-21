@@ -4,16 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:        BSD License
+//                  Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
 //
-
+//  Main authors:    Riccardo Rossi, Inigo Lopez and Marc Nunez
+//
 
 #if !defined(KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_H_INCLUDED )
 #define  KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_H_INCLUDED
-
 
 // System includes
 
@@ -25,37 +24,24 @@
 #include "includes/variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
+#include "custom_elements/embedded_incompressible_potential_flow_element.h"
+#include "custom_elements/embedded_compressible_potential_flow_element.h"
 #include "custom_conditions/potential_wall_condition.h"
-
+#include "custom_elements/adjoint_analytical_incompressible_potential_flow_element.h"
+#include "custom_elements/adjoint_finite_difference_potential_flow_element.h"
+#include "custom_conditions/adjoint_potential_wall_condition.h"
 namespace Kratos {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosCompressiblePotentialFlowApplication : public KratosApplication {
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) KratosCompressiblePotentialFlowApplication : public KratosApplication {
 public:
 	///@name Type Definitions
 	///@{
-
 
 	/// Pointer definition of KratosCompressiblePotentialFlowApplication
 	KRATOS_CLASS_POINTER_DEFINITION(KratosCompressiblePotentialFlowApplication);
@@ -70,47 +56,32 @@ public:
 	/// Destructor.
 	~KratosCompressiblePotentialFlowApplication() override{}
 
-
-	///@}
-	///@name Operators
-	///@{
-
-
 	///@}
 	///@name Operations
 	///@{
 
 	void Register() override;
 
-
-
-	///@}
-	///@name Access
-	///@{
-
-
-	///@}
-	///@name Inquiry
-	///@{
-
-
 	///@}
 	///@name Input and output
 	///@{
 
 	/// Turn back information as a string.
-	std::string Info() const override {
+	std::string Info() const override
+    {
 		return "KratosCompressiblePotentialFlowApplication";
 	}
 
 	/// Print information about this object.
-	void PrintInfo(std::ostream& rOStream) const override {
+	void PrintInfo(std::ostream& rOStream) const override
+    {
 		rOStream << Info();
 		PrintData(rOStream);
 	}
 
 	///// Print object's data.
-	void PrintData(std::ostream& rOStream) const override {
+	void PrintData(std::ostream& rOStream) const override
+    {
   		KRATOS_WATCH("in my application");
   		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 
@@ -124,116 +95,46 @@ public:
 		KratosComponents<Condition>().PrintData(rOStream);
     }
 
-
-	///@}
-	///@name Friends
-	///@{
-
-
-	///@}
-
-protected:
-	///@name Protected static Member Variables
-	///@{
-
-
-	///@}
-	///@name Protected member Variables
-	///@{
-
-
-	///@}
-	///@name Protected Operators
-	///@{
-
-
-	///@}
-	///@name Protected Operations
-	///@{
-
-
-	///@}
-	///@name Protected  Access
-	///@{
-
-
-	///@}
-	///@name Protected Inquiry
-	///@{
-
-
-	///@}
-	///@name Protected LifeCycle
-	///@{
-
-
 	///@}
 
 private:
-	///@name Static Member Variables
-	///@{
+    ///@name Member Variables
+    ///@{
 
-	// static const ApplicationCondition  msApplicationCondition;
-
-	///@}
-	///@name Member Variables
-	///@{
-        const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
-        const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
-        const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
-        const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
-
-		const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
-
-
-	///@}
-	///@name Private Operators
-	///@{
+    const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
+    const IncompressiblePotentialFlowElement<3, 4> mIncompressiblePotentialFlowElement3D4N;
+    const CompressiblePotentialFlowElement<2, 3> mCompressiblePotentialFlowElement2D3N;
+    const CompressiblePotentialFlowElement<3, 4> mCompressiblePotentialFlowElement3D4N;
+    const AdjointAnalyticalIncompressiblePotentialFlowElement<IncompressiblePotentialFlowElement<2, 3>> mAdjointAnalyticalIncompressiblePotentialFlowElement2D3N;
+    const AdjointFiniteDifferencePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointIncompressiblePotentialFlowElement2D3N;
+    const AdjointFiniteDifferencePotentialFlowElement<CompressiblePotentialFlowElement<2,3>> mAdjointCompressiblePotentialFlowElement2D3N;
+    const EmbeddedIncompressiblePotentialFlowElement<2,3> mEmbeddedIncompressiblePotentialFlowElement2D3N;
+    const EmbeddedIncompressiblePotentialFlowElement<3,4> mEmbeddedIncompressiblePotentialFlowElement3D4N;
+    const EmbeddedCompressiblePotentialFlowElement<2,3> mEmbeddedCompressiblePotentialFlowElement2D3N;
+    const EmbeddedCompressiblePotentialFlowElement<3,4> mEmbeddedCompressiblePotentialFlowElement3D4N;
+    const AdjointFiniteDifferencePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>> mAdjointEmbeddedIncompressiblePotentialFlowElement2D3N;
+    const AdjointFiniteDifferencePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>> mAdjointEmbeddedCompressiblePotentialFlowElement2D3N;
 
 
-	///@}
-	///@name Private Operations
-	///@{
+    const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
+    const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
+    const AdjointPotentialWallCondition<PotentialWallCondition<2,2>> mAdjointPotentialWallCondition2D2N;
 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-	///@}
-	///@name Private  Access
-	///@{
+    /// Assignment operator.
+    KratosCompressiblePotentialFlowApplication& operator=(KratosCompressiblePotentialFlowApplication const& rOther);
 
+    /// Copy constructor.
+    KratosCompressiblePotentialFlowApplication(KratosCompressiblePotentialFlowApplication const& rOther);
 
-	///@}
-	///@name Private Inquiry
-	///@{
-
-
-	///@}
-	///@name Un accessible methods
-	///@{
-
-	/// Assignment operator.
-	KratosCompressiblePotentialFlowApplication& operator=(KratosCompressiblePotentialFlowApplication const& rOther);
-
-	/// Copy constructor.
-	KratosCompressiblePotentialFlowApplication(KratosCompressiblePotentialFlowApplication const& rOther);
-
-
-	///@}
+    ///@}
 
 }; // Class KratosCompressiblePotentialFlowApplication
 
 ///@}
-
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-///@}
-
 
 }  // namespace Kratos.
 

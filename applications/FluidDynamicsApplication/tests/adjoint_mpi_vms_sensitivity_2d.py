@@ -3,20 +3,17 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
-
+from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 missing_applications_message = ["Missing required application(s):",]
-have_required_applications = True
-
-try:
+have_required_applications = CheckIfApplicationsAvailable("HDF5Application")
+if have_required_applications:
     import KratosMultiphysics.HDF5Application as kh5
-except ImportError:
-    have_required_applications = False
+else:
     missing_applications_message.append("HDF5Application")
 
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
-from adjoint_fluid_analysis import AdjointFluidAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
 
 class ControlledExecutionScope:
     def __init__(self, scope):
@@ -30,7 +27,6 @@ class ControlledExecutionScope:
         os.chdir(self.currentPath)
 
 @KratosUnittest.skipUnless(have_required_applications," ".join(missing_applications_message))
-
 class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -54,7 +50,7 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
                 parameter_file.close()
             primal_simulation = FluidDynamicsAnalysis(model,project_parameters)
             primal_simulation.Run()
-            KratosMPI.mpi.world.barrier()
+            Kratos.DataCommunicator.GetDefault().Barrier()
 
             # solve adjoint
             with open('AdjointVMSSensitivity2DTest/mpi_cylinder_test_adjoint_parameters.json', 'r') as parameter_file:
@@ -64,7 +60,7 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
             adjoint_model = Kratos.Model()
             adjoint_simulation = AdjointFluidAnalysis(adjoint_model,project_parameters)
             adjoint_simulation.Run()
-            KratosMPI.mpi.world.barrier()
+            Kratos.DataCommunicator.GetDefault().Barrier()
             rank = adjoint_simulation._solver.main_model_part.GetCommunicator().MyPID()
             # remove files
             if rank == 0:

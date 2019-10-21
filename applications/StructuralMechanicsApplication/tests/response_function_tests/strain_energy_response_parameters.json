@@ -9,9 +9,9 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0
     },
-    "kratos_response_settings":{
+    "response_settings" :{
         "response_type"          : "strain_energy",
-        "primal_settings"        : "rectangular_plate_parameters_without_hdf5.json",
+        "primal_settings"        : "rectangular_plate_parameters.json",
         "gradient_mode"          : "semi_analytic",
         "step_size"              : 1e-6
     }

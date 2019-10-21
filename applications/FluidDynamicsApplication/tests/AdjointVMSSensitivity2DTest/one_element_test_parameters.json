@@ -7,25 +7,37 @@
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
-    "output_configuration" : {
-        "result_file_configuration" : {
-            "gidpost_flags" : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteUndeformed",
-                "WriteConditionsFlag"   : "WriteElementsOnly",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "time",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY","PRESSURE"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "MainModelPart",
+                "output_name"            : "interface_test",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags" : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteUndeformed",
+                            "WriteConditionsFlag"   : "WriteElementsOnly",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "time",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1.0,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["VELOCITY","PRESSURE"],
+                        "gauss_point_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
     },
     "solver_settings" : {
         "solver_type"                   : "Monolithic",
@@ -50,6 +62,9 @@
         "model_import_settings" : {
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/one_element_test"
+        },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/one_element_test_materials.json"
         },
         "time_stepping"                : {
             "automatic_time_step" : false,
@@ -115,27 +130,21 @@
                 "file_settings" : {
                     "file_access_mode" : "truncate"
                 },
-                "model_part_output_settings" : {
-                    "prefix" : "/ModelData"
-                },
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
-                },
-                "output_time_settings" : {
-                    "output_step_frequency": 1
                 }
             }
         },{
             "python_module" : "compute_body_fitted_drag_process",
-                "kratos_module" : "KratosMultiphysics",
-                "process_name"  : "ComputeBodyFittedDragProcess",
-                "Parameters" : {
-                    "model_part_name"           : "Structure",
-                    "interval"                  : [0.0, 1e30],
-                    "write_drag_output_file"    : true,
-                    "print_drag_to_screen"      : false,
-                    "print_format"              : "22.15e"
-                }
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ComputeBodyFittedDragProcess",
+            "Parameters" : {
+                "model_part_name"           : "Structure",
+                "interval"                  : [0.0, 1e30],
+                "write_drag_output_file"    : true,
+                "print_drag_to_screen"      : false,
+                "print_format"              : "22.15e"
+            }
         }]
     }
 }

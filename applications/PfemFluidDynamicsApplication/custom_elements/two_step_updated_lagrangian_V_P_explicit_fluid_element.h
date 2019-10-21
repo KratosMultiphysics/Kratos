@@ -15,12 +15,12 @@
 
 // External includes
 
- 
+
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
 /* #include "includes/element.h" */
-#include "includes/serializer.h" 
+#include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 
@@ -63,9 +63,9 @@ namespace Kratos
       ///@{
 
       /// Pointer definition of TwoStepUpdatedLagrangianVPExplicitFluidElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPExplicitFluidElement);
+      KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPExplicitFluidElement);
 
-      ///base type: 
+      ///base type:
       typedef TwoStepUpdatedLagrangianVPExplicitElement<TDim> BaseType;
 
       /// Node type (default is: Node<3>)
@@ -157,7 +157,7 @@ namespace Kratos
     TwoStepUpdatedLagrangianVPExplicitFluidElement(TwoStepUpdatedLagrangianVPExplicitFluidElement const& rOther):
       BaseType(rOther)
       {}
- 
+
 
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPExplicitFluidElement()
@@ -214,7 +214,7 @@ namespace Kratos
        * @param rResult A vector containing the global Id of each row
        * @param rCurrentProcessInfo the current process info object (unused)
        */
- 
+
       /// Returns a list of the element's Dofs
       /**
        * @param ElementalDofList the list of DOFs
@@ -300,7 +300,7 @@ namespace Kratos
 				      ProcessInfo& rCurrentProcessInfo,
 				      ElementalVariables& rElementalVariables) override;
 
-   
+
 
       /**
        * A constistent mass matrix is used.
@@ -308,8 +308,8 @@ namespace Kratos
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
-   
-      
+
+
       double ComputeNonLinearViscosity(double & equivalentStrainRate);
 
       void ComputeMaterialParametersGranularGas(double& Density,
@@ -327,13 +327,9 @@ namespace Kratos
       double ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables);
 
       double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
-  
+
       void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
 				const double Weight) override;
-      
-      void GetPositions(Vector& rValues,
-			const ProcessInfo& rCurrentProcessInfo,
-			const double theta) override;
 	
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
@@ -342,7 +338,7 @@ namespace Kratos
       double GetThetaMomentum () override {return 0.5;};
 
       double GetThetaContinuity () override {return 1.0;};
-      
+
 
 
       ///@}

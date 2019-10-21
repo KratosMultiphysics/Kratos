@@ -16,27 +16,22 @@
 
 
 // Project includes
+#include "includes/checks.h"
+
 #include "adjoint_semi_analytic_point_load_condition.h"
 #include "structural_mechanics_application_variables.h"
-#include "includes/checks.h"
+#include "custom_conditions/point_load_condition.h"
 
 namespace Kratos
 {
-    AdjointSemiAnalyticPointLoadCondition::AdjointSemiAnalyticPointLoadCondition(Condition::Pointer pPrimalCondition )
-        : AdjointSemiAnalyticBaseCondition(pPrimalCondition )
-    {
-    }
 
-    AdjointSemiAnalyticPointLoadCondition::~AdjointSemiAnalyticPointLoadCondition()
-    {
-    }
-
-    void AdjointSemiAnalyticPointLoadCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
 
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dim = GetGeometry().WorkingSpaceDimension();
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dim = this->GetGeometry().WorkingSpaceDimension();
         if (rResult.size() != dim * number_of_nodes)
             rResult.resize(dim*number_of_nodes,false);
 
@@ -47,8 +42,8 @@ namespace Kratos
             for (IndexType i = 0; i < number_of_nodes; ++i)
             {
                 const IndexType index = i * 2;
-                rResult[index    ] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
-                rResult[index + 1] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
+                rResult[index    ] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
+                rResult[index + 1] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
             }
         }
         else
@@ -56,20 +51,21 @@ namespace Kratos
             for (IndexType i = 0; i < number_of_nodes; ++i)
             {
                 const IndexType index = i * 3;
-                rResult[index    ] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
-                rResult[index + 1] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
-                rResult[index + 2] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Z,pos + 2).EquationId();
+                rResult[index    ] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
+                rResult[index + 1] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
+                rResult[index + 2] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Z,pos + 2).EquationId();
             }
         }
         KRATOS_CATCH("")
     }
 
-    void AdjointSemiAnalyticPointLoadCondition::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension =  GetGeometry().WorkingSpaceDimension();
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs = number_of_nodes * dimension;
 
         if (rElementalDofList.size() != num_dofs)
@@ -80,8 +76,8 @@ namespace Kratos
             for (IndexType i = 0; i < number_of_nodes; ++i)
             {
                 const IndexType index = i * 2;
-                rElementalDofList[index    ] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
-                rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
+                rElementalDofList[index    ] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
+                rElementalDofList[index + 1] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
             }
         }
         else
@@ -89,19 +85,20 @@ namespace Kratos
             for (IndexType i = 0; i < number_of_nodes; ++i)
             {
                 const IndexType index = i * 3;
-                rElementalDofList[index    ] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
-                rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
-                rElementalDofList[index + 2] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
+                rElementalDofList[index    ] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
+                rElementalDofList[index + 1] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
+                rElementalDofList[index + 2] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
             }
         }
 
         KRATOS_CATCH("")
     }
 
-    void AdjointSemiAnalyticPointLoadCondition::GetValuesVector(Vector& rValues, int Step)
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::GetValuesVector(Vector& rValues, int Step)
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension =  GetGeometry().WorkingSpaceDimension();
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
         const SizeType num_dofs = number_of_nodes * dimension;
 
         if (rValues.size() != num_dofs)
@@ -109,36 +106,41 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_nodes; ++i)
         {
-            const array_1d<double, 3 > & Displacement = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
+            const array_1d<double, 3 > & Displacement = this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
             IndexType index = i * dimension;
             for(IndexType k = 0; k < dimension; ++k)
                 rValues[index + k] = Displacement[k];
         }
     }
 
-    void AdjointSemiAnalyticPointLoadCondition::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        KRATOS_ERROR << "There is no scalar design variable available!" << std::endl;
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
+        const SizeType num_dofs = number_of_nodes * dimension;
+        rOutput = ZeroMatrix(0, num_dofs);
 
         KRATOS_CATCH( "" )
     }
 
-    void AdjointSemiAnalyticPointLoadCondition::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+        const SizeType mat_size = number_of_nodes * dimension;
+
         if( rDesignVariable == POINT_LOAD )
         {
-            const SizeType number_of_nodes = GetGeometry().size();
-            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-            const SizeType mat_size = number_of_nodes * dimension;
-
             if ((rOutput.size1() != mat_size) || (rOutput.size2() != mat_size))
                 rOutput.resize(mat_size, mat_size, false);
 
@@ -146,25 +148,29 @@ namespace Kratos
             for(IndexType i = 0; i < mat_size; ++i)
                 rOutput(i,i) = 1.0;
         }
+        else if( rDesignVariable == SHAPE_SENSITIVITY )
+        {
+            rOutput = ZeroMatrix(mat_size, mat_size);
+        }
         else
-            if ((rOutput.size1() != 0) || (rOutput.size2() != 0))
-                rOutput.resize(0, 0, false);
+        {
+            rOutput = ZeroMatrix(0, mat_size);
+        }
 
         KRATOS_CATCH( "" )
     }
 
-    int AdjointSemiAnalyticPointLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+    template <class TPrimalCondition>
+    int AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
-
-        KRATOS_ERROR_IF_NOT(mpPrimalCondition) << "Primal condition pointer is nullptr!" << std::endl;
 
         // verify that the variables are correctly initialized
         KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
         KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
 
         // Check dofs
-        const GeometryType& r_geom = GetGeometry();
+        const GeometryType& r_geom = this->GetGeometry();
         for (IndexType i = 0; i < r_geom.size(); ++i)
         {
             const auto& r_node = r_geom[i];
@@ -180,6 +186,9 @@ namespace Kratos
 
         KRATOS_CATCH( "" )
     }
+
+    // TODO find out what to do with KRATOS_API
+    template class AdjointSemiAnalyticPointLoadCondition<PointLoadCondition>;
 
 } // Namespace Kratos
 

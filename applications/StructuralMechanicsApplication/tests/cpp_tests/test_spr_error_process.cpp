@@ -33,7 +33,7 @@ namespace Kratos
         
         void Create2DGeometry(ModelPart& ThisModelPart, const std::string& ElementName)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -76,7 +76,7 @@ namespace Kratos
 
         void Create3DGeometry(ModelPart& ThisModelPart, const std::string& ElementName)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
@@ -209,6 +209,8 @@ namespace Kratos
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
             
+            Testing::Create2DGeometry(this_model_part, "SmallDisplacementElement2D3N");
+
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
@@ -218,8 +220,6 @@ namespace Kratos
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
             p_elem_prop->SetValue(YOUNG_MODULUS, 1.0);
             p_elem_prop->SetValue(POISSON_RATIO, 0.0);
-
-            Testing::Create2DGeometry(this_model_part, "SmallDisplacementElement2D3N");
 
             for (auto& node : this_model_part.Nodes()) {
                 if (node.X() > 0.9) {
@@ -257,7 +257,9 @@ namespace Kratos
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
+            Testing::Create3DGeometry(this_model_part, "SmallDisplacementElement3D4N");
+
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
@@ -267,8 +269,6 @@ namespace Kratos
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
             p_elem_prop->SetValue(YOUNG_MODULUS, 1.0);
             p_elem_prop->SetValue(POISSON_RATIO, 0.0);
-
-            Testing::Create3DGeometry(this_model_part, "SmallDisplacementElement3D4N");
 
             for (auto& node : this_model_part.Nodes()) {
                 if (node.X() > 0.9) {

@@ -103,13 +103,13 @@ namespace adapter {
  */
 template <class RowBuilder>
 struct matrix_builder {
+    typedef typename RowBuilder::val_type value_type;
     typedef typename RowBuilder::col_type col_type;
-    typedef typename RowBuilder::val_type val_type;
 
     RowBuilder build_row;
 
     mutable std::vector<col_type> col;
-    mutable std::vector<val_type> val;
+    mutable std::vector<value_type> val;
 
     matrix_builder(const RowBuilder &row_builder) : build_row(row_builder)
     {}
@@ -177,56 +177,6 @@ matrix_builder<RowBuilder> make_matrix(const RowBuilder &row_builder) {
 } // namespace adapter
 
 namespace backend {
-
-//---------------------------------------------------------------------------
-// Specialization of matrix interface
-//---------------------------------------------------------------------------
-template <class RowBuilder>
-struct value_type< adapter::matrix_builder<RowBuilder> >
-{
-    typedef typename adapter::matrix_builder<RowBuilder>::val_type type;
-};
-
-template <class RowBuilder>
-struct rows_impl< adapter::matrix_builder<RowBuilder> >
-{
-    static size_t get(const adapter::matrix_builder<RowBuilder> &A) {
-        return A.rows();
-    }
-};
-
-template <class RowBuilder>
-struct cols_impl< adapter::matrix_builder<RowBuilder> >
-{
-    static size_t get(const adapter::matrix_builder<RowBuilder> &A) {
-        return A.cols();
-    }
-};
-
-template <class RowBuilder>
-struct nonzeros_impl< adapter::matrix_builder<RowBuilder> >
-{
-    static size_t get(const adapter::matrix_builder<RowBuilder> &A) {
-        return A.nonzeros();
-    }
-};
-
-template <class RowBuilder>
-struct row_iterator< adapter::matrix_builder<RowBuilder> >
-{
-    typedef typename adapter::matrix_builder<RowBuilder>::row_iterator type;
-};
-
-template <class RowBuilder>
-struct row_begin_impl< adapter::matrix_builder<RowBuilder> >
-{
-    typedef adapter::matrix_builder<RowBuilder> Matrix;
-    static typename row_iterator<Matrix>::type
-    get(const Matrix &matrix, size_t row) {
-        return matrix.row_begin(row);
-    }
-};
-
 namespace detail {
 
 template <class RowBuilder>
@@ -235,7 +185,6 @@ struct use_builtin_matrix_ops< amgcl::adapter::matrix_builder<RowBuilder> >
 {};
 
 } // namespace detail
-
 } // namespace backend
 } // namespace amgcl
 

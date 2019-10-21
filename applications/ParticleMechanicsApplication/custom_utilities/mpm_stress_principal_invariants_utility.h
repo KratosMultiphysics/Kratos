@@ -268,7 +268,7 @@ namespace Kratos
 
                   rLodeAngle   = -j_3 / 2.0 * std::pow(3.0/j_2, 1.5);
                   if ( std::abs( rLodeAngle ) > 1.0 )                                           // if current rLodeAngle magnitude is larger than 1.0
-                        rLodeAngle = ( GetPI() / 6.0 ) * rLodeAngle / std::abs(rLodeAngle);
+                        rLodeAngle = ( Globals::Pi / 6.0 ) * rLodeAngle / std::abs(rLodeAngle);
                   else                                                                          // otherwise
                         rLodeAngle = std::asin( rLodeAngle ) / 3.0;
 
@@ -506,11 +506,6 @@ namespace Kratos
                         vector = MathUtils<double>::StressTensorToVector( rMatrix, rSize );
                   }
                   return vector;
-            }
-
-            static double GetPI()
-            {
-                  return std::atan(1.0)*4.0;
             }
 
    }; // end Class MPMStressPrincipalInvariantsUtility

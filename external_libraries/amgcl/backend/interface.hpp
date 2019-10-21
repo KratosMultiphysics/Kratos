@@ -83,14 +83,18 @@ struct value_type {
 /** \note Used in rows() */
 template <class Matrix, class Enable = void>
 struct rows_impl {
-    typedef typename Matrix::ROWS_NOT_IMPLEMENTED type;
+    static size_t get(const Matrix &A) {
+        return A.rows();
+    }
 };
 
 /// Implementation for function returning the number of columns in a matrix.
 /** \note Used in cols() */
 template <class Matrix, class Enable = void>
 struct cols_impl {
-    typedef typename Matrix::COLS_NOT_IMPLEMENTED type;
+    static size_t get(const Matrix &A) {
+        return A.cols();
+    }
 };
 
 /// Implementation for function returning number of bytes allocated for a matrix/vector.
@@ -134,7 +138,9 @@ struct val_data_impl {
 /** \note Used in nonzeros() */
 template <class Matrix, class Enable = void>
 struct nonzeros_impl {
-    typedef typename Matrix::NONZEROS_NOT_IMPLEMENTED type;
+    static size_t get(const Matrix &A) {
+        return A.nonzeros();
+    }
 };
 
 /// Implementation for function returning the number of nonzeros in a matrix row.
@@ -151,7 +157,7 @@ struct row_nonzeros_impl {
  */
 template <class Matrix, class Enable = void>
 struct row_iterator {
-    typedef typename Matrix::ROW_ITERATOR_NOT_IMPLEMENTED type;
+    typedef typename Matrix::row_iterator type;
 };
 
 /// Implementation for function returning row iterator for a matrix.
@@ -162,7 +168,10 @@ struct row_iterator {
  */
 template <class Matrix, class Enable = void>
 struct row_begin_impl {
-    typedef typename Matrix::ROW_BEGIN_NOT_IMPLEMENTED type;
+    static typename row_iterator<Matrix>::type
+    get(const Matrix &A, size_t row) {
+        return A.row_begin(row);
+    }
 };
 
 /// Implementation for matrix-vector product.

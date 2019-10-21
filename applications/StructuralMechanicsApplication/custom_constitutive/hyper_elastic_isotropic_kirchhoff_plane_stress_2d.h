@@ -162,6 +162,13 @@ protected:
         const double YoungModulus,
         const double PoissonCoefficient
         ) override;
+    
+    void CalculatePK2Stress(
+        const Vector& rStrainVector,
+        Vector& rStressVector,
+        double YoungModulus,
+        double PoissonCoefficient
+        ) override;
 
     /**
      * @brief It calculates the strain vector

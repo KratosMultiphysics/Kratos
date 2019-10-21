@@ -1119,8 +1119,8 @@ public:
         {
             if( inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are only the ones inside the fluid domain
             {
-                WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     if(i->FastGetSolutionStepValue(DISTANCE) > 0) //add the node as free surface if one of its neighb is outside
                     {
@@ -1148,8 +1148,8 @@ public:
         {
             for( PointIterator iii=(layers[il]).begin(); iii!=(layers[il]).end(); iii++)
             {
-                WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for(WeakPointerVector< Node<3> >::iterator jjj=neighb_nodes.begin(); jjj !=neighb_nodes.end(); jjj++) //destination = origin1 + value * Minv*origin
+                GlobalPointersVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for(GlobalPointersVector< Node<3> >::iterator jjj=neighb_nodes.begin(); jjj !=neighb_nodes.end(); jjj++) //destination = origin1 + value * Minv*origin
                 {
 
                     if( jjj->FastGetSolutionStepValue(DISTANCE) > 0 &&
@@ -1174,8 +1174,8 @@ public:
 //
 // 						array_1d<double,3>& coords_I = iii->Coordinates();
 //
-// 						WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-// 						for(WeakPointerVector< Node<3> >::iterator j=neighb_nodes.begin(); 	j !=neighb_nodes.end(); j++)
+// 						GlobalPointersVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+// 						for(GlobalPointersVector< Node<3> >::iterator j=neighb_nodes.begin(); 	j !=neighb_nodes.end(); j++)
 // 						{
 // 							if(j->GetValue(IS_VISITED) < il+1) //if it is on the next layer
 // 							{
@@ -1199,8 +1199,8 @@ public:
                 noalias(aux) = ZeroVector(3);
                 double avg_number = 0.0;
 
-                WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for(WeakPointerVector< Node<3> >::iterator i=neighb_nodes.begin(); 	i !=neighb_nodes.end(); i++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for(GlobalPointersVector< Node<3> >::iterator i=neighb_nodes.begin(); 	i !=neighb_nodes.end(); i++)
                 {
                     if(i->GetValue(IS_VISITED) < il+1 && i->GetValue(IS_VISITED))
                     {
@@ -1347,8 +1347,8 @@ public:
             if( inode->FastGetSolutionStepValue(DISTANCE) > 0.0) //candidates are only the ones inside the fluid domain
             {
                 inode->GetValue(IS_VISITED) = 1;
-                WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     i->GetValue(IS_VISITED) = 1;
                 }
@@ -1376,8 +1376,8 @@ public:
             if( inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are only the ones inside the fluid domain
             {
                 inode->GetValue(IS_VISITED) = 1;
-                WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     i->GetValue(IS_VISITED) = 1;
                 }

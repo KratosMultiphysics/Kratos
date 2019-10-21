@@ -52,7 +52,7 @@ Element::Pointer EmbeddedFluidElementDiscontinuous<TBaseElement>::Create(
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<EmbeddedFluidElementDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<EmbeddedFluidElementDiscontinuous>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -62,7 +62,34 @@ Element::Pointer EmbeddedFluidElementDiscontinuous<TBaseElement>::Create(
     Geometry<NodeType>::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_shared<EmbeddedFluidElementDiscontinuous>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<EmbeddedFluidElementDiscontinuous>(NewId, pGeom, pProperties);
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::Initialize()
+{
+    KRATOS_TRY;
+
+    // Call the base element initialize method to set the constitutive law
+    TBaseElement::Initialize();
+
+    // Initialize the ELEMENTAL_DISTANCES variable (make it threadsafe)
+    if (!this->Has(ELEMENTAL_DISTANCES)) {
+        Vector zero_vector(NumNodes, 0.0);
+        this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
+    }
+
+    // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
+    const array_1d<double,3> zero_vel = ZeroVector(3);
+    for (auto &r_node : this->GetGeometry()) {
+        if (!r_node.Has(EMBEDDED_VELOCITY)) {
+            r_node.SetLock();
+            r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
+            r_node.UnSetLock();
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 template <class TBaseElement>
@@ -105,21 +132,13 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
 
     // If the element is cut, add the interface contributions
     if ( data.IsCut() ) {
-
-        // Add the boundary term together with the interface equilibrium imposition. Note that the interface
-        // equilibrium imposition and boundary term addition yields minus the base element boundary term.
-        // Therefore, two auxiliar arrays are used (aux_LHS and aux_RHS) to store the base element boundary
-        // term contribution. Finally, the opposite of these arrays is added to the local system.
-        const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
-        VectorType aux_RHS = ZeroVector(LocalSize);
-        MatrixType aux_LHS = ZeroMatrix(LocalSize, LocalSize);
-
         // Add the base element boundary contribution on the positive interface
+        const size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
         const unsigned int number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
         for (unsigned int g = 0; g < number_of_positive_interface_gauss_points; ++g){
             const size_t gauss_pt_index = g + volume_gauss_points;
             this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
-            this-> AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], aux_LHS, aux_RHS);
+            this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
         }
 
         // Add the base element boundary contribution on the negative interface
@@ -127,12 +146,8 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
         for (unsigned int g = 0; g < number_of_negative_interface_gauss_points; ++g){
             const size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
             this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
-            this-> AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], aux_LHS, aux_RHS);
+            this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
         }
-
-        // Recall to swap the boundary term signs because of the interface equilibrium (Neumann) imposition
-        rLeftHandSideMatrix -= aux_LHS;
-        rRightHandSideVector -= aux_RHS;
 
         // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
         data.InitializeBoundaryConditionData(rCurrentProcessInfo);
@@ -397,18 +412,13 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalPenaltyContributi
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData, values);
 
-    // If there is embedded velocity, substract it to the previous iteration solution
-    if (this->Has(EMBEDDED_VELOCITY)){
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp(LocalSize, 0.0);
-
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int comp = 0; comp < Dim; ++comp){
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Substract the embedded nodal velocity to the previous iteration solution
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            values(i_node * BlockSize + d) -= r_i_emb_vel(d);
         }
-
-        noalias(values) -= embedded_vel_exp;
     }
 
     // Compute the Nitsche normal imposition penalty coefficient
@@ -473,18 +483,13 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddNormalSymmetricCounterp
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
 
-    // If there is embedded velocity, substract it to the previous iteration solution
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int comp = 0; comp < Dim; ++comp) {
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Substract the embedded nodal velocity to the previous iteration solution
+    const auto &r_geom = this->GetGeometry();
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            values(i_node * BlockSize + d) -= r_i_emb_vel(d);
         }
-
-        noalias(values) -= embedded_vel_exp;
     }
 
     // Set if the shear stress term is adjoint consistent (1.0) or not (-1.0)
@@ -713,18 +718,16 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialPenaltyContri
     noalias(rRHS) -= prod(aux_LHS_1, values);
     noalias(rRHS) -= prod(aux_LHS_2, values);
 
-    // If level set velocity is not 0, add its contribution to the RHS
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int comp = 0; comp < Dim; ++comp) {
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Add the level set velocity contribution to the RHS. Note that only LHS_2 is multiplied.
+    const auto &r_geom = this->GetGeometry();
+    array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            embedded_vel_exp(i_node * BlockSize + d) = r_i_emb_vel(d);
         }
-        noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
     }
+    noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
 }
 
 template <class TBaseElement>
@@ -838,19 +841,16 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::AddTangentialSymmetricCoun
     noalias(rLHS) += aux_LHS_2;
 
     // RHS outside Nitsche contribution assembly
-    // If level set velocity is not 0, add its contribution to the RHS
-    if (this->Has(EMBEDDED_VELOCITY)) {
-        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            for (unsigned int comp = 0; comp < Dim; ++comp) {
-                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
-            }
+    // Add the level set velocity contribution to the RHS. Note that only LHS_2 is multiplied.
+    const auto &r_geom = this->GetGeometry();
+    array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (unsigned int d = 0; d < Dim; ++d) {
+            embedded_vel_exp(i_node * BlockSize + d) = r_i_emb_vel(d);
         }
-
-        noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
     }
+    noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
 
     // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
     noalias(rRHS) -= prod(aux_LHS_1, values);

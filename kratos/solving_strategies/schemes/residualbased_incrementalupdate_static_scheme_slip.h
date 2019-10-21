@@ -104,14 +104,15 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "name"        : "ResidualBasedIncrementalUpdateStaticSchemeSlip",
             "domain_size" : 3,
-            "block_size" : 3
+            "block_size"  : 3
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         const int domain_size = ThisParameters["domain_size"].GetInt();
         const int block_size = ThisParameters["block_size"].GetInt();
-        mpRotationTool = Kratos::make_shared<RotationToolType>(domain_size, block_size, IS_STRUCTURE, 0.0);
+        mpRotationTool = Kratos::make_shared<RotationToolType>(domain_size, block_size, SLIP);
     }
 
     /// Constructor.
@@ -121,7 +122,7 @@ public:
     explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(unsigned int DomainSize,
                                                    unsigned int BlockSize):
         BaseType(),
-        mpRotationTool(Kratos::make_shared<RotationToolType>(DomainSize,BlockSize,IS_STRUCTURE,0.0))
+        mpRotationTool(Kratos::make_shared<RotationToolType>(DomainSize,BlockSize,SLIP))
     {}
 
     /// Constructor providing a custom rotation tool.

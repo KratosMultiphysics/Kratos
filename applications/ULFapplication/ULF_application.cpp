@@ -36,8 +36,6 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
-#include "geometries/line_2d.h"
-#include "geometries/line_2d_3.h"
 
 namespace Kratos
 {

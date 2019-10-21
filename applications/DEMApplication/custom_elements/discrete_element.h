@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: pooyan $
 //   Date:                $Date: 2006-11-27 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cmath>
 
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/define.h"
@@ -27,7 +27,7 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "utilities/indexed_object.h"
-#include "containers/weak_pointer_vector.h"
+#include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 
 //Cfeng,RigidFace
@@ -37,7 +37,7 @@ namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DiscreteElement : public Element {
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(DiscreteElement);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DiscreteElement);
         DiscreteElement(IndexType NewId = 0) : Element(NewId) {}
         DiscreteElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
         DiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {}
@@ -56,22 +56,22 @@ namespace Kratos {
 
         virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override {
             if (rRightHandSideVector.size() != 0)
-                rRightHandSideVector.resize(0);
+                rRightHandSideVector.resize(0, false);
         }
 
         virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) override {
             if (rResult.size() != 0)
-                rResult.resize(0);
+                rResult.resize(0, false);
         }
 
         virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override {
             if (rMassMatrix.size1() != 0)
-                rMassMatrix.resize(0, 0);
+                rMassMatrix.resize(0, 0, false);
         }
 
         virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override {
             if (rDampingMatrix.size1() != 0)
-                rDampingMatrix.resize(0, 0);
+                rDampingMatrix.resize(0, 0, false);
         }
 
         virtual void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info) override {
@@ -111,9 +111,9 @@ namespace Kratos {
         virtual void load(Serializer& rSerializer) override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
         }
-   
 
-    }; // Class DiscreteElement 
+
+    }; // Class DiscreteElement
 
 
     /// input stream function
@@ -134,4 +134,4 @@ namespace Kratos {
 
 } // namespace Kratos.
 
-#endif // KRATOS_DISCRETE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_DISCRETE_ELEMENT_H_INCLUDED  defined

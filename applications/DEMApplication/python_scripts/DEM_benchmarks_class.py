@@ -7,6 +7,7 @@ from math import pi, sin, cos, tan, atan, sqrt
 
 from os import system
 import os, sys
+files_to_delete_list = []
 
 def initialize_time_parameters(benchmark_number):
 
@@ -240,6 +241,17 @@ def initialize_time_parameters(benchmark_number):
 
     return end_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution
 
+
+def extend_datafile_list(arg):
+    files_to_delete_list.extend(arg)
+
+def delete_current_benchmark_data():
+    for to_erase_file in files_to_delete_list:
+        try:
+            os.remove(to_erase_file)
+        except OSError:
+            pass
+
 def PrintResultsMessage(test_number, it_is_success, error, elapsed_time, error_filename = 'errors.err'):
     with open(error_filename, 'a') as error_file:
         name = str(test_number)
@@ -304,7 +316,7 @@ class Benchmark1:
 
         PrintResultsMessage(self.number, it_is_success, error_measure, elapsed_time)
 
-    def compute_errors(self, normal_contact_force_outfile_name):
+    def compute_errors(self, output_filename):
 
         Chung_data = []; DEM_data = []
 
@@ -312,7 +324,8 @@ class Benchmark1:
             for line in inf:
                 Chung_data.append(float(line))
 
-        with open(normal_contact_force_outfile_name) as inf:
+        with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 parts = line.split()
                 if parts[0] == '#Time':
@@ -328,6 +341,8 @@ class Benchmark1:
         error1 = 100*error
 
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -363,11 +378,13 @@ class Benchmark2:
 
         error1, error2, error3 = self.compute_errors(normal_contact_force_outfile_name)
         it_is_success = error1 < 1.0 and error2 < 1.0 and error3 < 1.0
+        print(error1)
+        print(it_is_success)
         error_measure = error1 + error2 + error3
 
         PrintResultsMessage(self.number, it_is_success, error_measure, elapsed_time)
 
-    def compute_errors(self, normal_contact_force_outfile_name):
+    def compute_errors(self, output_filename):
 
         Chung_data = []; DEM_data = []
 
@@ -375,7 +392,8 @@ class Benchmark2:
             for line in inf:
                 Chung_data.append(float(line))
 
-        with open(normal_contact_force_outfile_name) as inf:
+        with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 parts = line.split()
                 if parts[0] == '#Time':
@@ -391,6 +409,8 @@ class Benchmark2:
         error1 = 100*error
 
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -479,6 +499,7 @@ class Benchmark3:
         i = 0
 
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -498,6 +519,8 @@ class Benchmark3:
         error1 = 100*generated_data_error
 
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -624,6 +647,7 @@ class Benchmark4:
                 i+=1
         i = 0
         with open(tangential_restitution_coefficient_list_outfile_name) as inf:
+            extend_datafile_list(glob(tangential_restitution_coefficient_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -649,6 +673,7 @@ class Benchmark4:
                 i+=1
         i = 0
         with open(final_angular_vel_list_outfile_name) as inf:
+            extend_datafile_list(glob(final_angular_vel_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -674,6 +699,7 @@ class Benchmark4:
                 i+=1
         i = 0
         with open(rebound_angle_list_outfile_name) as inf:
+            extend_datafile_list(glob(rebound_angle_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -692,6 +718,8 @@ class Benchmark4:
         error1 = 100*final_tangential_restitution_coefficient_error
         error2 = 100*final_angular_vel_total_error
         error3 = 100*final_rebound_angle_error
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -797,6 +825,7 @@ class Benchmark5:
                 i+=1
         i = 0
         with open(Vst_prima_div_mu_per_Vcn_prima_list_outfile_name) as inf:
+            extend_datafile_list(glob(Vst_prima_div_mu_per_Vcn_prima_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -824,6 +853,7 @@ class Benchmark5:
                 i+=1
         i = 0
         with open(r_w1_prima_div_mu_per_Vcn_list_outfile_name) as inf:
+            extend_datafile_list(glob(r_w1_prima_div_mu_per_Vcn_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -843,6 +873,8 @@ class Benchmark5:
         error1 = 100*final_Vst_prima_div_mu_per_Vcn_prima_error
         error2 = 100*final_r_w1_prima_div_mu_per_Vcn_error
         error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -953,6 +985,7 @@ class Benchmark6:
         i = 0
 
         with open(beta_list_outfile_name) as inf:
+            extend_datafile_list(glob(beta_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -981,6 +1014,7 @@ class Benchmark6:
                 i+=1
         i = 0
         with open(Vst_prima_div_Vcn_prima_list_outfile_name) as inf:
+            extend_datafile_list(glob(Vst_prima_div_Vcn_prima_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -1001,6 +1035,8 @@ class Benchmark6:
         error1 = 100*final_beta_list_outfile_name_error
         error2 = 100*final_Vst_prima_div_Vcn_prima_error
         error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -1110,6 +1146,7 @@ class Benchmark7:
                 i+=1
         i = 0
         with open(final_tangential_center_vel_list_outfile_name) as inf:
+            extend_datafile_list(glob(final_tangential_center_vel_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -1131,6 +1168,7 @@ class Benchmark7:
                 i+=1
         i = 0
         with open(final_angular_vel_list_outfile_name) as inf:
+            extend_datafile_list(glob(final_angular_vel_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -1150,6 +1188,8 @@ class Benchmark7:
         error1 = 100*final_tangential_center_vel_error
         error2 = 100*final_angular_vel_error
         error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -1262,6 +1302,7 @@ class Benchmark8:
                 i+=1
         i = 0
         with open(beta_list_outfile_name) as inf:
+            extend_datafile_list(glob(beta_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -1291,6 +1332,7 @@ class Benchmark8:
                 i+=1
         i = 0
         with open(Vst_prima_div_Vcn_prima_list_outfile_name) as inf:
+            extend_datafile_list(glob(Vst_prima_div_Vcn_prima_list_outfile_name))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -1311,6 +1353,8 @@ class Benchmark8:
         error1 = 100*final_beta_list_outfile_name_error
         error2 = 100*final_Vst_prima_div_Vcn_prima_error
         error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -1407,6 +1451,7 @@ class Benchmark9:
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -1426,6 +1471,8 @@ class Benchmark9:
         error1 = 100*generated_data_error
 
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -1600,6 +1647,7 @@ class Benchmark10: ########## LINEAR THORNTON
                 i+=1
         i = 0
         with open(normalized_rebound_tangential_surface_vel_list_outfile_name) as inf:
+            extend_datafile_list(glob(normalized_rebound_tangential_surface_vel_list_outfile_name))
             for line in inf:
                 if i in self.lines_DEM:
                     parts = line.split()
@@ -1629,6 +1677,7 @@ class Benchmark10: ########## LINEAR THORNTON
                 i+=1
         i = 0
         with open(normalized_rebound_angular_velocity_list_outfile_name) as inf:
+            extend_datafile_list(glob(normalized_rebound_angular_velocity_list_outfile_name))
             for line in inf:
                 if i in self.lines_DEM:
                     parts = line.split()
@@ -1657,6 +1706,7 @@ class Benchmark10: ########## LINEAR THORNTON
                 i+=1
         i = 0
         with open(tangential_coefficient_of_restitution_list_outfile_name) as inf:
+            extend_datafile_list(glob(tangential_coefficient_of_restitution_list_outfile_name))
             for line in inf:
                 if i in self.lines_DEM:
                     parts = line.split()
@@ -1676,6 +1726,8 @@ class Benchmark10: ########## LINEAR THORNTON
         error1 = 100*final_normalized_rebound_tangential_surface_vel_error
         error2 = 100*final_normalized_rebound_angular_velocity_error
         error3 = 100*final_tangential_coefficient_of_restitution_error
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -1857,6 +1909,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
                 i+=1
         i = 0
         with open(normalized_rebound_tangential_surface_vel_list_outfile_name) as inf:
+            extend_datafile_list(glob(normalized_rebound_tangential_surface_vel_list_outfile_name))
             for line in inf:
                 if i in self.lines_DEM:
                     parts = line.split()
@@ -1886,6 +1939,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
                 i+=1
         i = 0
         with open(normalized_rebound_angular_velocity_list_outfile_name) as inf:
+            extend_datafile_list(glob(normalized_rebound_angular_velocity_list_outfile_name))
             for line in inf:
                 if i in self.lines_DEM:
                     parts = line.split()
@@ -1914,6 +1968,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
                 i+=1
         i = 0
         with open(tangential_coefficient_of_restitution_list_outfile_name) as inf:
+            extend_datafile_list(glob(tangential_coefficient_of_restitution_list_outfile_name))
             for line in inf:
                 if i in self.lines_DEM:
                     parts = line.split()
@@ -1934,6 +1989,8 @@ class Benchmark11: ########## HERTZIAN THORNTON
         error1 = 100*final_normalized_rebound_tangential_surface_vel_error
         error2 = 100*final_normalized_rebound_angular_velocity_error
         error3 = 100*final_tangential_coefficient_of_restitution_error
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -1993,7 +2050,7 @@ class Benchmark12: ########## ROLLING FRICTION
         error_file.write("==== WENSRICH PAPER TEST. ROLLING FRICTION ====\n\n")
         error_file.write("DEM Benchmark 12:")
 
-        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 12 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 12 FAILED\n")
@@ -2012,6 +2069,7 @@ class Benchmark12: ########## ROLLING FRICTION
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2031,6 +2089,8 @@ class Benchmark12: ########## ROLLING FRICTION
         error1 = 100*generated_data_error
 
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -2088,18 +2148,19 @@ class Benchmark13: ########## DEM-FEM Facet
         error_file.write("======== DE/FE CONTACT BENCHMARKS ==========\n\n")
         error_file.write("DEM Benchmark 13:")
 
-        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
+        if (error1 < 0.01 and error2 < 0.01 and error3 <0.01):
             error_file.write(" OK!........ Test 13 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 13 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, velocity_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
 
         lines_DEM = list(range(0, 200));
         total_velocity_x = 0.0; total_velocity_z = 0.0
         i = 0
-        with open(velocity_list_outfile_name) as inf:
+        with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2122,6 +2183,8 @@ class Benchmark13: ########## DEM-FEM Facet
         print("Error in velocity X =", error1,"%")
 
         print("Error in velocity Z =", error2,"%")
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -2173,18 +2236,19 @@ class Benchmark14: ########## DEM-FEM Edge
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 14:")
 
-        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 14 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 14 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, velocity_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
 
         lines_DEM = list(range(0, 200));
         total_velocity_x = 0.0; total_velocity_z = 0.0
         i = 0
-        with open(velocity_list_outfile_name) as inf:
+        with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2207,6 +2271,8 @@ class Benchmark14: ########## DEM-FEM Edge
         print("Error in velocity X =", error1,"%")
 
         print("Error in velocity Z =", error2,"%")
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -2258,18 +2324,19 @@ class Benchmark15: ########## DEM-FEM Vertex
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 15:")
 
-        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 15 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 15 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, velocity_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
 
         lines_DEM = list(range(0, 200));
         total_velocity_x = 0.0; total_velocity_z = 0.0
         i = 0
-        with open(velocity_list_outfile_name) as inf:
+        with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2292,6 +2359,8 @@ class Benchmark15: ########## DEM-FEM Vertex
         print("Error in velocity X =", error1,"%")
 
         print("Error in velocity Z =", error2,"%")
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -2349,7 +2418,7 @@ class Benchmark16: ########## DEM-FEM Grid
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 16:")
 
-        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 16 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 16 FAILED\n")
@@ -2372,6 +2441,7 @@ class Benchmark16: ########## DEM-FEM Grid
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2416,6 +2486,8 @@ class Benchmark16: ########## DEM-FEM Grid
         error2 = 100*final_velocity_2_error
 
         error3 = 100*final_velocity_3_error
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -2472,18 +2544,19 @@ class Benchmark17: ########## DEM-FEM Rolling
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 17:")
 
-        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 17 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 17 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, error_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
 
         lines_DEM = list(range(0, 100));
         total_velocity_err = 0.0; total_angular_velocity_err = 0.0
         i = 0
-        with open(error_list_outfile_name) as inf:
+        with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2506,6 +2579,8 @@ class Benchmark17: ########## DEM-FEM Rolling
         print("Error in velocity between meshes =", 100*total_velocity_err,"%")
 
         print("Error in angular velocity between meshes =", 100*total_angular_velocity_err,"%")
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -2566,7 +2641,7 @@ class Benchmark20:
         error_file.write("== BASIC CONTINUUM TESTS ==\n\n")
         error_file.write("DEM Benchmark 20:")
 
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 20 SUCCESSFUL\n")
             shutil.rmtree('benchmark20_Post_Files', ignore_errors = True)
         else:
@@ -2585,6 +2660,7 @@ class Benchmark20:
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2604,6 +2680,8 @@ class Benchmark20:
         error1 = 100*generated_data_error
 
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -2664,7 +2742,7 @@ class Benchmark21:
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 21:")
 
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 21 SUCCESSFUL\n")
             shutil.rmtree('benchmark21_Post_Files', ignore_errors = True)
         else:
@@ -2684,6 +2762,7 @@ class Benchmark21:
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2701,6 +2780,8 @@ class Benchmark21:
         print("Error in simulation =", 100*generated_data_error,"%")
         error1 = 100*generated_data_error
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -2752,7 +2833,7 @@ class Benchmark22:
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 22:")
 
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 22 SUCCESSFUL\n")
             shutil.rmtree('benchmark22_Post_Files', ignore_errors = True)
         else:
@@ -2771,6 +2852,7 @@ class Benchmark22:
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2788,6 +2870,8 @@ class Benchmark22:
         print("Error in simulation =", 100*generated_data_error,"%")
         error1 = 100*generated_data_error
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -2841,7 +2925,7 @@ class Benchmark23:
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 23:")
 
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 23 SUCCESSFUL\n")
             shutil.rmtree('benchmark23_Post_Files', ignore_errors = True)
         else:
@@ -2860,6 +2944,7 @@ class Benchmark23:
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -2877,6 +2962,8 @@ class Benchmark23:
         print("Error in simulation =", 100*generated_data_error,"%")
         error1 = 100*generated_data_error
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -2989,7 +3076,7 @@ class Benchmark24:
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 24:")
 
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 24 SUCCESSFUL\n")
             shutil.rmtree('benchmark24_Post_Files', ignore_errors = True)
         else:
@@ -3008,6 +3095,7 @@ class Benchmark24:
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3025,6 +3113,8 @@ class Benchmark24:
         print("Error in simulation =", 100*generated_data_error,"%")
         error1 = 100*generated_data_error
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -3157,6 +3247,7 @@ class Benchmark25:
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3174,6 +3265,8 @@ class Benchmark25:
         print("Error in simulation =", 100*generated_data_error,"%")
         error1 = 100*generated_data_error
         error2 = error3 = 0
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -3400,13 +3493,13 @@ class Benchmark27:
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 27:")
 
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 27 SUCCESSFUL (spheres)\n")
             shutil.rmtree('benchmark27_Post_Files', ignore_errors = True)
         else:
             error_file.write(" KO!........ Test 27 FAILED (spheres)\n")
         error_file.write("DEM Benchmark 27:")
-        if (error4 < 10.0 and error5 < 10.0 and error6 < 10.0):
+        if (error4 < 0.01 and error5 < 0.01 and error6 < 0.01):
             error_file.write(" OK!........ Test 27 SUCCESSFUL (finite elements)\n")
         else:
             error_file.write(" KO!........ Test 27 FAILED (finite elements)\n")
@@ -3424,6 +3517,7 @@ class Benchmark27:
                 i+=1
         i = 0
         with open(output_filename) as current_data:
+            extend_datafile_list(glob(output_filename))
             for line in current_data:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3449,6 +3543,7 @@ class Benchmark27:
                 i+=1
         i = 0
         with open(output_filename) as current_data:
+            extend_datafile_list(glob(output_filename))
             for line in current_data:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3495,6 +3590,8 @@ class Benchmark27:
         error2 = 100*dem_error2
         error3 = 100*dem_error3
 
+        delete_current_benchmark_data()
+
         return error1, error2, error3
 
     def compute_rigid_errors(self, rigid_face_file):
@@ -3510,6 +3607,7 @@ class Benchmark27:
                 i+=1
         i = 0
         with open(rigid_face_file) as current_data:
+            extend_datafile_list(glob(rigid_face_file))
             for line in current_data:
                 if i in lines_FEM:
                     parts = line.split()
@@ -3529,6 +3627,8 @@ class Benchmark27:
         error4 = 100*final_error
 
         error5 = error6 = 0
+
+        delete_current_benchmark_data()
 
         return error4, error5, error6
 
@@ -3684,7 +3784,7 @@ class Benchmark28:   #pendulo3D
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 28:")
 
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 28 SUCCESSFUL (spheres)\n")
             shutil.rmtree('benchmark28_Post_Files', ignore_errors = True)
         else:
@@ -3704,6 +3804,7 @@ class Benchmark28:   #pendulo3D
                 i+=1
         i = 0
         with open(output_filename) as current_data:
+            extend_datafile_list(glob(output_filename))
             for line in current_data:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3775,6 +3876,8 @@ class Benchmark28:   #pendulo3D
         error2 = 100*dem_error2
         error3 = 100*dem_error3
 
+        delete_current_benchmark_data()
+
         return error1, error2, error3
 
     def compute_rigid_errors(self, rigid_face_file):
@@ -3837,7 +3940,7 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Velocity V
         error_file.write("===== DISCONTINUUM CLUSTERS TESTS =====\n\n")
         error_file.write("DEM Benchmark 30:")
 
-        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 30 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 30 FAILED\n")
@@ -3858,6 +3961,7 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Velocity V
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -3899,6 +4003,8 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Velocity V
         error2 = 100*final_local_angular_velocity_y_error
 
         error3 = 100*final_local_angular_velocity_z_error
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -3952,7 +4058,7 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 31:")
 
-        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
+        if (error1 < 0.01 and error2 < 0.01 and error3 < 0.01):
             error_file.write(" OK!........ Test 31 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 31 FAILED\n")
@@ -3973,6 +4079,7 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -4014,6 +4121,8 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
         error2 = 100*final_local_angular_velocity_y_error
 
         error3 = 100*final_local_angular_velocity_z_error
+
+        delete_current_benchmark_data()
 
         return error1, error2, error3
 
@@ -4064,7 +4173,7 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Veloci
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 32:")
 
-        if (error1 < 0.1 and error2 < 0.1):
+        if (error1 < 0.01 and error2 < 0.01):
             error_file.write(" OK!........ Test 32 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 32 FAILED\n")
@@ -4084,6 +4193,7 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Veloci
                 i+=1
         i = 0
         with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -4113,6 +4223,8 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Veloci
         error1 = 100*final_velocity_z_error
 
         error2 = 100*final_angular_velocity_y_error
+
+        delete_current_benchmark_data()
 
         return error1, error2
 
@@ -4163,13 +4275,13 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Veloci
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 33:")
 
-        if (error1 < 0.1 and error2 < 0.1):
+        if (error1 < 0.01 and error2 < 0.01):
             error_file.write(" OK!........ Test 33 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 33 FAILED\n")
         error_file.close()
 
-    def compute_errors(self, velocity_list_outfile_name):  #FINALIZATION STEP
+    def compute_errors(self, output_filename):  #FINALIZATION STEP
 
         lines_analytics = lines_DEM = list(range(0, 100));
         ref_data1 = []; ref_data2 = []; DEM_data1 = []; DEM_data1 = []; DEM_data2 = []; summation_of_ref_data1 = 0; summation_of_ref_data2 = 0
@@ -4182,7 +4294,8 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Veloci
                     ref_data2.append(float(parts[2]))
                 i+=1
         i = 0
-        with open(velocity_list_outfile_name) as inf:
+        with open(output_filename) as inf:
+            extend_datafile_list(glob(output_filename))
             for line in inf:
                 if i in lines_DEM:
                     parts = line.split()
@@ -4212,6 +4325,8 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Veloci
         error1 = 100*final_velocity_z_error
 
         error2 = 100*final_angular_velocity_y_error
+
+        delete_current_benchmark_data()
 
         return error1, error2
 
@@ -4583,7 +4698,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
         for index in range(self.number_of_DEM_benchmarks):
             error_file.write("DEM Benchmark 40:")
-            if (error1[index] < 10.0 and error2[index] < 10.0 and error3[index] < 10.0):
+            if (error1[index] < 0.01 and error2[index] < 0.01 and error3[index] < 0.01):
                 error_file.write(" OK!........ Test 40_%s SUCCESSFUL (spheres)\n" % index)
                 #shutil.rmtree('benchmark40_Post_Files', ignore_errors = True)
             else:
@@ -4592,7 +4707,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
         for index in range(self.number_of_FEM_benchmarks):
             error_file.write("DEM Benchmark 40:")
-            if (error4[index] < 10.0 and error5[index] < 10.0):
+            if (error4[index] < 0.01 and error5[index] < 0.01):
                 error_file.write(" OK!........ Test 40_%s SUCCESSFUL (finite elements)\n" % index)
             else:
                 error_file.write(" KO!........ Test 40_%s FAILED (finite elements)\n" % index)
@@ -4616,12 +4731,14 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     i+=1
             i = 0
             with open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % index) as current_data:
+                extend_datafile_list(glob("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % index))
+
                 for line in current_data:
                     if i in lines_DEM:
                         parts = line.split()
                         DEM_data.append(float(parts[1]))            # TOTAL_FORCES
                     i+=1
-            dem_error1 = 0
+            dem_error1 = 0.0
 
             for j in analytics_data:
                 summation_of_analytics_data+=abs(j)
@@ -4646,7 +4763,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                         parts = line.split()
                         DEM_data.append(float(parts[2]))            # ANGULAR_VELOCITY
                     i+=1
-            dem_error2 = 0
+            dem_error2 = 0.0
 
             for j in analytics_data:
                 summation_of_analytics_data+=abs(j)
@@ -4672,7 +4789,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                         parts = line.split()
                         DEM_data.append(float(parts[3]))            # displacement from initial pos
                     i+=1
-            dem_error3 = 0
+            dem_error3 = 0.0
 
             for j in analytics_data:
                 summation_of_analytics_data+=abs(j)
@@ -4687,8 +4804,8 @@ class Benchmark40: # multiple benchmarks for general code verification.
             error2.append(100*dem_error2)
             error3.append(100*dem_error3)
 
+        delete_current_benchmark_data()
         return error1, error2, error3
-
 
 
     def compute_rigid_errors(self):
@@ -4707,12 +4824,13 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     i+=1
             i = 0
             with open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % index) as current_data:
+                extend_datafile_list(glob("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % index))
                 for line in current_data:
                     if i in lines_DEM:
                         parts = line.split()
                         DEM_data.append(float(parts[1]))            # TOTAL_FORCES
                     i+=1
-            dem_error1 = 0
+            dem_error1 = 0.0
 
             for j in analytics_data:
                 summation_of_analytics_data+=abs(j)
@@ -4739,7 +4857,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
                         parts = line.split()
                         DEM_data.append(float(parts[2]))            # ref displacement from initial pos
                     i+=1
-            dem_error2 = 0
+            dem_error2 = 0.0
 
             for j in analytics_data:
                 summation_of_analytics_data+=abs(j)
@@ -4753,38 +4871,11 @@ class Benchmark40: # multiple benchmarks for general code verification.
             error4.append(100*dem_error1)
             error5.append(100*dem_error2)
 
+        delete_current_benchmark_data()
         return error4, error5
-
 
     def create_gnuplot_scripts(self, output_filename, dt):
         pass
-
-
-def delete_archives():
-
-    #.......................Removing extra files
-    files_to_delete_list = glob('*.time')
-    files_to_delete_list.extend(glob('*.dat'))
-    files_to_delete_list.extend(glob('*.gp'))
-    files_to_delete_list.extend(glob('*.txt'))
-    files_to_delete_list.extend(glob('*.lst'))
-    files_to_delete_list.extend(glob('*.info'))
-    files_to_delete_list.extend(glob('*.err'))
-    files_to_delete_list.extend(glob('*.hdf5'))
-
-    for to_erase_file in files_to_delete_list:
-        os.remove(to_erase_file)
-
-    #............Getting rid of unuseful folders
-    folders_to_delete_list      = glob('*Data')
-    folders_to_delete_list.extend(glob('*ists'))
-    folders_to_delete_list.extend(glob('*ults'))
-    folders_to_delete_list.extend(glob('*he__'))
-    folders_to_delete_list.extend(glob('*aphs'))
-    folders_to_delete_list.extend(glob('*iles'))
-
-    for to_erase_folder in folders_to_delete_list:
-        shutil.rmtree(to_erase_folder)
 
 def print_gnuplot_files_on_screen(gnuplot_script_name):
     system('gnuplot -persist ' + gnuplot_script_name)

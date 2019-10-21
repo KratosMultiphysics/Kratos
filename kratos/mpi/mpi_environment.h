@@ -18,38 +18,46 @@
 
 namespace Kratos {
 
-/// Helper utilities to manage the MPI lifecycle
-namespace MPIEnvironment {
+/// Helper class to manage the MPI lifecycle
+class MPIEnvironment {
+public:
 
-/// Execute MPI initialization operations.
-/** No MPI operations should be called before this point. */
-void Initialize();
+    static MPIEnvironment& Instance();
 
-/// Execute MPI finialization operations.
-/** No MPI operations should be called after this point. */
-void Finalize();
+    /// Execute MPI initialization operations.
+    /** No MPI operations should be called before this point. */
+    void Initialize();
 
-/// Query MPI initialization status.
-/** returns false if MPI_Initialized would return 0, true otherwise. */
-bool IsInitialized();
+    /// Execute MPI finialization operations.
+    /** No MPI operations should be called after this point. */
+    void Finalize();
 
-/// Query MPI finalization status.
-/** returns false if MPI_Finalized would return 0, true otherwise. */
-bool IsFinalized();
+    /// Query MPI initialization status.
+    /** returns false if MPI_Initialized would return 0, true otherwise. */
+    bool IsInitialized();
 
-/// Helper function to obtain the underlying MPI_Comm for a data communicator.
-/** If the data communicator is serial, MPI_COMM_SELF is returned.
- *  @param rDataCommunicator The DataCommunicator whose MPI_Comm we want to get.
- */
-MPI_Comm GetMPICommunicator(const DataCommunicator& rDataCommunicator);
+    /// Query MPI finalization status.
+    /** returns false if MPI_Finalized would return 0, true otherwise. */
+    bool IsFinalized();
 
-/// Set up Kratos for an MPI run.
-/** This initializes the "World" DataCommunicator (a wrapper for MPI_COMM_WOLRD)
- *  and makes it the default communicator for Kratos.
- */
-void InitializeKratosParallelEnvironment();
+private:
 
-}
+    MPIEnvironment();
+
+    ~MPIEnvironment();
+
+    MPIEnvironment(const MPIEnvironment&) = delete;
+
+    MPIEnvironment& operator=(const MPIEnvironment) = delete;
+
+    static void Create();
+
+    static MPIEnvironment* mpInstance;
+
+    static bool mDestroyed;
+
+};
+
 }
 
 #endif // KRATOS_MPI_ENVIRONMENT_H_INCLUDED

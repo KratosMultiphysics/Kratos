@@ -81,28 +81,6 @@ struct value_type<
 };
 
 template <class T>
-struct rows_impl<
-    T,
-    typename std::enable_if<is_eigen_sparse_matrix<T>::value>::type
-    >
-{
-    static size_t get(const T &matrix) {
-        return matrix.rows();
-    }
-};
-
-template <class T>
-struct cols_impl<
-    T,
-    typename std::enable_if<is_eigen_sparse_matrix<T>::value>::type
-    >
-{
-    static size_t get(const T &matrix) {
-        return matrix.cols();
-    }
-};
-
-template <class T>
 struct nonzeros_impl<
     T,
     typename std::enable_if<is_eigen_sparse_matrix<T>::value>::type

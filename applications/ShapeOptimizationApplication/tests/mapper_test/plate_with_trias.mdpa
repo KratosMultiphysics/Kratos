@@ -132,7 +132,7 @@ Begin Nodes
   125   1.0000000000   1.0000000000   0.0000000000
 End Nodes
 
-Begin Conditions ShapeOptimizationCondition3D3N
+Begin Conditions SurfaceCondition3D3N
         1          0          1          3          2
         2          0        115        117        111
         3          0         61         47         51

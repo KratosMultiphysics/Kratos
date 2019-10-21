@@ -18,5 +18,5 @@ REM Set the number of threads for OpenMP
 REM export OMP_NUM_THREADS=%5
 set OMP_NUM_THREADS=%5
 
-REM Run Python using the script KratosSwimmingDEM.py
-"%3\\kratos\\runkratos" KratosSwimmingDEM.py > "%2\\%1.info" 2> "%2\\%1.err"
+REM Run Python using the script KratosSwimmingDEMAnalysis.py
+"%3\\kratos\\runkratos" KratosSwimmingDEMAnalysis.py > "%2\\%1.info" 2> "%2\\%1.err"

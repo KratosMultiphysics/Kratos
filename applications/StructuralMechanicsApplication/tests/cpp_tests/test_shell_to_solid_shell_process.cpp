@@ -48,7 +48,7 @@ namespace Kratos
 
         void ShellToSolidShellProcessCreateModelPart(ModelPart& ThisModelPart)
         {
-            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_elem_prop = ThisModelPart.CreateNewProperties(0);
 
             p_elem_prop->SetValue(THICKNESS, 0.2);
 

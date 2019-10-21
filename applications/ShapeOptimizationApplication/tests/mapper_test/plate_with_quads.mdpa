@@ -448,7 +448,7 @@ Begin Nodes
   441   1.0000000000   0.0000000000   0.0000000000
 End Nodes
 
-Begin Conditions ShapeOptimizationCondition3D4N
+Begin Conditions SurfaceCondition3D4N
         1          0        336        303        302        334
         2          0        338        306        303        336
         3          0        342        312        306        338

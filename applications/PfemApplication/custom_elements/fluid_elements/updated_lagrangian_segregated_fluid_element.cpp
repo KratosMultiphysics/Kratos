@@ -77,7 +77,7 @@ UpdatedLagrangianSegregatedFluidElement&  UpdatedLagrangianSegregatedFluidElemen
 
 Element::Pointer UpdatedLagrangianSegregatedFluidElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< UpdatedLagrangianSegregatedFluidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  return Kratos::make_intrusive< UpdatedLagrangianSegregatedFluidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -105,13 +105,13 @@ Element::Pointer UpdatedLagrangianSegregatedFluidElement::Clone( IndexType NewId
     NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
   }
 
-  //commented: it raises a segmentation fault in make_shared bad alloc
+  //commented: it raises a segmentation fault in make_intrusive bad alloc
   NewElement.mStepVariable = mStepVariable;
 
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Kratos::make_shared< UpdatedLagrangianSegregatedFluidElement >(NewElement);
+  return Kratos::make_intrusive< UpdatedLagrangianSegregatedFluidElement >(NewElement);
 }
 
 

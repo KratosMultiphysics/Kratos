@@ -13,10 +13,6 @@ def Factory(settings, Model):
 
 class ApplyTwoFluidsInletProcessMPI(apply_two_fluids_inlet_process.ApplyTwoFluidsInletProcess):
 
-    def __init__(self, Model, settings):
-        super(ApplyTwoFluidsInletProcessMPI, self).__init__(Model, settings)
-
-
     def set_variational_distance_process(self):
         # Construct the variational distance calculation process
         self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()

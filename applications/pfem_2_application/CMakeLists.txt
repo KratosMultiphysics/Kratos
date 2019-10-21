@@ -7,6 +7,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 ## generate variables with the sources
 set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}//pfem_2_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}//pfem_2_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_2_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
@@ -33,7 +34,7 @@ set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosPFEM2Application MODULE THIN_LTO ${KRATOS_QUIET_WATER_APPLICATION_SOURCES})
 #add_library(KratosPFEM2Application SHARED ${KratosPFEM2Application})
-target_link_libraries(KratosPFEM2Application KratosCore )
+target_link_libraries(KratosPFEM2Application PUBLIC KratosCore )
 set_target_properties(KratosPFEM2Application PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)

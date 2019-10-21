@@ -14,14 +14,15 @@
 // System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes
-#include <pybind11/pybind11.h>
+
+
+#include "includes/define_python.h"
 
 // Project includes
 #include "mesh_moving_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "includes/define.h"
+
 
 namespace Kratos {
 namespace Python {

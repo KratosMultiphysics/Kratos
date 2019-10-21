@@ -38,7 +38,7 @@ def SetParallelSize(num_threads):
 def GetParallelSize():
     parallel = KratosMultiphysics.OpenMPUtils()
     return parallel.GetNumThreads()
-    
+
 #### SET NUMBER OF THREADS ####
 
 # Import system python
@@ -46,7 +46,6 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication       as KratosSolid
 import KratosMultiphysics.ExternalSolversApplication      as KratosSolvers
 import KratosMultiphysics.DelaunayMeshingApplication      as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication    as KratosPfemFluid
@@ -102,9 +101,8 @@ solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_s
 # Add variables (always before importing the model part)
 solver.AddVariables()
 
-# Add PfemSolidMechanicsApplication Variables
-import pfem_variables  
-pfem_variables.AddVariables(main_model_part) 
+from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_variables
+pfem_variables.AddVariables(main_model_part)
 
 #thermal thing:
 import eulerian_convection_diffusion_solver as convection_diffusion_solver_scripts
@@ -136,10 +134,10 @@ for node in main_model_part.Nodes:
     node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,2.5)
     if node.Is(KratosMultiphysics.RIGID):
     	if node.X<0.298:
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0)		
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0)
             node.Fix(KratosMultiphysics.TEMPERATURE)
     	if node.X>0.298:
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,5)		
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,5)
             node.Fix(KratosMultiphysics.TEMPERATURE)
 
 
@@ -164,9 +162,9 @@ if(echo_level>1):
 
 #obtain the list of the processes to be applied
 
-import process_handler
+from KratosMultiphysics.SolidMechanicsApplication.process_handler import ProcessHandler
 
-process_parameters = KratosMultiphysics.Parameters("{}") 
+process_parameters = KratosMultiphysics.Parameters("{}")
 process_parameters.AddValue("echo_level", ProjectParameters["problem_data"]["echo_level"])
 process_parameters.AddValue("constraints_process_list", ProjectParameters["constraints_process_list"])
 process_parameters.AddValue("loads_process_list", ProjectParameters["loads_process_list"])
@@ -177,7 +175,7 @@ if( ProjectParameters.Has("output_process_list") ):
 if( ProjectParameters.Has("processes_sub_model_part_tree_list") ):
     process_parameters.AddValue("processes_sub_model_part_tree_list",ProjectParameters["processes_sub_model_part_tree_list"])
 
-model_processes = process_handler.ProcessHandler(Model, process_parameters)
+model_processes = ProcessHandler(Model, process_parameters)
 
 model_processes.ExecuteInitialize()
 
@@ -260,19 +258,19 @@ while(time < end_time):
     # current time parameters
     # main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = delta_time
     delta_time = main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-    
+
     time = time + delta_time
     step = step + 1
-    
-    main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
-    main_model_part.CloneTimeStep(time) 
 
-    
+    main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+    main_model_part.CloneTimeStep(time)
+
+
     print(" [STEP:",step," TIME:",time,"]")
 
     # processes to be executed at the begining of the solution step
     model_processes.ExecuteInitializeSolutionStep()
-      
+
     gid_output.ExecuteInitializeSolutionStep()
 
     # solve time step
@@ -294,16 +292,16 @@ while(time < end_time):
     for node in main_model_part.Nodes:
     	if node.IsFixed(KratosMultiphysics.TEMPERATURE)==False:
             node.AddDof(thermal_settings.GetUnknownVariable())
- 
+
     #TEMP!!!!!!!! BOUNDARY CONDITIONS MUST ALSO BE SET BY THE USER!
     '''
     for node in main_model_part.Nodes:
     	if node.Is(KratosMultiphysics.RIGID):
             if node.X0<0.298:
-                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0)		
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0)
                 node.Fix(KratosMultiphysics.TEMPERATURE)
             if node.X0>0.298:
-                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,5)		
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,5)
                 node.Fix(KratosMultiphysics.TEMPERATURE)
     '''
 
@@ -318,9 +316,9 @@ while(time < end_time):
     # processes to be executed at the end of the solution step
     model_processes.ExecuteFinalizeSolutionStep()
 
-    # processes to be executed before witting the output      
+    # processes to be executed before witting the output
     model_processes.ExecuteBeforeOutputStep()
-     
+
     # write output results GiD: (frequency writing is controlled internally)
     if(gid_output.IsOutputStep()):
         gid_output.PrintOutput()
@@ -351,7 +349,7 @@ print("::[KPFEM Simulation]:: [Elapsed Time = %.2f" % (tfw - t0w),"seconds] (%.2
 
 print(timer.ctime())
 
-# to create a benchmark: add standard benchmark files and decomment next two lines 
+# to create a benchmark: add standard benchmark files and decomment next two lines
 # rename the file to: run_test.py
 #from run_test_benchmark_results import *
 #WriteBenchmarkResults(model_part)

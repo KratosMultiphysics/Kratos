@@ -25,28 +25,28 @@
 namespace Kratos {
 template <>
 bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
     // We take the geometry GP from the core
-    const double tolerance = 1.0e3 * ZeroTolerance;
+    const double tolerance = 1.0e3 * mZeroToleranceFactor * ZeroTolerance;
 
     double total_weight = 0.0;
-    array_1d<double, 2> auxiliar_coordinates(2 , 0.0);
+    array_1d<double, 2> auxiliar_coordinates = ZeroVector(2);
 
     // Declaring auxiliar values
     PointType projected_gp_global;
-    GeometryNodeType::CoordinatesArrayType projected_gp_local;
+    GeometryType::CoordinatesArrayType projected_gp_local;
 
     // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
     for (IndexType i_slave = 0; i_slave < 2; ++i_slave) {
-        const array_1d<double, 3>& normal = rOriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
+        const array_1d<double, 3>& r_normal = rOriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
 
-        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave], projected_gp_global, rMasterNormal, -normal ); // The opposite direction
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave], projected_gp_global, rMasterNormal, -r_normal ); // The opposite direction
 
         if (distance > mDistanceThreshold) {
             rConditionsPointsSlave.clear();
@@ -74,8 +74,11 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
             double delta_xi = (i_master == 0) ? 0.5 : -0.5;
             const bool is_inside = GeometricalProjectionUtilities::ProjectIterativeLine2D(rOriginalSlaveGeometry, rOriginalMasterGeometry[i_master].Coordinates(), projected_gp_local, rSlaveNormal, tolerance, delta_xi);
 
-            if (is_inside)
+            if (is_inside) {
                 auxiliar_xi.push_back(projected_gp_local[0]);
+                if (projected_gp_local[0] > (1.0 - tolerance)) auxiliar_coordinates[1] = 1.0;
+                else if (projected_gp_local[0] < (-1.0 + tolerance)) auxiliar_coordinates[0] = -1.0;
+            }
         }
 
         // In this case one edge of the slave belongs to the master and additionally one node of the master belongs to the slave
@@ -101,9 +104,8 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
                     auxiliar_coordinates[0] = auxiliar_xi[1];
                 }
             }
-        } else { // THIS IS NOT SUPPOSED TO HAPPEN
-            KRATOS_DEBUG_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN!!!!\n" << rOriginalSlaveGeometry << "\n" << rOriginalMasterGeometry << std::endl;
-            return false;  // NOTE: Giving problems
+        } else { // Projection not possible
+            return false;
         }
 
         total_weight = auxiliar_coordinates[1] - auxiliar_coordinates[0];
@@ -134,9 +136,9 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
 
 template <>
 bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     ConditionArrayListType& rConditionsPointsSlave
     )
@@ -153,10 +155,13 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(3);
     PointerVector<PointType> points_array_master(3);
-    for (IndexType i_node = 0; i_node < 3; ++i_node) {
-        PointType aux_point;
-        double distance;
 
+    // Auxiliar values for projections
+    PointType aux_point;
+    double distance;
+
+    // Iterate over geometries
+    for (IndexType i_node = 0; i_node < 3; ++i_node) {
         aux_point.Coordinates() = rOriginalSlaveGeometry[i_node].Coordinates();  // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave(i_node) = Kratos::make_shared<PointType>(aux_point);
@@ -178,7 +183,7 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     array_1d<bool, 3> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -187,9 +192,10 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     if (CheckAllInside(all_inside)) {
         rConditionsPointsSlave.resize(1);
 
+        PointType point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            PointType point;
-            rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
+            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = point;
         }
 
@@ -199,12 +205,12 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry);
 
-        return TriangleIntersections<GeometryNodeType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+        return TriangleIntersections<GeometryType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }
 
     return false;
@@ -215,9 +221,9 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
 
 template <>
 bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     ConditionArrayListType& rConditionsPointsSlave
     )
@@ -235,10 +241,13 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
     PointerVector<PointType> points_array_slave(4);
     PointerVector<PointType> points_array_slave_not_rotated(4);
     PointerVector<PointType> points_array_master(4);
-    for (IndexType i_node = 0; i_node < 4; ++i_node) {
-        PointType aux_point;
-        double distance_slave, distance_master;
 
+    // Auxiliar values
+    PointType aux_point;
+    double distance_slave, distance_master;
+
+    // Iterate over the geometries
+    for (IndexType i_node = 0; i_node < 4; ++i_node) {
         aux_point = GeometricalProjectionUtilities::FastProject(slave_center, rOriginalSlaveGeometry[i_node], rSlaveNormal, distance_slave);
         points_array_slave_not_rotated(i_node) = Kratos::make_shared<PointType>(aux_point);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
@@ -262,7 +271,7 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
     array_1d<bool, 4> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -278,7 +287,7 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry);
@@ -294,9 +303,9 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
 
 template <>
 bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     ConditionArrayListType& rConditionsPointsSlave
     )
@@ -310,20 +319,22 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // Auxiliar values
-    PointType aux_point;
-    double distance;
-
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(3);
     PointerVector<PointType> points_array_master(4);
 
+    // Auxiliar values
+    PointType aux_point;
+    double distance;
+
+    // Iterate over the slave geometry
     for (IndexType i_node = 0; i_node < 3; ++i_node) {
         aux_point.Coordinates() = rOriginalSlaveGeometry[i_node].Coordinates();  // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave(i_node) = Kratos::make_shared<PointType>(aux_point);
     }
 
+    // Iterate over master geometry
     for (IndexType i_node = 0; i_node < 4; ++i_node) {
         aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
@@ -342,7 +353,7 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
     array_1d<bool, 4> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<4>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<4>(all_inside_master, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -351,14 +362,15 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
     if (CheckAllInside(all_inside_master)) { // We decompose in two triangles
         rConditionsPointsSlave.resize(2);
 
+        PointType point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            PointType point;
-            rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
+            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = point;
         }
         for (IndexType i_node = 1; i_node < 4; ++i_node) {
-            PointType point;
-            rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
+            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[1][i_node - 1] = point;
         }
 
@@ -369,12 +381,12 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
 
         // We check if the nodes are inside
         array_1d<bool, 3> all_inside_slave;
-        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside_slave, slave_geometry);
 
-        return TriangleIntersections<GeometryNodeType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+        return TriangleIntersections<GeometryType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }
 
     return false;
@@ -385,9 +397,9 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
 
 template <>
 bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     ConditionArrayListType& rConditionsPointsSlave
     )
@@ -410,6 +422,7 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
     PointerVector<PointType> points_array_slave_not_rotated(4);
     PointerVector<PointType> points_array_master(3);
 
+    // Iterate over slave geometry
     for (IndexType i_node = 0; i_node < 4; ++i_node) {
         aux_point = GeometricalProjectionUtilities::FastProject(slave_center, rOriginalSlaveGeometry[i_node], rSlaveNormal, distance);
         points_array_slave_not_rotated(i_node) = Kratos::make_shared<PointType>(aux_point);
@@ -422,6 +435,7 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
         }
     }
 
+    // Iterate over master geometry
     for (IndexType i_node = 0; i_node < 3; ++i_node) {
         aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
@@ -441,7 +455,7 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
     array_1d<bool, 3> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<3>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<3>(all_inside_master, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -450,9 +464,10 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
     if (CheckAllInside(all_inside_master)) { // We generate only one triangle
         rConditionsPointsSlave.resize(1);
 
+        PointType point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            PointType point;
-            rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
+            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = point;
         }
 
@@ -463,7 +478,7 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
 
         // We check if the nodes are inside
         array_1d<bool, 4> all_inside_slave;
-        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside_slave, slave_geometry);
@@ -481,29 +496,29 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
 
 template <>
 bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     ConditionArrayListType& rConditionsPointsSlave
     )
 {
     // We take the geometry GP from the core
-    const double tolerance = 1.0e3 * ZeroTolerance;
+    const double tolerance = 1.0e3 * mZeroToleranceFactor * ZeroTolerance;
 
     double total_weight = 0.0;
-    array_1d<double, 2> auxiliar_coordinates(2, 0.0);
+    array_1d<double, 2> auxiliar_coordinates = ZeroVector(2);
     array_1d<PointBelongsLine2D2N, 2> auxiliar_belong;
 
     // Declaring auxiliar values
     PointType projected_gp_global;
-    GeometryNodeType::CoordinatesArrayType projected_gp_local;
+    GeometryType::CoordinatesArrayType projected_gp_local;
 
     // First look if the edges of the slave are inside of the master, if not check if the opposite is true, if not then the element is not in contact
     for (unsigned int i_slave = 0; i_slave < 2; ++i_slave) {
-        const array_1d<double, 3>& normal = rOriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
+        const array_1d<double, 3>& r_normal = rOriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
 
-        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave], projected_gp_global, rMasterNormal, -normal ); // The opposite direction
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(rOriginalMasterGeometry, rOriginalSlaveGeometry[i_slave], projected_gp_global, rMasterNormal, -r_normal ); // The opposite direction
 
         if (distance > mDistanceThreshold) {
             rConditionsPointsSlave.clear();
@@ -536,6 +551,8 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
 
             if (is_inside) {
                 auxiliar_xi.push_back(projected_gp_local[0]);
+                if (projected_gp_local[0] > (1.0 - tolerance)) auxiliar_coordinates[1] = 1.0;
+                else if (projected_gp_local[0] < (-1.0 + tolerance)) auxiliar_coordinates[0] = -1.0;
                 auxiliar_master_belong.push_back( static_cast<PointBelongsLine2D2N>(2 + i_master));
             }
         }
@@ -571,9 +588,8 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
                     auxiliar_belong[0] = auxiliar_master_belong[1];
                 }
             }
-        } else { // THIS IS NOT SUPPOSED TO HAPPEN
-            KRATOS_DEBUG_ERROR << "THIS IS NOT SUPPOSED TO HAPPEN!!!!\n" << rOriginalSlaveGeometry << "\n" << rOriginalMasterGeometry << std::endl;
-            return false;  // NOTE: Giving problems
+        } else { // Projection not possible
+            return false;
         }
 
         total_weight = auxiliar_coordinates[1] - auxiliar_coordinates[0];
@@ -606,9 +622,9 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
 
 template <>
 bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     ConditionArrayListType& rConditionsPointsSlave
     )
@@ -625,10 +641,13 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(3);
     PointerVector<PointType> points_array_master(3);
-    for (IndexType i_node = 0; i_node < 3; ++i_node) {
-        PointType aux_point;
-        double distance;
 
+    // Auxiliar values
+    PointType aux_point;
+    double distance;
+
+    // Iterate over geometries
+    for (IndexType i_node = 0; i_node < 3; ++i_node) {
         aux_point.Coordinates() = rOriginalSlaveGeometry[i_node].Coordinates();  // NOTE: We are in a linear triangle, all the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave(i_node) = Kratos::make_shared<PointType>(aux_point);
@@ -645,7 +664,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
     array_1d<bool, 3> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -654,9 +673,10 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
     if (CheckAllInside(all_inside)) {
         rConditionsPointsSlave.resize(1);
 
+        PointType point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            PointType point;
-            rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
+            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = PointBelong<3>(point.Coordinates(), static_cast<PointBelongsTriangle3D3N>(i_node + 3));
         }
 
@@ -666,12 +686,12 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
 
-        return TriangleIntersections<GeometryNodeType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+        return TriangleIntersections<GeometryType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }
 
     return false;
@@ -682,9 +702,9 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
 
 template <>
 bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     ConditionArrayListType& rConditionsPointsSlave
     )
@@ -702,10 +722,13 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
     PointerVector<PointType> points_array_slave(4);
     PointerVector<PointType> points_array_slave_not_rotated(4);
     PointerVector<PointType> points_array_master(4);
-    for (IndexType i_node = 0; i_node < 4; ++i_node) {
-        PointType aux_point;
-        double distance_slave, distance_master;
 
+    // Auxiliar values
+    PointType aux_point;
+    double distance_slave, distance_master;
+
+    // Iterate over geometries
+    for (IndexType i_node = 0; i_node < 4; ++i_node) {
         aux_point = GeometricalProjectionUtilities::FastProject(slave_center, rOriginalSlaveGeometry[i_node], rSlaveNormal, distance_slave);
         points_array_slave_not_rotated(i_node) = Kratos::make_shared<PointType>(aux_point);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
@@ -729,7 +752,7 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
     array_1d<bool, 4> all_inside;
 
     // We check if the nodes are inside
-    CheckInside(all_inside, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside(all_inside, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -745,7 +768,7 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
         PushBackPoints(point_list, all_inside, master_geometry, PointBelongs::Master);
 
         // We check if the nodes are inside
-        CheckInside(all_inside, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside, slave_geometry, PointBelongs::Slave);
@@ -761,9 +784,9 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
 
 template <>
 bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     ConditionArrayListType& rConditionsPointsSlave
     )
@@ -777,20 +800,22 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // Auxiliar values
-    PointType aux_point;
-    double distance;
-
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(3);
     PointerVector<PointType> points_array_master(4);
 
+    // Auxiliar values
+    PointType aux_point;
+    double distance;
+
+    // Iterate over slave geometries
     for (IndexType i_node = 0; i_node < 3; ++i_node) {
         aux_point.Coordinates() = rOriginalSlaveGeometry[i_node].Coordinates();  // NOTE: We are in a linear triangle, ali_nodel the nodes belong already to the plane, so, the step one can be avoided, we directly project  the master nodes
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave(i_node) = Kratos::make_shared<PointType>(aux_point);
     }
 
+    // Iterate over master geometries
     for (IndexType i_node = 0; i_node < 4; ++i_node) {
         aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
@@ -809,7 +834,7 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
     array_1d<bool, 4> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<4>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<4>(all_inside_master, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -818,14 +843,15 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
     if (CheckAllInside(all_inside_master)) { // We decompose in two triangles
         rConditionsPointsSlave.resize(2);
 
+        PointType point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            PointType point;
-            rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
+            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = PointBelong<3, 4>(point.Coordinates(), static_cast<PointBelongsTriangle3D3NQuadrilateral3D4N>(i_node + 3));
         }
         for (IndexType i_node = 1; i_node < 4; ++i_node) {
-            PointType point;
-            rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
+            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[1][i_node - 1] = PointBelong<3, 4>(point.Coordinates(), static_cast<PointBelongsTriangle3D3NQuadrilateral3D4N>(i_node + 3));
         }
 
@@ -836,12 +862,12 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
 
         // We check if the nodes are inside
         array_1d<bool, 3> all_inside_slave;
-        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside_slave, slave_geometry, PointBelongs::Slave);
 
-        return TriangleIntersections<GeometryNodeType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
+        return TriangleIntersections<GeometryType>(rConditionsPointsSlave, point_list, rOriginalSlaveGeometry, slave_geometry, master_geometry, slave_tangent_xi, slave_tangent_eta, slave_center);
     }
 
     return false;
@@ -852,9 +878,9 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
 
 template <>
 bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     ConditionArrayListType& rConditionsPointsSlave
     )
@@ -868,15 +894,16 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_eta;
     MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
-    // Auxiliar values
-    PointType aux_point;
-    double distance;
-
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(4);
     PointerVector<PointType> points_array_slave_not_rotated(4);
     PointerVector<PointType> points_array_master(3);
 
+    // Auxiliar values
+    PointType aux_point;
+    double distance;
+
+    // Iterate over slave geometries
     for (IndexType i_node = 0; i_node < 4; ++i_node) {
         aux_point = GeometricalProjectionUtilities::FastProject(slave_center, rOriginalSlaveGeometry[i_node], rSlaveNormal, distance);
         points_array_slave_not_rotated(i_node) = Kratos::make_shared<PointType>(aux_point);
@@ -889,6 +916,7 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
         }
     }
 
+    // Iterate over master geometries
     for (IndexType i_node = 0; i_node < 3; ++i_node) {
         aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
@@ -900,7 +928,6 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
         }
     }
 
-
     Quadrilateral3D4<PointType> slave_geometry(points_array_slave);
     Quadrilateral3D4<PointType> slave_geometry_not_rotated(points_array_slave_not_rotated);
     Triangle3D3<PointType> master_geometry(points_array_master);
@@ -909,7 +936,7 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
     array_1d<bool, 3> all_inside_master;
 
     // We check if the nodes are inside
-    CheckInside<3>(all_inside_master, slave_geometry, master_geometry, ZeroTolerance);
+    CheckInside<3>(all_inside_master, slave_geometry, master_geometry, mZeroToleranceFactor * ZeroTolerance);
 
     // We create the pointlist
     PointListType point_list;
@@ -918,9 +945,10 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
     if (CheckAllInside(all_inside_master)) { // We generate only one triangle
         rConditionsPointsSlave.resize(1);
 
+        PointType point;
         for (IndexType i_node = 0; i_node < 3; ++i_node) {
-            PointType point;
-            rOriginalSlaveGeometry.PointLocalCoordinates( point, rOriginalMasterGeometry[i_node]);
+            aux_point = GeometricalProjectionUtilities::FastProject( slave_center, rOriginalMasterGeometry[i_node], rSlaveNormal, distance);
+            rOriginalSlaveGeometry.PointLocalCoordinates( point, aux_point);
             rConditionsPointsSlave[0][i_node] = PointBelong<4, 3>(point.Coordinates(), static_cast<PointBelongsQuadrilateral3D4NTriangle3D3N>(i_node + 4));;
         }
 
@@ -931,7 +959,7 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
 
         // We check if the nodes are inside
         array_1d<bool, 4> all_inside_slave;
-        CheckInside(all_inside_slave, master_geometry, slave_geometry, ZeroTolerance);
+        CheckInside(all_inside_slave, master_geometry, slave_geometry, mZeroToleranceFactor * ZeroTolerance);
 
         // We add the internal nodes
         PushBackPoints(point_list, all_inside_slave, slave_geometry, PointBelongs::Slave);
@@ -947,9 +975,9 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
 
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
 bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetExactIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     IntegrationPointsType& rIntegrationPointsSlave
     )
@@ -994,9 +1022,9 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
 
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
 bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetExactAreaIntegration(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     const array_1d<double, 3>& rSlaveNormal,
-    GeometryNodeType& rOriginalMasterGeometry,
+    const GeometryType& rOriginalMasterGeometry,
     const array_1d<double, 3>& rMasterNormal,
     double& rArea
     )
@@ -1019,17 +1047,17 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
 
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
 void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetTotalArea(
-    GeometryNodeType& rOriginalSlaveGeometry,
+    const GeometryType& rOriginalSlaveGeometry,
     ConditionArrayListType& rConditionsPointsSlave,
     double& rArea
     )
 {
     rArea = 0.0;
 
+    std::vector<PointType::Pointer> points_array( TDim);  // The points are stored as local coordinates, we calculate the global coordinates of this points
+    PointType global_point;
     for (IndexType i_geom = 0; i_geom < rConditionsPointsSlave.size(); ++i_geom) {
-        std::vector<PointType::Pointer> points_array( TDim);  // The points are stored as local coordinates, we calculate the global coordinates of this points
         for (IndexType i_node = 0; i_node < TDim; ++i_node) {
-            PointType global_point;
             rOriginalSlaveGeometry.GlobalCoordinates(global_point, rConditionsPointsSlave[i_geom][i_node]);
             points_array[i_node] = Kratos::make_shared<PointType>(global_point);
         }
@@ -1212,7 +1240,7 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::G
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
-GeometryNodeType::IntegrationPointsArrayType ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetIntegrationTriangle()
+GeometryType::IntegrationPointsArrayType ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::GetIntegrationTriangle()
 {
     // Setting the auxiliar integration points
     switch (mIntegrationOrder) {
@@ -1271,8 +1299,8 @@ inline std::vector<IndexType> ExactMortarIntegrationUtility<TDim, TNumNodes, TBe
 template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMaster>
 inline void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::ComputeClippingIntersections(
     PointListType& rPointList,
-    GeometryPointType& rSlaveGeometry,
-    GeometryPointType& rMasterGeometry,
+    const GeometryPointType& rSlaveGeometry,
+    const GeometryPointType& rMasterGeometry,
     const PointType& rRefCenter
     )
 {
@@ -1321,9 +1349,9 @@ template <class TGeometryType>
 inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TriangleIntersections(
     ConditionArrayListType& rConditionsPointsSlave,
     PointListType& rPointList,
-    TGeometryType& rOriginalSlaveGeometry,
-    GeometryPointType& rSlaveGeometry,
-    GeometryPointType& rMasterGeometry,
+    const TGeometryType& rOriginalSlaveGeometry,
+    const GeometryPointType& rSlaveGeometry,
+    const GeometryPointType& rMasterGeometry,
     const array_1d<double, 3>& rSlaveTangentXi,
     const array_1d<double, 3>& rSlaveTangentEta,
     const PointType& rRefCenter,
@@ -1362,8 +1390,8 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
         rConditionsPointsSlave.resize((list_size - 2));
 
         IndexType aux_elem_index = 0;
+        ArrayTriangleType points_locals_slave, points_locals_master;
         for (IndexType elem = 0; elem < list_size - 2; ++elem) { // NOTE: We always have two points less that the number of nodes
-            ArrayTriangleType points_locals_slave, points_locals_master;
 
             points_locals_slave[0] = rPointList[0];
             points_locals_slave[1] = rPointList[index_vector[elem + 0] + 1];

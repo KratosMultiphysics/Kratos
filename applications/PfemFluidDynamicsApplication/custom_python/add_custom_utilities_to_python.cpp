@@ -23,27 +23,26 @@
 #include "custom_utilities/postprocess_utilities.h"
 #include "custom_utilities/pfem_fluid_gid_io.h"
 
-namespace Kratos {
-namespace Python {
-    namespace py = pybind11;
+namespace Kratos
+{
+namespace Python
+{
+namespace py = pybind11;
 
-    void  AddCustomUtilitiesToPython(pybind11::module& m) {
+void AddCustomUtilitiesToPython(pybind11::module &m)
+{
 
-        py::class_<PostProcessUtilities, PostProcessUtilities::Pointer>(m, "PostProcessUtilities")
-            .def(py::init<>())
-            .def("RebuildPostProcessModelPart", &PostProcessUtilities::RebuildPostProcessModelPart)
-        ;
+    py::class_<PostProcessUtilities, PostProcessUtilities::Pointer>(m, "PostProcessUtilities")
+        .def(py::init<>())
+        .def("RebuildPostProcessModelPart", &PostProcessUtilities::RebuildPostProcessModelPart);
 
-        py::class_<PfemFluidGidIO<>, PfemFluidGidIO<>::Pointer, GidIO<> >(m,
-        "PfemFluidGidIO")
-            .def(py::init<std::string const&, GiD_PostMode,
-                MultiFileFlag,
-                WriteDeformedMeshFlag,
-                WriteConditionsFlag>())
-            ;
+    py::class_<PfemFluidGidIO<>, PfemFluidGidIO<>::Pointer, GidIO<>>(m,
+                                                                     "PfemFluidGidIO")
+        .def(py::init<std::string const &, GiD_PostMode,
+                      MultiFileFlag,
+                      WriteDeformedMeshFlag,
+                      WriteConditionsFlag>());
+}
 
-    }
-
-}  // namespace Python.
+} // namespace Python.
 } // Namespace Kratos
-

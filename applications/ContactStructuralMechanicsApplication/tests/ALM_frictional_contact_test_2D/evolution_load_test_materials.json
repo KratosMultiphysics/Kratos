@@ -1,0 +1,33 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 1.0e3,
+                "YOUNG_MODULUS" : 10.0,
+                "POISSON_RATIO" : 0.0,
+                "FRICTION_COEFFICIENT": 1.00
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Parts_Auto2",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 1.0e3,
+                "YOUNG_MODULUS" : 10.0,
+                "POISSON_RATIO" : 0.0,
+                "FRICTION_COEFFICIENT": 1.00
+            },
+            "Tables"           : {}
+        }
+    }]
+}

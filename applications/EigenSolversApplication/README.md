@@ -10,11 +10,11 @@ The application provides the following direct sparse solvers:
 |-------------------|----------------------|:-----------:|:------------:|
 | SparseLUSolver    | `eigen_sparse_lu`    | Square      | None         |
 | SparseQRSolver    | *not available*      | Rectangular | None         |
-| PardisoLLTSolver  | `eigen_pardiso_llt`  | SPD         | Intel® MKL   |
-| PardisoLDLTSolver | `eigen_pardiso_ldlt` | SPD         | Intel® MKL   |
+| PardisoLLTSolver  | `eigen_pardiso_llt`  | SPD*        | Intel® MKL   |
+| PardisoLDLTSolver | `eigen_pardiso_ldlt` | SPD*        | Intel® MKL   |
 | PardisoLUSolver   | `eigen_pardiso_lu`   | Square      | Intel® MKL   |
 
-SPD = symmetric positive definite
+*SPD = Symmetric Positive Definite
 
 **Example**:
 

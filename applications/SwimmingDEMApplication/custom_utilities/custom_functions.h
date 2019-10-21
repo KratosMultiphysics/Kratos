@@ -29,7 +29,7 @@
 #include "custom_utilities/search/discrete_particle_configure.h"
 #include "includes/define.h"
 #include "../../DEMApplication/custom_elements/discrete_element.h"
-#include "custom_elements/spheric_swimming_particle.h"
+#include "custom_elements/swimming_particle.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "../../DEMApplication/custom_elements/spheric_particle.h"
 #include "../swimming_DEM_application.h"
@@ -104,8 +104,8 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-// This function assesses the stationarity based on the pressure field varaition.
-// Its tolerance applies to the adimensinalised pressure variation between consecutive
+// This function assesses the stationarity based on the pressure field variation.
+// Its tolerance applies to the non-dimensional pressure variation between consecutive
 // measurements.
 bool AssessStationarity(ModelPart& r_model_part, const double& tol)
 {

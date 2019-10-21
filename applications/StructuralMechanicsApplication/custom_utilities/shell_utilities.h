@@ -23,10 +23,8 @@
 #include "includes/properties.h"
 #include "containers/array_1d.h"
 
-namespace Kratos
-{
-namespace ShellUtilities
-{
+namespace Kratos {
+namespace ShellUtilities {
 
 using SizeType = std::size_t;
 using IndexType = std::size_t;

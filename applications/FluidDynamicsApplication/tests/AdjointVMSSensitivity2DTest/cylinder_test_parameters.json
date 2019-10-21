@@ -6,25 +6,37 @@
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
-    "output_configuration"             : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteUndeformed",
-                "WriteConditionsFlag"   : "WriteElementsOnly",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "time",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY","PRESSURE"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "MainModelPart",
+                "output_name"            : "interface_test",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags" : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteUndeformed",
+                            "WriteConditionsFlag"   : "WriteElementsOnly",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "time",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1.0,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["VELOCITY","PRESSURE"],
+                        "gauss_point_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
     },
     "restart_options"                  : {
         "SaveRestart"      : "False",
@@ -38,6 +50,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
         },
+        "material_import_settings": {
+            "materials_filename": "AdjointVMSSensitivity2DTest/cylinder_test_materials.json"
+        },
         "model_part_name"              : "MainModelPart",
         "domain_size"                  : 2,
         "maximum_iterations"           : 10,
@@ -50,7 +65,7 @@
         "relative_pressure_tolerance"  : 1e-3,
         "absolute_pressure_tolerance"  : 1e-5,
         "linear_solver_settings"       : {
-            "solver_type"         : "AMGCL_NS_Solver",
+            "solver_type"         : "amgcl_ns",
             "verbosity"           : 0,
             "coarse_enough"       : 500
         },
@@ -129,19 +144,13 @@
                 "file_settings" : {
                     "file_access_mode" : "truncate"
                 },
-                "model_part_output_settings" : {
-                    "prefix" : "/ModelData"
-                },
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
-                },
-                "output_time_settings" : {
-                    "output_step_frequency": 1
                 }
             }
         },{
             "python_module" : "compute_body_fitted_drag_process",
-                "kratos_module" : "KratosMultiphysics",
+                "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
                 "process_name"  : "ComputeBodyFittedDragProcess",
                 "Parameters" : {
                     "model_part_name"           : "NoSlip2D_Cylinder",

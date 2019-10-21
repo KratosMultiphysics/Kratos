@@ -58,7 +58,7 @@ public:
     ///@{
 
     /// Counted pointer of MPMParticlePenaltyDirichletCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MPMParticlePenaltyDirichletCondition );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticlePenaltyDirichletCondition );
 
     ///@}
     ///@name Life Cycle
@@ -83,13 +83,25 @@ public:
     ///@name Operators
     ///@{
 
+    /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Operations
     ///@{
 
     Condition::Pointer Create(
         IndexType NewId,
-        GeometryType::Pointer pGeom,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         ) const override;
 
@@ -98,6 +110,16 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override;
+
+
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access

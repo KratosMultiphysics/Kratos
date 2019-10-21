@@ -81,10 +81,32 @@ public:
     ///@name Operations
     ///@{
 
+    using AdjointStructuralResponseFunction::CalculateGradient;
+
     void CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    const ProcessInfo& rProcessInfo) override;
+
+    void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
+                                           const Matrix& rResidualGradient,
+                                           Vector& rResponseGradient,
+                                           const ProcessInfo& rProcessInfo) override;
+
+    void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+                                           const Matrix& rResidualGradient,
+                                           Vector& rResponseGradient,
+                                           const ProcessInfo& rProcessInfo) override;
+
+    void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
+                                            const Matrix& rResidualGradient,
+                                            Vector& rResponseGradient,
+                                            const ProcessInfo& rProcessInfo) override;
+
+    void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
+                                            const Matrix& rResidualGradient,
+                                            Vector& rResponseGradient,
+                                            const ProcessInfo& rProcessInfo) override;
 
     void CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<double>& rVariable,

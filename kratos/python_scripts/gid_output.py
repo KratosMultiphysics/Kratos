@@ -73,6 +73,10 @@ class GiDOutput(object):
                  write_conditions=True
                  ):
 
+        depr_msg  = '"kratos/python_scripts/gid_output.py" is deprecated and will be removed\n'
+        depr_msg += 'Please use "kratos/python_scripts/gid_output_process.py" instead!'
+        Logger.PrintWarning('DEPRECATION-WARNING', depr_msg)
+
         self.filename = file_name
         self.volume_output = vol_output
         self.post_mode = post_mode

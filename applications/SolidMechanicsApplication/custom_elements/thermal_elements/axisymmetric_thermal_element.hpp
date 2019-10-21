@@ -57,7 +57,7 @@ public:
 
 
     /// Counted pointer of AxisymmetricThermalElement
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymmetricThermalElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymmetricThermalElement);
 
 
     ///@}

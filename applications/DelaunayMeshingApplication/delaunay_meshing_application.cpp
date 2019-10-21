@@ -21,7 +21,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
 
-#include "geometries/line_2d.h"
+#include "geometries/line_2d_2.h"
 
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"

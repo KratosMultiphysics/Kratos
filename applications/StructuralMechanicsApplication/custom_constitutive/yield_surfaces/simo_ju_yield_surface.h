@@ -125,9 +125,9 @@ class SimoJuYieldSurface
         ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
 
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
-        const double yield_compressionompression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double yield_tensionension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        const double n = std::abs(yield_compressionompression / yield_tensionension);
+        const double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        const double n = std::abs(yield_compression / yield_tension);
 
         double SumA = 0.0, SumB = 0.0, SumC = 0.0, ere0, ere1;
         for (std::size_t cont = 0; cont < 2; ++cont) {
@@ -178,15 +178,15 @@ class SimoJuYieldSurface
 
         const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
-        const double yield_compressionompression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double yield_tensionension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        const double n = yield_compressionompression / yield_tensionension;
+        const double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        const double n = yield_compression / yield_tension;
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            rAParameter = 1.0 / (fracture_energy * n * n / (CharacteristicLength * std::pow(yield_compressionompression, 2)) - 0.5);
+            rAParameter = 1.0 / (fracture_energy * n * n / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
             KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
-            rAParameter = -std::pow(yield_compressionompression, 2) / (2.0 * fracture_energy * n * n / CharacteristicLength);
+            rAParameter = -std::pow(yield_compression, 2) / (2.0 * fracture_energy * n * n / CharacteristicLength);
         }
     }
 

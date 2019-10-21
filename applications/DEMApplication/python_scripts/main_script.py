@@ -4,26 +4,23 @@ import os
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-sys.path.insert(0, '')
+Logger.PrintInfo("DEM", "WARNING: main_script.py is is deprecated since 20/03/2019")
+Logger.PrintInfo("DEM", "WARNING: Please use DEM_analysis_stage.py")
 
-# Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
-if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
+if IsDistributedRun():
     if "DO_NOT_PARTITION_DOMAIN" in os.environ:
         Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
-        import DEM_procedures_mpi_no_partitions as DEM_procedures
-        import DEM_material_test_script
+        import KratosMultiphysics.DEMApplication.DEM_procedures_mpi_no_partitions as DEM_procedures
     else:
         Logger.PrintInfo("DEM", "Running under OpenMP........")
         from KratosMultiphysics.MetisApplication import *
         from KratosMultiphysics.MPISearchApplication import *
         from KratosMultiphysics.mpi import *
-        import DEM_procedures_mpi as DEM_procedures
-        import DEM_material_test_script_mpi as DEM_material_test_script
+        import KratosMultiphysics.DEMApplication.DEM_procedures_mpi as DEM_procedures
 else:
     Logger.PrintInfo("DEM", "Running under OpenMP........")
-    import DEM_procedures
-    import DEM_material_test_script
+    import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 
 class Solution(object):
 
@@ -45,7 +42,7 @@ class Solution(object):
 
     @classmethod
     def GetDefaultInputParameters(self):
-        import dem_default_input_parameters
+        import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_default_input_parameters
         return dem_default_input_parameters.GetDefaultInputParameters()
 
     @classmethod
@@ -71,7 +68,7 @@ class Solution(object):
 
 
         # Set the print function TO_DO: do this better...
-        self.KRATOSprint = self.procedures.KRATOSprint
+        self.KratosPrintInfo = self.procedures.KratosPrintInfo
 
         # Creating necessary directories:
         self.problem_name = self.GetProblemTypeFilename()
@@ -104,7 +101,7 @@ class Solution(object):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
         self.rigid_face_model_part = self.model.CreateModelPart("RigidFacePart")
         self.cluster_model_part = self.model.CreateModelPart("ClusterPart")
-        self.DEM_inlet_model_part = self.model.CreateModelPart("DEMInletPart")
+        self.dem_inlet_model_part = self.model.CreateModelPart("DEMInletPart")
         self.mapping_model_part = self.model.CreateModelPart("MappingPart")
         self.contact_model_part = self.model.CreateModelPart("ContactPart")
 
@@ -112,7 +109,7 @@ class Solution(object):
         mp_list.append(self.spheres_model_part)
         mp_list.append(self.rigid_face_model_part)
         mp_list.append(self.cluster_model_part)
-        mp_list.append(self.DEM_inlet_model_part)
+        mp_list.append(self.dem_inlet_model_part)
         mp_list.append(self.mapping_model_part)
         mp_list.append(self.contact_model_part)
 
@@ -127,7 +124,7 @@ class Solution(object):
         return False
 
     def SetAnalyticParticleWatcher(self):
-        from analytic_tools import analytic_data_procedures
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
 
         # is this being used? TODO
@@ -135,7 +132,7 @@ class Solution(object):
 
 
     def SetAnalyticFaceWatcher(self):
-        from analytic_tools import analytic_data_procedures
+        from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
         self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
         self.face_watcher_dict = dict()
         self.face_watcher_analysers = dict()
@@ -200,7 +197,7 @@ class Solution(object):
         translational_scheme = self.SelectTranslationalScheme()
 
         if translational_scheme is None:
-            self.KRATOSprint('Error: selected translational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return translational_scheme
 
@@ -208,7 +205,7 @@ class Solution(object):
         rotational_scheme = self.SelectRotationalScheme()
 
         if rotational_scheme is None:
-            self.KRATOSprint('Error: selected rotational integration scheme not defined. Please select a different scheme')
+            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
             sys.exit("\nExecution was aborted.\n")
         return rotational_scheme
 
@@ -217,19 +214,19 @@ class Solution(object):
         # TODO: Ugly fix. Change it. I don't like this to be in the main...
         # Strategy object
         if self.DEM_parameters["ElementType"].GetString() == "SphericPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
-            import sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "SphericContPartDEMElement3D" or self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
-            import continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.continuum_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericContPartDEMElement3D":
-            import thermal_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_continuum_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "ThermalSphericPartDEMElement3D":
-            import thermal_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "SinteringSphericConPartDEMElement3D":
-            import thermal_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.thermal_continuum_sphere_strategy as SolverStrategy
         elif self.DEM_parameters["ElementType"].GetString() == "IceContPartDEMElement3D":
-            import ice_continuum_sphere_strategy as SolverStrategy
+            import KratosMultiphysics.DEMApplication.ice_continuum_sphere_strategy as SolverStrategy
         else:
-            self.KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
+            self.KratosPrintWarning('Error: Strategy unavailable. Select a different scheme-element')
 
         return SolverStrategy
 
@@ -282,12 +279,13 @@ class Solution(object):
                 self.FillAnalyticSubModelParts()
 
         # Setting up the buffer size
-        self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
+        self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.dem_inlet_model_part, 1, self.rigid_face_model_part, 1)
         # Adding dofs
-        self.AddAllDofs()
+        # self.AddAllDofs() # Calls to this method are deprecated.
+        self.AddDofs()
 
         #-----------os.chdir(self.main_path)
-        self.KRATOSprint("Initializing Problem...")
+        self.KratosPrintInfo("Initializing Problem...")
 
         self.GraphicalOutputInitialize()
 
@@ -324,7 +322,7 @@ class Solution(object):
 
         self.materialTest.Initialize(self.DEM_parameters, self.procedures, self.solver, self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
 
-        self.KRATOSprint("Initialization Complete")
+        self.KratosPrintInfo("Initialization Complete")
 
         self.report.Prepare(timer, self.DEM_parameters["ControlTime"].GetDouble())
 
@@ -335,13 +333,16 @@ class Solution(object):
 
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.end_time / self.solver.dt)
-        self.KRATOSprint(self.report.BeginReport(timer))
+        self.KratosPrintInfo(self.report.BeginReport(timer))
         #-----os.chdir(self.main_path)
 
-    def AddAllDofs(self):
+    def AddAllDofs(self):  # Deprecated method.
         self.solver.AddDofs(self.spheres_model_part)
         self.solver.AddDofs(self.cluster_model_part)
-        self.solver.AddDofs(self.DEM_inlet_model_part)
+        self.solver.AddDofs(self.dem_inlet_model_part)
+
+    def AddDofs(self):
+        self.solver.AddDofs()
 
     def SetSearchStrategy(self):
         self.solver.search_strategy = self.parallelutils.GetSearchStrategy(self.solver, self.spheres_model_part)
@@ -379,7 +380,7 @@ class Solution(object):
         else:
             self.parallelutils.PerformInitialPartition(model_part_io_spheres)
 
-        [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+        [model_part_io_spheres, self.spheres_model_part] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
         model_part_io_spheres.ReadModelPart(self.spheres_model_part)
 
         max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part))
@@ -391,7 +392,7 @@ class Solution(object):
             model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
         else:
-            self.KRATOSprint('No .mdpa file found for DEM Walls. Continuing.')
+            self.KratosPrintInfo('No .mdpa file found for DEM Walls. Continuing.')
 
         max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part))
         max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part))
@@ -401,7 +402,7 @@ class Solution(object):
             model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_clusters.ReadModelPart(self.cluster_model_part)
         else:
-            self.KRATOSprint('No .mdpa file found for DEM Clusters. Continuing.')
+            self.KratosPrintInfo('No .mdpa file found for DEM Clusters. Continuing.')
 
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
         if max_elem_Id != old_max_elem_Id_spheres:
@@ -413,9 +414,9 @@ class Solution(object):
         DEM_Inlet_filename = self.GetInletFilename()
         if os.path.isfile(DEM_Inlet_filename+".mdpa"):
             model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-            model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
+            model_part_io_demInlet.ReadModelPart(self.dem_inlet_model_part)
         else:
-            self.KRATOSprint('No .mdpa file found for DEM Inlets. Continuing.')
+            self.KratosPrintInfo('No .mdpa file found for DEM Inlets. Continuing.')
 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
@@ -428,17 +429,16 @@ class Solution(object):
         self.time_old_print = 0.0
         while self.time < self.end_time:
 
-            self.InitializeTimeStep()
             self.time = self.time + self.solver.dt
             self.step += 1
 
             self.UpdateTimeInModelParts()
 
-            self._BeforeSolveOperations(self.time)
+            self.InitializeSolutionStep()
 
             self.SolverSolve()
 
-            self.AfterSolveOperations()
+            self.FinalizeSolutionStep()
 
             self.solver._MoveAllMeshes(self.time, self.solver.dt)
 
@@ -448,7 +448,7 @@ class Solution(object):
 
             stepinfo = self.report.StepiReport(timer, self.time, self.step)
             if stepinfo:
-                self.KRATOSprint(stepinfo)
+                self.KratosPrintInfo(stepinfo)
 
             #### PRINTING GRAPHS ####
             #-------os.chdir(self.graphs_path)
@@ -495,25 +495,30 @@ class Solution(object):
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
-            self.DEM_inlet = DEM_Inlet(self.DEM_inlet_model_part)
+            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part)
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self.solver.continuum_type)
 
     def SetInitialNodalValues(self):
-        self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.rigid_face_model_part)
+        self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.dem_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeTimeStep(self):
+        message = 'Warning!'
+        message += '\nFunction \'InitializeTimeStep\' is deprecated.'
+        message += '\nIt will be removed after 09/28/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
         pass
 
-    #TODO: deprecated
-    def BeforeSolveOperations(self, time):
-        message = 'Warning!'
-        message += '\nFunction \'BeforeSolveOperations\' is deprecated.'
-        message += '\nPlease call \'_BeforeSolveOperations\' instead.'
-        message += '\nThe deprecated version will be removed after 02/28/2019.\n'
-        Logger.PrintWarning("main_script.py", message)
-        self._BeforeSolveOperations(time)
-
     def _BeforeSolveOperations(self, time):
+        message = 'Warning!'
+        message += '\nFunction \'_BeforeSolveOperations\' is deprecated.'
+        message += '\nIt will be removed after 09/28/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
+        if self.post_normal_impact_velocity_option:
+            if self.IsCountStep():
+                self.FillAnalyticSubModelPartsWithNewParticles()
+
+    def InitializeSolutionStep(self):
+        self.solver.InitializeSolutionStep()
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
@@ -521,7 +526,22 @@ class Solution(object):
     def BeforePrintingOperations(self, time):
         pass
 
+    def FinalizeSolutionStep(self):
+        self.solver.FinalizeSolutionStep()
+        if self.post_normal_impact_velocity_option:
+            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
+            if self.IsTimeToPrintPostProcess():
+                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
+                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+
+        #Phantom Walls
+        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
+
     def AfterSolveOperations(self):
+        message = 'Warning!'
+        message += '\nFunction \'AfterSolveOperations\' is deprecated.'
+        message += '\nIt will be removed after 09/28/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
             if self.IsTimeToPrintPostProcess():
@@ -539,7 +559,7 @@ class Solution(object):
 
     def Finalize(self):
 
-        self.KRATOSprint("Finalizing execution...")
+        self.KratosPrintInfo("Finalizing execution...")
         self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
@@ -551,7 +571,7 @@ class Solution(object):
     def __SafeDeleteModelParts(self):
         self.model.DeleteModelPart(self.cluster_model_part.Name)
         self.model.DeleteModelPart(self.rigid_face_model_part.Name)
-        self.model.DeleteModelPart(self.DEM_inlet_model_part.Name)
+        self.model.DeleteModelPart(self.dem_inlet_model_part.Name)
         self.model.DeleteModelPart(self.mapping_model_part.Name)
         self.model.DeleteModelPart(self.spheres_model_part.Name)
 
@@ -559,12 +579,12 @@ class Solution(object):
 
         self.procedures.DeleteFiles()
 
-        self.KRATOSprint(self.report.FinalReport(timer))
+        self.KratosPrintInfo(self.report.FinalReport(timer))
 
         if self.post_normal_impact_velocity_option:
             del self.analytic_model_part
 
-        del self.KRATOSprint
+        del self.KratosPrintInfo
         del self.all_model_parts
         del self.demio
         del self.procedures
@@ -577,7 +597,7 @@ class Solution(object):
         del self.cluster_model_part
         del self.rigid_face_model_part
         del self.spheres_model_part
-        del self.DEM_inlet_model_part
+        del self.dem_inlet_model_part
         del self.mapping_model_part
 
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -586,7 +606,7 @@ class Solution(object):
     def SetGraphicalOutput(self):
         self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
         if self.DEM_parameters["post_vtk_option"].GetBool():
-            import dem_vtk_output
+            import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
             self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):
@@ -640,7 +660,6 @@ class Solution(object):
         self._UpdateTimeParameters()
 
     def _UpdateTimeParameters(self):
-        self.InitializeTimeStep()
         self.time = self.time + self.solver.dt
         self.step += 1
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
@@ -654,7 +673,7 @@ class Solution(object):
         print(self.time,self.step)
         stepinfo = self.report.StepiReport(timer, self.time, self.step)
         if stepinfo:
-            self.KRATOSprint(stepinfo)
+            self.KratosPrintInfo(stepinfo)
 
     def OutputSingleTimeLoop(self):
         #### PRINTING GRAPHS ####

@@ -16,12 +16,13 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             settings = all_settings["test_list"][i]
             self._auxiliary_test_function(settings)
 
-    def _auxiliary_test_function(self, settings, matrix_name="A.mm"):
+    def _auxiliary_test_function(self, settings, matrix_name="auxiliar_files_for_python_unnitest/sparse_matrix_files/A.mm"):
         space = KratosMultiphysics.UblasSparseSpace()
 
         #read the matrices
         A = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(matrix_name),A)
+        file_read = KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(matrix_name),A)
+        self.assertTrue(file_read, msg="The MatrixFile could not be read")
 
         Aoriginal = KratosMultiphysics.CompressedMatrix(A) #create a copy of A
 

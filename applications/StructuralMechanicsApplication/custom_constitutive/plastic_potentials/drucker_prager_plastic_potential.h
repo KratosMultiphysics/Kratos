@@ -122,9 +122,6 @@ class DruckerPragerPlasticPotential
 
         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-
-        const double c3 = 0.0;
 
         const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
         const double sin_dil = std::sin(dilatancy);
@@ -134,7 +131,7 @@ class DruckerPragerPlasticPotential
         const double c1 = CFL * 2.0 * sin_dil / (Root3 * (3.0 - sin_dil));
         const double c2 = CFL;
 
-        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        noalias(rGFlux) = c1 * first_vector + c2 * second_vector;
     }
 
     /**

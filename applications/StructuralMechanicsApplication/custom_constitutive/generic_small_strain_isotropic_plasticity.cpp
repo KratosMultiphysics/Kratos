@@ -91,7 +91,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             Vector& r_stress_vector = rValues.GetStressVector();
             if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
                 BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
                 noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
             } else {
@@ -100,7 +99,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         }
     } else { // We check for plasticity
         // Integrate Stress plasticity
-        Vector& integrated_stress_vector = rValues.GetStressVector();
+        Vector& r_integrated_stress_vector = rValues.GetStressVector();
         const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
         if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
@@ -144,7 +143,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
                 plastic_strain);
 
             if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
-                noalias(integrated_stress_vector) = predictive_stress_vector;
+                noalias(r_integrated_stress_vector) = predictive_stress_vector;
             } else { // Plastic case
                 // While loop backward euler
                 /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
@@ -154,7 +153,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
                     plastic_dissipation, plastic_strain_increment,
                     r_constitutive_matrix, plastic_strain, rValues,
                     characteristic_length);
-                noalias(integrated_stress_vector) = predictive_stress_vector;
+                noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                     this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix

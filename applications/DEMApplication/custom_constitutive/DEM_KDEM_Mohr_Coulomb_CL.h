@@ -15,18 +15,19 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Mohr_Coulomb);
 
         DEM_KDEM_Mohr_Coulomb() {
-        }    
+        }
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
+        void Check(Properties::Pointer pProp) const override;
 
         ~DEM_KDEM_Mohr_Coulomb() {
         }
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
-        
+
         double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
         void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
-        bool CheckRequirementsOfStressTensor() override;            
+        bool CheckRequirementsOfStressTensor() override;
 
     private:
 

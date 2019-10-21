@@ -33,7 +33,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -68,7 +68,7 @@ class GenericConstitutiveLawIntegratorPlasticity
   public:
     ///@name Type Definitions
     ///@{
-      
+
     /// The machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -83,7 +83,7 @@ class GenericConstitutiveLawIntegratorPlasticity
 
     /// The define the Voigt size, already defined in the yield surface
     static constexpr SizeType VoigtSize = YieldSurfaceType::VoigtSize;
-    
+
     /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
@@ -168,8 +168,11 @@ class GenericConstitutiveLawIntegratorPlasticity
         const double CharacteristicLength
         )
     {
+        // Material properties
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
         bool is_converged = false;
-        IndexType iteration = 0, max_iter = 100;
+        IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ? r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 100;
         array_1d<double, VoigtSize> delta_sigma;
         double plastic_consistency_factor_increment;
         double F = rUniaxialStress - rThreshold;
@@ -195,7 +198,9 @@ class GenericConstitutiveLawIntegratorPlasticity
             }
         }
 
-        KRATOS_WARNING_IF("Backward Euler Plasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        if (iteration > max_iter) {
+            KRATOS_WARNING_FIRST_N("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        }
     }
 
     /**
@@ -227,7 +232,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         const Matrix& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues,
         const double CharacteristicLength,
-        const Vector& rPlasticStrain 
+        const Vector& rPlasticStrain
         )
     {
         array_1d<double, VoigtSize> deviator = ZeroVector(6);
@@ -604,7 +609,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         double& rEquivalentStressThreshold,
         double& rSlope,
         ConstitutiveLaw::Parameters& rValues,
-        const double EquivalentPlasticStrain      
+        const double EquivalentPlasticStrain
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -665,7 +670,7 @@ class GenericConstitutiveLawIntegratorPlasticity
 
                 dS_dEp = 0.5 * (beta) / S_Ep;
                 dKp_dEp = S_Ep / fracture_energy;
-                
+
                 rEquivalentStressThreshold = S_Ep;
                 rSlope = dS_dEp / dKp_dEp;
             }
@@ -694,13 +699,13 @@ class GenericConstitutiveLawIntegratorPlasticity
      * @param rPlasticStrain The plastic strain vector
      */
     static void CalculateEquivalentPlasticStrain(
-        const Vector& rStressVector, 
+        const Vector& rStressVector,
         const double UniaxialStress,
         const Vector& rPlasticStrain,
         const double r0,
         ConstitutiveLaw::Parameters& rValues,
         double& rEquivalentPlasticStrain
-        ) 
+        )
     {
         double scalar_product = 0.0;
         for (IndexType i = 0; i < rPlasticStrain.size(); ++i) {
@@ -736,7 +741,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         double& rHardeningParameter
         )
     {
-        rHardeningParameter = -SlopeThreshold;
+        rHardeningParameter = SlopeThreshold;
         double aux = 0.0;
 
         for (IndexType i = 0; i < VoigtSize; ++i) {
@@ -770,15 +775,12 @@ class GenericConstitutiveLawIntegratorPlasticity
         for (IndexType i = 0; i < VoigtSize; ++i) {
             A1 += rFFlux[i] * delta_vector[i];
         }
-
         const double A2 = 0.0; // Only for isotropic hard
         const double A3 = rHardeningParameter;
         if (std::abs(A1 + A2 + A3) > tolerance)
             rPlasticDenominator = 1.0 / (A1 + A2 + A3);
         else {
             rPlasticDenominator = 1.0e-3 * std::numeric_limits<double>::max(); // TODO: Discuss this!!!
-//             rPlasticDenominator = 1.0;
-//             KRATOS_WARNING("GenericConstitutiveLawIntegratorPlasticity") << "Problem computing plastic denominator. Zero division avoided" << std::endl;
         }
     }
 
@@ -812,11 +814,11 @@ class GenericConstitutiveLawIntegratorPlasticity
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CURVE_FITTING_PARAMETERS)) << "CURVE_FITTING_PARAMETERS is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(PLASTIC_STRAIN_INDICATORS)) << "PLASTIC_STRAIN_INDICATORS is not a defined value" << std::endl;
         }
-        
+
         if (!rMaterialProperties.Has(YIELD_STRESS)) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
-            
+
             const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
             const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
 
