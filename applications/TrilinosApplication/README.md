@@ -46,6 +46,6 @@ For more information about these please refer to their serial version (without t
 ### Notes for compilation
 Trilinos is a large project and not all of its packages are being used in Kratos. Check the [configuration file of the CI (Travis)](https://github.com/KratosMultiphysics/Kratos/blob/master/.travis.yml) to see which packages are necessary in order to compile the TrilinosApplication.
 Furthermore it is possible to do a minimal installation of the TrilinosApplication with only using the Epetra package. Using the other packages is enabled by default, but can be disabled with the following flags:
-- *TRILINOS_EXCLUDE_ML_SOLVER*: Setting this flag to `ON` in the configure file will exclude the ML-solver from the compilation
-- *TRILINOS_EXCLUDE_AZTEC_SOLVER*: Setting this flag to `ON` in the configure file will exclude the Aztec-solver from the compilation
-- *TRILINOS_EXCLUDE_AMESOS_SOLVER*: Setting this flag to `ON` in the configure file will exclude the Amesos-solver from the compilation
+- *TRILINOS_EXCLUDE_ML_SOLVER*: Setting this flag to `ON` in the configure file will exclude the interface to the Trilinos ML solver package
+- *TRILINOS_EXCLUDE_AZTEC_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers from the Trilinos AztecOO package
+- *TRILINOS_EXCLUDE_AMESOS_SOLVER*: Setting this flag to `ON` in the configure file will exclude solvers using features of the Trilinos Amesos package
