@@ -47,7 +47,7 @@
         "solver_type": "Monolithic",
         "maximum_iterations": 10,
         "domain_size": 2,
-        "echo_level": 1,
+        "echo_level": 0,
         "consider_periodic_conditions": false,
         "compute_reactions": false,
         "reform_dofs_at_each_step": false,
@@ -115,24 +115,6 @@
                         "model_part_name": "MainModelPart.Boundary",
                         "echo_level": 0
                     }
-                },
-                {
-                    "python_module": "apply_custom_process",
-                    "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "CheckScalarBoundsProcess",
-                    "Parameters": {
-                        "model_part_name": "MainModelPart",
-                        "variable_name": "TURBULENT_KINETIC_ENERGY"
-                    }
-                },
-                {
-                    "python_module": "apply_custom_process",
-                    "kratos_module": "KratosMultiphysics.RANSModellingApplication",
-                    "process_name": "CheckScalarBoundsProcess",
-                    "Parameters": {
-                        "model_part_name": "MainModelPart",
-                        "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE"
-                    }
                 }
             ],
             "mesh_moving": false,
@@ -144,13 +126,13 @@
                     "scheme_type": "steady",
                     "alpha_bossak": -0.3
                 },
-                "echo_level": 1,
+                "echo_level": 0,
                 "turbulent_kinetic_energy_settings": {
                     "is_periodic": false,
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 10000,
-                    "echo_level": 2,
+                    "echo_level": 0,
                     "relaxation_factor": 1.0,
                     "linear_solver_settings": {
                         "solver_type": "skyline_lu_factorization"
@@ -161,7 +143,7 @@
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 10000,
-                    "echo_level": 2,
+                    "echo_level": 0,
                     "relaxation_factor": 1.0,
                     "linear_solver_settings": {
                         "solver_type": "skyline_lu_factorization"
