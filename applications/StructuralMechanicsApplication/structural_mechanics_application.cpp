@@ -39,6 +39,7 @@
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
+#include "geometries/line_gauss_lobatto_3d_2.h"
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 #include "geometries/triangle_2d_3.h"
@@ -156,6 +157,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAdjointFiniteDifferencingSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mAdjointFiniteDifferencingSmallDisplacementElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<NodeType >(Element::GeometryType::PointsArrayType(6)))),
       mAdjointFiniteDifferencingSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+      // Adding the fiber beam-column element
+      mFiberBeamColumnElement3D2N(0, Element::GeometryType::Pointer(new LineGaussLobatto3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
 
       /* CONDITIONS */
       // Adding point load conditions
@@ -320,6 +323,13 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_INERTIA)
     KRATOS_REGISTER_VARIABLE(NODAL_DISPLACEMENT_DAMPING)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_ROTATION_DAMPING)
+
+    // Fiber Beam-Column Element Variables
+    KRATOS_REGISTER_VARIABLE(NUMBER_OF_SECTIONS)
+    KRATOS_REGISTER_VARIABLE(NUMBER_FIBERS_Y)
+    KRATOS_REGISTER_VARIABLE(NUMBER_FIBERS_Z)
+    KRATOS_REGISTER_VARIABLE(BEAM_WIDTH)
+    KRATOS_REGISTER_VARIABLE(BEAM_HEIGHT)
 
     // CONDITIONS
     /* Moment condition */
@@ -586,6 +596,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D4N", mAdjointFiniteDifferencingSmallDisplacementElement3D4N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D6N", mAdjointFiniteDifferencingSmallDisplacementElement3D6N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D8N", mAdjointFiniteDifferencingSmallDisplacementElement3D8N)
+
+    // Register the fiber beam-column element
+    KRATOS_REGISTER_ELEMENT("FiberBeamColumnElement3D2N", mFiberBeamColumnElement3D2N)
 
     // Register the conditions
     // Point loads

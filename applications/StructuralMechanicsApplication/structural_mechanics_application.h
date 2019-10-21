@@ -68,6 +68,9 @@
 #include "custom_elements/axisym_updated_lagrangian.h"
 #include "custom_elements/small_displacement_bbar.h"
 
+/* Adding Fiber Beam-Column element */
+#include "custom_elements/fiber_beam_column_element_3D2N.hpp"
+
 /* CONDITIONS */
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
@@ -426,6 +429,9 @@ private:
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D4N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D6N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D8N;
+
+    // Adding the fiber beam-column element
+    const FiberBeamColumnElement3D2N mFiberBeamColumnElement3D2N;
 
     /* CONDITIONS*/
     // Point load
