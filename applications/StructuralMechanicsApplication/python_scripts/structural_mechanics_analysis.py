@@ -19,34 +19,24 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         if solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
             warn_msg  = '"domain_size" defined both in "problem_data" and "solver_settings"!'
-            warn_msg += 'the definition in the "solver_settings" will be employed'
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+            raise Exception("StructuralMechanicsAnalysis " + warn_msg)
 
         if solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
             warn_msg  = '"model_part_name" defined both in problem_data" and "solver_settings"!'
-            warn_msg += 'the definition in the "solver_sett"ings" will be employed'
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+            raise Exception("StructuralMechanicsAnalysis " + warn_msg)
 
         if solver_settings.Has("time_stepping") and project_parameters["problem_data"].Has("time_Step"):
             warn_msg  = '"time_stepping" defined both in "problem_data" and "solver_settings"!'
-            warn_msg += 'the definition in the "solver_settings" will be employed'
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+            raise Exception("StructuralMechanicsAnalysis " + warn_msg)
 
         if not solver_settings.Has("time_stepping"):
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
-            time_stepping_params = KratosMultiphysics.Parameters("{}")
-            time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
-            solver_settings.AddValue("time_stepping", time_stepping_params)
+            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the time_step, this was be removed!")
 
         if not solver_settings.Has("domain_size"):
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
-            solver_settings.AddEmptyValue("domain_size")
-            solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
+            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the domain_size, this was be removed!")
 
         if not solver_settings.Has("model_part_name"):
-            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
-            solver_settings.AddEmptyValue("model_part_name")
-            solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
+            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the model_part_name, this was be removed!")
 
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
