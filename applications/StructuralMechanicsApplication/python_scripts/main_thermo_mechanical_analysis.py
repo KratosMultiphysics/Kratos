@@ -9,8 +9,8 @@ class MainThermoMechanicalAnalysis:
 #============================================================================================================================
 
     def __init__(self, Model, StructuralParameters, ThermalParameters):
-        self.MechanicalSolution = structural_analysis_for_thermal_coupling(Model, StructuralParameters)
-        self.ThermalSolution = convection_diffussion_analysis_for_thermal_coupling(Model, ThermalParameters)
+        self.MechanicalSolution = structural_analysis_for_thermal_coupling.StructuralMechanicsAnalysisForThermalCoupling(Model, StructuralParameters)
+        self.ThermalSolution = convection_diffussion_analysis_for_thermal_coupling.ConvectionDiffusionAnalysisForThermalCoupling(Model, ThermalParameters)
 
 #============================================================================================================================
 
@@ -50,15 +50,27 @@ class MainThermoMechanicalAnalysis:
             print("==================================================")
             self.ThermalSolution._GetSolver().Predict()
             is_converged = self.ThermalSolution._GetSolver().SolveSolutionStep()
-            self.ThermalSolution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+            # self.ThermalSolution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
 
             print("========================================")
             print("==== Solving The Mechanical Problem ====")
             print("========================================")
             self.MechanicalSolution._GetSolver().Predict()
             is_converged = self.MechanicalSolution._GetSolver().SolveSolutionStep()
-            self.MechanicalSolution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+            # self.MechanicalSolution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+
 #============================================================================================================================
+
+    def FinalizeSolutionStep(self):
+        self.ThermalSolution.FinalizeSolutionStep()
+        self.ThermalSolution.OutputSolutionStep()
+        self.MechanicalSolution.FinalizeSolutionStep()
+        self.MechanicalSolution.OutputSolutionStep()
+
 #============================================================================================================================
-#============================================================================================================================
+
+    def Finalize(self):
+        self.ThermalSolution.Finalize()
+        self.MechanicalSolution.Finalize()
+
 #============================================================================================================================
