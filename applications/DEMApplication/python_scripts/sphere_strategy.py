@@ -16,7 +16,11 @@ class ExplicitStrategy(object):
         {
             "strategy" : "sphere_strategy",
             "do_search_neighbours" : true,
-            "RemoveBallsInitiallyTouchingWalls": false
+            "RemoveBallsInitiallyTouchingWalls": false,
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            }
         }""")
         self.solver_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -56,6 +60,10 @@ class ExplicitStrategy(object):
         #self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
         self.clean_init_indentation_option = DEM_parameters["CleanIndentationsOption"].GetBool()
+
+        if self.clean_init_indentation_option and self._GetInputType() == 'rest':
+            Logger.PrintWarning("DEM", '\nWARNING!: \'clean_indentations_option\' is set to true in a restarted simulation. The particles\' radii could be modified before the first time step.\n' * 50)
+
         self.contact_mesh_option           = 0
         if "ContactMeshOption" in DEM_parameters.keys():
             self.contact_mesh_option      = DEM_parameters["ContactMeshOption"].GetBool()
@@ -67,7 +75,12 @@ class ExplicitStrategy(object):
         self.search_increment_for_walls = 0.0
         self.coordination_number = 10.0
         self.case_option = 3
-        self.search_control = 1
+
+        if self._GetInputType() == 'rest':
+            self.search_control = 2
+
+        else:
+            self.search_control = 1
 
         if "LocalResolutionMethod" in DEM_parameters.keys():
             if (DEM_parameters["LocalResolutionMethod"].GetString() == "hierarchical"):
@@ -168,6 +181,17 @@ class ExplicitStrategy(object):
 
         self.SetContinuumType()
 
+    @classmethod
+    def _GetRestartSettings(self, model_part_import_settings):
+        restart_settings = model_part_import_settings.Clone()
+        restart_settings.RemoveValue("input_type")
+        if not restart_settings.Has("restart_load_file_label"):
+            raise Exception('"restart_load_file_label" must be specified when starting from a restart-file!')
+        if model_part_import_settings.Has("echo_level"):
+            restart_settings.AddValue("echo_level", model_part_import_settings["echo_level"])
+
+        return restart_settings
+
     def SetContinuumType(self):
         self.continuum_type = False
 
@@ -189,6 +213,8 @@ class ExplicitStrategy(object):
     def SetVariablesAndOptions(self):
 
         # Setting ProcessInfo variables
+        for name in self.all_model_parts.model_parts.keys():
+            self.all_model_parts.Get(name).ProcessInfo.SetValue(IS_RESTARTED, self._GetInputType() == 'rest')
 
         # SIMULATION FLAGS
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
@@ -246,6 +272,20 @@ class ExplicitStrategy(object):
         for properties in self.inlet_model_part.Properties:
             self.ModifyProperties(properties)
 
+        for submp in self.inlet_model_part.SubModelParts:
+            if submp.Has(CLUSTER_FILE_NAME):
+                cluster_file_name = submp[CLUSTER_FILE_NAME]
+                [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
+                pre_utils = PreUtilities(self.spheres_model_part)
+                props_id = submp[PROPERTIES_ID]
+                for prop in self.inlet_model_part.Properties:
+                    if prop.Id == props_id:
+                        properties = prop
+                        break
+                pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
+                if not properties.Has(BREAKABLE_CLUSTER):
+                    properties.SetValue(BREAKABLE_CLUSTER, False)
+
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
 
@@ -298,6 +338,9 @@ class ExplicitStrategy(object):
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                              self.search_strategy, self.solver_settings)
 
+    def _GetInputType(self):
+        return self.solver_settings["model_import_settings"]["input_type"].GetString()
+
     def AddVariables(self):
         pass
 
@@ -332,6 +375,7 @@ class ExplicitStrategy(object):
         """
         time += self.dt
         self._UpdateTimeInModelParts(time)
+
         return time
 
     def _MoveAllMeshes(self, time, dt):

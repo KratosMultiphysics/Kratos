@@ -256,6 +256,7 @@ virtual void PrintData(std::ostream& rOStream) const override {}
 double mElasticEnergy;
 double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
+double mPartialRepresentativeVolume;
 
 std::vector<ParticleContactElement*> mBondElements;
 std::vector<SphericParticle*>     mNeighbourElements;
@@ -272,18 +273,15 @@ std::vector<array_1d<double, 3> > mNeighbourRigidFacesTotalContactForce;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
 std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
 std::vector<array_1d<double, 3> > mNeighbourElasticExtraContactForces;
-
-virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
-virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
-virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3]);
-
+std::vector<int> mFemOldNeighbourIds;
 array_1d<double, 3> mContactMoment; //SLS
 
 BoundedMatrix<double, 3, 3>* mStressTensor;
 BoundedMatrix<double, 3, 3>* mSymmStressTensor;
-double mPartialRepresentativeVolume;
 
-std::vector<int> mFemOldNeighbourIds;
+virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
+virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
+virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3]);
 
 protected:
 
@@ -451,33 +449,94 @@ friend class Serializer;
 virtual void save(Serializer& rSerializer) const override
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
-    rSerializer.save("mRadius",mRadius);
-    rSerializer.save("mSearchRadius", mSearchRadius);
-    rSerializer.save("mRealMass",mRealMass);
-    rSerializer.save("mClusterId",mClusterId);
+
+    // public members
+    rSerializer.save("mpInlet", mpInlet);
+    rSerializer.save("mElasticEnergy", mElasticEnergy);
+    rSerializer.save("mInelasticFrictionalEnergy", mInelasticFrictionalEnergy);
+    rSerializer.save("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
+    rSerializer.save("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
+    rSerializer.save("mBondElements", mBondElements);
+    rSerializer.save("mNeighbourElements", mNeighbourElements);
+    rSerializer.save("mContactingNeighbourIds", mContactingNeighbourIds);
+    rSerializer.save("mContactingFaceNeighbourIds", mContactingFaceNeighbourIds);
+    rSerializer.save("mNeighbourRigidFaces", mNeighbourRigidFaces);
+    rSerializer.save("mNeighbourPotentialRigidFaces", mNeighbourPotentialRigidFaces);
+    rSerializer.save("mContactConditionWeights", mContactConditionWeights);
+    rSerializer.save("mContactConditionContactTypes", mContactConditionContactTypes);
+    rSerializer.save("mConditionContactPoints", mConditionContactPoints);
+    rSerializer.save("mNeighbourRigidFacesTotalContactForce", mNeighbourRigidFacesTotalContactForce);
+    rSerializer.save("mNeighbourRigidFacesElasticContactForce", mNeighbourRigidFacesElasticContactForce);
+    rSerializer.save("mNeighbourElasticContactForces", mNeighbourElasticContactForces);
+    rSerializer.save("mNeighbourElasticExtraContactForces", mNeighbourElasticExtraContactForces);
+    rSerializer.save("mFemOldNeighbourIds", mFemOldNeighbourIds);
+    rSerializer.save("mContactMoment", mContactMoment);
+
     rSerializer.save("HasStressTensor", (int)this->Is(DEMFlags::HAS_STRESS_TENSOR));
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
+        rSerializer.save("mStressTensor", mStressTensor);
         rSerializer.save("mSymmStressTensor", mSymmStressTensor);
     }
+
+    // protected members
+    rSerializer.save("mDiscontinuumConstitutiveLaw", mDiscontinuumConstitutiveLaw);
+    rSerializer.save("mRadius", mRadius);
+    rSerializer.save("mSearchRadius", mSearchRadius);
+    rSerializer.save("mRealMass", mRealMass);
+    //rSerializer.save("mFastProperties", mFastProperties);
+    rSerializer.save("mClusterId", mClusterId);
+    //rSerializer.save("mpTranslationalIntegrationScheme", mpTranslationalIntegrationScheme);
+    //rSerializer.save("mpRotationalIntegrationScheme",mpRotationalIntegrationScheme);
+    rSerializer.save("mGlobalDamping",mGlobalDamping);
 }
 
 virtual void load(Serializer& rSerializer) override
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
-    rSerializer.load("mRadius",mRadius);
-    rSerializer.load("mSearchRadius", mSearchRadius);
-    rSerializer.load("mRealMass",mRealMass);
-    rSerializer.load("mClusterId",mClusterId);
+    // public members
+    rSerializer.load("mpInlet", mpInlet);
+    rSerializer.load("mElasticEnergy", mElasticEnergy);
+    rSerializer.load("mInelasticFrictionalEnergy", mInelasticFrictionalEnergy);
+    rSerializer.load("mInelasticViscodampingEnergy", mInelasticViscodampingEnergy);
+    rSerializer.load("mPartialRepresentativeVolume", mPartialRepresentativeVolume);
+    rSerializer.load("mBondElements", mBondElements);
+    rSerializer.load("mNeighbourElements", mNeighbourElements);
+    rSerializer.load("mContactingNeighbourIds", mContactingNeighbourIds);
+    rSerializer.load("mContactingFaceNeighbourIds", mContactingFaceNeighbourIds);
+    rSerializer.load("mNeighbourRigidFaces", mNeighbourRigidFaces);
+    rSerializer.load("mNeighbourPotentialRigidFaces", mNeighbourPotentialRigidFaces);
+    rSerializer.load("mContactConditionWeights", mContactConditionWeights);
+    rSerializer.load("mContactConditionContactTypes", mContactConditionContactTypes);
+    rSerializer.load("mConditionContactPoints", mConditionContactPoints);
+    rSerializer.load("mNeighbourRigidFacesTotalContactForce", mNeighbourRigidFacesTotalContactForce);
+    rSerializer.load("mNeighbourRigidFacesElasticContactForce", mNeighbourRigidFacesElasticContactForce);
+    rSerializer.load("mNeighbourElasticContactForces", mNeighbourElasticContactForces);
+    rSerializer.load("mNeighbourElasticExtraContactForces", mNeighbourElasticExtraContactForces);
+    rSerializer.load("mFemOldNeighbourIds", mFemOldNeighbourIds);
+    rSerializer.load("mContactMoment", mContactMoment);
+
     int aux_int=0;
     rSerializer.load("HasStressTensor", aux_int);
     if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
-        mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        mStressTensor = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = ZeroMatrix(3,3);
-        mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
+        mSymmStressTensor = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
+        rSerializer.load("mStressTensor", mStressTensor);
         rSerializer.load("mSymmStressTensor", mSymmStressTensor);
     }
+
+    // protected members
+    rSerializer.load("mDiscontinuumConstitutiveLaw", mDiscontinuumConstitutiveLaw);
+    rSerializer.load("mRadius", mRadius);
+    rSerializer.load("mSearchRadius", mSearchRadius);
+    rSerializer.load("mRealMass", mRealMass);
+    //rSerializer.load("mFastProperties", mFastProperties);
+    rSerializer.load("mClusterId", mClusterId);
+    //rSerializer.load("mpTranslationalIntegrationScheme", mpTranslationalIntegrationScheme);
+    //rSerializer.load("mpRotationalIntegrationScheme",mpRotationalIntegrationScheme);
+    rSerializer.load("mGlobalDamping",mGlobalDamping);
 }
 
 }; // Class SphericParticle

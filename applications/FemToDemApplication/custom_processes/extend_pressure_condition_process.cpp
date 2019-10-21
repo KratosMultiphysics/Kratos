@@ -23,7 +23,7 @@ ExtendPressureConditionProcess<TDim>::ExtendPressureConditionProcess(
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();
     const std::size_t dimension = r_process_info[DOMAIN_SIZE];
-	mPressureName = (dimension == 2) ? "Normal_Load" : "Pressure_Load";
+    mPressureName = (dimension == 2) ? "Normal_Load" : "Pressure_Load";
 }
 
 /***********************************************************************************/
@@ -46,8 +46,8 @@ void ExtendPressureConditionProcess<3>::CreatePressureLoads(
     const int Id1,
     const int Id2,
     const int Id3,
-	ModelPart::ElementsContainerType::ptr_iterator itElem,
-	ModelPart& rSubModelPart,
+    ModelPart::ElementsContainerType::ptr_iterator itElem,
+    ModelPart& rSubModelPart,
     ModelPart::PropertiesType::Pointer pProperties,
     int& rMaximumConditionId
     )
@@ -60,7 +60,7 @@ void ExtendPressureConditionProcess<3>::CreatePressureLoads(
     rMaximumConditionId++;
 
     // Adding the nodes to the SubModelPart
-	rSubModelPart.AddNodes(condition_nodes_id);
+    rSubModelPart.AddNodes(condition_nodes_id);
 
     // We create the Line Load Condition
     const auto p_pressure_condition = rSubModelPart.CreateNewCondition(
@@ -79,8 +79,8 @@ template <>
 void ExtendPressureConditionProcess<2>::CreateLineLoads(
     const int Id1,
     const int Id2,
-	ModelPart::ElementsContainerType::ptr_iterator itElem,
-	ModelPart& rSubModelPart,
+    ModelPart::ElementsContainerType::ptr_iterator itElem,
+    ModelPart& rSubModelPart,
     ModelPart::PropertiesType::Pointer pProperties,
     int& rMaximumConditionId
     )
@@ -112,7 +112,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
     )
 {
     std::string sub_model_name;
-	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
+    sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
     ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
     auto& r_geom = (*itElem)->GetGeometry();
@@ -137,7 +137,7 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
     )
 {
     std::string sub_model_name;
-	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
+    sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
     ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
 
@@ -178,7 +178,7 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads4WetNodes(
     )
 {
     std::string sub_model_name;
-	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
+    sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
     ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
     const int id = (*itElem)->Id();
@@ -210,7 +210,7 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
     )
 {
     std::string sub_model_name;
-	sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
+    sub_model_name = mPressureName + "-auto-" + std::to_string(PressureId);
     auto& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_name);
     ModelPart::PropertiesType::Pointer p_properties = mpPropertiesVector[PressureId - 1];
     auto& r_geom = (*itElem)->GetGeometry();

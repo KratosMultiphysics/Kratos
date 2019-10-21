@@ -32,6 +32,10 @@
 #include "includes/kratos_components.h"
 #include "containers/variable.h"
 
+#ifdef KRATOS_DEBUG
+#include "utilities/openmp_utils.h"
+#endif
+
 
 namespace Kratos
 {
@@ -103,6 +107,8 @@ namespace Kratos
 			, mKeys(rOther.mKeys)
 			, mPositions(rOther.mPositions)
 			, mVariables(rOther.mVariables)
+			, mDofVariables(rOther.mDofVariables)
+			, mDofReactions(rOther.mDofReactions)
 			, mReferenceCounter(0) 
 			{}
 
@@ -124,6 +130,8 @@ namespace Kratos
 			mKeys = rOther.mKeys;
 			mPositions = rOther.mPositions;
 			mVariables = rOther.mVariables;
+			mDofVariables=rOther.mDofVariables;
+			mDofReactions=rOther.mDofReactions;
 
 			return *this;
 		}
@@ -228,6 +236,10 @@ namespace Kratos
 			rOther.mHashFunctionIndex = temp;
 
 			mVariables.swap(rOther.mVariables);
+
+			mDofVariables.swap(rOther.mDofVariables);
+			mDofReactions.swap(rOther.mDofReactions);
+			
 			mKeys.swap(rOther.mKeys);
 			mPositions.swap(rOther.mPositions);
 		}
@@ -243,6 +255,8 @@ namespace Kratos
 			mDataSize = 0;
 			mHashFunctionIndex = 0;
 			mVariables.clear();
+			mDofVariables.clear();
+			mDofReactions.clear();
 			mKeys = {static_cast<IndexType>(-1)};
 			mPositions = {static_cast<IndexType>(-1)};
 		}
@@ -261,6 +275,60 @@ namespace Kratos
 			SetPosition(ThisVariable.Key(), mDataSize);
 			const SizeType block_size = sizeof(BlockType);
 			mDataSize += static_cast<SizeType>(((block_size - 1) + ThisVariable.Size()) / block_size);
+		}
+
+		int AddDof(VariableData const* pThisDofVariable){
+			
+			for(std::size_t dof_index = 0 ; dof_index < mDofVariables.size() ; dof_index++){
+				if(*mDofVariables[dof_index] == *pThisDofVariable){
+					return static_cast<int>(dof_index);
+				}
+			}
+
+#ifdef KRATOS_DEBUG
+        if(OpenMPUtils::IsInParallel() != 0)
+            KRATOS_ERROR << "attempting to call AddDof for: " << pThisDofVariable << ". Unfortunately the Dof was not added before and the operations is not threadsafe (this function is being called within a parallel region)" << std::endl;
+#endif 
+			mDofVariables.push_back(pThisDofVariable);
+			mDofReactions.push_back(nullptr);
+
+			KRATOS_DEBUG_ERROR_IF(mDofVariables.size()>64) << "Adding too many dofs to the node. Each node only can store 64 Dofs." << std::endl;
+
+			return mDofVariables.size() - 1;
+		}
+
+		int AddDof(VariableData const* pThisDofVariable, VariableData const* pThisDofReaction){
+			
+			for(std::size_t dof_index = 0 ; dof_index < mDofVariables.size() ; dof_index++){
+				if(*mDofVariables[dof_index] == *pThisDofVariable){
+					mDofReactions[dof_index] = pThisDofReaction;
+					return static_cast<int>(dof_index);
+				}
+			}
+
+#ifdef KRATOS_DEBUG
+        if(OpenMPUtils::IsInParallel() != 0)
+            KRATOS_ERROR << "attempting to call AddDof for: " << pThisDofVariable << ". Unfortunately the Dof was not added before and the operations is not threadsafe (this function is being called within a parallel region)" << std::endl;
+#endif 
+			mDofVariables.push_back(pThisDofVariable);
+			mDofReactions.push_back(pThisDofReaction);
+
+			KRATOS_DEBUG_ERROR_IF(mDofVariables.size()>64) << "Adding too many dofs to the node. Each node only can store 64 Dofs." << std::endl;
+
+			return mDofVariables.size() - 1;
+		}
+
+		const VariableData& GetDofVariable(int DofIndex) const {
+			return *mDofVariables[DofIndex];
+		}
+
+		const VariableData* pGetDofReaction(int DofIndex) const {
+			return mDofReactions[DofIndex];
+		}
+
+		void SetDofReaction(VariableData const* pThisDofReaction, int DofIndex) {
+			KRATOS_DEBUG_ERROR_IF(static_cast<std::size_t>(DofIndex) >= mDofReactions.size()) << "The given dof with index = " << DofIndex  << " is not stored in this variables list" << std::endl;
+			mDofReactions[DofIndex] = pThisDofReaction;
 		}
 
 		IndexType Index(IndexType VariableKey) const
@@ -338,6 +406,10 @@ namespace Kratos
 			rOStream << " (size : " << mDataSize << " blocks of " << sizeof(BlockType) << " bytes) " << std::endl;
 			for (IndexType i = 0; i < mVariables.size(); ++i)
 				rOStream << "    " << mVariables[i]->Name() << " \t-> " << GetPosition(mVariables[i]->Key()) << std::endl;
+
+			rOStream << " with " << mDofVariables.size() << " Dofs:";	
+			for (IndexType i = 0; i < mDofVariables.size(); ++i)
+				rOStream << "    [" << mDofVariables[i]->Name() << " ,  " << ((mDofReactions[i] == nullptr) ? "NONE" : mDofReactions[i]->Name()) << "]" << std::endl;
 		}
 
 
@@ -354,6 +426,10 @@ namespace Kratos
 		PositionsContainerType mPositions = {static_cast<IndexType>(-1)};
 
 		VariablesContainerType mVariables;
+
+		VariablesContainerType mDofVariables;
+
+		VariablesContainerType mDofReactions;
 
 		///@}
 		///@name Private Operators
@@ -444,7 +520,21 @@ namespace Kratos
 			rSerializer.save("Size", size);
 			for (std::size_t i = 0; i < size; i++)
 			{
-				rSerializer.save("Variable Name", mVariables[i]->Name());
+				rSerializer.save("VariableName", mVariables[i]->Name());
+			}
+
+			std::size_t dof_size = mDofVariables.size();
+			rSerializer.save("DofSize", dof_size);
+			for (std::size_t i = 0; i < dof_size; i++)
+			{
+				rSerializer.save("DofVariableName", mDofVariables[i]->Name());
+				if(mDofReactions[i] == nullptr){
+					rSerializer.save("HasReaction", false);
+				}
+				else{
+					rSerializer.save("HasReaction", true);
+					rSerializer.save("DofReactionName", mDofReactions[i]->Name());
+				}
 			}
 		}
 
@@ -455,13 +545,31 @@ namespace Kratos
 			std::string name;
 			for (std::size_t i = 0; i < size; i++)
 			{
-				rSerializer.load("Variable Name", name);
+				rSerializer.load("VariableName", name);
 				Add(*KratosComponents<VariableData>::pGet(name));
 			}
+			rSerializer.load("DofSize", size);
+			for (std::size_t i = 0; i < size; i++)
+			{
+				rSerializer.load("DofVariableName", name);
+				bool has_reaction;
+				rSerializer.load("HasReaction", has_reaction);
+				
+				if(has_reaction){
+					std::string reaction_name;
+					rSerializer.load("DofReactionName", reaction_name);
+					AddDof(KratosComponents<VariableData>::pGet(name), KratosComponents<VariableData>::pGet(reaction_name));
+
+				}
+				else{
+            		AddDof(KratosComponents<VariableData>::pGet(name), nullptr);
+				}
+
+			}
+
 		}
 
 	}; // Class VariablesList
-
 	   ///@}
 	   ///@name Input and output
 	   ///@{

@@ -22,6 +22,8 @@ file(GLOB_RECURSE KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ## CONDITIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ## CONSTRAINTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_master_slave_constraints/*.cpp
     ## EXTERNAL LIBRARIES
 )
 

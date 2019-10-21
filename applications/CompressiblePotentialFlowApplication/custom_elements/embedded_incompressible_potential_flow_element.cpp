@@ -84,7 +84,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
         distances(i_node) = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
 
-    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<2,3>(*this);
+    potential = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim, NumNodes>(*this);
 
     ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(distances);
     Matrix positive_side_sh_func;
@@ -110,6 +110,11 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateEmbedde
 template <>
 ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<2,3>::pGetModifiedShapeFunctions(Vector& rDistances) {
     return Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
+}
+
+template <>
+ModifiedShapeFunctions::Pointer EmbeddedIncompressiblePotentialFlowElement<3,4>::pGetModifiedShapeFunctions(Vector& rDistances) {
+    return Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(this->pGetGeometry(), rDistances);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,5 +188,7 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer&
 // Template class instantiation
 
 template class EmbeddedIncompressiblePotentialFlowElement<2, 3>;
+template class EmbeddedIncompressiblePotentialFlowElement<3, 4>;
+
 
 } // namespace Kratos
