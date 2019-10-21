@@ -48,16 +48,16 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
 
+        # Detect is a contact problem
+        # NOTE: We have a special treatment for contact problems due to the way the convergence info is printed (in a table). Not doing this will provoque that the table is discontinous (and not fancy and eye-candy)
+        solver_settings = self.project_parameters["solver_settings"]
+        self.contact_problem = solver_settings.Has("contact_settings") or solver_settings.Has("mpc_contact_settings")
+
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
         super(StructuralMechanicsAnalysis, self).Initialize()
-
-        # Detect is a contact problem
-        # NOTE: We have a special treatment for contact problems due to the way the convergence info is printed (in a table). Not doing this will provoque that the table is discontinous (and not fancy and eye-candy)
-        solver_settings = self.project_parameters["solver_settings"]
-        self.contact_problem = solver_settings.Has("contact_settings") or solver_settings.Has("mpc_contact_settings")
 
         # In case of contact problem
         if self.contact_problem:
