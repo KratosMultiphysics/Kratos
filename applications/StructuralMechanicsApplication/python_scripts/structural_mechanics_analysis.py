@@ -115,9 +115,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                         warn_msg += 'in "solver_settings"\n'
                         KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
 
-        if not self.project_parameters.Has("processes"): # TODO this check is only for backwards-compatibility => to be removed
-            return
-
         # Checking if the processes-submodelparts are added to the ComputingModelPart
         # creating a list with the names of smps that will be added to the ComputingModelPart
         # note that the names here are WITHOUT the MainModelPart-Name
@@ -160,7 +157,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
-                deprecation_warning_issued = False
                 from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -170,10 +166,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                             info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                             info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                             info_msg += "for a description of the new format"
-                            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
-                            deprecation_warning_issued = True
+                            raise Exception("StructuralMechanicsAnalysis: " + info_msg)
 
-                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
                     if self.project_parameters.Has(process_name):
@@ -184,42 +178,14 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
-                gid_output= self._SetUpGiDOutput()
-                list_of_processes += [gid_output,]
+                raise Exception("StructuralMechanicsAnalysis: " + info_msg)
         else:
             raise NameError("wrong parameter name")
 
         return list_of_processes
 
-    def _SetUpGiDOutput(self):
-        '''Initialize a GiD output instance'''
-        self.__CheckForDeprecatedGiDSettings()
-        if self.parallel_type == "OpenMP":
-            from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
-        elif self.parallel_type == "MPI":
-            from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess as OutputProcess
-
-        gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(),
-                                   self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                   self.project_parameters["output_configuration"])
-
-        return gid_output
-
     def _GetSimulationName(self):
         return "::[KSM Simulation]:: "
-
-    def __CheckForDeprecatedGiDSettings(self):
-        if self.project_parameters["output_configuration"].Has("result_file_configuration"):
-            res_file_config = self.project_parameters["output_configuration"]["result_file_configuration"]
-            if res_file_config.Has("nodal_results"):
-                nodal_res = res_file_config["nodal_results"]
-                for i in range(nodal_res.size()):
-                    var_name = nodal_res[i].GetString()
-                    if var_name == "TORQUE":
-                        err_msg  = 'Requesting output for "TORQUE" which is not available any more\n'
-                        err_msg += 'It was renamed to "REACTION_MOMENT"'
-                        raise Exception(err_msg)
 
 if __name__ == "__main__":
     from sys import argv
