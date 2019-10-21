@@ -18,25 +18,22 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         solver_settings = project_parameters["solver_settings"]
 
         if solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
-            warn_msg  = '"domain_size" defined both in "problem_data" and "solver_settings"!'
-            raise Exception("StructuralMechanicsAnalysis " + warn_msg)
+            raise Exception("StructuralMechanicsAnalysis: " + '"domain_size" defined both in "problem_data" and "solver_settings"!')
 
         if solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
-            warn_msg  = '"model_part_name" defined both in problem_data" and "solver_settings"!'
-            raise Exception("StructuralMechanicsAnalysis " + warn_msg)
+            raise Exception("StructuralMechanicsAnalysis: " + '"model_part_name" defined both in problem_data" and "solver_settings"!')
 
         if solver_settings.Has("time_stepping") and project_parameters["problem_data"].Has("time_Step"):
-            warn_msg  = '"time_stepping" defined both in "problem_data" and "solver_settings"!'
-            raise Exception("StructuralMechanicsAnalysis " + warn_msg)
+            raise Exception("StructuralMechanicsAnalysis: " + '"time_stepping" defined both in "problem_data" and "solver_settings"!')
 
         if not solver_settings.Has("time_stepping"):
-            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the time_step, this was be removed!")
+            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the time_step, this was removed!")
 
         if not solver_settings.Has("domain_size"):
-            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the domain_size, this was be removed!")
+            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the domain_size, this was removed!")
 
         if not solver_settings.Has("model_part_name"):
-            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the model_part_name, this was be removed!")
+            raise Exception("StructuralMechanicsAnalysis: Using the old way to pass the model_part_name, this was removed!")
 
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
@@ -162,7 +159,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 for process_name in processes_block_names:
                     if self.project_parameters.Has(process_name):
                         if not deprecation_warning_issued:
-                            info_msg  = "Using the old way to create the processes, this will be removed!\n"
+                            info_msg  = "Using the old way to create the processes, this was removed!\n"
                             info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                             info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                             info_msg += "for a description of the new format"
@@ -174,7 +171,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                         raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
-                info_msg  = "Using the old way to create the gid-output, this will be removed!\n"
+                info_msg  = "Using the old way to create the gid-output, this was removed!\n"
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
