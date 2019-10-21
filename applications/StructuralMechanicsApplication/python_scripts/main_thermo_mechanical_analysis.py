@@ -1,8 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
+import KratosMultiphysics.ConvectionDiffusionApplication as CDA
 import KratosMultiphysics.StructuralMechanicsApplication.structural_analysis_for_thermal_coupling as structural_analysis_for_thermal_coupling
 import KratosMultiphysics.StructuralMechanicsApplication.convection_diffussion_analysis_for_thermal_coupling as convection_diffussion_analysis_for_thermal_coupling
+
+def Wait():
+    input("Press Something")
 
 #============================================================================================================================
 class MainThermoMechanicalAnalysis:
@@ -24,6 +29,7 @@ class MainThermoMechanicalAnalysis:
     def Initialize(self):
         self.ThermalSolution.Initialize()
         self.MechanicalSolution.Initialize()
+        self.ShareNodesProcess()
 
 #============================================================================================================================
 
@@ -74,3 +80,13 @@ class MainThermoMechanicalAnalysis:
         self.MechanicalSolution.Finalize()
 
 #============================================================================================================================
+
+    def ShareNodesProcess(self):
+        thermal_modelpart    = self.ThermalSolution.model.GetModelPart(self.ThermalSolution.project_parameters["solver_settings"]["model_part_name"].GetString())
+        mechanical_modelpart = self.MechanicalSolution.model.GetModelPart(self.MechanicalSolution.project_parameters["solver_settings"]["model_part_name"].GetString())
+
+        for node in thermal_modelpart.Nodes:
+            node_id = node.Id
+            node = mechanical_modelpart.GetNode(node_id)
+        # self.ThermalSolution._GetSolver().AddVariables()
+        # mechanical_modelpart.AddNodalSolutionStepVariable(KM.TEMPERATURE)
