@@ -288,7 +288,7 @@ protected:
                         if (i_current_level == 0) // a check to identify computational Domain boundary
                             is_main_background = -1;
                         Model &current_model = mrMainModelPart.GetModel();
-                        ModelPart &r_background_model_part = current_model.GetModelPart(BackgroundParam["model_part_name"].GetString());
+                        ModelPart &r_background_model_part = current_model.GetModelPart(background_patch_param["model_part_name"].GetString());
                         if(!r_background_model_part.HasSubModelPart("chimera_boundary_mp")){
                             auto& r_boundary_model_part = r_background_model_part.CreateSubModelPart("chimera_boundary_mp");
                             BuiltinTimer extraction_time;
