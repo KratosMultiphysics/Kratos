@@ -123,9 +123,9 @@ namespace Kratos {
         double kn_el = equiv_young * calculation_area / initial_dist;
 
         if (&element1_props == &element2_props) {
-            mTensionLimit = element1->GetFastProperties()->GetContactSigmaMin()*1e6;
+            mTensionLimit = element1->GetFastProperties()->GetContactSigmaMin();
         } else {
-            mTensionLimit = 0.5*1e6*(element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin());
+            mTensionLimit = 0.5*(element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin());
         }
 
         const double Ntstr_el = mTensionLimit * calculation_area;
@@ -231,7 +231,7 @@ namespace Kratos {
         else { //tension
             int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
             if (failure_type == 0) {
-                double mTensionLimit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
+                double mTensionLimit = 0.5 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
                 LocalElasticContactForce[2] = kn_el * indentation;
                 if (fabs(LocalElasticContactForce[2]) > limit_force) {
@@ -293,7 +293,7 @@ namespace Kratos {
                 AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
             }
 
-            const double mTauZero = 0.5 * 1e6 * (GetTauZero(element1) + GetTauZero(element2));
+            const double mTauZero = 0.5 * (GetTauZero(element1) + GetTauZero(element2));
             const double mInternalFriction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
 
             contact_tau = ShearForceNow / calculation_area;
