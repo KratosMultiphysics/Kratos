@@ -298,7 +298,7 @@ private:
         double velocity_magnitude = norm_2(r_velocity);
 
         rNode.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY) =
-            1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2);
+            std::max(1.5 * std::pow(mTurbulentIntensity * velocity_magnitude, 2), mMinValue);
     }
 
     ///@}
