@@ -100,6 +100,9 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
 
+    def PrintResultsForGid(self, time):
+        pass
+
     def SetDt(self):
         self._GetSolver().dt = dt
 

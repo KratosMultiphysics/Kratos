@@ -123,9 +123,9 @@ namespace Kratos {
         double kn_el = equiv_young * calculation_area / initial_dist;
 
         if (&element1_props == &element2_props) {
-            mTensionLimit = GetContactSigmaMax(element1) * 1e6;
+            mTensionLimit = GetContactSigmaMax(element1);
         } else {
-            mTensionLimit = 0.5 * 1e6 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
+            mTensionLimit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
         }
 
         const double Ntstr_el = mTensionLimit * calculation_area;
@@ -245,7 +245,7 @@ namespace Kratos {
         else { //tension
             int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
             if (failure_type == 0) {
-                double mTensionLimit = 0.5 * 1e6 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2)); //N/m2
+                double mTensionLimit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2)); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
                 LocalElasticContactForce[2] = kn_el * indentation;
                 if (fabs(LocalElasticContactForce[2]) > limit_force) {
@@ -307,7 +307,7 @@ namespace Kratos {
                 AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
             }
 
-            const double mTauZero = 0.5 * 1e6 * (GetTauZero(element1) + GetTauZero(element2));
+            const double mTauZero = 0.5 * (GetTauZero(element1) + GetTauZero(element2));
             const double mInternalFriction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
 
             contact_tau = ShearForceNow / calculation_area;

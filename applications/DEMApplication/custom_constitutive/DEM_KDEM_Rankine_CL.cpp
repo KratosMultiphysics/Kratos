@@ -35,7 +35,7 @@ namespace Kratos {
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
         if (failure_type == 0) {
-            double tension_limit = 0.5 * 1e6 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2)); //N/m2
+            double tension_limit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2)); //N/m2
 
             BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
             for (int i = 0; i < 3; i++) {
