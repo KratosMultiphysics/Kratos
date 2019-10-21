@@ -623,22 +623,13 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void RansEvmKAdjoint<TDim, TNumNodes>::CalculateSourceTermVelocityDerivatives(
     Matrix& rOutput, const RansEvmKAdjointData& rCurrentData, const ProcessInfo& rCurrentProcessInfo) const
 {
-    const double c_mu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-
-    Matrix nu_t_sensitivities;
-    EvmKepsilonModelAdjointUtilities::CalculateNodalTurbulentViscosityVectorSensitivities(
-        nu_t_sensitivities, c_mu, rCurrentData.NodalTurbulentKineticEnergy,
-        rCurrentData.NodalTurbulentEnergyDissipationRate,
-        ZeroMatrix(rOutput.size1(), rOutput.size2()));
-    EvmKepsilonModelAdjointUtilities::CalculateGaussSensitivities(
-        nu_t_sensitivities, nu_t_sensitivities, rCurrentData.ShapeFunctions);
-
     BoundedMatrix<double, TDim, TDim> velocity_gradient;
     this->CalculateGradient(velocity_gradient, VELOCITY, rCurrentData.ShapeFunctionDerivatives);
 
     EvmKepsilonModelAdjointUtilities::CalculateProductionVelocitySensitivities<TDim>(
-        rOutput, rCurrentData.TurbulentKinematicViscosity, nu_t_sensitivities,
-        velocity_gradient, rCurrentData.ShapeFunctionDerivatives);
+        rOutput, rCurrentData.TurbulentKinematicViscosity,
+        ZeroMatrix(rOutput.size1(), rOutput.size2()), velocity_gradient,
+        rCurrentData.ShapeFunctionDerivatives);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
