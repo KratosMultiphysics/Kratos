@@ -78,12 +78,22 @@ public:
     /// Destructor.
     virtual ~ApplyChimeraProcessFractionalStep()
     {
-        auto &vel_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
-        vel_modelpart.MasterSlaveConstraints().clear();
-
-        auto &pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
-        pre_modelpart.MasterSlaveConstraints().clear();
     }
+
+    virtual void ExecuteFinalizeSolutionStep() override
+    {
+        if(BaseType::mReformulateEveryStep)
+        {
+            auto &vel_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
+            vel_modelpart.MasterSlaveConstraints().clear();
+
+            auto &pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
+            pre_modelpart.MasterSlaveConstraints().clear();
+        }
+
+        BaseType::ExecuteFinalizeSolutionStep();
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -268,6 +278,7 @@ protected:
         {
             vel_constraints_data.insert( vel_constraints_data.end(), container.ptr_begin(), container.ptr_end() );
         }
+        vel_constraints.Sort();
 
 
         IndexType n_pre_constraints = 0;
@@ -295,6 +306,7 @@ protected:
         {
             pre_constraints_data.insert( pre_constraints_data.end(), container.ptr_begin(), container.ptr_end() );
         }
+        pre_constraints.Sort();
 
 
         KRATOS_INFO_IF("Adding of MPCs from containers to modelpart took : ", BaseType::mEchoLevel > 1)<< mpc_add_time.ElapsedSeconds()<< " seconds"<< std::endl;
