@@ -754,6 +754,7 @@ class ResidualBasedNewtonRaphsonStrategy
         TSystemVectorType& rb  = *mpb;
 
         //initializing the parameters of the Newton-Raphson cycle
+        BuiltinTimer iteration_time;
         unsigned int iteration_number = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
@@ -795,10 +796,14 @@ class ResidualBasedNewtonRaphsonStrategy
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
 
+        KRATOS_INFO_IF("NewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Time needed for iteration " << iteration_number << ": " << iteration_time.ElapsedSeconds() << std::endl;
+
         //Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false &&
                iteration_number++ < mMaxIterationNumber)
         {
+            BuiltinTimer iteration_time;
+
             //setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
@@ -866,6 +871,8 @@ class ResidualBasedNewtonRaphsonStrategy
 
                 is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
+
+            KRATOS_INFO_IF("NewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Time needed for iteration " << iteration_number << ": " << iteration_time.ElapsedSeconds() << std::endl;
         }
 
         //plots a warning if the maximum number of iterations is exceeded
