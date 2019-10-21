@@ -29,7 +29,8 @@ class AdjointTurbulenceKEpsilonConfiguration(
                 "c1"                      : 1.44,
                 "c2"                      : 1.92,
                 "sigma_k"                 : 1.0,
-                "sigma_epsilon"           : 1.3
+                "sigma_epsilon"           : 1.3,
+                "bossak_alpha"            : 1.0
             }
         }''')
 
@@ -51,6 +52,7 @@ class AdjointTurbulenceKEpsilonConfiguration(
         self.fluid_model_part.ProcessInfo[KratosRANS.TURBULENT_KINETIC_ENERGY_SIGMA] = constants["sigma_k"].GetDouble()
         self.fluid_model_part.ProcessInfo[KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA] = constants["sigma_epsilon"].GetDouble()
         self.fluid_model_part.ProcessInfo[KratosRANS.IS_CO_SOLVING_PROCESS_ACTIVE] = True
+        self.fluid_model_part.ProcessInfo[Kratos.BOSSAK_ALPHA] = constants["bossak_alpha"].GetDouble()
 
         Kratos.Logger.PrintInfo(
             self.__class__.__name__,
