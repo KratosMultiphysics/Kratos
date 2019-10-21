@@ -169,6 +169,8 @@ protected:
             BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
         }
 
+        BuiltinTimer loop_over_b_nodes;
+
 #pragma omp parallel for shared(constraints_id_vector, velocity_ms_container_vector, pressure_ms_container_vector, pBinLocator) reduction(+                                                             \
                                                                                                                                           : not_found_counter) reduction(+                              \
                                                                                                                                                                          : removed_counter) reduction(+ \
@@ -233,6 +235,10 @@ protected:
             p_boundary_node->Set(VISITED, true);
         } // end of loop over boundary nodes
 
+        KRATOS_INFO_IF("Loop over boundary nodes took : ", BaseType::mEchoLevel > 1)<< loop_over_b_nodes.ElapsedSeconds()<< " seconds"<< std::endl;
+
+        BuiltinTimer mpc_add_time;
+
         for (auto &container : velocity_ms_container_vector)
         {
             const IndexType n_constraints = container.size();
@@ -262,6 +268,7 @@ protected:
             auto &pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
             pre_modelpart.AddMasterSlaveConstraints(container.begin(), container.end());
         }
+        KRATOS_INFO_IF("Adding of MPCs from containers to modelpart took : ", BaseType::mEchoLevel > 1)<< mpc_add_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
         KRATOS_INFO_IF("Number of boundary nodes in : ", BaseType::mEchoLevel > 1) << rBoundaryModelPart.Name() << " is coupled " << rBoundaryModelPart.NumberOfNodes() << std::endl;
         KRATOS_INFO_IF("Number of Boundary nodes found : ", BaseType::mEchoLevel > 1) << counter << ". Number of constraints : " << counter * 9 << std::endl;
