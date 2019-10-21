@@ -78,6 +78,11 @@ public:
     /// Destructor.
     virtual ~ApplyChimeraProcessFractionalStep()
     {
+        auto &vel_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
+        vel_modelpart.MasterSlaveConstraints().clear();
+
+        auto &pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
+        pre_modelpart.MasterSlaveConstraints().clear();
     }
     ///@}
     ///@name Operators
@@ -238,10 +243,11 @@ protected:
         KRATOS_INFO_IF("Loop over boundary nodes took : ", BaseType::mEchoLevel > 1)<< loop_over_b_nodes.ElapsedSeconds()<< " seconds"<< std::endl;
 
         BuiltinTimer mpc_add_time;
-
+        IndexType n_vel_constraints = 0;
         for (auto &container : velocity_ms_container_vector)
         {
             const IndexType n_constraints = container.size();
+            n_vel_constraints += n_constraints;
             #pragma omp parallel for
             for (IndexType i_con = 0; i_con < n_constraints; ++i_con)
             {
@@ -250,13 +256,25 @@ protected:
                 i_container->Set(FS_CHIMERA_VEL_CONSTRAINT, true);
                 i_container->Set(ACTIVE);
             }
-            auto &vel_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
-            vel_modelpart.AddMasterSlaveConstraints(container.begin(), container.end());
+            // auto &vel_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
+            // vel_modelpart.AddMasterSlaveConstraints(container.begin(), container.end());
         }
 
+        auto &vel_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
+        auto& vel_constraints = vel_modelpart.MasterSlaveConstraints();
+        vel_constraints.reserve(n_vel_constraints);
+        auto& vel_constraints_data = vel_constraints.GetContainer();
+        for (auto &container : velocity_ms_container_vector)
+        {
+            vel_constraints_data.insert( vel_constraints_data.end(), container.ptr_begin(), container.ptr_end() );
+        }
+
+
+        IndexType n_pre_constraints = 0;
         for (auto &container : pressure_ms_container_vector)
         {
             const IndexType n_constraints = container.size();
+            n_pre_constraints += n_constraints;
             #pragma omp parallel for
             for (IndexType i_con = 0; i_con < n_constraints; ++i_con)
             {
@@ -265,9 +283,20 @@ protected:
                 i_container->Set(FS_CHIMERA_VEL_CONSTRAINT, false);
                 i_container->Set(ACTIVE);
             }
-            auto &pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
-            pre_modelpart.AddMasterSlaveConstraints(container.begin(), container.end());
+            // auto &pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
+            // pre_modelpart.AddMasterSlaveConstraints(container.begin(), container.end());
         }
+
+        auto &pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
+        auto& pre_constraints = pre_modelpart.MasterSlaveConstraints();
+        pre_constraints.reserve(n_pre_constraints);
+        auto& pre_constraints_data = pre_constraints.GetContainer();
+        for (auto &container : pressure_ms_container_vector)
+        {
+            pre_constraints_data.insert( pre_constraints_data.end(), container.ptr_begin(), container.ptr_end() );
+        }
+
+
         KRATOS_INFO_IF("Adding of MPCs from containers to modelpart took : ", BaseType::mEchoLevel > 1)<< mpc_add_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
         KRATOS_INFO_IF("Number of boundary nodes in : ", BaseType::mEchoLevel > 1) << rBoundaryModelPart.Name() << " is coupled " << rBoundaryModelPart.NumberOfNodes() << std::endl;
