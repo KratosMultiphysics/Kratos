@@ -143,11 +143,12 @@ protected:
         MasterSlaveContainerVectorType master_slave_container_vector;
 #pragma omp parallel
         {
+            const IndexType num_constraints_per_thread = (rBoundaryModelPart.NumberOfNodes() * 4)/omp_get_num_threads();
 #pragma omp single
             {
                 master_slave_container_vector.resize(omp_get_num_threads());
                 for (auto &container : master_slave_container_vector)
-                    container.reserve(1000);
+                    container.reserve(num_constraints_per_thread);
             }
         }
         std::vector<int> constraints_id_vector;

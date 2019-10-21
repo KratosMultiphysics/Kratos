@@ -446,7 +446,10 @@ protected:
         ModelPart::MasterSlaveConstraintType::Pointer p_new_constraint = rCloneConstraint.Create(ConstraintId, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
         p_new_constraint->Set(TO_ERASE);
         mNodeIdToConstraintIdsMap[rSlaveNode.Id()].push_back(ConstraintId);
-        rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
+        //TODO: Check if an insert(does a sort) is required here or just use a push_back and then
+        //      sort once at the end.
+        // rMasterSlaveContainer.insert(rMasterSlaveContainer.begin(), p_new_constraint);
+        rMasterSlaveContainer.push_back(p_new_constraint);
     }
 
     /**

@@ -138,15 +138,16 @@ protected:
         MasterSlaveContainerVectorType pressure_ms_container_vector;
 #pragma omp parallel
         {
+            const IndexType num_constraints_per_thread = (rBoundaryModelPart.NumberOfNodes() * 4)/omp_get_num_threads();
 #pragma omp single
             {
                 velocity_ms_container_vector.resize(omp_get_num_threads());
                 for (auto &container : velocity_ms_container_vector)
-                    container.reserve(1000);
+                    container.reserve(num_constraints_per_thread);
 
                 pressure_ms_container_vector.resize(omp_get_num_threads());
                 for (auto &container : pressure_ms_container_vector)
-                    container.reserve(1000);
+                    container.reserve(num_constraints_per_thread);
             }
         }
         std::vector<int> constraints_id_vector;
@@ -234,11 +235,14 @@ protected:
 
         for (auto &container : velocity_ms_container_vector)
         {
-            for (auto &constraint : container)
+            const IndexType n_constraints = container.size();
+            #pragma omp parallel for
+            for (IndexType i_con = 0; i_con < n_constraints; ++i_con)
             {
-                constraint.Set(FS_CHIMERA_PRE_CONSTRAINT, false);
-                constraint.Set(FS_CHIMERA_VEL_CONSTRAINT, true);
-                constraint.Set(ACTIVE);
+                auto i_container = container.begin() + i_con;
+                i_container->Set(FS_CHIMERA_PRE_CONSTRAINT, false);
+                i_container->Set(FS_CHIMERA_VEL_CONSTRAINT, true);
+                i_container->Set(ACTIVE);
             }
             auto &vel_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_velocity_model_part");
             vel_modelpart.AddMasterSlaveConstraints(container.begin(), container.end());
@@ -246,11 +250,14 @@ protected:
 
         for (auto &container : pressure_ms_container_vector)
         {
-            for (auto &constraint : container)
+            const IndexType n_constraints = container.size();
+            #pragma omp parallel for
+            for (IndexType i_con = 0; i_con < n_constraints; ++i_con)
             {
-                constraint.Set(FS_CHIMERA_PRE_CONSTRAINT, true);
-                constraint.Set(FS_CHIMERA_VEL_CONSTRAINT, false);
-                constraint.Set(ACTIVE);
+                auto i_container = container.begin() + i_con;
+                i_container->Set(FS_CHIMERA_PRE_CONSTRAINT, true);
+                i_container->Set(FS_CHIMERA_VEL_CONSTRAINT, false);
+                i_container->Set(ACTIVE);
             }
             auto &pre_modelpart = BaseType::mrMainModelPart.GetSubModelPart("fs_pressure_model_part");
             pre_modelpart.AddMasterSlaveConstraints(container.begin(), container.end());
