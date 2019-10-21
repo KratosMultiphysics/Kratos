@@ -53,6 +53,15 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         solver_settings = self.project_parameters["solver_settings"]
         self.contact_problem = solver_settings.Has("contact_settings") or solver_settings.Has("mpc_contact_settings")
 
+        if self.contact_problem:
+            if solver_settings.Has("use_computing_model_part"):
+                if not solver_settings["use_computing_model_part"].GetBool():
+                    KM.Logger.PrintInfo("StructuralMechanicsAnalysis", 'For a contact problem the "ComputingModelPart" has to be used for now! Switching to True')
+                    solver_settings["use_computing_model_part"].SetBool(True)
+            else:
+                solver_settings.AddEmptyValue("use_computing_model_part").SetBool(True)
+
+
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
