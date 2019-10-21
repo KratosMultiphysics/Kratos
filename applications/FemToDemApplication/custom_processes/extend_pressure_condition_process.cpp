@@ -446,8 +446,10 @@ int ExtendPressureConditionProcess<TDim>::GetPressureIdSubModel(
 
     if (rSubModelName.size() == ref_string_size) { // from 1 to 9
         return std::stoi(rSubModelName.substr(string_size - 1, string_size));
-    } else { // from 10 to 99
+    } else if (rSubModelName.size() == ref_string_size + 1) { // from 10 to 99
         return std::stoi(rSubModelName.substr(string_size - 2, string_size));
+    } else { // from 100 to 999
+        return std::stoi(rSubModelName.substr(string_size - 3, string_size));
     }
 }
 
