@@ -50,7 +50,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         # Detect is a contact problem
         # NOTE: We have a special treatment for contact problems due to the way the convergence info is printed (in a table). Not doing this will provoque that the table is discontinous (and not fancy and eye-candy)
-        solver_settings = self.project_parameters["solver_settings"]
+        solver_settings = project_parameters["solver_settings"]
         self.contact_problem = solver_settings.Has("contact_settings") or solver_settings.Has("mpc_contact_settings")
 
         if self.contact_problem:
