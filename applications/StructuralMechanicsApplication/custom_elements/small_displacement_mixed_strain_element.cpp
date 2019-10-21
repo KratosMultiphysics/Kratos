@@ -339,7 +339,7 @@ void SmallDisplacementMixedStrainElement::CalculateLeftHandSide(
             vol_stress += cons_law_values.GetStressVector()[d];
         }
         vol_stress /= alpha;
-        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-14) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : 1.0e+14;
+        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : GetProperties()[YOUNG_MODULUS] / (3 * (1 - 2 * GetProperties()[POISSON_RATIO]));
 
         for (unsigned int i = 0; i < n_nodes; ++i) {
             for (unsigned int j = 0; j < n_nodes; ++j) {
@@ -556,7 +556,7 @@ void SmallDisplacementMixedStrainElement::CalculateRightHandSide(
             vol_stress += cons_law_values.GetStressVector()[d];
         }
         vol_stress /= alpha;
-        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-14) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : 1.0e+14;
+        const double bulk_modulus = (std::abs(vol_strain) > 1.0e-15) ? vol_stress * vol_strain / std::pow(vol_strain, 2) : GetProperties()[YOUNG_MODULUS] / (3 * (1 - 2 * GetProperties()[POISSON_RATIO]));
 
         const double h = ComputeElementSize(DN_DX_container[i_gauss]);
         const double shear_modulus = GetProperties()[YOUNG_MODULUS] / (2.0 * (1.0 + GetProperties()[POISSON_RATIO]));
