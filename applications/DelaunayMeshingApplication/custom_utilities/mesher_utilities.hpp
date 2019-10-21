@@ -139,6 +139,7 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG ( SELECT_TESSELLATION_ELEMENTS );
     KRATOS_DEFINE_LOCAL_FLAG ( KEEP_ISOLATED_NODES );
+    KRATOS_DEFINE_LOCAL_FLAG ( REFINE_WALL_CORNER );
 
     //execution options (tessellation) //not needed any more, just the strings definition...to set.
     KRATOS_DEFINE_LOCAL_FLAG ( NEIGHBOURS_SEARCH );
@@ -277,6 +278,8 @@ public:
       unsigned int   NumberOfElements;
       unsigned int   NumberOfNodes;
       unsigned int   NumberOfConditions;
+
+      unsigned int   InitialNumberOfNodes;
 
       //added
       unsigned int   NumberOfNewElements;
