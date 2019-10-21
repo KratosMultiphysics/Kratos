@@ -71,7 +71,7 @@ public:
      * @param rBackgroundModelPart The background modelpart where distances are calculated.
      * @param rSkinModelPart The skin modelpart from where the distances are calculated
      */
-    static inline void CalculateDistance(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart, const double OverlapDistance)
+    static inline void CalculateDistance(ModelPart &rBackgroundModelPart, ModelPart &rSkinModelPart)
     {
         typedef LinearSolverFactory<SparseSpaceType, LocalSparseSpaceType> LinearSolverFactoryType;
         typedef LinearSolver<SparseSpaceType, TLocalSpaceType> LinearSolverType;
