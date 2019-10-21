@@ -80,6 +80,7 @@ def RunCoupledSystem():
         dem_analysis._UpdateTimeParameters()
 
         dem_analysis.InitializeSolutionStep()
+        dem_analysis.solver.Predict()
         dem_analysis.SolverSolve()
         dem_analysis.AfterSolveOperations()
 
