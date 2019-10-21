@@ -16,7 +16,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suites
 from evm_k_epsilon_tests import EvmKEpsilonTest
 from custom_process_tests import CustomProcessTest
-from adjoint_k_epsilon_sensitivity_2d import AdjointVMSSensitivity2D
+from adjoint_k_epsilon_sensitivity_2d import AdjointKEpsilonSensitivity2D
 import run_cpp_unit_tests
 
 
@@ -55,7 +55,7 @@ def AssembleTestSuites():
     nightSuite.addTest(EvmKEpsilonTest('testChannelFlowKEpsilonSteadyPeriodic'))
 
     # Adjoint tests
-    nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
+    nightSuite.addTest(AdjointKEpsilonSensitivity2D('testOneElement'))
 
 
     # For very long tests that should not be in nighly and you can use to validate

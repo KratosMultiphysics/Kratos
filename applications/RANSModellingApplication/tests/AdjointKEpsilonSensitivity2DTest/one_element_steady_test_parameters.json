@@ -172,7 +172,7 @@
                     "mesh_id": 0,
                     "model_part_name": "MainModelPart.Inlet",
                     "variable_name": "VELOCITY",
-                    "modulus": 1.4142135623730951,
+                    "modulus": 14.142135623730951,
                     "direction": [
                         0.70710678118654746,
                         -0.70710678118654746,

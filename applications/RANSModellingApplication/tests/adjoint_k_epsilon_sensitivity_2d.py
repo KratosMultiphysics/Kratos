@@ -27,7 +27,7 @@ class ControlledExecutionScope:
         os.chdir(self.currentPath)
 
 @KratosUnittest.skipUnless(have_required_applications," ".join(missing_applications_message))
-class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
+class AdjointKEpsilonSensitivity2D(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
@@ -118,7 +118,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
 
             # calculate sensitivity by finite difference
-            step_size = 0.0000001
+            step_size = 0.00000001
             FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointKEpsilonSensitivity2DTest/one_element_steady_test',[1.0,0.0,0.0],'./MainModelPart.Structure_drag.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 3)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 3)
