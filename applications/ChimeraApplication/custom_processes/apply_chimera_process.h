@@ -109,19 +109,24 @@ public:
                	"chimera_parts"   :   [
 									[{
 										"model_part_name":"PLEASE_SPECIFY",
+                                        "search_model_part_name":"PLEASE_SPECIFY",
+                                        "boundary_model_part_name":"PLEASE_SPECIFY",
 										"overlap_distance":0.0
 									}],
 									[{
 										"model_part_name":"PLEASE_SPECIFY",
+                                        "search_model_part_name":"PLEASE_SPECIFY",
+                                        "boundary_model_part_name":"PLEASE_SPECIFY",
 										"overlap_distance":0.0
 									}],
 									[{
 										"model_part_name":"PLEASE_SPECIFY",
+                                        "search_model_part_name":"PLEASE_SPECIFY",
+                                        "boundary_model_part_name":"PLEASE_SPECIFY",
 										"overlap_distance":0.0
 									}]
 								]
             })");
-
         mNumberOfLevels = mParameters.size();
         KRATOS_ERROR_IF(mNumberOfLevels < 2) << "Chimera requires atleast two levels !. Put Background in one level and the patch in second one." << std::endl;
 
@@ -239,6 +244,14 @@ protected:
         const unsigned int num_elements = mrMainModelPart.NumberOfElements();
         const auto elem_begin = mrMainModelPart.ElementsBegin();
 
+        Parameters parameters_for_validation(R"(
+                                {
+                                    "model_part_name":"PLEASE_SPECIFY",
+                                    "search_model_part_name":"PLEASE_SPECIFY",
+                                    "boundary_model_part_name":"PLEASE_SPECIFY",
+                                    "overlap_distance":0.0
+                                }
+        )");
 
 #pragma omp parallel for
         for (unsigned int i_be = 0; i_be < num_elements; ++i_be)
@@ -260,17 +273,18 @@ protected:
         BuiltinTimer do_chimera_loop_time;
 
         int i_current_level = 0;
-        for (const auto &current_level : mParameters)
+        for (auto &current_level : mParameters)
         {
             int is_main_background = 1;
-            for (const auto &background_patch_param : current_level)
+            for (auto &background_patch_param : current_level)
             { // Gives the current background patch
+                background_patch_param.ValidateAndAssignDefaults(parameters_for_validation);
                 // compute the outerboundary of the background to save
-
                 for (IndexType i_slave_level = i_current_level + 1; i_slave_level < mNumberOfLevels; ++i_slave_level)
                 {
-                    for (const auto &slave_patch_param : mParameters[i_slave_level]) // Loop over all other slave patches
+                    for (auto &slave_patch_param : mParameters[i_slave_level]) // Loop over all other slave patches
                     {
+                        slave_patch_param.ValidateAndAssignDefaults(parameters_for_validation);
                         if (i_current_level == 0) // a check to identify computational Domain boundary
                             is_main_background = -1;
                         ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(background_patch_param["model_part_name"].GetString());
@@ -311,9 +325,9 @@ protected:
     virtual void FormulateChimera(const Parameters BackgroundParam, const Parameters PatchParameters, int MainDomainOrNot)
     {
         Model &current_model = mrMainModelPart.GetModel();
-        ModelPart &r_background_model_part = mrMainModelPart.GetSubModelPart(BackgroundParam["model_part_name"].GetString());
+        ModelPart &r_background_model_part = current_model.GetModelPart(BackgroundParam["model_part_name"].GetString());
         ModelPart &r_background_boundary_model_part = r_background_model_part.GetSubModelPart("chimera_boundary_mp");
-        ModelPart &r_patch_model_part = mrMainModelPart.GetSubModelPart(PatchParameters["model_part_name"].GetString());
+        ModelPart &r_patch_model_part = current_model.GetModelPart(PatchParameters["model_part_name"].GetString());
         const std::string bg_searc_mp_name = BackgroundParam["search_model_part_name"].GetString();
         auto& r_background_search_model_part = current_model.HasModelPart(bg_searc_mp_name) ? current_model.GetModelPart(bg_searc_mp_name) : r_background_model_part;
 
@@ -333,27 +347,12 @@ protected:
         {
             ModelPart &r_hole_model_part = current_model.CreateModelPart("HoleModelpart");
             ModelPart &r_hole_boundary_model_part = current_model.CreateModelPart("HoleBoundaryModelPart");
-            ModelPart &r_modified_patch_boundary_model_part = current_model.CreateModelPart("ModifiedPatchBoundary");
-            ModelPart &r_modified_patch_model_part = current_model.CreateModelPart("ModifiedPatch");
 
-            BuiltinTimer distance_calc_time_patch;
-            DistanceCalculationUtility <TDim, TSparseSpaceType, TLocalSpaceType>::CalculateDistance(r_patch_model_part,
-                                                                                                            r_background_boundary_model_part,
-                                                                                                            over_lap_distance);
-            KRATOS_INFO_IF("Distance calculation on patch took : ", mEchoLevel > 0)<< distance_calc_time_patch.ElapsedSeconds()<< " seconds"<< std::endl;
-            //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
-            BuiltinTimer rem_out_domain_time;
-            mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
-            KRATOS_INFO_IF("Removing out of domain patch took : ", mEchoLevel > 0)<< rem_out_domain_time.ElapsedSeconds()<< " seconds"<< std::endl;
-
-            BuiltinTimer patch_boundary_extraction_time;
-            mpHoleCuttingUtility->ExtractBoundaryMesh(r_modified_patch_model_part, r_modified_patch_boundary_model_part);
-            KRATOS_INFO_IF("Extraction of patch boundary took : ", mEchoLevel > 0)<< patch_boundary_extraction_time.ElapsedSeconds()<< " seconds"<< std::endl;
+            auto& r_modified_patch_boundary_model_part = ExtractPatchBoundary(PatchParameters, r_background_boundary_model_part, MainDomainOrNot);
 
             BuiltinTimer bg_distance_calc_time;
             DistanceCalculationUtility <TDim, TSparseSpaceType, TLocalSpaceType>::CalculateDistance(r_background_model_part,
-                                                                                                    r_modified_patch_boundary_model_part,
-                                                                                                    over_lap_distance);
+                                                                                                    r_modified_patch_boundary_model_part);
             KRATOS_INFO_IF("Distance calculation on background took : ", mEchoLevel > 0)<< bg_distance_calc_time.ElapsedSeconds()<< " seconds"<< std::endl;
 
             BuiltinTimer hole_creation_time;
@@ -383,7 +382,6 @@ protected:
             current_model.DeleteModelPart("HoleModelpart");
             current_model.DeleteModelPart("HoleBoundaryModelPart");
             current_model.DeleteModelPart("ModifiedPatchBoundary");
-            current_model.DeleteModelPart("ModifiedPatch");
         }
         KRATOS_INFO("End of Formulate Chimera") << std::endl;
     }
@@ -514,6 +512,39 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Extracts the patch boundary modelpart
+     * @param rBackgroundBoundaryModelpart background boundary to remove out of domain patch
+     * @param PatchParameters Parameters/Settings for the Patch
+     * @param MainDomainOrNot Flag specifying if the background is the main bg or not
+     */
+    ModelPart& ExtractPatchBoundary(const Parameters PatchParameters, ModelPart &rBackgroundBoundaryModelpart, const int MainDomainOrNot)
+    {
+        Model &current_model = rBackgroundBoundaryModelpart.GetModel();
+        const std::string patch_boundary_mp_name = PatchParameters["boundary_model_part_name"].GetString();
+        ModelPart &r_patch_model_part = current_model.GetModelPart(PatchParameters["model_part_name"].GetString());
+
+        if(!current_model.HasModelPart(patch_boundary_mp_name)){
+            ModelPart &r_modified_patch_model_part = current_model.CreateModelPart("ModifiedPatch");
+            ModelPart &r_modified_patch_boundary_model_part = current_model.CreateModelPart("ModifiedPatchBoundary");
+            BuiltinTimer distance_calc_time_patch;
+            DistanceCalculationUtility <TDim, TSparseSpaceType, TLocalSpaceType>::CalculateDistance(r_patch_model_part,
+                                                                                                            rBackgroundBoundaryModelpart);
+            KRATOS_INFO_IF("Distance calculation on patch took : ", mEchoLevel > 0)<< distance_calc_time_patch.ElapsedSeconds()<< " seconds"<< std::endl;
+            //TODO: Below is brutforce. Check if the boundary of bg is actually cutting the patch.
+            BuiltinTimer rem_out_domain_time;
+            mpHoleCuttingUtility->RemoveOutOfDomainElements(r_patch_model_part, r_modified_patch_model_part, MainDomainOrNot, false);
+            KRATOS_INFO_IF("Removing out of domain patch took : ", mEchoLevel > 0)<< rem_out_domain_time.ElapsedSeconds()<< " seconds"<< std::endl;
+
+            BuiltinTimer patch_boundary_extraction_time;
+            mpHoleCuttingUtility->ExtractBoundaryMesh(r_modified_patch_model_part, r_modified_patch_boundary_model_part);
+            KRATOS_INFO_IF("Extraction of patch boundary took : ", mEchoLevel > 0)<< patch_boundary_extraction_time.ElapsedSeconds()<< " seconds"<< std::endl;
+            current_model.DeleteModelPart("ModifiedPatch");
+            return r_modified_patch_boundary_model_part;
+        } else {
+            return current_model.GetModelPart(patch_boundary_mp_name);
+        }
+    }
 
     /**
      * @brief Creates or returns an existing point locator on a given ModelPart
