@@ -106,22 +106,22 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
         test = self._createFluidTest(parameter_file_name)
         test.Run()
 
-    def testOneElement(self):
+    def testOneElementSteady(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # solve fluid
-            self.solve('AdjointKEpsilonSensitivity2DTest/one_element_test')
+            self.solve('AdjointKEpsilonSensitivity2DTest/one_element_steady_test')
             # solve adjoint
-            test = AdjointFluidAnalysis(Model(), self._readParameters('AdjointKEpsilonSensitivity2DTest/one_element_test_adjoint'))
+            test = AdjointFluidAnalysis(Model(), self._readParameters('AdjointKEpsilonSensitivity2DTest/one_element_steady_test_adjoint'))
             test.Run()
             Sensitivity = [[]]
             Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
             Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
 
             # calculate sensitivity by finite difference
-            step_size = 0.00000001
-            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointKEpsilonSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./MainModelPart.Structure_drag.dat')
-            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
-            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
+            step_size = 0.0000001
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointKEpsilonSensitivity2DTest/one_element_steady_test',[1.0,0.0,0.0],'./MainModelPart.Structure_drag.dat')
+            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 3)
+            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 3)
             self._removeH5Files("MainModelPart")
             kratos_utils.DeleteFileIfExisting("./AdjointKEpsilonSensitivity2DTest/one_element_test.time")
             kratos_utils.DeleteFileIfExisting("./Structure_drag.dat")

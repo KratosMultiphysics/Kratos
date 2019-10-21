@@ -1,8 +1,8 @@
 {
     "problem_data" : {
         "problem_name"    : "one_element",
-        "start_step"      : 4.0,
-        "nsteps"          : 3,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
@@ -40,57 +40,54 @@
     },
     "solver_settings" : {
         "solver_type"                   : "Monolithic",
-        "scheme_settings" : {
-            "scheme_type"               : "bossak",
-            "alpha_bossak"              :-0.3
-        },
-        "response_function_settings" : {
-            "response_type"            : "drag",
-            "custom_settings" : {
-                "structure_model_part_name" : "Structure",
-                "drag_direction"            : [1.0, 0.0, 0.0]
-            }
-        },
-        "sensitivity_settings" : {
-            "sensitivity_model_part_name": "Boundary",
-            "nodal_solution_step_sensitivity_variables": ["SHAPE_SENSITIVITY"],
-            "build_mode": "integrate",
-            "nodal_solution_step_sensitivity_calculation_is_thread_safe" : true
-        },
+        "maximum_iterations"            : 10,
         "domain_size"                   : 2,
-        "dynamic_tau"                   : 1.0,
-        "oss_switch"                    : 0,
         "echo_level"                    : 0,
+        "consider_periodic_conditions"  : false,
+        "compute_reactions"             : false,
+        "reform_dofs_at_each_step"      : false,
+        "relative_velocity_tolerance"   : 0.001,
+        "absolute_velocity_tolerance"   : 1e-5,
+        "relative_pressure_tolerance"   : 0.001,
+        "absolute_pressure_tolerance"   : 1e-5,
         "model_part_name"               : "MainModelPart",
         "volume_model_part_name"        : "Parts_Fluid",
         "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
+        "no_skin_parts"                 : [],
         "linear_solver_settings" : {
             "solver_type"         : "amgcl",
             "verbosity"           : 0
         },
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "AdjointKEpsilonSensitivity2DTest/one_element_test"
+            "input_filename" : "AdjointKEpsilonSensitivity2DTest/one_element_steady_test"
         },
         "material_import_settings": {
             "materials_filename": "AdjointKEpsilonSensitivity2DTest/one_element_test_materials.json"
         },
+        "time_scheme" : "steady",
         "time_stepping"                : {
             "automatic_time_step" : false,
-            "time_step"           : -1.0
+            "time_step"           : 1.0
+        },
+        "formulation" : {
+            "element_type"             : "vms",
+            "use_orthogonal_subscales" : false,
+            "dynamic_tau"              : 0.0
         }
     },
     "processes": {
         "initial_conditions_process_list"  : [],
         "boundary_conditions_process_list" : [{
-            "python_module" : "assign_vector_variable_process",
+            "python_module" : "assign_vector_by_direction_process",
             "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignVectorVariableProcess",
+            "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
                 "model_part_name" : "MainModelPart.Inlet",
-                "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
-                "value"           : [0.0, 0.0, 0.0]
+                "variable_name"   : "VELOCITY",
+                "modulus"         : 1.4142135623730951,
+                "direction"       : [0.70710678118654746,-0.70710678118654746,0.0]
             }
         },{
             "python_module" : "assign_scalar_variable_process",
@@ -99,18 +96,16 @@
             "Parameters"    : {
                 "mesh_id"         : 0,
                 "model_part_name" : "MainModelPart.Outlet",
-                "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
+                "variable_name"   : "PRESSURE",
                 "value"           : 0
             }
         },{
-            "python_module" : "assign_vector_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignVectorVariableProcess",
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyNoSlipProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "MainModelPart.Boundary",
-                "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
-                "value"           : [0.0, 0.0, 0.0]
+                "model_part_name" : "MainModelPart.Boundary"
             }
         },{
             "python_module" : "assign_vector_variable_process",
@@ -119,7 +114,7 @@
             "Parameters"    : {
                 "mesh_id"         : 0,
                 "model_part_name" : "MainModelPart.Outlet",
-                "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
+                "variable_name"   : "VELOCITY",
                 "constrained"     : [false,true,true],
                 "value"           : [0.0, 0.0, 0.0]
             }
@@ -127,17 +122,28 @@
         "gravity" : [],
         "auxiliar_process_list" :[{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
-            "python_module" : "single_mesh_temporal_input_process",
+            "python_module" : "single_mesh_temporal_output_process",
             "help"          : "",
             "process_name"  : "",
             "Parameters" : {
                 "model_part_name" : "MainModelPart",
                 "file_settings" : {
-                    "file_access_mode" : "read_only"
+                    "file_access_mode" : "truncate"
                 },
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
                 }
+            }
+        },{
+            "python_module" : "compute_body_fitted_drag_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ComputeBodyFittedDragProcess",
+            "Parameters" : {
+                "model_part_name"           : "MainModelPart.Structure",
+                "interval"                  : [0.0, 1e30],
+                "write_drag_output_file"    : true,
+                "print_drag_to_screen"      : false,
+                "print_format"              : "22.15e"
             }
         }]
     }
