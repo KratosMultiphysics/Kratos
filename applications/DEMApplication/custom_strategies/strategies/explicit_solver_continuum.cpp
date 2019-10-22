@@ -658,8 +658,6 @@ namespace Kratos {
 
             if (number_of_intact_bonds <= maximum_allowed_number_of_intact_bonds) {
 
-                mListOfSphericContinuumParticles[i]->Set(DEMFlags::IS_SAND_PRODUCTION, true);
-
                 for (int j = 0; j < (int) mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize; j++) {
 
                     if (!mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j]) mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j] = 8;
