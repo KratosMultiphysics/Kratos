@@ -5,6 +5,8 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
+
 from importlib import import_module
 
 if IsDistributedRun():
@@ -83,7 +85,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.KratosPrintInfo = self.procedures.KratosPrintInfo
 
         # Creating necessary directories:
-        self.problem_name = self.GetProblemTypeFilename()
+        self.problem_name = self.GetProblemTypeFileName()
 
         [self.post_path,
         self.data_and_results,
@@ -94,7 +96,8 @@ class DEMAnalysisStage(AnalysisStage):
         # Prepare modelparts
         self.CreateModelParts()
 
-        self.SetGraphicalOutput()
+        if self.do_print_results_option:
+            self.SetGraphicalOutput()
         self.report = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
         self.materialTest = DEM_procedures.MaterialTest()
@@ -329,71 +332,121 @@ class DEMAnalysisStage(AnalysisStage):
     def GetProblemNameWithPath(self):
         return os.path.join(self.mdpas_folder_path, self.DEM_parameters["problem_name"].GetString())
 
-    def GetMpFilename(self):
-        return self.GetProblemNameWithPath() + "DEM"
+    def GetDiscreteElementsInputFileTag(self):
+        return 'DEM'
 
-    def GetInletFilename(self):
-        return self.GetProblemNameWithPath() + "DEM_Inlet"
+    def GetDEMInletInputFileTag(self):
+        return 'DEM_Inlet'
 
-    def GetFemFilename(self):
-        return self.GetProblemNameWithPath() + "DEM_FEM_boundary"
+    def GetDEMWallsInputFileTag(self):
+        return 'DEM_FEM_boundary'
 
-    def GetClusterFilename(self):
-        return self.GetProblemNameWithPath() + "DEM_Clusters"
+    def GetDEMClustersInputFileTag(self):
+        return 'DEM_Clusters'
 
-    def GetProblemTypeFilename(self):
+    def GetDiscreteElementsInputFilePath(self):
+        return self.GetInputFilePath(self.GetDiscreteElementsInputFileTag())
+
+    def GetDEMInletInputFilePath(self):
+        return self.GetInputFilePath(self.GetDEMInletInputFileTag())
+
+    def GetDEMWallsInputFilePath(self):
+        return self.GetInputFilePath(self.GetDEMWallsInputFileTag())
+
+    def GetDEMClustersInputFilePath(self):
+        return self.GetInputFilePath(self.GetDEMClustersInputFileTag())
+
+    def GetMpFilePath(self):
+        return GetInputFilePath('DEM')
+
+    def GetInletFilePath(self):
+        return GetInputFilePath('DEM_Inlet')
+
+    def GetFemFilePath(self):
+        return GetInputFilePath('DEM_FEM_boundary')
+
+    def GetClusterFilePath(self):
+        return GetInputFilePath('DEM_Clusters')
+
+    def GetInputFilePath(self, file_tag=''):
+        return self.GetProblemNameWithPath() + file_tag
+
+    def GetProblemTypeFileName(self):
         return self.DEM_parameters["problem_name"].GetString()
 
-    def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
-        spheres_mp_filename = self.GetMpFilename()
-        model_part_io_spheres = self.model_part_reader(spheres_mp_filename, max_node_Id, max_elem_Id, max_cond_Id)
+    def ReadModelPartsFromRestartFile(self, model_part_import_settings):
+        Logger.PrintInfo('DEM', 'Loading model parts from restart file...')
+        DEMRestartUtility(self.model, self._GetSolver()._GetRestartSettings(model_part_import_settings)).LoadRestart()
+        Logger.PrintInfo('DEM', 'Finished loading model parts from restart file.')
 
-        if "do_not_perform_initial_partition" in self.DEM_parameters.keys() and self.DEM_parameters["do_not_perform_initial_partition"].GetBool():
-            pass
+    def ReadModelPartsFromMdpaFile(self, max_node_id, max_elem_id, max_cond_id):
+        def UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, model_part):
+            max_node_id = max(max_node_id, self.creator_destructor.FindMaxNodeIdInModelPart(model_part))
+            max_elem_id = max(max_elem_id, self.creator_destructor.FindMaxElementIdInModelPart(model_part))
+            max_cond_id = max(max_cond_id, self.creator_destructor.FindMaxConditionIdInModelPart(model_part))
+            return max_node_id, max_elem_id, max_cond_id
+
+        def ReadModelPart(model_part, file_tag, max_node_id, max_elem_id, max_cond_id):
+            file_path = self.GetInputFilePath(file_tag)
+
+            if not os.path.isfile(file_path + '.mdpa'):
+                self.KratosPrintInfo('Input file ' + file_tag + '.mdpa' + ' not found. Continuing.')
+                return
+
+            if model_part.Name == 'SpheresPart':
+                model_part_io = self.model_part_reader(file_path, max_node_id, max_elem_id, max_cond_id)
+
+                do_perform_initial_partition = True
+                if self.DEM_parameters.Has("do_not_perform_initial_partition"):
+                    if self.DEM_parameters["do_not_perform_initial_partition"].GetBool():
+                        do_perform_initial_partition = False
+
+                if do_perform_initial_partition:
+                    self.parallelutils.PerformInitialPartition(model_part_io)
+
+                model_part_io, model_part = self.parallelutils.SetCommunicator(
+                                                model_part,
+                                                model_part_io,
+                                                file_path)
+            else:
+                model_part_io = self.model_part_reader(file_path, max_node_id + 1, max_elem_id + 1, max_cond_id + 1)
+
+            model_part_io.ReadModelPart(model_part)
+
+        ReadModelPart(self.spheres_model_part, self.GetDiscreteElementsInputFileTag(), max_node_id, max_elem_id, max_cond_id)
+        max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.spheres_model_part)
+        old_max_elem_id_spheres = max_elem_id
+
+        ReadModelPart(self.rigid_face_model_part, self.GetDEMWallsInputFileTag(), max_node_id, max_elem_id, max_cond_id)
+
+        max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.rigid_face_model_part)
+
+        ReadModelPart(self.cluster_model_part, self.GetDEMClustersInputFileTag(), max_node_id, max_elem_id, max_cond_id)
+
+        max_elem_id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
+
+        # Clusters generate extra spheres, so the following step is necessary
+        if max_elem_id != old_max_elem_id_spheres:
+            self.creator_destructor.RenumberElementIdsFromGivenValue(self.cluster_model_part, max_elem_id)
+
+        max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.cluster_model_part)
+
+        ReadModelPart(self.dem_inlet_model_part, self.GetDEMInletInputFileTag(), max_node_id, max_elem_id, max_cond_id)
+
+    def ReadModelParts(self, max_node_id=0, max_elem_id=0, max_cond_id=0):
+
+        model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]
+        input_type = model_part_import_settings["input_type"].GetString()
+
+        if input_type == "rest":
+            self.ReadModelPartsFromRestartFile(model_part_import_settings)
+        elif input_type == "mdpa":
+            self.ReadModelPartsFromMdpaFile(max_node_id, max_elem_id, max_cond_id)
         else:
-            self.parallelutils.PerformInitialPartition(model_part_io_spheres)
-
-        [model_part_io_spheres, self.spheres_model_part] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
-        model_part_io_spheres.ReadModelPart(self.spheres_model_part)
-
-        max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part))
-        max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part))
-        old_max_elem_Id_spheres = max_elem_Id
-        max_cond_Id = max(max_cond_Id, self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part))
-        rigidFace_mp_filename = self.GetFemFilename()
-        if os.path.isfile(rigidFace_mp_filename+".mdpa"):
-            model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-            model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
-        else:
-            self.KratosPrintInfo('No mdpa file found for DEM walls. Continuing.')
-
-        max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part))
-        max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part))
-        max_cond_Id = max(max_cond_Id, self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part))
-        clusters_mp_filename = self.GetClusterFilename()
-        if os.path.isfile(clusters_mp_filename+".mdpa"):
-            model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-            model_part_io_clusters.ReadModelPart(self.cluster_model_part)
-        else:
-            self.KratosPrintInfo('No mdpa file found for DEM clusters. Continuing.')
-
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
-        if max_elem_Id != old_max_elem_Id_spheres:
-            self.creator_destructor.RenumberElementIdsFromGivenValue(self.cluster_model_part, max_elem_Id)
-
-        max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.cluster_model_part))
-        max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.cluster_model_part))
-        max_cond_Id = max(max_cond_Id, self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part))
-        DEM_Inlet_filename = self.GetInletFilename()
-        if os.path.isfile(DEM_Inlet_filename+".mdpa"):
-            model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
-            model_part_io_demInlet.ReadModelPart(self.dem_inlet_model_part)
-        else:
-            self.KratosPrintInfo('No mdpa file found for DEM inlets. Continuing.')
+            raise Exception('DEM', 'Model part input option \'' + input_type + '\' is not yet implemented.')
 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
-
 
     def RunAnalytics(self, time, is_time_to_print=True):
         for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
@@ -405,7 +458,7 @@ class DEMAnalysisStage(AnalysisStage):
                 self.FaceAnalyzerClass.RemoveOldFile()
 
     def IsTimeToPrintPostProcess(self):
-        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
+        return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
 
     def PrintResults(self):
         #### GiD IO ##########################################
@@ -465,6 +518,12 @@ class DEMAnalysisStage(AnalysisStage):
     def BeforePrintingOperations(self, time):
         pass
 
+    def PrintAnalysisStageProgressInformation(self):
+        step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
+        stepinfo = self.report.StepiReport(timer, self.time, step)
+        if stepinfo:
+            self.KratosPrintInfo(stepinfo)
+
     def FinalizeSolutionStep(self):
         super(DEMAnalysisStage, self).FinalizeSolutionStep()
         if self.post_normal_impact_velocity_option:
@@ -480,11 +539,6 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
 
-        step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
-        stepinfo = self.report.StepiReport(timer, self.time, step)
-        if stepinfo:
-            self.KratosPrintInfo(stepinfo)
-
     def OutputSolutionStep(self):
         #### PRINTING GRAPHS ####
         self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
@@ -495,6 +549,11 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
         self.BeforePrintingOperations(self.time)
         self.PrintResults()
+
+        for output_process in self._GetListOfOutputProcesses():
+            if output_process.IsOutputStep():
+                output_process.PrintOutput()
+
         self.FinalizeTimeStep(self.time)
 
     def AfterSolveOperations(self):
@@ -532,7 +591,8 @@ class DEMAnalysisStage(AnalysisStage):
     def Finalize(self):
 
         self.KratosPrintInfo("Finalizing execution...")
-        self.GraphicalOutputFinalize()
+        if self.do_print_results_option:
+            self.GraphicalOutputFinalize()
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
@@ -581,8 +641,9 @@ class DEMAnalysisStage(AnalysisStage):
             self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):
-        self.demio.Initialize(self.DEM_parameters)
-        self.demio.InitializeMesh(self.all_model_parts)
+        if self.do_print_results_option:
+            self.demio.Initialize(self.DEM_parameters)
+            self.demio.InitializeMesh(self.all_model_parts)
 
     def PrintResultsForGid(self, time):
         if self._GetSolver().poisson_ratio_option:
@@ -614,6 +675,10 @@ class DEMAnalysisStage(AnalysisStage):
         self.time_old_print = 0.0
 
     def FinalizeSingleTimeStep(self):
+        message = 'Warning!'
+        message += '\nFunction \'FinalizeSingleTimeStep\' is deprecated. Use FinalizeSolutionStep instead.'
+        message += '\nIt will be removed after 10/15/2019.\n'
+        Logger.PrintWarning("DEM_analysis_stage.py", message)
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.

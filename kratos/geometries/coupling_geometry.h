@@ -219,8 +219,16 @@ public:
             << Index << " composite contains only of: "
             << mpGeometries.size() << " geometries." << std::endl;
 
-        KRATOS_ERROR_IF(0 == Index) << "Cannot change master: "
-            << Index << std::endl;
+        if (0 == Index){
+            if (mpGeometries.size() > 1) {
+                KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[1]->Dimension())
+                    << "Dimension of new master geometry does not coincide with the other geometries. "
+                    << "Dimension of new geometry: " << pGeometry->Dimension()
+                    << ", dimension of coupling geometry: " << mpGeometries[1]->Dimension() << std::endl;
+            }
+
+            this->SetGeometryData(&(pGeometry->GetGeometryData()));
+        }
 
         KRATOS_ERROR_IF(pGeometry->Dimension() != mpGeometries[0]->Dimension())
             << "Dimension of new entity does not coincide with this coupling geometry. "

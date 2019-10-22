@@ -127,7 +127,7 @@ public:
         const IndexType ControlPointIndex,
         const IndexType DerivativeRow) const
     {
-        IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+        const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
             NumberOfNonzeroControlPoints(), NumberOfShapeFunctionRows(),
             ControlPointIndex, DerivativeRow);
 
@@ -190,26 +190,29 @@ public:
         const IndexType Span,
         const double ParameterT)
     {
+        // Use a signed integer for the computations!
+        using Int = std::ptrdiff_t;
+
         ClearValues();
 
-        const int polynominal_degree = static_cast<int>(PolynomialDegree());
-        const int number_of_nonzero_control_points =
-            static_cast<int>(NumberOfNonzeroControlPoints());
-        const int number_of_shape_function_rows =
-            static_cast<int>(NumberOfShapeFunctionRows());
+        const Int polynominal_degree = static_cast<Int>(PolynomialDegree());
+        const Int number_of_nonzero_control_points =
+            static_cast<Int>(NumberOfNonzeroControlPoints());
+        const Int number_of_shape_function_rows =
+            static_cast<Int>(NumberOfShapeFunctionRows());
 
         mFirstNonzeroControlPoint = Span - polynominal_degree + 1;
 
         // compute B-Spline shape
         Ndu(0, 0) = 1.0;
 
-        for (int j = 0; j < polynominal_degree; j++) {
+        for (Int j = 0; j < polynominal_degree; j++) {
             mLeft[j] = ParameterT - rKnots[Span - j];
             mRight[j] = rKnots[Span + j + 1] - ParameterT;
 
             double saved = 0.0;
 
-            for (int r = 0; r <= j; r++) {
+            for (Int r = 0; r <= j; r++) {
                 Ndu(j + 1, r) = mRight[r] + mLeft[j - r];
 
                 double temp = Ndu(r, j) / Ndu(j + 1, r);
@@ -221,31 +224,31 @@ public:
             Ndu(j + 1, j + 1) = saved;
         }
 
-        for (int j = 0; j < number_of_nonzero_control_points; j++) {
+        for (Int j = 0; j < number_of_nonzero_control_points; j++) {
             ShapeFunctionValue(j, 0) = Ndu(j, polynominal_degree);
         }
 
         auto& a = mA;
         auto& b = mB;
 
-        for (int r = 0; r < number_of_nonzero_control_points; r++) {
+        for (Int r = 0; r < number_of_nonzero_control_points; r++) {
             a[0] = 1.0;
 
-            for (int k = 1; k < number_of_shape_function_rows; k++) {
+            for (Int k = 1; k < number_of_shape_function_rows; k++) {
                 double& value = ShapeFunctionValue(r, k);
 
-                int rk = r - k;
-                int pk = polynominal_degree - k;
+                Int rk = r - k;
+                Int pk = polynominal_degree - k;
 
                 if (r >= k) {
                     b[0] = a[0] / Ndu(pk + 1, rk);
                     value = b[0] * Ndu(rk, pk);
                 }
 
-                int j1 = r >= k - 1 ? 1 : k - r;
-                int j2 = r <= pk + 1 ? k : number_of_nonzero_control_points - r;
+                Int j1 = r >= k - 1 ? 1 : k - r;
+                Int j2 = r <= pk + 1 ? k : number_of_nonzero_control_points - r;
 
-                for (int j = j1; j < j2; j++) {
+                for (Int j = j1; j < j2; j++) {
                     b[j] = (a[j] - a[j - 1]) / Ndu(pk + 1, rk + j);
                     value += b[j] * Ndu(rk + j, pk);
                 }
@@ -259,10 +262,10 @@ public:
             }
         }
 
-        int s = polynominal_degree;
+        Int s = polynominal_degree;
 
-        for (int k = 1; k < number_of_shape_function_rows; k++) {
-            for (int j = 0; j < number_of_nonzero_control_points; j++) {
+        for (Int k = 1; k < number_of_shape_function_rows; k++) {
+            for (Int j = 0; j < number_of_nonzero_control_points; j++) {
                 ShapeFunctionValue(j, k) *= s;
             }
             s *= polynominal_degree - k;
@@ -283,7 +286,7 @@ public:
         const Vector& rWeights,
         const double ParameterT)
     {
-        const int span = NurbsUtilities::GetUpperSpan(
+        const auto span = NurbsUtilities::GetUpperSpan(
             PolynomialDegree(), rKnots, ParameterT);
 
         ComputeNurbsShapeFunctionValuesAtSpan(rKnots, span, rWeights, ParameterT);

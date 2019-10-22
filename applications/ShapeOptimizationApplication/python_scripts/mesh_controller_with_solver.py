@@ -61,12 +61,12 @@ class MeshControllerWithSolver(MeshController) :
 
         if not self.MeshSolverSettings["solver_settings"].Has("mesh_motion_linear_solver_settings"):
             MeshSolverSettings.AddValue("mesh_motion_linear_solver_settings", default_settings["solver_settings"]["mesh_motion_linear_solver_settings"])
-            print("::[MeshControllerWithSolver]::INFO using default linear solver for mesh motion.")
+            KM.Logger.PrintInfo("ShapeOpt", "::[MeshControllerWithSolver]:: using default linear solver for mesh motion.")
 
         if not MeshSolverSettings.Has("problem_data"):
             self.__AddDefaultProblemData(self.MeshSolverSettings)
         else:
-            print("::[MeshControllerWithSolver]::WARNING: using custom problem data for mesh motion.")
+            KM.Logger.PrintInfo("ShapeOpt", "::[MeshControllerWithSolver]:: using custom problem data for mesh motion.")
 
         self.OptimizationModelPart = model[self.MeshSolverSettings["solver_settings"]["model_part_name"].GetString()]
 
@@ -87,7 +87,8 @@ class MeshControllerWithSolver(MeshController) :
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, variable):
-        print("\n> Starting to update the mesh...")
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "Starting to update the mesh...")
         startTime = timer.time()
 
         time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(KM.TIME)
@@ -111,7 +112,7 @@ class MeshControllerWithSolver(MeshController) :
         self.OptimizationModelPart.ProcessInfo.SetValue(KM.TIME, time_before_update)
         self.OptimizationModelPart.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time_before_update)
 
-        print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
+        KM.Logger.PrintInfo("ShapeOpt", "Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
     # --------------------------------------------------------------------------
     def Finalize(self):
@@ -149,7 +150,7 @@ class MeshControllerWithSolver(MeshController) :
             }
             """)
 
-        print("> Add automatic process to fix the whole surface to mesh motion solver:")
+        KM.Logger.PrintInfo("ShapeOpt", "Add automatic process to fix the whole surface to mesh motion solver:")
         mesh_solver_settings["processes"]["boundary_conditions_process_list"].Append(auto_process_settings)
 
 # ==============================================================================

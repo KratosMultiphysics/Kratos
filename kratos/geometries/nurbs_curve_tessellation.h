@@ -77,8 +77,8 @@ public:
     void Tessellate(
         typename GeometryType::Pointer pGeometry, 
         int PolynomialDegree,
-        Interval DomainInterval,
-        std::vector<Interval> KnotSpanIntervals,
+        NurbsInterval DomainInterval,
+        std::vector<NurbsInterval> KnotSpanIntervals,
         const double Tolerance)
     {
         mTesselation = ComputeTessellation<TWorkingSpaceDimension>(
@@ -103,8 +103,8 @@ public:
 	static std::vector<std::pair<double, Vector>> ComputeTessellation(
         typename GeometryType::Pointer pGeometry,
         int PolynomialDegree,
-        Interval DomainInterval,
-        std::vector<Interval> KnotSpanIntervals,
+        NurbsInterval DomainInterval,
+        std::vector<NurbsInterval> KnotSpanIntervals,
         const double Tolerance
         )
     {
@@ -117,7 +117,7 @@ public:
         // compute sample points
 
         for (const auto& span : KnotSpanIntervals) {
-            const Interval normalized_span = DomainInterval.GetNormalizedInterval(span);
+            const NurbsInterval normalized_span = DomainInterval.GetNormalizedInterval(span);
 
             if (normalized_span.GetLength() < 1e-7) {
                 continue;
@@ -173,7 +173,7 @@ public:
 				std::pair<double, Vector> max_point;
 
                 for (int i = 1; i <= n; i++) {
-                    const double t = Interval::GetParameterAtNormalized(t_a,
+                    const double t = NurbsInterval::GetParameterAtNormalized(t_a,
                         t_b, i / (double(n) + 1.0));
 
                     t_at_normalized[0] = DomainInterval.GetParameterAtNormalized(t);

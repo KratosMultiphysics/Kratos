@@ -182,6 +182,9 @@ class Simple3D2NTrussLinearTensionPlasticTest(StructuralMechanicsTestFactory):
 class Simple3D2NTrussNonLinearSnapthroughPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
 
+class Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest(StructuralMechanicsTestFactory):
+    file_name = "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test"
+
 class Simple3D2NTrussNonLinearTensionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_plastic_tension_test"
 

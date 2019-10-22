@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
+#include "custom_utilities/trilinos_solver_utilities.h"
 
 // Aztec solver includes
 #include "AztecOO.h"
@@ -128,12 +129,7 @@ public:
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for (auto it = settings["trilinos_aztec_parameter_list"].begin(); it != settings["trilinos_aztec_parameter_list"].end(); it++) {
-            if(it->IsString()) mAztecParameterList.set(it.name(), it->GetString());
-            else if(it->IsInt()) mAztecParameterList.set(it.name(), it->GetInt());
-            else if(it->IsBool()) mAztecParameterList.set(it.name(), it->GetBool());
-            else if(it->IsDouble()) mAztecParameterList.set(it.name(), it->GetDouble());
-        }
+        TrilinosSolverUtilities::SetTeuchosParameters(settings["trilinos_aztec_parameter_list"], mAztecParameterList);
 
         mPreconditionerParameterList = Teuchos::ParameterList();
         const std::string preconditioner_type = settings["preconditioner_type"].GetString();
@@ -162,12 +158,7 @@ public:
         }
 
         //NOTE: this will OVERWRITE PREVIOUS SETTINGS TO GIVE FULL CONTROL
-        for (auto it = settings["trilinos_preconditioner_parameter_list"].begin(); it != settings["trilinos_preconditioner_parameter_list"].end(); it++) {
-            if(it->IsString()) mPreconditionerParameterList.set(it.name(), it->GetString());
-            else if(it->IsInt()) mPreconditionerParameterList.set(it.name(), it->GetInt());
-            else if(it->IsBool()) mPreconditionerParameterList.set(it.name(), it->GetBool());
-            else if(it->IsDouble()) mPreconditionerParameterList.set(it.name(), it->GetDouble());
-        }
+        TrilinosSolverUtilities::SetTeuchosParameters(settings["trilinos_preconditioner_parameter_list"], mPreconditionerParameterList);
     }
 
     AztecSolver(Teuchos::ParameterList& aztec_parameter_list, std::string IFPreconditionerType, Teuchos::ParameterList& preconditioner_parameter_list, double tol, int nit_max, int overlap_level)

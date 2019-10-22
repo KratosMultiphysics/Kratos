@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics FemDem Application
 //
-//  License:		 BSD License
-//	Kratos default license:
+//  License:         BSD License
+//    Kratos default license:
 //  kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
@@ -44,12 +44,31 @@ class GenerateDemProcess : public Process
 
   void operator()() { Execute(); }
 
+    /**
+     * @brief Creates the DEM particles
+     */
   void Execute() override;
 
+    /**
+     * @brief Computes the distance between nodes
+     */
   double CalculateDistanceBetweenNodes(const NodeType& Node1, const NodeType& Node2);
+
+    /**
+     * @brief This creates one particle
+     */
   void CreateDEMParticle(const int Id, const array_1d<double, 3> Coordinates, 
       const Properties::Pointer pProperties, const double Radius, NodeType& rNode); 
+
+    /**
+     * @brief This returns the min value of a vector
+     */
   double GetMinimumValue(const Vector& rValues);
+
+    /**
+     * @brief This returns the maximum Id of the particles
+     */
+  int GetMaximumDEMId();
 
 protected:
 
