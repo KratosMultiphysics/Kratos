@@ -962,6 +962,7 @@ namespace Kratos {
                     array_1d<double, 3>& node_rhs_tang = geom[i].FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
                     double& node_pressure = geom[i].FastGetSolutionStepValue(DEM_PRESSURE);
                     array_1d<double, 3> rhs_cond_comp;
+                    noalias(rhs_cond_comp) = ZeroVector(3);
 
                     geom[i].SetLock();
 
