@@ -5,6 +5,8 @@ import KratosMultiphysics.ExternalSolversApplication
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+# Import the tests o test_classes to create the suits
+from generalTests import KratosExternalSolversGeneralTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -33,7 +35,7 @@ def AssembleTestSuites():
     # - testNightlyFirstExample
     # - testNightlySecondExample
     nightSuite = suites['nightly']
-    nightSuite.addTests(KratosExternalSolversGeneralTests)
+    nightSuite.addTests(smallSuite)
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
