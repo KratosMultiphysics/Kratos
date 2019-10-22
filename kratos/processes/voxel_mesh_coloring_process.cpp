@@ -70,7 +70,10 @@ namespace Kratos
 		// Initialize the intersected objects process
 		mFindIntersectedObjectsProcess.Initialize();
 
+
 		if(mApplyOutsideColor){
+			mColors.SetAllColors(mOutsideColor);
+	
 			if(mColoringEntities == "nodes"){
 				#pragma omp parallel for
 				for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k) {
@@ -91,7 +94,7 @@ namespace Kratos
 
 	void VoxelMeshColoringProcess::Execute() {
 
-        this->Initialize();
+        // this->Initialize();
 
         mCellIsEmpty.resize(mNumberOfDivisions[0]*mNumberOfDivisions[1]*mNumberOfDivisions[2], true);
 
@@ -148,7 +151,7 @@ namespace Kratos
 
 		InitializeRays(min_position, max_position);
 
-		mColors.CalculateColors(min_position, max_position, TheColor, mOutsideColor);
+		// mColors.CalculateColors(min_position, max_position, TheColor, mOutsideColor);
 
         #pragma omp parallel for
 		for (int k = min_position[2]; k < static_cast<int>(max_position[2]); k++) {
@@ -186,13 +189,13 @@ namespace Kratos
 	}
 
     void VoxelMeshColoringProcess::InitializeRays(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition){
-		mColors.InitializeRays(MinRayPosition, MaxRayPosition);
+		// mColors.InitializeRays(MinRayPosition, MaxRayPosition);
        
-        for(auto& element : mrSkinPart.Elements())
-        {
-            Element::GeometryType& r_geometry = element.GetGeometry();
-			mColors.AddGeometry(r_geometry);
-        }
+        // for(auto& element : mrSkinPart.Elements())
+        // {
+        //     Element::GeometryType& r_geometry = element.GetGeometry();
+		// 	mColors.AddGeometry(r_geometry);
+        // }
 
 	}
 
@@ -209,7 +212,7 @@ namespace Kratos
 
 		InitializeRays(min_position, max_position);
 
-		mColors.CalculateColors(min_position, max_position, TheColor, mOutsideColor);
+		//mColors.CalculateColors(min_position, max_position, TheColor, mOutsideColor);
  
         #pragma omp parallel for
 		for (int k = min_position[2]; k < static_cast<int>(max_position[2]); k++) {
