@@ -8,7 +8,7 @@
                 "VISCOSITY": 1.0E-05,
                 "DYNAMIC_VISCOSITY": 1.0E-05,
                 "KINEMATIC_VISCOSITY": 1.0E-05,
-                "TURBULENT_VISCOSITY": 1.0
+                "TURBULENT_VISCOSITY": 1e-5
             },
             "Tables"           : {}
         }

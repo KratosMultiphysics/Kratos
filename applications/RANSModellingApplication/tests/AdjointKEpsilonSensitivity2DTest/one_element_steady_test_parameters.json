@@ -156,7 +156,7 @@
                     "relative_tolerance": 1e-12,
                     "absolute_tolerance": 1e-16,
                     "max_iterations": 100,
-                    "echo_level": 2
+                    "echo_level": 0
                 }
             }
         }
@@ -172,7 +172,7 @@
                     "mesh_id": 0,
                     "model_part_name": "MainModelPart.Inlet",
                     "variable_name": "VELOCITY",
-                    "modulus": 14.142135623730951,
+                    "modulus": 141.42135623730951,
                     "direction": [
                         0.70710678118654746,
                         -0.70710678118654746,

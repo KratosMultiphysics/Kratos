@@ -239,8 +239,7 @@
                 "python_module": "apply_custom_process",
                 "process_name" : "NutKEpsilonHighReSensitivitiesProcess",
                 "Parameters": {
-                    "model_part_name" : "MainModelPart",
-                    "echo_level" : 2
+                    "model_part_name" : "MainModelPart"
                 }
             },
             {
@@ -248,8 +247,7 @@
                 "python_module": "apply_custom_process",
                 "process_name" : "NutYPlusWallFunctionSensitivitiesProcess",
                 "Parameters": {
-                    "model_part_name" : "MainModelPart.Boundary",
-                    "echo_level" : 2
+                    "model_part_name" : "MainModelPart.Boundary"
                 }
             }
         ]
