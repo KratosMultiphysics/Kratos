@@ -140,7 +140,7 @@ public:
 		sample_points.emplace_back(1.0, point);
 
 		std::sort(std::begin(sample_points), std::end(sample_points),
-			[](auto const& lhs, auto const& rhs) {
+			[](std::pair<double, Vector> const& lhs, std::pair<double, Vector> const& rhs) {
 				return std::get<0>(lhs) > std::get<0>(rhs);
 			}
 		);
