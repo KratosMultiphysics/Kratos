@@ -26,6 +26,10 @@ class Plume_PFEM2_2D_test(TF.TestFactory):
     file_name = "element_tests/Plume_PFEM2_2D_test/Plume_PFEM2_2D_test"
     file_parameters = "element_tests/Plume_PFEM2_2D_test/Plume_PFEM2_2D_test.json"
 
+class Cavity_2D_test(TF.TestFactory):
+    file_name = "element_tests/Cavity_2D_test/Cavity_2D_test"
+    file_parameters = "element_tests/Cavity_2D_test/Cavity_2D_test.json"
+
 def SetTestSuite(suites):
     small_suite = suites['small']
 
@@ -35,7 +39,8 @@ def SetTestSuite(suites):
             Q_source_2D_test,
             Rot_2D_test,
             DAC_2D_test,
-            Plume_PFEM2_2D_test
+            Plume_PFEM2_2D_test,
+            Cavity_2D_test
         ])
     )
 
