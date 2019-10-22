@@ -486,12 +486,10 @@ class MorSecondOrderIRKAStrategy
   
         KRATOS_INFO_IF("IRKA", iter >= max_iter) << "Maximum number of iterations reached!"  << std::endl;
   
-
-        KRATOS_WATCH(r_M_reduced)
-
+        //KRATOS_WATCH(r_M_reduced)
 
         std::cout << "MOR offline solve finished" << std::endl;
-        
+
 
 
 
