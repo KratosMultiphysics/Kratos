@@ -143,6 +143,9 @@ public:
     ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
         Parameters default_settings = this->GetDefaultSettings();
+        default_settings["max_iterations"].SetInt(MaxIterations);
+        default_settings["reform_dofs_at_each_step"].SetBool(ReformDofSetAtEachStep);
+        default_settings["calculate_reactions"].SetBool(CalculateReactions);
         this->AssignSettings(default_settings);
     }
     
@@ -171,6 +174,9 @@ public:
     ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
         Parameters default_settings = this->GetDefaultSettings();
+        default_settings["max_iterations"].SetInt(MaxIterations);
+        default_settings["reform_dofs_at_each_step"].SetBool(ReformDofSetAtEachStep);
+        default_settings["calculate_reactions"].SetBool(CalculateReactions);
         this->AssignSettings(default_settings);
     }
 
