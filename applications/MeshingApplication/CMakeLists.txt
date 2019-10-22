@@ -57,8 +57,6 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_CORE_MMG} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt)
-set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
 
 if(${INCLUDE_MMG} MATCHES ON)
     add_definitions( -DINCLUDE_MMG )
@@ -69,7 +67,20 @@ if(${INCLUDE_MMG} MATCHES ON)
     INCLUDE_DIRECTORIES(${MMGS_INCLUDE_DIR})
 
     target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
+    
+    message("Installed MMG = " ${MMG_LIBRARY})
+    install(FILES ${MMG_LIBRARY} DESTINATION libs)
+    message("Installed MMG2D = " ${MMG2D_LIBRARY})
+    install(FILES ${MMG2D_LIBRARY} DESTINATION libs)
+    message("Installed MMG3D = " ${MMG3D_LIBRARY})
+    install(FILES ${MMG3D_LIBRARY} DESTINATION libs)
+    message("Installed MMGS = " ${MMGS_LIBRARY})
+    install(FILES ${MMGS_LIBRARY} DESTINATION libs)
+else(${INCLUDE_MMG} MATCHES ON)
+    target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt)
 endif(${INCLUDE_MMG} MATCHES ON)
+
+set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     target_link_libraries(KratosMeshingCore PUBLIC ${TETGEN_LIBRARIES})
