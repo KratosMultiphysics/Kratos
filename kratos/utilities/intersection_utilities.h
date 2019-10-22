@@ -84,7 +84,60 @@ public:
     ///@{
 
     /**
-     * Find the 3D intersection of a ray with a triangle
+     * Find the 3D intersection of a ray with a triangle ignoring the coplanar and degenerated situations
+     * @param rTriangleGeometry Is the triangle to intersect
+     * @param rLinePoint1 Coordinates of the first point of the intersecting line
+     * @param rLinePoint2 Coordinates of the second point of the intersecting line
+     * @return rIntersectionPoint The intersection point coordinates
+     * @return The intersection type index:
+     * -1 (the triangle is degenerate)
+     * 0 (disjoint - no intersection)
+     * 1 (intersect in a unique point)
+     * 2 (are in the same plane)
+     */
+
+    template <class TGeometryType>
+    static int ComputeTriangleRayIntersection(
+        const TGeometryType& rTriangleGeometry,
+        const array_1d<double,3>& rLinePoint1,
+        const array_1d<double,3>& rLinePoint2,
+        array_1d<double,3>& rIntersectionPoint,
+        const double epsilon = 1e-12) {
+
+            // This is the adaption of the implemnetation of Moller-Trumbore algorithm provided in:
+            // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+
+            const array_1d<double,3> edge1 = rTriangleGeometry[1] - rTriangleGeometry[0];
+            const array_1d<double,3> edge2 = rTriangleGeometry[2] - rTriangleGeometry[0];
+            const array_1d<double,3> line_vector = rLinePoint2 - rLinePoint1;
+            array_1d<double,3> h;
+            MathUtils<double>::CrossProduct(h, line_vector, edge2);
+            double a = inner_prod(edge1,h);
+            if (a > -epsilon && a < epsilon)
+                return 0;    // This ray is parallel to this triangle.
+            const double f = 1.0/a;
+            const array_1d<double,3> s = rLinePoint1 - rTriangleGeometry[0];
+            const double u = f * inner_prod(s,h);
+            if (u < -epsilon || u > 1.0 + epsilon)
+                return 0;
+            array_1d<double,3> q;
+            MathUtils<double>::CrossProduct(q, s, edge1);
+            const double v = f * inner_prod(line_vector,q);
+            if (v < -epsilon || u + v > 1.0 + epsilon)
+                return 0;
+            // At this stage we can compute t to find out where the intersection point is on the line.
+            float t = f * inner_prod(edge2,q);
+            if (t > epsilon && t < 1.00/epsilon) // ray intersection
+            {
+                rIntersectionPoint = rLinePoint1 + line_vector * t;
+                return 1;
+            }
+            else // This means that there is a line intersection but not a ray intersection.
+                return 0;
+        }
+
+    /**
+     * Find the 3D intersection of a line with a triangle also reporting the coplanar and degenerated situations
      * @param rTriangleGeometry Is the triangle to intersect
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
      * @param rLinePoint2 Coordinates of the second point of the intersecting line
@@ -114,9 +167,28 @@ public:
         array_1d<double,3> n;
         MathUtils<double>::CrossProduct<array_1d<double,3>,array_1d<double,3>,array_1d<double,3>>(n,u,v);
 
-        // Check if the triangle is degenerate (do not deal with this case)
-        if (MathUtils<double>::Norm3(n) < epsilon){
-            return -1;
+        // Check if the triangle is degenerate we try to check its edges
+        double norm_n = MathUtils<double>::Norm3(n);
+        if (norm_n < epsilon){
+            // Note that the I am passing the triangle to avoid creating the first edge. Pooyan.
+            auto is_intersected = ComputeLineLineIntersection(rTriangleGeometry, rLinePoint1, rLinePoint2, rIntersectionPoint,  epsilon);
+            if(is_intersected != 0){ // if is intersecting we are done
+                return is_intersected;
+            }
+
+            array_1d<Point, 2> line;
+            line[0] = rTriangleGeometry.GetPoint(1);
+            line[1] = rTriangleGeometry.GetPoint(2);
+            is_intersected = ComputeLineLineIntersection(line, rLinePoint1, rLinePoint2, rIntersectionPoint,  epsilon);
+            if(is_intersected != 0){ // if is intersecting we are done
+                return is_intersected;
+            }
+ 
+            line[0] = rTriangleGeometry.GetPoint(2);
+            line[1] = rTriangleGeometry.GetPoint(0);
+            is_intersected = ComputeLineLineIntersection(line, rLinePoint1, rLinePoint2, rIntersectionPoint,  epsilon);
+
+            return is_intersected;
         }
 
         const array_1d<double,3> dir = rLinePoint2 - rLinePoint1; // Edge direction vector
@@ -125,8 +197,8 @@ public:
         const double b = inner_prod(n,dir);
 
         // Check if the ray is parallel to the triangle plane
-        if (std::abs(b) < epsilon){
-            if (a == 0.0){
+        if (std::abs(b) / norm_n < epsilon){
+            if (std::abs(a) < epsilon){
                 return 2;    // Edge lies in the triangle plane
             } else {
                 return 0;    // Edge does not lie in the triangle plane
@@ -135,9 +207,9 @@ public:
 
         // If the edge is not parallel, compute the intersection point
         const double r = a / b;
-        if (r < 0.0){
+        if (r < -epsilon){
             return 0;    // Edge goes away from triangle
-        } else if (r > 1.0) {
+        } else if (r > 1.0 + epsilon) {
             return 0;    // Edge goes away from triangle
         }
 
