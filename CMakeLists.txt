@@ -177,7 +177,7 @@ endif(NOT DEFINED KRATOS_BUILD_TESTING)
 # If install prefix is set, install all the files.
 SET(INSTALL_TESTING_FILES ON)
 SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are ported
-SET(INSTALL_PYTHON_USING_LINKS OFF)
+# SET(INSTALL_PYTHON_USING_LINKS OFF) # Why is this here?
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
