@@ -642,8 +642,10 @@ protected:
 
         double Ratio = NormDv / NormV;
 
-        if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Fractional velocity relative error: " << Ratio << std::endl;
+        if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0){
+            KRATOS_INFO("Fractional Step Strategy : ") << "CONVERGENCE CHECK:" << std::endl;
+            KRATOS_INFO("Fractional Step Strategy : ") << "FRAC VEL.: ratio = " << Ratio <<"; exp.ratio = " << mVelocityTolerance << " abs = " << NormDv << std::endl;        
+        }
 
         if (Ratio < mVelocityTolerance)
         {
