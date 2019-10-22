@@ -4,8 +4,6 @@ PYTHON_VERSION_M=5
 
 cmake .. \
 -DCMAKE_C_COMPILER=gcc                                                                          \
--DCMAKE_INSTALL_RPATH="${HOME}/Kratos/libs"                                                     \
--DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE                                                        \
 -DCMAKE_CXX_COMPILER=g++                                                                        \
 -DCMAKE_BUILD_TYPE=Custom                                                                       \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -fopenmp"                                              \
