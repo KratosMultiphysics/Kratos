@@ -29,7 +29,7 @@ class EmptyListWithLength(list):
 
 setuptools.setup(
     name=conf["wheel_name"],
-    version=kratos_version + "+" + os.environ['HASH'],
+    version=kratos_version,# + "+" + os.environ['HASH'],
     author=conf["author"],
     author_email=conf["author_email"],
     description=conf["description"],
@@ -52,7 +52,7 @@ setuptools.setup(
         "Natural Language :: English",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Other Audience",
-        "Intended Audience :: Developers"
+        "Intended Audience :: Developers",
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console"
     ],
