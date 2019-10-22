@@ -155,7 +155,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
         .def("MarkParticlesForErasingGivenVectorVariableModulus", &ParticleCreatorDestructor::MarkParticlesForErasingGivenVectorVariableModulus)
         .def("MarkParticlesForErasingGivenCylinder", &ParticleCreatorDestructor::MarkParticlesForErasingGivenCylinder)
-        .def("MarkSandProductionParticlesForErasing", &ParticleCreatorDestructor::MarkSandProductionParticlesForErasing)
         .def("GetHighNode", &ParticleCreatorDestructor::GetHighNode)
         .def("GetLowNode", &ParticleCreatorDestructor::GetLowNode)
         .def("GetDiameter", &ParticleCreatorDestructor::GetDiameter)
