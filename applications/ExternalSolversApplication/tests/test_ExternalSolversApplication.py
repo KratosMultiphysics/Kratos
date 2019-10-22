@@ -21,27 +21,28 @@ def AssembleTestSuites():
 
     suites = KratosUnittest.KratosSuites
 
-    # # Create a test suit with the selected tests (Small tests):
-    # # smallSuite will contain the following tests:
-    # # - testSmallExample
-    # smallSuite = suites['small']
-    # smallSuite.addTest(KratosExternalSolversGeneralTests('testSmallExample'))
+    # Create a test suit with the selected tests (Small tests):
+    # smallSuite will contain the following tests:
+    # - testSmallExample
+    smallSuite = suites['small']
+    smallSuite.addTest(KratosExternalSolversGeneralTests('testSmallExample'))
 
-    # # Create a test suit with the selected tests
-    # # nightSuite will contain the following tests:
-    # # - testSmallExample
-    # # - testNightlyFirstExample
-    # # - testNightlySecondExample
-    # nightSuite = suites['nightly']
-    # nightSuite.addTests(KratosExternalSolversGeneralTests)
+    # Create a test suit with the selected tests
+    # nightSuite will contain the following tests:
+    # - testSmallExample
+    # - testNightlyFirstExample
+    # - testNightlySecondExample
+    nightSuite = suites['nightly']
+    nightSuite.addTests(KratosExternalSolversGeneralTests)
 
-    # # Create a test suit that contains all the tests from every testCase
-    # # in the list:
-    # allSuite = suites['all']
-    # allSuite.addTests(
-    #     KratosUnittest.TestLoader().loadTestsFromTestCases([
-    #     ])
-    # )
+    # Create a test suit that contains all the tests from every testCase
+    # in the list:
+    allSuite = suites['all']
+    allSuite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases([
+            KratosExternalSolversGeneralTests
+        ])
+    )
 
     return suites
 
