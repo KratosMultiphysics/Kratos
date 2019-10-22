@@ -24,6 +24,7 @@ set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/post_process_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/sand_production_utilities.cpp
 )
 
 

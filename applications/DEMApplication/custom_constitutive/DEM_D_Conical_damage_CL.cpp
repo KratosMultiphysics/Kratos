@@ -12,7 +12,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_Conical_damage::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+    void DEM_D_Conical_damage::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Conical_damage to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);

@@ -94,21 +94,18 @@ void ExecuteFinalizeSolutionStep()
         int k = OpenMPUtils::ThisThread();
 
         #pragma omp for
-        for(int i = 0; i < (int)rElements.size(); i++)
-        {
+        for (int i = 0; i < (int)rElements.size(); i++) {
+
             ModelPart::ElementsContainerType::ptr_iterator ptr_itElem = rElements.ptr_begin() + i;
 
             const array_1d<double,3> DemPosition = (*ptr_itElem)->GetGeometry()[0].Coordinates();
-            const double Distance2 = std::pow(DemPosition[0]-mCylinderCenter[0],2)
-                                    + std::pow(DemPosition[1]-mCylinderCenter[1],2);
+            const double Distance2 = std::pow(DemPosition[0] - mCylinderCenter[0], 2) + std::pow(DemPosition[1] - mCylinderCenter[1], 2);
 
             Element* p_element = ptr_itElem->get();
-            SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*> (p_element);
+            SphericContinuumParticle* pDemElem = dynamic_cast<SphericContinuumParticle*>(p_element);
 
-            if( (pDemElem->IsNot(DEMFlags::STICKY))
-                && (Distance2 >= std::pow(mMinRadius,2))
-                && (Distance2 <= std::pow(mMaxRadius,2)) )
-            {
+            if ((pDemElem->IsNot(DEMFlags::STICKY)) && (Distance2 >= std::pow(mMinRadius,2)) && (Distance2 <= std::pow(mMaxRadius,2))) {
+
                 BoundedMatrix<double, 3, 3> stress_tensor = (*(pDemElem->mSymmStressTensor));
                 Vector principal_stresses(3);
                 noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod(stress_tensor);
@@ -124,23 +121,21 @@ void ExecuteFinalizeSolutionStep()
     double Sigma1Average = 0.0;
     double Sigma3Average = 0.0;
     int NParticles = 0;
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++)
-    {
+    for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++) {
         Sigma1Average += ThreadSigma1[k];
         Sigma3Average += ThreadSigma3[k];
         NParticles += ThreadNParticles[k];
     }
 
-    if(NParticles > 0)
-    {
-        Sigma1Average = Sigma1Average/NParticles;
-        Sigma3Average = Sigma3Average/NParticles;
+    if (NParticles > 0) {
+        Sigma1Average = Sigma1Average / NParticles;
+        Sigma3Average = Sigma3Average / NParticles;
     }
 
     double CurrentTime = mrModelPart.GetProcessInfo()[TIME];
+    mrModelPart.GetProcessInfo()[SIGMA_3_AVERAGE] = Sigma3Average;
 
-    // Note: These two files are written in the "problemname_Graphs" folder.
-    //       They are erased at the beginning of the simulation.
+    // Note: These two files are written in the "problemname_Graphs" folder. They are erased at the beginning of the simulation.
     std::fstream Sigma1File;
     std::fstream Sigma3File;
 
