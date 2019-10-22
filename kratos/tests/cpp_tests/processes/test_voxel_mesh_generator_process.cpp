@@ -249,7 +249,7 @@ namespace Kratos {
         for(auto& element : skin_model_part.Elements())
         {
             Element::GeometryType& r_geometry = element.GetGeometry();
-			mesh_colors.AddGeometry(r_geometry);
+			mesh_colors.AddGeometry(r_geometry, true);
         }
 
 		for (std::size_t i = 0; i < size; i++) {
@@ -385,14 +385,160 @@ namespace Kratos {
                 KRATOS_CHECK_NEAR(element.GetValue(DISTANCE), -1.00, 1e-6);
             }
 		}
+	}
 
-		//GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		//gid_io_fluid.InitializeMesh(0.00);
-		//gid_io_fluid.WriteMesh(volume_part.GetMesh());
-		//gid_io_fluid.FinalizeMesh();
-		//gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
-		//gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
-		//gid_io_fluid.FinalizeResults();
+
+	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessCubeCenterOfElementsColoring, KratosCoreFastSuite)
+	{
+		Parameters mesher_parameters(R"(
+		{
+			"number_of_divisions":   [10,10,10],
+			"element_name":     "Element3D4N",
+			"entities_to_generate": "center_of_elements",
+			"coloring_settings_list": [
+				{
+					"model_part_name": "SkinPart",
+					"inside_color": -1,
+					"outside_color": 1,
+					"apply_outside_color": true,
+					"coloring_entities": "center_of_elements"
+				}
+			]
+		})");
+
+        Model current_model;
+		ModelPart &volume_part = current_model.CreateModelPart("Volume");
+		volume_part.AddNodalSolutionStepVariable(DISTANCE);
+
+		// Generate the skin
+		ModelPart &skin_model_part = current_model.CreateModelPart("Skin");
+        ModelPart &skin_part = skin_model_part.CreateSubModelPart("SkinPart");
+
+		skin_part.AddNodalSolutionStepVariable(VELOCITY);
+		skin_part.CreateNewNode(901, 2.0, 2.0, 2.0);
+		skin_part.CreateNewNode(902, 5.9, 2.0, 2.0);
+		skin_part.CreateNewNode(903, 5.9, 5.9, 2.0);
+		skin_part.CreateNewNode(904, 2.0, 5.9, 2.0);
+		skin_part.CreateNewNode(905, 2.0, 2.0, 7.0);
+		skin_part.CreateNewNode(906, 5.9, 2.0, 7.0);
+		skin_part.CreateNewNode(907, 5.9, 5.9, 7.0);
+		skin_part.CreateNewNode(908, 2.0, 5.9, 7.0);
+		Properties::Pointer p_properties(new Properties(0));
+		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 902, { 901,904,903 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 903, { 901,902,906 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 904, { 901,905,906 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 905, { 902,903,907 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 906, { 902,907,906 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 907, { 903,904,908 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 908, { 903,907,908 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 909, { 904,901,905 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 910, { 904,905,908 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 911, { 905,906,907 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 912, { 905,908,907 }, p_properties);
+
+		// Generating the mesh
+		VoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+
+		auto i_node = volume_part.NodesBegin();
+		for (std::size_t k = 0; k <= 4; k++) {
+			for (std::size_t j = 0; j <= 4; j++) {
+				for (std::size_t i = 0; i <= 4; i++) {
+					auto& node = *i_node++;
+					if((node.X() > 2.00) && (node.X() < 6.00) && (node.Y() > 2.00) && (node.Y() < 6.00) && (node.Z() > 2.00) && (node.Z() < 7.00)){
+               			KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+					}
+					else{
+               			KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+					}
+				}
+            }
+		}
+
+	}
+
+	KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorProcessCubeCoarseMesh, KratosCoreFastSuite)
+	{
+		Parameters mesher_parameters(R"(
+		{
+			"number_of_divisions":   [10,10,10],
+			"element_name":     "Element3D4N",
+			"mesh_type": "coarse",
+			"entities_to_generate": "center_of_elements",
+			"coloring_settings_list": [
+				{
+					"model_part_name": "SkinPart",
+					"inside_color": -1,
+					"outside_color": 1,
+					"apply_outside_color": true,
+					"coloring_entities": "center_of_elements"
+				}
+			]
+		})");
+
+        Model current_model;
+		ModelPart &volume_part = current_model.CreateModelPart("Volume");
+		volume_part.AddNodalSolutionStepVariable(DISTANCE);
+
+		// Generate the skin
+		ModelPart &skin_model_part = current_model.CreateModelPart("Skin");
+        ModelPart &skin_part = skin_model_part.CreateSubModelPart("SkinPart");
+
+		skin_part.AddNodalSolutionStepVariable(VELOCITY);
+		skin_part.CreateNewNode(901, 2.0, 2.0, 2.0);
+		skin_part.CreateNewNode(902, 5.9, 2.0, 2.0);
+		skin_part.CreateNewNode(903, 5.9, 5.9, 2.0);
+		skin_part.CreateNewNode(904, 2.0, 5.9, 2.0);
+		skin_part.CreateNewNode(905, 2.0, 2.0, 7.0);
+		skin_part.CreateNewNode(906, 5.9, 2.0, 7.0);
+		skin_part.CreateNewNode(907, 5.9, 5.9, 7.0);
+		skin_part.CreateNewNode(908, 2.0, 5.9, 7.0);
+		Properties::Pointer p_properties(new Properties(0));
+		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 902, { 901,904,903 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 903, { 901,902,906 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 904, { 901,905,906 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 905, { 902,903,907 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 906, { 902,907,906 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 907, { 903,904,908 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 908, { 903,907,908 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 909, { 904,901,905 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 910, { 904,905,908 }, p_properties);
+
+		skin_part.CreateNewElement("Element3D3N", 911, { 905,906,907 }, p_properties);
+		skin_part.CreateNewElement("Element3D3N", 912, { 905,908,907 }, p_properties);
+
+		// Generating the mesh
+		VoxelMeshGeneratorProcess(Point{0.00, 0.00, 0.00}, Point{10.00, 10.00, 10.00}, volume_part, skin_model_part, mesher_parameters).Execute();
+
+		KRATOS_CHECK_EQUAL(volume_part.NumberOfNodes(), 4*4*4);
+
+		std::array<double,4> xy{0.00, 2.00, 6.00, 10.00};
+		std::array<double,4> z{0.00, 2.00, 7.00, 10.00};
+
+		auto i_node = volume_part.NodesBegin();
+		for (std::size_t k = 0; k < 4; k++) {
+			for (std::size_t j = 0; j < 4; j++) {
+				for (std::size_t i = 0; i < 4; i++) {
+					auto& node = *i_node++;
+					auto node_x = node.X();
+					auto node_y = node.Y();
+					auto node_z = node.Z();
+                	KRATOS_CHECK_NEAR(node.X(), xy[i], 1e-6);
+                	KRATOS_CHECK_NEAR(node.Y(), xy[j], 1e-6);
+                	KRATOS_CHECK_NEAR(node.Z(), z[k], 1e-6);
+				}
+            }
+		}
 
 	}
 
