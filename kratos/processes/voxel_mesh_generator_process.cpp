@@ -242,13 +242,17 @@ namespace Kratos
 
 		KRATOS_ERROR_IF(mEntitiesToGenerate != "center_of_elements") << "The coarse mesh can be generated only when entities to generate is center_of_elements" << std::endl;
 
-		std::vector<bool> x_cell_coarse(mNumberOfDivisions[0],false);
-		std::vector<bool> y_cell_coarse(mNumberOfDivisions[1],false);
-		std::vector<bool> z_cell_coarse(mNumberOfDivisions[2],false);
+		std::vector<bool> x_cell_coarse(mNumberOfDivisions[0]+1,false);
+		std::vector<bool> y_cell_coarse(mNumberOfDivisions[1]+1,false);
+		std::vector<bool> z_cell_coarse(mNumberOfDivisions[2]+1,false);
 
 		x_cell_coarse[0]=true;
 		y_cell_coarse[0]=true;
 		z_cell_coarse[0]=true;
+
+		x_cell_coarse[mNumberOfDivisions[0]]=true;
+		y_cell_coarse[mNumberOfDivisions[1]]=true;
+		z_cell_coarse[mNumberOfDivisions[2]]=true;
 
 		for (std::size_t k = 1; k < mNumberOfDivisions[2]; k++) {
 			for (std::size_t j = 1; j < mNumberOfDivisions[1]; j++) {
@@ -264,9 +268,9 @@ namespace Kratos
 			}
 		}
 
-		std::vector<double> x_key_planes(1,mMinPoint[0]);
-		std::vector<double> y_key_planes(1,mMinPoint[1]);
-		std::vector<double> z_key_planes(1,mMinPoint[2]);
+		std::vector<double> x_key_planes;
+		std::vector<double> y_key_planes;
+		std::vector<double> z_key_planes;
 
 		for(std::size_t i = 0 ; i < mNumberOfDivisions[0]; i++){
 			if(x_cell_coarse[i])
@@ -282,23 +286,35 @@ namespace Kratos
 			if(z_cell_coarse[i])
 				z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
 		}
+		x_key_planes.push_back(mMaxPoint[0]);
+		y_key_planes.push_back(mMaxPoint[1]);
+		z_key_planes.push_back(mMaxPoint[2]);
 		
 		std::size_t node_id = mStartNodeId;
-		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
-			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
-				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+		for (std::size_t k = 0; k < mNumberOfDivisions[2] + 1; k++) {
+			for (std::size_t j = 0; j < mNumberOfDivisions[1] + 1; j++) {
+				for (std::size_t i = 0; i < mNumberOfDivisions[0] + 1; i++) {
 					if(x_cell_coarse[i]&y_cell_coarse[j]&z_cell_coarse[k]){
-						Point global_coordinates = mColors.GetCenterOfElement(i,j,k);
+						Point global_coordinates = mColors.GetPoint(i,j,k);
 						auto p_node = mrVolumePart.CreateNewNode(node_id++, global_coordinates[0],
                                                                    global_coordinates[1],
                                                                    global_coordinates[2]);
-						if(mHasColor){
-							p_node->GetSolutionStepValue(DISTANCE) = mColors.GetElementalColor(i,j,k);
+						if(mHasColor ){
+							if((i == mNumberOfDivisions[0]) || (j == mNumberOfDivisions[1]) || (k == mNumberOfDivisions[2])){
+								auto ii = (i== mNumberOfDivisions[0]) ? i - 1 : i;
+								auto jj = (j== mNumberOfDivisions[1]) ? j - 1 : j;
+								auto kk = (k== mNumberOfDivisions[2]) ? k - 1 : k;
+								p_node->GetSolutionStepValue(DISTANCE) = mColors.GetElementalColor(ii,jj,kk);
+							}
+							else {
+								p_node->GetSolutionStepValue(DISTANCE) = mColors.GetElementalColor(i,j,k);
+							}
 						}
 					}
 				}
 			}
 		}
+
 		Timer::Stop("Creating Coarse Mesh");
 			
 	}
