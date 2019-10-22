@@ -18,7 +18,7 @@
         },
         "response_function_settings" : {
                 "response_type"     : "adjoint_linear_strain_energy",
-                "use_kratos"        : true,
+                "analyzer"          : "kratos",
                 "gradient_mode"     : "semi_analytic",
                 "step_size"         : 1e-6,
                 "adapt_step_size"   : true

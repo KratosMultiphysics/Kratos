@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 import KratosMultiphysics.ConstitutiveModelsApplication as KratosModels
-KratosMultiphysics.CheckForPreviousImport()
 
 #from multiprocessing import Pool
 

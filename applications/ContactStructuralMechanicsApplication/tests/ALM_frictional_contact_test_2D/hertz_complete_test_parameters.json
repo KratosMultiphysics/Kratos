@@ -34,7 +34,7 @@
             "time_step_intervals" : {
                 "first_interval" : {
                     "interval"  : [0.0, 0.9999999],
-                    "time_step" : 1.0e-2
+                    "time_step" : 1.0e-1
                 },
                 "second_interval" : {
                     "interval"  : [1.0, "End"],
@@ -133,10 +133,7 @@
                 "model_part_name"               : "Structure",
                 "assume_master_slave"           : {"0" : ["Parts_body_upper"]},
                 "contact_model_part"            : {"0" : ["CONTACT_Contact_Part"]},
-                "contact_type"                  : "Frictional",
-                "not_normal_update_frictional"  : false,
-                "slip_convergence_coefficient"  : 1.0001,
-                "slip_augmentation_coefficient" : 0.0
+                "contact_type"                  : "Frictional"
             }
         }
         ],
@@ -149,6 +146,17 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
                 "input_file_name"      : "ALM_frictional_contact_test_2D/hertz_complete_test_results.json",
+                "model_part_name"      : "Structure.CONTACT_Contact_Part",
+                "time_frequency"       : 1.0e-1
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["VECTOR_LAGRANGE_MULTIPLIER_X","VECTOR_LAGRANGE_MULTIPLIER_Y"],
+                "input_file_name"      : "ALM_frictional_contact_test_2D/hertz_complete_test_LM_results.json",
                 "model_part_name"      : "Structure.CONTACT_Contact_Part",
                 "time_frequency"       : 1.0e-1
             }
@@ -172,8 +180,8 @@
                         "MultiFileFlag"         : "SingleFile"
                     },
                     "file_label"          : "step",
-                    "output_control_type" : "step",
-                    "output_frequency"    : 1,
+                    "output_control_type" : "time",
+                    "output_frequency"    : 1.0e-1,
                     "body_output"         : true,
                     "node_output"         : false,
                     "skin_output"         : false,
@@ -194,11 +202,11 @@
             "help"          : "This process writes postprocessing files for Paraview",
             "Parameters"    : {
                 "model_part_name"                    : "Structure.computing_domain",
-                "output_control_type"                : "step",
-                "output_frequency"                   : 1,
+                "output_control_type"                : "time",
+                "output_frequency"                   : 1.0e-1,
                 "file_format"                        : "ascii",
                 "output_precision"                   : 7,
-                "output_sub_model_parts"             : true,
+                "output_sub_model_parts"             : false,
                 "folder_name"                        : "vtk_output",
                 "save_output_files_in_folder"        : true,
                 "nodal_solution_step_data_variables" : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
@@ -208,7 +216,7 @@
                 "element_flags"                      : [],
                 "condition_data_value_variables"     : [],
                 "condition_flags"                    : [],
-                "gauss_point_variables"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+                "gauss_point_variables_extrapolated_to_nodes"              : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
             }
         }]
     },
@@ -221,6 +229,17 @@
         "Parameters"            : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictional_contact_test_2D/hertz_complete_test_results.json",
+            "model_part_name"      : "Structure.CONTACT_Contact_Part",
+            "time_frequency"       : 1.0e-1
+        }
+    },{
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"      : ["VECTOR_LAGRANGE_MULTIPLIER_X","VECTOR_LAGRANGE_MULTIPLIER_Y"],
+            "input_file_name"      : "ALM_frictional_contact_test_2D/hertz_complete_test_LM_results.json",
             "model_part_name"      : "Structure.CONTACT_Contact_Part",
             "time_frequency"       : 1.0e-1
         }
@@ -238,6 +257,17 @@
             "model_part_name"      : "Structure.CONTACT_Contact_Part",
             "time_frequency"       : 1.0e-1
         }
+    },{
+            "python_module"   : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "JsonOutputProcess",
+            "Parameters"            : {
+                "output_variables"     : ["VECTOR_LAGRANGE_MULTIPLIER_X","VECTOR_LAGRANGE_MULTIPLIER_Y"],
+                "output_file_name"     : "ALM_frictional_contact_test_2D/hertz_complete_test_LM_results.json",
+                "model_part_name"      : "Structure.CONTACT_Contact_Part",
+                "time_frequency"       : 1.0e-1
+            }
     }
     ]
 }

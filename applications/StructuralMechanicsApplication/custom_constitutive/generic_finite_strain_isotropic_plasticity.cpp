@@ -862,7 +862,12 @@ Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
     Matrix& rValue
     )
 {
-    if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
+    if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
+        const Matrix C_plastic_tensor = prod(trans( mPlasticDeformationGradient), mPlasticDeformationGradient);
+        Vector plastic_strain(VoigtSize);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_plastic_tensor, plastic_strain);
+        rValue = MathUtils<double>::StrainVectorToTensor(plastic_strain);
+    }else if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
         // The plastic deformation gradient
         const Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
 
@@ -905,11 +910,8 @@ int GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegr
     )
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-
     const int check_integrator = TConstLawIntegratorType::Check(rMaterialProperties);
-
     KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
-
     if ((check_base + check_integrator) > 0) return 1;
 
     return 0;

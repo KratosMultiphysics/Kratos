@@ -93,9 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawKelvin, KratosStructuralMechanicsFastSu
     test_kelvin_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    for (int comp = 0; comp < 3; comp++) {
-        KRATOS_CHECK_NEAR(test_kelvin_stress[comp], kelvin_res[comp], 1.0);
-    }
+    KRATOS_CHECK_VECTOR_NEAR(test_kelvin_stress, kelvin_res, 1.0);
 }
 } // namespace Testing
 } // namespace Kratos
