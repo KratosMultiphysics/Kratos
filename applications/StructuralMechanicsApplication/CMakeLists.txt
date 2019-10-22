@@ -57,7 +57,6 @@ if(USE_COTIRE MATCHES ON)
     cotire(KratosStructuralMechanicsApplication)
 endif(USE_COTIRE MATCHES ON)
 
-
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py KratosMultiphysics/StructuralMechanicsApplication/__init__.py )
 
