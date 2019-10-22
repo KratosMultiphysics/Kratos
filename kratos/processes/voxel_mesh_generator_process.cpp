@@ -50,7 +50,8 @@ namespace Kratos
                 "condition_name": "PLEASE SPECIFY IT",
 				"coloring_settings_list": [],
 				"entities_to_generate": "elements",
-				"mesh_type": "uniform"
+				"mesh_type": "uniform",
+				"output_filename" : ""
             }  )");
 
 		TheParameters["element_name"]; // Should be given by caller! if not thorws an error
@@ -69,6 +70,7 @@ namespace Kratos
 		mElementName = TheParameters["element_name"].GetString();
 		mConditionName = TheParameters["condition_name"].GetString();
         mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
+		mOutputFilename = TheParameters["output_filename"].GetString();
         mCellSizes = mMaxPoint - mMinPoint;
 		mColoringParameters = TheParameters["coloring_settings_list"];
         for(int i = 0 ; i < 3 ; i++)
@@ -77,7 +79,23 @@ namespace Kratos
 		if(TheParameters["mesh_type"].GetString() == "coarse")
 			mCoarseMeshType=true;
 
+		mHasColor = false;
+
         Check();
+
+		array_1d<std::vector<double>, 3> coordinates;
+		for(std::size_t i = 0 ; i < 3 ; i++){
+			coordinates[i].resize(mNumberOfDivisions[i]+1);
+		}
+
+		for(std::size_t i = 0 ; i < coordinates.size() ; i++){
+			const double min_coordinate_i = mMinPoint[i];
+			for(std::size_t j = 0 ; j < coordinates[i].size() ; j++)
+				coordinates[i][j] = j*mCellSizes[i] + min_coordinate_i;
+		}
+		
+		mColors.SetCoordinates(coordinates);
+
     }
 
 	VoxelMeshGeneratorProcess::~VoxelMeshGeneratorProcess() {
@@ -85,111 +103,45 @@ namespace Kratos
 	}
 
 	void VoxelMeshGeneratorProcess::Execute() {
-		Timer::Start("GenerateCenterOfElements");
-		if(mEntitiesToGenerate == "center_of_elements")
-			GenerateCenterOfElements(mMinPoint, mMaxPoint);
-		Timer::Stop("GenerateCenterOfElements");
 
-		if(mEntitiesToGenerate == "nodes" || mEntitiesToGenerate == "elements"){
-			if (mCreateSkinSubModelPart)
-				if(!mrVolumePart.HasSubModelPart("Skin"))
-					mrVolumePart.CreateSubModelPart("Skin");
-
-			GenerateNodes3D(mMinPoint, mMaxPoint);
-		}
-
-		if(mEntitiesToGenerate == "elements")
-        	Generate3DMesh();
-
-		auto number_of_divisions = mNumberOfDivisions;
-		auto min_point = mMinPoint;
-		auto max_point = mMaxPoint;
-
-
-		// if(mEntitiesToGenerate == "center_of_elements")
-		// 	for(std::size_t i = 0 ; i < 3 ; i++){
-		// 		number_of_divisions[i] -= 1;
-		// 		min_point[i] += 0.5 * mCellSizes[i];
-		// 		max_point[i] -= 0.5 * mCellSizes[i];
-		// 	}
-			
 		Timer::Start("Voxel Mesh Coloring");
-		for(auto item : mColoringParameters){
-			if(mEntitiesToGenerate != "elements")
-				KRATOS_ERROR_IF(item["coloring_entities"].GetString() == "elements") << "The coloring entities is set to element but there are no elements generated."
-																					 << " Please set the entities_to_generate to 'elements' or set coloring entities to 'nodes'" << std::endl;
-			std::string model_part_name = item["model_part_name"].GetString();
-			if(model_part_name == mrSkinPart.Name())
-				VoxelMeshColoringProcess(mColors, number_of_divisions, mrVolumePart, mrSkinPart, item).Execute();
-			else {
-				ModelPart& skin_part = mrSkinPart.GetSubModelPart(model_part_name);
-				VoxelMeshColoringProcess(mColors, number_of_divisions, mrVolumePart, skin_part, item).Execute();
-			}
+		for(auto parameters : mColoringParameters){
+
+			mHasColor=true;
+
+
+			Parameters default_parameters(R"(
+				{
+					"model_part_name": "PLEASE SPECIFY IT",
+					"inside_color": -1,
+					"outside_color": 1,
+					"apply_outside_color": true,
+					"coloring_entities" : "nodes"
+				}  )");
+
+			parameters.ValidateAndAssignDefaults(default_parameters);
+			
+			std::string model_part_name = parameters["model_part_name"].GetString();
+			ModelPart& skin_part = (model_part_name == mrSkinPart.Name()) ? mrSkinPart : mrSkinPart.GetSubModelPart(model_part_name);
+
+			ApplyColoring(skin_part, parameters);
 		}
 		Timer::Stop("Voxel Mesh Coloring");
 
+		if(mOutputFilename != "")			
+			mColors.WriteParaViewVTR(mOutputFilename);
+
 		if(mCoarseMeshType){
-			Timer::Start("Creating Coarse Mesh");
-
-			KRATOS_ERROR_IF(mEntitiesToGenerate != "center_of_elements") << "The coarse mesh can be generated only when entities to generate is center_of_elements" << std::endl;
-
-			std::vector<bool> x_cell_coarse(mNumberOfDivisions[0],false);
-			std::vector<bool> y_cell_coarse(mNumberOfDivisions[1],false);
-			std::vector<bool> z_cell_coarse(mNumberOfDivisions[2],false);
-
-			x_cell_coarse[0]=true;
-			y_cell_coarse[0]=true;
-			z_cell_coarse[0]=true;
-
-			for (std::size_t k = 1; k < mNumberOfDivisions[2]; k++) {
-				for (std::size_t j = 1; j < mNumberOfDivisions[1]; j++) {
-					for (std::size_t i = 1; i < mNumberOfDivisions[0]; i++) {
-						double distance = GetCenterNode(i,j,k).GetSolutionStepValue(DISTANCE);
-						if(distance != GetCenterNode(i-1,j,k).GetSolutionStepValue(DISTANCE))
-							x_cell_coarse[i]=true;
-						if(distance != GetCenterNode(i,j-1,k).GetSolutionStepValue(DISTANCE))
-							y_cell_coarse[j]=true;
-						if(distance != GetCenterNode(i,j,k-1).GetSolutionStepValue(DISTANCE))
-							z_cell_coarse[k]=true;
-					}
-				}
-			}
-
-			std::vector<double> x_key_planes(1,mMinPoint[0]);
-			std::vector<double> y_key_planes(1,mMinPoint[1]);
-			std::vector<double> z_key_planes(1,mMinPoint[2]);
-
-			for(std::size_t i = 0 ; i < mNumberOfDivisions[0]; i++){
-				if(x_cell_coarse[i])
-					x_key_planes.push_back(i*mCellSizes[0]+mMinPoint[0]);
-			}
-
-			for(std::size_t i = 0 ; i < mNumberOfDivisions[1]; i++){
-				if(y_cell_coarse[i])
-					y_key_planes.push_back(i*mCellSizes[1]+mMinPoint[1]);
-			}
-
-			for(std::size_t i = 0 ; i < mNumberOfDivisions[2]; i++){
-				if(z_cell_coarse[i])
-					z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
-			}
-			
-			for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
-				for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
-					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
-						if(x_cell_coarse[i]&y_cell_coarse[j]&z_cell_coarse[k]){
-							GetCenterNode(i,j,k).Set(NOT_TO_ERASE);
-						}
-						else {
-							GetCenterNode(i,j,k).Set(TO_ERASE);						}
-					}
-				}
-			}
-			mrVolumePart.RemoveNodes();
-			Timer::Stop("Creating Coarse Mesh");
-			
+			Generate3DCoarseMesh();
 		}
+		else{
+			if(mEntitiesToGenerate == "center_of_elements")
+				GenerateCenterOfElements();
+			else if(mEntitiesToGenerate == "nodes" || mEntitiesToGenerate == "elements"){
+				Generate3DMesh();
+			}
 
+		}
 	}
 
 	std::string VoxelMeshGeneratorProcess::Info() const {
@@ -204,116 +156,215 @@ namespace Kratos
 
 	}
 
+	void VoxelMeshGeneratorProcess::ApplyColoring(ModelPart const& TheSkinModelPart, Parameters parameters) {
+
+		std::string coloring_entities = parameters["coloring_entities"].GetString();
+
+		if(mEntitiesToGenerate != "elements")
+			KRATOS_ERROR_IF(coloring_entities == "elements") << "The coloring entities is set to element but there are no elements generated. "
+															 << "Please set the entities_to_generate to 'elements' or set coloring entities to 'nodes'" << std::endl;
+
+		double inside_color = parameters["inside_color"].GetDouble();
+		double outside_color = parameters["outside_color"].GetDouble();
+		bool apply_outside_color = parameters["apply_outside_color"].GetBool();
+
+		if(apply_outside_color)
+			mColors.SetAllColors(outside_color);
+		
+		array_1d< std::size_t, 3 > min_ray_position;
+		array_1d< std::size_t, 3 > max_ray_position;
+		if(coloring_entities == "center_of_elements"){
+			mColors.CalculateMinMaxCenterOfElementPositions(TheSkinModelPart.Nodes(), min_ray_position, max_ray_position);
+		}
+		else{
+			mColors.CalculateMinMaxNodePositions(TheSkinModelPart.Nodes(), min_ray_position, max_ray_position);
+		}
+
+		mColors.InitializeRays(min_ray_position, max_ray_position, coloring_entities);
+	
+		for(auto& element : TheSkinModelPart.Elements())
+		{
+			Element::GeometryType& r_geometry = element.GetGeometry();
+			mColors.AddGeometry(r_geometry);
+		}
+
+		if(coloring_entities == "nodes"){
+			mColors.CalculateNodalRayColors(min_ray_position, max_ray_position, inside_color, outside_color);
+		}
+		else if(coloring_entities == "center_of_elements") {
+			mColors.CalculateElementalRayColors(min_ray_position, max_ray_position, inside_color, outside_color);
+		}
+	}
+
 	void VoxelMeshGeneratorProcess::Generate3DMesh() {
         if(!mrVolumePart.HasProperties(mElementPropertiesId))
             mrVolumePart.CreateNewProperties(mElementPropertiesId);
 
-        Properties::Pointer p_properties = mrVolumePart.pGetProperties(mElementPropertiesId);
+		if (mCreateSkinSubModelPart) {
+			if(!mrVolumePart.HasSubModelPart("Skin")) {
+				mrVolumePart.CreateSubModelPart("Skin");
+			}
+		}
+		GenerateNodes3D();
 
-        std::size_t cell_index = 0;
-		Geometry<Node<3>>::PointsArrayType points(8);
+		if(mEntitiesToGenerate == "elements") {
 
-		for (std::size_t K = 0; K < mNumberOfDivisions[2]; K++) {
-			for (std::size_t J = 0; J < mNumberOfDivisions[1]; J++) {
-				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
-					//Hexahedra3D8<Node<3>> hexahedra(pGetNode(i, J, K), pGetNode(i, J+1, K), pGetNode(i+1, J+1, K), pGetNode(i+1, J, K), pGetNode(i, J, K+1), pGetNode(i, J+1, K+1), pGetNode(i+1, J+1, K+1), pGetNode(i+1, J, K+1));
-					points(0) = pGetNode(i, J, K);
-					points(1) = pGetNode(i, J+1, K);
-					points(2) = pGetNode(i+1, J+1, K);
-					points(3) = pGetNode(i+1, J, K);
-					points(4) = pGetNode(i, J, K+1);
-					points(5) = pGetNode(i, J+1, K+1);
-					points(6) = pGetNode(i+1, J+1, K+1);
-					points(7) = pGetNode(i+1, J, K+1);
-					mrVolumePart.CreateNewElement("Element3D8N", mStartElementId + cell_index, points, p_properties);
-					cell_index++;
+			Properties::Pointer p_properties = mrVolumePart.pGetProperties(mElementPropertiesId);
+
+			std::size_t cell_index = 0;
+			Geometry<Node<3>>::PointsArrayType points(8);
+
+			for (std::size_t K = 0; K < mNumberOfDivisions[2]; K++) {
+				for (std::size_t J = 0; J < mNumberOfDivisions[1]; J++) {
+					for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+						//Hexahedra3D8<Node<3>> hexahedra(pGetNode(i, J, K), pGetNode(i, J+1, K), pGetNode(i+1, J+1, K), pGetNode(i+1, J, K), pGetNode(i, J, K+1), pGetNode(i, J+1, K+1), pGetNode(i+1, J+1, K+1), pGetNode(i+1, J, K+1));
+						points(0) = pGetNode(i, J, K);
+						points(1) = pGetNode(i, J+1, K);
+						points(2) = pGetNode(i+1, J+1, K);
+						points(3) = pGetNode(i+1, J, K);
+						points(4) = pGetNode(i, J, K+1);
+						points(5) = pGetNode(i, J+1, K+1);
+						points(6) = pGetNode(i+1, J+1, K+1);
+						points(7) = pGetNode(i+1, J, K+1);
+						auto p_element = mrVolumePart.CreateNewElement("Element3D8N", mStartElementId + cell_index, points, p_properties);
+						cell_index++;
+						if(mHasColor){
+							p_element->GetValue(DISTANCE) = mColors.GetElementalColor(i,J,K);
+						}
+					}
 				}
 			}
 		}
 	}
 
-	void VoxelMeshGeneratorProcess::GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint) {
+	void VoxelMeshGeneratorProcess::Generate3DCoarseMesh(){
+		Timer::Start("Creating Coarse Mesh");
+
+		KRATOS_ERROR_IF(mEntitiesToGenerate != "center_of_elements") << "The coarse mesh can be generated only when entities to generate is center_of_elements" << std::endl;
+
+		std::vector<bool> x_cell_coarse(mNumberOfDivisions[0],false);
+		std::vector<bool> y_cell_coarse(mNumberOfDivisions[1],false);
+		std::vector<bool> z_cell_coarse(mNumberOfDivisions[2],false);
+
+		x_cell_coarse[0]=true;
+		y_cell_coarse[0]=true;
+		z_cell_coarse[0]=true;
+
+		for (std::size_t k = 1; k < mNumberOfDivisions[2]; k++) {
+			for (std::size_t j = 1; j < mNumberOfDivisions[1]; j++) {
+				for (std::size_t i = 1; i < mNumberOfDivisions[0]; i++) {
+					double color = mColors.GetElementalColor(i,j,k);
+					if(color != mColors.GetElementalColor(i-1,j,k))
+						x_cell_coarse[i]=true;
+					if(color != mColors.GetElementalColor(i,j-1,k))
+						y_cell_coarse[j]=true;
+					if(color != mColors.GetElementalColor(i,j,k-1))
+						z_cell_coarse[k]=true;
+				}
+			}
+		}
+
+		std::vector<double> x_key_planes(1,mMinPoint[0]);
+		std::vector<double> y_key_planes(1,mMinPoint[1]);
+		std::vector<double> z_key_planes(1,mMinPoint[2]);
+
+		for(std::size_t i = 0 ; i < mNumberOfDivisions[0]; i++){
+			if(x_cell_coarse[i])
+				x_key_planes.push_back(i*mCellSizes[0]+mMinPoint[0]);
+		}
+
+		for(std::size_t i = 0 ; i < mNumberOfDivisions[1]; i++){
+			if(y_cell_coarse[i])
+				y_key_planes.push_back(i*mCellSizes[1]+mMinPoint[1]);
+		}
+
+		for(std::size_t i = 0 ; i < mNumberOfDivisions[2]; i++){
+			if(z_cell_coarse[i])
+				z_key_planes.push_back(i*mCellSizes[2]+mMinPoint[2]);
+		}
+		
+		std::size_t node_id = mStartNodeId;
+		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
+			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
+				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
+					if(x_cell_coarse[i]&y_cell_coarse[j]&z_cell_coarse[k]){
+						Point global_coordinates = mColors.GetCenterOfElement(i,j,k);
+						auto p_node = mrVolumePart.CreateNewNode(node_id++, global_coordinates[0],
+                                                                   global_coordinates[1],
+                                                                   global_coordinates[2]);
+						if(mHasColor){
+							p_node->GetSolutionStepValue(DISTANCE) = mColors.GetElementalColor(i,j,k);
+						}
+					}
+				}
+			}
+		}
+		Timer::Stop("Creating Coarse Mesh");
+			
+	}
+
+	void VoxelMeshGeneratorProcess::GenerateNodes3D() {
 		GeometryType::CoordinatesArrayType local_element_size = mCellSizes;
-		Point local_coordinates = rMinPoint;
+		Point local_coordinates = mMinPoint;
 		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 		ModelPart* p_skin_part = nullptr;
 		if (mCreateSkinSubModelPart)
 			p_skin_part = &(mrVolumePart.GetSubModelPart("Skin"));
 
-		for (std::size_t k = 0; k <= mNumberOfDivisions[2]; k++) {
-			for (std::size_t j = 0; j <= mNumberOfDivisions[1]; j++) {
-				for (std::size_t i = 0; i <= mNumberOfDivisions[0]; i++) {
-					global_coordinates[0] = rMinPoint[0] + (i * local_element_size[0]);
-					global_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
-					global_coordinates[2] = rMinPoint[2] + (k * local_element_size[2]);
+		for (std::size_t k = 0; k < mNumberOfDivisions[2] + 1; k++) {
+			for (std::size_t j = 0; j < mNumberOfDivisions[1] + 1; j++) {
+				for (std::size_t i = 0; i < mNumberOfDivisions[0] + 1; i++) {
+					Point global_coordinates = mColors.GetPoint(i,j,k);
 					if (mCreateSkinSubModelPart && (
                         (i == 0) || (i == mNumberOfDivisions[0]) || (j == 0) ||
-                        (j == mNumberOfDivisions[1]) || (k == 0) || (k == mNumberOfDivisions[2])))  // Is on skin
-						p_skin_part->CreateNewNode(node_id++, global_coordinates[0],
+                        (j == mNumberOfDivisions[1]) || (k == 0) || (k == mNumberOfDivisions[2]))) { // Is on skin
+						auto p_node = p_skin_part->CreateNewNode(node_id++, global_coordinates[0],
                                                                                            global_coordinates[1],
                                                                                            global_coordinates[2]);
-					else
-						mrVolumePart.CreateNewNode(node_id++, global_coordinates[0],
+						if(mHasColor){
+							p_node->GetSolutionStepValue(DISTANCE) = mColors.GetNodalColor(i,j,k);
+						}
+					}
+					else {
+						auto p_node = mrVolumePart.CreateNewNode(node_id++, global_coordinates[0],
                                                                    global_coordinates[1],
                                                                    global_coordinates[2]);
+						if(mHasColor){
+							p_node->GetSolutionStepValue(DISTANCE) = mColors.GetNodalColor(i,j,k);
+						}
+					}
 				}
 			}
 		}
 
-		array_1d<DenseVector<double>, 3> coordinates;
-		for(std::size_t i = 0 ; i < 3 ; i++){
-			coordinates[i].resize(mNumberOfDivisions[i]+1);
-		}
-
-		for(std::size_t i = 0 ; i < coordinates.size() ; i++){
-			const double min_coordinate_i = mMinPoint[i];
-			for(std::size_t j = 0 ; j < coordinates[i].size() ; j++)
-				coordinates[i][j] = j*mCellSizes[i] + min_coordinate_i;
-		}
-		
-		mColors.SetCoordinates(coordinates);
 	}
 
-	void VoxelMeshGeneratorProcess::GenerateCenterOfElements(Point const& rMinPoint, Point const& rMaxPoint) {
+	void VoxelMeshGeneratorProcess::GenerateCenterOfElements() {
 		GeometryType::CoordinatesArrayType local_element_size = mCellSizes;
-		Point local_coordinates = rMinPoint;
+		Point local_coordinates = mMinPoint;
 		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t k = 0; k < mNumberOfDivisions[2]; k++) {
 			for (std::size_t j = 0; j < mNumberOfDivisions[1]; j++) {
 				for (std::size_t i = 0; i < mNumberOfDivisions[0]; i++) {
-					global_coordinates[0] = rMinPoint[0] + ((i + 0.5) * local_element_size[0]);
-					global_coordinates[1] = rMinPoint[1] + ((j + 0.5) * local_element_size[1]);
-					global_coordinates[2] = rMinPoint[2] + ((k + 0.5) * local_element_size[2]);
-					mrVolumePart.CreateNewNode(node_id++, global_coordinates[0],
+					Point global_coordinates = mColors.GetCenterOfElement(i,j,k);
+					auto p_node = mrVolumePart.CreateNewNode(node_id++, global_coordinates[0],
                                                           global_coordinates[1],
                                                           global_coordinates[2]);
+					if(mHasColor){
+						p_node->GetSolutionStepValue(DISTANCE) = mColors.GetElementalColor(i,j,k);
+					}
 				}
 			}
 		}
 
-		array_1d<DenseVector<double>, 3> coordinates;
-		for(std::size_t i = 0 ; i < 3 ; i++){
-			coordinates[i].resize(mNumberOfDivisions[i]);
-		}
-
-		for(std::size_t i = 0 ; i < coordinates.size() ; i++){
-			const double min_coordinate_i = mMinPoint[i];
-			for(std::size_t j = 0 ; j < coordinates[i].size() ; j++)
-				coordinates[i][j] = (j + 0.5) * mCellSizes[i] + min_coordinate_i;
-		}
-		
-		mColors.SetCoordinates(coordinates);
+		Timer::Stop("GenerateCenterOfElements");
 	}
 
 	Node<3>::Pointer VoxelMeshGeneratorProcess::pGetNode(std::size_t I, std::size_t J, std::size_t K) {
 		return *(mrVolumePart.NodesBegin() + (K * (mNumberOfDivisions[1] + 1) * (mNumberOfDivisions[0] + 1)) + (J * (mNumberOfDivisions[0] + 1)) + I).base();
-	}
-
-	Node<3>& VoxelMeshGeneratorProcess::GetCenterNode(std::size_t I, std::size_t J, std::size_t K) {
-		return *(mrVolumePart.NodesBegin() + (K * mNumberOfDivisions[1] * mNumberOfDivisions[0]) + (J * mNumberOfDivisions[0]) + I);
 	}
 
     int VoxelMeshGeneratorProcess::Check()

@@ -148,6 +148,7 @@ namespace Kratos
 		  std::string mElementName;
 		  std::string mConditionName;
           bool mCreateSkinSubModelPart;
+      std::string mOutputFilename;
 		  ModelPart& mrVolumePart;
 		  ModelPart& mrSkinPart;
           std::vector<bool> mCellIsEmpty;
@@ -157,20 +158,24 @@ namespace Kratos
           Parameters mColoringParameters;
           std::string mEntitiesToGenerate;
           bool mCoarseMeshType;
+          bool mHasColor;
 
 
       ///@}
       ///@name Private Operations
       ///@{
 
+          void ApplyColoring(ModelPart const& TheSkinModelPart, Parameters parameters);
+
           void Generate3DMesh();
 
-          void GenerateNodes3D(Point const& rMinPoint, Point const& rMaxPoint);
+          void Generate3DCoarseMesh();
 
-          void GenerateCenterOfElements(Point const& rMinPoint, Point const& rMaxPoint);
+          void GenerateNodes3D();
+
+          void GenerateCenterOfElements();
 
           Node<3>::Pointer pGetNode(std::size_t I, std::size_t J, std::size_t K);
-          Node<3>& GetCenterNode(std::size_t I, std::size_t J, std::size_t K);
             ///@}
       ///@name Private  Access
       ///@{
