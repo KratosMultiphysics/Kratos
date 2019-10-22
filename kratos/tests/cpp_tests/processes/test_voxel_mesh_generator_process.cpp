@@ -25,7 +25,7 @@ namespace Kratos {
   namespace Testing {
 
 
-	KRATOS_TEST_CASE_IN_SUITE(XCartesianRayplaneIntersection, KratosCoreFastSuite)
+	KRATOS_TEST_CASE_IN_SUITE(XCartesianRayPlaneIntersection, KratosCoreFastSuite)
 	{
 		Point::Pointer p_point_1=Kratos::make_shared<Point>(.4, 0.00, 0.00);
 		Point::Pointer p_point_2=Kratos::make_shared<Point>(.4, 1.00, 0.00);
@@ -38,6 +38,54 @@ namespace Kratos {
 		Kratos::Internals::CartesianRay<Geometry<Point>> ray_1(0, Point(0.00, 0.50, 0.50), Point(1.00, 0.50, 0.50));
 		Kratos::Internals::CartesianRay<Geometry<Point>> ray_2(0, Point(0.00, 0.00, 0.00), Point(1.00, 0.00, 0.00));
 		Kratos::Internals::CartesianRay<Geometry<Point>> ray_3(0, Point(0.00, 0.20, 0.70), Point(1.00, 0.20, 0.70));
+
+		ray_1.AddIntersection(triangle_1, 1e-9);
+		ray_2.AddIntersection(triangle_1, 1e-9);
+		ray_3.AddIntersection(triangle_1, 1e-9);
+
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections().size(), 1);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections().size(), 1);
+		KRATOS_CHECK_EQUAL(ray_3.GetIntersections().size(), 0);
+
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections()[0].first, .4);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections()[0].first, .4);
+
+		ray_1.AddIntersection(triangle_2, 1e-9);
+		ray_2.AddIntersection(triangle_2, 1e-9);
+		ray_3.AddIntersection(triangle_2, 1e-9);
+
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections().size(), 2);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections().size(), 2);
+		KRATOS_CHECK_EQUAL(ray_3.GetIntersections().size(), 1);
+
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections()[1].first, .4);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections()[1].first, .4);
+		KRATOS_CHECK_EQUAL(ray_3.GetIntersections()[0].first, .4);
+
+		ray_1.CollapseIntersectionPoints(1e-6);
+		ray_2.CollapseIntersectionPoints(1e-6);
+
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections().size(), 1);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections().size(), 0);
+		
+		KRATOS_CHECK_EQUAL(ray_1.GetIntersections()[0].first, .4);
+		KRATOS_CHECK_EQUAL(ray_2.GetIntersections()[0].first, .4);
+	}
+
+
+	KRATOS_TEST_CASE_IN_SUITE(XCartesianRayLongPlaneIntersection, KratosCoreFastSuite)
+	{
+		Point::Pointer p_point_1=Kratos::make_shared<Point>(.4, 0.00, 0.00);
+		Point::Pointer p_point_2=Kratos::make_shared<Point>(.4, 1.00, 0.00);
+		Point::Pointer p_point_3=Kratos::make_shared<Point>(.4, 1.00, 1000.00);
+		Point::Pointer p_point_4=Kratos::make_shared<Point>(.4, 0.00, 1000.00);
+
+		Triangle3D3<Point> triangle_1(p_point_1, p_point_2, p_point_3);
+		Triangle3D3<Point> triangle_2(p_point_1, p_point_3, p_point_4);
+
+		Kratos::Internals::CartesianRay<Geometry<Point>> ray_1(0, Point(0.00, 0.50, 500.0), Point(1.00, 0.50, 500.0));
+		Kratos::Internals::CartesianRay<Geometry<Point>> ray_2(0, Point(0.00, 0.00, 0.00), Point(1.00, 0.00, 0.00));
+		Kratos::Internals::CartesianRay<Geometry<Point>> ray_3(0, Point(0.00, 0.20, 700.0), Point(1.00, 0.20, 700.0));
 
 		ray_1.AddIntersection(triangle_1, 1e-9);
 		ray_2.AddIntersection(triangle_1, 1e-9);
@@ -132,7 +180,7 @@ namespace Kratos {
 			max_position[i] = size;
 		}
 
-		mesh_colors.InitializeRays(min_position, max_position);
+		mesh_colors.InitializeRays(min_position, max_position, "nodes");
 
 		for (std::size_t i = 0; i < size; i++) {
 			for (std::size_t j = 0; j < size; j++) {
@@ -149,6 +197,70 @@ namespace Kratos {
 				KRATOS_CHECK_NEAR(point.X(), x, 1e-6);
 				KRATOS_CHECK_NEAR(point.Y(), y, 1e-6);
 				KRATOS_CHECK_NEAR(point.Z(), z, 1e-6);
+           }
+		}
+	}
+
+	KRATOS_TEST_CASE_IN_SUITE(CartesianMeshColorsAddGeometry, KratosCoreFastSuite)
+	{
+
+        Model current_model;
+
+		// Generate the skin
+		ModelPart &skin_model_part = current_model.CreateModelPart("Skin");
+
+		std::size_t size = 5;
+		double cube_size = static_cast<double>(size - 1);
+
+		skin_model_part.AddNodalSolutionStepVariable(VELOCITY);
+		skin_model_part.CreateNewNode(901, 0.0, 0.0, 0.0);
+		skin_model_part.CreateNewNode(902, cube_size, 0.0, 0.0);
+		skin_model_part.CreateNewNode(903, cube_size, cube_size, 0.0);
+		skin_model_part.CreateNewNode(904, 0.0, 0.0, cube_size);
+		Properties::Pointer p_properties(new Properties(0));
+		skin_model_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+		skin_model_part.CreateNewElement("Element3D3N", 902, { 901,904,903 }, p_properties);
+		skin_model_part.CreateNewElement("Element3D3N", 903, { 902,903,904 }, p_properties);
+		skin_model_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
+		Kratos::Internals::CartesianMeshColors mesh_colors;
+		
+		array_1d<std::vector<double>, 3> coordinates;
+		for(std::size_t i = 0 ; i < 3 ; i++){
+			coordinates[i].resize(size);
+		}
+
+		for(std::size_t i = 0 ; i <  3 ; i++){
+			for(std::size_t j = 0 ; j < size ; j++)
+				coordinates[i][j] = static_cast<double>(j);
+		}
+		
+		mesh_colors.SetCoordinates(coordinates);
+
+		array_1d<std::size_t, 3> min_position;
+		array_1d<std::size_t, 3> max_position;
+
+		for(std::size_t i = 0 ; i < 3 ; i++){
+			min_position[i] = 0;
+			max_position[i] = size;
+		}
+
+		mesh_colors.InitializeRays(min_position, max_position, "nodes");
+
+        for(auto& element : skin_model_part.Elements())
+        {
+            Element::GeometryType& r_geometry = element.GetGeometry();
+			mesh_colors.AddGeometry(r_geometry);
+        }
+
+		for (std::size_t i = 0; i < size; i++) {
+			for (std::size_t j = 0; j < size; j++) {
+				auto& ray = mesh_colors.GetXYRay(i,j);
+				if(i>=j){
+					KRATOS_CHECK_EQUAL(ray.GetIntersections().size(), 2);
+				}
+				else {
+					KRATOS_CHECK_EQUAL(ray.GetIntersections().size(), 0);
+				}
            }
 		}
 	}
@@ -227,7 +339,7 @@ namespace Kratos {
 	{
 		Parameters mesher_parameters(R"(
 		{
-			"number_of_divisions":   [3,3,3],
+			"number_of_divisions":   [10,10,10],
 			"element_name":     "Element3D4N",
 			"coloring_settings_list": [
 				{
@@ -235,16 +347,14 @@ namespace Kratos {
 					"inside_color": -1,
 					"outside_color": 1,
 					"apply_outside_color": true,
-					"coloring_entities": "elements"
+					"coloring_entities": "center_of_elements"
 				}
 			]
 		})");
 
         Model current_model;
 		ModelPart &volume_part = current_model.CreateModelPart("Volume");
-		volume_part.AddNodalSolutionStepVariable(VELOCITY);
 		volume_part.AddNodalSolutionStepVariable(DISTANCE);
-		volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 
 		// Generate the skin
 		ModelPart &skin_model_part = current_model.CreateModelPart("Skin");
