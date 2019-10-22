@@ -981,9 +981,11 @@ class DEMFEMProcedures(object):
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         dem_inlet_model_part = all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = all_model_parts.Get("RigidFacePart")
 
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     # def MoveAllMeshesUsingATable(self, model_part, time, dt):
 

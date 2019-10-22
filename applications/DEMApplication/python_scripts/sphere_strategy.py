@@ -382,9 +382,11 @@ class ExplicitStrategy(object):
     def _MoveAllMeshes(self, time, dt):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
         dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
 
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")
