@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversaApplication
+import KratosMultiphysics.ExternalSolversApplication
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
