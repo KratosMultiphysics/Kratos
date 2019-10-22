@@ -151,10 +151,17 @@ namespace Kratos
         }
     }
 
-        void AddGeometry(Element::GeometryType const& rGeometry){
+        void AddGeometry(Element::GeometryType const& rGeometry, bool IsNodal){
                 array_1d< std::size_t, 3 > min_position;
                 array_1d< std::size_t, 3 > max_position;
-                CalculateMinMaxNodePositions(rGeometry, min_position, max_position);
+                if(IsNodal) {
+                    CalculateMinMaxNodePositions(rGeometry, min_position, max_position);
+                }
+                else
+                {
+                    CalculateMinMaxCenterOfElementPositions(rGeometry, min_position, max_position);
+                }
+                
                 for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
                     for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
                         mXYRays(i,j).AddIntersection(rGeometry, mTolerance);
@@ -216,8 +223,8 @@ namespace Kratos
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                         auto& ray_colors = GetNodalRayColor(i,j,k);
-                        std::size_t n_inside;
-                        std::size_t n_outside;
+                        std::size_t n_inside = 0;
+                        std::size_t n_outside = 0;
                         for(int dim = 0 ; dim < 3 ; dim++){
                             if(ray_colors[dim] == InsideColor){
                                 n_inside++;
@@ -234,11 +241,27 @@ namespace Kratos
 
         void CalculateElementalRayColors(array_1d< std::size_t, 3 > const& MinRayPosition, array_1d< std::size_t, 3 > const& MaxRayPosition, int InsideColor, int OutsideColor){
             std::vector<double> colors;
+            std::vector<double> x_coordinates(mCoordinates[0].size() - 1);
+            std::vector<double> y_coordinates(mCoordinates[1].size() - 1);
+            std::vector<double> z_coordinates(mCoordinates[2].size() - 1);
+
+            for(std::size_t i = 0 ; i < x_coordinates.size() ; i++){
+                x_coordinates[i] = (mCoordinates[0][i] +  mCoordinates[0][i+1]) * 0.5;
+            }
+
+            for(std::size_t i = 0 ; i < y_coordinates.size() ; i++){
+                y_coordinates[i] = (mCoordinates[1][i] +  mCoordinates[1][i+1]) * 0.5;
+            }
+
+            for(std::size_t i = 0 ; i < z_coordinates.size() ; i++){
+                z_coordinates[i] = (mCoordinates[2][i] +  mCoordinates[2][i+1]) * 0.5;
+            }
+
             for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     auto& ray = mXYRays(i,j);
                     ray.CollapseIntersectionPoints(mTolerance);
-                    ray.CalculateColor(mCoordinates[2], InsideColor, OutsideColor, colors, mTolerance);
+                    ray.CalculateColor(z_coordinates, InsideColor, OutsideColor, colors, mTolerance);
                     for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                         if(colors[k] == InsideColor){
                             GetElementalRayColor(i,j,k)[0] = colors[k];
@@ -251,7 +274,7 @@ namespace Kratos
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     auto& ray = mXZRays(i,k);
                     ray.CollapseIntersectionPoints(mTolerance);
-                    ray.CalculateColor(mCoordinates[1], InsideColor, OutsideColor, colors, mTolerance);
+                    ray.CalculateColor(y_coordinates, InsideColor, OutsideColor, colors, mTolerance);
                     for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                         if(colors[j] == InsideColor){
                             GetElementalRayColor(i,j,k)[1] = colors[j];
@@ -262,7 +285,7 @@ namespace Kratos
             for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                 for(std::size_t k = MinRayPosition[2] ; k < MaxRayPosition[2] ; k++){
                     mYZRays(j,k).CollapseIntersectionPoints(mTolerance);
-                    mYZRays(j,k).CalculateColor(mCoordinates[0], InsideColor, OutsideColor, colors, mTolerance);
+                    mYZRays(j,k).CalculateColor(x_coordinates, InsideColor, OutsideColor, colors, mTolerance);
                     for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                         if(colors[i] == InsideColor){
                             GetElementalRayColor(i,j,k)[2] = colors[i];
@@ -275,8 +298,8 @@ namespace Kratos
                 for(std::size_t j = MinRayPosition[1] ; j < MaxRayPosition[1] ; j++){
                     for(std::size_t i = MinRayPosition[0] ; i < MaxRayPosition[0] ; i++){
                         auto& ray_colors = GetElementalRayColor(i,j,k);
-                        std::size_t n_inside;
-                        std::size_t n_outside;
+                        std::size_t n_inside = 0;
+                        std::size_t n_outside = 0;
                         for(int dim = 0 ; dim < 3 ; dim++){
                             if(ray_colors[dim] == InsideColor){
                                 n_inside++;
@@ -396,6 +419,15 @@ namespace Kratos
                 output_file << "</DataArray> " << std::endl;
             }
             output_file << "</PointData> " << std::endl;
+            output_file << "<CellData Scalars=\"" << "Color" << "\">" << std::endl;
+            output_file << "<DataArray type=\"Float64\" Name=\"" << "RayColor" << "\" NumberOfComponents=\"1\" format=\"ascii\">" << std::endl;
+                
+            for (auto& color: mElementalColors) {
+                output_file << color << std::endl;
+            }
+                    
+            output_file << "</DataArray> " << std::endl;
+            output_file << "</CellData> " << std::endl;
 
             output_file << "</Piece>" << std::endl;
             output_file << "</RectilinearGrid>" << std::endl;

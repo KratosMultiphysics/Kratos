@@ -181,11 +181,13 @@ namespace Kratos
 		}
 
 		mColors.InitializeRays(min_ray_position, max_ray_position, coloring_entities);
+
+		bool is_nodal = (coloring_entities == "node") ? true : false;
 	
 		for(auto& element : TheSkinModelPart.Elements())
 		{
 			Element::GeometryType& r_geometry = element.GetGeometry();
-			mColors.AddGeometry(r_geometry);
+			mColors.AddGeometry(r_geometry, is_nodal);
 		}
 
 		if(coloring_entities == "nodes"){
