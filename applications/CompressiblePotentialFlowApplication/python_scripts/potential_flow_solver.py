@@ -136,6 +136,11 @@ class PotentialFlowSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_2)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_3)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_4)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_5)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_6)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_7)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_8)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LAGRANGE_MULTIPLIER_9)
 
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
@@ -154,6 +159,11 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_2, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_3, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_4, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_5, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_6, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_7, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_8, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.LAGRANGE_MULTIPLIER_9, self.main_model_part)
 
     def Initialize(self):
         self._ComputeNodalNeighbours()
