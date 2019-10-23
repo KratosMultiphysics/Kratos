@@ -1,0 +1,33 @@
+{
+    "settings": {
+        "data_structure": "pyKratos"
+    },
+    "solver_wrappers":
+    [
+        {
+            "type": "solver_wrappers.fluent.2019R1",
+            "settings": {
+                "working_directory" : "solver_wrappers/Fluent2019R1/test_tube3d/CFD",
+                "case_file": "case_tube3d.cas",
+                "dimensions": 3,
+                "unsteady": true,
+                "timestep_start": 0,
+                "thread_names": ["wall"],
+                "interface_input":
+                {
+                    "wall_nodes": "DISPLACEMENT"
+                },
+                "interface_output":
+                {
+                    "wall_faces": ["PRESSURE", "TRACTION"]
+                },
+                "cores": 4,
+                "fluent_gui": false,
+                "max_nodes_per_face": 4,
+                "hybrid_initialization": false,
+                "flow_iterations": 200,
+                "save_iterations": 1
+            }
+        }
+    ]
+}

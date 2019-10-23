@@ -1,0 +1,152 @@
+;   GENERAL SETTINGS
+file set-batch-options n n n
+file start-transcript "transcript.txt"
+(enable-dynamic-mesh-node-ids #t)
+;file binary-files n
+(define unsteady |UNSTEADY|)
+(define flow_iterations |FLOW_ITERATIONS|)
+(define timestep_start |TIMESTEP_START|)
+;
+;   FUNCTION DEFINITIONS
+(define (send_message message)
+    (system (string-append "touch " message ".msg"))
+)
+(define (wait_message message)
+    (do ((j 0 j)) ((= j 1))
+		(if
+		    (file-exists? (string-append message ".msg"))
+		    (begin
+		        (set! j 1)
+		        (system (string-append "rm " message ".msg"))
+		    )
+            (system "sleep 0.1")
+		)
+	)
+)
+(define (check_message message)
+    (if
+        (file-exists? (string-append message ".msg"))
+        (begin
+            (newline)(display (string-append "RECEIVED MESSAGE " message))(newline)
+            (system (string-append "rm " message ".msg"))
+            (= 0 0)
+        )
+        (= 0 1)
+	)
+)
+(define (print-iter-info)
+    (begin
+        (newline)
+        (display (format #f "### timestep ~a, iteration ~a ###"
+            (%rpgetvar 'udf/timestep) (%rpgetvar 'udf/iteration)) )
+        (newline)
+    )
+)
+;
+;   READ CASE/DATA, COMPILE AND LOAD UDF
+(if (= timestep_start 0)
+    (begin
+        (ti-menu-load-string "file read-case |CASE|")
+        (ti-menu-load-string "solve set expert y n y")
+        (rp-var-define 'udf/timestep 0 'int #f)
+        (rp-var-define 'udf/iteration 0 'int #f)
+        (ti-menu-load-string "define user-defined compiled-functions compile \"2019R1\" y \"2019R1.c\" \"\" \"\"")
+        (ti-menu-load-string "define user-defined compiled-functions load \"2019R1\"")
+    )
+    (ti-menu-load-string (format #f "file read-case-data \"case_timestep~a.cas\"" timestep_start))
+)
+;
+;   SAVE CASE INFO TO TEXT FILE
+report summary y "report.sum"
+(send_message "case_info_exported")
+;
+;   GET_THREAD_IDS IN UDF AND JOURNAL
+(wait_message "thread_ids_written_to_file")
+define user-defined execute-on-demand "get_thread_ids::2019R1"
+(define face_threads (list|THREAD_NAMES|))
+;
+;   SETUP DYNAMIC MESH
+(if (= timestep_start 0)
+    (begin
+        (do ((k 0 (+ k 1))) ((>= k (length face_threads)))
+            (ti-menu-load-string (format #f "define dynamic-mesh zones create ~a
+                user-defined \"move_nodes::2019R1\"" (list-ref face_threads k)))
+        )
+        (ti-menu-load-string "define dynamic-mesh controls implicit-update-parameters motion-relaxation 1")
+        (ti-menu-load-string "define dynamic-mesh controls implicit-update-parameters residual-criteria -1")
+        (if unsteady
+            (ti-menu-load-string "define dynamic-mesh controls implicit-update-parameters update-interval 1")
+        )
+    )
+)
+;
+;   STORE COORDINATES AND ID
+define user-defined execute-on-demand "store_coordinates_id::2019R1"
+(send_message "nodes_and_faces_stored")
+;
+;   INITIALIZE SOLUTION
+(if (= timestep_start 0)
+    (if |HYBRID_INITIALIZATION|
+        (ti-menu-load-string "solve initialize hyb-initialization y")
+        (ti-menu-load-string "solve initialize initialize-flow y")
+    )
+)
+;
+;   FSI LOOP
+(do ((j 0 j)) ((= j 1))
+    (system "sleep 0.1")
+    (if (check_message "save")
+        (begin
+            (ti-menu-load-string (format #f
+                "file write-case-data \"case_timestep~a.cas\"" (%rpgetvar 'udf/timestep)))
+            (send_message "save_ready")
+        )
+    )
+    (if (check_message "next")
+        (begin
+            (rpsetvar 'udf/iteration 0)
+            (rpsetvar 'udf/timestep (+ (%rpgetvar 'udf/timestep) 1))
+            (print-iter-info)
+            (send_message "next_ready")
+        )
+    )
+    (if (check_message "continue")
+        (begin
+            (rpsetvar 'udf/iteration (+ (%rpgetvar 'udf/iteration) 1))
+            (print-iter-info)
+            (if unsteady
+                (if (= (%rpgetvar 'udf/iteration) 1)
+                    (begin
+                        (ti-menu-load-string "solve dual-time-iterate 1 0")
+                        (ti-menu-load-string "disp setw 2")
+                        (ti-menu-load-string "disp mesh")
+                        (ti-menu-load-string (format #f "solve iterate ~d" flow_iterations))
+                    )
+                    (begin
+                        (ti-menu-load-string "solve dual-time-iterate 0 1")
+                        (ti-menu-load-string "solve iterate 1")
+                        (ti-menu-load-string "disp setw 2")
+                        (ti-menu-load-string "disp mesh")
+                        (ti-menu-load-string "solve dual-time-iterate 0 0")
+                        (ti-menu-load-string (format #f "solve iterate ~d" (- flow_iterations 1)))
+                    )
+                )
+                (begin
+                    (ti-menu-load-string "solve mesh-motion y")
+                    (ti-menu-load-string "disp setw 2")
+                    (ti-menu-load-string "disp mesh")
+                    (ti-menu-load-string "solve iterate flow_iterations")
+                )
+            )
+            (ti-menu-load-string "define user-defined execute-on-demand \"store_pressure_traction::2019R1\"")
+            (send_message "continue_ready")
+        )
+    )
+    (if (check_message "stop")
+        (begin
+            (set! j 1)
+            (send_message "stop_ready")
+        )
+    )
+)
+exit y
