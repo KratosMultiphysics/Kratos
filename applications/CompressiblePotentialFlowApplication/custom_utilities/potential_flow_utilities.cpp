@@ -275,6 +275,13 @@ void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const do
             }
         }
     }
+
+    const double percentage_unfulfilled = number_of_unfulfilled_wake_conditions * 100 / rWakeModelPart.NumberOfElements();
+
+    KRATOS_WARNING_IF("\nCheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
+        << " THE WAKE CONDITION IS NOT FULFILLED IN " << percentage_unfulfilled
+        << " % OF THE WAKE ELEMENTS WITH AN ABSOLUTE TOLERANCE OF " << rTolerance << std::endl;
+
     KRATOS_WARNING_IF("\nCheckIfWakeConditionsAreFulfilled", number_of_unfulfilled_wake_conditions > 0)
         << " THE WAKE CONDITION IS NOT FULFILLED IN " << number_of_unfulfilled_wake_conditions
         << " OF " << rWakeModelPart.NumberOfElements()
