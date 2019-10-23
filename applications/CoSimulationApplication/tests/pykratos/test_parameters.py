@@ -10,7 +10,7 @@ class TestPyKratosParameters(KratosUnittest.TestCase):
         parameter_file_name = "test_parameters.json"
         cs_data_structure = ImportDataStructure(parameter_file_name)
 
-        file_name = join('pykratos', 'test_parameters_class.json')
+        file_name = join('pykratos', 'test_parameters.json')
         with open(file_name, 'r') as file:
             par = cs_data_structure.Parameters(file.read())
 
