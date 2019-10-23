@@ -131,8 +131,6 @@ namespace Kratos {
         serializer.save("NodalData", p_node_to_be_saved);
         serializer.load("NodalData", p_node_to_be_loaded);
 
-        StreamSerializer serializer;
-
         KRATOS_CHECK_EQUAL(p_node_to_be_saved->Id(), p_node_to_be_loaded->Id());
         KRATOS_CHECK(p_node_to_be_loaded->IsFixed(DISTANCE));
         Dof<double>& dof = p_node_to_be_loaded->AddDof(DISTANCE);
