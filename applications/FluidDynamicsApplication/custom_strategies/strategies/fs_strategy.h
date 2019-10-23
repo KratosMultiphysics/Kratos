@@ -645,7 +645,7 @@ protected:
         if ( BaseType::GetEchoLevel() > 0 ){
             KRATOS_INFO("Fractional Step Strategy : ") << "CONVERGENCE CHECK:" << std::endl;
             KRATOS_INFO("Fractional Step Strategy : ") <<  std::scientific << std::setprecision(8)
-                                                       << "FRAC VEL.: ratio = " <<
+                                                       << "FRAC VEL.: ratio = "
                                                        << Ratio <<"; exp.ratio = " << mVelocityTolerance
                                                        << " abs = " << NormDv << std::endl;
         }
