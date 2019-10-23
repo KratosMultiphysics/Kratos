@@ -179,6 +179,7 @@ CMAKE_EXTRA=(
   -DTRILINOS_LIBRARY_PREFIX="trilinos_"
 
   -DUSE_COTIRE=ON
+  -DINSTALL_PYTHON_USING_LINKS=ON
 )
 
 ########################################################################################################################

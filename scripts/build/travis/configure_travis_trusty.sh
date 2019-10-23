@@ -176,6 +176,7 @@ CMAKE_EXTRA=(
   -DTRILINOS_ROOT="/home/youruser/compiled_libraries/trilinos-10.2.0"
 
   -DUSE_COTIRE=ON
+  -DINSTALL_PYTHON_USING_LINKS=ON
 )
 
 ########################################################################################################################
