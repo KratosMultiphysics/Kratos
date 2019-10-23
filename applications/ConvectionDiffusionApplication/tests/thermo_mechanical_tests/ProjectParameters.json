@@ -15,7 +15,7 @@
             "solver_type"                     : "Static",
             "model_part_name"                 : "Structure",
             "domain_size"                     : 2,
-            "echo_level"                      : 1,
+            "echo_level"                      : 0,
             "analysis_type"                   : "non_linear",
             "model_import_settings"           : {
                 "input_type"     : "mdpa",
@@ -49,7 +49,7 @@
                 "materials_filename" : "ConvectionDiffusionMaterials.json"
             },
             "line_search"                        : false,
-            "echo_level"                         : 1,
+            "echo_level"                         : 0,
             "compute_reactions"                  : false,
             "max_iteration"                      : 10,
             "convergence_criterion"              : "residual_criterion",
@@ -120,21 +120,33 @@
                 "constrained"     : false
             }
         }],
-		"_json_output_process" : [
-		{
-			"python_module"   : "json_output_process",
+		"json_check_process" : [{
+			"python_module"   : "from_json_check_result_process",
 			"kratos_module" : "KratosMultiphysics",
 			"help"                  : "",
-			"process_name"          : "JsonOutputProcess",
+			"process_name"          : "FromJsonCheckResultProcess",
 			"Parameters"            : {
-				"gauss_points_output_variables" : ["PLASTIC_DISSIPATION"],
-				"output_file_name"              : "thermo_mechanical_tests.json",
+			    "check_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
+				"gauss_points_check_variables" : [],
+				"input_file_name"              : "thermo_mechanical_tests_results.json",
 				"model_part_name"               : "Parts_Solid_Auto1",
 				"time_frequency"                : 1.0
 			}
-		}
-		]
+		}]
     },
+	"_json_output_process" : [{
+		"python_module"   : "json_output_process",
+		"kratos_module" : "KratosMultiphysics",
+		"help"                  : "",
+		"process_name"          : "JsonOutputProcess",
+		"Parameters"            : {
+			"output_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
+			"gauss_points_output_variables" : [],
+			"output_file_name"              : "thermo_mechanical_tests_results.json",
+			"model_part_name"               : "Parts_Solid_Auto1",
+			"time_frequency"                : 1.0
+		}
+	}],
     "output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
