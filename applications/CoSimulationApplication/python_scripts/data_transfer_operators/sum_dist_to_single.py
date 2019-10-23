@@ -26,6 +26,8 @@ class SumDistToSingle(CoSimulationDataTransferOperator):
             summed_data_array *= (-1)
         if "add_values" in transfer_options.GetStringArray():
             to_solver_data.SetData(to_solver_data.GetData() + summed_data_array)
+        if "redistribute_data" in transfer_options.GetStringArray():
+            summed_data_array /= len(to_solver_data)
         else:
             to_solver_data.SetData(summed_data_array)
 
