@@ -6,6 +6,9 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.IgaApplication as IgaApplication
 
+
+import KratosMultiphysics.DEMApplication as DEMApplication
+
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
 
@@ -66,7 +69,9 @@ class IgaSolver(PythonSolver):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
         # Add displacements.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
@@ -83,6 +88,9 @@ class IgaSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.ACCELERATION_X,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.ACCELERATION_Y,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.ACCELERATION_Z,self.main_model_part)
         if self.settings["rotation_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,self.main_model_part)

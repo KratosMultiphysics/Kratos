@@ -8,7 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Thomas Oberbichler
-//                   Tobias Teschemacher
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
@@ -17,10 +16,6 @@
 #define  KRATOS_NURBS_SURFACE_GEOMETRY_H_INCLUDED
 
 // System includes
-#include <stdexcept>
-#include <vector>
-
-#include "includes/ublas_interface.h"
 
 // External includes
 
@@ -29,20 +24,22 @@
 
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 
 
 
 namespace Kratos {
 
-template <int TWorkingSpaceDimension, class TPointType>
-class NurbsSurfaceGeometry : public Geometry<TPointType>
+template <int TWorkingSpaceDimension, class TContainerPointType>
+class NurbsSurfaceGeometry : public Geometry<typename TContainerPointType::value_type>
 {
 public:
     ///@name Type Definitions
     ///@{
+
     /// Geometry as base class.
-    typedef Geometry<TPointType> BaseType;
-    typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType> GeometryType;
+    typedef Geometry<typename TContainerPointType::value_type> BaseType;
+    typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
@@ -52,31 +49,32 @@ public:
     typedef  typename BaseType::PointsArrayType PointsArrayType;
     typedef  typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
-    /// Counted pointer of NurbsSurfaceShapeFunction
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NurbsSurfaceGeometry);
+    /// Counted pointer of NurbsSurfaceGeometry
+    KRATOS_CLASS_POINTER_DEFINITION(NurbsSurfaceGeometry);
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /* Conctructor for B-Spline surfaces. */
+    /// Conctructor for B-Spline surfaces
     NurbsSurfaceGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegreeU,
         const SizeType PolynomialDegreeV,
         const Vector& rKnotsU,
         const Vector& rKnotsV)
-        : BaseType(PointsArrayType(), &msGeometryData)
+        : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegreeU(PolynomialDegreeU)
         , mPolynomialDegreeV(PolynomialDegreeV)
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
-        , mIsRational(false)
     {
-        //KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
-        //    << "Number of knots and control points do not match!" << std::endl;
+        KRATOS_ERROR_IF(rThisPoints.size() !=
+            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
+                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
+            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
     }
 
-    /* Conctructor for NURBS surfaces. */
+    /// Conctructor for NURBS surfaces
     NurbsSurfaceGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegreeU,
@@ -84,18 +82,19 @@ public:
         const Vector& rKnotsU,
         const Vector& rKnotsV,
         const Vector& rWeights)
-        : BaseType(PointsArrayType(), &msGeometryData)
+        : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegreeU(PolynomialDegreeU)
         , mPolynomialDegreeV(PolynomialDegreeV)
         , mKnotsU(rKnotsU)
         , mKnotsV(rKnotsV)
         , mWeights(rWeights)
-        , mIsRational(false)
     {
-        KRATOS_DEBUG_ERROR_IF(rKnots.size() != NurbsUtilities::GetNumberOfKnots(PolynomialDegree, rThisPoints.size()))
-            << "Number of knots and control points do not match!" << std::endl;
+        KRATOS_ERROR_IF(rThisPoints.size() != 
+            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU, rKnotsU.size())
+                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV, rKnotsV.size())))
+            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
 
-        KRATOS_DEBUG_ERROR_IF(rWeights.size() != rThisPoints.size())
+        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
             << "Number of control points and weights do not match!" << std::endl;
     }
 
@@ -104,42 +103,106 @@ public:
     {
     }
 
-    /* Copy constructor.*/
-    NurbsSurfaceGeometry(NurbsSurfaceGeometry const& rOther)
+    /// Copy constructor.
+    NurbsSurfaceGeometry(NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> const& rOther)
         : BaseType(rOther)
+        , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
+        , mPolynomialDegreeV(rOther.mPolynomialDegreeV)
+        , mKnotsU(rOther.mKnotsU)
+        , mKnotsV(rOther.mKnotsV)
+        , mWeights(rOther.mWeights)
     {
     }
 
-    /* Copy constructor from a geometry with different point type.*/
-    template<class TOtherPointType> NurbsSurfaceGeometry(
-        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherPointType> const& rOther)
-        : BaseType(rOther)
+    /// Copy constructor from a geometry with different point type.
+    template<class TOtherContainerPointType> NurbsSurfaceGeometry(
+        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const& rOther)
+        : BaseType(rOther, &msGeometryData)
+        , mPolynomialDegreeU(rOther.mPolynomialDegreeU)
+        , mPolynomialDegreeV(rOther.mPolynomialDegreeV)
+        , mKnotsU(rOther.mKnotsU)
+        , mKnotsV(rOther.mKnotsV)
+        , mWeights(rOther.mWeights)
     {
     }
 
-    /* Destructor.*/
-    ~NurbsSurfaceGeometry() override {}
+    /// Destructor.
+    ~NurbsSurfaceGeometry() override = default;
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /**
+     * Assignment operator.
+     *
+     * @note This operator don't copy the points and this
+     * geometry shares points with given source geometry. It's
+     * obvious that any change to this geometry's point affect
+     * source geometry's points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
+    NurbsSurfaceGeometry& operator=(const NurbsSurfaceGeometry& rOther)
     {
-        return GeometryData::Kratos_generic_family;
+        BaseType::operator=(rOther);
+        mPolynomialDegreeU = rOther.mPolynomialDegreeU;
+        mPolynomialDegreeV = rOther.mPolynomialDegreeV;
+        mKnotsU = rOther.mKnotsU;
+        mKnotsV = rOther.mKnotsV;
+        mWeights = rOther.mWeights;
+        return *this;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType() const override
+    /**
+     * @brief Assignment operator for geometries with different point type.
+     *
+     * @note This operator don't copy the points and this
+     * geometry shares points with given source geometry. It's
+     * obvious that any change to this geometry's point affect
+     * source geometry's points too.
+     *
+     * @see Clone
+     * @see ClonePoints
+     */
+    template<class TOtherContainerPointType>
+    NurbsSurfaceGeometry& operator=(
+        NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
     {
-        return GeometryData::Kratos_generic_type;
+        BaseType::operator=(rOther);
+        mPolynomialDegreeU = rOther.mPolynomialDegreeU;
+        mPolynomialDegreeV = rOther.mPolynomialDegreeV;
+        mKnotsU = rOther.mKnotsU;
+        mKnotsV = rOther.mKnotsV;
+        mWeights = rOther.mWeights;
+        return *this;
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    typename BaseType::Pointer Create(
+        PointsArrayType const& ThisPoints) const override
+    {
+        return Kratos::make_shared<NurbsSurfaceGeometry>(ThisPoints);
     }
 
     ///@}
     ///@name Get and Set functions
     ///@{
 
-    /* Checks if shape functions are rational or not.
-    @return true if NURBS, false if B-Splines (all weights are considered as 1)
-    */
-    bool IsRational() const
+    /* @return returns the polynomial degree 'p' in u direction. */
+    SizeType PolynomialDegreeU() const
     {
-        return mWeights.size() != 0;
+        return mPolynomialDegreeU;
+    }
+
+    /* @return returns the polynomial degree 'p' in u direction. */
+    SizeType PolynomialDegreeV() const
+    {
+        return mPolynomialDegreeV;
     }
 
     /* Get Knot vector in u-direction. This vector is defined to have
@@ -172,6 +235,13 @@ public:
         return mKnotsV.size();
     }
 
+    /* Checks if shape functions are rational or not.
+    @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
+    bool IsRational() const
+    {
+        return mWeights.size() != 0;
+    }
+
     /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
     @return weights vector.
     */
@@ -180,22 +250,32 @@ public:
         return mWeights;
     }
 
-    /* Provides the natural boundaries of the NURBS/B-Spline curve.
+    SizeType NumberOfControlPointsU() const
+    {
+        return NumberOfKnotsU() - PolynomialDegreeU() + 1;
+    }
+
+    SizeType NumberOfControlPointsV() const
+    {
+        return NumberOfKnotsV() - PolynomialDegreeV() + 1;
+    }
+
+    /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
-    Interval DomainIntervalU() const
+    NurbsInterval DomainIntervalU() const
     {
-        return Interval(
+        return NurbsInterval(
             mKnotsU[mPolynomialDegreeU - 1],
             mKnotsU[NumberOfKnotsU() - mPolynomialDegreeU]);
     }
 
-    /* Provides the natural boundaries of the NURBS/B-Spline curve.
+    /* Provides the natural boundaries of the NURBS/B-Spline surface.
     @return domain interval.
     */
-    Interval DomainIntervalV() const
+    NurbsInterval DomainIntervalV() const
     {
-        return Interval(
+        return NurbsInterval(
             mKnotsV[mPolynomialDegreeV - 1],
             mKnotsV[NumberOfKnotsV() - mPolynomialDegreeV]);
     }
@@ -203,20 +283,20 @@ public:
     /* Provides all knot span intervals of the surface in u-direction.
     @return vector of knot span intervals.
     */
-    std::vector<Interval> KnotSpanIntervalsU() const
+    std::vector<NurbsInterval> KnotSpanIntervalsU() const
     {
         const SizeType first_span = mPolynomialDegreeU - 1;
         const SizeType last_span = NumberOfKnotsU() - mPolynomialDegreeU - 1;
 
         const SizeType number_of_spans = last_span - first_span + 1;
 
-        std::vector<Interval> result(number_of_spans);
+        std::vector<NurbsInterval> result(number_of_spans);
 
         for (int i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsU[first_span + i];
             const double t1 = mKnotsU[first_span + i + 1];
 
-            result[i] = Interval(t0, t1);
+            result[i] = NurbsInterval(t0, t1);
         }
 
         return result;
@@ -225,20 +305,20 @@ public:
     /* Provides all knot span intervals of the surface in u-direction.
     @return vector of knot span intervals.
     */
-    std::vector<Interval> KnotSpanIntervalsV() const
+    std::vector<NurbsInterval> KnotSpanIntervalsV() const
     {
         const SizeType first_span = mPolynomialDegreeV - 1;
         const SizeType last_span = NumberOfKnotsV() - mPolynomialDegreeV - 1;
 
         const SizeType number_of_spans = last_span - first_span + 1;
 
-        std::vector<Interval> result(number_of_spans);
+        std::vector<NurbsInterval> result(number_of_spans);
 
         for (int i = 0; i < number_of_spans; i++) {
             const double t0 = mKnotsV[first_span + i];
             const double t1 = mKnotsV[first_span + i + 1];
 
-            result[i] = Interval(t0, t1);
+            result[i] = NurbsInterval(t0, t1);
         }
 
         return result;
@@ -248,174 +328,152 @@ public:
     ///@name Operations
     ///@{
 
+    /** This method maps from dimension space to working space.
+    * @param rResult array_1d<double, 3> with the coordinates in working space
+    * @param LocalCoordinates The local coordinates in dimension space,
+                              here only the first 2 entries are taken into account.
+    * @return array_1d<double, 3> with the coordinates in working space
+    * @see PointLocalCoordinates
+    */
+    CoordinatesArrayType& GlobalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rLocalCoordinates
+    ) const override
+    {
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
+
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(
+                mKnotsU, mKnotsV, mWeights, rLocalCoordinates[0], rLocalCoordinates[1]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(
+                mKnotsU, mKnotsV, rLocalCoordinates[0], rLocalCoordinates[1]);
+        }
+
+        noalias(rResult) = ZeroVector(3);
+        for (IndexType u = 0; u <= PolynomialDegreeU(); u++) {
+            for (IndexType v = 0; v <= PolynomialDegreeV(); v++) {
+                IndexType cp_index_u = shape_function_container.GetFirstNonzeroControlPointU() + u;
+                IndexType cp_index_v = shape_function_container.GetFirstNonzeroControlPointV() + v;
+
+                const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+                    NumberOfControlPointsU(), NumberOfControlPointsV(), cp_index_u, cp_index_v);
+
+                rResult += (*this)[index] * shape_function_container(u, v, 0);
+            }
+        }
+
+        return rResult;
+    }
+
     /** This method maps from local space to working space and computes the
-    * number of derivatives at the local space parameter in the dimension of the object.
+    *   number of derivatives at the local space parameter in the dimension of the object.
     * @param LocalCoordinates The local coordinates in dimension space
     * @param Derivative Number of computed derivatives
     * @return std::vector<array_1d<double, 3>> with the coordinates in working space
     * @see PointLocalCoordinates
     */
-    //std::vector<CoordinatesArrayType> GlobalDerivatives(
-    //    const CoordinatesArrayType& rCoordinates,
-    //    const SizeType DerivativeOrder) const
-    //{
-    //    NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, DerivativeOrder);
+    void GlobalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const override
+    {
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, DerivativeOrder);
 
-    //    if (IsRational()) {
-    //        shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
-    //    }
-    //    else {
-    //        shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
-    //    }
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(
+                mKnotsU, mKnotsV, mWeights, rLocalCoordinates[0], rLocalCoordinates[1]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(
+                mKnotsU, mKnotsV, rLocalCoordinates[0], rLocalCoordinates[1]);
+        }
 
-    //    std::vector<CoordinatesArrayType> derivatives(shape_function_container.NumberOfShapeFunctionRows());
+        if (rGlobalSpaceDerivatives.size() != shape_function_container.NumberOfShapeFunctionRows()) {
+            rGlobalSpaceDerivatives.resize(shape_function_container.NumberOfShapeFunctionRows());
+        }
 
-    //    for (IndexType order = 0; order < shape_function_container.NumberOfShapeFunctionRows(); order++) {
-    //        IndexType index_0 = shape_function_container.GetFirstNonzeroControlPoint();
-    //        derivatives[order] = (*this)[index_0] * shape_function_container(order, 0);
+        for (IndexType shape_function_row_i = 0;
+            shape_function_row_i < shape_function_container.NumberOfShapeFunctionRows();
+            shape_function_row_i++) {
+            for (IndexType u = 0; u <= PolynomialDegreeU(); u++) {
+                for (IndexType v = 0; v <= PolynomialDegreeV(); v++) {
+                    IndexType cp_index_u = shape_function_container.GetFirstNonzeroControlPointU() + u;
+                    IndexType cp_index_v = shape_function_container.GetFirstNonzeroControlPointV() + v;
 
-    //        for (IndexType i = 1; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //            IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + i;
+                    const IndexType index = NurbsUtilities::GetVectorIndexFromMatrixIndices(
+                        NumberOfControlPointsU(), NumberOfControlPointsV(), cp_index_u, cp_index_v);
 
-    //            derivatives[order] += (*this)[index] * shape_function_container(order, i);
-    //        }
-    //    }
-
-    //    return derivatives;
-    //}
-
-    /** This method maps from dimension space to working space.
-    * @param rResult array_1d<double, 3> with the coordinates in working space
-    * @param LocalCoordinates The local coordinates in dimension space
-    * @return array_1d<double, 3> with the coordinates in working space
-    * @see PointLocalCoordinates
-    */
-    //CoordinatesArrayType& GlobalCoordinates(
-    //    CoordinatesArrayType& rResult,
-    //    const CoordinatesArrayType& rLocalCoordinates
-    //) const override
-    //{
-    //    NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
-
-    //    if (IsRational()) {
-    //        shape_function_container.ComputeNurbsShapeFunctionValues(
-    //            mKnotsU, mKnotsV, mWeights, rLocalCoordinates[0], rLocalCoordinates[1]);
-    //    }
-    //    else {
-    //        shape_function_container.ComputeBSplineShapeFunctionValues(
-    //            mKnotsU, mKnotsV, rLocalCoordinates[0], rLocalCoordinates[1]);
-    //    }
-
-    //    noalias(rResult) = ZeroVector(3);
-    //    for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //        const IndexType index = shape_function_container.GetFirstNonzeroControlPoint() + i;
-
-    //        rResult += (*this)[index] * shape_function_container(0, i);
-    //    }
-    //    return rResult;
-    //}
+                    if (u == 0 && v==0)
+                        rGlobalSpaceDerivatives[shape_function_row_i] =
+                        (*this)[index] * shape_function_container(u, v, shape_function_row_i);
+                    else
+                        rGlobalSpaceDerivatives[shape_function_row_i] +=
+                        (*this)[index] * shape_function_container(u, v, shape_function_row_i);
+                }
+            }
+        }
+    }
 
     ///@}
     ///@name Shape Function
     ///@{
 
-    //Vector& ShapeFunctionsValues(
-    //    Vector &rResult,
-    //    const CoordinatesArrayType& rCoordinates) const override
-    //{
-    //    NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 0);
+    Vector& ShapeFunctionsValues(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
 
-    //    if (IsRational()) {
-    //        shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
-    //    }
-    //    else {
-    //        shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
-    //    }
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
+        }
 
-    //    if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
-    //        rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
+        if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
 
-    //    for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //        rResult[i] = shape_function_container(0, i);
-    //    }
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            rResult[i] = shape_function_container(i, 0);
+        }
 
-    //    return rResult;
-    //}
+        return rResult;
+    }
 
-    //Matrix& ShapeFunctionsLocalGradients(
-    //    Matrix& rResult,
-    //    const CoordinatesArrayType& rCoordinates) const override
-    //{
-    //    NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 1);
+    Matrix& ShapeFunctionsLocalGradients(
+        Matrix& rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
 
-    //    if (IsRational()) {
-    //        shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rCoordinates[0]);
-    //    }
-    //    else {
-    //        shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rCoordinates[0]);
-    //    }
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
+        }
 
-    //    if (rResult.size1() != 1
-    //        && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
-    //        rResult.resize(1, shape_function_container.NumberOfNonzeroControlPoints());
+        if (rResult.size1() != 2
+            && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(2, shape_function_container.NumberOfNonzeroControlPoints());
 
-    //    for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //        rResult(0, i) = shape_function_container(1, i);
-    //    }
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            rResult(0, i) = shape_function_container(i, 1);
+            rResult(1, i) = shape_function_container(i, 2);
+        }
 
-    //    return rResult;
-    //}
-
-    //void ShapeFunctionDerivatives(
-    //    GeometryData::IntegrationMethod ThisIntegrationMethod,
-    //    IntegrationPointsArrayType& rIntegrationPoints,
-    //    const int DerivativeOrder) const
-    //{
-    //    NurbsCurveShapeFunction shape_function_container(mPolynomialDegree, 0);
-
-    //    int number_of_integration_points = rIntegrationPoints.size();
-
-    //    Matrix shape_functions_values = ZeroMatrix(number_of_integration_points, shape_function_container.NumberOfNonzeroControlPoints());
-    //    DenseVector<DenseVector<Matrix>> shape_function_derivatives_integration_points(number_of_integration_points);
-
-    //    for (IndexType ip_itr = 0; ip_itr < number_of_integration_points; ++ip_itr)
-    //    {
-    //        if (IsRational()) {
-    //            shape_function_container.ComputeNurbsShapeFunctionValues(mKnots, mWeights, rIntegrationPoints[ip_itr][0]);
-    //        }
-    //        else {
-    //            shape_function_container.ComputeBSplineShapeFunctionValues(mKnots, rIntegrationPoints[ip_itr][0]);
-    //        }
-
-    //        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //            shape_functions_values(ip_itr, i) = shape_function_container(ip_itr, i);
-    //        }
-
-    //        DenseVector<Matrix> shape_function_derivatives_array(DerivativeOrder);
-    //        for (IndexType derivative_order_itr = 1; derivative_order_itr < DerivativeOrder; ++derivative_order_itr)
-    //        {
-    //            Matrix shape_function_derivatives_values = ZeroMatrix(1, shape_function_container.NumberOfNonzeroControlPoints());
-    //            for (int i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-    //                shape_function_derivatives_values(0, i) = shape_function_container(derivative_order_itr, i);
-    //            }
-    //            shape_function_derivatives_array[derivative_order_itr] = shape_function_derivatives_values;
-    //        }
-    //        shape_function_derivatives_integration_points[ip_itr] = shape_function_derivatives_array;
-    //    }
-
-    //    GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
-    //        ThisIntegrationMethod,
-    //        rIntegrationPoints,
-    //        shape_functions_values,
-    //        shape_function_derivatives_integration_points);
-    //}
+        return rResult;
+    }
 
     ///@}
     ///@name Information
     ///@{
     std::string Info() const override
     {
-        return TWorkingSpaceDimension + " dimensional nurbs surface.";
+        return std::to_string(TWorkingSpaceDimension) + " dimensional nurbs surface.";
     }
 
     void PrintInfo(std::ostream& rOStream) const override
@@ -428,13 +486,13 @@ public:
     }
     ///@}
 
-protected:
-
 private:
     ///@name Private Static Member Variables
     ///@{
 
     static const GeometryData msGeometryData;
+
+    static const GeometryDimension msGeometryDimension;
 
     ///@}
     ///@name Private Member Variables
@@ -444,7 +502,6 @@ private:
     SizeType mPolynomialDegreeV;
     Vector mKnotsU;
     Vector mKnotsV;
-    bool mIsRational;
     Vector mWeights;
 
     ///@}
@@ -480,21 +537,18 @@ private:
     NurbsSurfaceGeometry() : BaseType(PointsArrayType(), &msGeometryData) {};
 
     ///@}
-    ///@name Private Friends
-    ///@{
 
-    template<int TWorkingSpaceDimension, class TOtherPointType> friend class NurbsSurfaceGeometry;
-
-    ///@}
 }; // class NurbsSurfaceGeometry
 
 template<int TWorkingSpaceDimension, class TPointType>
 const GeometryData NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType>::msGeometryData(
-    2,
-    TWorkingSpaceDimension,
-    2,
+    &msGeometryDimension,
     GeometryData::GI_GAUSS_1,
     {}, {}, {});
+
+template<int TWorkingSpaceDimension, class TPointType>
+const GeometryDimension NurbsSurfaceGeometry<TWorkingSpaceDimension, TPointType>::msGeometryDimension(
+    2, TWorkingSpaceDimension, 2);
 
 } // namespace Kratos
 

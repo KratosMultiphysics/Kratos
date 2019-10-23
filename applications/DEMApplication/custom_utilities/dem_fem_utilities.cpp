@@ -74,6 +74,41 @@ namespace Kratos
                                                                           fixed_mesh, dt, rNodes);
             } //for ModelPart::SubModelPartsContainerType::iterator
         } //if r_model_part.NumberOfMeshes() > 1
+
+        const bool rigid_body_motion = r_model_part[RIGID_BODY_MOTION];
+        //if (!rigid_body_motion) return;
+
+            NodesArrayType& rNodes = r_model_part.Nodes();
+        array_1d<double, 3>& previous_displ = r_model_part[DISPLACEMENT];
+        const array_1d<double, 3>& linear_velocity = r_model_part[LINEAR_VELOCITY];
+        const double velocity_start_time = r_model_part[VELOCITY_START_TIME];
+        const double velocity_stop_time = r_model_part[VELOCITY_STOP_TIME];
+        const double linear_period = r_model_part[VELOCITY_PERIOD];
+        const bool fixed_mesh = r_model_part[FIXED_MESH_OPTION];
+
+            const array_1d<double, 3>& angular_velocity = r_model_part[ANGULAR_VELOCITY];
+        const double angular_velocity_start_time = r_model_part[ANGULAR_VELOCITY_START_TIME];
+        const double angular_velocity_stop_time = r_model_part[ANGULAR_VELOCITY_STOP_TIME];
+        const double angular_period = r_model_part[ANGULAR_VELOCITY_PERIOD];
+        const array_1d<double, 3>& initial_center = r_model_part[ROTATION_CENTER];
+
+            array_1d<double, 3> center_position;
+        array_1d<double, 3> linear_velocity_changed;
+        array_1d<double, 3> angular_velocity_changed;
+        double mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
+        array_1d<double, 3> new_axes1;
+        array_1d<double, 3> new_axes2;
+        array_1d<double, 3> new_axes3;
+
+            GeometryFunctions::TranslateGridOfNodes(time, velocity_start_time, velocity_stop_time, center_position, initial_center, previous_displ,
+                linear_velocity_changed, linear_period, dt, linear_velocity);
+
+            GeometryFunctions::RotateGridOfNodes(time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed,
+                angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
+
+            GeometryFunctions::UpdateKinematicVariablesOfAGridOfNodes(mod_angular_velocity, linear_velocity, initial_center, new_axes1,
+                new_axes2, new_axes3, angular_velocity_changed, linear_velocity_changed, center_position,
+                fixed_mesh, dt, rNodes);
     }
 
     // void DEMFEMUtilities::MoveAllMeshesUsingATable(ModelPart& r_model_part, double time, double dt) {

@@ -367,6 +367,11 @@ private:
     void InitializeSolDataDistance();
 
     /**
+     *@brief This function generates the displacement MMG5 structure from a Kratos Model Part
+     */
+    void InitializeDisplacementData();
+
+    /**
      * @brief We execute the MMg library and build the new model part from the old model part
      */
     void ExecuteRemeshing();
@@ -491,11 +496,11 @@ private:
     ///@name Un accessible methods
     ///@{
 
-//     /// Assignment operator.
-//     MmgProcess& operator=(MmgProcess const& rOther);
+    /// Assignment operator.
+    MmgProcess& operator=(MmgProcess const& rOther);
 
-//     /// Copy constructor.
-//     MmgProcess(MmgProcess const& rOther);
+    /// Copy constructor.
+    MmgProcess(MmgProcess const& rOther);
 
     ///@}
 

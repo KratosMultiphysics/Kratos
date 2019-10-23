@@ -1,10 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# Mpi
-if(${MPI_NEEDED} MATCHES ON )
-  add_subdirectory(mpi)
-endif(${MPI_NEEDED} MATCHES ON )
-
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/flags.cpp
@@ -36,10 +31,11 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/containers/nodal_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_parameters.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_linear_solver_factory.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_preconditioner_factory.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_linear_solver_factory.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_preconditioner_factory.cpp;
     #${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/data_value_container.cpp;
@@ -96,6 +92,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/os_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/timer.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_transformation_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
@@ -269,6 +266,7 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
     PATTERN "*.h" EXCLUDE
     PATTERN "*.cpp" EXCLUDE
     PATTERN "*.hpp" EXCLUDE
+    PATTERN "*.pyc" EXCLUDE
     )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
@@ -277,3 +275,10 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
     get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/ FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
+
+# Mpi
+if(${MPI_NEEDED} MATCHES ON )
+  add_subdirectory(mpi)
+endif(${MPI_NEEDED} MATCHES ON )
+

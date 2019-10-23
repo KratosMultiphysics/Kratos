@@ -78,6 +78,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    void InitializeSolutionStep() override;
+
     double CalculateValue(ModelPart& rModelPart) override;
 
     void CalculateGradient(const Element& rAdjointElement,

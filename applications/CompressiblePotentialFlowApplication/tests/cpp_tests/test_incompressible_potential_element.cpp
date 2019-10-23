@@ -18,6 +18,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
 #include "custom_elements/embedded_incompressible_potential_flow_element.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos {
   namespace Testing {

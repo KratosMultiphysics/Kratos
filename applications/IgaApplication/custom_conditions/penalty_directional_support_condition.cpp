@@ -59,7 +59,7 @@ namespace Kratos
         {
             const Matrix& r_N = r_geometry.ShapeFunctionsValues();
             array_1d<double, 3> direction_fixed(0.0);
-            r_geometry.Normal(direction_fixed, point_number);
+            //r_geometry.Normal(direction_fixed, point_number);
             Vector direction_fixed_vector = -direction_fixed / norm_2(direction_fixed);
 
             //FOR DISPLACEMENTS

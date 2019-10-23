@@ -7,14 +7,17 @@ import KratosMultiphysics
 import KratosMultiphysics.IgaApplication as IgaApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
+
+import KratosMultiphysics.DEMApplication as DEMApplication
+
 # Import base class file
-import structural_mechanics_static_solver
+import KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_static_solver
 
 def CreateSolver(model, custom_settings):
     return IgaStaticSolver(model, custom_settings)
 
 
-class IgaStaticSolver(structural_mechanics_static_solver.StaticMechanicalSolver):
+class IgaStaticSolver(KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_static_solver.StaticMechanicalSolver):
     """The iga static solver.
 
     This class is derived from the StaticMechanicalSolver but enhanced with 

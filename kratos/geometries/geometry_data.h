@@ -137,39 +137,46 @@ public:
     /// Pointer definition of GeometryData
     KRATOS_CLASS_POINTER_DEFINITION( GeometryData );
 
+    /** Type used for indexing in geometry data class. Unsigned int used for indexing
+    point or integration point access methods and also all other
+    methods which need point or integration point index.
+    */
     typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
 
-    typedef GeometryShapeFunctionContainer<IntegrationMethod> GeometryShapeFunctionContainerType;
+    /** This typed used to return size or dimension in
+    geometry data. Dimension, WorkingSpaceDimension, PointsNumber and
+    ... return this type as their results.
+    */
+    typedef std::size_t SizeType;
 
     /** This type used for representing an integration point in
     geometry data. This integration point is a point with an
     additional weight component.
     */
-    typedef GeometryShapeFunctionContainerType::IntegrationPointType IntegrationPointType;
+    typedef IntegrationPoint<3> IntegrationPointType;
 
     /** A Vector of IntegrationPointType which used to hold
     integration points related to an integration
     method. IntegrationPoints functions used this type to return
     their results.
     */
-    typedef GeometryShapeFunctionContainerType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef GeometryShapeFunctionContainer<IntegrationMethod>::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     /** A Vector of IntegrationPointsArrayType which used to hold
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef GeometryShapeFunctionContainerType::IntegrationPointsContainerType IntegrationPointsContainerType;
+    typedef GeometryShapeFunctionContainer<IntegrationMethod>::IntegrationPointsContainerType IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
     continer.
     */
-    typedef GeometryShapeFunctionContainerType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
+    typedef GeometryShapeFunctionContainer<IntegrationMethod>::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry data.
     */
-    typedef GeometryShapeFunctionContainerType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+    typedef GeometryShapeFunctionContainer<IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
 
     /** A third order tensor to hold shape functions'
     gradients. ShapefunctionsLocalGradients function return this
@@ -252,34 +259,14 @@ public:
     have gaussian order "2" ThisShapeFunctionsValues[GI_GAUSS_2]
     must be an empty ShapeFunctionsGradientsType.
     */
-    GeometryData( SizeType ThisDimension,
-                  SizeType ThisWorkingSpaceDimension,
-                  SizeType ThisLocalSpaceDimension,
-                  IntegrationMethod ThisDefaultMethod,
-                  const IntegrationPointsContainerType& ThisIntegrationPoints,
-                  const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
-                  const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients )
-        : mGeometryShapeFunctionContainer(
-            GeometryShapeFunctionContainerType(
-                ThisDefaultMethod,
-                ThisIntegrationPoints,
-                ThisShapeFunctionsValues,
-                ThisShapeFunctionsLocalGradients))
-    {
-        mpGeometryDimension = new GeometryDimension(
-            ThisDimension,
-            ThisWorkingSpaceDimension,
-            ThisLocalSpaceDimension);
-    }
-
-    GeometryData(GeometryDimension const* pThisGeometryDimension,
+    GeometryData(GeometryDimension const *pThisGeometryDimension,
         IntegrationMethod ThisDefaultMethod,
         const IntegrationPointsContainerType& ThisIntegrationPoints,
         const ShapeFunctionsValuesContainerType& ThisShapeFunctionsValues,
         const ShapeFunctionsLocalGradientsContainerType& ThisShapeFunctionsLocalGradients)
         : mpGeometryDimension(pThisGeometryDimension)
         , mGeometryShapeFunctionContainer(
-            GeometryShapeFunctionContainerType(
+            GeometryShapeFunctionContainer<IntegrationMethod>(
                 ThisDefaultMethod,
                 ThisIntegrationPoints,
                 ThisShapeFunctionsValues,
@@ -287,15 +274,25 @@ public:
     {
     }
 
-    GeometryData(GeometryDimension const* pThisGeometryDimension,
-        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
+    /*
+    * Constructor which has a precomputed shape function container.
+    * @param pThisGeometryDimension pointer to the dimensional data
+    * @param ThisGeometryShapeFunctionContainer including the evaluated
+    *        values for the shape functions, it's derivatives and the 
+    *        integration points.
+    */
+    GeometryData(GeometryDimension const *pThisGeometryDimension,
+        GeometryShapeFunctionContainer<IntegrationMethod>& ThisGeometryShapeFunctionContainer)
         : mpGeometryDimension(pThisGeometryDimension)
-        , mGeometryShapeFunctionContainer(ThisGeometryShapeFunctionContainer)
+        , mGeometryShapeFunctionContainer(
+            GeometryShapeFunctionContainer<IntegrationMethod>(
+                ThisGeometryShapeFunctionContainer))
     {
     }
 
-    /** Copy constructor.
-    Construct this geometry data as a copy of given geometry data.
+    /*
+    * Copy constructor.
+    * Construct this geometry data as a copy of given geometry data.
     */
     GeometryData( const GeometryData& rOther )
         : mpGeometryDimension( rOther.mpGeometryDimension)
@@ -329,6 +326,15 @@ public:
         mGeometryShapeFunctionContainer = rOther.mGeometryShapeFunctionContainer;
 
         return *this;
+    }
+
+    ///@}
+    ///@name GeometryDimension
+    ///@{
+
+    void SetGeometryDimension(GeometryDimension const* pGeometryDimension)
+    {
+        mpGeometryDimension = pGeometryDimension;
     }
 
     ///@}
@@ -664,47 +670,45 @@ public:
     @see ShapeFunctionValue
     @see ShapeFunctionsLocalGradients
     */
-    const Matrix& ShapeFunctionLocalGradient(
-        IndexType IntegrationPointIndex,
-        IntegrationMethod ThisMethod ) const
+    const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex,  IntegrationMethod ThisMethod ) const
     {
         return mGeometryShapeFunctionContainer.ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod);
+    }
+
+    const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex,  IntegrationMethod ThisMethod ) const
+    {
+        return mGeometryShapeFunctionContainer.ShapeFunctionLocalGradient(IntegrationPointIndex, ThisMethod);
+    }
+
+    /*
+    * @brief access to the shape function derivatives.
+    * @param DerivativeOrderIndex defines the wanted order of the derivative
+    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @return the shape function or derivative value related to the input parameters
+    *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    */
+    const Matrix& ShapeFunctionDerivatives(IndexType DerivativeOrderIndex, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
+    {
+        return mGeometryShapeFunctionContainer.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
     }
 
     ///@}
     ///@name Input and output
     ///@{
 
-    /** Turn back information as a string.
-
-    @return String contains information about this geometry.
-    @see PrintData()
-    @see PrintInfo()
-    */
+    /// Turn back information as a string.
     virtual std::string Info() const
     {
         return "geometry data";
     }
 
-    /** Print information about this object.
-
-    @param rOStream Stream to print into it.
-    @see PrintData()
-    @see Info()
-    */
+    /// Print information about this object.
     virtual void PrintInfo( std::ostream& rOStream ) const
     {
         rOStream << "geometry data";
     }
 
-    /** Print geometry's data into given stream. Prints it's points
-    by the order they stored in the geometry and then center
-    point of geometry.
-
-    @param rOStream Stream to print into it.
-    @see PrintInfo()
-    @see Info()
-    */
+    /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
         rOStream << "    Dimension               : " << mpGeometryDimension->Dimension() << std::endl;
@@ -714,61 +718,14 @@ public:
 
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     GeometryDimension const* mpGeometryDimension;
 
-    GeometryShapeFunctionContainerType mGeometryShapeFunctionContainer;
+    GeometryShapeFunctionContainer<IntegrationMethod> mGeometryShapeFunctionContainer;
 
     ///@}
     ///@name Serialization
@@ -779,53 +736,19 @@ private:
     virtual void save( Serializer& rSerializer ) const
     {
         rSerializer.save("GeometryDimension", mpGeometryDimension);
-        //rSerializer.save("DefaultMethod", mDefaultMethod);
-        //rSerializer.save("IntegrationPoints", mIntegrationPoints);
-        //rSerializer.save("GeometryShapeFunctionContainer", mGeometryShapeFunctionContainer);
+        rSerializer.save("GeometryShapeFunctionContainer", mGeometryShapeFunctionContainer);
     }
 
     virtual void load( Serializer& rSerializer )
     {
         rSerializer.load("GeometryDimension", const_cast<GeometryDimension*>(mpGeometryDimension));
-        //rSerializer.load("DefaultMethod", mDefaultMethod);
-        //rSerializer.load("IntegrationPoints", mIntegrationPoints);
-        //rSerializer.load("GeometryShapeFunctionContainer", mGeometryShapeFunctionContainer);
+        rSerializer.load("GeometryShapeFunctionContainer", mGeometryShapeFunctionContainer);
     }
 
     // Private default constructor for serialization
     GeometryData()
     {
     }
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Private Friends
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
 
     ///@}
 

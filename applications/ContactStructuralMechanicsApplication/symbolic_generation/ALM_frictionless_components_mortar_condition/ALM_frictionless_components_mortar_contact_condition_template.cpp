@@ -28,7 +28,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactC
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster > >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -40,7 +40,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactC
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -53,7 +53,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactC
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pMasterGeom) const
 {
-    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation > >( NewId, pGeom, pProperties, pMasterGeom );
+    return Kratos::make_intrusive<  AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster> >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -107,7 +107,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; i_slave++ )
     {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -116,7 +116,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
     // Slave Nodes  Lambda Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave )
     {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
         rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
@@ -156,7 +156,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave )
     {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Y );
         if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Z );
@@ -165,7 +165,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
     // Slave Nodes Lambda Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave )
     {
-        NodeType& slave_node = this->GetGeometry()[ i_slave ];
+        NodeType& slave_node = this->GetParentGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
         rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
         if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
@@ -192,7 +192,7 @@ int AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,T
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < TNumNodes; ++i )
     {
-        NodeType &rnode = this->GetGeometry()[i];
+        NodeType &rnode = this->GetParentGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VECTOR_LAGRANGE_MULTIPLIER,rnode)
 
         KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_X, rnode)

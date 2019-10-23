@@ -15,6 +15,7 @@
 
 #include "includes/model_part.h"
 #include "geometries/integration_point_surface_3d.h"
+#include "geometries/quadrature_point_geometry.h"
 
 namespace Kratos
 {
@@ -59,7 +60,9 @@ namespace IgaIntegrationPointUtilities
 
         int derivatives_size = GetDerivativesSize(ShapeFunctionDerivativesOrder);
 
-        Matrix N(derivatives_size, number_of_non_zero_cps);
+        Matrix N(1, number_of_non_zero_cps);
+
+        Matrix DN_DE(2, number_of_non_zero_cps);
 
         array_1d<double, 3> location = ZeroVector(3);
 
@@ -72,26 +75,27 @@ namespace IgaIntegrationPointUtilities
                 shape.NonzeroPoleIndices()[n].first,
                 shape.NonzeroPoleIndices()[n].second));
 
-            for (int i = 0; i < derivatives_size; ++i)
+                N(0, n) = shape(0, indexU, indexV);
+
+            for (int i = 1; i < 3; ++i)
             {
-                N(i, n) = shape(i, indexU, indexV);
+                DN_DE(i-1, n) = shape(i, indexU, indexV);
             }
         }
 
         auto ip = IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointType(rLocation[0], rLocation[1], 1);
-        Geometry<Node<3>>::IntegrationPointsArrayType ips(1);
-        ips[0] = ip;
 
-        IntegrationPointCurveOnSurface3d<Node<3>>::IntegrationPointsContainerType ips_container =
-        { { ips } };
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+            GeometryData::GI_GAUSS_1,
+            ip,
+            N,
+            DN_DE);
 
-        auto ar = DenseVector<Matrix>(1);
-        ar[0] = N;
-
-        //IntegrationPointCurveOnSurface3d<Node<3>>::ShapeFunctionsContainerType N_container =
-        //{{ar}};
-        return std::make_shared<IntegrationPointSurface3d<Node<3>>>(
-            cps);
+            return typename Geometry<Node<3>>::Pointer(
+                Kratos::make_shared<
+                QuadraturePointGeometry<Node<3>, 3, 2>>(
+                    cps,
+                    data_container));
     }
 
     static std::vector<Geometry<Node<3>>::Pointer> GetIntegrationDomainGeometrySurface(

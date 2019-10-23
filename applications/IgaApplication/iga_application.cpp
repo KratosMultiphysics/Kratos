@@ -42,8 +42,6 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType())))
     , mPenaltyDirectionalSupportCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType())))
-    , mPenaltyCouplingCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType())))
 {
 }
 
@@ -66,7 +64,6 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_CONDITION("LoadCondition", mLoadCondition)
     KRATOS_REGISTER_CONDITION("PenaltySupportCondition", mPenaltySupportCondition)
     KRATOS_REGISTER_CONDITION("PenaltyDirectionalSupportCondition", mPenaltyDirectionalSupportCondition)
-    KRATOS_REGISTER_CONDITION("PenaltyCouplingCondition", mPenaltyCouplingCondition)
 
     // Variables
     KRATOS_REGISTER_VARIABLE(BREP_ID)

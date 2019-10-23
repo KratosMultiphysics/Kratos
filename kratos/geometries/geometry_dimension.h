@@ -25,22 +25,6 @@
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -164,36 +148,19 @@ public:
     ///@name Input and output
     ///@{
 
-    /** Turn back information as a string.
-
-    @return String contains information about this geometry.
-    @see PrintData()
-    @see PrintInfo()
-    */
+    /// Turn back information as a string.
     virtual std::string Info() const
     {
         return "geometry dimension";
     }
 
-    /** Print information about this object.
-
-    @param rOStream Stream to print into it.
-    @see PrintData()
-    @see Info()
-    */
+    /// Print information about this object.
     virtual void PrintInfo( std::ostream& rOStream ) const
     {
         rOStream << "geometry dimension";
     }
 
-    /** Print geometry's data into given stream. Prints it's points
-    by the order they stored in the geometry and then center
-    point of geometry.
-
-    @param rOStream Stream to print into it.
-    @see PrintInfo()
-    @see Info()
-    */
+    /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
         rOStream << "    Dimension               : " << mDimension << std::endl;
@@ -202,8 +169,6 @@ public:
     }
 
     ///@}
-
-protected:
 
 private:
     ///@name Member Variables
@@ -224,15 +189,15 @@ private:
     virtual void save( Serializer& rSerializer ) const
     {
         rSerializer.save( "Dimension", mDimension );
-        rSerializer.save( "Working Space Dimension", mWorkingSpaceDimension );
-        rSerializer.save( "Local Space Dimension", mLocalSpaceDimension );
+        rSerializer.save( "WorkingSpaceDimension", mWorkingSpaceDimension );
+        rSerializer.save( "LocalSpaceDimension", mLocalSpaceDimension );
     }
 
     virtual void load( Serializer& rSerializer )
     {
         rSerializer.load( "Dimension", mDimension );
-        rSerializer.load( "Working Space Dimension", mWorkingSpaceDimension );
-        rSerializer.load( "Local Space Dimension", mLocalSpaceDimension );
+        rSerializer.load( "WorkingSpaceDimension", mWorkingSpaceDimension );
+        rSerializer.load( "LocalSpaceDimension", mLocalSpaceDimension );
     }
 
     // Private default constructor for serialization
@@ -245,15 +210,8 @@ private:
 }; // Class GeometryDimension
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> ( std::istream& rIStream,

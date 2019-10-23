@@ -374,7 +374,7 @@ public:
     array_1d<double, 3> Normal(
         array_1d<double, 3>& rResult,
         IndexType IntegrationPointIndex,
-        IntegrationMethod ThisMethod) const override
+        IntegrationMethod ThisMethod) const
     {
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);

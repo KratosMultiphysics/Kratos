@@ -66,6 +66,7 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG( PRINTING_OUTPUT );
     KRATOS_DEFINE_LOCAL_FLAG( TABLE_IS_INITIALIZED );
+    KRATOS_DEFINE_LOCAL_FLAG( CONDITION_NUMBER_IS_INITIALIZED );
 
     /// The base convergence criteria class definition
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
@@ -112,6 +113,7 @@ public:
         // Set local flags
         mOptions.Set(MortarAndConvergenceCriteria::PRINTING_OUTPUT, PrintingOutput);
         mOptions.Set(MortarAndConvergenceCriteria::TABLE_IS_INITIALIZED, false);
+        mOptions.Set(MortarAndConvergenceCriteria::CONDITION_NUMBER_IS_INITIALIZED, false);
     }
 
     /**
@@ -162,7 +164,7 @@ public:
         bool criterion_result = BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
         if (mpConditionNumberUtility != nullptr) {
-            TSystemMatrixType copy_A; // NOTE: Can not be const, TODO: Change the solvers to const
+            TSystemMatrixType copy_A(rA); // NOTE: Can not be const, TODO: Change the solvers to const
             const double condition_number = mpConditionNumberUtility->GetConditionNumber(copy_A);
 
             if (r_process_info.Has(TABLE_UTILITY)) {
@@ -205,9 +207,11 @@ public:
         mOptions.Set(MortarAndConvergenceCriteria::TABLE_IS_INITIALIZED, true);
         BaseType::Initialize(rModelPart);
 
-        if (r_process_info.Has(TABLE_UTILITY) && mpConditionNumberUtility != nullptr) {
+        if (r_process_info.Has(TABLE_UTILITY) && mpConditionNumberUtility != nullptr
+            && mOptions.IsNot(MortarAndConvergenceCriteria::CONDITION_NUMBER_IS_INITIALIZED)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             (p_table->GetTable()).AddColumn("COND.NUM.", 10);
+            mOptions.Set(MortarAndConvergenceCriteria::CONDITION_NUMBER_IS_INITIALIZED, true);
         }
     }
 
@@ -362,6 +366,10 @@ template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::TABLE_IS_INITIALIZED(Kratos::Flags::Create(1));
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_TABLE_IS_INITIALIZED(Kratos::Flags::Create(1, false));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::CONDITION_NUMBER_IS_INITIALIZED(Kratos::Flags::Create(2));
+template<class TSparseSpace, class TDenseSpace>
+const Kratos::Flags MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>::NOT_CONDITION_NUMBER_IS_INITIALIZED(Kratos::Flags::Create(2, false));
 
 }  /* namespace Kratos.*/
 

@@ -13,6 +13,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
 #include "adjoint_analytical_incompressible_potential_flow_element.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {

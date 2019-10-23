@@ -38,7 +38,10 @@
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/penalty_support_condition.h"
 #include "custom_conditions/penalty_directional_support_condition.h"
-#include "custom_conditions/penalty_coupling_condition.h"
+
+//conditions
+#include "custom_conditions/load_condition.h"
+
 
 namespace Kratos {
 
@@ -192,11 +195,12 @@ private:
     const LoadSurfaceDiscreteCondition mLoadSurfaceDiscreteCondition;
     const LoadCurveDiscreteCondition mLoadCurveDiscreteCondition;
 
-    const LoadCondition mLoadCondition;
     const PenaltySupportCondition mPenaltySupportCondition;
     const PenaltyDirectionalSupportCondition mPenaltyDirectionalSupportCondition;
-    const PenaltyCouplingCondition mPenaltyCouplingCondition;
 
+
+    //Conditions
+    const LoadCondition mLoadCondition;
 
     ///@}
     ///@name Private Operators

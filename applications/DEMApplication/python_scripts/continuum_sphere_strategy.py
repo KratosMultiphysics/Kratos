@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-import sphere_strategy as SolverStrategy
+import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
 BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 import math

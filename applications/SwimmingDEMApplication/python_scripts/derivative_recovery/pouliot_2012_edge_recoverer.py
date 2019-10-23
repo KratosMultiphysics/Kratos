@@ -4,7 +4,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, ModelPart
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from . import recoverer
-import parameters_tools as PT
+import KratosMultiphysics.SwimmingDEMApplication.parameters_tools as PT
 import sys
 
 class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):

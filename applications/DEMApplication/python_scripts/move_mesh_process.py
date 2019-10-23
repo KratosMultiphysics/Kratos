@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.DEMApplication as KratosDem
+from KratosMultiphysics.DEMApplication import *
 
 
 def Factory(settings, model):
@@ -28,36 +29,31 @@ class MoveMeshProcess(KratosMultiphysics.Process):
 
         self.time_step = self.params["time_step"].GetDouble()
 
-        self.model_part.SetValue(RIGID_BODY_MOTION, True)
-        self.model_part.SetValue(FREE_BODY_MOTION, False)
-        self.model_part.SetValue(FIXED_MESH_OPTION, False)
-        self.model_part.SetValue(LINEAR_VELOCITY, [0.0,0.0,0.0])
-        self.model_part.SetValue(VELOCITY_PERIOD, 0.0)
-        self.model_part.SetValue(ANGULAR_VELOCITY, [0.0,0.0,50.0])
-        self.model_part.SetValue(ROTATION_CENTER, [0.0,0.0,0.0])
-        self.model_part.SetValue(ANGULAR_VELOCITY_PERIOD, 0.0)
-        self.model_part.SetValue(VELOCITY_START_TIME, 0.0)
-        self.model_part.SetValue(VELOCITY_STOP_TIME, 1000.0)
-        self.model_part.SetValue(ANGULAR_VELOCITY_START_TIME, 0.0)
-        self.model_part.SetValue(ANGULAR_VELOCITY_STOP_TIME, 1000.0)
-        self.model_part.SetValue(IS_GHOST, False)
-        self.model_part.SetValue(TOP, False)
-        self.model_part.SetValue(BOTTOM, False)
-        self.model_part.SetValue(FORCE_INTEGRATION_GROUP, 0)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.LINEAR_VELOCITY, [0.0,0.0,0.0])
+        self.model_part.SetValue(KratosMultiphysics.VELOCITY_PERIOD, 0.0)
+        self.model_part.SetValue(KratosMultiphysics.ANGULAR_VELOCITY, [0.0,0.0,50.0])
+        self.model_part.SetValue(KratosMultiphysics.ROTATION_CENTER, [0.0,0.0,0.0])
+        self.model_part.SetValue(KratosMultiphysics.ANGULAR_VELOCITY_PERIOD, 0.0)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.VELOCITY_START_TIME, 0.0)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.VELOCITY_STOP_TIME, 1000.0)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.ANGULAR_VELOCITY_START_TIME, 0.0)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.ANGULAR_VELOCITY_STOP_TIME, 1000.0)
+        self.model_part.SetValue(KratosMultiphysics.FIXED_MESH_OPTION, False)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.RIGID_BODY_MOTION, True)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.FREE_BODY_MOTION, False)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.IS_GHOST, False)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.TOP, False)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.BOTTOM, False)
+        self.model_part.SetValue(KratosMultiphysics.DEMApplication.FORCE_INTEGRATION_GROUP, 0)
 
-        self.mesh_motion = DEMFEMUtilities()
+        self.mesh_motion = KratosMultiphysics.DEMApplication.DEMFEMUtilities()
 
     def ExecuteFinalizeSolutionStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        center_position = [0,0,0]
-        linear_velocity_changed = [0,0,0]
-        angular_velocity_changed = [0,0,0]
-        new_axes1 = [0,0,0]
-        new_axes2 = [0,0,0]
-        new_axes3 = [0,0,0]
+        print("time: " + str(time))
+        print("self.model_part: " + str(self.model_part.NumberOfNodes()))
 
         self.mesh_motion.MoveAllMeshes(self.model_part, time, self.time_step)
 
-
-        print(self.model_part.GetNode(4))
+        print(str(self.model_part.GetNode(4).X) + " " + str(self.model_part.GetNode(4).Y) + " " + str(self.model_part.GetNode(4).Z))

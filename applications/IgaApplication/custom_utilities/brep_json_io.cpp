@@ -45,6 +45,8 @@ namespace Kratos
     {
         KRATOS_INFO("IGA") << "Start import CAD geometries" << std::endl;
 
+        mEchoLevel = 5;
+
         const double model_tolerance = rNurbsBrepGeometryJson["tolerances"]["model_tolerance"].GetDouble();
 
         std::vector<BrepModel> brep_model_vector;
@@ -124,9 +126,12 @@ namespace Kratos
                 {
                     std::vector<BrepTrimmingCurve> loop_curves;
 
+
                     // Loop over all curves
                     for (int trim_idx = 0; trim_idx < boundary_dict[loop_idx]["trimming_curves"].size(); trim_idx++)
                     {
+                        KRATOS_INFO_IF("IGA", mEchoLevel >= 4) << "Reading face " << face_id << " boundary loops"
+                            << " trim index: " << trim_idx << std::endl;
                         ImportTrimmingCurve(boundary_dict[loop_idx]["trimming_curves"][trim_idx], loop_curves);
                     }
                     bool is_outer_loop = true;
@@ -414,29 +419,29 @@ namespace Kratos
         // read and store polynamial degree p
         int polynomial_degree = rTrimmingCurve["parameter_curve"]["degree"].GetInt();
         std::vector<BoundedVector<double, 4>> boundary_control_points;
-        typename Geometry<Point>::PointsArrayType control_points(rTrimmingCurve["parameter_curve"]["control_points"].size());
-        Vector weights = ZeroVector(rTrimmingCurve["parameter_curve"]["control_points"].size());
+        //typename Geometry<Point>::PointsArrayType control_points(rTrimmingCurve["parameter_curve"]["control_points"].size());
+        //Vector weights = ZeroVector(rTrimmingCurve["parameter_curve"]["control_points"].size());
 
         // read and store control_points
         for (std::size_t cp_idx = 0; cp_idx < rTrimmingCurve["parameter_curve"]["control_points"].size(); cp_idx++)
         {
             BoundedVector<double, 4> control_point = rTrimmingCurve["parameter_curve"]["control_points"][cp_idx][1].GetVector();
             boundary_control_points.push_back(control_point);
-            control_points[cp_idx] = Point(control_point[0], control_point[1], control_point[2]);
-            weights[cp_idx] = control_point[3];
+            //control_points[cp_idx] = Point(control_point[0], control_point[1], control_point[2]);
+            //weights[cp_idx] = control_point[3];
         }
 
-        NurbsCurveGeometry<2, Point> curve_2d(
-            control_points,
-            polynomial_degree,
-            knot_vector,
-            weights);
-        Matrix result = ZeroMatrix(0, 0);
-        array_1d<double, 3> coordinates(0.0);
-        curve_2d.ShapeFunctionsLocalGradients(result, coordinates);
-        curve_2d.GlobalDerivatives(coordinates, 2);
-        std::vector<IntegrationPoint<3>> ips(1);
-        ips[0] = IntegrationPoint<3>(1.0);
+        //NurbsCurveGeometry<2, Point> curve_2d(
+        //    control_points,
+        //    polynomial_degree,
+        //    knot_vector,
+        //    weights);
+        //Matrix result = ZeroMatrix(0, 0);
+        //array_1d<double, 3> coordinates(0.0);
+        //curve_2d.ShapeFunctionsLocalGradients(result, coordinates);
+        //curve_2d.GlobalDerivatives(coordinates, 2);
+        //std::vector<IntegrationPoint<3>> ips(1);
+        //ips[0] = IntegrationPoint<3>(1.0);
 
         //curve_2d.ShapeFunctionDerivatives(GeometryData::GI_GAUSS_1, ips, 3);
 
