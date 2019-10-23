@@ -75,17 +75,6 @@ namespace Kratos
             KRATOS_CHECK_C_STRING_EQUAL((p_builder_and_solver->Info()).c_str(), "ResidualBasedBlockBuilderAndSolver");
         }
 
-        /**
-         * Checks if the ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise performs correctly the Factory
-         */
-        KRATOS_TEST_CASE_IN_SUITE(ResidualBasedBlockBuilderAndSolverWithConstraintsFactory, KratosCoreFastSuite)
-        {
-            LinearSolverType::Pointer p_solver = nullptr;
-            Parameters this_parameters = Parameters(R"({"name" : "block_builder_and_solver_with_constraints_element_wise"})");
-            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverFactoryType().Create(p_solver, this_parameters);
-            KRATOS_CHECK_C_STRING_EQUAL((p_builder_and_solver->Info()).c_str(), "ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise");
-        }
-
     } // namespace Testing
 }  // namespace Kratos.
 
